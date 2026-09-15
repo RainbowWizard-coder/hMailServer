@@ -22,10 +22,12 @@ The audit trail
 
 ### What is recorded
 
-Every **administrative change**: a configuration row created, changed or
-deleted, and every server setting written — both kinds, the settings in
-`hm_settings` and the `[Settings]` keys that moved from `hMailServer.ini` into
-`hm_inisettings` at schema 6042. One row per change, in `hm_audit`:
+Every **administrative change** made over COM, REST or the Deck, with the
+exceptions listed under *What this does not do* at the end of this page: a
+configuration row created, changed or deleted, and every server setting written
+— both kinds, the settings in `hm_settings` and the `[Settings]` keys that moved
+from `hMailServer.ini` into `hm_inisettings` at schema 6042. One row per change,
+in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
@@ -38,6 +40,7 @@ deleted, and every server setting written — both kinds, the settings in
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. |
 | `auditaction` | `created`, `updated` or `deleted`. |
 | `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. |
+| `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 The configuration tables recorded, and the object type each is recorded as:
 
@@ -56,12 +59,22 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_whitelist`, `hm_greylisting_whiteaddresses` | `white list address`, `greylisting white address` |
 | `hm_blocked_attachments`, `hm_blocked_senders` | `blocked attachment`, `blocked sender` |
 | `hm_servermessages`, `hm_fetchaccounts`, `hm_alertrules` | `server message`, `fetch account`, `alert rule` |
+| `hm_archiveindex` | `archive entry` |
+
+The archive index is mostly traffic, and is listed for the two writes of it
+that only an administrator makes: placing or releasing a legal hold
+(`POST`/`DELETE /api/v1/archive/{id}/hold`, COM `Utilities.SetArchiveHold`),
+recorded as `archive entry` `updated`, named `archiveid <id>`, with `hold=1` or
+`hold=0` in its detail; and an address erasure removing the index rows that
+name the address. A copy being indexed as it is received, and the retention
+pass removing an expired one, run with nobody behind them and record nothing.
 
 Every other table the server creates is named in `build/check-audit-choke-point.py`
 with the reason it is not recorded: messages and everything derived from them
 are traffic, and calendars, contacts, webmail preferences, attached files,
 scheduled sends and S/MIME keys are an account's own data rather than server
-configuration.
+configuration. The quarantine is the one that is not so simple, and is under
+*What this does not do*.
 
 A setting's row reads `Name: old -> new`. For a `[Settings]` key, a side on which
 there is no stored value is `(default)`: the first time a key is set it reads
@@ -71,7 +84,6 @@ action `deleted` and reads `SmtpTarpitCount: 5 -> (default)`. A write of the
 value a setting already has changes nothing and records nothing, for either
 kind of setting, because a settings page that saves every field it shows would
 otherwise bury the one that moved.
-| `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 ### What is never recorded
 
@@ -86,10 +98,12 @@ Among the `[Settings]` keys that means `BATVSecret`, `SRSSecret`,
 `MetricsServerAuthPassword`, `MetricsServerAuthToken`, `OAuth2HmacSecret`,
 `OAuth2IntrospectionClientSecret`, `OutboundOAuth2ClientSecret` and
 `OutboundOAuth2FixedToken`; the private-key and key-file paths are withheld too.
-Twelve keys whose names only look like secrets are recorded with their values,
+Fifteen keys whose names only look like secrets are recorded with their values,
 by exact name: the seven `PasswordPolicy*` keys, `PreferredHashAlgorithm`,
 `MinimumAcceptedHashAlgorithm`, `ProtectStoredSecretsWithDPAPI`,
-`OAuth2PublicKeyFile` and `UpdateLogPublicKeyFile`. A change-control reader is
+`OAuth2PublicKeyFile`, `UpdateLogPublicKeyFile`,
+`IndexerFullTextMaxTokensPerMessage`, `IndexerFullTextMinTokenLength` and
+`OutboundOAuth2TokenUrl`. A change-control reader is
 owed "the minimum password length went from 12 to 4", not "it changed". The
 list is exact rather than a pattern on purpose: a key added later that merely
 resembles one of them is withheld until somebody decides it is not a secret.
@@ -128,8 +142,8 @@ way:
   only place where the value the setting HAD is still readable. `hm_settings` is
   deliberately not one of the audited tables, so a setting is recorded once,
   with its old value and its new one, and not twice.
-* **`[Settings]` keys** — `IniSettingStore::WriteSetting`, `::RemoveSetting`
-  and `::XMLLoad` (a restore), which every route to those keys ends in: COM
+* **`[Settings]` keys** — `IniSettingStore::WriteSetting` and
+  `::RemoveSetting`, which every route to those keys ends in: COM
   `SetIniSetting` and `DeleteIniSetting`, `PUT` and `DELETE
   /api/v1/settings/ini/{name}`, the `/api/v1/settings` fields kept in that
   store (`tarpit_count` and `tarpit_delay` among them), hmctl, and the Control
@@ -406,6 +420,30 @@ What this does not do
   neither has the start-up pass that reconciles `hMailServer.ini` with
   `hm_inisettings` or a `[SettingsOverride]` section edited into the file. The
   override announces itself in the error log at every start instead.
+* **A restore is not recorded.** Neither the fact of it nor anything it
+  replaces: the settings, the `[Settings]` keys, the domains and everything
+  under them. `Backup.StartRestore` hands the restore to the maintenance work
+  queue, and the actor that says who made a change lives on the thread that
+  asked the authorisation question, so the thread that does the restoring has
+  nobody on it and the recorder writes nothing — the same filter that keeps
+  delivery out of the trail. Recording a restore needs a decision first: one
+  row saying who restored which backup, or a row for every value it replaced,
+  which for a large server is thousands. The check fails if a record call is
+  put back into `IniSettingStore::XMLLoad` without that decision.
+* **Creating or revoking a REST API key is not recorded.** The keys are kept in
+  their own store file beside `hMailServer.ini`, not in a table, and neither
+  `POST /api/v1/apikeys` nor `DELETE /api/v1/apikeys/{id}` reaches a recorder.
+  Each is only a line in the application log, which is not chained.
+* **Releasing or deleting a quarantined message is not recorded.** A release
+  re-queues the message and then deletes its row with the same statement a
+  deletion uses, so a listed table would record both as the same row naming an
+  id that identifies nothing once the row is gone. It needs a record of its own
+  in `QuarantineStore`, which is not built.
+* **An erasure is recorded with the address it erased.** Among the stores
+  `Utilities.EraseAddressTraces` sweeps are aliases, distribution-list
+  recipients and (with the archive included) the archive index, all of them
+  recorded tables, so each deletion there is a row that names the address. The trail is append-only by design; a retention period
+  (`audit_retention_days`) is the way those rows age out.
 * **The sections of `hMailServer.ini` that are not settings are not recorded.**
   Changing the administrator password or its second factor (`[Security]`), or a
   folder in `[Directories]`, writes the file and nothing else. Those sections are
