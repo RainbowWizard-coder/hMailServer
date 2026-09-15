@@ -116,6 +116,23 @@ namespace HM
       bool GetSyslogLogType(int mask) const;
       void SetSyslogLogType(int mask, bool enabled);
 
+      // The password breach check (PasswordBreachCheck). Four settings in
+      // hm_settings, read at every password change, so a change applies to the
+      // next one. The getters normalise what a hand-edited row could hold: an
+      // empty URL reads as the public corpus, a minimum below one as one, and an
+      // action other than refuse (1) as allow (0).
+      bool GetBreachCheckEnabled() const;
+      void SetBreachCheckEnabled(bool newVal);
+
+      String GetBreachCheckUrl() const;
+      void SetBreachCheckUrl(const String &newVal);
+
+      long GetBreachCheckMinimumCount() const;
+      void SetBreachCheckMinimumCount(long newVal);
+
+      long GetBreachCheckUnreachableAction() const;
+      void SetBreachCheckUnreachableAction(long newVal);
+
       void SetUseScriptServer(bool newVal);
       bool GetUseScriptServer() const;
 
