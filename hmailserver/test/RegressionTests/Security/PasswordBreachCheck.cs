@@ -542,7 +542,7 @@ namespace RegressionTests.Security
             // The refusal is logged naming the account the app password belongs to, as
             // the REST route's is, and nothing about the password.
             string expectedLine = "a new password for an app password for " + account.Address + " was refused";
-            RetryHelper.TryAction(TimeSpan.FromSeconds(10), () => RetryableAssert.StringContains(expectedLine, LogHandler.ReadCurrentDefaultLog()));
+            ClassicAssert.IsTrue(LogHandler.DefaultLogContains(expectedLine), "The application log must name the account: " + expectedLine);
             StringAssert.DoesNotContain(leaked, LogHandler.ReadCurrentDefaultLog(), "The app password is in the log.");
 
             // Negative control: a chosen secret the corpus does not hold.
