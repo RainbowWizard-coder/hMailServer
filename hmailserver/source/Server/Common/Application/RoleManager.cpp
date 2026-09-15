@@ -682,12 +682,18 @@ namespace HM
          RoleGrant assignedGrant = ConfineAssignment_(GrantForRole(assignment.role_name, domains),
                                                       assignment.role_name, assignment.domains, ownDomain);
 
-         if (assignedGrant.administrative)
-            return assignedGrant;
-
-         // The row named a role that no longer holds anything. Fall through to
-         // the historical level rather than to nothing, so that deleting a
-         // custom role cannot lock a server administrator out of their server.
+         // The assignment decides, even when the role it names has come to hold
+         // nothing: a row edited by hand, or a permission a later version renamed,
+         // which ParsePermissionList_ drops. Such an account is an ordinary
+         // account and never falls back to its admin level. An account whose
+         // level says server administrator, narrowed to a role, must not be the
+         // server administrator again because the role lost its permissions, any
+         // more than because the role was deleted - which DeleteCustomRole
+         // refuses while anybody holds it. Neither editor saves a role whose
+         // permissions come to nothing, so an administrator (the password, or an
+         // account holding manage_roles) is always there to give it one that
+         // holds something, or to take the assignment away.
+         return assignedGrant;
       }
 
       switch (account->GetAdminLevel())
@@ -1001,6 +1007,34 @@ namespace HM
    }
 
    bool
+   RoleManager::CountHolders_(const RoleRecord &record, int &holders)
+   {
+      holders = 0;
+
+      // Counted from the table and not the copy, so that an assignment the copy
+      // has not seen yet still counts. A plain count, which reads the same on
+      // all four databases.
+      SQLCommand countHolders("select count(*) as c from hm_roleassignments where raroleid = @ROLEID");
+      countHolders.AddParameter("@ROLEID", record.id);
+
+      std::shared_ptr<DALRecordset> counted = Application::Instance()->GetDBManager()->OpenRecordset(countHolders);
+
+      if (!counted || counted->IsEOF())
+         return false;
+
+      holders = (int) counted->GetLongValue("c");
+      return true;
+   }
+
+   String
+   RoleManager::HeldRoleRefusal_(const RoleRecord &record, int holders)
+   {
+      return String(_T("The role ")) + record.name + _T(" is held by ") + StringParser::IntToString(holders) +
+         (holders == 1 ? _T(" account") : _T(" accounts")) +
+         _T(", which must be given another role or have this one taken away before the role can be deleted.");
+   }
+
+   bool
    RoleManager::DeleteCustomRole(const String &name, String &error, int &holders)
    {
       error = _T("");
@@ -1027,47 +1061,50 @@ namespace HM
       // administrator again. Each holder is given another role or has this one
       // taken away first: a decision about one account, made by somebody, and
       // on the audit trail as that.
-      //
-      // Counted from the table and not the copy, so that an assignment the copy
-      // has not seen yet still counts.
-      SQLCommand countHolders("select count(*) as c from hm_roleassignments where raroleid = @ROLEID");
-      countHolders.AddParameter("@ROLEID", record.id);
-
-      std::shared_ptr<DALRecordset> counted = Application::Instance()->GetDBManager()->OpenRecordset(countHolders);
-
-      if (!counted || counted->IsEOF())
+      if (!CountHolders_(record, holders))
       {
          error = _T("the role's assignments could not be read");
          return false;
       }
 
-      holders = (int) counted->GetLongValue("c");
-
       if (holders > 0)
       {
-         error = String(_T("The role ")) + record.name + _T(" is held by ") + StringParser::IntToString(holders) +
-            (holders == 1 ? _T(" account") : _T(" accounts")) +
-            _T(", which must be given another role or have this one taken away before the role can be deleted.");
+         error = HeldRoleRefusal_(record, holders);
          return false;
       }
 
       // Only a role nobody holds reaches the delete, so the one row it puts on
       // the audit trail records a deletion that happened: every refusal above
-      // returned before a statement ran. An assignment written between the count
-      // and the delete does not slip through either. The assignments' foreign key
-      // to hm_roles has no cascade, so the delete fails, the role stays, and the
-      // trail - which records only a statement that succeeded - says nothing.
+      // returned before a statement ran.
+      bool deleted = false;
       {
          AuditDescription described(_T("hm_roles"), record.name,
             String(_T("permissions: ")) + record.permissions + _T("; description: ") + DescribeText(record.description));
 
          SQLCommand remove("delete from hm_roles where roleid = @ID");
          remove.AddParameter("@ID", record.id);
-         if (!Application::Instance()->GetDBManager()->Execute(remove))
+         deleted = Application::Instance()->GetDBManager()->Execute(remove);
+      }
+
+      if (!deleted)
+      {
+         // An assignment written between the count and the delete does not slip
+         // through. The assignments' foreign key to hm_roles has no cascade, so
+         // the delete fails, the role stays, and the trail - which records only a
+         // statement that succeeded - says nothing. Counted again, so that the
+         // request that lost that race is told what one that did not lose it is
+         // told - who holds the role, and what is to be done first - rather than
+         // that the database refused.
+         int since = 0;
+         if (CountHolders_(record, since) && since > 0)
          {
-            error = _T("the role could not be deleted");
+            holders = since;
+            error = HeldRoleRefusal_(record, holders);
             return false;
          }
+
+         error = _T("the role could not be deleted");
+         return false;
       }
 
       Reload();

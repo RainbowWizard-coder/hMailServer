@@ -187,8 +187,19 @@ this one taken away. The assignments are never taken away to make a role deletab
 because an account with no assignment holds what its admin level gives it - an account
 whose level says server administrator, narrowed to a custom role, would be the server
 administrator again, with nothing said. Taking a role away from an account is a decision
-about that account, and on the audit trail as one. A role nobody holds deletes as it
-always has, a built-in role never does, and COM has no way to delete a role at all.
+about that account, and on the audit trail as one. A delete that loses a race with an
+assignment written after the holders were counted is refused with the same `409`: the
+assignments' foreign key to the role has no cascade, so the database refuses it and the
+holders are counted again. A role nobody holds deletes as it always has, a built-in role
+never does (`400`), and COM has no way to delete a role at all.
+
+**An assignment decides, even when its role holds nothing.** A custom role whose stored
+permissions name nothing this version has - a row edited by hand, or a permission a later
+version renamed - gives its holders nothing, and they do not fall back to their admin
+level: an account narrowed from server administrator to such a role is an ordinary
+account until it is given a role that holds something or has the assignment taken away.
+Neither editor saves a role whose permissions come to nothing, so only an edit to the
+table, or an upgrade, leaves one.
 
 Where each role works
 ---------------------

@@ -586,8 +586,13 @@ namespace RegressionTests.Infrastructure
 
             RunBackup();
 
-            // A fresh server, as far as the role is concerned: it is gone, and its
-            // assignment with it, before the restore begins.
+            // A fresh server, as far as the role is concerned: neither the role nor
+            // its assignment is here when the restore begins. The assignment is
+            // taken away first, because a role somebody holds is refused deletion,
+            // and the restore still has to bring both back for the account to hold
+            // the role again.
+            Response unassigned = Rest("DELETE", "/api/v1/role-assignments/" + _address, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, unassigned.Status, "Body: " + unassigned.Body);
             Response deleted = Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
             Assert.AreEqual(200, deleted.Status, "Body: " + deleted.Body);
             Assert.AreEqual(404, Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword)).Status,
@@ -622,6 +627,10 @@ namespace RegressionTests.Infrastructure
          }
          finally
          {
+            // The restore gave the account the role again, and a role somebody
+            // holds is refused deletion: the assignment goes first, whatever it
+            // answers, or the role stays and the next run cannot make it.
+            Rest("DELETE", "/api/v1/role-assignments/" + _address, BasicAuth("Administrator", AdminPassword));
             Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
          }
       }
@@ -770,6 +779,10 @@ namespace RegressionTests.Infrastructure
          }
          finally
          {
+            // The restore gave the account the role again, and a role somebody
+            // holds is refused deletion: the assignment goes first, whatever it
+            // answers, or the role stays and the next run cannot make it.
+            Rest("DELETE", "/api/v1/role-assignments/" + _address, BasicAuth("Administrator", AdminPassword));
             Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
          }
       }

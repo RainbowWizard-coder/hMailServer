@@ -193,7 +193,9 @@ namespace HM
       // token the update helper redeems. Full authority, as it always was.
       static RoleGrant ServerAdministrator();
 
-      // An account's grant. When an assignment row names a role, that role;
+      // An account's grant. When an assignment row names a role, that role and
+      // nothing else - even a role that has come to hold nothing, so that an
+      // account narrowed to a role is never widened back to its admin level;
       // otherwise DERIVED from AdminLevel, so that every administrator that
       // existed before roles did goes on having exactly the authority it had.
       static RoleGrant GrantForAccount(std::shared_ptr<const Account> account);
@@ -236,8 +238,11 @@ namespace HM
       // it deletable: an account with no assignment holds what its admin level
       // gives it, so an account narrowed from server administrator to the role
       // would be the server administrator again, with nothing said. holders is
-      // how many accounts hold the role when that is the refusal, and 0 every
-      // other way. A refusal writes nothing, the audit trail included.
+      // how many accounts hold the role when that is the refusal - a holder
+      // whose assignment was written between the count and the delete included,
+      // since the foreign key refuses that delete and the holders are counted
+      // again - and 0 every other way. A refusal writes nothing, the audit trail
+      // included.
       static bool DeleteCustomRole(const String &name, String &error, int &holders);
 
       // The assignments.
@@ -390,6 +395,12 @@ namespace HM
       // when the role itself was refused (its name, its permissions) and false
       // when the database could not be written.
       static bool SaveCustomRole_(const String &name, const String &description, const String &permissions, String &error, bool &refused);
+
+      // DeleteCustomRole's two halves: how many accounts hold the role, read
+      // from the table (false when it could not be read), and the sentence a
+      // refusal carries, the same whether the count or the foreign key refused.
+      static bool CountHolders_(const RoleRecord &record, int &holders);
+      static String HeldRoleRefusal_(const RoleRecord &record, int holders);
 
       static unsigned __int64 BuiltInPermissions_(const String &roleName, bool &found);
       static AnsiString DescribeGrantFromSet_(unsigned __int64 set);
