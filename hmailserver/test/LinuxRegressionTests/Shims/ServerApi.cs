@@ -382,6 +382,28 @@ namespace RegressionTests.Shared
          get { return HasRoute("/api/v1/accounts/{address}", "put"); }
       }
 
+      /// <summary>
+      ///    Whether POST /api/v1/domains/{domain}/accounts stores first_name, last_name
+      ///    and admin_level: its schema names admin_level from the change that made the
+      ///    create read its body as a typed document. Before it, the create took the
+      ///    names and dropped a level without a word, and refuses nothing it does not
+      ///    know - so a shim that sent the level there would be believed and ignored.
+      /// </summary>
+      public static bool AccountCreateTakesNamesAndLevel
+      {
+         get
+         {
+            const string path = "/api/v1/domains/{domain}/accounts";
+            var document = OpenApi.Value;
+            var start = document.IndexOf("\"" + path + "\":{", StringComparison.Ordinal);
+            if (start < 0)
+               return false;
+            var end = document.IndexOf("\"/api/v1/", start + path.Length + 4, StringComparison.Ordinal);
+            var entry = end < 0 ? document.Substring(start) : document.Substring(start, end - start);
+            return entry.Contains("\"admin_level\":{");
+         }
+      }
+
       public static bool HasRoute(string path, string verb)
       {
          var document = OpenApi.Value;

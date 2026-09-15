@@ -73,8 +73,10 @@ namespace RegressionTests.Shared
       public const string NoTlsListener =
          "needs TLS listeners, which the REST API cannot add and this server has none of";
 
+      // Given only by a server from before PUT /api/v1/accounts/{address} (wave 162):
+      // its create advertised max_size_mb and ignored it. A create since reads it.
       public const string NoAccountMaxSize =
-         "needs an account with a maximum size, which POST /api/v1/domains/{domain}/accounts does not set";
+         "needs an account with a maximum size, which this server's POST /api/v1/domains/{domain}/accounts advertises and does not set (it reads it from wave 162 on)";
 
       /// <summary>
       ///    The event handlers are VBScript or JScript, run by Windows Active
