@@ -10,7 +10,7 @@
 
 namespace HM
 {
-   // hm_dkimrotations (schema 6050): one row per domain whose DKIM key rotation the
+   // hm_dkimrotations (schema 6048): one row per domain whose DKIM key rotation the
    // server manages - the current, next and retiring slots, when each began, the last
    // check of each slot's record, the last selector retired and the last error. The
    // row is created by the first pass that has something to remember and cascades

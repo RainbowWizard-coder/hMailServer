@@ -239,11 +239,11 @@
 //      helpdesk and auditor seeded as built-in) and hm_roleassignments (which
 //      account holds which role, and in which domains). An account with no
 //      assignment keeps the authority its AdminLevel has always given it.
-// 6050 adds five int columns to hm_domains - domaindkimrotationenabled,
+// 6048 adds five int columns to hm_domains - domaindkimrotationenabled,
 //      domaindkimrotationintervaldays, domaindkimrotationpropagationhours,
 //      domaindkimrotationretentiondays and domaindkimrotationkeybits, the per-domain
 //      DKIM key rotation policy, off on every existing domain - and hm_dkimrotations,
 //      one row per domain whose rotation the server manages, holding the current,
 //      next and retiring selectors with their times and DNS check results; and seeds
 //      the dkim.rotation.stalled alert rule.
-#define REQUIRED_DB_VERSION            6050
+#define REQUIRED_DB_VERSION            6048

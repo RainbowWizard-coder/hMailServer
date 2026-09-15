@@ -503,7 +503,7 @@ namespace HM
       pDomain->SetDKIMSecondarySelector(pRS->GetStringValue("domaindkimsecondaryselector"));
       pDomain->SetDKIMSecondaryPrivateKeyFile(pRS->GetStringValue("domaindkimsecondaryprivatekeyfile"));
 
-      // The rotation policy (schema 6050). The columns default to off and to the
+      // The rotation policy (schema 6048). The columns default to off and to the
       // shipped periods, so a domain that predates them reads back as one whose
       // key has never been rotated by the server.
       pDomain->SetDKIMRotationEnabled(pRS->GetLongValue("domaindkimrotationenabled") == 1);

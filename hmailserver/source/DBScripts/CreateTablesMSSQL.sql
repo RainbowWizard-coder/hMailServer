@@ -1657,4 +1657,4 @@ insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) v
 
 ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6050)
+insert into hm_dbversion values (6048)

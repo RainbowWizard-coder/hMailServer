@@ -49,4 +49,4 @@ ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN K
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) select 'dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1 from hm_dbversion where not exists (select alertrulecondition from hm_alertrules where alertrulecondition = 'dkim.rotation.stalled')
 
-update hm_dbversion set value = 6050
+update hm_dbversion set value = 6048

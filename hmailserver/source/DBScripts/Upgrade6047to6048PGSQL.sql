@@ -10,7 +10,7 @@ alter table hm_domains add column domaindkimrotationkeybits int not null default
 
 create table hm_dkimrotations
 (
-	dkrid bigint auto_increment not null, primary key(`dkrid`), unique(`dkrid`),
+	dkrid bigserial not null primary key,
 	dkrdomainid int not null,
 	dkrcurrentselector varchar(255) not null,
 	dkrcurrentkeyfile varchar(255) not null,
@@ -39,14 +39,12 @@ create table hm_dkimrotations
 	dkrretiredkeyfile varchar(255) not null,
 	dkrlasterror varchar(255) not null,
 	dkrlasterrortime bigint not null
-) DEFAULT CHARSET=utf8;
+);
 
 CREATE UNIQUE INDEX idx_hm_dkimrotations_domain ON hm_dkimrotations (dkrdomainid);
-
-ALTER TABLE hm_dkimrotations ENGINE=InnoDB;
 
 ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) select 'dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1 from hm_dbversion where not exists (select alertrulecondition from hm_alertrules where alertrulecondition = 'dkim.rotation.stalled');
 
-update hm_dbversion set value = 6050;
+update hm_dbversion set value = 6048;

@@ -95,7 +95,7 @@ namespace HM
 
       // A DKIM key rotation that is stuck: a next key whose record has not been seen
       // for the rule's threshold in days, or a rotation whose last attempt to move
-      // failed. Seeded by schema 6050, on, threshold 7.
+      // failed. Seeded by schema 6048, on, threshold 7.
       static const wchar_t *ConditionDkimRotationStalled;
 
       struct Rule
