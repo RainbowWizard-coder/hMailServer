@@ -323,6 +323,48 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A webmail message sent from an identity - an alias of the account - is still decided against the signed-in account's signature, which is the one the page wrote, and its name fills the domain signature's macros.")]
+      public void AnIdentitysMessageIsDecidedAgainstTheSignedInAccount()
+      {
+         const string partner = "partner@outside-identity.test";
+         string alias = "sales@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, alias, Address);
+
+         _sender.PersonFirstName = "Ada";
+         _sender.SignatureEnabled = true;
+         _sender.SignaturePlainText = AccountSignatureText;
+         _sender.Save();
+
+         string pageBody = "Thank you.\n\n-- \n" + AccountSignatureText;
+         string fromAlias = "{\"to\":\"" + partner + "\",\"from\":\"" + alias + "\",\"subject\":\"From sales\",\"text\":" + JsonText(pageBody) + "}";
+
+         // Set-if-not-specified. The alias is no account and has no signature of its
+         // own, but the person who wrote the message has one and the page put it in
+         // the body, so the domain's is not added.
+         EnableDomainSignature(eDomainSignatureMethod.eSMSetIfNotSpecifiedInAccount);
+
+         string decided = WebmailOutwards("outside-identity.test", partner, fromAlias);
+         StringAssert.Contains("sales@", decided, "The message must go from the alias: " + decided);
+         ClassicAssert.AreEqual(1, Occurrences(decided, AccountSignatureText), "The page's signature, once: " + decided);
+         StringAssert.DoesNotContain(SignatureText, decided,
+            "The signed-in account has a signature, so set-if-not-specified adds no domain signature, whatever identity the message is from: " + decided);
+
+         // Append, with a macro: filled from the signed-in account, which is the
+         // person, not left as written because an alias has no name.
+         _domain.SignatureEnabled = true;
+         _domain.SignaturePlainText = "Sent by %User.FirstName% for the example domain.";
+         _domain.SignatureHTML = "";
+         _domain.SignatureMethod = eDomainSignatureMethod.eSMAppendToAccountSignature;
+         _domain.Save();
+
+         string appended = WebmailOutwards("outside-identity.test", partner, fromAlias);
+         StringAssert.Contains("Sent by Ada for the example domain.", appended,
+            "The domain signature's macro must be filled with the signed-in account's name: " + appended);
+         StringAssert.DoesNotContain("%User.FirstName%", appended);
+         ClassicAssert.AreEqual(1, Occurrences(appended, AccountSignatureText), "Still the page's signature once: " + appended);
+      }
+
+      [Test]
       [Description("On the webmail path the disclaimer is left off an automatic reply, a list posting, a message this server already stamped and a message to colleagues only, and not added twice to a reply that quotes it; the signature is left off a reply when the domain says so.")]
       public void TheDisclaimersExclusionsHoldOnTheWebmailPath()
       {
