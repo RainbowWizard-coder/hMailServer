@@ -749,7 +749,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/me/folders/{id}` | IMAPFolder | `account`, `create`, `first`, `folder`, `message`, `name`, `new`, `parent_id`, `to` | - |
 | `POST /api/v1/me/folders/{id}/empty` | ? | `older_than_days` | - |
 | `POST /api/v1/me/folders/{id}/messages` | ServerMessage | - | - |
-| `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `data`, `folder`, `from`, `in_reply_to`, `message`, `name`, `post`, `read`, `references`, `signature`, `subject`, `text`, `to`, `type` | - |
+| `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `data`, `folder`, `from`, `in_reply_to`, `message`, `name`, `post`, `read`, `references`, `subject`, `text`, `to`, `type` | - |
 | `PUT /api/v1/me/messages/{id}/flags` | ? | `answered`, `deleted`, `draft`, `flagged`, `folder`, `rights`, `seen` | - |
 | `POST /api/v1/me/messages/{id}/move` | ? | `account`, `destination`, `folder`, `folder_id`, `name`, `new`, `to` | - |
 | `POST /api/v1/me/messages/{id}/receipt` | ? | - | - |
