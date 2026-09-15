@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../Util/VariantDateTime.h"
+
 namespace HM
 {
    // One row of the sender list: an address or a domain that somebody has said

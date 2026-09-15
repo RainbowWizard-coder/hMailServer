@@ -21,6 +21,7 @@
 #include "InterfaceWhiteListAddresses.h"
 #include "InterfaceBlockedSenders.h"
 #include "InterfaceSenderListEntries.h"
+#include "../Common/Application/QuarantineDigestTask.h"
 #include "../Common/BO/SenderListEntries.h"
 #include "../Common/BO/SenderListEntry.h"
 #include "InterfaceSURBLServers.h"
@@ -642,6 +643,30 @@ STDMETHODIMP InterfaceAntiSpam::get_SenderList(IInterfaceSenderListEntries **pVa
       pInterface->AddRef();
 
       *pVal = pInterface;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::SendQuarantineDigests(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      // A forced pass: the hour and the once-a-day rule are the scheduler's,
+      // and an administrator pressing "send it now" is not asking to wait for
+      // either. Everything that is the reader's or the configuration's still
+      // applies - see QuarantineDigestTask::RunPass.
+      *pVal = (long) HM::QuarantineDigestTask::RunPass(true);
 
       return S_OK;
    }

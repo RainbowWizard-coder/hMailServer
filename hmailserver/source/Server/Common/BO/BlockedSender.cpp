@@ -4,6 +4,7 @@
 
 #include "StdAfx.h"
 #include "BlockedSender.h"
+#include "../AntiSpam/SenderPattern.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -29,56 +30,16 @@ namespace HM
    bool
    BlockedSender::Matches(const String &sFromAddress) const
    {
-      // The null sender (<>) carries bounces and delivery status
-      // notifications. It can never be listed.
-      if (sFromAddress.IsEmpty())
-         return false;
-
-      String entry = address_;
-      entry.Trim();
-      entry.MakeLower();
-
-      // "@example.com" is accepted as an alternative spelling of the
-      // documented "example.com".
-      if (entry.Left(1) == _T("@"))
-         entry = entry.Mid(1);
-
-      if (entry.IsEmpty())
-         return false;
-
-      String from = sFromAddress;
-      from.Trim();
-      from.MakeLower();
-
-      if (entry.Find(_T("@")) >= 0)
-      {
-         // Full-address entry: exact match only. No wildcards, on purpose -
-         // a deny list must be predictable, and "notspammer@example.com"
-         // must never be caught by an entry for "spammer@example.com".
-         return from == entry;
-      }
-
-      // Domain entry. Match the domain part of the envelope sender against
-      // the entry, exactly or as a subdomain.
-      int atPos = from.ReverseFind('@');
-      if (atPos < 0)
-         return false;
-
-      String fromDomain = from.Mid(atPos + 1);
-
-      if (fromDomain == entry)
-         return true;
-
-      // Subdomain: anchored at a label boundary, so "example.com" covers
-      // "mail.example.com" but neither "notexample.com" nor
-      // "example.com.attacker.net".
-      String dottedSuffix = _T(".");
-      dottedSuffix += entry;
-      if (fromDomain.GetLength() > dottedSuffix.GetLength() &&
-          fromDomain.Right(dottedSuffix.GetLength()) == dottedSuffix)
-         return true;
-
-      return false;
+      // The rule lives in SenderPattern now, which is where the reader's own
+      // allow and block lists and the domain's and the server's read it too.
+      // It was written here first and moved rather than copied: two answers to
+      // "does example.com cover mail.example.com" would be two lists an
+      // administrator had to learn separately, and the day one of them was
+      // fixed the other would quietly keep the bug. Nothing about what matches
+      // changed in the move - the null sender still matches nothing, an entry
+      // with an @ is still one exact address, and a domain still covers its
+      // subdomains at a label boundary.
+      return SenderPattern::Matches(address_, sFromAddress);
    }
 
    bool

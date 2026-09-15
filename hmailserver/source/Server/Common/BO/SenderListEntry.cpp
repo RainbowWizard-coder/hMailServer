@@ -6,6 +6,7 @@
 
 #include "SenderListEntry.h"
 #include "../AntiSpam/SenderPattern.h"
+#include "../Util/Time.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)

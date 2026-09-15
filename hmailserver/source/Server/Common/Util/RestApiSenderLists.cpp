@@ -47,6 +47,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentSenderListEntry.h"
 #include "../Util/Time.h"
+#include "../Util/VariantDateTime.h"
 
 #include <cmath>
 #include <string>
@@ -225,7 +226,7 @@ namespace
          return false;
       }
 
-      DateTime expiresAt;
+      HM::DateTime expiresAt;
 
       if (expires)
       {
@@ -242,7 +243,7 @@ namespace
          // The same refusal PersistentSecurityRange makes, for the same reason:
          // an expiry flag without a readable time is an entry the sweep removes
          // before anybody has used it, and the caller would never know why.
-         if (expiresAt.GetStatus() != DateTime::valid)
+         if (expiresAt.GetStatus() != HM::DateTime::valid)
          {
             error = "expires_time is not a date; it is written YYYY-MM-DD HH:MM:SS";
             return false;
@@ -533,7 +534,7 @@ namespace HM
          available ? "true" : "false",
          (available && !state.opted_out) ? "true" : "false",
          hour,
-         state.last_sent.GetStatus() == DateTime::valid
+         state.last_sent.GetStatus() == HM::DateTime::valid
             ? Quoted(bridge, Time::GetTimeStampFromDateTime(state.last_sent)).c_str()
             : "");
 

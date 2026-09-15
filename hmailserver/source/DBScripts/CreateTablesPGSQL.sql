@@ -185,7 +185,9 @@ create table hm_domains
 	domainvacationmessage text not null default '',
 	domainvacationinternalsubject varchar(200) not null default '',
 	domainvacationinternalmessage text not null default '',
-	domainvacationexternaloverride int not null default 0
+	domainvacationexternaloverride int not null default 0,
+	domainquarantinedigest smallint not null default 0,
+	domainquarantinedigesthour int not null default 7
 );
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);

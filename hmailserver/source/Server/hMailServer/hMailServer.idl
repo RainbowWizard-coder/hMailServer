@@ -752,10 +752,6 @@ interface IInterfaceSettings : IDispatch{
       HRESULT SetIniSetting([in] BSTR Name, [in] BSTR Value);
    [id(110), helpstring("Removes a key from the [Settings] section, returning the setting to its default. Not the same as writing an empty value.")]
       HRESULT DeleteIniSetting([in] BSTR Name);
-   [propget, id(112), helpstring("The absolute base URL the quarantine digest writes its release links against, such as https://mail.example.com. Empty means no digest is sent at all, because a link nobody can follow is worse than no message.")] HRESULT QuarantineDigestBaseUrl([out, retval] BSTR *pVal);
-   [propput, id(112), helpstring("The absolute base URL the quarantine digest writes its release links against, such as https://mail.example.com. Empty means no digest is sent at all, because a link nobody can follow is worse than no message.")] HRESULT QuarantineDigestBaseUrl([in] BSTR newVal);
-   [propget, id(113), helpstring("How many hours a release link in a digest stays usable, 1 to 720. Each link also works only once.")] HRESULT QuarantineDigestLinkHours([out, retval] long *pVal);
-   [propput, id(113), helpstring("How many hours a release link in a digest stays usable, 1 to 720. Each link also works only once.")] HRESULT QuarantineDigestLinkHours([in] long newVal);
    [propget, id(111), helpstring("Every name currently in the [Settings] section, one per line.")]
       HRESULT IniSettingNames([out, retval] BSTR *pVal);
 
@@ -816,6 +812,10 @@ interface IInterfaceSettings : IDispatch{
    [propput, id(115), helpstring("Create Drafts, Sent, Trash and Junk, designated for RFC 6154 SPECIAL-USE, when an account is created. Off by default.")] HRESULT CreateDefaultSpecialUseFoldersEnabled([in] VARIANT_BOOL newVal);
    [id(116), helpstring("Enrols a second factor on the administrator credential and returns the otpauth:// URI to show as a QR code. The secret is inside that URI and is not retrievable afterwards; it is enforced at once, on the COM API and the REST API alike. Server administrators only, and the administrator password must be set.")] HRESULT EnrolAdministratorTOTP([out, retval] BSTR *pVal);
    [id(117), helpstring("Removes the administrator credential's second factor; the password alone authenticates again at once. Server administrators only.")] HRESULT DisableAdministratorTOTP();
+   [propget, id(118), helpstring("The absolute base URL the quarantine digest writes its release links against, such as https://mail.example.com. Empty means no digest is sent at all, because a link nobody can follow is worse than no message.")] HRESULT QuarantineDigestBaseUrl([out, retval] BSTR *pVal);
+   [propput, id(118), helpstring("The absolute base URL the quarantine digest writes its release links against, such as https://mail.example.com. Empty means no digest is sent at all, because a link nobody can follow is worse than no message.")] HRESULT QuarantineDigestBaseUrl([in] BSTR newVal);
+   [propget, id(119), helpstring("How many hours a release link in a digest stays usable, 1 to 720. Each link also works only once.")] HRESULT QuarantineDigestLinkHours([out, retval] long *pVal);
+   [propput, id(119), helpstring("How many hours a release link in a digest stays usable, 1 to 720. Each link also works only once.")] HRESULT QuarantineDigestLinkHours([in] long newVal);
 
 };
 
@@ -940,11 +940,11 @@ interface IInterfaceDomain : IDispatch
       [propget, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([out, retval] VARIANT_BOOL *pVal);
       [propput, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([in] VARIANT_BOOL newVal);
 
-      [propget, id(56), helpstring("This domain's allow and block list: addresses and domains wanted, or not wanted, by every account of this domain. Consulted after an account's own list and before the server's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
-      [propget, id(57), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([out, retval] VARIANT_BOOL *pVal);
-      [propput, id(57), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([in] VARIANT_BOOL newVal);
-      [propget, id(58), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([out, retval] long *pVal);
-      [propput, id(58), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([in] long newVal);
+      [propget, id(57), helpstring("This domain's allow and block list: addresses and domains wanted, or not wanted, by every account of this domain. Consulted after an account's own list and before the server's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
+      [propget, id(58), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(58), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([in] VARIANT_BOOL newVal);
+      [propget, id(59), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([out, retval] long *pVal);
+      [propput, id(59), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([in] long newVal);
 
 };
 [
@@ -2646,6 +2646,7 @@ interface IInterfaceAntiSpam : IDispatch
    [propget, id(43), helpstring("The spam quarantine: messages held for review instead of refused. Empty and inert unless QuarantineEnabled is set in hMailServer.ini.")] HRESULT Quarantine([out, retval] IInterfaceQuarantine** pVal);
    [propget, id(44), helpstring("Global list of blocked sender addresses and domains.")] HRESULT BlockedSenders([out, retval] IInterfaceBlockedSenders **pVal);
    [propget, id(45), helpstring("The server's allow and block list: addresses and domains wanted, or not wanted, by every account. Consulted at delivery, after the account's own list and its domain's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
+   [id(46), helpstring("Sends the quarantine digest now to every account of every domain that has the digest switched on and something newly held for it, ignoring the digest hour and the once-a-day rule. Not the opt-out, a missing QuarantineDigestBaseUrl or an empty digest: those still send nothing. Returns how many digests were sent.")] HRESULT SendQuarantineDigests([out, retval] long *pVal);
 };
 
 

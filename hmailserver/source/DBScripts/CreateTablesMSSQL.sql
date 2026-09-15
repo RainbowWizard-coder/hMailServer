@@ -278,7 +278,9 @@ create table hm_domains (
 	domainvacationmessage nvarchar(1000) not null,
 	domainvacationinternalsubject nvarchar(200) not null,
 	domainvacationinternalmessage nvarchar(1000) not null,
-	domainvacationexternaloverride int not null
+	domainvacationexternaloverride int not null,
+	domainquarantinedigest tinyint not null default 0,
+	domainquarantinedigesthour int not null default 7
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
