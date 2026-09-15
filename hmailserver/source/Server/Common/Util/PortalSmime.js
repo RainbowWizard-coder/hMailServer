@@ -813,6 +813,10 @@
   // do not display a data: image. The server does the same for a message it
   // writes (InlineImageParts.cpp), but a signed or an encrypted message is
   // sealed here, before the server sees it, so here is where it has to happen.
+  // As there, at most MOST_IMAGES distinct images become parts and a new one
+  // past that stays a data: URL: what the webmail's view of the Sent copy puts
+  // back in place (InlineImageParts::MostImages).
+  const MOST_IMAGES = 64;
   function embedDataImages(html) {
     const images = [];
     const known = new Map();
@@ -821,6 +825,7 @@
       const clean = data.replace(/\s+/g, '');
       if (!clean || clean.length % 4 !== 0 || /=[^=]/.test(clean)) { return whole; }
       let image = known.get(clean);
+      if (!image && images.length >= MOST_IMAGES) { return whole; }
       if (!image) {
         const type = /^jpe?g$/i.test(subtype) ? 'image/jpeg' : 'image/' + subtype.toLowerCase();
         const n = images.length + 1;

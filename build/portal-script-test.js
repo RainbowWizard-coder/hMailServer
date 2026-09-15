@@ -416,6 +416,24 @@ const WITH_IMAGE = {
    ]
 };
 
+// A draft this webmail saved: a file, the signature's logo as the server makes
+// an image a part (img<n>.<32 hex>@host), one the S/MIME module made
+// (img<n>.<16 hex>@webmail.invalid), and a photo another mail client embedded
+// under a Content-ID of its own.
+const DRAFT_WITH_LOGO = {
+   id: 105, folder_id: 1, uid: 15, subject: 'Unfinished', from: 'user@example.com', to: 'b@example.net', cc: '',
+   date: '2026-09-09 13:00', size: 900, message_id: '<draft@example.com>', references: '', in_reply_to: '',
+   text: 'Not yet', html: '<p>Not yet</p><img src="cid:img1.0123456789abcdef0123456789abcdef@mail.example.com" alt=""><img src="cid:img1.0123456789abcdef@webmail.invalid" alt=""><img src="cid:image001.jpg@01DC2A3B.4C5D6E70" alt="">',
+   html_remote: false,
+   flags: { seen: true, flagged: false, draft: true },
+   attachments: [
+      { index: 0, name: 'notes.txt', size: 12, content_type: 'text/plain', content_id: '' },
+      { index: 1, name: 'image1.png', size: 3400, content_type: 'image/png', content_id: '<img1.0123456789abcdef0123456789abcdef@mail.example.com>' },
+      { index: 2, name: 'image1.png', size: 3400, content_type: 'image/png', content_id: 'img1.0123456789abcdef@webmail.invalid' },
+      { index: 3, name: 'photo.jpg', size: 5100, content_type: 'image/jpeg', content_id: '<image001.jpg@01DC2A3B.4C5D6E70>' }
+   ]
+};
+
 function json(status, body, headers) {
    return { status, body: body === undefined ? '' : JSON.stringify(body), headers: headers || {} };
 }
@@ -485,6 +503,11 @@ function answer(method, path, body) {
       return { status: 200, body: 'PNGBYTES', headers: { 'Content-Type': types[index] || 'application/octet-stream' } };
    }
    if (path === '/api/v1/me/messages/102' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(WITH_IMAGE)))); }
+   if (/^\/api\/v1\/me\/messages\/105\/attachments\/(\d+)$/.test(path)) {
+      const types = { 0: 'text/plain', 1: 'image/png', 2: 'image/png', 3: 'image/jpeg' };
+      return { status: 200, body: 'FILEBYTES', headers: { 'Content-Type': types[Number(path.split('/').pop())] || 'application/octet-stream' } };
+   }
+   if (path === '/api/v1/me/messages/105' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(DRAFT_WITH_LOGO)))); }
    if (/^\/api\/v1\/me\/messages\/5\d\d$/.test(path) && method === 'GET') {
       const one = WORK_THREAD.filter((m) => m.id === Number(path.split('/').pop()))[0];
       if (one) { return json(200, withState(Object.assign({ folder_id: 3, cc: '', html: '', attachments: [] }, one))); }
@@ -1548,24 +1571,33 @@ async function main() {
       fitsPut ? fitsPut.signature.html.length + ' ' + fitsPut.signature.html.slice(0, 80) : 'no PUT');
    sigImages().forEach((n) => sigEditor.removeChild(n));
 
-   // ---- a draft reopens as its text, so the images its HTML shows by cid: - a
-   // signature's logo, which the server sent as a part - are not attached again
+   // ---- a draft reopens as its text, so the images this webmail made parts of
+   // its HTML - a signature's logo - are not attached again; an image another
+   // mail client embedded is, as it always was
    const beforeDraft = requests.length;
-   location.hash = '#/compose?draft=102';
+   location.hash = '#/compose?draft=105';
    await flush();
    await flush();
-   const draftFetched = since(beforeDraft).filter((r) => /\/messages\/102\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+   const draftFetched = since(beforeDraft).filter((r) => /\/messages\/105\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
    const draftNote = document.getElementById('compose-files-note').textContent;
-   check('a draft reopened carries its files, and not the images its HTML shows', draftFetched.join(',') === '0' && draftNote.indexOf('notes.txt') >= 0 && draftNote.indexOf('logo.png') < 0,
+   check('a draft reopened carries its files, and not the images this webmail made parts of its HTML', draftFetched.join(',') === '0,3' && draftNote.indexOf('notes.txt') >= 0 && draftNote.indexOf('photo.jpg') >= 0 && draftNote.indexOf('image1.png') < 0,
       JSON.stringify(draftFetched) + ' ' + draftNote);
    document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
    await flush();
+   const beforeOtherDraft = requests.length;
+   location.hash = '#/compose?draft=102';
+   await flush();
+   await flush();
+   const otherDraftFetched = since(beforeOtherDraft).filter((r) => /\/messages\/102\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+   check('a draft whose images another mail client embedded carries every one of them as a file', otherDraftFetched.join(',') === '0,1,2', JSON.stringify(otherDraftFetched));
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
    const beforeForwardImages = requests.length;
-   location.hash = '#/compose?forward=102';
+   location.hash = '#/compose?forward=105';
    await flush();
    await flush();
-   const forwardFetched = since(beforeForwardImages).filter((r) => /\/messages\/102\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
-   check('a forward, whose HTML does not go with it, still carries those images as files', forwardFetched.join(',') === '0,1,2', JSON.stringify(forwardFetched));
+   const forwardFetched = since(beforeForwardImages).filter((r) => /\/messages\/105\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+   check('a forward, whose HTML does not go with it, still carries this webmail\'s images as files', forwardFetched.join(',') === '0,1,2,3', JSON.stringify(forwardFetched));
    document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
    await flush();
    dismissAllToasts();

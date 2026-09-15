@@ -1197,14 +1197,22 @@
     resetLinked();
     say('compose-status', '', true);
   };
+  // The Content-IDs this webmail's own images are given when a message is
+  // written: img<n>.<32 hex>@<host> by the server (InlineImageParts.cpp) and
+  // img<n>.<16 hex>@webmail.invalid by the S/MIME module (PortalSmime.js).
+  var OWN_IMAGE_ID = /^img\d+\.(?:[0-9a-f]{16}@webmail\.invalid|[0-9a-f]{32}@)/i;
   var carryAttachments = function (message, embeddedStay) {
     carried = [];
-    // A draft reopens as its text, so the images its HTML shows - a signature's
-    // logo, sent as a cid: part - are not files to attach again; they come back
-    // with the formatted signature when formatting is switched on.
+    // A draft reopens as its text, so the images this webmail put into its
+    // HTML - a signature's logo, an image pasted in, sent as cid: parts - are
+    // not files to attach again: before they were parts they were data: URLs
+    // in that HTML, which a draft never brought back either, and the logo
+    // comes back with the formatted signature when formatting is switched on.
+    // An image another mail client embedded in a draft it saved is still
+    // carried as a file, as it always was.
     var list = (message.attachments || []).filter(function (a) {
       var cid = contentIdOf(a).toLowerCase();
-      return !(embeddedStay && cid && String(message.html || '').toLowerCase().indexOf('cid:' + cid) >= 0);
+      return !(embeddedStay && OWN_IMAGE_ID.test(cid) && String(message.html || '').toLowerCase().indexOf('cid:' + cid) >= 0);
     });
     if (!list.length) { return Promise.resolve(); }
     el('compose-files-note').textContent = 'Fetching ' + list.length + ' attachment(s)...';

@@ -173,6 +173,13 @@ function openssl(args, input) {
   const logoId = built.attachments.length === 1 ? built.attachments[0].contentId : '';
   check(built.attachments.length === 1 && built.attachments[0].type === 'image/png' && Buffer.from(built.attachments[0].bytes).toString('base64') === logo, 'the image named twice is one PNG part with the bytes the URL held: ' + built.attachments.length + ' part(s)');
   check(!!logoId && built.html.split('cid:' + logoId).length === 3 && built.text === 'Ada\r\n', 'both cid: URLs in the HTML name that part\'s Content-ID, and the text is untouched: ' + logoId);
+  // Sixty-five different images: sixty-four parts, as the server moves, and the last left as its data: URL.
+  let manyHtml = '';
+  for (let i = 0; i <= 64; i++) {
+    manyHtml += '<img src="data:image/png;base64,' + Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 65 + (i % 26), 97 + Math.floor(i / 26)]).toString('base64') + '" alt="">';
+  }
+  const many = smime.extractContent(smime.parseMime(smime.buildMime({ text: 'x', html: manyHtml })));
+  check(many.attachments.length === 64 && many.html.split('data:image/png').length === 2 && many.html.split('cid:').length === 65, 'at most 64 images become parts and the next stays a data: URL, as on the server: ' + many.attachments.length + ' part(s)');
   const untouchedHtml = '<img data-src="data:image/png;base64,' + logo + '"><img src="data:image/svg+xml;base64,PHN2Zz4=">';
   check(smime.extractContent(smime.parseMime(smime.buildMime({ text: 'x', html: untouchedHtml }))).html === untouchedHtml, 'a data-src and an SVG are left as they were');
   const signedLogo = await smime.composeMessage({ headers: { from: 'alice@example.test', to: 'bob@example.test', subject: 'Logo' }, text: withLogo.text, html: withLogo.html, sign: signer });
