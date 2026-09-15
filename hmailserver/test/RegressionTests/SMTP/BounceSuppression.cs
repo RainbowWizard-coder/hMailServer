@@ -165,6 +165,17 @@ namespace RegressionTests.SMTP
          // Refused at RCPT, so nothing was queued and no second report was written.
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          Pop3ClientSimulator.AssertMessageCount(sender.Address, Password, 0);
+
+         // The webmail's send route says where the entry came from, so the page can
+         // say the address bounced rather than that somebody listed it.
+         string account = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(sender.Address + ":" + Password));
+         (int status, string body) refused = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/me/messages", account,
+            "{\"to\":\"" + Remote + "\",\"subject\":\"From the webmail\",\"text\":\"Body.\"}");
+
+         Assert.AreEqual(400, refused.status, refused.body);
+         Assert.AreEqual("recipient_suppressed", BounceTestSupport.Text(refused.body, "code"), refused.body);
+         Assert.AreEqual("bounce", BounceTestSupport.Text(refused.body, "source"), refused.body);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
       }
 
       [Test]
@@ -185,6 +196,8 @@ namespace RegressionTests.SMTP
          Assert.AreEqual(400, refused.status, refused.body);
          Assert.AreEqual("recipient_suppressed", BounceTestSupport.Text(refused.body, "code"), refused.body);
          Assert.AreEqual(Remote, BounceTestSupport.Text(refused.body, "address"), refused.body);
+         Assert.AreEqual("manual", BounceTestSupport.Text(refused.body, "source"),
+            "The page tells an address an administrator listed from one that bounced by this: " + refused.body);
          StringAssert.Contains("suppression list", refused.body);
 
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
@@ -504,7 +517,7 @@ namespace RegressionTests.SMTP
                "values (" + doomedId + ", 'orphan@" + BounceTestSupport.RemoteDomain + "', 2, 0, '', '', '', '2026-01-01 00:00:00', '')",
             "insert into hm_bouncecounts (bcdomainid, bcaddress, bchard, bcsoft, bcmailboxfull, bcpolicy, bcother, bcconsecutivehard, bclaststatus, bclastcategory, bclastbounce, bclastdelivered) " +
                "values (" + doomedId + ", 'orphan@" + BounceTestSupport.RemoteDomain + "', 0, 0, 0, 0, 0, 0, '', 0, '', '')",
-            "insert into hm_bouncereportkeys (brkdomainid, brkkey, brksent) values (" + doomedId + ", 'orphan', '2026-01-01 00:00:00')"
+            "insert into hm_bouncereportkeys (brkdomainid, brkkey, brksent, brkaddress, brkrun) values (" + doomedId + ", 'orphan', '2026-01-01 00:00:00', 'orphan', 0)"
          };
 
          foreach (string orphan in orphans)

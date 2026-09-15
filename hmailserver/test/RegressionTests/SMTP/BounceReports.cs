@@ -220,22 +220,218 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("This server's own non-delivery report, arriving in the sender's mailbox with a null sender, is not read as a second bounce.")]
+      [Description("This server's own non-delivery report, arriving in the sender's mailbox with a null sender and quoting a message whose report key really exists, is not read as a second bounce - and the genuine report after it still finds that key and counts.")]
       public void OurOwnNonDeliveryReportIsNotCountedTwice()
       {
          _settings.BounceHardBounceThreshold = 2;
 
          Account sender = NewSender();
+         string messageId = NewMessageId();
 
-         BounceTestSupport.DeliverThroughSimulator(sender.Address, Remote, 550,
+         // First the message is accepted, which writes the key for this Message-ID,
+         // recipient and sender. Without it this server's own report could match
+         // nothing, and the test would pass with the check it is about removed.
+         DeliverOriginal(sender.Address, Remote, messageId);
+
+         // Then the same message - the same Message-ID, sender and recipient - is
+         // refused with the remote's own 5.1.1. That is one hard bounce, and it makes
+         // this server write its own report, which quotes the Message-ID and names
+         // the recipient: everything the key needs.
+         DeliverWithMessageId(sender.Address, Remote, messageId, 550,
             "5.1.1 <" + Remote + ">: Recipient address rejected: User unknown");
 
-         string report = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, Password);
-         StringAssert.Contains("report-type=delivery-status", report, "The sender received this server's own report.");
+         string ownReport = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, Password);
+         StringAssert.Contains("report-type=delivery-status", ownReport, "The sender did not receive this server's own report.");
+         StringAssert.Contains("Final-Recipient: rfc822; " + Remote, ownReport, ownReport);
+         StringAssert.Contains("Message-ID: <" + messageId + ">", ownReport,
+            "This server's own report does not quote the original Message-ID, so it could not have matched the key and the test proves nothing.");
 
          string row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
          Assert.AreEqual(1, BounceTestSupport.Number(row, "hard"), "This server's own report was counted as a second bounce: " + row);
-         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/suppressions"), "total"));
+
+         // The key was not used up by the report that was ignored: the genuine one
+         // finds it.
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", messageId);
+
+         Assert.AreEqual(2, BounceTestSupport.Number(BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote), "hard"),
+            "The genuine report did not count, so the key was gone - consumed by this server's own report, which must never be read.");
+      }
+
+      [Test]
+      [Description("A threshold above one is reached through reports: an acceptance sets the run of hard bounces aside rather than ending it, and the report that the message failed gives it back.")]
+      public void AThresholdAboveOneIsReachedThroughReports()
+      {
+         _settings.BounceHardBounceThreshold = 2;
+
+         Account sender = NewSender();
+
+         string first = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, first);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", first);
+
+         string row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
+         Assert.AreEqual(1, BounceTestSupport.Number(row, "consecutive_hard"), row);
+         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/suppressions"), "total"), "One hard bounce is below a threshold of two.");
+
+         // The next message is accepted too - which is all a server behind a smart
+         // host ever sees - and its report is the second hard bounce in a row.
+         string second = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, second);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", second);
+
+         row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
+         Assert.AreEqual(2, BounceTestSupport.Number(row, "hard"), row);
+         Assert.AreEqual(2, BounceTestSupport.Number(row, "consecutive_hard"),
+            "The second message's acceptance ended the run its own report belonged to: " + row);
+
+         string item = BounceTestSupport.AssertItemFor(Read(DomainPath + "/suppressions"), Remote);
+         Assert.AreEqual("report", BounceTestSupport.Text(item, "source"), item);
+      }
+
+      [Test]
+      [Description("A message that was accepted and never reported is a delivery: it ends the run, so the hard bounce reported after it is one in a row, not two - and two reported in a row after that do list the address.")]
+      public void AnAcceptanceNoReportContradictsEndsTheRun()
+      {
+         _settings.BounceHardBounceThreshold = 2;
+
+         Account sender = NewSender();
+
+         string first = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, first);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", first);
+
+         // Delivered, and no report ever comes for it.
+         DeliverOriginal(sender.Address, Remote, NewMessageId());
+
+         string third = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, third);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", third);
+
+         string row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
+         Assert.AreEqual(2, BounceTestSupport.Number(row, "hard"), row);
+         Assert.AreEqual(1, BounceTestSupport.Number(row, "consecutive_hard"),
+            "A message delivered between two hard bounces did not end the run: " + row);
+         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/suppressions"), "total"),
+            "An address a message was delivered to between two hard bounces was listed at a threshold of two.");
+
+         // The control: two in a row from here are two.
+         string fourth = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, fourth);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", fourth);
+
+         Assert.AreEqual(2, BounceTestSupport.Number(BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote), "consecutive_hard"));
+         BounceTestSupport.AssertItemFor(Read(DomainPath + "/suppressions"), Remote);
+      }
+
+      [Test]
+      [Description("Two messages accepted before either report arrives: the first report carries its bounce forward onto the second message, and the second report brings both into the run.")]
+      public void ReportsForMessagesSentBeforeEitherReportArrivesStillAddUp()
+      {
+         _settings.BounceHardBounceThreshold = 2;
+
+         Account sender = NewSender();
+
+         string first = NewMessageId();
+         string second = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, first);
+         DeliverOriginal(sender.Address, Remote, second);
+
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", first);
+
+         string row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
+         Assert.AreEqual(1, BounceTestSupport.Number(row, "hard"), row);
+         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/suppressions"), "total"),
+            "The first report listed the address although a later message to it had been accepted and might have been delivered.");
+
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", second);
+
+         row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
+         Assert.AreEqual(2, BounceTestSupport.Number(row, "consecutive_hard"),
+            "The first report's bounce was not carried forward onto the second message: " + row);
+         BounceTestSupport.AssertItemFor(Read(DomainPath + "/suppressions"), Remote);
+      }
+
+      [Test]
+      [Description("An entry removed by hand starts the run again for a report still on its way, too: the run that report's message set aside is forgotten, so it adds one - and two in a row after that list the address again.")]
+      public void RemovingAnEntryForgetsTheRunAPendingReportWouldGiveBack()
+      {
+         _settings.BounceHardBounceThreshold = 2;
+
+         Account sender = NewSender();
+
+         string first = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, first);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", first);
+
+         // Accepted with a run of one set aside, and then the administrator lists
+         // and removes the address before that message's report comes.
+         string second = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, second);
+
+         Assert.AreEqual(201, BounceTestSupport.Http(RestPort, "POST", DomainPath + "/suppressions", "{\"address\":\"" + Remote + "\"}").status);
+         Assert.AreEqual(200, BounceTestSupport.Http(RestPort, "DELETE", DomainPath + "/suppressions/" + Uri.EscapeDataString(Remote)).status);
+
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", second);
+
+         Assert.AreEqual(1, BounceTestSupport.Number(BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote), "consecutive_hard"),
+            "A report about a message accepted before the removal gave back the run as it stood before the removal.");
+         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/suppressions"), "total"),
+            "The address was listed again by one hard bounce after it was removed, at a threshold of two.");
+
+         string third = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, third);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", third);
+
+         BounceTestSupport.AssertItemFor(Read(DomainPath + "/suppressions"), Remote);
+      }
+
+      [Test]
+      [Description("A report whose Status says 5.1.1 beside a bare '550 <address>' - which is how this server's own reports, and any MTA that derives its code the same way, write one - is counted as other and never lists the address; a report carrying the remote's own 5.1.1 does.")]
+      public void AReportWhoseStatusWasDerivedFromABareReplyIsNotTrusted()
+      {
+         Account sender = NewSender();
+
+         string first = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, first);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", first, "smtp; 550 " + Remote);
+
+         string row = BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote);
+         Assert.AreEqual(1, BounceTestSupport.Number(row, "other"), row);
+         Assert.AreEqual(0, BounceTestSupport.Number(row, "hard"), row);
+         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/suppressions"), "total"),
+            "A Status a reporting server derived from a bare 550 was trusted as a dead mailbox.");
+
+         string second = NewMessageId();
+         DeliverOriginal(sender.Address, Remote, second);
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", second);
+
+         Assert.AreEqual(1, BounceTestSupport.Number(BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote), "hard"),
+            "The report with the remote's own 5.1.1 was not counted, so the first half of this test proved nothing.");
+         BounceTestSupport.AssertItemFor(Read(DomainPath + "/suppressions"), Remote);
+      }
+
+      [Test]
+      [Description("A null-sender message addressed to two of this server's addresses is not read as a report - a report goes to one envelope sender - and the same report to the sender alone counts.")]
+      public void AReportAddressedToTwoLocalAddressesIsNotRead()
+      {
+         Account sender = NewSender();
+         Account bystander = NewSender();
+         string messageId = NewMessageId();
+
+         DeliverOriginal(sender.Address, Remote, messageId);
+
+         SendNullSenderToTwo(sender.Address, bystander.Address, ReportText(sender.Address, Remote, "failed", "5.1.1", messageId));
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, Password);
+         Pop3ClientSimulator.AssertGetFirstMessageText(bystander.Address, Password);
+
+         Assert.AreEqual(0, BounceTestSupport.Number(Read(DomainPath + "/bounces"), "total"),
+            "A null-sender message to two local addresses was read as a delivery report.");
+
+         InjectReport(sender.Address, Remote, "failed", "5.1.1", messageId);
+
+         Assert.AreEqual(1, BounceTestSupport.Number(BounceTestSupport.AssertItemFor(Read(DomainPath + "/bounces"), Remote), "hard"),
+            "The same report to the sender alone did not count, so the first half of this test proved nothing.");
       }
 
       [Test]
@@ -296,13 +492,47 @@ namespace RegressionTests.SMTP
       }
 
       /// <summary>
+      ///    The same message as DeliverOriginal - this Message-ID - delivered to a
+      ///    simulator that answers RCPT TO with this code and reply text. Nothing is
+      ///    asserted about what the simulator received, since a refused recipient
+      ///    gets no DATA.
+      /// </summary>
+      private static void DeliverWithMessageId(string sender, string recipient, string messageId, int code, string replyText)
+      {
+         int port = TestSetup.GetNextFreePort();
+
+         using (var server = new SmtpServerSimulator(1, port))
+         {
+            server.AddRecipientResult(new Dictionary<string, int> { [recipient] = code });
+            server.RecipientReplyTexts[recipient] = replyText;
+            server.StartListen();
+            BounceTestSupport.RouteTo(port);
+
+            SmtpClientSimulator.StaticSendRaw(sender, recipient,
+               "From: " + sender + "\r\n" +
+               "To: " + recipient + "\r\n" +
+               "Subject: The original\r\n" +
+               "Message-ID: <" + messageId + ">\r\n" +
+               "\r\n" +
+               "Body text.\r\n");
+
+            server.WaitForCompletion();
+         }
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0, true);
+      }
+
+      /// <summary>
       ///    A report, sent over plain SMTP with a null envelope sender as a remote MTA
       ///    sends one, and taken out of the sender's mailbox again once it has been
-      ///    delivered - which every report must be, counted or not.
+      ///    delivered - which every report must be, counted or not. diagnosticCode,
+      ///    when given, is the Diagnostic-Code field's value in place of the remote's
+      ///    own 550 5.1.1.
       /// </summary>
-      private static void InjectReport(string reportTo, string finalRecipient, string action, string status, string originalMessageId)
+      private static void InjectReport(string reportTo, string finalRecipient, string action, string status, string originalMessageId,
+                                       string diagnosticCode = null)
       {
-         SmtpClientSimulator.StaticSendRaw("", reportTo, ReportText(reportTo, finalRecipient, action, status, originalMessageId));
+         SmtpClientSimulator.StaticSendRaw("", reportTo, ReportText(reportTo, finalRecipient, action, status, originalMessageId, diagnosticCode));
 
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
 
@@ -312,18 +542,44 @@ namespace RegressionTests.SMTP
       }
 
       /// <summary>
+      ///    One message with a null envelope sender and two RCPT TOs, over plain SMTP.
+      /// </summary>
+      private static void SendNullSenderToTwo(string firstRecipient, string secondRecipient, string text)
+      {
+         using (var socket = new TcpConnection())
+         {
+            Assert.IsTrue(socket.Connect(25), "Could not connect to the SMTP server.");
+            StringAssert.StartsWith("220", socket.Receive());
+
+            StringAssert.StartsWith("250", socket.SendAndReceive("HELO example.test\r\n"));
+            StringAssert.StartsWith("250", socket.SendAndReceive("MAIL FROM:<>\r\n"));
+            StringAssert.StartsWith("250", socket.SendAndReceive("RCPT TO:<" + firstRecipient + ">\r\n"));
+            StringAssert.StartsWith("250", socket.SendAndReceive("RCPT TO:<" + secondRecipient + ">\r\n"));
+            StringAssert.StartsWith("354", socket.SendAndReceive("DATA\r\n"));
+
+            socket.Send(text);
+            if (!text.EndsWith("\r\n"))
+               socket.Send("\r\n");
+
+            StringAssert.StartsWith("250", socket.SendAndReceive(".\r\n"));
+            socket.SendAndReceive("QUIT\r\n");
+         }
+      }
+
+      /// <summary>
       ///    A Postfix-shaped RFC 3464 report: the human-readable part, the
       ///    message/delivery-status part with one recipient group, and the original
       ///    message's headers as text/rfc822-headers.
       /// </summary>
-      private static string ReportText(string reportTo, string finalRecipient, string action, string status, string originalMessageId)
+      private static string ReportText(string reportTo, string finalRecipient, string action, string status, string originalMessageId,
+                                       string diagnosticCode = null)
       {
          const string Boundary = "report-boundary-4F1A2B";
          string reportingMta = "mx." + BounceTestSupport.RemoteDomain;
 
-         string diagnostic = action == "failed"
-            ? "Diagnostic-Code: smtp; 550 5.1.1 <" + finalRecipient + ">: Recipient address rejected: User unknown\r\n"
-            : "";
+         string diagnostic = action != "failed"
+            ? ""
+            : "Diagnostic-Code: " + (diagnosticCode ?? ("smtp; 550 5.1.1 <" + finalRecipient + ">: Recipient address rejected: User unknown")) + "\r\n";
 
          return
             "From: Mail Delivery System <MAILER-DAEMON@" + reportingMta + ">\r\n" +
