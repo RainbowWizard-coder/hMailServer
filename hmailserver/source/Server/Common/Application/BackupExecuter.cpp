@@ -989,7 +989,7 @@ namespace HM
       if (!writtenRows.empty())
       {
          Logger::Instance()->LogBackup(Formatter::Format(
-            "Verified restore: {0} row(s) across {1} per-account store(s) - address books, webmail settings, scheduled mail, file links, S/MIME keys, password history and calendars - read back from the archive exactly as they were written.",
+            "Verified restore: {0} row(s) across {1} per-account store(s) - address books, webmail settings, scheduled mail, file links, S/MIME keys, password history, calendars, first-contact memory and role assignments - read back from the archive exactly as they were written.",
             totalWritten, (unsigned int) writtenRows.size()));
       }
 

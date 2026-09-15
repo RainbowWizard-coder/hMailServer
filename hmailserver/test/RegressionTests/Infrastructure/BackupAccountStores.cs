@@ -21,8 +21,9 @@ namespace RegressionTests.Infrastructure
    ///    (hm_accountprefs), the messages it has put off (hm_scheduled), the large
    ///    files it has sent as links (hm_files), its S/MIME certificates and keys
    ///    (hm_smimekeys), the history that stops it reusing a password
-   ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects) and
-   ///    the memory of who has written to it before (hm_knownsenders) - and, on each
+   ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects),
+   ///    the memory of who has written to it before (hm_knownsenders) and the
+   ///    administrative role it has been given (hm_roleassignments) - and, on each
    ///    message, the keywords the webmail calls labels.
    ///
    ///    Until 15 September 2026 not one of those was in the archive, and because
@@ -401,6 +402,50 @@ namespace RegressionTests.Infrastructure
             Pop3ClientSimulator.AssertGetFirstMessageText(_address, UserPassword),
             "The restored account announced a sender it had had mail from before the backup, so the memory of "
             + "who has written to it did not come back.");
+      }
+
+      // --------------------------------------------------- hm_roleassignments
+
+      [Test]
+      [Description("hm_roleassignments: the role an account was given, and the domains it reaches, survive a backup "
+                   + "and a restore - so a restore neither demotes a help desk nor promotes an account whose "
+                   + "AdminLevel is wider than the role it was narrowed to")]
+      public void TheRoleAssignmentComesBack()
+      {
+         // The account's AdminLevel says server administrator, which is what it
+         // resolves to without an assignment - and the archive carries AdminLevel.
+         // Narrowed to the help desk, it is the case where losing the assignment in
+         // a restore is not a demotion but a promotion to the whole server.
+         hMailServer.Account account = _domain.Accounts.get_ItemByAddress(_address);
+         account.AdminLevel = hMailServer.eAdminLevel.hAdminLevelServerAdmin;
+         account.Save();
+
+         string domain = _domain.Name.ToLowerInvariant();
+         Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+            BasicAuth("Administrator", AdminPassword), "{\"role\":\"helpdesk\",\"domains\":\"" + domain + "\"}");
+         Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+         Response before = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, before.Status, "Body: " + before.Body);
+         StringAssert.Contains("\"role\":\"helpdesk\"", before.Body, "The assignment did not take before the backup.");
+
+         BackupDeleteAndRestore();
+
+         // Through the credential itself: what the restored account may do now is
+         // what the server resolves for it, which is the whole point.
+         Response after = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, after.Status, "Body: " + after.Body);
+         StringAssert.Contains("\"role\":\"helpdesk\"", after.Body,
+            "The restored account does not hold the help desk role. On a build whose archive has no "
+            + "hm_roleassignments it answers serveradmin: its AdminLevel came back and its assignment did not. Body: " + after.Body);
+         StringAssert.DoesNotContain("administer_server", after.Body,
+            "The restored account holds the server administrator's authority it had been narrowed away from. Body: " + after.Body);
+
+         // And the row itself, with the domains it was given.
+         Response listed = Rest("GET", "/api/v1/role-assignments", BasicAuth("Administrator", AdminPassword));
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.Contains("{\"address\":\"" + _address + "\",\"role\":\"helpdesk\",\"domains\":\"" + domain + "\"",
+            listed.Body, "The restored assignment is not listed with the role and the domains it was given.");
       }
 
       // --------------------------------------------------- a message's labels

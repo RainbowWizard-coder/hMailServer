@@ -17,7 +17,8 @@ namespace HM
    // 6.3 it is also an address book, the webmail's remembered choices, the messages
    // it has put off sending, the large files it has sent as links, its S/MIME
    // certificates and keys, its calendar, the history that stops it reusing a
-   // password and the memory of who has written to it before. Each of those arrived
+   // password, the memory of who has written to it before and the administrative
+   // role it has been given. Each of those arrived
    // as a table of its own beside the subsystem that wanted it, and none of them
    // arrived in the backup - because the backup writes what the business objects'
    // XMLStore methods know how to write, and these have no business object.
@@ -151,7 +152,16 @@ namespace HM
          RoleMessage,
 
          // A folder id. Carried as the folder's path, for the same reason.
-         RoleFolder
+         RoleFolder,
+
+         // A role id (hm_roleassignments.raroleid). Carried as the role's name,
+         // because an id is this server's numbering of hm_roles and an archive can
+         // be restored onto a server that numbered its custom roles differently -
+         // where the same number would be somebody else's role, and the foreign
+         // key would refuse a number that is nobody's. Resolved by name on the way
+         // back in; a name the server has no role for is dropped, counted and
+         // named in the backup log rather than guessed at.
+         RoleAdministrativeRole
       };
 
       struct Column

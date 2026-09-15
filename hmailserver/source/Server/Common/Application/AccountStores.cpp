@@ -7,6 +7,7 @@
 #include "AccountStores.h"
 
 #include "../BO/Account.h"
+#include "RoleManager.h"
 #include "../Util/Encoding/Base64.h"
 #include "../Util/Time.h"
 #include "../Util/Unicode.h"
@@ -79,6 +80,16 @@ namespace HM
       // announce every correspondent it has as a first contact until each of them
       // had written again.
       { _T("hm_knownsenders"), 0 },
+
+      // The administrative role the account has been given (schema 6047), and the
+      // domains it reaches. Not carrying it is not neutral: an account with no
+      // assignment holds the authority its AdminLevel gives it, and AdminLevel IS
+      // in the archive - so a restore that dropped this would silently demote a
+      // help desk whose AdminLevel is NormalUser to nothing, and silently PROMOTE an
+      // account whose AdminLevel is ServerAdmin but which had been narrowed to the
+      // help desk back to the server administrator. The role is carried by its
+      // name - see RoleAdministrativeRole.
+      { _T("hm_roleassignments"), 0 },
    };
 
    const AccountStores::Column AccountStores::columns_[] =
@@ -174,6 +185,11 @@ namespace HM
       { _T("hm_knownsenders"), _T("kscount"),        AccountStores::RoleNumber },
       { _T("hm_knownsenders"), _T("ksfirstseen"),    AccountStores::RoleText },
       { _T("hm_knownsenders"), _T("kslastseen"),     AccountStores::RoleText },
+
+      { _T("hm_roleassignments"), _T("raid"),        AccountStores::RoleIdentity },
+      { _T("hm_roleassignments"), _T("raaccountid"), AccountStores::RoleAccount },
+      { _T("hm_roleassignments"), _T("raroleid"),    AccountStores::RoleAdministrativeRole },
+      { _T("hm_roleassignments"), _T("radomains"),   AccountStores::RoleText },
    };
 
    // Per-account tables this file does NOT carry, and why. Every one of them is
@@ -393,6 +409,42 @@ namespace HM
             return false;
 
          return FolderPath_(accountId, folderId, path);
+      }
+
+      // The name of the role with this id, read from the database. False when
+      // there is none, which the foreign key makes a role deleted between the read
+      // of the assignment and this one.
+      bool RoleName_(__int64 roleId, String &name)
+      {
+         SQLCommand command("select rolename from hm_roles where roleid = @ROLEID");
+         command.AddParameter("@ROLEID", roleId);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+
+         if (!recordset || recordset->IsEOF())
+            return false;
+
+         name = recordset->GetStringValue("rolename");
+         return !name.IsEmpty();
+      }
+
+      // The id of the role with this name on this server, or 0. Names are stored
+      // lower-case, which is what makes the comparison the same on every backend,
+      // PostgreSQL's case-sensitive one included.
+      __int64 RoleWithName_(const String &name)
+      {
+         String lower = name;
+         lower.MakeLower();
+
+         SQLCommand command("select roleid from hm_roles where rolename = @NAME");
+         command.AddParameter("@NAME", lower);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+
+         if (!recordset || recordset->IsEOF())
+            return 0;
+
+         return recordset->GetInt64Value("roleid");
       }
 
       void WritePath_(XNode *reference, const std::vector<String> &path)
@@ -767,6 +819,22 @@ namespace HM
                      WritePath_(reference, path);
                   }
                   break;
+
+               case AccountStores::RoleAdministrativeRole:
+                  {
+                     String roleName;
+
+                     if (!RoleName_(row.numbers[(size_t) index], roleName))
+                     {
+                        complete = false;
+                        break;
+                     }
+
+                     XNode *reference = rowNode->AppendChild(ReferenceElement);
+                     reference->AppendAttr(ColumnAttribute, name.c_str());
+                     WriteValue_(reference, NameAttribute, roleName);
+                  }
+                  break;
                }
             }
 
@@ -904,6 +972,38 @@ namespace HM
                      statement.AddColumnInt64(name, folderId);
                   }
                   break;
+
+               case AccountStores::RoleAdministrativeRole:
+                  {
+                     XNode *reference = FindReference_(rowNode, name);
+                     String roleName;
+
+                     if (!reference || !ReadValue_(reference, NameAttribute, roleName) || roleName.IsEmpty())
+                     {
+                        complete = false;
+                        break;
+                     }
+
+                     __int64 roleId = RoleWithName_(roleName);
+
+                     if (roleId <= 0)
+                     {
+                        // A custom role this server does not have - an archive from
+                        // another server, or a role deleted since the backup. Said by
+                        // name, because what the account can do now is what its
+                        // AdminLevel gives it, and that may be more or less than the
+                        // role it had.
+                        Logger::Instance()->LogBackup(Formatter::Format(
+                           "The backup gives {0} the role {1}, which this server does not have. The assignment has not been restored: until an administrator gives it a role, the account holds the authority its admin level gives it.",
+                           account.GetAddress(), roleName));
+
+                        complete = false;
+                        break;
+                     }
+
+                     statement.AddColumnInt64(name, roleId);
+                  }
+                  break;
                }
             }
 
@@ -952,6 +1052,22 @@ namespace HM
          }
 
          return true;
+      }
+   }
+
+   namespace
+   {
+      bool RestoredAnAssignment_(XNode *storesNode)
+      {
+         for (int index = 0; index < storesNode->GetChildCount(); index++)
+         {
+            XNode *storeNode = storesNode->GetChild((unsigned int) index);
+
+            if (storeNode->name == StoreElement && storeNode->GetAttrValue(NameAttribute) == _T("hm_roleassignments"))
+               return true;
+         }
+
+         return false;
       }
    }
 
@@ -1013,7 +1129,7 @@ namespace HM
       if (dropped > 0)
       {
          Logger::Instance()->LogBackup(Formatter::Format(
-            "{0} row(s) of {1}'s scheduled mail name a message or folder that is no longer there and are not in this backup. They were deleted from the mailbox before or while the backup ran.",
+            "{0} row(s) of {1}'s scheduled mail or role name a message, a folder or a role that is no longer there and are not in this backup. They were deleted before or while the backup ran.",
             dropped, account.GetAddress()));
       }
 
@@ -1074,9 +1190,18 @@ namespace HM
       if (dropped > 0)
       {
          Logger::Instance()->LogBackup(Formatter::Format(
-            "{0} scheduled item(s) of {1} named a message or folder this restore did not put back and have not been restored. Nothing else in the account is affected.",
+            "{0} scheduled item(s) or role assignment(s) of {1} named a message, a folder or a role this restore did not put back and have not been restored. Nothing else in the account is affected.",
             dropped, account.GetAddress()));
       }
+
+      // RoleManager answers every authority question from a copy of hm_roles and
+      // hm_roleassignments it read once, and the restore has just written rows
+      // behind its back - after deleting the accounts the old rows belonged to.
+      // Without this the restored account would hold no role until the service
+      // restarted, and the copy would go on naming account ids that no longer
+      // exist.
+      if (RestoredAnAssignment_(storesNode))
+         RoleManager::Reload();
 
       return true;
    }

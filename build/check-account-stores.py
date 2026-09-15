@@ -304,8 +304,8 @@ def main():
       for column in sorted(schema[table] - set(declared)):
          problems.append(
             "%s.%s is in the schema and not in columns_, so the backup would not carry it. "
-            "Add it with its role (RoleText, RoleNumber, RoleTimestamp, RoleMessage or "
-            "RoleFolder), and assert it in BackupAccountStores.cs." % (table, column))
+            "Add it with its role (RoleText, RoleNumber, RoleTimestamp, RoleMessage, "
+            "RoleFolder or RoleAdministrativeRole), and assert it in BackupAccountStores.cs." % (table, column))
 
       for column in sorted(set(declared) - schema[table]):
          problems.append("columns_ declares %s.%s, which the schema does not have" % (table, column))
