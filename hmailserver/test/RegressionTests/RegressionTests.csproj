@@ -682,6 +682,7 @@
     <Compile Include="API\RestApiRoutesAndAliases.cs" />
     <Compile Include="API\RestApiRemoteDomains.cs" />
     <Compile Include="API\RestApiSelfService.cs" />
+    <Compile Include="API\RestApiSignatureImages.cs" />
     <Compile Include="API\RestApiArchive.cs" />
     <Compile Include="API\RestApiParityGaps.cs" />
     <Compile Include="Infrastructure\PrometheusConventions.cs" />
