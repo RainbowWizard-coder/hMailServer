@@ -14,6 +14,7 @@
 #include "../Util/MessageOrigin.h"
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/DisclaimerAdder.h"
+#include "../Util/InlineImageParts.h"
 #include "../Util/AcmeClient.h"
 #include "../Util/FileUtilities.h"
 #include "../Application/IniFileSettings.h"
@@ -131,6 +132,10 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;
       disclaimerAdderTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing InlineImageParts\n"));
+      InlineImagePartsTester inlineImagePartsTester;
+      inlineImagePartsTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

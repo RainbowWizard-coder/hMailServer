@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "SignatureAdder.h"
+#include "InlineImageParts.h"
 
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
@@ -164,6 +165,12 @@ namespace HM
          String text_html_body_content = text_html_body_part->GetUnicodeText();
          text_html_body_content += "<br/>\r\n" + signature_html;
          text_html_body_part->SetUnicodeText(text_html_body_content);
+
+         // The account's signature is the one the webmail's settings save, and
+         // an image in it is a data: URL, which Gmail and Outlook do not show:
+         // sent as a cid: part instead (InlineImageParts.h).
+         if (InlineImageParts::HasDataImages(signature_html))
+            InlineImageParts::FromDataUrls(*message_data);
       }
 
       return true;      
