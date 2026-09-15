@@ -520,6 +520,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="domaindel")deleteDomain(d.name);
   else if(d.act==="daliasadd")addDomainAlias();
   else if(d.act==="daliasdel")deleteDomainAlias(d.name);
+  else if(d.act==="dsenderadd")addDomainSender();
+  else if(d.act==="dsenderdel")deleteDomainSender(Number(d.id),d.value);
   else if(d.act==="rangenew")openRange(0);
   else if(d.act==="rangeedit")openRange(Number(d.id));
   else if(d.act==="rangedel")deleteRange(Number(d.id),d.label);
@@ -878,9 +880,14 @@ async function createDomain(){
 async function openDomain(name){
   const existing=cache.domains.filter(d=>d.name===name)[0];
   if(!existing)return;
-  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:""};
+  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:""};
   try{await reloadDomainAliases();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.aliasError=e.message;}
+  // The domain's own allow and block list, read with the domain rather than
+  // through the Lists view: it belongs to this domain the way its other names
+  // do, and a domain administrator whose key is scoped to it has no other way in.
+  try{await reloadDomainSenders();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.senderError=e.message;}
   renderDomainEditor();
 }
 async function reloadDomainAliases(){
@@ -899,6 +906,43 @@ function domainNamesHtml(){
       <div class="err" id="err_dalias">${escHtml(editing.aliasError||"")}</div>
     </div>`;
 }
+async function reloadDomainSenders(){
+  editing.senders=asList(await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/sender-list"),"items");
+}
+function domainSendersHtml(){
+  const list=(editing.senders||[]).map(x=>`
+    <div class="row erow"><code style="flex:1">${escHtml(x.value)}</code>
+      ${x.blocked?'<span class="badge warn">'+t("Blocked")+'</span>':'<span class="badge good">'+t("Allowed")+'</span>'}
+      <span class="muted" style="flex:1">${escHtml(x.reason||"")}</span>
+      <button class="btn ghost sm" data-act="dsenderdel" data-id="${escHtml(x.id)}" data-value="${escHtml(x.value)}">${t("Remove")}</button></div>`).join("")
+    ||'<div class="note">'+t("Nothing is on this domain's list, so each account's own list and then the server's decide.")+'</div>';
+  return `<p class="note">${escHtml(operation("/api/v1/domains/{domain}/sender-list","get").description||"")}</p>
+    ${list}
+    <div class="row" style="margin-top:14px" data-enter="dsenderadd">
+      <input id="newDomainSender" placeholder="${t("An address or a domain")}" aria-label="${t("An address or a domain")}" style="flex:1;min-width:200px">
+      <input id="newDomainSenderReason" placeholder="${t("Why (optional)")}" aria-label="${t("Why the entry is there.")}" style="flex:1;min-width:160px">
+      <label class="row" style="gap:7px"><input type="checkbox" id="newDomainSenderBlocked"> ${t("Block")}</label>
+      <button class="btn ghost sm" data-act="dsenderadd">${t("Add to the list")}</button>
+      <div class="err" id="err_dsender">${escHtml(editing.senderError||"")}</div>
+    </div>`;
+}
+async function addDomainSender(){
+  setErr("err_dsender","");
+  const value=$("#newDomainSender").value.trim(),reason=$("#newDomainSenderReason").value.trim(),blocked=$("#newDomainSenderBlocked").checked;
+  if(!value){setErr("err_dsender",t("An address or a domain is required."));return;}
+  try{
+    await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/sender-list",{method:"POST",body:JSON.stringify({value:value,blocked:blocked,reason:reason})});
+    toast(tf("Entry added: {0}",value));editing.senderError="";await reloadDomainSenders();$("#domainSenders").innerHTML=domainSendersHtml();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_dsender",e.message);}
+}
+async function deleteDomainSender(id,value){
+  if(!confirm(tf("Remove {0} from the list of {1}?",value,editing.name)))return;
+  setErr("err_dsender","");
+  try{
+    await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/sender-list/"+id,{method:"DELETE"});
+    toast(tf("Entry removed: {0}",value));editing.senderError="";await reloadDomainSenders();$("#domainSenders").innerHTML=domainSendersHtml();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_dsender",e.message);}
+}
 function renderDomainEditor(){
   const cards=DOMAIN_GROUPS.map(g=>`
     <div class="sect"><h2>${escHtml(t(g.title))}</h2>
@@ -907,6 +951,11 @@ function renderDomainEditor(){
   // desktop dialog has them; drawn into their own box so that adding or
   // removing one redraws the box and not the edits in the other groups.
   cards.splice(1,0,`<div class="sect"><h2>${t("Names")}</h2><div class="card flat" id="domainNames">${domainNamesHtml()}</div></div>`);
+  // The allow and block list sits after the digest, the other half of the same
+  // question: who decides that a message is wanted, and how a person sees what
+  // was held. +2: one for Names above, one to come after the digest group.
+  const digestAt=DOMAIN_GROUPS.findIndex(g=>g.title==="Quarantine digest");
+  cards.splice(digestAt>=0?digestAt+2:cards.length,0,`<div class="sect"><h2>${t("Allow and block list")}</h2><div class="card flat" id="domainSenders">${domainSendersHtml()}</div></div>`);
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="cancel">${t("‹ All domains")}</button>
     <div class="sect"><h2>${tf("Domain {0}",escHtml(editing.name))}</h2>

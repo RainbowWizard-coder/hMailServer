@@ -754,6 +754,11 @@ const spec = {
          post: { summary: 'Add a domain alias', description: 'Body: name.', requestBody: body({ name: { type: 'string' } }, ['name']) }
       },
       '/api/v1/domains/{domain}/domain-aliases/{name}': { delete: { summary: 'Remove a domain alias' } },
+      '/api/v1/domains/{domain}/sender-list': {
+         get: { summary: 'One domain\'s allow and block list', description: 'The same object as the server\'s list, for every account of this domain.' },
+         post: { summary: 'Add an entry to a domain\'s list', requestBody: body({ value: { type: 'string' }, blocked: { type: 'boolean' }, reason: { type: 'string' } }, ['value']) }
+      },
+      '/api/v1/domains/{domain}/sender-list/{id}': { delete: { summary: 'Remove an entry from a domain\'s list' } },
       '/api/v1/domains/{domain}/aliases': {
          get: { summary: 'List aliases in a domain' },
          post: { summary: 'Create an alias', description: 'Body: name (the alias address, in this domain), value (the e-mail address it delivers to) and active (default true). Judged as the Control Panel judges an alias - a name an account or a distribution list already has, or a domain at its alias limit, is refused with the same sentence - and in effect for the next message to the name. Scoped to the domain.',
@@ -819,6 +824,8 @@ const state = {
       domainRecord(HOSTILE, false, ''),
       domainRecord('second.example', true, '')
    ],
+   // Each domain's own allow and block list, made on first read.
+   domainSenders: { 'example.com': [{ id: 901, scope: 'domain', value: 'partner.example', blocked: false, reason: 'the partner', expires: false, expired: false }] },
    domainAliases: {
       'example.com': [{ id: 1, name: 'example.net' }],
       [HOSTILE]: [],
@@ -972,6 +979,27 @@ function answer(method, path, headers, raw) {
          delete state.domainAliases[name];
          return json(200, { deleted: true });
       }
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/sender-list$/.test(path)) {
+      const domain = segment(path, 4);
+      if (!state.domains.some((d) => d.name === domain)) { return json(404, { error: 'no such domain' }); }
+      const list = state.domainSenders[domain] || (state.domainSenders[domain] = []);
+      if (method === 'GET') { return json(200, { scope: 'domain', items: list }); }
+      if (method === 'POST') {
+         const value = String(parsed.value || '').trim().toLowerCase();
+         if (!value) { return json(400, { error: 'value is required: an address, or a domain that covers its subdomains' }); }
+         const entry = { id: nextId++, scope: 'domain', value: value, blocked: !!parsed.blocked, reason: parsed.reason || '', expires: false, expired: false };
+         list.push(entry);
+         return json(201, entry);
+      }
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/sender-list\/\d+$/.test(path) && method === 'DELETE') {
+      const domain = segment(path, 4);
+      const id = Number(segment(path, 6));
+      const list = state.domainSenders[domain] || [];
+      if (!list.some((x) => x.id === id)) { return json(404, { error: 'no such entry' }); }
+      state.domainSenders[domain] = list.filter((x) => x.id !== id);
+      return json(200, { deleted: true });
    }
    if (/^\/api\/v1\/domains\/[^/]+\/domain-aliases$/.test(path)) {
       const domain = segment(path, 4);
@@ -1697,6 +1725,8 @@ async function main() {
    click(act('domainedit', { name: 'example.com' }));
    await flush();
    check('Edit reads the domain\'s other names', called(before, 'GET', '/api/v1/domains/example.com/domain-aliases').length === 1, paths(before));
+   check('and its own allow and block list', called(before, 'GET', '/api/v1/domains/example.com/sender-list').length === 1 && document.getElementById('domainSenders') !== null &&
+      document.getElementById('domainSenders').textContent.indexOf('partner.example') >= 0 && document.getElementById('domainSenders').textContent.indexOf('Allowed') >= 0, paths(before));
    const headings = content().querySelectorAll('h2').map((h) => h.textContent.trim());
    check('the editor is grouped as the desktop dialog is', ['General', 'Names', 'Limits', 'Signature', 'Relay', 'Out of office', 'DKIM'].every((g) => headings.indexOf(g) >= 0), JSON.stringify(headings));
    check('the route\'s own description is the note', content().textContent.indexOf('A field left out keeps its value') >= 0);
@@ -1771,6 +1801,28 @@ async function main() {
    await flush();
    check('removing a name asks, deletes it by name and re-reads', confirmations[confirmations.length - 1].indexOf('example.net') >= 0 &&
       called(before, 'DELETE', '/api/v1/domains/renamed.example/domain-aliases/example.net').length === 1 && content().querySelectorAll('button[data-act="daliasdel"]').length === 1);
+   setValue('newDomainSender', 'Spam.Example');
+   setValue('newDomainSenderReason', 'kept sending');
+   setChecked('newDomainSenderBlocked', true);
+   before = requests.length;
+   document.getElementById('newDomainSender').dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/renamed.example/sender-list');
+   check('Enter in the list box adds a blocked entry to the domain\'s list, with its reason', JSON.stringify(posted) === '{"value":"Spam.Example","blocked":true,"reason":"kept sending"}', JSON.stringify(posted));
+   check('the list is read again and shows it blocked', called(before, 'GET', '/api/v1/domains/renamed.example/sender-list').length === 1 &&
+      document.getElementById('domainSenders').textContent.indexOf('spam.example') >= 0 && document.getElementById('domainSenders').textContent.indexOf('Blocked') >= 0);
+   check('and an edit made in another group survives that too', document.getElementById('dom_postmaster').value === 'keep-me@renamed.example');
+   const senderId = act('dsenderdel', { value: 'spam.example' }).attributes['data-id'];
+   before = requests.length;
+   click(act('dsenderdel', { value: 'spam.example' }));
+   await flush();
+   check('removing an entry asks, naming it, and deletes it by id', confirmations[confirmations.length - 1].indexOf('spam.example') >= 0 &&
+      called(before, 'DELETE', '/api/v1/domains/renamed.example/sender-list/' + senderId).length === 1 && document.getElementById('domainSenders').textContent.indexOf('spam.example') < 0);
+   setValue('newDomainSender', '');
+   before = requests.length;
+   click(act('dsenderadd'));
+   await flush();
+   check('an empty entry is refused by the page and nothing is sent', called(before, 'POST', /sender-list/).length === 0 && document.getElementById('err_dsender').textContent === 'An address or a domain is required.');
    nextRefusal = 'That name is already a domain.';
    setValue('newDomainAlias', 'second.example');
    click(act('daliasadd'));
