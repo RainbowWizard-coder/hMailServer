@@ -1197,9 +1197,15 @@
     resetLinked();
     say('compose-status', '', true);
   };
-  var carryAttachments = function (message) {
+  var carryAttachments = function (message, embeddedStay) {
     carried = [];
-    var list = message.attachments || [];
+    // A draft reopens as its text, so the images its HTML shows - a signature's
+    // logo, sent as a cid: part - are not files to attach again; they come back
+    // with the formatted signature when formatting is switched on.
+    var list = (message.attachments || []).filter(function (a) {
+      var cid = contentIdOf(a).toLowerCase();
+      return !(embeddedStay && cid && String(message.html || '').toLowerCase().indexOf('cid:' + cid) >= 0);
+    });
     if (!list.length) { return Promise.resolve(); }
     el('compose-files-note').textContent = 'Fetching ' + list.length + ' attachment(s)...';
     return Promise.all(list.map(function (a) {
@@ -1234,7 +1240,7 @@
       el('compose-cc').value = message.cc || '';
       el('compose-subject').value = subject;
       el('compose-text').value = message.text || '';
-      return carryAttachments(message);
+      return carryAttachments(message, true);
     }
     if (mode === 'forward') {
       if (!/^fwd?:/i.test(subject)) { subject = 'Fwd: ' + subject; }
@@ -2749,7 +2755,71 @@
   // Beside the plain signature, one with layout: bold, italic, underline, a
   // link, an image from a file kept as a data URI (the cleaner keeps those and
   // nothing remote). Saved as signature.html, which the server has stored all
-  // along; put on formatted messages, the plain one on plain messages.
+  // along; put on formatted messages, the plain one on plain messages. The
+  // server sends each image as a cid: part beside the HTML, which is what the
+  // recipient's client shows (InlineImageParts.cpp).
+  //
+  // 64 KB, images included, counted as the server counts it - bytes of UTF-8 -
+  // and refused by it above that (RestApiServer.cpp, MaxSignatureHtmlBytes):
+  // MySQL's column holds 65,535 bytes, and a signature goes on every message,
+  // so what it can carry is a logo rather than a photograph. An image is drawn
+  // at most 600 by 200 pixels when it has to be made smaller - twice what a
+  // signature shows a logo at, so it stays sharp on a high-density screen.
+  var SIGNATURE_HTML_BYTES = 64000;
+  var SIGNATURE_IMG_TAG_BYTES = '<img src="" alt="">'.length;
+  var SIGNATURE_IMAGE_BOX = { width: 600, height: 200 };
+  var utf8Bytes = function (s) {
+    var n = 0;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i);
+      if (c < 0x80) { n += 1; } else if (c < 0x800) { n += 2; } else if (c >= 0xD800 && c <= 0xDBFF && i + 1 < s.length) { n += 4; i++; } else { n += 3; }
+    }
+    return n;
+  };
+  // What the file's first bytes say it is, which is what the server checks
+  // before it sends an image as a part: a PNG saved with a .jpg name is sent
+  // as the PNG it is, and a file that is none of the four is refused here.
+  var sniffImageType = function (url) {
+    var m = /^data:[^,]*;base64,([A-Za-z0-9+\/]{16})/.exec(url || '');
+    var head = '';
+    try { head = m ? atob(m[1]) : ''; } catch (e) { head = ''; }
+    if (head.slice(0, 8) === '\x89PNG\r\n\x1a\n') { return 'image/png'; }
+    if (head.slice(0, 3) === '\xff\xd8\xff') { return 'image/jpeg'; }
+    if (head.slice(0, 6) === 'GIF87a' || head.slice(0, 6) === 'GIF89a') { return 'image/gif'; }
+    if (head.slice(0, 4) === 'RIFF' && head.slice(8, 12) === 'WEBP') { return 'image/webp'; }
+    return '';
+  };
+  // A smaller copy of the image as a data: URL no longer than room, or null:
+  // no canvas in this browser, an image it cannot read, or one that does not
+  // fit even at a size that is no longer a logo. A JPEG stays a JPEG; anything
+  // else becomes a PNG, which keeps transparency (and loses a GIF's animation).
+  var shrinkSignatureImage = function (url, type, room) {
+    var canvas = url ? document.createElement('canvas') : null;
+    if (!canvas || typeof canvas.getContext !== 'function' || typeof Image !== 'function' || room <= 0) { return Promise.resolve(null); }
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onerror = function () { resolve(null); };
+      img.onload = function () {
+        var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        var out = type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+        var scale = w && h ? Math.min(1, SIGNATURE_IMAGE_BOX.width / w, SIGNATURE_IMAGE_BOX.height / h) : 0;
+        for (var attempt = 0; scale > 0 && attempt < 8; attempt++) {
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          canvas.width = cw; canvas.height = ch;
+          var context = canvas.getContext('2d');
+          if (!context) { break; }
+          context.clearRect(0, 0, cw, ch);
+          context.drawImage(img, 0, 0, cw, ch);
+          var smaller = String(canvas.toDataURL(out, 0.85) || '');
+          if (smaller.indexOf('data:' + out + ';base64,') === 0 && smaller.length <= room) { resolve(smaller); return; }
+          if (cw <= 48 || ch <= 16) { break; }
+          scale *= 0.75;
+        }
+        resolve(null);
+      };
+      img.src = url;
+    });
+  };
   (function () {
     var editor = el('signature-html');
     var tools = el('signature-tools').children;
@@ -2765,26 +2835,47 @@
         });
       })(tools[i]);
     }
+    // An image goes into the signature as a data: URL, so it counts against
+    // the signature's 64 KB; one that does not fit in what is left is drawn
+    // smaller, when the browser can, and refused when even that does not fit.
     el('signature-image').addEventListener('change', function () {
       var file = (el('signature-image').files || [])[0];
+      el('signature-image').value = '';
       if (!file) { return; }
-      if (file.size > 200 * 1024 || !/^image\/(png|jpeg|gif|webp)$/i.test(file.type || '')) { say('settings-status', t('An image for the signature: PNG, JPEG, GIF or WebP, 200 KB at most.'), false); el('signature-image').value = ''; return; }
-      var reader = new FileReader();
-      reader.onload = function () {
+      if (!/^image\/(png|jpeg|gif|webp)$/i.test(file.type || '')) { say('settings-status', t('An image for the signature: PNG, JPEG, GIF or WebP.'), false); return; }
+      var room = SIGNATURE_HTML_BYTES - utf8Bytes(cleanHtml(editor)) - SIGNATURE_IMG_TAG_BYTES;
+      new Promise(function (resolve) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || '')); };
+        reader.onerror = function () { resolve(''); };
+        reader.readAsDataURL(file);
+      }).then(function (url) {
+        var type = sniffImageType(url);
+        if (!type) { return { refused: true }; }
+        url = 'data:' + type + url.slice(url.indexOf(';base64,'));
+        if (url.length <= room) { return { url: url, smaller: false }; }
+        return shrinkSignatureImage(url, type, room).then(function (smaller) { return { url: smaller, smaller: true }; });
+      }).then(function (result) {
+        if (result.refused) { say('settings-status', t('An image for the signature: PNG, JPEG, GIF or WebP.'), false); return; }
+        if (!result.url) {
+          say('settings-status', tf('That image does not fit: the formatted signature holds 64 KB, images included, and {0} KB of it is free.', Math.max(0, Math.floor(room / 1000))), false);
+          return;
+        }
         var img = document.createElement('img');
-        img.setAttribute('src', String(reader.result));
+        img.setAttribute('src', result.url);
         img.setAttribute('alt', '');
         editor.appendChild(img);
-        el('signature-image').value = '';
-      };
-      reader.readAsDataURL(file);
+        say('settings-status', result.smaller ? t('The image was made smaller to fit the signature.') : '', true);
+      });
     });
   })();
   el('settings-form').addEventListener('submit', function (event) {
     event.preventDefault();
+    var signatureHtml = cleanHtml(el('signature-html'));
+    if (utf8Bytes(signatureHtml) > SIGNATURE_HTML_BYTES) { say('settings-status', t('The formatted signature is over 64 KB with its images; take an image or some text out.'), false); return; }
     var body = {
       name: { first: el('name-first').value, last: el('name-last').value },
-      signature: { enabled: el('signature-enabled').checked, text: el('signature-text').value, html: cleanHtml(el('signature-html')) }
+      signature: { enabled: el('signature-enabled').checked, text: el('signature-text').value, html: signatureHtml }
     };
     call('PUT', '/api/v1/me/settings', body).then(function (result) {
       if (result.status === 200 && result.data) { renderSettings(result.data); say('settings-status', t('Saved.'), true); return; }
