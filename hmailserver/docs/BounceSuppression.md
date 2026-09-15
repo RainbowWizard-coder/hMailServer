@@ -38,7 +38,7 @@ message without a restart.
 | Setting | `hm_settings` name | REST key | Default | What it means |
 |---|---|---|---|---|
 | Classify bounces and keep a suppression list | `BounceProcessingEnabled` | `processing_enabled` | off | The whole feature. With it off nothing below has any effect. |
-| Hard bounces in a row before an address is listed | `BounceHardBounceThreshold` | `hard_bounce_threshold` | `1` | 1 to 100. "In a row" means with no successful delivery to the address between them. |
+| Hard bounces in a row before an address is listed | `BounceHardBounceThreshold` | `hard_bounce_threshold` | `1` | 1 to 100. "In a row" means with no successful delivery to the address between them; a message a remote server accepted counts as delivered unless its delivery report says it failed after all - see *The run of hard bounces, when they come back as reports*. |
 | Count a full mailbox as a hard bounce | `BounceMailboxFullIsHard` | `mailbox_full_is_hard` | off | A full mailbox (X.2.2) is counted either way; this decides whether it counts towards the list. |
 | What happens to a listed recipient | `BounceSuppressionAction` | `suppression_action` (`refuse`, `drop`, `observe`) | `0` (refuse) | `0` refuse, `1` drop, `2` observe. See *What the list does*. |
 | Days before an entry made by a bounce expires | `BounceSuppressionExpiryDays` | `suppression_expiry_days` | `0` | 0 keeps entries until they are removed; at most 3650. Measured from when the entry was made, so lowering it applies to the entries already there. Entries added by hand are not affected; they carry their own expiry. |
@@ -107,11 +107,25 @@ re-reads the remote's verbatim reply:
   (or `mailbox_full`), when the server gives up on it - never while it is still
   being retried, and never as `hard`, because nothing proved the address dead.
 * **The same refusal for several recipients.** When one remote host permanently
-  refuses more than one recipient of the same message with an identical reply, that is the
-  session being refused - a refused MAIL FROM, a refused DATA - and not each of
-  those mailboxes. It is counted as `policy` for an `X.7` code and as `other`
-  otherwise. What this cannot see is a message with a single recipient refused at
-  DATA with a remote `5.1.x`; that is counted as the code says.
+  refuses more than one recipient of the same message with an identical reply, that
+  is taken to be the session being refused - a refused EHLO, AUTH, MAIL FROM, DATA
+  or BDAT chunk, which this server records against every recipient of the session -
+  and not each of those mailboxes. It is counted as `policy` for an `X.7` code and
+  as `other` otherwise. This server's delivery client does not yet record the stage
+  a reply was given at, so the rule is a guess, and it is wrong in two ways, one in
+  each direction:
+  * **Identical per-recipient refusals are demoted too.** Microsoft 365 answers every
+    unknown recipient with the same address-free line (`550 5.1.10
+    RESOLVER.ADR.RecipientNotFound; Recipient not found by SMTP address lookup`), so
+    two or more dead recipients at one such host in one message are all counted as
+    `other` and none is listed - though each is listed by a message that is refused
+    for it alone. This errs towards not listing.
+  * **A message with a single recipient refused at any stage other than RCPT TO** -
+    EHLO, AUTH, MAIL FROM, DATA or a BDAT chunk - with a remote `5.1.x` has only one
+    recipient to compare, and is counted as the code says.
+
+  Telling the stages apart properly needs a flag in `SMTPClientConnection`, and is
+  the planned fix for both.
 
 `POST /api/v1/bounces/classify`, `hmctl bounces classify "550 5.1.1 User unknown"`
 and `Test-HmBounceStatus` ask the server how it would read a status or a reply,
@@ -129,8 +143,9 @@ What is never counted
   it, and an address this server hosts cannot be put on it by hand either.
 * A refusal on policy, as a step towards the list (it is counted as `policy`).
 * This server's own non-delivery reports, when they arrive in a local sender's
-  mailbox. They carry no Received field of this server's, so they fail the first
-  check a report has to pass.
+  mailbox. They carry no Received field of this server's, so they fail the third
+  check a report has to pass, even when they quote a message whose report key
+  exists.
 
 Delivery reports
 ----------------
@@ -147,10 +162,24 @@ What is read: a message whose top-level type is `multipart/report` with
 `message/global-headers` or `message/global` part. A report forwarded as an
 attachment inside something else is mail about a report and is left alone. Each
 recipient group with `Action: failed` is counted; `delayed`, `delivered`, `relayed`
-and `expanded` are not bounces. The `Status` field is the reporting server's own
-verdict and is trusted; an undefined `5.0.0` is read through the `Diagnostic-Code`'s
-own enhanced code, and then its words. Reports over 2 MB, groups past the
-thousandth, and a `Final-Recipient` that is not one valid address are not read.
+and `expanded` are not bounces.
+
+**The trust rule applies to reports too.** When a group's `Diagnostic-Code` is an
+SMTP reply (`smtp; 550 ...`), that reply is the destination server's own words, and
+the `Status` beside it may have been worked out from its three digits alone - this
+server's own report writes `Status: 5.1.1` beside `Diagnostic-Code: smtp; 550
+<address>`, and so does any MTA that derives its code the same way. So the reply is
+judged exactly as the same reply met while delivering would be: its own enhanced
+code when it has one, otherwise its words, and a bare `550` is `other`. Only a group
+whose diagnostic is not an SMTP reply (`X-Postfix; unknown user`) or that has none
+is taken at its `Status`, with an undefined `5.0.0` read through the diagnostic's
+own enhanced code, and then its words.
+
+Reports over 2 MB, groups past the hundredth, and a `Final-Recipient` that is not
+one valid address are not read, and at most 50 distinct failed recipients of one
+report are looked up in the register; a report naming more is either a very large
+list, whose remaining dead addresses the next report names, or a message built to
+make this server work.
 
 ### Why a report has to prove itself
 
@@ -159,11 +188,16 @@ them would let a stranger put a colleague's correspondent on a suppression list
 with one message - forged backscatter turned into a weapon. So a report is counted
 only when **all** of these hold:
 
-1. its envelope sender is null, as RFC 3464 requires of a report;
+1. its envelope sender is null, as RFC 3464 requires of a report, and it is
+   addressed to one of this server's addresses and no more - a report goes to the
+   one envelope sender of the message it reports on (an alias that expands to
+   several accounts is still one address);
 2. it was not classified as spam;
 3. the topmost Received field is this server's own, so it arrived over SMTP here -
    and it does not say `ESMTPA` or `ESMTPSA`: a report is never submitted by a
-   signed-in user;
+   signed-in user. The clause read is the **last** `by <this server> with ESMTP` in
+   that field, because the HELO argument in front of it is the client's own text and
+   may contain those words; nothing after it is the client's;
 4. where this server writes Authentication-Results (`AuthenticationResultsEnabled`,
    off by default), its own result does not say `spf=fail` or `dmarc=fail`;
 5. with BATV on, it was addressed to a `prvs=` return path that verifies - which a
@@ -187,12 +221,42 @@ were sent to. An entry made from a report says `source: report`, so it can be to
 apart, and removed. If that residual matters more to you than the reports do, turn
 `read_delivery_reports` off: the refusals met while delivering are still read.
 
-**What the register costs.** One small row - a 64-character hash, a domain id and
-a time - per external recipient a remote server accepted, kept for
-`report_window_days`. A server sending 100,000 external recipients a day with the
-default window holds about 700,000 rows. No address is stored in it. Messages
+**What the register costs.** One small row - two 64-character hashes, a domain id,
+a time and a small number - per external recipient a remote server accepted, kept
+for `report_window_days`. A server sending 100,000 external recipients a day with
+the default window holds about 700,000 rows. No address is stored in it as text: the
+recipient is there as a SHA-256 of the lower-cased address, which is how a later
+message to the same address is found and how an erasure finds the rows, and which
+anybody who can guess an address and read the database can reproduce. Messages
 without a Message-ID get no row and their reports cannot be matched. With
 `read_delivery_reports` off, nothing is written.
+
+### The run of hard bounces, when they come back as reports
+
+A report is only ever about a message a remote server **accepted**, so an
+acceptance cannot simply end the address's run of hard bounces: if it did, every
+report would count one from nothing, and behind a smart host - where every failure
+comes back as a report - no threshold above one could ever be reached. Instead, an
+acceptance **sets the run aside** in the register row it writes, and the count shows
+`consecutive_hard` as 0 while the report may still come:
+
+* the report that the message failed **gives the run back**, plus one for a hard
+  bounce (plus nothing for one that does not count towards the list - a reported
+  policy refusal is not a delivery either);
+* **no report** within `report_window_days` means the message was delivered, and
+  what was set aside is dropped with the register row;
+* when **a later message to the same address was accepted** before the report
+  arrived, and its own report has not come, the report adds nothing now and carries
+  its run forward onto that later message's row - given back only if the later
+  message fails as well;
+* when a message **the register does not hold** - one without a Message-ID, or one
+  delivered while `read_delivery_reports` was off - was delivered to the address
+  after the reported message was sent, the report adds nothing.
+
+Every case that cannot be decided adds nothing, so the run can come out short -
+reports for two messages that arrive in the reverse of the order the messages were
+sent in count one, not two - and never long: an address a message was delivered to
+between two failures is not listed by the second.
 
 What the list does
 ------------------
@@ -207,7 +271,7 @@ queued before the entry was made.
 
 | Action | At `RCPT TO` and on the webmail | At delivery |
 |---|---|---|
-| `refuse` (0) | Refused with `550`, the status that listed the address - `5.1.1` for a dead mailbox - or `5.7.1` for an entry added by hand, and a sentence: *gone@example.com is on the suppression list of example.org: mail to it bounced permanently (5.1.1) on 2026-09-15. An administrator can remove it.* The webmail says the same in the reader's language. Nothing is queued. | The recipient is removed from the message and returned to the sender in an ordinary RFC 3464 non-delivery report with the same status and sentence, unless the message's DSN `NOTIFY` excluded failures. The OnDeliveryFailed event fires, and AWStats records a 550. |
+| `refuse` (0) | Refused with `550`, the status that listed the address - `5.1.1` for a dead mailbox - or `5.7.1` for an entry added by hand, and a sentence: *gone@example.com is on the suppression list of example.org: mail to it bounced permanently (5.1.1) on 2026-09-15. An administrator can remove it.* The webmail says the same in the reader's language - that the address bounced, or, for an entry added by hand, that an administrator put it on the list (the send route's 400 answers `code: recipient_suppressed`, the `address` and the entry's `source`). Nothing is queued. | The recipient is removed from the message and returned to the sender in an ordinary RFC 3464 non-delivery report with the same status and sentence, unless the message's DSN `NOTIFY` excluded failures. The OnDeliveryFailed event fires, and AWStats records a 550. |
 | `drop` (1) | Accepted. | The recipient is removed from the message silently: nothing reaches the remote server and nothing reaches the sender. A line in the application log says so. |
 | `observe` (2) | Accepted. | Delivered. A line in the application log says it would have been stopped. |
 
@@ -258,8 +322,10 @@ Looking at the list, and changing it
 
 **Removing an entry** lets the next message through at once, and starts the
 address's run of hard bounces again from none - so with a threshold of three, the
-address is listed again after three more hard bounces, not one. The counts
-themselves are kept as history.
+address is listed again after three more hard bounces, not one. That includes a
+report still on its way about a message accepted before the removal: what that
+message set aside is forgotten, so its report adds one. The counts themselves are
+kept as history.
 
 **Who may.** The list and the counts of a domain answer to the server
 administrator and, over COM, to that domain's administrator; over REST, an API key
@@ -292,8 +358,9 @@ sweep now and say what it removed.
 Erasure and deleting a domain
 -----------------------------
 
-`Utilities.EraseAddressTraces` removes an address's bounce counts and its entries
-on every domain's list, along with the rest of what the server keeps about it.
+`Utilities.EraseAddressTraces` removes an address's bounce counts, its entries on
+every domain's list and its rows in the register, along with the rest of what the
+server keeps about it.
 **The next message to that address is sent**: an erasure is somebody asking to be
 forgotten, and that includes being forgotten as a dead address.
 
@@ -316,7 +383,9 @@ in the server's local time.
 * `hm_bouncecounts` - per domain and address: `bchard`, `bcsoft`, `bcmailboxfull`,
   `bcpolicy`, `bcother`, `bcconsecutivehard`, `bclaststatus`, `bclastcategory`,
   `bclastbounce`, `bclastdelivered` (empty when never delivered).
-* `hm_bouncereportkeys` - the register: `brkdomainid`, `brkkey`, `brksent`.
+* `hm_bouncereportkeys` - the register: `brkdomainid`, `brkkey` (the SHA-256 of
+  Message-ID, recipient and sender), `brksent`, `brkaddress` (the SHA-256 of the
+  recipient alone) and `brkrun` (the run of hard bounces the acceptance set aside).
 
 Addresses are compared lower-cased, local part included. That is right for almost
 every provider and not strictly what RFC 5321 says; plus-addressed variants are
@@ -330,8 +399,9 @@ that fails a check, is a debug line.
 
 | Error | Means |
 |---|---|
-| `HM6620` | A bounce could not be counted, or an address that reached the threshold could not be put on the list. |
+| `HM6620` | A bounce could not be counted, an address that reached the threshold could not be put on the list, or a report's run could not be carried forward to a later message. |
 | `HM6621` | A delivered message's report key could not be written, so a report that later arrives for it will be ignored. |
 | `HM6622` | The list could not be read, so a message was sent as if the address were not listed. At most once an hour. |
-| `HM6623` | A recipient the list stopped could not be removed from the queued message's row. |
+| `HM6623` | A recipient the list stopped could not be removed from the queued message's row. If another recipient keeps the message queued, the next attempt reads that recipient back and stops it - and, with `refuse`, reports it to the sender - again. |
 | `HM6624` | The maintenance sweep failed; what is left is tried again next hour. |
+| `HM6625` | A delivery could not be recorded against the address's count, so its run of hard bounces was not ended; or an entry removed by hand could not start its run again. Either way the address may be listed sooner than the threshold says. |
