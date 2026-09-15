@@ -250,7 +250,7 @@ namespace HM
       static const String kReadMe =
          _T("The [Settings] section below is a CACHE of the hm_inisettings table, which is the settings store from schema 6042. ")
          _T("Editing a value here does not change it: the stored value is used, the edit is named in hMailServer_ERROR.log and the line is put back at the next start. ")
-         _T("Settings are changed in the Control Panel, over the REST API at /api/v1/settings/ini, with hmctl, or from the Control Deck. ")
+         _T("Settings are changed in the Control Panel, over the REST API at /api/v1/settings/ini, with hmctl, or - for a setting needed before the REST listener is on, such as RestApiPort on Linux - with hmailserver --set-setting NAME=VALUE. ")
          _T("To force a value from this file - when the database is unreachable or wrong - put it in a [SettingsOverride] section, which is applied over the store and announced in the error log at every start. ")
          _T("[Directories], [Database] and [Security] are NOT settings: they are how the database is reached and how an administrator is let in without one, and they stay here.");
 
