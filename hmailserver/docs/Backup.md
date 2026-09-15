@@ -32,7 +32,7 @@ In the archive
 | Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, blocked attachments, greylisting white list |
 | Public folders, and the permissions on them | |
 | The `[Settings]` section of `hMailServer.ini` | Mirrored into the database since schema 6011 and carried with the settings |
-| Custom administrator roles | The rows of `hm_roles` that are not built in, with their permissions and descriptions, whenever **Back up domains** or **Back up settings** is on. Restored first, before any domain is removed, so that the assignments the accounts carry find their role on a server that has never seen it. See [Roles.md](Roles.md) |
+| Custom administrator roles | The rows of `hm_roles` that are not built in, with their permissions and descriptions, whenever **Back up domains** or **Back up settings** is on. Restored first, before any domain is removed, so that the assignments the accounts carry find their role on a server that has never seen it. A role the restoring server already has is kept as it is there, never overwritten with the archive's, and the difference is named in the backup log. See [Roles.md](Roles.md) |
 
 ### Everything an account has
 
@@ -50,7 +50,7 @@ In the archive
 | The password reuse history | `hm_passwordhistory` | So a restore does not let every account go back to a password it was made to change |
 | Who has written to the account before | `hm_knownsenders` | The memory the first-contact note is decided against, as of the backup. Without it a restore would announce every correspondent of every account as a first contact again — see [DomainTransforms.md](DomainTransforms.md) |
 | Calendars and their events and tasks | `hm_calendars`, `hm_calendarobjects` | Tombstones included, so a CalDAV client's next sync is answered correctly rather than being told nothing was ever deleted |
-| The administrator role it was given, and the domains it reaches | `hm_roleassignments` | The role by its name, found again on the restoring server. An assignment naming a role that neither the archive nor that server has is dropped, and the account's admin level is lowered to an ordinary account's with it and named in the backup log - otherwise the admin level, which the archive also carries, would give back authority the role had narrowed away |
+| The administrator role it was given, and the domains it reaches | `hm_roleassignments` | The role by its name, found again on the restoring server. Put back first thing after the account's row, before its folders, and the account's admin level - which the archive also carries, and which alone would give back authority the role had narrowed away - is withheld until the assignment is written and given back only behind it, so a restore that stops part-way leaves no account wider than its role. An assignment naming a role that neither the archive nor that server has is dropped, the level stays withheld, and the backup log and the error log (`HM6129`) name the account and the missing role |
 
 The per-account stores are carried as rows under their account, in the archive's
 own XML. A value is written as an attribute where every character of it is safe

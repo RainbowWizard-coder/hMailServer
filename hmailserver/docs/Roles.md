@@ -50,7 +50,7 @@ domains is refused them whatever it holds.
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
-| `unlock_account` | `POST /api/v1/accounts/{address}/unlock`, `Application.UnlockAccount` (each on the audit trail as `unlocked`), clearing the logon-failure list | ✅ | ✅ | ✅ | |
+| `unlock_account` | `POST /api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` (both locks), `Account.UnlockMailbox` (the POP3 mailbox lock alone; an account's own is its own to clear) - each on the audit trail as `unlocked` - and clearing the logon-failure list (`POST /api/v1/settings/logon-failures/clear`; `Settings.ClearLogonFailureList` answers the server administrator only), on it as `logon failures` / `cleared` | ✅ | ✅ | ✅ | |
 | `manage_mailbox` | Another account's folders, messages and folder rights, and a support session | ✅ | ✅ | | |
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
@@ -251,7 +251,10 @@ away, is a row in the audit trail with the credential that did it - in words, no
 role assignment's row names the account by its address and says the role and the domains
 it reaches before and after (`role: helpdesk -> auditor; domains: the account's own domain
 -> every domain`); a role's row names the role and says its permissions and description
-before and after; and deleting a custom role records whose assignments went with it.
+before and after; and deleting a custom role that somebody held records whose assignments
+went with it - one holder by its address, several as `N accounts`, and every address in
+the detail. A change that changes nothing writes nothing: a role taken from an account
+that holds none, or a role nobody held deleted, adds no assignment row.
 
 A backup carries each account's assignment with the account (`AccountStores`), with the
 role written by its name rather than its id, so that a restore onto another server
@@ -265,13 +268,32 @@ the rows of `hm_roles` that are not built in are written into the archive as a
 server-wide `<Roles>` store beside the settings, and a restore puts them back **first**,
 before any domain is removed and so before any assignment is written. An archive
 restored onto a fresh server therefore keeps every assignment, custom roles included. A
-role of the same name on the restoring server is updated to the archive's permissions;
-a custom role the server has and the archive does not is left alone; a restored role is
-judged as one made over REST, so a permission no custom role may hold is dropped.
+role the restoring server already has is **kept as it is there** and never overwritten
+with the archive's definition: a role that is here already is this server's
+administrator's decision, and every credential holding it that is not in the archive -
+an API key issued with that role, whose store no archive carries; on a settings-only
+restore, every account holding it - would otherwise be widened with nothing said and no
+actor to record it under. A kept role whose permissions or description differ from the
+archive's is named in the backup log with both, so that an administrator who wants the
+archive's definition makes that change deliberately. A custom role the server has and
+the archive does not is left alone; a restored role is judged as one made over REST, so
+a permission no custom role may hold is dropped. A role that cannot be written stops
+the restore before any domain is removed, and the log names the roles created before it.
+
+The **admin level waits for the assignment.** An account's row is saved before its
+assignment can be, and the archive carries the level beside the assignment - so for as
+long as the row stood with no assignment beside it, an account narrowed from server
+administrator to help desk was the server administrator, and a restore that stopped
+between the two (over a folder that would not load, a row that would not write) left it
+that way for good. So an account whose archive entry carries an assignment is saved as an
+ordinary account, the assignment is put back first thing after the row - before the
+account's fetch accounts, rules, folders and other stores - and only then is the archived
+level given back, behind the row that narrows it. Whatever fails afterwards, the account
+holds at most what its role gives it.
 
 A role that neither the archive nor the restoring server has - a hand-edited archive,
 or one taken before custom roles were carried - is not guessed at, and the account is
-not left to fall back on its admin level either: the assignment is dropped, the
-account's admin level is lowered to an ordinary account's if it was higher, and the
-backup log names the account and the missing role. An administrator gives the
-authority back deliberately.
+not left to fall back on its admin level either: the assignment is dropped, the withheld
+admin level stays withheld (the account is an ordinary one), and the backup log and the
+error log (`HM6129`) name the account, the missing role and the level that was not
+given back. An administrator gives the authority back deliberately.
