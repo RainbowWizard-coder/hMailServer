@@ -38,9 +38,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name=" (inactive)" xml:space="preserve">
     <value> (etkin değil)</value>
   </data>
-  <data name=" (key file: {0})." xml:space="preserve">
-    <value> (anahtar dosyası: {0}).</value>
-  </data>
   <data name=" (published {0})" xml:space="preserve">
     <value> (yayımlandı: {0})</value>
   </data>
@@ -200,9 +197,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="(The private key file could not be read from this machine, so the record value cannot be derived here. Run this page on the server itself, or use the domain's DKIM tab.)" xml:space="preserve">
     <value>(Özel anahtar dosyası bu makineden okunamadı, bu nedenle kayıt değeri burada türetilemiyor. Bu sayfayı sunucunun kendisinde çalıştırın veya etki alanının DKIM sekmesini kullanın.)</value>
   </data>
-  <data name="(The staged private key file could not be read from this machine, so the record value cannot be shown here. It was shown when the rotation was started; if it is lost, cancel the rotation and start again.)" xml:space="preserve">
-    <value>(Hazırlanan özel anahtar dosyası bu makineden okunamadı, bu nedenle kayıt değeri burada gösterilemiyor. Bu değer, döndürme başlatıldığında gösterilmişti; kaybolduysa döndürmeyi iptal edip yeniden başlatın.)</value>
-  </data>
   <data name="(account #{0})" xml:space="preserve">
     <value>(hesap #{0})</value>
   </data>
@@ -238,9 +232,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(sunucunun Windows bilgisayar adı)</value>
-  </data>
-  <data name="(the staged pair has no selector)" xml:space="preserve">
-    <value>(hazırlanan çiftin seçicisi yok)</value>
   </data>
   <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
     <value>, ayrıca dizin girdisi ortadan kalkan hesapları etkin değil olarak işaretler.</value>
@@ -350,12 +341,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Bu QR kodunu bir kimlik doğrulayıcı uygulamayla (Microsoft Authenticator, Google Authenticator, Authy, 1Password…) tarayın.</value>
   </data>
-  <data name="1. Currently signing with selector &quot;{0}&quot;" xml:space="preserve">
-    <value>1. Şu anda "{0}" seçicisiyle imzalanıyor</value>
-  </data>
-  <data name="1. No signing selector is configured yet." xml:space="preserve">
-    <value>1. Henüz bir imzalama seçicisi yapılandırılmamış.</value>
-  </data>
   <data name="12+ characters" xml:space="preserve">
     <value>12+ karakter</value>
   </data>
@@ -368,29 +353,14 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="2.  Or enter the setup key shown below by hand." xml:space="preserve">
     <value>2.  Ya da aşağıda gösterilen kurulum anahtarını elle girin.</value>
   </data>
-  <data name="2. A rotation is staged: selector &quot;{0}&quot;, key file {1}." xml:space="preserve">
-    <value>2. Bir döndürme hazırlanmış: seçici "{0}", anahtar dosyası {1}.</value>
-  </data>
-  <data name="2. Stage a new key pair under a new selector name:" xml:space="preserve">
-    <value>2. Yeni bir seçici adı altında yeni bir anahtar çifti hazırlayın:</value>
-  </data>
   <data name="24 hours" xml:space="preserve">
     <value>24 saat</value>
-  </data>
-  <data name="3. Publish this DNS TXT record at your DNS provider. Host/Name:" xml:space="preserve">
-    <value>3. Bu DNS TXT kaydını DNS sağlayıcınızda yayımlayın. Ana bilgisayar/Ad:</value>
   </data>
   <data name="30 days" xml:space="preserve">
     <value>30 gün</value>
   </data>
-  <data name="4. Check that the record is visible in DNS:" xml:space="preserve">
-    <value>4. Kaydın DNS'te görünür olduğunu denetleyin:</value>
-  </data>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>451 4.3.1 yanıtları</value>
-  </data>
-  <data name="5. Promote the staged key to become the signing key:" xml:space="preserve">
-    <value>5. Hazırlanan anahtarı imzalama anahtarı olacak şekilde yükseltin:</value>
   </data>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514, UDP ve düz TCP için kayıtlı bağlantı noktasıdır; 6514, TLS üzerinden syslog için kayıtlı bağlantı noktasıdır.</value>
@@ -413,14 +383,8 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>{1} konumunda p={0} içeren bir DMARC kaydı yayında - p=none başlangıç noktasından daha katı. Postanızın hizalamayı geçtiğini zaten biliyorsanız bu doğrudur; hâlâ SPF ve DKIM kurulumu yapıyorsanız, başarısız olan postalar şu anda {2}. Yayımlandı: {3}</value>
   </data>
-  <data name="A TXT record exists at {0}, but it does not match the staged key. Waiting will not fix this: correct the published record so it matches the value above, then check again." xml:space="preserve">
-    <value>{0} konumunda bir TXT kaydı var, ama hazırlanan anahtarla eşleşmiyor. Beklemek bunu düzeltmez: yayımlanan kaydı yukarıdaki değerle eşleşecek biçimde düzeltin, sonra yeniden denetleyin.</value>
-  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>{0} konumunda bir TXT kaydı var, ama özel anahtar dosyası bu makineden okunamadı; bu nedenle DOĞRU anahtarı taşıyıp taşımadığı buradan doğrulanamıyor. Denetimi sunucunun kendisinde çalıştırın veya etki alanının DKIM sekmesini kullanın.</value>
-  </data>
-  <data name="A TXT record exists, but the staged private key file ({0}) could not be read from this machine, so the record cannot be compared against the key. Run this check on the server itself, or cancel the rotation and start it again from here." xml:space="preserve">
-    <value>Bir TXT kaydı var, ama hazırlanan özel anahtar dosyası ({0}) bu makineden okunamadı; bu nedenle kayıt anahtarla karşılaştırılamıyor. Bu denetimi sunucunun kendisinde çalıştırın veya döndürmeyi iptal edip buradan yeniden başlatın.</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Tek bir geçiş için üst sınır; böylece bir düzey fazla yukarıya işaret eden bir arama tabanı, tüm ormanı okuyarak yanıtlanamaz. Sınıra ulaşılırsa çalışma bunu bildirir ve hiçbir şeyi devre dışı bırakmaz - sınırın ötesinde, var olan bir girdi silinmiş bir girdiden ayırt edilemez.</value>
@@ -494,6 +458,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>hMailServer için modern bir yönetim uygulaması: canlı pano, etki alanları ve hesaplar, teslim kuyruğu, günlük akışı, eksiksiz sunucu ayarları ve 6.x aktarım güvenliği özellikleri (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
+    <value>Yeni bir anahtar oluşturuldu ve hazırlandı. Kaydını yayımlayın.</value>
+  </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Yeni bir hizmet hesabı parolası yazılmış VE "saklanan parolayı kaldır" işaretlenmiş. Bunlardan birinin işaretini kaldırın - hangisinin kastedildiğini tahmin etmek bu sayfanın vereceği bir karar değil.</value>
   </data>
@@ -538,9 +505,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Rol, adlandırılmış bir izin kümesidir ve atama onu belirtilen alan adlarında bir hesaba verir. Dört yerleşik rol düzenlenemez: izinleri sunucunun kodundadır, böylece veritabanındaki bir değişiklik kimseye yetki veremez. Burada rolü olmayan bir hesap, yönetici düzeyinin ona her zaman verdiğine sahiptir.</value>
-  </data>
-  <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
-    <value>Zaten bir döndürme hazırlanmış. DNS kaydı yayımlandıysa "DNS'i denetle" düğmesine basın; yükseltme, denetim bu oturumda başarılı olduğunda açılır.</value>
   </data>
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Bir rota, adı verilen etki alanları için MX aramasının yerine geçer.</value>
@@ -1569,13 +1533,11 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Cancel" xml:space="preserve">
     <value>İptal</value>
   </data>
-  <data name="Cancel rotat_ion…" xml:space="preserve">
-    <value>Döndürmeyi _iptal et…</value>
+  <data name="Cancel the ne_xt key…" xml:space="preserve">
+    <value>_Sonraki anahtarı iptal et…</value>
   </data>
-  <data name="Cancel this rotation?&#10;&#10;The staged selector &quot;{0}&quot; is removed from the server configuration; signing continues with the current key, untouched. The generated key file stays on disk, and the DNS record for the staged selector - if you already published it - can simply be deleted." xml:space="preserve">
-    <value>Bu döndürme iptal edilsin mi?
-
-Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama geçerli anahtarla, dokunulmadan devam eder. Üretilen anahtar dosyası diskte kalır ve hazırlanan seçicinin DNS kaydı - zaten yayımladıysanız - basitçe silinebilir.</value>
+  <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
+    <value>{0} için sonraki anahtar iptal edilsin mi? Hazırlanan seçici kaldırılır, döndürmenin onun için oluşturduğu anahtar dosyası silinir ve imzalama değişmez.</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Buradan denetlenemez</value>
@@ -1682,8 +1644,8 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   <data name="Check" xml:space="preserve">
     <value>Denetle</value>
   </data>
-  <data name="Check D_NS" xml:space="preserve">
-    <value>D_NS'yi denetle</value>
+  <data name="Check DNS n_ow" xml:space="preserve">
+    <value>D_NS'i şimdi denetle</value>
   </data>
   <data name="Check PTR record" xml:space="preserve">
     <value>PTR kaydını denetle</value>
@@ -1726,9 +1688,6 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Bu sunucunun dışında hâlâ nelerin yapılması gerektiği denetleniyor…</value>
-  </data>
-  <data name="Checking {0}…" xml:space="preserve">
-    <value>{0} denetleniyor…</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Denetleniyor…</value>
@@ -1994,9 +1953,6 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   <data name="Copy every sample of {0} to the clipboard as tab-separated text" xml:space="preserve">
     <value>{0} örneklerinin tümünü sekmeyle ayrılmış metin olarak panoya kopyala</value>
   </data>
-  <data name="Copy h_ost" xml:space="preserve">
-    <value>Ana bilgisa_yarı kopyala</value>
-  </data>
   <data name="Copy host" xml:space="preserve">
     <value>Ana bilgisayarı kopyala</value>
   </data>
@@ -2053,9 +2009,6 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   </data>
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Rota eklenemedi: {0}</value>
-  </data>
-  <data name="Could not cancel the rotation: {0}" xml:space="preserve">
-    <value>Döndürme iptal edilemedi: {0}</value>
   </data>
   <data name="Could not change logging: {0}" xml:space="preserve">
     <value>Günlük ayarı değiştirilemedi: {0}</value>
@@ -2197,9 +2150,6 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>{0} açılamadı: {1}</value>
   </data>
-  <data name="Could not promote the staged key: {0}" xml:space="preserve">
-    <value>Hazırlanan anahtar terfi ettirilemedi: {0}</value>
-  </data>
   <data name="Could not read the backup settings: {0}" xml:space="preserve">
     <value>Yedekleme ayarları okunamadı: {0}</value>
   </data>
@@ -2208,6 +2158,9 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Dosya okunamadı: {0}</value>
+  </data>
+  <data name="Could not read the key rotation: {0}" xml:space="preserve">
+    <value>Anahtar döndürme okunamadı: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Günlük durumu okunamadı: {0}</value>
@@ -2290,9 +2243,6 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kaydedilemedi: {0}</value>
   </data>
-  <data name="Could not stage the rotation on the server: {0}" xml:space="preserve">
-    <value>Döndürme sunucuda hazırlanamadı: {0}</value>
-  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Yedekleme başlatılamadı: {0}</value>
   </data>
@@ -2362,6 +2312,9 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>"{0}" oluşturuldu. İstemcide o hesabın parolası olarak girin.</value>
   </data>
+  <data name="Created {0}" xml:space="preserve">
+    <value>Oluşturuldu {0}</value>
+  </data>
   <data name="Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to." xml:space="preserve">
     <value>Posta kutularını bir LDAP dizinine uyacak şekilde oluşturur ve güncelleştirir. Yalnızca Active Directory etki alanı adı ayarlanmış etki alanları katılır; bu yüzden bu, barındırılan bir etki alanına kazara sağlama yapamaz. Buradaki hiçbir şey asla bir hesabı veya iletiyi silmez: en fazla birini etkin değil olarak işaretler, o da yalnızca siz istediğinizde.</value>
   </data>
@@ -2382,6 +2335,9 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Kritik, Yüksek ve Orta</value>
+  </data>
+  <data name="Current key" xml:space="preserve">
+    <value>Geçerli anahtar</value>
   </data>
   <data name="Custom" xml:space="preserve">
     <value>Özel</value>
@@ -2520,6 +2476,12 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   </data>
   <data name="Date this key stops working" xml:space="preserve">
     <value>Bu anahtarın çalışmayı bırakacağı tarih</value>
+  </data>
+  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
+    <value>D_öndürmeler arasındaki gün sayısı (1 ile 3650 arası)</value>
+  </data>
+  <data name="Days between rotations" xml:space="preserve">
+    <value>Döndürmeler arasındaki gün sayısı</value>
   </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Sunucuda tutulacak gün (0 = indirdikten sonra sil)</value>
@@ -2749,6 +2711,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Tanılama başarısız oldu: {0}</value>
+  </data>
+  <data name="Different" xml:space="preserve">
+    <value>Farklı</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Özet saati</value>
@@ -3016,9 +2981,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
     <value>Etkin ama yapılandırılmamış: {0} ayarlanmamış.</value>
   </data>
-  <data name="Enabled once &quot;Check DNS&quot; has confirmed the published record matches the staged key." xml:space="preserve">
-    <value>"DNS'yi denetle", yayımlanan kaydın hazırlanan anahtarla eşleştiğini doğruladıktan sonra etkinleşir.</value>
-  </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>"Denetle", yayımlanan kaydın bu anahtarın ortak anahtarını taşıdığını doğruladıktan sonra etkinleşir.</value>
   </data>
@@ -3048,9 +3010,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Bir gizli anahtar girin</value>
-  </data>
-  <data name="Enter a selector name for the new key first." xml:space="preserve">
-    <value>Önce yeni anahtar için bir seçici adı girin.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Geçerli bir etki alanı adı girin.</value>
@@ -3343,6 +3302,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Finish" xml:space="preserve">
     <value>Bitir</value>
   </data>
+  <data name="First seen {0}" xml:space="preserve">
+    <value>İlk görülme {0}</value>
+  </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Önce: hangi yarı takılı?</value>
   </data>
@@ -3456,9 +3418,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>Güçlü bir parola üret (panoya kopyalanır)</value>
-  </data>
-  <data name="Generate and stage _key…" xml:space="preserve">
-    <value>_Anahtar üret ve hazırla…</value>
   </data>
   <data name="Generated password" xml:space="preserve">
     <value>Üretilen parola</value>
@@ -3775,6 +3734,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Sonuçların altına yazıldığı kimlik (boş = bu bilgisayarın adı)</value>
   </data>
+  <data name="Idle" xml:space="preserve">
+    <value>Boşta</value>
+  </data>
   <data name="Idle timeouts" xml:space="preserve">
     <value>Boşta kalma zaman aşımları</value>
   </data>
@@ -3909,6 +3871,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL'si (sağlayıcının yayımlanan imzalama anahtarları; boş = yalnızca anahtar dosyası)</value>
   </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Tut</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
     <value>Kayıt süre sonu penceresi boyunca greylisting'i etkin tut (yeniden başlatma gerekir)</value>
   </data>
@@ -3924,6 +3889,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>Okundu/okunmadı durumunu koru</value>
   </data>
+  <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
+    <value>Emekliye ayrılmakta olan “{0}” seçicisinin kaydını, onunla imzalanıp hâlâ yolda olan posta için {1} tarihine kadar yayında tutun.</value>
+  </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Birden çok ileti kuşağı saklamak sıkıştırma gerektirir: 'Hedef dosyaları sıkıştır (zip)' olmadan her yedekleme ileti dosyalarını aynı DataBackup klasörüne, önceki çalışmanınkilerin üzerine yazar; bu yüzden saklama yalnızca küçük ayarlar-ve-etki-alanları arşivlerinin kuşaklarını tutabilir.</value>
   </data>
@@ -3935,6 +3903,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Key file present" xml:space="preserve">
     <value>Anahtar dosyası var</value>
+  </data>
+  <data name="Key file: {0}" xml:space="preserve">
+    <value>Anahtar dosyası: {0}</value>
   </data>
   <data name="Key matches certificate" xml:space="preserve">
     <value>Anahtar sertifikayla eşleşiyor</value>
@@ -3948,8 +3919,14 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Key rotation" xml:space="preserve">
     <value>Anahtar döndürme</value>
   </data>
+  <data name="Key si_ze" xml:space="preserve">
+    <value>Ana_htar boyutu</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Anahtar deposu</value>
+  </data>
+  <data name="Key unreadable" xml:space="preserve">
+    <value>Anahtar okunamıyor</value>
   </data>
   <data name="LDAPS" xml:space="preserve">
     <value>LDAPS</value>
@@ -4299,6 +4276,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>HERHANGİ bir ölçütle eşleş (OR)</value>
   </data>
+  <data name="Matches" xml:space="preserve">
+    <value>Eşleşiyor</value>
+  </data>
   <data name="Matches the certificate" xml:space="preserve">
     <value>Sertifikayla eşleşiyor</value>
   </data>
@@ -4569,6 +4549,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Move _up" xml:space="preserve">
     <value>_Yukarı taşı</value>
   </data>
+  <data name="Move signing for {0} to the next key now?" xml:space="preserve">
+    <value>{0} için imzalama şimdi sonraki anahtara geçirilsin mi?</value>
+  </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>İleti dosyasını SpamAssassin'e kopyalamak yerine taşı (yeniden başlatma gerekir)</value>
   </data>
@@ -4652,6 +4635,12 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Next" xml:space="preserve">
     <value>İleri</value>
+  </data>
+  <data name="Next key" xml:space="preserve">
+    <value>Sonraki anahtar</value>
+  </data>
+  <data name="Next rotation due {0}" xml:space="preserve">
+    <value>Sonraki döndürme {0}</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Sonraki deneme</value>
@@ -4869,6 +4858,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP ayarlarında genel bir ana bilgisayar adı yapılandırılmamış.</value>
   </data>
+  <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
+    <value>Planlanmış bir döndürme yok. Başlatmak için “Şimdi döndür”ü kullanın.</value>
+  </data>
   <data name="No routes defined yet." xml:space="preserve">
     <value>Henüz rota tanımlanmamış.</value>
   </data>
@@ -4947,11 +4939,11 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Henüz denetlenmedi (Güncelleştirmeleri denetleyin veya API ve izleme sayfasındaki Güncelleştirmeler altından günlük denetimi açın)</value>
   </data>
-  <data name="Not checked yet. Publish the record, allow time for propagation, then press &quot;Check DNS&quot;." xml:space="preserve">
-    <value>Henüz denetlenmedi. Kaydı yayımlayın, yayılması için zaman tanıyın, sonra "DNS'yi denetle"ye basın.</value>
-  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Bağlı değil</value>
+  </data>
+  <data name="Not found" xml:space="preserve">
+    <value>Bulunamadı</value>
   </data>
   <data name="Not listening" xml:space="preserve">
     <value>Dinlemiyor</value>
@@ -5540,6 +5532,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Permissions - {0} (saved)" xml:space="preserve">
     <value>İzinler - {0} (kaydedildi)</value>
   </data>
+  <data name="Phase: {0}" xml:space="preserve">
+    <value>Aşama: {0}</value>
+  </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Sunucuyu bir SpamAssassin ana bilgisayarına yöneltin ve puanının nasıl birleştirileceğini seçin.</value>
   </data>
@@ -5657,12 +5652,11 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Prometheus ölçümleri, sağlık uç noktaları ve REST API burada etkinleştirilir.</value>
   </data>
-  <data name="Promote the staged selector &quot;{0}&quot;?&#10;&#10;From the next message on, mail from {1} is signed with the new key, and the old selector is cleared from the configuration.&#10;&#10;Leave the OLD DNS record ({2}) published for at least a few days. Mail signed with the old key may still be in transit, and receivers can only verify it for as long as that record exists." xml:space="preserve">
-    <value>Hazırlanan "{0}" seçicisi yükseltilsin mi?
-
-Bir sonraki iletiden itibaren {1} adresinden gelen posta yeni anahtarla imzalanır ve eski seçici yapılandırmadan temizlenir.
-
-ESKİ DNS kaydını ({2}) en az birkaç gün yayında bırakın. Eski anahtarla imzalanmış posta hâlâ yolda olabilir ve alıcılar onu ancak o kayıt var olduğu sürece doğrulayabilir.</value>
+  <data name="Propagating" xml:space="preserve">
+    <value>Yayılıyor</value>
+  </data>
+  <data name="Propagation period in hours" xml:space="preserve">
+    <value>Saat cinsinden yayılma süresi</value>
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Özellikler</value>
@@ -5702,6 +5696,9 @@ ESKİ DNS kaydını ({2}) en az birkaç gün yayında bırakın. Eski anahtarla 
   </data>
   <data name="Public — anyone can send" xml:space="preserve">
     <value>Genel — herkes gönderebilir</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Yayımla</value>
   </data>
   <data name="Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
     <value>AcmeDomains içinde listelenen her ad için genel bir A/AAAA kaydı yayımlayın ve doğrulama portuna internetten gelen TCP'ye izin verin (varsa NAT üzerinden port yönlendirin). Dışarıdan erişilebilirlik içeriden yoklanamaz; bu yüzden dış bir ağdan ya da çevrimiçi bir port denetleyicisiyle sınayın.</value>
@@ -5867,6 +5864,9 @@ ESKİ DNS kaydını ({2}) en az birkaç gün yayında bırakın. Eski anahtarla 
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Projenin sürüm akışını şimdi okur ve daha yeni bir sürümün olup olmadığını söyler. Bu işlem hiçbir şey indirmez ya da yüklemez.</value>
+  </data>
+  <data name="Ready to switch" xml:space="preserve">
+    <value>Geçişe hazır</value>
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Bağlanan IP adresine karşı denetlenen gerçek zamanlı kara delik listeleri.</value>
@@ -6040,6 +6040,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Remote domains" xml:space="preserve">
     <value>Uzak alan adları</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Süresi _dolanları kaldır</value>
   </data>
@@ -6091,9 +6094,6 @@ Otomatik yasaklama girdileri dâhil her özel aralık kaldırılır ve yerine 'B
     <value>Yapılandırılmış TÜM portlar varsayılanlarla değiştirilsin mi?
 
 SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portları ve özel bağlamalar kaldırılır. Değişiklik sunucu yeniden başlatıldığında geçerli olur.</value>
-  </data>
-  <data name="Replace the DKIM key without a gap in verification: stage a new key next to the current one, publish its DNS record, wait for the record to propagate, check it, and only then promote it." xml:space="preserve">
-    <value>DKIM anahtarını doğrulamada boşluk bırakmadan değiştirin: geçerli anahtarın yanına yeni bir anahtar hazırlayın, DNS kaydını yayımlayın, kaydın yayılmasını bekleyin, denetleyin ve ancak ondan sonra yükseltin.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Sertifikayı burada değiştirin; her birinin süre sonu tarihi listelenir.</value>
@@ -6241,6 +6241,30 @@ Devam edilsin mi?</value>
   <data name="Retention" xml:space="preserve">
     <value>Saklama</value>
   </data>
+  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
+    <value>Gün _cinsinden saklama süresi (1 ile 365 arası)</value>
+  </data>
+  <data name="Retention period in days" xml:space="preserve">
+    <value>Gün cinsinden saklama süresi</value>
+  </data>
+  <data name="Retire due {0}" xml:space="preserve">
+    <value>Emekliye ayırma {0}</value>
+  </data>
+  <data name="Retire the old ke_y now…" xml:space="preserve">
+    <value>_Eski anahtarı şimdi emekliye ayır…</value>
+  </data>
+  <data name="Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted." xml:space="preserve">
+    <value>{0} için eski seçici şimdi emekliye ayrılsın mı? TXT kaydı ardından kaldırılabilir ve döndürmenin oluşturduğu anahtar dosyası silinir.</value>
+  </data>
+  <data name="Retired key" xml:space="preserve">
+    <value>Emekliye ayrılan anahtar</value>
+  </data>
+  <data name="Retired {0}" xml:space="preserve">
+    <value>Emekliye ayrıldı {0}</value>
+  </data>
+  <data name="Retiring key" xml:space="preserve">
+    <value>Emekliye ayrılmakta olan anahtar</value>
+  </data>
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Dizin erişilemez _olduğunda Windows oturum açması üzerinden yeniden dene (FallbackToWindowsLogon)</value>
   </data>
@@ -6278,6 +6302,15 @@ Devam edilsin mi?</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
+  </data>
+  <data name="Rotate _now…" xml:space="preserve">
+    <value>Şi_mdi döndür…</value>
+  </data>
+  <data name="Rotate now" xml:space="preserve">
+    <value>Şimdi döndür</value>
+  </data>
+  <data name="Rotate the _key on a schedule" xml:space="preserve">
+    <value>Anahtarı bir _plana göre döndür</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Oturum bileti anahtarını her N saniyede bir döndür (0 = OpenSSL'in tek, döndürülmeyen anahtarı)</value>
@@ -6494,9 +6527,6 @@ Devam edilsin mi?</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Sayaçları her N saniyede diske kaydet (varsayılan 10)</value>
-  </data>
-  <data name="Save the new DKIM private key" xml:space="preserve">
-    <value>Yeni DKIM özel anahtarını kaydet</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Seçili sertifika için özel anahtar parola ifadesini kaydet</value>
@@ -6788,6 +6818,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
     <value>Önceki bir yedekleme tarafından oluşturulan yedek XML dosyasını seçin (hedef klasörde). İçeriği, seçili kategoriler için geçerli verilerin yerini alır.</value>
+  </data>
+  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
+    <value>Yeni anahtarın seçicisi (bugünün tarihiyle adlandırılmış bir seçici için boş bırakın)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Yeni DKIM anahtarı için seçici adı</value>
@@ -7151,6 +7184,9 @@ Devam edilsin mi?</value>
   <data name="Signing in…" xml:space="preserve">
     <value>Oturum açılıyor…</value>
   </data>
+  <data name="Signing moved to the next key." xml:space="preserve">
+    <value>İmzalama sonraki anahtara geçti.</value>
+  </data>
   <data name="Signs outgoing mail so receivers can verify it really came from your domain; without the DNS record every signature fails verification." xml:space="preserve">
     <value>Giden postayı imzalar; böylece alıcılar gerçekten sizin etki alanınızdan geldiğini doğrulayabilir. DNS kaydı olmadan her imza doğrulamada başarısız olur.</value>
   </data>
@@ -7165,6 +7201,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Eşzamanlı bağlantı (0 sınırsız demektir)</value>
+  </data>
+  <data name="Since {0}" xml:space="preserve">
+    <value>{0} tarihinden beri</value>
   </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Boyut sınırı ve tarayıcılar…</value>
@@ -7352,6 +7391,12 @@ Devam edilsin mi?</value>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Gönderim hızı sınırları</value>
   </data>
+  <data name="Sw_itch now…" xml:space="preserve">
+    <value>_Şimdi geç…</value>
+  </data>
+  <data name="Switch due {0}" xml:space="preserve">
+    <value>Geçiş {0}</value>
+  </data>
   <data name="Switch to the dark theme" xml:space="preserve">
     <value>Koyu temaya geç</value>
   </data>
@@ -7474,6 +7519,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
     <value>TLS-RPT — diğer sunuculardan şuraya teslim ederken TLS hatalarını bildirmelerini iste:</value>
+  </data>
+  <data name="TXT record value for {0}" xml:space="preserve">
+    <value>{0} için TXT kaydı değeri</value>
   </data>
   <data name="TXT record(s) exist at {0} but none carries this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
     <value>{0} adresinde TXT kayıtları var ama hiçbiri bu anahtarın ortak anahtarını taşımıyor, bu yüzden bu anahtarla yapılan her imza doğrulamada başarısız oluyor. Beklemek bunu düzeltmez - yayımlanan değeri yukarıdakiyle eşleşecek şekilde düzeltin.</value>
@@ -7601,11 +7649,11 @@ Devam edilsin mi?</value>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC başarısızlık puanı şu anda {0}. ARC bu puanı dengeleyerek çalışır, bu yüzden sıfırda ARC filtreleme, güvenilen mühürleyiciler listelenmiş olsa bile hiçbir şey yapamaz. Önce Spam önleme ayarları sayfasında pozitif bir DMARC başarısızlık puanı ayarlayın.</value>
   </data>
+  <data name="The DNS lookup failed. It is tried again on the next pass." xml:space="preserve">
+    <value>DNS sorgusu başarısız oldu. Sonraki geçişte yeniden denenecek.</value>
+  </data>
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>{0} için DNS aramasının kendisi başarısız oldu: {1} Bu, kayıt hakkında hiçbir şey söylemez - bu makine DNS sunucusundan yanıt alamadı. Ağı denetleyip yeniden deneyin.</value>
-  </data>
-  <data name="The DNS lookup itself failed: {0} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
-    <value>DNS aramasının kendisi başarısız oldu: {0} Bu, kayıt hakkında hiçbir şey söylemez - bu makine DNS sunucusundan yanıt alamadı. Ağı denetleyip yeniden deneyin.</value>
   </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>E-posta teslimi'ndeki Ana bilgisayar adı BOŞ, bu yüzden sunucu Windows bilgisayar adına geri düşüyor{0}. Çıplak bir bilgisayar adı genel bir DNS adı değildir: HELO'yu DNS ile karşılaştıran alıcılar bunu cezalandırır ve hiçbir PTR onunla uyuşamaz. Önce gerçek bir ana bilgisayar adı ayarlayın.</value>
@@ -7780,6 +7828,12 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Dizin yanıt verdi ve bu kimlik bilgilerini REDDETTİ: {0} (LDAP hatası {1}). Bağlantı, taşıma ve yapılandırmanın hepsi çalışıyor - bu bir kimlik bilgisi sorunu; tam olarak yanlış parola yazan bir kullanıcının göreceği şey.</value>
   </data>
+  <data name="The domain has no signing key yet." xml:space="preserve">
+    <value>Etki alanının henüz imzalama anahtarı yok.</value>
+  </data>
+  <data name="The domain is inactive, so the schedule starts no rotation." xml:space="preserve">
+    <value>Etki alanı etkin değil, bu yüzden plan döndürme başlatmaz.</value>
+  </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Etki alanı listesinde hiç etki alanı adı yok. Anahtarın her etki alanında etkili olması için kutuyu boş bırakın - yalnızca ayırıcılardan oluşan bir liste sessizce aynı anlama gelirdi, ki istediğiniz bu değil.</value>
   </data>
@@ -7887,6 +7941,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Anahtar dosyası parola ifadesiyle korunuyor (şifreli PEM). Yalnızca eşleşen parola ifadesi bu sertifikada saklıysa yüklenir.</value>
   </data>
+  <data name="The key file was kept: {0}" xml:space="preserve">
+    <value>Anahtar dosyası tutuldu: {0}</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Anahtar şifreli ve bu panel onun şifresini bilerek çözmez; bu yüzden sertifikayla eşleşip eşleşmediği yalnızca sunucu çifti yüklediğinde kanıtlanır.</value>
   </data>
@@ -7913,6 +7970,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Dil kaydedilemedi: {0}</value>
+  </data>
+  <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
+    <value>Son deneme {0} tarihinde başarısız oldu: {1}</value>
   </data>
   <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
     <value>Bu karttaki son beş ayar, kendi sürümlerini üretip kendi Sigstore'uyla imzalayan ya da bu projeninkileri yansılayan bir kuruluş içindir. Hepsini boş bırakın; sunucu tam olarak tek bir şeye güvenir: bu projenin kendi sürüm iş akışı tarafından imzalanmış ve genel şeffaflık günlüğüne kaydedilmiş bir kurulum programına. Bunlardan herhangi birini ayarlamak bunu daraltır ya da bunun yerine geçer ve birini yanlış yapmak, ya gerçek sürümleri reddetmek ya da başkasınınkilere güvenmek demektir.</value>
@@ -7959,8 +8019,29 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The new API key, shown once" xml:space="preserve">
     <value>Yeni API anahtarı, bir kez gösterilir</value>
   </data>
-  <data name="The new selector must be different from the current selector (&quot;{0}&quot;). A rotation runs both keys side by side under different DNS names." xml:space="preserve">
-    <value>Yeni seçici geçerli seçiciden ("{0}") farklı olmalı. Bir döndürme her iki anahtarı farklı DNS adları altında yan yana çalıştırır.</value>
+  <data name="The new key's file could not be read." xml:space="preserve">
+    <value>Yeni anahtarın dosyası okunamadı.</value>
+  </data>
+  <data name="The new key's record has not been checked yet." xml:space="preserve">
+    <value>Yeni anahtarın kaydı henüz denetlenmedi.</value>
+  </data>
+  <data name="The new key's record was not found. Publish it." xml:space="preserve">
+    <value>Yeni anahtarın kaydı bulunamadı. Yayımlayın.</value>
+  </data>
+  <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
+    <value>Yeni kayıt henüz yayılma süresinin tamamı boyunca çözümlenmedi. İmzalama yine de geçirilsin mi? Çözümleyicileri henüz güncellenmemiş alıcılar, güncellenene kadar yeni imzaları doğrulayamaz. Kaydın kendisi yine de çözümlenmelidir: sunucu her iki durumda da önce onu denetler.</value>
+  </data>
+  <data name="The next key was cancelled." xml:space="preserve">
+    <value>Sonraki anahtar iptal edildi.</value>
+  </data>
+  <data name="The next rotation starts when the interval has passed." xml:space="preserve">
+    <value>Sonraki döndürme, aralık dolduğunda başlar.</value>
+  </data>
+  <data name="The old selector is kept for mail still on its way." xml:space="preserve">
+    <value>Eski seçici, hâlâ yolda olan posta için tutulur.</value>
+  </data>
+  <data name="The old selector was retired." xml:space="preserve">
+    <value>Eski seçici emekliye ayrıldı.</value>
   </data>
   <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
     <value>Bir DN'ye ulaşmanın diğer yolu: bunu ayarlayın, sunucu aramayı atlar - ve onunla birlikte SearchBase ve hizmet hesabı gereksinimini de. Active Directory'ye karşı bir UPN çalışır. Aynı %u, %d, %m yer tutucuları, ayırt edici ad için kaçış uygulanmış olarak.</value>
@@ -8009,8 +8090,8 @@ Yine de eklensin mi?</value>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Herkese açık derlem https://api.pwnedpasswords.com/range/ adresindedir. Kendi yansısını çalıştıran bir kuruluş onu burada belirtir: beş karakter yola eklenir veya {prefix} yazan yere konur. Şifrelenmemiş http yalnızca localhost, 127.0.0.1 veya ::1 için kabul edilir.</value>
   </data>
-  <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
-    <value>Yayımlanan kayıt hazırlanan anahtarla eşleşiyor. Terfi ettirmek güvenli.</value>
+  <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
+    <value>Yayımlanan kayıt yeni anahtarı içermiyor. Düzeltin.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>{0} kaydında p={1} var; bu, alıcıların tanıdığı bir ilke değil (none, quarantine, reject). Yayımlanan: {2}</value>
@@ -8030,11 +8111,14 @@ Yine de eklensin mi?</value>
   <data name="The record at {0} matches the suggestion." xml:space="preserve">
     <value>{0} kaydı öneriyle eşleşiyor.</value>
   </data>
-  <data name="The record was not found yet. New DNS records usually appear within minutes but can take hours to propagate - publish the record above if you have not already, then check again later." xml:space="preserve">
-    <value>Kayıt henüz bulunamadı. Yeni DNS kayıtları genellikle dakikalar içinde görünür, ancak yayılması saatler sürebilir - henüz yapmadıysanız yukarıdaki kaydı yayımlayın, sonra daha sonra yeniden denetleyin.</value>
+  <data name="The record is propagating." xml:space="preserve">
+    <value>Kayıt yayılıyor.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Bu sunucunun her etki alanının DNS bölgesinde yayımlanmasına ihtiyaç duyduğu kayıtlar: tür, ana bilgisayar ve değer, DNS sağlayıcınızın konsoluna kopyalamaya hazır ve her birinin gerçekten yayında olup olmadığını gösteren bir denetimle. Denetimler bu makinenin Windows çözümleyicisini kullanır - DKIM döndürme denetiminin kullandığıyla aynı.</value>
+  </data>
+  <data name="The records were checked." xml:space="preserve">
+    <value>Kayıtlar denetlendi.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Aktarma _kimlik doğrulaması gerektiriyor</value>
@@ -8045,10 +8129,8 @@ Yine de eklensin mi?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Yeniden deneme sayıları ve aralıkları burada; tükendiklerinde ne olacağıyla birlikte.</value>
   </data>
-  <data name="The rotation is complete: mail is now signed with selector &quot;{0}&quot;.&#10;&#10;Keep the old DNS record ({1}) for a few more days while mail signed with the old key is still in transit, then remove it." xml:space="preserve">
-    <value>Döndürme tamamlandı: posta artık "{0}" seçicisiyle imzalanıyor.
-
-Eski anahtarla imzalanmış posta hâlâ yoldayken eski DNS kaydını ({1}) birkaç gün daha tutun, sonra kaldırın.</value>
+  <data name="The rotation refused: {0}" xml:space="preserve">
+    <value>Döndürme reddetti: {0}</value>
   </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Çalıştırma bitmedi. Aşağıdaki satırlar durmadan önce nelerin yapıldığını söylüyor - yeniden çalıştırmadan önce onları okuyun.</value>
@@ -8064,6 +8146,9 @@ Eski anahtarla imzalanmış posta hâlâ yoldayken eski DNS kaydını ({1}) birk
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Tarama sonucu yalnızca sunucu makinesinde okunabilir - hMailServer.INI burada bulunamadı. Sunucu aynı sayıyı hmailserver_messagestore_missing_files ölçümü olarak yayımlar.</value>
+  </data>
+  <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
+    <value>Plan etki alanıyla birlikte kaydedilir. Aşağıdaki düğmeler hemen çalışır. Döndürme etki alanını yönetirken yukarıdaki seçiciyi ve anahtar dosyasını yalnızca döndürme değiştirir.</value>
   </data>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>Puan her iki aşama boyunca toplanır. Sunucu, ara toplam {0} değerine - iki eşiğin yükseğine - ulaşır ulaşmaz o aşamadaki sınamayı durdurur; bu yüzden sıralamada geç gelen bir denetim hiç çalışmayabilir.</value>
@@ -8101,6 +8186,9 @@ Eski anahtarla imzalanmış posta hâlâ yoldayken eski DNS kaydını ({1}) birk
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Sunucu toplu gönderimi kuyruğa almadı. Adres joker karakterini ve hMailServer hata günlüğünü denetleyin.</value>
   </data>
+  <data name="The server did not report the key rotation." xml:space="preserve">
+    <value>Sunucu anahtar döndürmeyi bildirmedi.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Sunucu kullanılabilir bir kayıt döndürmedi. Hata günlüğüne bakın.</value>
   </data>
@@ -8111,6 +8199,9 @@ Eski anahtarla imzalanmış posta hâlâ yoldayken eski DNS kaydını ({1}) birk
     <value>Sunucu {0} için hiç posta sunucusu bulamadı.
 
 Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığıyla aynı, hMailServer.INI'de yapılandırılmış özel bir DNSServer dâhil - bu yüzden bu sunucudan bu etki alanına gönderilen posta şu anda teslim edilemezdi.</value>
+  </data>
+  <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
+    <value>Sunucu sonraki anahtarı oluşturur, yayımlanacak TXT kaydını gösterir, kaydı kendi çözümleyicisiyle denetler ve imzalamayı ancak kayıt yayılma süresinin tamamı boyunca çözümlendiğinde yeni anahtara geçirir. Eski seçici saklama süresi boyunca tutulur ve ardından emekliye ayrılır.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
     <value>Sunucu geçmiş tutmuyor: hMailServer.ini içinde MetricsHistoryDays 0. Onu tutulacak gün sayısına ayarlayın ve hizmeti yeniden başlatın.</value>
@@ -8138,6 +8229,9 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   </data>
   <data name="The server's host name could not be read, so the suggestion authorises only the domain's MX hosts (&quot;mx&quot;)." xml:space="preserve">
     <value>Sunucunun ana bilgisayar adı okunamadı; bu yüzden öneri yalnızca etki alanının MX ana bilgisayarlarını ("mx") yetkilendiriyor.</value>
+  </data>
+  <data name="The server's key rotation has a next key, selector &quot;{0}&quot;. Publish its record as well; signing moves to it once the record has resolved for the propagation period, and the domain's DKIM tab shows the rest." xml:space="preserve">
+    <value>Sunucunun anahtar döndürmesinin “{0}” seçicili bir sonraki anahtarı var. Onun kaydını da yayımlayın; kayıt yayılma süresi boyunca çözümlendiğinde imzalama ona geçer, gerisini etki alanının DKIM sekmesi gösterir.</value>
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Hizmet hesabı okunamıyor: {0}</value>
@@ -8182,12 +8276,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Kaynak kısıtlaması bir adres (10.0.0.5), bir aralık (10.0.0.1-10.0.0.99) veya CIDR (10.0.0.0/24) olmalı. Anahtarı her adresten kabul etmek için boş bırakın.</value>
-  </data>
-  <data name="The staged pair has no selector, so there is no DNS name to check. Cancel the rotation and start again." xml:space="preserve">
-    <value>Hazırlanan çiftin seçicisi yok; bu yüzden denetlenecek bir DNS adı yok. Döndürmeyi iptal edip yeniden başlayın.</value>
-  </data>
-  <data name="The staged rotation is incomplete (the selector or the key file is missing), so the server will refuse to promote it. Cancel the rotation and start again." xml:space="preserve">
-    <value>Hazırlanan döndürme eksik (seçici veya anahtar dosyası eksik); bu yüzden sunucu onu terfi ettirmeyi reddedecek. Döndürmeyi iptal edip yeniden başlayın.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Saklanan süre sonu bu sayfanın beklediği biçimde (YYYY-AA-GG SS:DD:SS) okunamadı; bu yüzden sunucunun bu anahtarı hâlâ kabul edip etmediği buradan söylenemez. Satır elle düzenlendiyse düzeltin; aksi hâlde anahtarı iptal edip bir yenisini oluşturun.</value>
@@ -8331,6 +8419,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Bu, gönderen sunucu DATA yanıtını beklerken çalışır; bu yüzden sayı bir ipucu değil, en kötü durum hakkında bir sözdür. Yanıtın yanı sıra bağlantıyı da sınırlar: makinesi ortadan kaybolmuş bir motor aksi hâlde her iletide işletim sisteminin kendi TCP zaman aşımına mal olurdu.</value>
+  </data>
+  <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
+    <value>Bu sunucu DKIM anahtarlarını döndürmüyor; bu Denetim Masası'ndan daha eski.</value>
   </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Bu sunucu gelen postada SPF'yi yalnızca DENETLER; kaydı yayımlamak herkes içindir - alıcı sunuculara hangi makinelerin şu adına posta göndermesine izin verildiğini söyler:</value>
@@ -8721,6 +8812,15 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Havuzdan bir veritabanı bağlantısı bekleniyor. 0 = sınır yok.</value>
+  </data>
+  <data name="Waiting for the DNS record" xml:space="preserve">
+    <value>DNS kaydı bekleniyor</value>
+  </data>
+  <data name="Waiting for the old selector to be retired." xml:space="preserve">
+    <value>Eski seçicinin emekliye ayrılması bekleniyor.</value>
+  </data>
+  <data name="Waiting for the old selector to retire" xml:space="preserve">
+    <value>Eski seçicinin emekliye ayrılması bekleniyor</value>
   </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Bir sonraki geçişini beklemek yerine dizinleyiciyi uyandırır ve bu sunucunun iletilerinden şu anda kaçının dizinlendiğini bildirir. Geçişin kendisi arka planda çalışır ve yukarıdaki sınırlarla bağlıdır; bu yüzden büyük bir birikimde bitirmek yerine ilerler. Dizinleme kapalıyken uyandırılacak dizinleyici yoktur ve bu, başarı bildirmek yerine bunu söyler.</value>
@@ -9352,8 +9452,8 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
     <value>_Öncelik (aralıklar çakıştığında yüksek olan kazanır)</value>
   </data>
-  <data name="_Promote…" xml:space="preserve">
-    <value>Y_ükselt…</value>
+  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
+    <value>Saat cinsinden _yayılma süresi (1 ile 720 arası)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Özellikler</value>
@@ -10324,6 +10424,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>{1} konumunda {0} TXT kaydı var, ama hiçbiri "v=spf1" ile başlamıyor; bu yüzden alıcılar hiçbir SPF ilkesi görmüyor.</value>
   </data>
+  <data name="{0} Until {1}." xml:space="preserve">
+    <value>{0} {1} tarihine kadar.</value>
+  </data>
   <data name="{0} account(s) found{1}." xml:space="preserve">
     <value>{0} hesap bulundu{1}.</value>
   </data>
@@ -10570,6 +10673,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, parolası olmayan sanal bir hizmet hesabı</value>
   </data>
+  <data name="{0}, checked {1}." xml:space="preserve">
+    <value>{0}, denetlendi {1}.</value>
+  </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puan {2}. {3}</value>
   </data>
@@ -10587,6 +10693,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {2} içinden {1} etkin.</value>
+  </data>
+  <data name="{0}: TXT record at {1}" xml:space="preserve">
+    <value>{0}: {1} adresindeki TXT kaydı</value>
   </data>
   <data name="{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: {1} konumunda TXT kaydı var ama hiçbiri v=STSv1 ile başlamıyor; bu yüzden gönderenler orada bir ilke tanımayacak. Kaydın değerini düzeltin.</value>
@@ -10686,6 +10795,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: {1} TXT kaydı yayımlanmış. Buradan denetlenemeyenler: mta-sts.{2} adının bu sunucuya çözümlenmesi ve sertifikanın o adı kapsaması.</value>
+  </data>
+  <data name="{0}: {1}" xml:space="preserve">
+    <value>{0}: {1}</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} hiçbir PEM sertifika bloğu içermiyor; bu yüzden kullanılabilir bir CA sertifikası tutmuyor (sunucu hatası 6140). CA sertifikasını PEM (Base64) biçiminde dışa aktarın.</value>

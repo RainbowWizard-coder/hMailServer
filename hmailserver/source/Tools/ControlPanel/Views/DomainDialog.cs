@@ -21,10 +21,10 @@ namespace hMailServer.ControlPanel.Views
    /// take the height the dialog allows so the window never resizes on a click of
    /// the strip, every field is a <see cref="FieldRow"/>, each of the eight
    /// numbers that can be wrong is said on its own field rather than in one line
-   /// at the foot of the dialog, and the rotation walkthrough's running commentary
-   /// is an <see cref="InlineNotice"/> that carries its level in colour, shape and
-   /// word instead of in a held brush. The message boxes that remain are the real
-   /// questions - renaming a domain, promoting a key, cancelling a rotation - and
+   /// at the foot of the dialog, and the key rotation's outcome and each record
+   /// check is an <see cref="InlineNotice"/> that carries its level in colour, shape
+   /// and word instead of in a held brush. The message boxes that remain are the real
+   /// questions - renaming a domain, switching, retiring or cancelling a rotation - and
    /// the file dialogs they lead to.
    /// </summary>
    public class DomainDialog : FluentDialogWindow
@@ -122,26 +122,38 @@ namespace hMailServer.ControlPanel.Views
       private StackPanel dkimDnsPanel_;
       private string dkimDnsValue_ = "";
 
-      // DKIM key rotation. Unlike the rest of this dialog, the staged (secondary)
-      // pair is written to the server the moment it changes: a rotation spans
-      // hours of DNS propagation, the administrator will close this dialog in
-      // between, and a staged pair that lived only in the dialog would be gone
-      // when they come back to promote it.
-      private readonly TextBox rotSelector_ = NewInput();
-      private readonly TextBox rotDnsHost_ = ReadOnlyBox(0);
-      private readonly TextBox rotDnsValue_ = ReadOnlyBox(70);
-      private TextBlock rotCurrent_;
-      private TextBlock rotStagedInfo_;
+      // DKIM key rotation. The policy is saved with the domain, like every other
+      // field of this dialog; the rotation itself is the server's - it generates the
+      // keys, checks the records from its own resolver and moves signing - so this
+      // dialog shows what the server reports (DkimRotationStatus) and asks it to act,
+      // redrawing from the answer. Nothing here reads a key file or looks up DNS on
+      // this machine, which is what lets it administer a server that is not this one.
+      private readonly CheckBox rotOn_ = new() { Content = L("Rotate the _key on a schedule") };
+      private readonly TextBox rotInterval_ = NewInput();
+      private FieldRow rotIntervalRow_;
+      private readonly TextBox rotPropagation_ = NewInput();
+      private FieldRow rotPropagationRow_;
+      private readonly TextBox rotRetention_ = NewInput();
+      private FieldRow rotRetentionRow_;
+      private readonly ComboBox rotKeyBits_ = new();
       private readonly InlineNotice rotStatus_ = DialogFields.Notice();
-      private StackPanel rotStartPanel_;
-      private StackPanel rotStagedPanel_;
+      private readonly StackPanel rotState_ = new();
+      private Wpf.Ui.Controls.Button rotStart_;
       private Wpf.Ui.Controls.Button rotCheck_;
-      private Wpf.Ui.Controls.Button rotPromote_;
-      private string rotStagedSelector_ = "";
-      private string rotStagedKeyFile_ = "";
-      private string rotExpectedTxt_;
-      private bool rotCheckPassed_;
-      private bool rotChecking_;
+      private Wpf.Ui.Controls.Button rotSwitch_;
+      private Wpf.Ui.Controls.Button rotRetire_;
+      private Wpf.Ui.Controls.Button rotCancel_;
+      private DkimRotationStatus rotation_;
+
+      // False against a server older than the rotation: the policy is then neither
+      // shown as editable nor written, and the rest of the dialog works as before.
+      private bool rotationSupported_;
+
+      // The selector and key file as the dialog opened, so that Save writes them only
+      // when the administrator changed them. A rotation moves them while the dialog is
+      // open, and writing the values it opened with would put the old key back.
+      private string loadedSelector_ = "";
+      private string loadedKeyFile_ = "";
 
       // Names (domain aliases) — embedded list editor
       private CollectionEditorView aliasEditor_;
@@ -476,485 +488,300 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The staged key-rotation walkthrough. Rotation is a sequence with an
-      /// out-of-band wait in the middle (publishing a DNS record and letting it
-      /// propagate), so the section reads as numbered steps and the Promote
-      /// button is gated on an actual DNS check instead of trusting the
-      /// administrator to have waited long enough. It is a
-      /// <see cref="SettingsSection"/>, which makes its title a level-2 heading
-      /// under the dialog's own - a screen reader can jump to it, which a
-      /// semibold TextBlock never allowed.
+      /// The key rotation: the schedule, then the rotation as the server reports it and
+      /// the five things it can be asked to do. It is a <see cref="SettingsSection"/>,
+      /// which makes its title a level-2 heading under the dialog's own - a screen
+      /// reader can jump to it.
       /// </summary>
       private SettingsSection BuildRotation()
       {
+         rotKeyBits_.Items.Add(DialogFields.Combo("2048", 2048)); // no-loc
+         rotKeyBits_.Items.Add(DialogFields.Combo("3072", 3072)); // no-loc
+         rotKeyBits_.Items.Add(DialogFields.Combo("4096", 4096)); // no-loc
+
          var section = new StackPanel();
+         section.Children.Add(DialogFields.Check(rotOn_));
+         rotIntervalRow_ = Label(L("Days bet_ween rotations (1 to 3650)"), rotInterval_);
+         section.Children.Add(rotIntervalRow_);
+         rotPropagationRow_ = Label(L("_Propagation period in hours (1 to 720)"), rotPropagation_);
+         section.Children.Add(rotPropagationRow_);
+         rotRetentionRow_ = Label(L("Retention period in _days (1 to 365)"), rotRetention_);
+         section.Children.Add(rotRetentionRow_);
+         section.Children.Add(Label(L("Key si_ze"), rotKeyBits_));
+         section.Children.Add(DialogFields.Note(L("The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change.")));
 
-         // Step 1 quotes the primary fields above, so it must follow their edits
-         // or it would describe a selector the user has already typed over.
-         dkimSelector_.TextChanged += (s, e) => UpdateRotationUi();
-         dkimKeyFile_.TextChanged += (s, e) => UpdateRotationUi();
+         section.Children.Add(DialogFields.Separator());
+         section.Children.Add(rotStatus_);
+         section.Children.Add(rotState_);
 
-         rotCurrent_ = StepLine();
-         section.Children.Add(rotCurrent_);
+         var buttons = new WrapPanel { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
 
-         // Step 2 while nothing is staged: choose a selector name and stage a key.
-         rotStartPanel_ = new StackPanel();
-         var startRow = new Grid();
-         startRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-         startRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-         AutomationProperties.SetAutomationId(rotSelector_, "DkimRotationSelector");
-         Grid.SetColumn(rotSelector_, 0);
-         startRow.Children.Add(rotSelector_);
-         var start = new Wpf.Ui.Controls.Button { Content = L("Generate and stage _key…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
-         AutomationProperties.SetAutomationId(start, "DkimRotationStart");
-         start.Click += (s, e) => StartRotation();
-         Grid.SetColumn(start, 1);
-         startRow.Children.Add(start);
-         rotStartPanel_.Children.Add(DialogFields.Field(L("2. Stage a new key pair under a new selector name:"), startRow));
-         section.Children.Add(rotStartPanel_);
+         rotStart_ = new Wpf.Ui.Controls.Button { Content = L("Rotate _now…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
+         AutomationProperties.SetAutomationId(rotStart_, "DkimRotationStart");
+         rotStart_.Click += (s, e) => StartRotation();
+         buttons.Children.Add(rotStart_);
 
-         // Steps 2-5 once a rotation is staged.
-         rotStagedPanel_ = new StackPanel { Visibility = Visibility.Collapsed };
-
-         rotStagedInfo_ = StepLine();
-         rotStagedPanel_.Children.Add(rotStagedInfo_);
-
-         rotStagedPanel_.Children.Add(DialogFields.Field(L("3. Publish this DNS TXT record at your DNS provider. Host/Name:"), rotDnsHost_));
-         rotStagedPanel_.Children.Add(DialogFields.Field(L("TXT value:"), rotDnsValue_));
-
-         var copyRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
-         var copyHost = new Wpf.Ui.Controls.Button { Content = L("Copy h_ost") };
-         AutomationProperties.SetAutomationId(copyHost, "DkimRotationCopyHost");
-         copyHost.Click += (s, e) => CopyToClipboard(rotDnsHost_.Text);
-         copyRow.Children.Add(copyHost);
-         var copyValue = new Wpf.Ui.Controls.Button { Content = L("Copy _value"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
-         AutomationProperties.SetAutomationId(copyValue, "DkimRotationCopyValue");
-         copyValue.Click += (s, e) => CopyToClipboard(rotExpectedTxt_);
-         copyRow.Children.Add(copyValue);
-         rotStagedPanel_.Children.Add(copyRow);
-
-         rotStagedPanel_.Children.Add(DialogFields.Caption(L("4. Check that the record is visible in DNS:")));
-         rotCheck_ = new Wpf.Ui.Controls.Button { Content = L("Check D_NS"), Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
+         rotCheck_ = new Wpf.Ui.Controls.Button { Content = L("Check DNS n_ow"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
          AutomationProperties.SetAutomationId(rotCheck_, "DkimRotationCheck");
-         rotCheck_.Click += async (s, e) => await CheckRotationDns();
-         rotStagedPanel_.Children.Add(rotCheck_);
+         rotCheck_.Click += (s, e) => RotationCall(d => (string)d.DKIMRotationCheck(), L("The records were checked."));
+         buttons.Children.Add(rotCheck_);
 
-         // The running commentary of the check. A notice rather than a coloured
-         // line: the level reaches a reader who cannot tell the four colours
-         // apart, as a mark and a word, and it is a live region, so the outcome
-         // of a check that took a resolver timeout to come back is announced.
-         rotStagedPanel_.Children.Add(rotStatus_);
+         rotSwitch_ = new Wpf.Ui.Controls.Button { Content = L("Sw_itch now…"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
+         AutomationProperties.SetAutomationId(rotSwitch_, "DkimRotationSwitch");
+         rotSwitch_.Click += (s, e) => SwitchRotation();
+         buttons.Children.Add(rotSwitch_);
 
-         rotStagedPanel_.Children.Add(DialogFields.Caption(L("5. Promote the staged key to become the signing key:")));
-         var promoteRow = new StackPanel { Orientation = Orientation.Horizontal };
+         rotRetire_ = new Wpf.Ui.Controls.Button { Content = L("Retire the old ke_y now…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
+         AutomationProperties.SetAutomationId(rotRetire_, "DkimRotationRetire");
+         rotRetire_.Click += (s, e) => RetireRotation();
+         buttons.Children.Add(rotRetire_);
 
-         // Promote stays locked until a "Check DNS" in this session has seen the
-         // new record on the wire and confirmed it matches the staged key.
-         // Promoting before the record has propagated makes the server sign
-         // immediately with a key whose public half much of the world cannot look
-         // up yet: every receiver whose resolver has not caught up fails the DKIM
-         // signature, and under a DMARC quarantine or reject policy that sends
-         // freshly signed mail to spam folders or bounces it outright until
-         // propagation completes.
-         rotPromote_ = new Wpf.Ui.Controls.Button
-         {
-            Content = L("_Promote…"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            IsEnabled = false,
-            ToolTip = L("Enabled once \"Check DNS\" has confirmed the published record matches the staged key.")
-         };
-         ToolTipService.SetShowOnDisabled(rotPromote_, true);
-         AutomationProperties.SetAutomationId(rotPromote_, "DkimRotationPromote");
-         rotPromote_.Click += (s, e) => PromoteRotation();
-         promoteRow.Children.Add(rotPromote_);
+         rotCancel_ = new Wpf.Ui.Controls.Button { Content = L("Cancel the ne_xt key…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
+         AutomationProperties.SetAutomationId(rotCancel_, "DkimRotationCancel");
+         rotCancel_.Click += (s, e) => CancelRotation();
+         buttons.Children.Add(rotCancel_);
 
-         var cancelRotation = new Wpf.Ui.Controls.Button { Content = L("Cancel rotat_ion…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
-         AutomationProperties.SetAutomationId(cancelRotation, "DkimRotationCancel");
-         cancelRotation.Click += (s, e) => CancelRotation();
-         promoteRow.Children.Add(cancelRotation);
-
-         rotStagedPanel_.Children.Add(promoteRow);
-         section.Children.Add(rotStagedPanel_);
+         section.Children.Add(buttons);
 
          return new SettingsSection
          {
             Heading = L("Key rotation"),
-            Description = L("Replace the DKIM key without a gap in verification: stage a new key next to the current one, publish its DNS record, wait for the record to propagate, check it, and only then promote it."),
+            Description = L("The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired."),
             Content = section
          };
       }
 
       // ---- DKIM key rotation ----
 
-      private void StartRotation()
+      /// <summary>Draws the rotation from the last status the server gave.</summary>
+      private void DrawRotation()
       {
-         rotStatus_.Hide();
-         string selector = rotSelector_.Text.Trim();
-         if (selector.Length == 0)
+         rotState_.Children.Clear();
+
+         DkimRotationStatus status = rotation_;
+         bool known = status != null;
+
+         rotStart_.IsEnabled = known && status.Next == null;
+         rotCheck_.IsEnabled = known;
+         rotSwitch_.IsEnabled = known && status.Next != null;
+         rotCancel_.IsEnabled = known && status.Next != null;
+         rotRetire_.IsEnabled = known && status.Retiring != null;
+
+         if (!known)
          {
-            SetRotationStatus(L("Enter a selector name for the new key first."), StatusLevel.Warning);
+            rotState_.Children.Add(DialogFields.Note(rotationSupported_
+               ? L("The server did not report the key rotation.")
+               : L("This server does not rotate DKIM keys; it is older than this Control Panel.")));
             return;
          }
 
-         // Reusing the current selector name is refused outright: it would replace
-         // the published key under the same DNS name instead of running two keys
-         // side by side, and while resolvers still serve the old record every
-         // message signed with the new key fails verification - the exact outage
-         // a staged rotation exists to prevent.
-         if (string.Equals(selector, dkimSelector_.Text.Trim(), StringComparison.OrdinalIgnoreCase))
+         rotState_.Children.Add(DialogFields.Body(F("Phase: {0}", DkimRotationStatus.PhaseText(status.Phase))));
+
+         if (!string.IsNullOrEmpty(status.LastError))
          {
-            SetRotationStatus(F("The new selector must be different from the current selector (\"{0}\"). A rotation runs both keys side by side under different DNS names.", selector), StatusLevel.Critical);
-            return;
+            var failed = DialogFields.Notice();
+            failed.Show(StatusLevel.Warning, F("The last attempt failed at {0}: {1}", DkimRotationStatus.When(status.LastErrorTime), status.LastError));
+            rotState_.Children.Add(failed);
          }
 
-         var save = new Microsoft.Win32.SaveFileDialog
-         {
-            Title = L("Save the new DKIM private key"),
-            Filter = "PEM key files (*.pem)|*.pem|All files (*.*)|*.*",
-            FileName = selector + "._domainkey." + domainName_ + ".pem"
-         };
-         try
-         {
-            // Default to the folder the current key lives in, like the generator above.
-            string existing = dkimKeyFile_.Text.Trim();
-            if (existing.Length > 0)
-            {
-               string dir = System.IO.Path.GetDirectoryName(existing);
-               if (!string.IsNullOrEmpty(dir) && System.IO.Directory.Exists(dir))
-                  save.InitialDirectory = dir;
-            }
-         }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+         if (status.Current == null)
+            rotState_.Children.Add(DialogFields.Note(L("The domain has no signing key yet.")));
 
-         if (save.ShowDialog() != true)
-            return;
+         DrawSlot(L("Current key"), status.Current, status.Current == null ? null : new[]
+         {
+            F("Key file: {0}", status.Current.KeyFile),
+            status.Current.Since.HasValue ? F("Since {0}", DkimRotationStatus.When(status.Current.Since)) : null,
+            status.Current.NextRotationDue.HasValue ? F("Next rotation due {0}", DkimRotationStatus.When(status.Current.NextRotationDue)) : null
+         });
 
-         DkimKeyGenerator.Result generated;
-         try
+         DrawSlot(L("Next key"), status.Next, status.Next == null ? null : new[]
          {
-            generated = DkimKeyGenerator.Generate(selector, domainName_);
-            System.IO.File.WriteAllText(save.FileName, generated.PrivateKeyPem);
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            SetRotationStatus(F("Could not generate the DKIM key: {0}", ex.Message), StatusLevel.Critical);
-            return;
-         }
+            F("Key file: {0}", status.Next.KeyFile),
+            status.Next.Created.HasValue ? F("Created {0}", DkimRotationStatus.When(status.Next.Created)) : null,
+            status.Next.FirstSeen.HasValue ? F("First seen {0}", DkimRotationStatus.When(status.Next.FirstSeen)) : null,
+            status.Next.SwitchDue.HasValue ? F("Switch due {0}", DkimRotationStatus.When(status.Next.SwitchDue)) : null
+         });
 
-         dynamic domains = ServerSession.Current.Application.Domains;
-         try
+         DrawSlot(L("Retiring key"), status.Retiring, status.Retiring == null ? null : new[]
          {
-            dynamic d = domains.ItemByName[domainName_];
-            d.DKIMSecondarySelector = selector;
-            d.DKIMSecondaryPrivateKeyFile = save.FileName;
-            d.Save();
-            ServerSession.Release(d);
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            SetRotationStatus(F("Could not stage the rotation on the server: {0}", ServerSession.DescribeComError(ex)), StatusLevel.Critical);
-            return;
-         }
-         finally
-         {
-            ServerSession.Release(domains);
-         }
+            status.Retiring.Since.HasValue ? F("Since {0}", DkimRotationStatus.When(status.Retiring.Since)) : null,
+            status.Retiring.RetireDue.HasValue ? F("Retire due {0}", DkimRotationStatus.When(status.Retiring.RetireDue)) : null
+         });
 
-         rotStagedSelector_ = selector;
-         rotStagedKeyFile_ = save.FileName;
-         rotExpectedTxt_ = generated.DnsTxtValue;
-         rotCheckPassed_ = false;
-         UpdateRotationUi();
-         SetRotationStatus(L("Not checked yet. Publish the record, allow time for propagation, then press \"Check DNS\"."),
-            StatusLevel.Information);
+         DrawSlot(L("Retired key"), status.Retired, status.Retired == null ? null : new[]
+         {
+            status.Retired.At.HasValue ? F("Retired {0}", DkimRotationStatus.When(status.Retired.At)) : null,
+            status.Retired.KeyFileKept.Length > 0 ? F("The key file was kept: {0}", status.Retired.KeyFileKept) : null
+         });
+
+         if (status.Waiting.Count > 0)
+            rotState_.Children.Add(DialogFields.Separator());
+
+         foreach (DkimRotationStatus.Wait wait in status.Waiting)
+         {
+            string sentence = DkimRotationStatus.ReasonText(wait.Reason);
+            rotState_.Children.Add(DialogFields.Note(wait.Until.HasValue
+               ? F("{0} Until {1}.", sentence, DkimRotationStatus.When(wait.Until))
+               : sentence));
+         }
       }
 
-      private static string RotationNotFoundText =>
-         L("The record was not found yet. New DNS records usually appear within minutes but can take hours to propagate - publish the record above if you have not already, then check again later.");
-
-      private static string RotationLookupFailedText(string error) =>
-         F("The DNS lookup itself failed: {0} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again.", error);
-
-      private async Task CheckRotationDns()
+      private void DrawSlot(string title, DkimRotationStatus.Slot slot, string[] facts)
       {
-         if (rotChecking_)
+         if (slot == null)
             return;
 
-         if (rotStagedSelector_.Length == 0)
+         rotState_.Children.Add(DialogFields.Separator());
+         rotState_.Children.Add(DialogFields.Body(F("{0}: {1}", title, slot.Selector)));
+
+         foreach (string fact in facts)
          {
-            SetRotationStatus(L("The staged pair has no selector, so there is no DNS name to check. Cancel the rotation and start again."), StatusLevel.Critical);
-            return;
+            if (!string.IsNullOrEmpty(fact))
+               rotState_.Children.Add(DialogFields.Note(fact));
          }
 
-         string host = rotStagedSelector_ + "._domainkey." + domainName_;
-         string expected = rotExpectedTxt_;
+         if (slot.Check != null)
+         {
+            var (level, word) = DkimRotationStatus.CheckPresentation(slot.Check.Status);
+            string sentence = slot.Check.Checked.HasValue ? F("{0}, checked {1}.", word, DkimRotationStatus.When(slot.Check.Checked)) : word;
+            if (slot.Check.Detail.Length > 0)
+               sentence += " " + slot.Check.Detail;
 
-         rotChecking_ = true;
-         rotCheck_.IsEnabled = false;
-         SetRotationStatus(F("Checking {0}…", host), StatusLevel.Information);
+            var notice = DialogFields.Notice();
+            notice.Show(level, sentence);
+            rotState_.Children.Add(notice);
+         }
 
+         foreach (DkimRotationStatus.Record record in slot.Records)
+         {
+            rotState_.Children.Add(DialogFields.Caption(F("{0}: TXT record at {1}", DkimRotationStatus.ActionText(record.Action), record.Host)));
+
+            if (record.Value.Length == 0)
+               continue;
+
+            TextBox value = ReadOnlyBox(0);
+            value.Text = record.Value;
+            AutomationProperties.SetName(value, F("TXT record value for {0}", record.Host));
+            rotState_.Children.Add(value);
+
+            var copy = new Wpf.Ui.Controls.Button { Content = L("Copy _value"), Margin = new Thickness(0, DesignTokens.Space.Xs, 0, DesignTokens.Space.Sm) };
+            string text = record.Value;
+            copy.Click += (s, e) => CopyToClipboard(text);
+            rotState_.Children.Add(copy);
+         }
+      }
+
+      /// <summary>Reads the rotation from a domain object the caller holds.</summary>
+      private void ReadRotation(dynamic domain)
+      {
          try
          {
-            // The lookup blocks for the resolver's full timeout when the record is
-            // missing - the common case right after publishing - so it runs off the
-            // UI thread. DnsTxtLookup never throws; it reports through the result.
-            if (expected == null)
-            {
-               DnsTxtLookup.LookupResult found = await Task.Run(() => DnsTxtLookup.Query(host));
-               ReportUnverifiableCheck(found);
-               return;
-            }
-
-            DnsTxtLookup.MatchResult result = await Task.Run(() => DnsTxtLookup.CheckExpected(host, expected));
-
-            // Any outcome short of a confirmed match locks Promote (again): a
-            // pass from earlier in the session is stale evidence the moment a
-            // fresh check stops confirming it.
-            rotCheckPassed_ = result.Status == DnsTxtLookup.MatchStatus.FoundAndMatches;
-
-            switch (result.Status)
-            {
-               case DnsTxtLookup.MatchStatus.FoundAndMatches:
-                  SetRotationStatus(L("The published record matches the staged key. It is safe to promote."),
-                     StatusLevel.Good);
-                  break;
-
-               case DnsTxtLookup.MatchStatus.NoRecord:
-                  SetRotationStatus(RotationNotFoundText, StatusLevel.Warning);
-                  break;
-
-               case DnsTxtLookup.MatchStatus.FoundButDifferent:
-                  SetRotationStatus(F("A TXT record exists at {0}, but it does not match the staged key. Waiting will not fix this: correct the published record so it matches the value above, then check again.", host) + DescribeFoundRecords(result.Records), StatusLevel.Critical);
-                  break;
-
-               default:
-                  SetRotationStatus(RotationLookupFailedText(result.Error), StatusLevel.Critical);
-                  break;
-            }
+            rotation_ = DkimRotationStatus.Parse((string)domain.DKIMRotationStatus);
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            rotPromote_.IsEnabled = rotCheckPassed_;
-            rotChecking_ = false;
-            rotCheck_.IsEnabled = true;
+            rotation_ = null;
+            if (rotationSupported_)
+               rotStatus_.Show(StatusLevel.Critical, F("Could not read the key rotation: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 
       /// <summary>
-      /// Words the check when the staged private key file could not be read from
-      /// this machine (typically when administering a remote server, where the
-      /// path is on the server's disk): the record can still be looked up, but
-      /// not compared - and a record that cannot be verified must not unlock
-      /// Promote, however plausible it looks.
+      /// One operation on a domain object read now, its answer drawn, and the selector
+      /// and key file boxes above brought up to what the server holds afterwards - a
+      /// switch moves them, and a later Save must not write the old ones back.
       /// </summary>
-      private void ReportUnverifiableCheck(DnsTxtLookup.LookupResult found)
+      private void RotationCall(Func<dynamic, string> call, string done)
       {
-         rotCheckPassed_ = false;
-
-         switch (found.Status)
-         {
-            case DnsTxtLookup.LookupStatus.Found:
-               SetRotationStatus(F("A TXT record exists, but the staged private key file ({0}) could not be read from this machine, so the record cannot be compared against the key. Run this check on the server itself, or cancel the rotation and start it again from here.", rotStagedKeyFile_),
-                  StatusLevel.Warning);
-               break;
-
-            case DnsTxtLookup.LookupStatus.NoRecord:
-               SetRotationStatus(RotationNotFoundText, StatusLevel.Warning);
-               break;
-
-            default:
-               SetRotationStatus(RotationLookupFailedText(found.Error), StatusLevel.Critical);
-               break;
-         }
-      }
-
-      private void PromoteRotation()
-      {
-         string oldSelector = dkimSelector_.Text.Trim();
-         string oldHost = oldSelector.Length > 0 ? oldSelector + "._domainkey." + domainName_ : "(none)";
-
-         if (MessageBox.Show(
-             F("Promote the staged selector \"{0}\"?\n\nFrom the next message on, mail from {1} is signed with the new key, and the old selector is cleared from the configuration.\n\nLeave the OLD DNS record ({2}) published for at least a few days. Mail signed with the old key may still be in transit, and receivers can only verify it for as long as that record exists.", rotStagedSelector_, domainName_, oldHost),
-             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-            return;
-
+         rotStatus_.Hide();
          dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
             dynamic d = domains.ItemByName[domainName_];
+            try
+            {
+               try
+               {
+                  rotation_ = DkimRotationStatus.Parse(call(d));
+                  rotStatus_.Show(StatusLevel.Good, done);
+               }
+               catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+               {
+                  // The server's own sentence: it knows why, and what to do.
+                  rotStatus_.Show(StatusLevel.Warning, F("The rotation refused: {0}", ServerSession.DescribeComError(ex)));
+                  ReadRotation(d);
+               }
 
-            // The server refuses to promote a half-staged pair, and refuses when
-            // the staged key file is missing from its disk - either would leave
-            // the domain unable to sign. Its explanation reaches the administrator
-            // verbatim through the catch below instead of being swallowed.
-            d.DKIMPromoteSecondary();
-            d.Save();
-
-            string newSelector = (string)d.DKIMSelector ?? "";
-            string newKeyFile = (string)d.DKIMPrivateKeyFile ?? "";
-            ServerSession.Release(d);
-
-            // Mirror the promoted values into the primary fields: they now hold
-            // stale text, and a later Save of this dialog would otherwise write
-            // the old selector back and silently undo the promote.
-            dkimSelector_.Text = newSelector;
-            dkimKeyFile_.Text = newKeyFile;
-
-            rotStagedSelector_ = "";
-            rotStagedKeyFile_ = "";
-            rotExpectedTxt_ = null;
-            rotCheckPassed_ = false;
-            UpdateRotationUi();
-
-            SetRotationStatus(F("The rotation is complete: mail is now signed with selector \"{0}\".\n\nKeep the old DNS record ({1}) for a few more days while mail signed with the old key is still in transit, then remove it.", newSelector, oldHost), StatusLevel.Good);
+               loadedSelector_ = ((string)d.DKIMSelector ?? "").Trim();
+               loadedKeyFile_ = ((string)d.DKIMPrivateKeyFile ?? "").Trim();
+               dkimSelector_.Text = loadedSelector_;
+               dkimKeyFile_.Text = loadedKeyFile_;
+            }
+            finally
+            {
+               ServerSession.Release(d);
+            }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            SetRotationStatus(F("Could not promote the staged key: {0}", ServerSession.DescribeComError(ex)), StatusLevel.Critical);
+            rotStatus_.Show(StatusLevel.Critical, F("Could not read the key rotation: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
             ServerSession.Release(domains);
          }
+
+         DrawRotation();
+      }
+
+      private void StartRotation()
+      {
+         string selector = DialogFields.PromptText(this, L("Rotate now"),
+            L("Selector for the new key (leave it empty for one named after today's date)"));
+         if (selector == null)
+            return;
+
+         selector = selector.Trim();
+         RotationCall(d => (string)d.DKIMRotationStart(selector), L("A new key was generated and staged. Publish its record."));
+      }
+
+      private void SwitchRotation()
+      {
+         if (MessageBox.Show(F("Move signing for {0} to the next key now?", domainName_),
+                             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+         // Before the propagation period is over the server refuses a plain switch,
+         // so the second question is asked here rather than after a refusal.
+         bool force = false;
+         DateTimeOffset? due = rotation_?.Next?.SwitchDue;
+         if (!due.HasValue || due.Value > DateTimeOffset.UtcNow)
+         {
+            if (MessageBox.Show(L("The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way."),
+                                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+               return;
+            force = true;
+         }
+
+         RotationCall(d => (string)d.DKIMRotationSwitch(force), L("Signing moved to the next key."));
+      }
+
+      private void RetireRotation()
+      {
+         if (MessageBox.Show(F("Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted.", domainName_),
+                             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+         RotationCall(d => (string)d.DKIMRotationRetire(), L("The old selector was retired."));
       }
 
       private void CancelRotation()
       {
-         if (MessageBox.Show(
-             F("Cancel this rotation?\n\nThe staged selector \"{0}\" is removed from the server configuration; signing continues with the current key, untouched. The generated key file stays on disk, and the DNS record for the staged selector - if you already published it - can simply be deleted.", rotStagedSelector_),
-             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (MessageBox.Show(F("Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change.", domainName_),
+                             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 
-         dynamic domains = ServerSession.Current.Application.Domains;
-         try
-         {
-            dynamic d = domains.ItemByName[domainName_];
-            d.DKIMSecondarySelector = "";
-            d.DKIMSecondaryPrivateKeyFile = "";
-            d.Save();
-            ServerSession.Release(d);
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            SetRotationStatus(F("Could not cancel the rotation: {0}", ServerSession.DescribeComError(ex)), StatusLevel.Critical);
-            return;
-         }
-         finally
-         {
-            ServerSession.Release(domains);
-         }
-
-         rotStagedSelector_ = "";
-         rotStagedKeyFile_ = "";
-         rotExpectedTxt_ = null;
-         rotCheckPassed_ = false;
-         rotStatus_.Hide();
-         UpdateRotationUi();
-      }
-
-      /// <summary>
-      /// Puts the rotation section into the right step when the dialog opens and
-      /// a rotation is already staged on the server - staged pairs outlive the
-      /// dialog by design, because DNS propagation is waited out between
-      /// sessions. A check that passed in an earlier session deliberately does
-      /// not count: DNS can change while the dialog is closed, so Promote only
-      /// unlocks after a fresh check in this session.
-      /// </summary>
-      private void RestoreStagedRotation(string selector, string keyFile)
-      {
-         rotStagedSelector_ = selector;
-         rotStagedKeyFile_ = keyFile;
-         rotCheckPassed_ = false;
-         rotExpectedTxt_ = null;
-
-         if (selector.Length == 0 && keyFile.Length == 0)
-         {
-            UpdateRotationUi();
-            return;
-         }
-
-         if (keyFile.Length > 0)
-            rotExpectedTxt_ = DeriveDnsTxtValue(keyFile);
-
-         UpdateRotationUi();
-
-         if (selector.Length == 0 || keyFile.Length == 0)
-            SetRotationStatus(L("The staged rotation is incomplete (the selector or the key file is missing), so the server will refuse to promote it. Cancel the rotation and start again."), StatusLevel.Critical);
-         else
-            SetRotationStatus(L("A rotation is already staged. If the DNS record is published, press \"Check DNS\"; promoting unlocks once the check passes in this session."), StatusLevel.Information);
-      }
-
-      /// <summary>
-      /// Rebuilds the DNS TXT value from the staged private key's PEM file, so a
-      /// rotation staged in an earlier session can still show its record and have
-      /// "Check DNS" compare against it. Returns null when the file cannot be
-      /// read from this machine (for example when administering a remote server,
-      /// where the path is on the server's disk); the check then reports that it
-      /// cannot verify a match, and Promote stays locked.
-      /// </summary>
-      private static string DeriveDnsTxtValue(string keyFile)
-      {
-         try
-         {
-            string pem = System.IO.File.ReadAllText(keyFile);
-            using var rsa = System.Security.Cryptography.RSA.Create();
-            rsa.ImportFromPem(pem);
-            // The same record format DkimKeyGenerator emits when a key is first made.
-            return "v=DKIM1; k=rsa; p=" + Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo()); // no-loc
-         }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
-         {
-            return null;
-         }
-      }
-
-      private void UpdateRotationUi()
-      {
-         string current = dkimSelector_.Text.Trim();
-         string currentFile = dkimKeyFile_.Text.Trim();
-         rotCurrent_.Text = current.Length > 0
-            ? F("1. Currently signing with selector \"{0}\"", current) +
-              (currentFile.Length > 0 ? F(" (key file: {0}).", currentFile) : ".")
-            : L("1. No signing selector is configured yet.");
-
-         bool staged = rotStagedSelector_.Length > 0 || rotStagedKeyFile_.Length > 0;
-         rotStartPanel_.Visibility = staged ? Visibility.Collapsed : Visibility.Visible;
-         rotStagedPanel_.Visibility = staged ? Visibility.Visible : Visibility.Collapsed;
-
-         if (!staged)
-         {
-            rotPromote_.IsEnabled = false;
-
-            // A dated selector name never collides with the old one and makes it
-            // obvious in DNS which key is the newer.
-            if (rotSelector_.Text.Trim().Length == 0)
-            {
-               string suggestion = "s" + DateTime.Now.ToString("yyyyMMdd");
-               if (!string.Equals(suggestion, current, StringComparison.OrdinalIgnoreCase))
-                  rotSelector_.Text = suggestion;
-            }
-            return;
-         }
-
-         rotStagedInfo_.Text = F("2. A rotation is staged: selector \"{0}\", key file {1}.", rotStagedSelector_, rotStagedKeyFile_);
-         rotDnsHost_.Text = rotStagedSelector_.Length > 0
-            ? rotStagedSelector_ + "._domainkey." + domainName_
-            : L("(the staged pair has no selector)");
-         rotDnsValue_.Text = rotExpectedTxt_ ?? L("(The staged private key file could not be read from this machine, so the record value cannot be shown here. It was shown when the rotation was started; if it is lost, cancel the rotation and start again.)");
-         rotPromote_.IsEnabled = rotCheckPassed_;
-      }
-
-      private void SetRotationStatus(string text, StatusLevel level) => rotStatus_.Show(level, text);
-
-      private static string DescribeFoundRecords(System.Collections.Generic.List<string> records)
-      {
-         if (records == null || records.Count == 0)
-            return "";
-
-         string first = records[0];
-         if (first.Length > 120)
-            first = first.Substring(0, 120) + "…";
-         return Environment.NewLine + "Found: " + first;
+         RotationCall(d => (string)d.DKIMRotationCancel(), L("The next key was cancelled."));
       }
 
       private static void CopyToClipboard(string text)
@@ -1029,18 +856,35 @@ namespace hMailServer.ControlPanel.Views
             DialogFields.SelectCombo(dkimBodyCanon_, (int)d.DKIMBodyCanonicalizationMethod);
             DialogFields.SelectCombo(dkimAlgorithm_, (int)d.DKIMSigningAlgorithm);
 
-            // The staged rotation pair, if an earlier session left one behind.
-            // Read defensively: against an older server that predates the
-            // rotation API these properties do not exist, and the rest of the
-            // dialog must keep working without them.
-            string stagedSelector = "", stagedKeyFile = "";
+            loadedSelector_ = dkimSelector_.Text.Trim();
+            loadedKeyFile_ = dkimKeyFile_.Text.Trim();
+
+            // The rotation's policy and state. Read defensively: against an older
+            // server these properties do not exist, and the rest of the dialog must
+            // keep working without them.
             try
             {
-               stagedSelector = ((string)d.DKIMSecondarySelector ?? "").Trim();
-               stagedKeyFile = ((string)d.DKIMSecondaryPrivateKeyFile ?? "").Trim();
+               rotOn_.IsChecked = (bool)d.DKIMRotationEnabled;
+               rotInterval_.Text = ((int)d.DKIMRotationIntervalDays).ToString();
+               rotPropagation_.Text = ((int)d.DKIMRotationPropagationHours).ToString();
+               rotRetention_.Text = ((int)d.DKIMRotationRetentionDays).ToString();
+               DialogFields.SelectCombo(rotKeyBits_, (int)d.DKIMRotationKeyBits, orFirst: true);
+               rotationSupported_ = true;
             }
-            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
-            RestoreStagedRotation(stagedSelector, stagedKeyFile);
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               rotationSupported_ = false;
+            }
+
+            rotOn_.IsEnabled = rotationSupported_;
+            rotInterval_.IsEnabled = rotationSupported_;
+            rotPropagation_.IsEnabled = rotationSupported_;
+            rotRetention_.IsEnabled = rotationSupported_;
+            rotKeyBits_.IsEnabled = rotationSupported_;
+
+            if (rotationSupported_)
+               ReadRotation(d);
+            DrawRotation();
 
             // The digest, defensively for the same reason: a server older than the
             // feature has no such properties, and the tab then shows its defaults
@@ -1073,7 +917,8 @@ namespace hMailServer.ControlPanel.Views
       {
          notice_.Hide();
          DialogFields.ClearErrors(nameRow_, maxSizeRow_, maxMessageSizeRow_, maxAccountSizeRow_, retentionRow_,
-                                  maxAccountsRow_, maxAliasesRow_, maxDistsRow_, relayPortRow_, tagTextRow_, digestHourRow_);
+                                  maxAccountsRow_, maxAliasesRow_, maxDistsRow_, relayPortRow_, tagTextRow_, digestHourRow_,
+                                  rotIntervalRow_, rotPropagationRow_, rotRetentionRow_);
 
          // Eight numbers, each said on its own field. They used to share one line
          // at the foot of the dialog, which named the field in words and left the
@@ -1105,6 +950,20 @@ namespace hMailServer.ControlPanel.Views
 
          if (!NumericField.TryValidate(digestHour_.Text, L("Digest hour"), 0, 23, out int digestHourValue, out bool hasDigestHour, out error))
          { DialogFields.ShowError(digestHourRow_, error); return; }
+
+         int rotationInterval = 0, rotationPropagation = 0, rotationRetention = 0;
+         bool hasRotationInterval = false, hasRotationPropagation = false, hasRotationRetention = false;
+         if (rotationSupported_)
+         {
+            if (!NumericField.TryValidate(rotInterval_.Text, L("Days between rotations"), 1, 3650, out rotationInterval, out hasRotationInterval, out error))
+            { DialogFields.ShowError(rotIntervalRow_, error); return; }
+
+            if (!NumericField.TryValidate(rotPropagation_.Text, L("Propagation period in hours"), 1, 720, out rotationPropagation, out hasRotationPropagation, out error))
+            { DialogFields.ShowError(rotPropagationRow_, error); return; }
+
+            if (!NumericField.TryValidate(rotRetention_.Text, L("Retention period in days"), 1, 365, out rotationRetention, out hasRotationRetention, out error))
+            { DialogFields.ShowError(rotRetentionRow_, error); return; }
+         }
 
          // Said here as well as by the server, because a tag the server truncated
          // would be a tag every reader learns to ignore.
@@ -1201,8 +1060,23 @@ namespace hMailServer.ControlPanel.Views
 
             d.DKIMSignEnabled = dkimOn_.IsChecked is true;
             d.DKIMSignAliasesEnabled = dkimAliases_.IsChecked is true;
-            d.DKIMSelector = dkimSelector_.Text.Trim();
-            d.DKIMPrivateKeyFile = dkimKeyFile_.Text.Trim();
+            // Only when changed here. The object above was read now, so it already
+            // holds whatever a rotation has moved the selector and key file to; the
+            // boxes hold what they held when the dialog opened, unless somebody typed.
+            if (dkimSelector_.Text.Trim() != loadedSelector_)
+               d.DKIMSelector = dkimSelector_.Text.Trim();
+            if (dkimKeyFile_.Text.Trim() != loadedKeyFile_)
+               d.DKIMPrivateKeyFile = dkimKeyFile_.Text.Trim();
+
+            if (rotationSupported_)
+            {
+               d.DKIMRotationEnabled = rotOn_.IsChecked is true;
+               if (hasRotationInterval) d.DKIMRotationIntervalDays = rotationInterval;
+               if (hasRotationPropagation) d.DKIMRotationPropagationHours = rotationPropagation;
+               if (hasRotationRetention) d.DKIMRotationRetentionDays = rotationRetention;
+               int bits = DialogFields.ComboValue(rotKeyBits_);
+               if (bits > 0) d.DKIMRotationKeyBits = bits;
+            }
             int hc = DialogFields.ComboValue(dkimHeaderCanon_);
             if (hc > 0) d.DKIMHeaderCanonicalizationMethod = hc;
             int bc = DialogFields.ComboValue(dkimBodyCanon_);
@@ -1248,14 +1122,6 @@ namespace hMailServer.ControlPanel.Views
          TextWrapping = TextWrapping.Wrap,
          VerticalScrollBarVisibility = ScrollBarVisibility.Auto
       };
-
-      /// <summary>One line of the rotation walkthrough, written into as the state changes.</summary>
-      private static TextBlock StepLine()
-      {
-         var t = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
-         t.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
-         return t;
-      }
 
       /// <summary>
       /// The number that belongs to the tick box above it. The three limit boxes

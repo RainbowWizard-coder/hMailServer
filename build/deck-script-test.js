@@ -498,12 +498,14 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'plus_addressing_enabled', 'plus_addressing_character', 'use_greylisting',
    'signature_enabled', 'signature_method', 'signature_plain_text', 'signature_html', 'signature_add_to_replies', 'signature_add_to_local_mail',
    'dkim_enabled', 'dkim_selector', 'dkim_private_key_file', 'dkim_signing_algorithm',
+   'dkim_sign_aliases', 'dkim_rotation_enabled', 'dkim_rotation_interval_days', 'dkim_rotation_propagation_hours',
+   'dkim_rotation_retention_days', 'dkim_rotation_key_bits',
    'message_retention_days', 'relay_host', 'relay_port', 'relay_requires_auth', 'relay_username', 'relay_password', 'relay_connection_security',
    'vacation_enabled', 'vacation_subject', 'vacation_message',
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour'];
-const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
+const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
 // The account's update schema as RestApiRoutes.cpp emits it - every field
@@ -667,6 +669,8 @@ function domainRecord(name, active, postmaster) {
       signature_enabled: false, signature_method: 'set_if_not_specified', signature_plain_text: '', signature_html: '',
       signature_add_to_replies: false, signature_add_to_local_mail: false,
       dkim_enabled: false, dkim_selector: '', dkim_private_key_file: '', dkim_signing_algorithm: 'sha256',
+      dkim_sign_aliases: false, dkim_rotation_enabled: false, dkim_rotation_interval_days: 180, dkim_rotation_propagation_hours: 72,
+      dkim_rotation_retention_days: 7, dkim_rotation_key_bits: 2048,
       relay_host: '', relay_requires_auth: false, relay_username: '', relay_connection_security: 'none',
       vacation_enabled: false, vacation_subject: '', vacation_message: '',
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
@@ -919,6 +923,31 @@ const ROLE_CATALOGUE = [
    { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
 ];
 
+// A domain's DKIM key rotation as GET /api/v1/domains/{domain}/dkim/rotation
+// answers it (DkimRotation.cpp's status document): one signing key, and for
+// example.com an old selector still retiring whose last check found a record
+// that is not its key - the detail is hostile, as anything the server repeats
+// from DNS can be.
+const ROTATION_NOW = 1789430400;
+function rotationSlot(domain, selector, action, check) {
+   return { selector, key_file: '/var/lib/hmailserver/DKIM/' + selector + '._domainkey.' + domain + '.pem', generated: true,
+      records: [{ host: selector + '._domainkey.' + domain, type: 'TXT', value: 'v=DKIM1; k=rsa; p=KEY' + selector, action }], check };
+}
+function rotationDoc(domain, current, retiring) {
+   const doc = { domain, now: ROTATION_NOW, policy: { enabled: false, interval_days: 180, propagation_hours: 72, retention_days: 7, key_bits: 2048 },
+      phase: retiring ? 'idle' : 'off', current: null, next: null, retiring: null, retired: null, waiting: [], last_error: null };
+   if (current) {
+      doc.current = Object.assign(rotationSlot(domain, current, 'keep', { status: 'matches', checked: ROTATION_NOW, detail: '' }), { since: ROTATION_NOW - 86400, next_rotation_due: 0 });
+   }
+   if (retiring) {
+      doc.retiring = Object.assign(rotationSlot(domain, retiring, 'keep', { status: 'different', checked: ROTATION_NOW, detail: HOSTILE }), { since: ROTATION_NOW - 3600, retire_due: ROTATION_NOW + 6 * 86400 });
+      doc.waiting.push({ step: 'retire', reason: 'retention', until: ROTATION_NOW + 6 * 86400, detail: '' });
+   } else {
+      doc.waiting.push({ step: 'start', reason: 'not_scheduled', until: 0, detail: '' });
+   }
+   return doc;
+}
+
 const state = {
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
@@ -929,6 +958,11 @@ const state = {
    ],
    // Each domain's own allow and block list, made on first read.
    domainSenders: { 'example.com': [{ id: 901, scope: 'domain', value: 'partner.example', blocked: false, reason: 'the partner', expires: false, expired: false }] },
+   rotations: {
+      'example.com': rotationDoc('example.com', 'jan2026', 'old2025'),
+      [HOSTILE]: rotationDoc(HOSTILE, null, null),
+      'second.example': rotationDoc('second.example', null, null)
+   },
    domainAliases: {
       'example.com': [{ id: 1, name: 'example.net' }],
       [HOSTILE]: [],
@@ -1155,6 +1189,8 @@ function answer(method, path, headers, raw) {
             record[key] = parsed[key];
          });
          if (record.name !== name) {
+            state.rotations[record.name] = state.rotations[name];
+            delete state.rotations[name];
             state.accounts[record.name] = state.accounts[name] || [];
             delete state.accounts[name];
             state.domainAliases[record.name] = state.domainAliases[name] || [];
@@ -1189,6 +1225,63 @@ function answer(method, path, headers, raw) {
       if (!list.some((x) => x.id === id)) { return json(404, { error: 'no such entry' }); }
       state.domainSenders[domain] = list.filter((x) => x.id !== id);
       return json(200, { deleted: true });
+   }
+   // The key rotation, as RestApiDkimRotation.cpp answers it: the status
+   // document for every route, and a 409 that carries the reason word and the
+   // document beside the server's sentence.
+   if (/^\/api\/v1\/domains\/[^/]+\/dkim\/rotation(\/[a-z]+)?$/.test(path)) {
+      const name = segment(path, 4);
+      const doc = state.rotations[name];
+      if (!doc) { return json(404, { error: 'domain not found' }); }
+      const action = path.slice(path.indexOf('/dkim/rotation') + '/dkim/rotation'.length);
+      const refuse = (error, reason) => json(409, { error, reason, status: doc });
+      const record = state.domains.find((d) => d.name === name);
+      if (method === 'GET' && action === '') { return json(200, doc); }
+      if (method === 'POST' && action === '/start') {
+         for (const key of Object.keys(parsed || {})) { if (key !== 'selector') { return json(400, { error: 'unknown field: ' + key }); } }
+         if (doc.next) { return refuse('A next key is already staged for this domain. Switch to it or cancel it before starting another rotation.', 'next_staged'); }
+         const selector = (parsed && parsed.selector) || 's20260915';
+         doc.next = Object.assign(rotationSlot(name, selector, 'publish', { status: 'unchecked', checked: 0, detail: '' }), { created: ROTATION_NOW, first_seen: 0, switch_due: 0 });
+         doc.phase = 'awaiting_dns';
+         doc.waiting = [{ step: 'switch', reason: 'unchecked', until: 0, detail: '' }];
+         return json(201, doc);
+      }
+      if (method === 'POST' && action === '/check') {
+         if (doc.next) {
+            doc.next.check = { status: 'not_found', checked: ROTATION_NOW + 60, detail: doc.next.records[0].host };
+            doc.waiting = [{ step: 'switch', reason: 'record_not_found', until: 0, detail: doc.next.records[0].host }];
+         }
+         return json(200, doc);
+      }
+      if (method === 'POST' && action === '/switch') {
+         if (!doc.next) { return refuse('No next key is staged, so there is nothing to switch to.', 'nothing_staged'); }
+         if (!(parsed && parsed.force === true)) { return refuse('The record has not yet been published for the propagation period; the switch is due at 2026-09-18 00:00 UTC.', 'propagation'); }
+         if (doc.retiring) { return refuse('The selector old2025 is still being kept for late verifiers. Retire it first, or wait until 2026-09-21 00:00 UTC.', 'retiring_slot'); }
+         doc.retiring = doc.current ? Object.assign(doc.current, { since: ROTATION_NOW, retire_due: ROTATION_NOW + 7 * 86400 }) : null;
+         if (doc.retiring) { doc.retiring.records.forEach((r) => { r.action = 'keep'; }); }
+         doc.current = Object.assign(doc.next, { since: ROTATION_NOW, next_rotation_due: 0 });
+         doc.current.records.forEach((r) => { r.action = 'keep'; });
+         doc.next = null;
+         record.dkim_selector = doc.current.selector;
+         record.dkim_private_key_file = doc.current.key_file;
+         doc.phase = 'idle';
+         doc.waiting = doc.retiring ? [{ step: 'retire', reason: 'retention', until: ROTATION_NOW + 7 * 86400, detail: '' }] : [];
+         return json(200, doc);
+      }
+      if (method === 'POST' && action === '/retire') {
+         if (!doc.retiring) { return refuse('No selector is retiring.', 'nothing_retiring'); }
+         doc.retired = { selector: doc.retiring.selector, at: ROTATION_NOW, key_file_kept: '', records: doc.retiring.records.map((r) => ({ host: r.host, type: 'TXT', action: 'remove' })) };
+         doc.retiring = null;
+         doc.waiting = doc.waiting.filter((w) => w.step !== 'retire');
+         return json(200, doc);
+      }
+      if (method === 'DELETE' && action === '/next') {
+         if (!doc.next) { return refuse('No next key is staged, so there is nothing to cancel.', 'nothing_staged'); }
+         doc.next = null;
+         doc.phase = doc.retiring ? 'idle' : 'off';
+         doc.waiting = doc.waiting.filter((w) => w.step !== 'switch');
+         return json(200, doc);
+      }
    }
    if (path === '/api/v1/groups' && method === 'GET') { return json(200, state.groups); }
    if (path === '/api/v1/groups' && method === 'POST') {
@@ -2153,6 +2246,108 @@ async function main() {
    const drawn = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('dom_') === 0).map((id) => id.slice(4)).sort();
    check('every key the route takes has a control, and no key it does not', JSON.stringify(drawn) === JSON.stringify(DOMAIN_KEYS.slice().sort()), JSON.stringify(drawn));
    check('the other names are listed with a Remove each', content().textContent.indexOf('example.net') >= 0 && act('daliasdel', { name: 'example.net' }) !== null);
+
+   // ---- the DKIM key rotation card
+   const rotationBox = () => document.getElementById('dkimRotation');
+   check('Edit reads the domain\'s key rotation', called(before, 'GET', '/api/v1/domains/example.com/dkim/rotation').length === 1, paths(before));
+   check('the rotation card is under its own heading and says the phase', headings.indexOf('DKIM key rotation') >= 0 && rotationBox() !== null &&
+      rotationBox().textContent.indexOf('Phase: Idle') >= 0, rotationBox() ? rotationBox().textContent : 'no card');
+   check('the current and retiring selectors are drawn with the records to keep', rotationBox().textContent.indexOf('jan2026._domainkey.example.com') >= 0 &&
+      rotationBox().textContent.indexOf('old2025._domainkey.example.com') >= 0 && rotationBox().textContent.indexOf('Keep') >= 0);
+   const pills = rotationBox().querySelectorAll('.pill');
+   check('each check is a pill with its level, a mark and a word', pills.length === 2 && pills[0].attributes['data-level'] === 'good' && pills[0].textContent.indexOf('Matches') >= 0 &&
+      pills[1].attributes['data-level'] === 'bad' && pills[1].textContent.indexOf('Different') >= 0 && pills[1].querySelector('.mark').textContent === '✕',
+      JSON.stringify(pills.map((p) => p.textContent)));
+   check('what the check found is drawn as text, however hostile', rotationBox().querySelectorAll('img').length === 0 && rotationBox().textContent.indexOf(HOSTILE) >= 0);
+   check('the waiting reason is a sentence with its time', rotationBox().textContent.indexOf('The old selector is kept for mail still on its way.') >= 0 &&
+      rotationBox().textContent.indexOf('until 2026-09-21 00:00:00Z') >= 0, rotationBox().textContent);
+   check('with nothing staged the card offers rotate now and retire, and no switch', act('dkimrotstart') !== null && act('dkimrotretire') !== null &&
+      content().querySelectorAll('button[data-act="dkimrotswitch"]').length === 0);
+   click(act('dkimrotcopy', { slot: 'current', i: 0 }));
+   await flush();
+   check('Copy puts the record\'s value on the clipboard', clipboard === 'v=DKIM1; k=rsa; p=KEYjan2026' && toastText() === 'Copied to clipboard', String(clipboard));
+
+   document.getElementById('dom_postmaster').value = 'still-typing@example.com';
+   setValue('dkimrot_selector', 'feb2026');
+   before = requests.length;
+   click(act('dkimrotstart'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/dkim/rotation/start');
+   check('Rotate now posts the selector typed', JSON.stringify(posted) === '{"selector":"feb2026"}', JSON.stringify(posted));
+   check('and the card is redrawn from the answer: the record to publish', rotationBox().textContent.indexOf('feb2026._domainkey.example.com') >= 0 &&
+      rotationBox().textContent.indexOf('Publish') >= 0 && rotationBox().textContent.indexOf('Phase: Waiting for the DNS record') >= 0 &&
+      toastText() === 'A new key was generated and staged. Publish its record.', toastText());
+   check('an edit waiting in another group survives it', document.getElementById('dom_postmaster').value === 'still-typing@example.com');
+   check('once a key is staged the card offers switch and cancel, and no second start', act('dkimrotswitch') !== null && act('dkimrotcancel') !== null &&
+      content().querySelectorAll('button[data-act="dkimrotstart"]').length === 0);
+
+   before = requests.length;
+   click(act('dkimrotcheck'));
+   await flush();
+   check('Check DNS now posts the check and draws what was found', called(before, 'POST', '/api/v1/domains/example.com/dkim/rotation/check').length === 1 &&
+      rotationBox().textContent.indexOf('Not found') >= 0 && rotationBox().textContent.indexOf('The new key\'s record was not found. Publish it.') >= 0);
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('dkimrotswitch'));
+   await flush();
+   check('switching asks first, naming the domain, and no sends nothing', confirmations[confirmations.length - 1].indexOf('example.com') >= 0 &&
+      called(before, 'POST', /dkim\/rotation\/switch/).length === 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('dkimrotswitch'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/dkim/rotation/switch');
+   check('a switch without force sends no force', JSON.stringify(posted) === '{}', JSON.stringify(posted));
+   check('and its refusal is the server\'s sentence under the card, with the card redrawn', document.getElementById('err_dkimrot').textContent.indexOf('propagation period') >= 0 &&
+      called(before, 'GET', '/api/v1/domains/example.com/dkim/rotation').length === 1, document.getElementById('err_dkimrot').textContent);
+
+   setChecked('dkimrot_force', true);
+   before = requests.length;
+   click(act('dkimrotswitch'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/dkim/rotation/switch');
+   check('with the box ticked the switch asks the other question and sends force', JSON.stringify(posted) === '{"force":true}' &&
+      confirmations[confirmations.length - 1].indexOf('without waiting') >= 0, JSON.stringify(posted));
+   check('a busy retiring slot is refused in the server\'s words', document.getElementById('err_dkimrot').textContent.indexOf('Retire it first') >= 0);
+
+   before = requests.length;
+   click(act('dkimrotretire'));
+   await flush();
+   check('Retire posts, and the retired selector\'s record is listed for removal', called(before, 'POST', '/api/v1/domains/example.com/dkim/rotation/retire').length === 1 &&
+      rotationBox().textContent.indexOf('Retired key') >= 0 && rotationBox().textContent.indexOf('Remove') >= 0 && toastText() === 'The old selector was retired.', toastText());
+
+   setChecked('dkimrot_force', true);
+   before = requests.length;
+   click(act('dkimrotswitch'));
+   await flush();
+   check('the forced switch moves signing and the selector box follows it', called(before, 'POST', '/api/v1/domains/example.com/dkim/rotation/switch').length === 1 &&
+      document.getElementById('dom_dkim_selector').value === 'feb2026' && toastText() === 'Signing moved to the next key.' &&
+      rotationBox().textContent.indexOf('Current key') >= 0, document.getElementById('dom_dkim_selector').value);
+
+   setValue('dkimrot_selector', 'mar2026');
+   click(act('dkimrotstart'));
+   await flush();
+   before = requests.length;
+   click(act('dkimrotcancel'));
+   await flush();
+   check('Cancel deletes the next key and the card offers rotate now again', called(before, 'DELETE', '/api/v1/domains/example.com/dkim/rotation/next').length === 1 &&
+      act('dkimrotstart') !== null && toastText() === 'The next key was cancelled.', toastText());
+
+   setChecked('dom_dkim_rotation_enabled', true);
+   setValue('dom_dkim_rotation_interval_days', '90');
+   before = requests.length;
+   click(act('domainsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/domains/example.com');
+   check('the policy is saved as the domain\'s own keys, and only what changed - the selector the rotation moved is not sent back',
+      JSON.stringify(put) === '{"active":true,"postmaster":"still-typing@example.com","dkim_rotation_enabled":true,"dkim_rotation_interval_days":90}', JSON.stringify(put));
+   check('and the rotation is read again with the domain', called(before, 'GET', '/api/v1/domains/example.com/dkim/rotation').length === 1);
+   setChecked('dom_dkim_rotation_enabled', false);
+   setValue('dom_dkim_rotation_interval_days', '180');
+   setValue('dom_postmaster', 'postmaster@example.com');
+   click(act('domainsave'));
+   await flush();
 
    before = requests.length;
    click(act('domainsave'));

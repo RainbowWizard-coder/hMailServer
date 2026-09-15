@@ -26,6 +26,7 @@
 #include "../SQL/SQLStatement.h"
 
 #include "../../SMTP/RecipientParser.h"
+#include "../AntiSpam/DKIM/DkimRotation.h"
 
 #include <openssl/pem.h>
 #include <openssl/x509.h>
@@ -61,6 +62,7 @@ namespace HM
    const wchar_t *AlertManager::ConditionQueueStalled = L"queue.stalled";
    const wchar_t *AlertManager::ConditionAutoBanStorm = L"autoban.storm";
    const wchar_t *AlertManager::ConditionMinidumpWritten = L"minidump.written";
+   const wchar_t *AlertManager::ConditionDkimRotationStalled = L"dkim.rotation.stalled";
 
    namespace
    {
@@ -1069,6 +1071,28 @@ namespace HM
    }
 
    int
+   AlertManager::EvaluateDkimRotations_()
+   {
+      Rule rule;
+      if (!GetRule(ConditionDkimRotationStalled, rule) || !rule.enabled)
+         return 0;
+
+      // Stored state only. The rotation's own task does the lookups every fifteen
+      // minutes; an alert pass every minute must not add a DNS query per domain.
+      String summary;
+      if (!DkimRotation::CollectStalled((__int64) time(nullptr), rule.threshold > 0 ? rule.threshold : 7, summary))
+      {
+         Clear(ConditionDkimRotationStalled, _T("No DKIM key rotation is stuck."));
+         return 0;
+      }
+
+      Raise(ConditionDkimRotationStalled, ErrorManager::Medium, _T("A DKIM key rotation is stuck: ") + summary,
+         _T("Publish the TXT record the rotation shows for the next key, or cancel the rotation. Signing carries on with the current key in the meantime; nothing is lost while it waits."));
+
+      return 1;
+   }
+
+   int
    AlertManager::EvaluateMinidumps_()
    {
       Rule rule;
@@ -1124,6 +1148,7 @@ namespace HM
       raised += EvaluateCertificates_();
       raised += EvaluateAutoBans_();
       raised += EvaluateMinidumps_();
+      raised += EvaluateDkimRotations_();
 
       return raised;
    }

@@ -38,9 +38,6 @@ Salvare comunque questa password debole?</value>
   <data name=" (inactive)" xml:space="preserve">
     <value> (inattivo)</value>
   </data>
-  <data name=" (key file: {0})." xml:space="preserve">
-    <value> (file della chiave: {0}).</value>
-  </data>
   <data name=" (published {0})" xml:space="preserve">
     <value> (pubblicato {0})</value>
   </data>
@@ -200,9 +197,6 @@ Salvare comunque questa password debole?</value>
   <data name="(The private key file could not be read from this machine, so the record value cannot be derived here. Run this page on the server itself, or use the domain's DKIM tab.)" xml:space="preserve">
     <value>(Il file della chiave privata non è leggibile da questa macchina, quindi il valore del record non può essere ricavato qui. Esegui questa pagina sul server stesso, o usa la scheda DKIM del dominio.)</value>
   </data>
-  <data name="(The staged private key file could not be read from this machine, so the record value cannot be shown here. It was shown when the rotation was started; if it is lost, cancel the rotation and start again.)" xml:space="preserve">
-    <value>(Il file della chiave privata predisposto non è leggibile da questa macchina, quindi il valore del record non può essere mostrato qui. È stato mostrato all'avvio della rotazione; se è andato perso, annulla la rotazione e ricomincia.)</value>
-  </data>
   <data name="(account #{0})" xml:space="preserve">
     <value>(account n. {0})</value>
   </data>
@@ -238,9 +232,6 @@ Salvare comunque questa password debole?</value>
   </data>
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(il nome computer Windows del server)</value>
-  </data>
-  <data name="(the staged pair has no selector)" xml:space="preserve">
-    <value>(la coppia predisposta non ha un selettore)</value>
   </data>
   <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
     <value>, e contrassegna gli account come inattivi quando la loro voce di directory è scomparsa.</value>
@@ -350,12 +341,6 @@ Salvare comunque questa password debole?</value>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scansiona questo codice QR con un'app di autenticazione (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
   </data>
-  <data name="1. Currently signing with selector &quot;{0}&quot;" xml:space="preserve">
-    <value>1. Attualmente si firma con il selettore "{0}"</value>
-  </data>
-  <data name="1. No signing selector is configured yet." xml:space="preserve">
-    <value>1. Nessun selettore di firma è ancora configurato.</value>
-  </data>
   <data name="12+ characters" xml:space="preserve">
     <value>12 o più caratteri</value>
   </data>
@@ -368,29 +353,14 @@ Salvare comunque questa password debole?</value>
   <data name="2.  Or enter the setup key shown below by hand." xml:space="preserve">
     <value>2.  Oppure inserisci a mano la chiave di configurazione mostrata qui sotto.</value>
   </data>
-  <data name="2. A rotation is staged: selector &quot;{0}&quot;, key file {1}." xml:space="preserve">
-    <value>2. Una rotazione è predisposta: selettore "{0}", file della chiave {1}.</value>
-  </data>
-  <data name="2. Stage a new key pair under a new selector name:" xml:space="preserve">
-    <value>2. Predisponi una nuova coppia di chiavi con un nuovo nome di selettore:</value>
-  </data>
   <data name="24 hours" xml:space="preserve">
     <value>24 ore</value>
-  </data>
-  <data name="3. Publish this DNS TXT record at your DNS provider. Host/Name:" xml:space="preserve">
-    <value>3. Pubblica questo record DNS TXT presso il tuo provider DNS. Host/Nome:</value>
   </data>
   <data name="30 days" xml:space="preserve">
     <value>30 giorni</value>
   </data>
-  <data name="4. Check that the record is visible in DNS:" xml:space="preserve">
-    <value>4. Verifica che il record sia visibile nel DNS:</value>
-  </data>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>Risposte 451 4.3.1</value>
-  </data>
-  <data name="5. Promote the staged key to become the signing key:" xml:space="preserve">
-    <value>5. Promuovi la chiave predisposta a chiave di firma:</value>
   </data>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 è la porta registrata per UDP e per TCP in chiaro; 6514 è la porta registrata per syslog su TLS.</value>
@@ -413,14 +383,8 @@ Salvare comunque questa password debole?</value>
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>Un record DMARC con p={0} è attivo su {1} - più severo del punto di partenza p=none. Va bene se sai già che la tua posta supera l'allineamento; se stai ancora configurando SPF e DKIM, la posta che fallisce viene {2} proprio adesso. Pubblicato: {3}</value>
   </data>
-  <data name="A TXT record exists at {0}, but it does not match the staged key. Waiting will not fix this: correct the published record so it matches the value above, then check again." xml:space="preserve">
-    <value>Esiste un record TXT su {0}, ma non corrisponde alla chiave predisposta. Aspettare non risolverà: correggi il record pubblicato perché corrisponda al valore sopra, poi verifica di nuovo.</value>
-  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Esiste un record TXT su {0}, ma il file della chiave privata non è leggibile da questa macchina, quindi da qui non si può verificare se contiene la chiave GIUSTA. Esegui il controllo sul server stesso, o usa la scheda DKIM del dominio.</value>
-  </data>
-  <data name="A TXT record exists, but the staged private key file ({0}) could not be read from this machine, so the record cannot be compared against the key. Run this check on the server itself, or cancel the rotation and start it again from here." xml:space="preserve">
-    <value>Esiste un record TXT, ma il file della chiave privata predisposto ({0}) non è leggibile da questa macchina, quindi il record non può essere confrontato con la chiave. Esegui questo controllo sul server stesso, oppure annulla la rotazione e ricominciala da qui.</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Un limite su una singola passata, così che una base di ricerca puntata un livello troppo in alto non possa essere soddisfatta leggendo un'intera foresta. Se viene raggiunto, l'esecuzione lo dice e non disattiva nulla - oltre il limite, una voce esistente è indistinguibile da una eliminata.</value>
@@ -494,6 +458,9 @@ Salvare comunque questa password debole?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Un'app di amministrazione moderna per hMailServer: dashboard in tempo reale, domini e account, coda di consegna, streaming dei registri, tutte le impostazioni del server e le funzioni di sicurezza del trasporto della 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
+    <value>È stata generata e predisposta una nuova chiave. Pubblichi il suo record.</value>
+  </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>È stata digitata una nuova password dell'account di servizio ED è spuntato "rimuovi la password memorizzata". Togli una delle due spunte - indovinare cosa si intendeva non è una decisione che spetta a questa pagina.</value>
   </data>
@@ -538,9 +505,6 @@ Salvare comunque questa password debole?</value>
   </data>
   <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Un ruolo è un insieme di permessi con un nome, e un'assegnazione lo dà a un account in domini indicati. I quattro ruoli integrati non si possono modificare: i loro permessi sono nel codice del server, così una modifica al database non può dare autorità a nessuno. Un account senza ruolo qui ha quello che il suo livello di amministrazione gli ha sempre dato.</value>
-  </data>
-  <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
-    <value>Una rotazione è già predisposta. Se il record DNS è pubblicato, premi "Verifica DNS"; la promozione si sblocca una volta che il controllo passa in questa sessione.</value>
   </data>
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Una rotta sovrascrive la ricerca MX per i domini indicati.</value>
@@ -1569,13 +1533,11 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Cancel" xml:space="preserve">
     <value>Annulla</value>
   </data>
-  <data name="Cancel rotat_ion…" xml:space="preserve">
-    <value>Annulla la rota_zione…</value>
+  <data name="Cancel the ne_xt key…" xml:space="preserve">
+    <value>Ann_ulla la chiave successiva…</value>
   </data>
-  <data name="Cancel this rotation?&#10;&#10;The staged selector &quot;{0}&quot; is removed from the server configuration; signing continues with the current key, untouched. The generated key file stays on disk, and the DNS record for the staged selector - if you already published it - can simply be deleted." xml:space="preserve">
-    <value>Annullare questa rotazione?
-
-Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la firma continua con la chiave attuale, intatta. Il file della chiave generato resta sul disco, e il record DNS per il selettore predisposto - se l'hai già pubblicato - può semplicemente essere eliminato.</value>
+  <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
+    <value>Annullare la chiave successiva di {0}? Il selettore predisposto viene rimosso, il file della chiave generato per esso dalla rotazione viene eliminato e la firma non cambia.</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Non verificabile da qui</value>
@@ -1682,8 +1644,8 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   <data name="Check" xml:space="preserve">
     <value>Verifica</value>
   </data>
-  <data name="Check D_NS" xml:space="preserve">
-    <value>Verifica D_NS</value>
+  <data name="Check DNS n_ow" xml:space="preserve">
+    <value>Con_trolla il DNS ora</value>
   </data>
   <data name="Check PTR record" xml:space="preserve">
     <value>Verifica il record PTR</value>
@@ -1726,9 +1688,6 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Verifica di ciò che resta da fare fuori da questo server…</value>
-  </data>
-  <data name="Checking {0}…" xml:space="preserve">
-    <value>Verifica di {0}…</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Verifica in corso…</value>
@@ -1994,9 +1953,6 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   <data name="Copy every sample of {0} to the clipboard as tab-separated text" xml:space="preserve">
     <value>Copia negli appunti ogni campione di {0} come testo separato da tabulazioni</value>
   </data>
-  <data name="Copy h_ost" xml:space="preserve">
-    <value>Copia l'h_ost</value>
-  </data>
   <data name="Copy host" xml:space="preserve">
     <value>Copia l'host</value>
   </data>
@@ -2053,9 +2009,6 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   </data>
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Impossibile aggiungere la rotta: {0}</value>
-  </data>
-  <data name="Could not cancel the rotation: {0}" xml:space="preserve">
-    <value>Impossibile annullare la rotazione: {0}</value>
   </data>
   <data name="Could not change logging: {0}" xml:space="preserve">
     <value>Impossibile modificare la registrazione: {0}</value>
@@ -2197,9 +2150,6 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Impossibile aprire {0}: {1}</value>
   </data>
-  <data name="Could not promote the staged key: {0}" xml:space="preserve">
-    <value>Impossibile promuovere la chiave predisposta: {0}</value>
-  </data>
   <data name="Could not read the backup settings: {0}" xml:space="preserve">
     <value>Impossibile leggere le impostazioni di backup: {0}</value>
   </data>
@@ -2208,6 +2158,9 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Impossibile leggere il file: {0}</value>
+  </data>
+  <data name="Could not read the key rotation: {0}" xml:space="preserve">
+    <value>Impossibile leggere la rotazione delle chiavi: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Impossibile leggere lo stato della registrazione: {0}</value>
@@ -2290,9 +2243,6 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Impossibile salvare: {0}</value>
   </data>
-  <data name="Could not stage the rotation on the server: {0}" xml:space="preserve">
-    <value>Impossibile predisporre la rotazione sul server: {0}</value>
-  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Impossibile avviare il backup: {0}</value>
   </data>
@@ -2362,6 +2312,9 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Creata "{0}". Inseriscila nel client come password di quell'account.</value>
   </data>
+  <data name="Created {0}" xml:space="preserve">
+    <value>Creata {0}</value>
+  </data>
   <data name="Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to." xml:space="preserve">
     <value>Crea e aggiorna le caselle perché corrispondano a una directory LDAP. Partecipano solo i domini che hanno impostato un nome di dominio Active Directory, quindi questo non può effettuare per sbaglio il provisioning in un dominio ospitato. Nulla qui elimina mai un account o un messaggio: al massimo ne contrassegna uno come inattivo, e solo quando glielo chiedi.</value>
   </data>
@@ -2382,6 +2335,9 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Critico, Alto e Medio</value>
+  </data>
+  <data name="Current key" xml:space="preserve">
+    <value>Chiave attuale</value>
   </data>
   <data name="Custom" xml:space="preserve">
     <value>Personalizzato</value>
@@ -2520,6 +2476,12 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   </data>
   <data name="Date this key stops working" xml:space="preserve">
     <value>Data in cui questa chiave smette di funzionare</value>
+  </data>
+  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
+    <value>Giorni tra du_e rotazioni (da 1 a 3650)</value>
+  </data>
+  <data name="Days between rotations" xml:space="preserve">
+    <value>Giorni tra due rotazioni</value>
   </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Giorni di conservazione sul server (0 = elimina dopo il download)</value>
@@ -2749,6 +2711,9 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostica non riuscita: {0}</value>
+  </data>
+  <data name="Different" xml:space="preserve">
+    <value>Diverso</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Ora del riepilogo</value>
@@ -3016,9 +2981,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
     <value>Attivato ma non configurato: {0} non è impostato.</value>
   </data>
-  <data name="Enabled once &quot;Check DNS&quot; has confirmed the published record matches the staged key." xml:space="preserve">
-    <value>Si attiva una volta che "Verifica DNS" ha confermato che il record pubblicato corrisponde alla chiave predisposta.</value>
-  </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Si attiva una volta che "Verifica" ha confermato che il record pubblicato contiene la chiave pubblica di questa chiave.</value>
   </data>
@@ -3048,9 +3010,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Indica un segreto</value>
-  </data>
-  <data name="Enter a selector name for the new key first." xml:space="preserve">
-    <value>Indica prima un nome di selettore per la nuova chiave.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Indica un nome di dominio valido.</value>
@@ -3343,6 +3302,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Finish" xml:space="preserve">
     <value>Fine</value>
   </data>
+  <data name="First seen {0}" xml:space="preserve">
+    <value>Visto per la prima volta {0}</value>
+  </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Prima cosa: quale metà è bloccata?</value>
   </data>
@@ -3456,9 +3418,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>Genera una password robusta (copiata negli appunti)</value>
-  </data>
-  <data name="Generate and stage _key…" xml:space="preserve">
-    <value>Genera e predisponi la c_hiave…</value>
   </data>
   <data name="Generated password" xml:space="preserve">
     <value>Password generata</value>
@@ -3775,6 +3734,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identità con cui vengono scritti i risultati (vuoto = nome di questo computer)</value>
   </data>
+  <data name="Idle" xml:space="preserve">
+    <value>Inattiva</value>
+  </data>
   <data name="Idle timeouts" xml:space="preserve">
     <value>Timeout di inattività</value>
   </data>
@@ -3909,6 +3871,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL del JWK Set (le chiavi di firma pubblicate dal provider; vuoto = solo il file della chiave)</value>
   </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Mantieni</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
     <value>Mantenere attivo il greylisting durante la finestra di scadenza del record (richiede un riavvio)</value>
   </data>
@@ -3924,6 +3889,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>Mantenere lo stato letto/non letto</value>
   </data>
+  <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
+    <value>Tenga pubblicato fino al {1} il record del selettore in ritiro "{0}", per la posta firmata con esso ancora in viaggio.</value>
+  </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Conservare più generazioni di messaggi richiede la compressione: senza 'Comprimi i file di destinazione (zip)' ogni backup scrive i propri file di messaggio nella stessa cartella DataBackup, sovrascrivendo quelli dell'esecuzione precedente, quindi la conservazione può mantenere generazioni solo dei piccoli archivi di impostazioni e domini.</value>
   </data>
@@ -3935,6 +3903,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Key file present" xml:space="preserve">
     <value>File della chiave presente</value>
+  </data>
+  <data name="Key file: {0}" xml:space="preserve">
+    <value>File della chiave: {0}</value>
   </data>
   <data name="Key matches certificate" xml:space="preserve">
     <value>La chiave corrisponde al certificato</value>
@@ -3948,8 +3919,14 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Key rotation" xml:space="preserve">
     <value>Rotazione della chiave</value>
   </data>
+  <data name="Key si_ze" xml:space="preserve">
+    <value>Di_mensione della chiave</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Archivio delle chiavi</value>
+  </data>
+  <data name="Key unreadable" xml:space="preserve">
+    <value>Chiave illeggibile</value>
   </data>
   <data name="LDAPS" xml:space="preserve">
     <value>LDAPS</value>
@@ -4299,6 +4276,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Soddisfare UN QUALSIASI criterio (OR)</value>
   </data>
+  <data name="Matches" xml:space="preserve">
+    <value>Corrisponde</value>
+  </data>
   <data name="Matches the certificate" xml:space="preserve">
     <value>Corrisponde al certificato</value>
   </data>
@@ -4569,6 +4549,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Move _up" xml:space="preserve">
     <value>Sposta in _alto</value>
   </data>
+  <data name="Move signing for {0} to the next key now?" xml:space="preserve">
+    <value>Passare ora la firma di {0} alla chiave successiva?</value>
+  </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Spostare il file del messaggio verso SpamAssassin invece di copiarlo (richiede un riavvio)</value>
   </data>
@@ -4652,6 +4635,12 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Next" xml:space="preserve">
     <value>Avanti</value>
+  </data>
+  <data name="Next key" xml:space="preserve">
+    <value>Chiave successiva</value>
+  </data>
+  <data name="Next rotation due {0}" xml:space="preserve">
+    <value>Prossima rotazione prevista {0}</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Prossimo tentativo</value>
@@ -4869,6 +4858,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Nelle impostazioni SMTP non è configurato alcun nome host pubblico.</value>
   </data>
+  <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
+    <value>Nessuna rotazione è pianificata. Usi "Ruota ora" per avviarne una.</value>
+  </data>
   <data name="No routes defined yet." xml:space="preserve">
     <value>Nessuna rotta ancora definita.</value>
   </data>
@@ -4947,11 +4939,11 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Non ancora controllato (Controlla aggiornamenti, oppure attiva il controllo giornaliero in Aggiornamenti nella pagina API e monitoraggio)</value>
   </data>
-  <data name="Not checked yet. Publish the record, allow time for propagation, then press &quot;Check DNS&quot;." xml:space="preserve">
-    <value>Non ancora verificato. Pubblicare il record, lasciare il tempo per la propagazione, poi premere "Verifica DNS".</value>
-  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Non connesso</value>
+  </data>
+  <data name="Not found" xml:space="preserve">
+    <value>Non trovato</value>
   </data>
   <data name="Not listening" xml:space="preserve">
     <value>Non in ascolto</value>
@@ -5540,6 +5532,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Permissions - {0} (saved)" xml:space="preserve">
     <value>Permessi - {0} (salvato)</value>
   </data>
+  <data name="Phase: {0}" xml:space="preserve">
+    <value>Fase: {0}</value>
+  </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Indica al server un host SpamAssassin e scegli come il suo punteggio viene integrato.</value>
   </data>
@@ -5657,12 +5652,11 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Le metriche Prometheus, gli endpoint di integrità e l'API REST si attivano qui.</value>
   </data>
-  <data name="Promote the staged selector &quot;{0}&quot;?&#10;&#10;From the next message on, mail from {1} is signed with the new key, and the old selector is cleared from the configuration.&#10;&#10;Leave the OLD DNS record ({2}) published for at least a few days. Mail signed with the old key may still be in transit, and receivers can only verify it for as long as that record exists." xml:space="preserve">
-    <value>Promuovere il selettore predisposto "{0}"?
-
-Dal prossimo messaggio in poi, la posta da {1} viene firmata con la nuova chiave, e il vecchio selettore viene rimosso dalla configurazione.
-
-Lascia pubblicato il VECCHIO record DNS ({2}) per almeno qualche giorno. La posta firmata con la vecchia chiave potrebbe essere ancora in transito, e chi la riceve può verificarla solo finché quel record esiste.</value>
+  <data name="Propagating" xml:space="preserve">
+    <value>In propagazione</value>
+  </data>
+  <data name="Propagation period in hours" xml:space="preserve">
+    <value>Ore del periodo di propagazione</value>
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Proprietà</value>
@@ -5702,6 +5696,9 @@ Lascia pubblicato il VECCHIO record DNS ({2}) per almeno qualche giorno. La post
   </data>
   <data name="Public — anyone can send" xml:space="preserve">
     <value>Pubblica — chiunque può inviare</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Pubblica</value>
   </data>
   <data name="Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
     <value>Pubblica un record A/AAAA pubblico per ogni nome elencato in AcmeDomains, e consenti il TCP in ingresso da Internet sulla porta delle challenge (con port forwarding attraverso eventuali NAT). La raggiungibilità dall'esterno non può essere sondata dall'interno, quindi provala da una rete esterna o con un servizio online di verifica delle porte.</value>
@@ -5867,6 +5864,9 @@ Lascia pubblicato il VECCHIO record DNS ({2}) per almeno qualche giorno. La post
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Legge subito il feed delle release del progetto e dice se esiste una versione più recente. Con questo non viene scaricato né installato nulla.</value>
+  </data>
+  <data name="Ready to switch" xml:space="preserve">
+    <value>Pronta al passaggio</value>
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Blacklist in tempo reale confrontate con l'indirizzo IP che si connette.</value>
@@ -6040,6 +6040,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Remote domains" xml:space="preserve">
     <value>Domini remoti</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Rimuovi</value>
+  </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Rimuovi gli _scaduti</value>
   </data>
@@ -6091,9 +6094,6 @@ Ogni intervallo personalizzato - comprese eventuali voci di ban automatico - ver
     <value>Sostituire TUTTE le porte configurate con quelle predefinite?
 
 SMTP 25 e 587, POP3 110, IMAP 143 - senza sicurezza della connessione. Le porte TLS e i binding personalizzati verranno rimossi. La modifica ha effetto al riavvio del server.</value>
-  </data>
-  <data name="Replace the DKIM key without a gap in verification: stage a new key next to the current one, publish its DNS record, wait for the record to propagate, check it, and only then promote it." xml:space="preserve">
-    <value>Sostituisci la chiave DKIM senza interruzioni nella verifica: predisponi una nuova chiave accanto a quella attuale, pubblica il suo record DNS, attendi che il record si propaghi, verificalo e solo allora promuovila.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Sostituisci qui il certificato; per ciascuno è indicata la data di scadenza.</value>
@@ -6241,6 +6241,30 @@ Continuare?</value>
   <data name="Retention" xml:space="preserve">
     <value>Conservazione</value>
   </data>
+  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
+    <value>Giorni del periodo di conser_vazione (da 1 a 365)</value>
+  </data>
+  <data name="Retention period in days" xml:space="preserve">
+    <value>Giorni del periodo di conservazione</value>
+  </data>
+  <data name="Retire due {0}" xml:space="preserve">
+    <value>Ritiro previsto {0}</value>
+  </data>
+  <data name="Retire the old ke_y now…" xml:space="preserve">
+    <value>Ritira ora la vecc_hia chiave…</value>
+  </data>
+  <data name="Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted." xml:space="preserve">
+    <value>Ritirare ora il vecchio selettore di {0}? Il suo record TXT potrà poi essere rimosso, e un file della chiave generato dalla rotazione viene eliminato.</value>
+  </data>
+  <data name="Retired key" xml:space="preserve">
+    <value>Chiave ritirata</value>
+  </data>
+  <data name="Retired {0}" xml:space="preserve">
+    <value>Ritirata {0}</value>
+  </data>
+  <data name="Retiring key" xml:space="preserve">
+    <value>Chiave in ritiro</value>
+  </data>
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Riprova tramite l'accesso Windows _quando la directory non è disponibile (FallbackToWindowsLogon)</value>
   </data>
@@ -6278,6 +6302,15 @@ Continuare?</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Ruolo</value>
+  </data>
+  <data name="Rotate _now…" xml:space="preserve">
+    <value>_Ruota ora…</value>
+  </data>
+  <data name="Rotate now" xml:space="preserve">
+    <value>Ruota ora</value>
+  </data>
+  <data name="Rotate the _key on a schedule" xml:space="preserve">
+    <value>Ruota la chiave a scaden_ze programmate</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Ruota la chiave dei ticket di sessione ogni N secondi (0 = l'unica chiave non ruotante di OpenSSL)</value>
@@ -6494,9 +6527,6 @@ Continuare?</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Salva i contatori su disco ogni N secondi (predefinito 10)</value>
-  </data>
-  <data name="Save the new DKIM private key" xml:space="preserve">
-    <value>Salva la nuova chiave privata DKIM</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Salva la passphrase della chiave privata per il certificato selezionato</value>
@@ -6788,6 +6818,9 @@ Continuare?</value>
   </data>
   <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
     <value>Seleziona il file XML di backup creato da un backup precedente (nella cartella di destinazione). Il suo contenuto sostituisce i dati attuali per le categorie selezionate.</value>
+  </data>
+  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
+    <value>Selettore della nuova chiave (lo lasci vuoto per uno che prende il nome dalla data di oggi)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Nome del selettore per la nuova chiave DKIM</value>
@@ -7151,6 +7184,9 @@ Riavviarlo adesso?</value>
   <data name="Signing in…" xml:space="preserve">
     <value>Accesso in corso…</value>
   </data>
+  <data name="Signing moved to the next key." xml:space="preserve">
+    <value>La firma è passata alla chiave successiva.</value>
+  </data>
   <data name="Signs outgoing mail so receivers can verify it really came from your domain; without the DNS record every signature fails verification." xml:space="preserve">
     <value>Firma la posta in uscita così che i destinatari possano verificare che provenga davvero dal tuo dominio; senza il record DNS ogni firma fallisce la verifica.</value>
   </data>
@@ -7165,6 +7201,9 @@ Riavviarlo adesso?</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Connessioni simultanee (0 è illimitato)</value>
+  </data>
+  <data name="Since {0}" xml:space="preserve">
+    <value>Dal {0}</value>
   </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Limite di dimensione e scanner…</value>
@@ -7352,6 +7391,12 @@ Riavviarlo adesso?</value>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Limiti di frequenza di invio</value>
   </data>
+  <data name="Sw_itch now…" xml:space="preserve">
+    <value>Cam_bia ora…</value>
+  </data>
+  <data name="Switch due {0}" xml:space="preserve">
+    <value>Passaggio previsto {0}</value>
+  </data>
   <data name="Switch to the dark theme" xml:space="preserve">
     <value>Passa al tema scuro</value>
   </data>
@@ -7474,6 +7519,9 @@ Riavviarlo adesso?</value>
   </data>
   <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
     <value>TLS-RPT — chiedi agli altri server di segnalare i fallimenti TLS quando consegnano a </value>
+  </data>
+  <data name="TXT record value for {0}" xml:space="preserve">
+    <value>Valore del record TXT per {0}</value>
   </data>
   <data name="TXT record(s) exist at {0} but none carries this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
     <value>Su {0} esistono uno o più record TXT, ma nessuno contiene la chiave pubblica di questa chiave, quindi ogni firma fatta con essa fallisce la verifica. Aspettare non risolverà: correggi il valore pubblicato perché corrisponda a quello qui sopra.</value>
@@ -7601,11 +7649,11 @@ Riavviarlo adesso?</value>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Il punteggio per il fallimento DMARC è attualmente {0}. ARC funziona compensando quel punteggio, quindi a zero il filtraggio ARC non può fare nulla, nemmeno con dei sigillatori fidati elencati. Imposta prima un punteggio di fallimento DMARC positivo nella pagina Impostazioni antispam.</value>
   </data>
+  <data name="The DNS lookup failed. It is tried again on the next pass." xml:space="preserve">
+    <value>L'interrogazione DNS non è riuscita. Verrà ritentata al prossimo passaggio.</value>
+  </data>
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>La ricerca DNS di {0} stessa non è riuscita: {1} Questo non dice nulla sul record - questa macchina non è riuscita a ottenere una risposta dal proprio server DNS. Controlla la rete e riprova.</value>
-  </data>
-  <data name="The DNS lookup itself failed: {0} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
-    <value>La ricerca DNS stessa non è riuscita: {0} Questo non dice nulla sul record - questa macchina non è riuscita a ottenere una risposta dal proprio server DNS. Controlla la rete e riprova.</value>
   </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Il nome host in Consegna della posta è VUOTO, quindi il server ripiega sul nome computer Windows{0}. Un semplice nome computer non è un nome DNS pubblico: i destinatari che confrontano HELO con il DNS lo penalizzeranno, e nessun PTR può concordare con esso. Imposta prima un nome host reale.</value>
@@ -7780,6 +7828,12 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>La directory ha risposto e RIFIUTATO queste credenziali: {0} (errore LDAP {1}). La connessione, il trasporto e la configurazione funzionano tutti - si tratta di un problema di credenziali, esattamente ciò che vedrebbe un utente che digita una password sbagliata.</value>
   </data>
+  <data name="The domain has no signing key yet." xml:space="preserve">
+    <value>Il dominio non ha ancora una chiave di firma.</value>
+  </data>
+  <data name="The domain is inactive, so the schedule starts no rotation." xml:space="preserve">
+    <value>Il dominio è inattivo, quindi la pianificazione non avvia alcuna rotazione.</value>
+  </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>L'elenco dei domini non contiene alcun nome di dominio. Lasciare la casella vuota per far agire la chiave su ogni dominio - un elenco di soli separatori significherebbe silenziosamente la stessa cosa, che non è ciò che è stato chiesto.</value>
   </data>
@@ -7887,6 +7941,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Il file della chiave è protetto da passphrase (un PEM cifrato). Viene caricato solo se la passphrase corrispondente è memorizzata su questo certificato.</value>
   </data>
+  <data name="The key file was kept: {0}" xml:space="preserve">
+    <value>Il file della chiave è stato mantenuto: {0}</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>La chiave è cifrata e questo pannello volutamente non la decifra, quindi la sua corrispondenza con il certificato è dimostrata solo quando il server carica la coppia.</value>
   </data>
@@ -7913,6 +7970,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Non è stato possibile salvare la lingua: {0}</value>
+  </data>
+  <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
+    <value>L'ultimo tentativo non è riuscito il {0}: {1}</value>
   </data>
   <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
     <value>Le ultime cinque impostazioni di questa scheda sono per un'installazione che crea le proprie release e le firma con il proprio Sigstore, o che rispecchia quelle di questo progetto. Lasciandole tutte vuote il server si fida di una cosa soltanto: un programma di installazione firmato dal flusso di lavoro di rilascio di questo stesso progetto, annotato nel registro di trasparenza pubblico. Impostarne una qualsiasi restringe o sostituisce quella fiducia, e sbagliarne una significa rifiutare release autentiche oppure fidarsi di quelle di qualcun altro.</value>
@@ -7959,8 +8019,29 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The new API key, shown once" xml:space="preserve">
     <value>La nuova chiave API, mostrata una sola volta</value>
   </data>
-  <data name="The new selector must be different from the current selector (&quot;{0}&quot;). A rotation runs both keys side by side under different DNS names." xml:space="preserve">
-    <value>Il nuovo selettore deve essere diverso da quello attuale ("{0}"). Una rotazione fa funzionare entrambe le chiavi affiancate sotto nomi DNS diversi.</value>
+  <data name="The new key's file could not be read." xml:space="preserve">
+    <value>Non è stato possibile leggere il file della nuova chiave.</value>
+  </data>
+  <data name="The new key's record has not been checked yet." xml:space="preserve">
+    <value>Il record della nuova chiave non è ancora stato controllato.</value>
+  </data>
+  <data name="The new key's record was not found. Publish it." xml:space="preserve">
+    <value>Il record della nuova chiave non è stato trovato. Lo pubblichi.</value>
+  </data>
+  <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
+    <value>Il nuovo record non si risolve ancora da tutto il periodo di propagazione. Passare comunque la firma? I destinatari i cui resolver non si sono ancora aggiornati faranno fallire le nuove firme finché non lo fanno. Il record deve comunque risolversi: il server lo controlla prima in ogni caso.</value>
+  </data>
+  <data name="The next key was cancelled." xml:space="preserve">
+    <value>La chiave successiva è stata annullata.</value>
+  </data>
+  <data name="The next rotation starts when the interval has passed." xml:space="preserve">
+    <value>La prossima rotazione inizia quando l'intervallo è trascorso.</value>
+  </data>
+  <data name="The old selector is kept for mail still on its way." xml:space="preserve">
+    <value>Il vecchio selettore viene mantenuto per la posta ancora in viaggio.</value>
+  </data>
+  <data name="The old selector was retired." xml:space="preserve">
+    <value>Il vecchio selettore è stato ritirato.</value>
   </data>
   <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
     <value>L'altro modo per raggiungere un DN: impostando questo, il server salta la ricerca - e con essa la necessità di un SearchBase e di un account di servizio. Un UPN funziona con Active Directory. Stessi segnaposto %u, %d, %m, con escape adatto a un distinguished name.</value>
@@ -8009,8 +8090,8 @@ Aggiungerlo comunque?</value>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Il corpus pubblico è https://api.pwnedpasswords.com/range/. Un'organizzazione che gestisce un proprio mirror lo indica qui: i cinque caratteri vengono aggiunti al percorso, o inseriti dove è scritto {prefix}. L'http in chiaro è accettato solo verso localhost, 127.0.0.1 o ::1.</value>
   </data>
-  <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
-    <value>Il record pubblicato corrisponde alla chiave predisposta. È sicuro promuoverla.</value>
+  <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
+    <value>Il record pubblicato non contiene la nuova chiave. Lo corregga.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Il record su {0} riporta p={1}, che non è un criterio riconosciuto dai destinatari (none, quarantine, reject). Pubblicato: {2}</value>
@@ -8030,11 +8111,14 @@ Aggiungerlo comunque?</value>
   <data name="The record at {0} matches the suggestion." xml:space="preserve">
     <value>Il record su {0} corrisponde al suggerimento.</value>
   </data>
-  <data name="The record was not found yet. New DNS records usually appear within minutes but can take hours to propagate - publish the record above if you have not already, then check again later." xml:space="preserve">
-    <value>Il record non è ancora stato trovato. I nuovi record DNS di solito compaiono in pochi minuti ma la propagazione può richiedere ore - pubblicare il record qui sopra, se non è già stato fatto, e ricontrollare più tardi.</value>
+  <data name="The record is propagating." xml:space="preserve">
+    <value>Il record si sta propagando.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>I record che questo server ha bisogno siano pubblicati nella zona DNS di ogni dominio: tipo, host e valore, pronti da copiare nella console del proprio provider DNS, con una verifica del fatto che ciascuno sia davvero attivo. Le verifiche usano il resolver di Windows di questa macchina - lo stesso usato dal controllo della rotazione DKIM.</value>
+  </data>
+  <data name="The records were checked." xml:space="preserve">
+    <value>I record sono stati controllati.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Il relay richiede l'_autenticazione</value>
@@ -8045,10 +8129,8 @@ Aggiungerlo comunque?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Qui si trovano il numero di tentativi e i loro intervalli, insieme a ciò che accade quando si esauriscono.</value>
   </data>
-  <data name="The rotation is complete: mail is now signed with selector &quot;{0}&quot;.&#10;&#10;Keep the old DNS record ({1}) for a few more days while mail signed with the old key is still in transit, then remove it." xml:space="preserve">
-    <value>La rotazione è completa: la posta viene ora firmata con il selettore "{0}".
-
-Conservare il vecchio record DNS ({1}) ancora per qualche giorno, finché la posta firmata con la vecchia chiave è ancora in transito, poi rimuoverlo.</value>
+  <data name="The rotation refused: {0}" xml:space="preserve">
+    <value>La rotazione ha rifiutato: {0}</value>
   </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>L'esecuzione non è terminata. Le righe qui sotto dicono che cosa era già stato fatto prima che si fermasse - leggerle prima di eseguirla di nuovo.</value>
@@ -8064,6 +8146,9 @@ Conservare il vecchio record DNS ({1}) ancora per qualche giorno, finché la pos
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Il risultato della scansione è leggibile solo sulla macchina del server - hMailServer.INI non è stato trovato qui. Il server pubblica lo stesso numero nella metrica hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
+    <value>La pianificazione viene salvata con il dominio. I pulsanti qui sotto agiscono subito. Finché la rotazione gestisce il dominio, il selettore e il file della chiave qui sopra li cambia solo lei.</value>
   </data>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>Il punteggio viene sommato attraverso entrambe le fasi. All'interno di una fase il server smette di verificare non appena il totale corrente raggiunge {0} - la più alta delle due soglie - quindi un controllo posto in fondo all'ordine potrebbe non essere mai eseguito.</value>
@@ -8101,6 +8186,9 @@ Conservare il vecchio record DNS ({1}) ancora per qualche giorno, finché la pos
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Il server non ha accodato l'invio. Controllare il carattere jolly dell'indirizzo e il registro errori di hMailServer.</value>
   </data>
+  <data name="The server did not report the key rotation." xml:space="preserve">
+    <value>Il server non ha riportato la rotazione delle chiavi.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Il server non ha restituito una registrazione utilizzabile. Consultare il suo registro errori.</value>
   </data>
@@ -8111,6 +8199,9 @@ Conservare il vecchio record DNS ({1}) ancora per qualche giorno, finché la pos
     <value>Il server non ha trovato alcun server di posta per {0}.
 
 È il resolver del server stesso a rispondere - lo stesso usato dalla consegna SMTP, incluso qualsiasi DNSServer personalizzato configurato in hMailServer.INI - quindi la posta inviata a questo dominio da questo server non sarebbe recapitabile in questo momento.</value>
+  </data>
+  <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
+    <value>Il server genera la chiave successiva, mostra il record TXT da pubblicare, lo controlla con il proprio resolver e passa la firma a essa solo quando il record si è risolto per tutto il periodo di propagazione. Il vecchio selettore viene mantenuto per il periodo di conservazione e poi ritirato.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
     <value>Il server non conserva alcuno storico: MetricsHistoryDays è 0 in hMailServer.ini. Impostarlo ai giorni da conservare e riavviare il servizio.</value>
@@ -8138,6 +8229,9 @@ Conservare il vecchio record DNS ({1}) ancora per qualche giorno, finché la pos
   </data>
   <data name="The server's host name could not be read, so the suggestion authorises only the domain's MX hosts (&quot;mx&quot;)." xml:space="preserve">
     <value>Non è stato possibile leggere il nome host del server, quindi il suggerimento autorizza solo gli host MX del dominio ("mx").</value>
+  </data>
+  <data name="The server's key rotation has a next key, selector &quot;{0}&quot;. Publish its record as well; signing moves to it once the record has resolved for the propagation period, and the domain's DKIM tab shows the rest." xml:space="preserve">
+    <value>La rotazione delle chiavi del server ha una chiave successiva, selettore "{0}". Pubblichi anche il suo record; la firma passa a essa quando il record si è risolto per il periodo di propagazione, e la scheda DKIM del dominio mostra il resto.</value>
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Non è possibile leggere l'account del servizio: {0}</value>
@@ -8182,12 +8276,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>La restrizione di origine deve essere un indirizzo (10.0.0.5), un intervallo (10.0.0.1-10.0.0.99) o un CIDR (10.0.0.0/24). Lasciarla vuota per accettare la chiave da qualsiasi indirizzo.</value>
-  </data>
-  <data name="The staged pair has no selector, so there is no DNS name to check. Cancel the rotation and start again." xml:space="preserve">
-    <value>La coppia predisposta non ha un selettore, quindi non c'è alcun nome DNS da verificare. Annullare la rotazione e ricominciare.</value>
-  </data>
-  <data name="The staged rotation is incomplete (the selector or the key file is missing), so the server will refuse to promote it. Cancel the rotation and start again." xml:space="preserve">
-    <value>La rotazione predisposta è incompleta (manca il selettore o il file della chiave), quindi il server rifiuterà di promuoverla. Annullare la rotazione e ricominciare.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Non è stato possibile leggere la scadenza memorizzata nel formato che questa pagina si aspetta (YYYY-MM-DD HH:MM:SS), quindi da qui non si può dire se il server accetti ancora questa chiave. Se la riga è stata modificata a mano, correggerla; altrimenti revocare la chiave e crearne una sostitutiva.</value>
@@ -8331,6 +8419,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Questo viene eseguito mentre il server mittente attende la risposta al DATA, quindi il numero è una promessa sul caso peggiore anziché un'indicazione. Delimita sia la connessione sia la risposta: un motore la cui macchina è scomparsa costerebbe altrimenti il timeout TCP del sistema operativo su ogni messaggio.</value>
+  </data>
+  <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
+    <value>Questo server non ruota le chiavi DKIM; è più vecchio di questo Control Panel.</value>
   </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Questo server si limita a VERIFICARE l'SPF sulla posta in entrata; pubblicare il record serve a tutti gli altri - dice ai server riceventi quali macchine sono autorizzate a inviare posta che dichiara di provenire da </value>
@@ -8721,6 +8812,15 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>In attesa di una connessione al database dal pool. 0 = nessun limite.</value>
+  </data>
+  <data name="Waiting for the DNS record" xml:space="preserve">
+    <value>In attesa del record DNS</value>
+  </data>
+  <data name="Waiting for the old selector to be retired." xml:space="preserve">
+    <value>In attesa del ritiro del vecchio selettore.</value>
+  </data>
+  <data name="Waiting for the old selector to retire" xml:space="preserve">
+    <value>In attesa del ritiro del vecchio selettore</value>
   </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Sveglia l'indicizzatore anziché attendere la sua prossima passata, e riporta quanti messaggi di questo server sono attualmente indicizzati. La passata stessa viene eseguita in background ed è delimitata dai limiti qui sopra, quindi su un arretrato ampio produce progressi anziché completarsi. Con l'indicizzazione disattivata non c'è alcun indicizzatore da svegliare, e questo viene detto esplicitamente anziché segnalare un successo.</value>
@@ -9352,8 +9452,8 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
     <value>_Priorità (vince la più alta quando gli intervalli si sovrappongono)</value>
   </data>
-  <data name="_Promote…" xml:space="preserve">
-    <value>_Promuovi…</value>
+  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
+    <value>Ore del _periodo di propagazione (da 1 a 720)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Proprietà</value>
@@ -10324,6 +10424,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>Esistono {0} record TXT su {1}, ma nessuno inizia con "v=spf1", quindi i server riceventi non vedono proprio alcun criterio SPF.</value>
   </data>
+  <data name="{0} Until {1}." xml:space="preserve">
+    <value>{0} Fino al {1}.</value>
+  </data>
   <data name="{0} account(s) found{1}." xml:space="preserve">
     <value>{0} account trovati{1}.</value>
   </data>
@@ -10570,6 +10673,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, un account di servizio virtuale senza password</value>
   </data>
+  <data name="{0}, checked {1}." xml:space="preserve">
+    <value>{0}, controllato {1}.</value>
+  </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, punteggio {2}. {3}</value>
   </data>
@@ -10587,6 +10693,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} attivi su {2}.</value>
+  </data>
+  <data name="{0}: TXT record at {1}" xml:space="preserve">
+    <value>{0}: record TXT in {1}</value>
   </data>
   <data name="{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: esistono record TXT su {1} ma nessuno inizia con v=STSv1, quindi i server mittenti non riconosceranno alcun criterio. Correggi il valore del record.</value>
@@ -10686,6 +10795,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: il record TXT {1} è pubblicato. Non verificabile da qui: che mta-sts.{2} si risolva su questo server e che il certificato copra quel nome.</value>
+  </data>
+  <data name="{0}: {1}" xml:space="preserve">
+    <value>{0}: {1}</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} non contiene alcun blocco di certificato PEM, quindi non contiene alcun certificato CA utilizzabile (errore del server 6140). Esporta il certificato CA in formato PEM (Base64).</value>

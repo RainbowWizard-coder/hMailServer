@@ -2276,6 +2276,18 @@ namespace hMailServer
          throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
       }
 
+      public string RunDkimRotation(int secondsAhead)
+      {
+         if (!ServerApi.HasRoute("/api/v1/dkim/rotation/run", "post"))
+            NotOnThisServer.Ignore("needs POST /api/v1/dkim/rotation/run, a pass of the DKIM key rotation");
+
+         ApiAnswer answer = ServerApi.Post("/api/v1/dkim/rotation/run", "{\"seconds_ahead\":" + secondsAhead + "}");
+         if (!answer.Ok)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+
+         return answer.Body;
+      }
+
       public string RunMessageRetention()
       {
          throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
@@ -2420,6 +2432,37 @@ namespace hMailServer
       private string _vacationSubject = string.Empty; public string VacationSubject { get { return _vacationSubject; } set { _vacationSubject = value; Pend("vacation_subject", Q(value)); } }
       private string _vacationMessage = string.Empty; public string VacationMessage { get { return _vacationMessage; } set { _vacationMessage = value; Pend("vacation_message", Q(value)); } }
 
+      // The DKIM key rotation's policy, which PUT /api/v1/domains/{domain} takes.
+      private bool _dkimRotationEnabled; public bool DKIMRotationEnabled { get { return _dkimRotationEnabled; } set { _dkimRotationEnabled = value; Pend("dkim_rotation_enabled", B(value)); } }
+      private int _dkimRotationInterval = 180; public int DKIMRotationIntervalDays { get { return _dkimRotationInterval; } set { _dkimRotationInterval = value; Pend("dkim_rotation_interval_days", N(value)); } }
+      private int _dkimRotationPropagation = 72; public int DKIMRotationPropagationHours { get { return _dkimRotationPropagation; } set { _dkimRotationPropagation = value; Pend("dkim_rotation_propagation_hours", N(value)); } }
+      private int _dkimRotationRetention = 7; public int DKIMRotationRetentionDays { get { return _dkimRotationRetention; } set { _dkimRotationRetention = value; Pend("dkim_rotation_retention_days", N(value)); } }
+      private int _dkimRotationKeyBits = 2048; public int DKIMRotationKeyBits { get { return _dkimRotationKeyBits; } set { _dkimRotationKeyBits = value; Pend("dkim_rotation_key_bits", N(value)); } }
+
+      // The rotation's state and operations, which act at once over their own routes.
+      public string DKIMRotationStatus => RotationCall_("GET", "", null);
+      public string DKIMRotationStart(string selector) => RotationCall_("POST", "/start", "{\"selector\":" + Q(selector) + "}");
+      public string DKIMRotationCheck() => RotationCall_("POST", "/check", "{}");
+      public string DKIMRotationSwitch(bool force) => RotationCall_("POST", "/switch", "{\"force\":" + B(force) + "}");
+      public string DKIMRotationRetire() => RotationCall_("POST", "/retire", "{}");
+      public string DKIMRotationCancel() => RotationCall_("DELETE", "/next", null);
+
+      private string RotationCall_(string verb, string action, string json)
+      {
+         if (!ServerApi.HasRoute("/api/v1/domains/{domain}/dkim/rotation", "get"))
+            NotOnThisServer.Ignore("needs /api/v1/domains/{domain}/dkim/rotation, the DKIM key rotation routes");
+
+         string path = "/api/v1/domains/" + Name + "/dkim/rotation" + action;
+         ApiAnswer answer = verb == "GET" ? ServerApi.Get(path)
+                          : verb == "DELETE" ? ServerApi.Delete(path)
+                          : ServerApi.Post(path, json);
+
+         if (!answer.Ok)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+
+         return answer.Body;
+      }
+
       // What the route does not carry.
       private string _dkimSecondarySelector = string.Empty; public string DKIMSecondarySelector { get { return _dkimSecondarySelector; } set { _dkimSecondarySelector = value; Pend("dkim_secondary_selector", Q(value)); } }
       private string _dkimSecondaryKeyFile = string.Empty; public string DKIMSecondaryPrivateKeyFile { get { return _dkimSecondaryKeyFile; } set { _dkimSecondaryKeyFile = value; Pend("dkim_secondary_private_key_file", Q(value)); } }
@@ -2499,6 +2542,11 @@ namespace hMailServer
          _disclaimerHtml = ServerApi.StringOf(element, "disclaimer_html") ?? string.Empty;
          _dkimSecondarySelector = ServerApi.StringOf(element, "dkim_secondary_selector") ?? string.Empty;
          _dkimSecondaryKeyFile = ServerApi.StringOf(element, "dkim_secondary_private_key_file") ?? string.Empty;
+         _dkimRotationEnabled = ServerApi.FlagOf(element, "dkim_rotation_enabled");
+         _dkimRotationInterval = (int) ServerApi.LongOf(element, "dkim_rotation_interval_days", 180);
+         _dkimRotationPropagation = (int) ServerApi.LongOf(element, "dkim_rotation_propagation_hours", 72);
+         _dkimRotationRetention = (int) ServerApi.LongOf(element, "dkim_rotation_retention_days", 7);
+         _dkimRotationKeyBits = (int) ServerApi.LongOf(element, "dkim_rotation_key_bits", 2048);
          _adDomainName = ServerApi.StringOf(element, "ad_domain_name") ?? string.Empty;
          _dkimAlgorithm = ServerApi.StringOf(element, "dkim_signing_algorithm") == "sha1" ? eDKIMAlgorithm.eSHA1 : eDKIMAlgorithm.eSHA256;
          _retention = (int) ServerApi.LongOf(element, "message_retention_days");

@@ -295,6 +295,12 @@ NOT_AUDITED = {
                      "account itself in the webmail; the domain's switch and hour are hm_domains columns, which are audited.",
    "hm_digesttokens": "the digest's one-use release links, written by the digest task and spent by whoever follows one; traffic, and "
                       "each row holds a token that releases a held message.",
+   "hm_dkimrotations": "where each domain's DKIM key rotation has got to - when the next key was made and first seen, the last DNS "
+                       "check of each selector, the last error - rewritten by the rotation's pass every fifteen minutes under the "
+                       "system actor, so a listing would record every lookup. Generating a next key, switching to it and cancelling "
+                       "it each update the selector and key file columns of hm_domains, which are audited with the pass's actor or "
+                       "the caller. A retire changes only this row and the key file, and is NOT recorded: "
+                       "docs/DkimKeyRotation.md says so, and the application log has a line for it.",
 }
 
 # Tables whose chokepoint is not the statement one, and which must therefore

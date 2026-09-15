@@ -1706,6 +1706,14 @@ namespace HM
             return HandleListCertificates_();
          case RouteDkimGet:
             return HandleDkim_(String(route.identifier));
+         case RouteDkimRotationGet:
+         case RouteDkimRotationStart:
+         case RouteDkimRotationCheck:
+         case RouteDkimRotationSwitch:
+         case RouteDkimRotationRetire:
+         case RouteDkimRotationCancel:
+         case RouteDkimRotationRun:
+            return HandleDkimRotation_(caller, route, GetRequestBody_(request));
          case RouteRuleList:
             return HandleListRules_();
          case RouteLogList:
@@ -3318,6 +3326,45 @@ namespace HM
             return;
          }
       }
+      // /api/v1/domains/<name>/dkim/rotation[/start|/check|/switch|/retire|/next]
+      // - the domain's key rotation. Matched before the plain /dkim route below,
+      // whose EndsWith these paths do not satisfy anyway, and only with a domain
+      // segment that holds no slash.
+      if (path.StartsWith(domainsPrefix) && path.Find("/dkim/rotation") > 0)
+      {
+         const AnsiString rotation = "/dkim/rotation";
+         AnsiString rest = path.Mid(domainsPrefix.GetLength());
+         int at = rest.Find(rotation);
+         AnsiString domainName = at > 0 ? rest.Mid(0, at) : AnsiString("");
+         AnsiString action = at > 0 ? rest.Mid(at + rotation.GetLength()) : AnsiString("");
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            if (method == "GET" && action.IsEmpty())
+               route.kind = RouteDkimRotationGet;
+            else if (method == "POST" && action == "/start")
+               route.kind = RouteDkimRotationStart;
+            else if (method == "POST" && action == "/check")
+               route.kind = RouteDkimRotationCheck;
+            else if (method == "POST" && action == "/switch")
+               route.kind = RouteDkimRotationSwitch;
+            else if (method == "POST" && action == "/retire")
+               route.kind = RouteDkimRotationRetire;
+            else if (method == "DELETE" && action == "/next")
+               route.kind = RouteDkimRotationCancel;
+
+            if (route.kind != RouteUnknown)
+            {
+               route.identifier = domainName;
+               return;
+            }
+         }
+      }
+      if (method == "POST" && path == "/api/v1/dkim/rotation/run")
+      {
+         route.kind = RouteDkimRotationRun;
+         return;
+      }
       if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/dkim"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -4012,6 +4059,14 @@ namespace HM
       case RouteRoleUnassign:
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
+      // A check writes what it found and starts a propagation clock; the rest move
+      // keys, and the run moves every domain's rotation.
+      case RouteDkimRotationStart:
+      case RouteDkimRotationCheck:
+      case RouteDkimRotationSwitch:
+      case RouteDkimRotationRetire:
+      case RouteDkimRotationCancel:
+      case RouteDkimRotationRun:
          return true;
 
       default:
@@ -4143,6 +4198,7 @@ namespace HM
       case RouteMetricsHistory:
       case RouteUpdateGet:
       case RouteDkimGet:
+      case RouteDkimRotationGet:
       case RouteCertificateList:
       case RouteRuleList:
       case RouteSettingsGet:
@@ -4346,6 +4402,16 @@ namespace HM
       case RouteSenderListDomainCreate:
       case RouteSenderListDomainUpdate:
       case RouteSenderListDomainDelete:
+      // A domain's DKIM key rotation acted on now: a key generated and
+      // staged, a check that starts the propagation clock, signing moved, the
+      // old selector retired, the next key cancelled. The key and its selector
+      // are the domain's, as its limits are, and COM's Domain.DKIMRotation*
+      // members answer a domain administrator.
+      case RouteDkimRotationStart:
+      case RouteDkimRotationCheck:
+      case RouteDkimRotationSwitch:
+      case RouteDkimRotationRetire:
+      case RouteDkimRotationCancel:
          return RolePermission::ManageAccounts;
 
       // Setting somebody's password, as a route of its own rather than as a
@@ -4449,6 +4515,10 @@ namespace HM
       // The alert pass run now rather than in a minute, which is the scheduled
       // sends' shape exactly.
       case RouteAlertRun:
+      // One pass of every domain's DKIM key rotation now, with a clock the
+      // caller may move: the scheduled task's pass, and refused to a confined
+      // credential below because it advances every domain's rotation.
+      case RouteDkimRotationRun:
          return RolePermission::ManageServer;
 
       default:
@@ -4513,6 +4583,14 @@ namespace HM
       case RouteListList:
       case RouteListCreate:
       case RouteDkimGet:
+      // Left out of this list, a rotation route would name no domain, and a
+      // credential confined to one domain could then switch another domain's key.
+      case RouteDkimRotationGet:
+      case RouteDkimRotationStart:
+      case RouteDkimRotationCheck:
+      case RouteDkimRotationSwitch:
+      case RouteDkimRotationRetire:
+      case RouteDkimRotationCancel:
       case RouteDomainAliasList:
       case RouteDomainAliasCreate:
       case RouteDomainAliasDelete:
@@ -4917,6 +4995,9 @@ namespace HM
       case RouteGroupMemberList:
       case RouteGroupMemberCreate:
       case RouteGroupMemberDelete:
+      // One pass over every domain's DKIM key rotation, with a clock the caller
+      // moves: a key issued for one domain would be advancing everybody's.
+      case RouteDkimRotationRun:
          // IP ranges, certificates, global rules, the logs, the backup, the
          // server settings and the update check are all server-wide: none of
          // them belongs to a domain, and the logs in particular carry every
@@ -11870,7 +11951,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
-         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
@@ -11942,6 +12023,7 @@ namespace HM
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
+      openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiReportsPaths_();
       openApiJson += OpenApiRolesPaths_();

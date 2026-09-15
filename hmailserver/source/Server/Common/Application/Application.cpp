@@ -81,6 +81,7 @@
 #include "WorkQueueHealthTask.h"
 #include "../Util/DiskSpace.h"
 #include "../Util/AlertManager.h"
+#include "DkimRotationTask.h"
 #include "BackupScheduleTask.h"
 #include "../LDAP/DirectorySyncTask.h"
 
@@ -853,6 +854,20 @@ namespace HM
       alertTask->SetReoccurance(ScheduledTask::RunInfinitely);
       alertTask->SetMinutesBetweenRun(1);
       scheduler_->ScheduleTask(alertTask);
+
+      // DKIM keys that rotate. Registered unconditionally and twice, like log
+      // retention: once at start-up, so a record published while the server was
+      // down is looked at straight away, and every fifteen minutes after. A pass
+      // with no domain's schedule on and nothing in flight is two selects - see
+      // DkimRotationTask.
+      std::shared_ptr<DkimRotationTask> dkimRotationStartupTask = std::shared_ptr<DkimRotationTask>(new DkimRotationTask);
+      dkimRotationStartupTask->SetReoccurance(ScheduledTask::RunOnce);
+      scheduler_->ScheduleTask(dkimRotationStartupTask);
+
+      std::shared_ptr<DkimRotationTask> dkimRotationTask = std::shared_ptr<DkimRotationTask>(new DkimRotationTask);
+      dkimRotationTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      dkimRotationTask->SetMinutesBetweenRun(15);
+      scheduler_->ScheduleTask(dkimRotationTask);
 
       // Scheduled backups. Only registered when a schedule is configured in
       // hMailServer.ini ([Settings] ScheduledBackupTime or

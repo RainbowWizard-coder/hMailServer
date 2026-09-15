@@ -57,7 +57,8 @@ What is where
 | `[Directories]`, `[Database]`, `[Security]`, `[GUILanguages]` sections of the INI | each machine's own INI | configured per machine, deliberately |
 | `[SettingsOverride]` section of the INI | each machine's own INI, and nothing else | **not** shared — it is per-machine on purpose |
 | TLS certificates and private keys | **files on disk** — `hm_sslcertificates` stores *paths* (`sslcertificatefile`, `sslprivatekeyfile`) | replicate the files to the same paths |
-| DKIM signing keys | **files on disk** — `hm_domains` stores *paths* (`domaindkimprivatekeyfile`) | replicate the files to the same paths |
+| DKIM signing keys | **files on disk** — `hm_domains` stores *paths* (`domaindkimprivatekeyfile`); keys the DKIM key rotation generates are in `<DataDirectory>\DKIM` | replicate the files to the same paths — the `DKIM` folder with the rest of the data directory |
+| DKIM key rotation state | the database (`hm_dkimrotations`) | sharing the database |
 | Route / external-fetch / per-domain-relay passwords | the database, **DPAPI-protected** | **they do not travel — see below** |
 
 Two rows in that table do more work than the rest:
@@ -89,6 +90,13 @@ that file at that path. Keep certificates and DKIM keys inside a replicated
 directory and use the same drive letter and layout on both machines — a
 standby whose paths differ from the primary's rows serves no TLS the moment it
 matters most.
+
+**A rotated DKIM key is a file the standby must have before the switch.** The
+key rotation ([DkimKeyRotation.md](DkimKeyRotation.md)) writes each new key into
+`<DataDirectory>\DKIM` and records its path in the shared database. A node whose
+copy of that folder has not caught up reports the next key as unreadable and does
+not switch to it; a standby promoted with an out-of-date copy signs with a key file
+it does not have. Replicate the folder as promptly as the message store.
 
 The DPAPI constraint — the one thing that genuinely does not travel
 -------------------------------------------------------------------

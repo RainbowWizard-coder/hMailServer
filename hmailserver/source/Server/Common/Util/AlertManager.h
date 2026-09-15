@@ -93,6 +93,11 @@ namespace HM
       static const wchar_t *ConditionAutoBanStorm;
       static const wchar_t *ConditionMinidumpWritten;
 
+      // A DKIM key rotation that is stuck: a next key whose record has not been seen
+      // for the rule's threshold in days, or a rotation whose last attempt to move
+      // failed. Seeded by schema 6050, on, threshold 7.
+      static const wchar_t *ConditionDkimRotationStalled;
+
       struct Rule
       {
          Rule() : id(0), enabled(false), threshold(0), actions(ActionMail), cooldown(60), digest(true) {}
@@ -200,6 +205,7 @@ namespace HM
       int EvaluateCertificates_();
       int EvaluateAutoBans_();
       int EvaluateMinidumps_();
+      int EvaluateDkimRotations_();
 
       boost::recursive_mutex mutex_;
 

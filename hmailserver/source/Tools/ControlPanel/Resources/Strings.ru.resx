@@ -38,9 +38,6 @@
   <data name=" (inactive)" xml:space="preserve">
     <value> (неактивно)</value>
   </data>
-  <data name=" (key file: {0})." xml:space="preserve">
-    <value> (файл ключа: {0}).</value>
-  </data>
   <data name=" (published {0})" xml:space="preserve">
     <value> (опубликовано {0})</value>
   </data>
@@ -200,9 +197,6 @@
   <data name="(The private key file could not be read from this machine, so the record value cannot be derived here. Run this page on the server itself, or use the domain's DKIM tab.)" xml:space="preserve">
     <value>(Файл закрытого ключа не удалось прочитать с этого компьютера, поэтому значение записи здесь вычислить нельзя. Откройте эту страницу на самом сервере или воспользуйтесь вкладкой DKIM домена.)</value>
   </data>
-  <data name="(The staged private key file could not be read from this machine, so the record value cannot be shown here. It was shown when the rotation was started; if it is lost, cancel the rotation and start again.)" xml:space="preserve">
-    <value>(Подготовленный файл закрытого ключа не удалось прочитать с этого компьютера, поэтому значение записи здесь показать нельзя. Оно было показано при начале ротации; если оно потеряно, отмените ротацию и начните заново.)</value>
-  </data>
   <data name="(account #{0})" xml:space="preserve">
     <value>(учётная запись №{0})</value>
   </data>
@@ -238,9 +232,6 @@
   </data>
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(имя компьютера Windows, на котором работает сервер)</value>
-  </data>
-  <data name="(the staged pair has no selector)" xml:space="preserve">
-    <value>(у подготовленной пары нет селектора)</value>
   </data>
   <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
     <value>, и помечает учётные записи неактивными, когда их запись в каталоге исчезла.</value>
@@ -350,12 +341,6 @@
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Отсканируйте этот QR-код приложением-аутентификатором (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
   </data>
-  <data name="1. Currently signing with selector &quot;{0}&quot;" xml:space="preserve">
-    <value>1. Сейчас подпись выполняется селектором «{0}»</value>
-  </data>
-  <data name="1. No signing selector is configured yet." xml:space="preserve">
-    <value>1. Селектор подписи ещё не настроен.</value>
-  </data>
   <data name="12+ characters" xml:space="preserve">
     <value>12+ символов</value>
   </data>
@@ -368,29 +353,14 @@
   <data name="2.  Or enter the setup key shown below by hand." xml:space="preserve">
     <value>2.  Либо введите показанный ниже ключ настройки вручную.</value>
   </data>
-  <data name="2. A rotation is staged: selector &quot;{0}&quot;, key file {1}." xml:space="preserve">
-    <value>2. Подготовлена ротация: селектор «{0}», файл ключа {1}.</value>
-  </data>
-  <data name="2. Stage a new key pair under a new selector name:" xml:space="preserve">
-    <value>2. Подготовьте новую пару ключей под новым именем селектора:</value>
-  </data>
   <data name="24 hours" xml:space="preserve">
     <value>24 часа</value>
-  </data>
-  <data name="3. Publish this DNS TXT record at your DNS provider. Host/Name:" xml:space="preserve">
-    <value>3. Опубликуйте эту запись TXT у своего поставщика DNS. Узел/имя:</value>
   </data>
   <data name="30 days" xml:space="preserve">
     <value>30 дней</value>
   </data>
-  <data name="4. Check that the record is visible in DNS:" xml:space="preserve">
-    <value>4. Проверьте, что запись видна в DNS:</value>
-  </data>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>ответы 451 4.3.1</value>
-  </data>
-  <data name="5. Promote the staged key to become the signing key:" xml:space="preserve">
-    <value>5. Повысьте подготовленный ключ до ключа подписи:</value>
   </data>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 - зарегистрированный порт для UDP и для обычного TCP; 6514 - зарегистрированный порт для syslog поверх TLS.</value>
@@ -413,14 +383,8 @@
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>По адресу {1} опубликована запись DMARC с p={0} — строже, чем начальный вариант p=none. Это правильно, если вы уже знаете, что ваша почта проходит выравнивание; если же вы ещё настраиваете SPF и DKIM, почта, которая проверку не проходит, прямо сейчас {2}. Опубликовано: {3}</value>
   </data>
-  <data name="A TXT record exists at {0}, but it does not match the staged key. Waiting will not fix this: correct the published record so it matches the value above, then check again." xml:space="preserve">
-    <value>По адресу {0} запись TXT существует, но не соответствует подготовленному ключу. Ожидание этого не исправит: исправьте опубликованную запись так, чтобы она совпадала со значением выше, и проверьте снова.</value>
-  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>По адресу {0} запись TXT существует, но файл закрытого ключа не удалось прочитать с этого компьютера, поэтому отсюда невозможно проверить, содержит ли она ПРАВИЛЬНЫЙ ключ. Выполните проверку на самом сервере или воспользуйтесь вкладкой DKIM домена.</value>
-  </data>
-  <data name="A TXT record exists, but the staged private key file ({0}) could not be read from this machine, so the record cannot be compared against the key. Run this check on the server itself, or cancel the rotation and start it again from here." xml:space="preserve">
-    <value>Запись TXT существует, но подготовленный файл закрытого ключа ({0}) не удалось прочитать с этого компьютера, поэтому запись невозможно сравнить с ключом. Выполните эту проверку на самом сервере либо отмените ротацию и начните её заново отсюда.</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Верхняя граница на один проход, чтобы база поиска, указанная на уровень выше нужного, не приводила к чтению целого леса. Если граница достигнута, запуск сообщает об этом и не отключает вообще ничего: за пределом существующая запись неотличима от удалённой.</value>
@@ -494,6 +458,9 @@
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Современное приложение администрирования для hMailServer: живая панель мониторинга, домены и учётные записи, очередь доставки, потоковый просмотр журналов, полный набор параметров сервера и функции транспортной безопасности версии 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
+    <value>Новый ключ создан и подготовлен. Опубликуйте его запись.</value>
+  </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Введён новый пароль учётной записи службы И одновременно установлен флажок «удалить сохранённый пароль». Снимите одно из двух — угадывать, что имелось в виду, эта страница не вправе.</value>
   </data>
@@ -538,9 +505,6 @@
   </data>
   <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Роль — это именованный набор прав, а назначение даёт её учётной записи в указанных доменах. Четыре встроенные роли изменить нельзя: их права находятся в коде сервера, чтобы изменение в базе данных не могло никому дать полномочий. Учётная запись без роли здесь имеет то, что ей всегда давал её уровень администратора.</value>
-  </data>
-  <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
-    <value>Ротация уже подготовлена. Если запись DNS опубликована, нажмите «Проверить DNS»; повышение станет доступно после того, как проверка успешно пройдёт в этом сеансе.</value>
   </data>
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Маршрут заменяет собой поиск MX для указанных доменов.</value>
@@ -1569,13 +1533,11 @@ Control Panel может читать файлы сообщений только
   <data name="Cancel" xml:space="preserve">
     <value>Отмена</value>
   </data>
-  <data name="Cancel rotat_ion…" xml:space="preserve">
-    <value>Отменить _ротацию…</value>
+  <data name="Cancel the ne_xt key…" xml:space="preserve">
+    <value>От_менить следующий ключ…</value>
   </data>
-  <data name="Cancel this rotation?&#10;&#10;The staged selector &quot;{0}&quot; is removed from the server configuration; signing continues with the current key, untouched. The generated key file stays on disk, and the DNS record for the staged selector - if you already published it - can simply be deleted." xml:space="preserve">
-    <value>Отменить эту ротацию?
-
-Подготовленный селектор «{0}» будет удалён из конфигурации сервера; подписывание продолжится текущим ключом, и его это не затронет. Созданный файл ключа останется на диске, а запись DNS для подготовленного селектора — если вы её уже опубликовали — можно просто удалить.</value>
+  <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
+    <value>Отменить следующий ключ домена {0}? Подготовленный селектор будет удалён, файл ключа, созданный для него ротацией, будет удалён, а подпись не изменится.</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Отсюда проверить нельзя</value>
@@ -1682,8 +1644,8 @@ Control Panel может читать файлы сообщений только
   <data name="Check" xml:space="preserve">
     <value>Проверить</value>
   </data>
-  <data name="Check D_NS" xml:space="preserve">
-    <value>Проверить D_NS</value>
+  <data name="Check DNS n_ow" xml:space="preserve">
+    <value>Про_верить DNS сейчас</value>
   </data>
   <data name="Check PTR record" xml:space="preserve">
     <value>Проверить запись PTR</value>
@@ -1726,9 +1688,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Проверка того, что ещё нужно сделать для этого сервера за его пределами…</value>
-  </data>
-  <data name="Checking {0}…" xml:space="preserve">
-    <value>Проверка {0}…</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Проверка…</value>
@@ -1994,9 +1953,6 @@ Control Panel может читать файлы сообщений только
   <data name="Copy every sample of {0} to the clipboard as tab-separated text" xml:space="preserve">
     <value>Копировать все образцы {0} в буфер обмена как текст с разделителями-табуляциями</value>
   </data>
-  <data name="Copy h_ost" xml:space="preserve">
-    <value>Копировать у_зел</value>
-  </data>
   <data name="Copy host" xml:space="preserve">
     <value>Копировать узел</value>
   </data>
@@ -2053,9 +2009,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Не удалось добавить маршрут: {0}</value>
-  </data>
-  <data name="Could not cancel the rotation: {0}" xml:space="preserve">
-    <value>Не удалось отменить ротацию: {0}</value>
   </data>
   <data name="Could not change logging: {0}" xml:space="preserve">
     <value>Не удалось изменить журналирование: {0}</value>
@@ -2197,9 +2150,6 @@ Control Panel может читать файлы сообщений только
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Не удалось открыть {0}: {1}</value>
   </data>
-  <data name="Could not promote the staged key: {0}" xml:space="preserve">
-    <value>Не удалось повысить подготовленный ключ: {0}</value>
-  </data>
   <data name="Could not read the backup settings: {0}" xml:space="preserve">
     <value>Не удалось прочитать параметры резервного копирования: {0}</value>
   </data>
@@ -2208,6 +2158,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Не удалось прочитать файл: {0}</value>
+  </data>
+  <data name="Could not read the key rotation: {0}" xml:space="preserve">
+    <value>Не удалось прочитать ротацию ключей: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Не удалось прочитать состояние журналирования: {0}</value>
@@ -2290,9 +2243,6 @@ Control Panel может читать файлы сообщений только
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Не удалось сохранить: {0}</value>
   </data>
-  <data name="Could not stage the rotation on the server: {0}" xml:space="preserve">
-    <value>Не удалось подготовить ротацию на сервере: {0}</value>
-  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Не удалось запустить резервное копирование: {0}</value>
   </data>
@@ -2362,6 +2312,9 @@ Control Panel может читать файлы сообщений только
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Создано: «{0}». Введите это в клиенте как пароль этой учётной записи.</value>
   </data>
+  <data name="Created {0}" xml:space="preserve">
+    <value>Создан {0}</value>
+  </data>
   <data name="Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to." xml:space="preserve">
     <value>Создаёт и обновляет почтовые ящики в соответствии с каталогом LDAP. Участвуют только те домены, у которых задано имя домена Active Directory, поэтому случайно создать учётные записи в размещённом домене невозможно. Здесь ничто и никогда не удаляет ни учётную запись, ни сообщение: самое большее — помечает учётную запись неактивной, и только если вы этого попросите.</value>
   </data>
@@ -2382,6 +2335,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Критические, высокие и средние</value>
+  </data>
+  <data name="Current key" xml:space="preserve">
+    <value>Текущий ключ</value>
   </data>
   <data name="Custom" xml:space="preserve">
     <value>Свой</value>
@@ -2520,6 +2476,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Date this key stops working" xml:space="preserve">
     <value>Дата, когда этот ключ перестанет работать</value>
+  </data>
+  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
+    <value>_Дней между ротациями (от 1 до 3650)</value>
+  </data>
+  <data name="Days between rotations" xml:space="preserve">
+    <value>Дней между ротациями</value>
   </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Сколько дней хранить на сервере (0 — удалять после загрузки)</value>
@@ -2749,6 +2711,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Диагностика не удалась: {0}</value>
+  </data>
+  <data name="Different" xml:space="preserve">
+    <value>Отличается</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Час сводки</value>
@@ -3016,9 +2981,6 @@ Control Panel может читать файлы сообщений только
   <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
     <value>Включено, но не настроено: {0} не задан.</value>
   </data>
-  <data name="Enabled once &quot;Check DNS&quot; has confirmed the published record matches the staged key." xml:space="preserve">
-    <value>Становится доступно после того, как «Проверить DNS» подтвердит, что опубликованная запись соответствует подготовленному ключу.</value>
-  </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Становится доступно после того, как «Проверить» подтвердит, что опубликованная запись содержит открытый ключ именно этого ключа.</value>
   </data>
@@ -3048,9 +3010,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Введите секрет</value>
-  </data>
-  <data name="Enter a selector name for the new key first." xml:space="preserve">
-    <value>Сначала укажите имя селектора для нового ключа.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Введите корректное имя домена.</value>
@@ -3343,6 +3302,9 @@ Control Panel может читать файлы сообщений только
   <data name="Finish" xml:space="preserve">
     <value>Готово</value>
   </data>
+  <data name="First seen {0}" xml:space="preserve">
+    <value>Впервые замечен {0}</value>
+  </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Сначала: какая из двух половин застряла?</value>
   </data>
@@ -3456,9 +3418,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>Создать стойкий пароль (копируется в буфер обмена)</value>
-  </data>
-  <data name="Generate and stage _key…" xml:space="preserve">
-    <value>Создать и подготовить _ключ…</value>
   </data>
   <data name="Generated password" xml:space="preserve">
     <value>Созданный пароль</value>
@@ -3775,6 +3734,9 @@ Control Panel может читать файлы сообщений только
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Идентификатор, от имени которого записываются результаты (пусто — имя этого компьютера)</value>
   </data>
+  <data name="Idle" xml:space="preserve">
+    <value>Бездействует</value>
+  </data>
   <data name="Idle timeouts" xml:space="preserve">
     <value>Тайм-ауты простоя</value>
   </data>
@@ -3909,6 +3871,9 @@ Control Panel может читать файлы сообщений только
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL набора JWK (опубликованные поставщиком ключи подписи; пусто — только файл ключа)</value>
   </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
     <value>Оставлять серые списки активными в окне истечения записей (требуется перезапуск)</value>
   </data>
@@ -3924,6 +3889,9 @@ Control Panel может читать файлы сообщений только
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>Сохранять состояние «прочитано/не прочитано»</value>
   </data>
+  <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
+    <value>Оставьте запись выводимого селектора «{0}» опубликованной до {1} для почты, подписанной им и ещё находящейся в пути.</value>
+  </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Чтобы хранить несколько поколений сообщений, нужно сжатие: без параметра «Сжимать файлы в папке назначения (zip)» каждое резервное копирование пишет файлы сообщений в одну и ту же папку DataBackup, затирая файлы предыдущего запуска, поэтому срок хранения может сохранять поколения только у небольших архивов с параметрами и доменами.</value>
   </data>
@@ -3935,6 +3903,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Key file present" xml:space="preserve">
     <value>Файл ключа присутствует</value>
+  </data>
+  <data name="Key file: {0}" xml:space="preserve">
+    <value>Файл ключа: {0}</value>
   </data>
   <data name="Key matches certificate" xml:space="preserve">
     <value>Ключ соответствует сертификату</value>
@@ -3948,8 +3919,14 @@ Control Panel может читать файлы сообщений только
   <data name="Key rotation" xml:space="preserve">
     <value>Ротация ключа</value>
   </data>
+  <data name="Key si_ze" xml:space="preserve">
+    <value>_Размер ключа</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Хранилище ключей</value>
+  </data>
+  <data name="Key unreadable" xml:space="preserve">
+    <value>Ключ не читается</value>
   </data>
   <data name="LDAPS" xml:space="preserve">
     <value>LDAPS</value>
@@ -4299,6 +4276,9 @@ Control Panel может читать файлы сообщений только
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Соответствие ЛЮБОМУ критерию (ИЛИ)</value>
   </data>
+  <data name="Matches" xml:space="preserve">
+    <value>Совпадает</value>
+  </data>
   <data name="Matches the certificate" xml:space="preserve">
     <value>Соответствует сертификату</value>
   </data>
@@ -4569,6 +4549,9 @@ Control Panel может читать файлы сообщений только
   <data name="Move _up" xml:space="preserve">
     <value>Переместить в_верх</value>
   </data>
+  <data name="Move signing for {0} to the next key now?" xml:space="preserve">
+    <value>Перевести подпись домена {0} на следующий ключ сейчас?</value>
+  </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Перемещать файл сообщения в SpamAssassin вместо копирования (требуется перезапуск)</value>
   </data>
@@ -4652,6 +4635,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Next" xml:space="preserve">
     <value>Далее</value>
+  </data>
+  <data name="Next key" xml:space="preserve">
+    <value>Следующий ключ</value>
+  </data>
+  <data name="Next rotation due {0}" xml:space="preserve">
+    <value>Следующая ротация {0}</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Следующая попытка</value>
@@ -4869,6 +4858,9 @@ Control Panel может читать файлы сообщений только
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>В параметрах SMTP не задано публичное имя узла.</value>
   </data>
+  <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
+    <value>Ротация не запланирована. Запустите её кнопкой «Выполнить ротацию сейчас».</value>
+  </data>
   <data name="No routes defined yet." xml:space="preserve">
     <value>Маршруты ещё не заданы.</value>
   </data>
@@ -4947,11 +4939,11 @@ Control Panel может читать файлы сообщений только
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ещё не проверялось (нажмите «Проверить обновления» или включите ежедневную проверку в разделе «Обновления» на странице «API и мониторинг»)</value>
   </data>
-  <data name="Not checked yet. Publish the record, allow time for propagation, then press &quot;Check DNS&quot;." xml:space="preserve">
-    <value>Ещё не проверено. Опубликуйте запись, дайте время на распространение, затем нажмите «Проверить DNS».</value>
-  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Не подключено</value>
+  </data>
+  <data name="Not found" xml:space="preserve">
+    <value>Не найдено</value>
   </data>
   <data name="Not listening" xml:space="preserve">
     <value>Не прослушивает</value>
@@ -5540,6 +5532,9 @@ Control Panel может читать файлы сообщений только
   <data name="Permissions - {0} (saved)" xml:space="preserve">
     <value>Разрешения — {0} (сохранено)</value>
   </data>
+  <data name="Phase: {0}" xml:space="preserve">
+    <value>Этап: {0}</value>
+  </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Укажите серверу узел SpamAssassin и выберите, как объединяется его оценка.</value>
   </data>
@@ -5657,12 +5652,11 @@ Control Panel может читать файлы сообщений только
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Здесь включаются метрики Prometheus, конечные точки проверки работоспособности и REST API.</value>
   </data>
-  <data name="Promote the staged selector &quot;{0}&quot;?&#10;&#10;From the next message on, mail from {1} is signed with the new key, and the old selector is cleared from the configuration.&#10;&#10;Leave the OLD DNS record ({2}) published for at least a few days. Mail signed with the old key may still be in transit, and receivers can only verify it for as long as that record exists." xml:space="preserve">
-    <value>Повысить подготовленный селектор «{0}»?
-
-Начиная со следующего сообщения почта от {1} подписывается новым ключом, а старый селектор удаляется из конфигурации.
-
-Оставьте СТАРУЮ запись DNS ({2}) опубликованной ещё хотя бы на несколько дней. Почта, подписанная старым ключом, может всё ещё находиться в пути, а получатели могут проверить её только до тех пор, пока эта запись существует.</value>
+  <data name="Propagating" xml:space="preserve">
+    <value>Идёт распространение</value>
+  </data>
+  <data name="Propagation period in hours" xml:space="preserve">
+    <value>Период распространения в часах</value>
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Свойства</value>
@@ -5702,6 +5696,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Public — anyone can send" xml:space="preserve">
     <value>Открытый — отправлять может кто угодно</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Опубликовать</value>
   </data>
   <data name="Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
     <value>Опубликуйте общедоступную запись A/AAAA для каждого имени, перечисленного в AcmeDomains, и разрешите входящие TCP-подключения из интернета на порт проверки (пробросьте порт через любой NAT). Доступность снаружи невозможно проверить изнутри, поэтому проверяйте её из внешней сети или онлайн-сервисом проверки портов.</value>
@@ -5867,6 +5864,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Сейчас же читает ленту выпусков проекта и сообщает, существует ли более новый выпуск. Ничего при этом не скачивается и не устанавливается.</value>
+  </data>
+  <data name="Ready to switch" xml:space="preserve">
+    <value>Готов к переключению</value>
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Списки блокировок реального времени, по которым проверяется подключающийся IP-адрес.</value>
@@ -6040,6 +6040,9 @@ Control Panel может читать файлы сообщений только
   <data name="Remote domains" xml:space="preserve">
     <value>Внешние домены</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Удалить _просроченные</value>
   </data>
@@ -6091,9 +6094,6 @@ Control Panel может читать файлы сообщений только
     <value>Заменить ВСЕ настроенные порты на значения по умолчанию?
 
 SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключения. Порты TLS и пользовательские привязки будут удалены. Изменение вступит в силу при перезапуске сервера.</value>
-  </data>
-  <data name="Replace the DKIM key without a gap in verification: stage a new key next to the current one, publish its DNS record, wait for the record to propagate, check it, and only then promote it." xml:space="preserve">
-    <value>Замените ключ DKIM без перерыва в проверке: подготовьте новый ключ рядом с текущим, опубликуйте его запись DNS, дождитесь распространения записи, проверьте её и только затем повысьте ключ.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Замените сертификат здесь; для каждого из них указана дата окончания срока действия.</value>
@@ -6241,6 +6241,30 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Retention" xml:space="preserve">
     <value>Срок хранения</value>
   </data>
+  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
+    <value>Период _хранения в днях (от 1 до 365)</value>
+  </data>
+  <data name="Retention period in days" xml:space="preserve">
+    <value>Период хранения в днях</value>
+  </data>
+  <data name="Retire due {0}" xml:space="preserve">
+    <value>Вывод из употребления {0}</value>
+  </data>
+  <data name="Retire the old ke_y now…" xml:space="preserve">
+    <value>В_ывести старый ключ сейчас…</value>
+  </data>
+  <data name="Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted." xml:space="preserve">
+    <value>Вывести старый селектор домена {0} из употребления сейчас? После этого его запись TXT можно удалить, а файл ключа, созданный ротацией, будет удалён.</value>
+  </data>
+  <data name="Retired key" xml:space="preserve">
+    <value>Выведенный ключ</value>
+  </data>
+  <data name="Retired {0}" xml:space="preserve">
+    <value>Выведен {0}</value>
+  </data>
+  <data name="Retiring key" xml:space="preserve">
+    <value>Выводимый ключ</value>
+  </data>
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Повторять попытку _через вход Windows, когда каталог недоступен (FallbackToWindowsLogon)</value>
   </data>
@@ -6278,6 +6302,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
+  </data>
+  <data name="Rotate _now…" xml:space="preserve">
+    <value>Выпол_нить ротацию сейчас…</value>
+  </data>
+  <data name="Rotate now" xml:space="preserve">
+    <value>Выполнить ротацию сейчас</value>
+  </data>
+  <data name="Rotate the _key on a schedule" xml:space="preserve">
+    <value>Выполн_ять ротацию ключа по расписанию</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Менять ключ сеансовых билетов каждые N секунд (0 — единственный несменяемый ключ OpenSSL)</value>
@@ -6494,9 +6527,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Сохранять счётчики на диск каждые N секунд (по умолчанию 10)</value>
-  </data>
-  <data name="Save the new DKIM private key" xml:space="preserve">
-    <value>Сохранить новый закрытый ключ DKIM</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Сохранить парольную фразу закрытого ключа для выбранного сертификата</value>
@@ -6788,6 +6818,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
     <value>Выберите XML-файл резервной копии, созданный предыдущим резервным копированием (он лежит в папке назначения). Его содержимое заменит текущие данные для выбранных категорий.</value>
+  </data>
+  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
+    <value>Селектор нового ключа (оставьте пустым, чтобы получить селектор с сегодняшней датой)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Имя селектора для нового ключа DKIM</value>
@@ -7151,6 +7184,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Signing in…" xml:space="preserve">
     <value>Выполняется вход…</value>
   </data>
+  <data name="Signing moved to the next key." xml:space="preserve">
+    <value>Подпись переведена на следующий ключ.</value>
+  </data>
   <data name="Signs outgoing mail so receivers can verify it really came from your domain; without the DNS record every signature fails verification." xml:space="preserve">
     <value>Подписывает исходящую почту, чтобы получатели могли убедиться, что она действительно пришла из вашего домена; без записи DNS проверка любой подписи завершается неудачей.</value>
   </data>
@@ -7165,6 +7201,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Одновременных соединений (0 — без ограничения)</value>
+  </data>
+  <data name="Since {0}" xml:space="preserve">
+    <value>С {0}</value>
   </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Ограничение размера и сканеры…</value>
@@ -7352,6 +7391,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Submission rate limits" xml:space="preserve">
     <value>Ограничения частоты отправки</value>
   </data>
+  <data name="Sw_itch now…" xml:space="preserve">
+    <value>Перек_лючить сейчас…</value>
+  </data>
+  <data name="Switch due {0}" xml:space="preserve">
+    <value>Переключение {0}</value>
+  </data>
   <data name="Switch to the dark theme" xml:space="preserve">
     <value>Переключиться на тёмную тему</value>
   </data>
@@ -7474,6 +7519,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
     <value>TLS-RPT — попросите другие серверы сообщать о сбоях TLS при доставке в </value>
+  </data>
+  <data name="TXT record value for {0}" xml:space="preserve">
+    <value>Значение записи TXT для {0}</value>
   </data>
   <data name="TXT record(s) exist at {0} but none carries this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
     <value>По адресу {0} записи TXT существуют, но ни одна из них не содержит открытый ключ этого ключа, поэтому проверка любой подписи, сделанной им, завершается неудачей. Ожидание этого не исправит — исправьте опубликованное значение так, чтобы оно совпало с приведённым выше.</value>
@@ -7601,11 +7649,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Оценка за провал DMARC сейчас равна {0}. ARC работает, компенсируя эту оценку, поэтому при нуле фильтрация ARC не может сделать ничего, даже если перечислены доверенные подписывающие домены. Сначала задайте положительную оценку за провал DMARC на странице «Параметры антиспама».</value>
   </data>
+  <data name="The DNS lookup failed. It is tried again on the next pass." xml:space="preserve">
+    <value>Запрос DNS не удался. Он будет повторён при следующем проходе.</value>
+  </data>
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>Сам поиск в DNS для {0} завершился неудачей: {1} Это ничего не говорит о записи — данный компьютер не смог получить ответ от своего DNS-сервера. Проверьте сеть и повторите попытку.</value>
-  </data>
-  <data name="The DNS lookup itself failed: {0} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
-    <value>Сам поиск в DNS завершился неудачей: {0} Это ничего не говорит о записи — данный компьютер не смог получить ответ от своего DNS-сервера. Проверьте сеть и повторите попытку.</value>
   </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Поле «Имя узла» в разделе «Доставка почты» ПУСТО, поэтому сервер использует вместо него имя своего компьютера Windows{0}. Голое имя компьютера не является публичным именем DNS: получатели, сверяющие HELO с DNS, начислят за него штраф, и никакая запись PTR с ним согласоваться не может. Сначала задайте настоящее имя узла.</value>
@@ -7780,6 +7828,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Каталог ответил и ОТКЛОНИЛ эти учётные данные: {0} (ошибка LDAP {1}). Соединение, транспорт и настройка работают - это проблема учётных данных, ровно то, что увидел бы пользователь, набравший неверный пароль.</value>
   </data>
+  <data name="The domain has no signing key yet." xml:space="preserve">
+    <value>У домена пока нет ключа подписи.</value>
+  </data>
+  <data name="The domain is inactive, so the schedule starts no rotation." xml:space="preserve">
+    <value>Домен неактивен, поэтому расписание не запускает ротацию.</value>
+  </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>В списке доменов нет ни одного имени домена. Оставьте поле пустым, чтобы ключ действовал на каждый домен - список из одних разделителей молча означал бы то же самое, а это не то, о чём вы просили.</value>
   </data>
@@ -7887,6 +7941,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Файл ключа защищён парольной фразой (зашифрованный PEM). Он загружается, только если для этого сертификата сохранена подходящая парольная фраза.</value>
   </data>
+  <data name="The key file was kept: {0}" xml:space="preserve">
+    <value>Файл ключа сохранён: {0}</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Ключ зашифрован, и эта панель намеренно его не расшифровывает, поэтому соответствие сертификату доказывается только когда сервер загружает пару.</value>
   </data>
@@ -7913,6 +7970,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Не удалось сохранить язык: {0}</value>
+  </data>
+  <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
+    <value>Последняя попытка не удалась {0}: {1}</value>
   </data>
   <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
     <value>Последние пять параметров на этой карточке предназначены для площадки, которая сама собирает свои выпуски и подписывает их собственным Sigstore, — или которая зеркалирует выпуски этого проекта. Оставьте их все пустыми — и сервер будет доверять ровно одному: установщику, подписанному собственным рабочим процессом выпуска этого проекта и зарегистрированному в общедоступном журнале прозрачности. Задание любого из них сужает или заменяет это, а ошибка в одном из них означает либо отказ от подлинных выпусков, либо доверие к чужим.</value>
@@ -7959,8 +8019,29 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The new API key, shown once" xml:space="preserve">
     <value>Новый ключ API, показывается один раз</value>
   </data>
-  <data name="The new selector must be different from the current selector (&quot;{0}&quot;). A rotation runs both keys side by side under different DNS names." xml:space="preserve">
-    <value>Новый селектор должен отличаться от текущего («{0}»). Ротация держит оба ключа бок о бок под разными именами DNS.</value>
+  <data name="The new key's file could not be read." xml:space="preserve">
+    <value>Не удалось прочитать файл нового ключа.</value>
+  </data>
+  <data name="The new key's record has not been checked yet." xml:space="preserve">
+    <value>Запись нового ключа ещё не проверялась.</value>
+  </data>
+  <data name="The new key's record was not found. Publish it." xml:space="preserve">
+    <value>Запись нового ключа не найдена. Опубликуйте её.</value>
+  </data>
+  <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
+    <value>Новая запись ещё не разрешалась в течение всего периода распространения. Всё равно перевести подпись? Получатели, чьи резолверы ещё не обновились, не смогут проверить новые подписи, пока не обновятся. Сама запись всё равно должна разрешаться: сервер в любом случае сначала проверяет её.</value>
+  </data>
+  <data name="The next key was cancelled." xml:space="preserve">
+    <value>Следующий ключ отменён.</value>
+  </data>
+  <data name="The next rotation starts when the interval has passed." xml:space="preserve">
+    <value>Следующая ротация начнётся, когда пройдёт интервал.</value>
+  </data>
+  <data name="The old selector is kept for mail still on its way." xml:space="preserve">
+    <value>Старый селектор сохраняется для почты, которая ещё в пути.</value>
+  </data>
+  <data name="The old selector was retired." xml:space="preserve">
+    <value>Старый селектор выведен из употребления.</value>
   </data>
   <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
     <value>Другой способ получить DN: задайте это, и сервер пропустит поиск - а с ним и необходимость в SearchBase и учётной записи службы. Против Active Directory работает UPN. Те же подстановки %u, %d, %m, экранированные для различающегося имени.</value>
@@ -8009,8 +8090,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Общедоступная база находится по адресу https://api.pwnedpasswords.com/range/. Организация, у которой есть собственное зеркало, указывает его здесь: пять символов добавляются к пути или подставляются туда, где написано {prefix}. Незашифрованный http принимается только для localhost, 127.0.0.1 или ::1.</value>
   </data>
-  <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
-    <value>Опубликованная запись соответствует подготовленному ключу. Его можно безопасно повысить.</value>
+  <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
+    <value>Опубликованная запись не содержит нового ключа. Исправьте её.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Запись на {0} содержит p={1}, а это не политика, которую распознают получатели (none, quarantine, reject). Опубликовано: {2}</value>
@@ -8030,11 +8111,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The record at {0} matches the suggestion." xml:space="preserve">
     <value>Запись на {0} соответствует предложению.</value>
   </data>
-  <data name="The record was not found yet. New DNS records usually appear within minutes but can take hours to propagate - publish the record above if you have not already, then check again later." xml:space="preserve">
-    <value>Запись пока не найдена. Новые записи DNS обычно появляются в течение минут, но распространение может занять часы - опубликуйте запись выше, если ещё не сделали этого, и проверьте позже.</value>
+  <data name="The record is propagating." xml:space="preserve">
+    <value>Запись распространяется.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Записи, которые этому серверу нужно опубликовать в зоне DNS каждого домена: тип, хост и значение, готовые к копированию в консоль вашего DNS-провайдера, с проверкой, действительно ли каждая опубликована. Проверки используют резолвер Windows этой машины - тот же, что и проверка ротации DKIM.</value>
+  </data>
+  <data name="The records were checked." xml:space="preserve">
+    <value>Записи проверены.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Ретранслятор требует _аутентификации</value>
@@ -8045,10 +8129,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Здесь число попыток и интервалы, а также что происходит, когда они исчерпаны.</value>
   </data>
-  <data name="The rotation is complete: mail is now signed with selector &quot;{0}&quot;.&#10;&#10;Keep the old DNS record ({1}) for a few more days while mail signed with the old key is still in transit, then remove it." xml:space="preserve">
-    <value>Ротация завершена: почта теперь подписывается селектором «{0}».
-
-Сохраните старую запись DNS ({1}) ещё на несколько дней, пока почта, подписанная старым ключом, ещё в пути, затем удалите её.</value>
+  <data name="The rotation refused: {0}" xml:space="preserve">
+    <value>Ротация отказала: {0}</value>
   </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Прогон не завершился. Строки ниже говорят, что уже было сделано до остановки - прочитайте их, прежде чем запускать снова.</value>
@@ -8064,6 +8146,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Результат сканирования читается только на машине сервера - hMailServer.INI здесь не найден. Сервер публикует то же число в метрике hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
+    <value>Расписание сохраняется вместе с доменом. Кнопки ниже действуют сразу. Пока доменом управляет ротация, селектор и файл ключа выше меняет только она.</value>
   </data>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>Оценка суммируется по обеим фазам. Сервер прекращает проверки внутри фазы, как только накопленная сумма достигает {0} - большего из двух порогов, - поэтому проверка, стоящая в порядке поздно, может никогда не выполниться.</value>
@@ -8101,6 +8186,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Сервер не поставил рассылку в очередь. Проверьте шаблон адреса и журнал ошибок hMailServer.</value>
   </data>
+  <data name="The server did not report the key rotation." xml:space="preserve">
+    <value>Сервер не сообщил состояние ротации ключей.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Сервер не вернул пригодную регистрацию. Смотрите его журнал ошибок.</value>
   </data>
@@ -8111,6 +8199,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Сервер не нашёл почтовых серверов для {0}.
 
 Это отвечает собственный резолвер сервера - тот же, что использует доставка SMTP, включая любой пользовательский DNSServer из hMailServer.INI, - так что почта на этот домен с этого сервера сейчас была бы недоставима.</value>
+  </data>
+  <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
+    <value>Сервер создаёт следующий ключ, показывает запись TXT для публикации, проверяет её через собственный резолвер и переводит подпись на новый ключ, только когда запись разрешается в течение всего периода распространения. Старый селектор сохраняется на период хранения, а затем выводится из употребления.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
     <value>Сервер не хранит историю: MetricsHistoryDays в hMailServer.ini равен 0. Задайте число дней хранения и перезапустите службу.</value>
@@ -8138,6 +8229,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The server's host name could not be read, so the suggestion authorises only the domain's MX hosts (&quot;mx&quot;)." xml:space="preserve">
     <value>Имя хоста сервера не удалось прочитать, поэтому предложение разрешает только MX-хосты домена («mx»).</value>
+  </data>
+  <data name="The server's key rotation has a next key, selector &quot;{0}&quot;. Publish its record as well; signing moves to it once the record has resolved for the propagation period, and the domain's DKIM tab shows the rest." xml:space="preserve">
+    <value>У ротации ключей сервера есть следующий ключ, селектор «{0}». Опубликуйте и его запись; подпись перейдёт на него, когда запись будет разрешаться в течение периода распространения, а остальное показывает вкладка DKIM домена.</value>
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать учётную запись службы: {0}</value>
@@ -8182,12 +8276,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Ограничение по источнику должно быть адресом (10.0.0.5), диапазоном (10.0.0.1-10.0.0.99) или CIDR (10.0.0.0/24). Оставьте пустым, чтобы принимать ключ с любого адреса.</value>
-  </data>
-  <data name="The staged pair has no selector, so there is no DNS name to check. Cancel the rotation and start again." xml:space="preserve">
-    <value>У подготовленной пары нет селектора, поэтому нет имени DNS для проверки. Отмените ротацию и начните заново.</value>
-  </data>
-  <data name="The staged rotation is incomplete (the selector or the key file is missing), so the server will refuse to promote it. Cancel the rotation and start again." xml:space="preserve">
-    <value>Подготовленная ротация неполна (отсутствует селектор или файл ключа), поэтому сервер откажется её повышать. Отмените ротацию и начните заново.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Сохранённый срок действия не удалось прочитать в форме, которую ожидает эта страница (ГГГГ-ММ-ДД ЧЧ:ММ:СС), поэтому отсюда нельзя сказать, принимает ли сервер ещё этот ключ. Если строка редактировалась вручную, исправьте её; иначе отзовите ключ и создайте замену.</value>
@@ -8331,6 +8419,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Это выполняется, пока отправляющий сервер ждёт ответа на DATA, поэтому число - обещание о худшем случае, а не подсказка. Оно ограничивает и соединение, и ответ: движок, чья машина исчезла, иначе стоил бы собственного тайм-аута TCP операционной системы на каждом сообщении.</value>
+  </data>
+  <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
+    <value>Этот сервер не выполняет ротацию ключей DKIM; он старше этой версии Control Panel.</value>
   </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Этот сервер только ПРОВЕРЯЕТ SPF на входящей почте; публикация записи - для всех остальных: она сообщает принимающим серверам, каким машинам разрешено отправлять почту от имени</value>
@@ -8721,6 +8812,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Ожидание соединения с базой данных из пула. 0 = без ограничения.</value>
+  </data>
+  <data name="Waiting for the DNS record" xml:space="preserve">
+    <value>Ожидание записи DNS</value>
+  </data>
+  <data name="Waiting for the old selector to be retired." xml:space="preserve">
+    <value>Ожидание вывода старого селектора из употребления.</value>
+  </data>
+  <data name="Waiting for the old selector to retire" xml:space="preserve">
+    <value>Ожидание вывода старого селектора</value>
   </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Будит индексатор вместо ожидания его следующего прохода и сообщает, сколько сообщений этого сервера сейчас проиндексировано. Сам проход идёт в фоне и ограничен пределами выше, поэтому при большом отставании он продвигается, а не завершается. При выключенном индексировании будить некого, и об этом сообщается, а не докладывается об успехе.</value>
@@ -9352,8 +9452,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
     <value>_Приоритет (при пересечении диапазонов побеждает более высокий)</value>
   </data>
-  <data name="_Promote…" xml:space="preserve">
-    <value>_Повысить…</value>
+  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
+    <value>Период распространения в _часах (от 1 до 720)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Свойства</value>
@@ -10324,6 +10424,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>Записей TXT по адресу {1}: {0}, но ни одна не начинается с «v=spf1», поэтому получатели не видят вообще никакой политики SPF.</value>
   </data>
+  <data name="{0} Until {1}." xml:space="preserve">
+    <value>{0} До {1}.</value>
+  </data>
   <data name="{0} account(s) found{1}." xml:space="preserve">
     <value>Найдено учётных записей: {0}{1}.</value>
   </data>
@@ -10570,6 +10673,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, виртуальная учётная запись службы без пароля</value>
   </data>
+  <data name="{0}, checked {1}." xml:space="preserve">
+    <value>{0}, проверено {1}.</value>
+  </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, оценка {2}. {3}</value>
   </data>
@@ -10587,6 +10693,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. Активно {1} из {2}.</value>
+  </data>
+  <data name="{0}: TXT record at {1}" xml:space="preserve">
+    <value>{0}: запись TXT для {1}</value>
   </data>
   <data name="{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: по адресу {1} записи TXT существуют, но ни одна не начинается с v=STSv1, поэтому отправители не распознают там политику. Исправьте значение записи.</value>
@@ -10686,6 +10795,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: запись TXT {1} опубликована. Отсюда невозможно проверить, что mta-sts.{2} разрешается в этот сервер и что сертификат охватывает это имя.</value>
+  </data>
+  <data name="{0}: {1}" xml:space="preserve">
+    <value>{0}: {1}</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} не содержит блока сертификата PEM, поэтому в нём нет пригодного сертификата ЦС (ошибка сервера 6140). Экспортируйте сертификат ЦС в формате PEM (Base64).</value>

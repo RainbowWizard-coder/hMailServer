@@ -1028,6 +1028,12 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="daliasdel")deleteDomainAlias(d.name);
   else if(d.act==="dsenderadd")addDomainSender();
   else if(d.act==="dsenderdel")deleteDomainSender(Number(d.id),d.value);
+  else if(d.act==="dkimrotstart")rotationAct("start");
+  else if(d.act==="dkimrotcheck")rotationAct("check");
+  else if(d.act==="dkimrotswitch")rotationAct("switch");
+  else if(d.act==="dkimrotretire")rotationAct("retire");
+  else if(d.act==="dkimrotcancel")rotationAct("cancel");
+  else if(d.act==="dkimrotcopy")rotationCopy(d.slot,d.i);
   else if(d.act==="rangenew")openRange(0);
   else if(d.act==="rangeedit")openRange(Number(d.id));
   else if(d.act==="rangedel")deleteRange(Number(d.id),d.label);
@@ -1467,7 +1473,13 @@ const DOMAIN_GROUPS=[
     dkim_enabled:{type:"boolean",description:K("Sign outgoing mail from this domain.")},
     dkim_selector:{type:"string",description:K("The selector, which names the DNS record the public key is published under.")},
     dkim_private_key_file:{type:"string",description:K("The path of the private key file on the server.")},
-    dkim_signing_algorithm:{type:"string","enum":["sha1","sha256"],description:K("The signing algorithm.")}}}
+    dkim_signing_algorithm:{type:"string","enum":["sha1","sha256"],description:K("The signing algorithm.")},
+    dkim_sign_aliases:{type:"boolean",description:K("Sign mail from the domain's aliases too, with the domain's selector - so every alias needs the record as well.")},
+    dkim_rotation_enabled:{type:"boolean",description:K("Rotate the key on a schedule: a new key is generated, its record checked from the server's resolver, signing moved to it once the record has resolved for the propagation period, and the old selector retired after the retention period.")},
+    dkim_rotation_interval_days:{type:"integer",description:K("Days between rotations, 1 to 3650.")},
+    dkim_rotation_propagation_hours:{type:"integer",description:K("Hours the new key's record must have resolved before signing moves to it, 1 to 720.")},
+    dkim_rotation_retention_days:{type:"integer",description:K("Days the old selector stays published after the switch, for mail still on its way, 1 to 365.")},
+    dkim_rotation_key_bits:{type:"integer",description:K("The size of the keys the rotation generates: 2048, 3072 or 4096.")}}}
 ];
 function domainProps(){const all={};DOMAIN_GROUPS.forEach(g=>Object.assign(all,g.props));return all;}
 
@@ -1522,7 +1534,7 @@ async function createDomain(){
 async function openDomain(name){
   const existing=cache.domains.filter(d=>d.name===name)[0];
   if(!existing)return;
-  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:""};
+  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",rotation:null,rotationError:""};
   try{await reloadDomainAliases();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.aliasError=e.message;}
   // The domain's own allow and block list, read with the domain rather than
@@ -1530,6 +1542,8 @@ async function openDomain(name){
   // do, and a domain administrator whose key is scoped to it has no other way in.
   try{await reloadDomainSenders();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.senderError=e.message;}
+  try{await reloadRotation();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.rotationError=e.message;}
   renderDomainEditor();
 }
 async function reloadDomainAliases(){
@@ -1598,6 +1612,9 @@ function renderDomainEditor(){
   // was held. +2: one for Names above, one to come after the digest group.
   const digestAt=DOMAIN_GROUPS.findIndex(g=>g.title==="Quarantine digest");
   cards.splice(digestAt>=0?digestAt+2:cards.length,0,`<div class="sect"><h2>${t("Allow and block list")}</h2><div class="card flat" id="domainSenders">${domainSendersHtml()}</div></div>`);
+  // The key rotation under the DKIM group it belongs to, in a box of its own so
+  // that an action redraws the rotation and not the edits in the groups above.
+  cards.push(`<div class="sect"><h2>${t("DKIM key rotation")}</h2><div class="card flat" id="dkimRotation">${rotationHtml()}</div></div>`);
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="cancel">${t("‹ All domains")}</button>
     <div class="sect"><h2>${tf("Domain {0}",escHtml(editing.name))}</h2>
@@ -1634,9 +1651,136 @@ async function saveDomain(){
     const fresh=cache.domains.filter(d=>d.name===newName)[0]||cache.domains.filter(d=>d.name===oldName)[0];
     if(!fresh){editing=null;toast(t("Domain saved"));await render();return;}
     editing.name=fresh.name;editing.values=JSON.parse(JSON.stringify(fresh));
+    // A policy saved above can change what the rotation is waiting for.
+    try{await reloadRotation();editing.rotationError="";}catch(e){if(e.message==="auth")throw e;editing.rotationError=e.message;}
     toast(fresh.name!==oldName?tf("Domain renamed to {0}",fresh.name):t("Domain saved"));
     renderDomainEditor();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_domainedit",e.message);}
+}
+/* ---------- DKIM key rotation ----------
+   The domain's rotation as GET /api/v1/domains/{domain}/dkim/rotation answers it:
+   the phase, the current, next, retiring and retired selectors with the records
+   to publish, keep or remove, the last check of each from the server's own
+   resolver as a pill (colour, mark and word), and what is waiting and until when.
+   The server decides everything; the page draws the document and posts the five
+   operations, and a refusal is shown in the server's own words. The records'
+   hosts and values are the server's and go through escHtml like everything else
+   it says. The policy is five keys of the domain itself, in the DKIM group above. */
+const ROTATION_PHASES={off:K("Off"),idle:K("Idle"),awaiting_dns:K("Waiting for the DNS record"),propagating:K("Propagating"),
+  ready:K("Ready to switch"),waiting_for_retiring_slot:K("Waiting for the old selector to retire")};
+const ROTATION_CHECKS={unchecked:["info",K("Not checked")],matches:["good",K("Matches")],not_found:["warn",K("Not found")],
+  different:["bad",K("Different")],lookup_failed:["warn",K("Lookup failed")],key_unreadable:["bad",K("Key unreadable")]};
+const ROTATION_MARKS={good:"■",info:"◆",warn:"▲",bad:"✕"};
+const ROTATION_ACTIONS={publish:K("Publish"),keep:K("Keep"),remove:K("Remove")};
+const ROTATION_WAITS={
+  not_scheduled:K("No rotation is scheduled. Rotate now to start one."),
+  domain_inactive:K("The domain is inactive, so the schedule starts no rotation."),
+  interval:K("The next rotation starts when the interval has passed."),
+  unchecked:K("The new key's record has not been checked yet."),
+  record_not_found:K("The new key's record was not found. Publish it."),
+  record_differs:K("The published record does not carry the new key. Correct it."),
+  lookup_failed:K("The DNS lookup failed. It is tried again on the next pass."),
+  key_unreadable:K("The new key's file could not be read."),
+  propagation:K("The record is propagating."),
+  retiring_slot:K("Waiting for the old selector to be retired."),
+  retention:K("The old selector is kept for mail still on its way.")};
+function rotationPath(action){return "/api/v1/domains/"+encodeURIComponent(editing.name)+"/dkim/rotation"+(action||"");}
+async function reloadRotation(){editing.rotation=await api(rotationPath());}
+function rotationCheckHtml(check){
+  const c=ROTATION_CHECKS[(check&&check.status)||"unchecked"]||ROTATION_CHECKS.unchecked;
+  return '<span class="pill" data-level="'+c[0]+'"><span class="mark" aria-hidden="true">'+ROTATION_MARKS[c[0]]+'</span>'+escHtml(t(c[1]))+'</span>'+
+    (check&&check.checked?' <span class="muted">'+escHtml(tf("checked {0}",auditWhen(check.checked)))+'</span>':"")+
+    (check&&check.detail?'<div class="hint"><code>'+escHtml(check.detail)+'</code></div>':"");
+}
+function rotationRecordsHtml(slot,records){
+  const rows=(records||[]).map((r,i)=>'<tr><td><code>'+escHtml(r.host)+'</code></td><td>'+escHtml(r.type||"TXT")+'</td>'+
+    '<td><code style="word-break:break-all">'+escHtml(r.value||"")+'</code></td><td>'+escHtml(t(ROTATION_ACTIONS[r.action]||r.action||""))+'</td>'+
+    '<td>'+(r.value?'<button class="btn ghost sm" data-act="dkimrotcopy" data-slot="'+slot+'" data-i="'+i+'">'+t("Copy the value")+'</button>':"")+'</td></tr>').join("");
+  if(!rows)return "";
+  return '<div class="tablewrap"><table><thead><tr><th>'+t("Host")+'</th><th>'+t("Type")+'</th><th>'+t("Value")+'</th><th>'+t("Action")+'</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function rotationSlotHtml(slot,title,s,lines){
+  if(!s)return "";
+  const facts=lines.filter(l=>l).map(l=>'<div class="hint">'+escHtml(l)+'</div>').join("");
+  return '<div class="erow" data-slot="'+slot+'" style="display:block"><div><b>'+escHtml(t(title))+'</b> <code>'+escHtml(s.selector)+'</code>'+
+    (s.check?' '+rotationCheckHtml(s.check):"")+'</div>'+facts+rotationRecordsHtml(slot,s.records)+'</div>';
+}
+function rotationHtml(){
+  const s=editing.rotation;
+  if(!s)return noticeHtml("bad",editing.rotationError||t("The rotation could not be read."));
+  const when=v=>auditWhen(v);
+  const current=s.current?rotationSlotHtml("current",K("Current key"),s.current,[
+    s.current.key_file?tf("Key file: {0}",s.current.key_file):"",
+    s.current.since?tf("Since {0}",when(s.current.since)):"",
+    s.current.next_rotation_due?tf("Next rotation due {0}",when(s.current.next_rotation_due)):""]):'<div class="note">'+t("The domain has no signing key yet.")+'</div>';
+  const next=rotationSlotHtml("next",K("Next key"),s.next,s.next?[
+    tf("Key file: {0}",s.next.key_file),
+    s.next.created?tf("Created {0}",when(s.next.created)):"",
+    s.next.first_seen?tf("First seen {0}",when(s.next.first_seen)):"",
+    s.next.switch_due?tf("Switch due {0}",when(s.next.switch_due)):""]:[]);
+  const retiring=rotationSlotHtml("retiring",K("Retiring key"),s.retiring,s.retiring?[
+    tf("Since {0}",when(s.retiring.since)),
+    s.retiring.retire_due?tf("Retire due {0}",when(s.retiring.retire_due)):""]:[]);
+  const retired=s.retired?rotationSlotHtml("retired",K("Retired key"),s.retired,[
+    tf("Retired {0}",when(s.retired.at)),
+    s.retired.key_file_kept?tf("The key file was kept: {0}",s.retired.key_file_kept):""]):"";
+  const waiting=(s.waiting||[]).map(w=>'<li>'+escHtml(t(ROTATION_WAITS[w.reason]||w.reason))+
+    (w.until?' <span class="muted">'+escHtml(tf("until {0}",when(w.until)))+'</span>':"")+
+    (w.detail&&w.reason!=="retiring_slot"?' <code>'+escHtml(w.detail)+'</code>':"")+'</li>').join("");
+  const error=s.last_error?noticeHtml("warn",tf("The last attempt failed at {0}: {1}",when(s.last_error.time),s.last_error.text)):"";
+  const staged=!!s.next;
+  const buttons=
+    (staged?"":'<input id="dkimrot_selector" placeholder="'+escHtml(t("Selector (optional)"))+'" aria-label="'+escHtml(t("Selector (optional)"))+'" style="min-width:160px">'+
+      '<button class="btn ghost sm" data-act="dkimrotstart">'+t("Rotate now")+'</button>')+
+    '<button class="btn ghost sm" data-act="dkimrotcheck">'+t("Check DNS now")+'</button>'+
+    (staged?'<label class="row" style="gap:7px"><input type="checkbox" id="dkimrot_force"> '+t("Skip the propagation period")+'</label>'+
+      '<button class="btn ghost sm" data-act="dkimrotswitch">'+t("Switch now")+'</button>'+
+      '<button class="btn danger sm" data-act="dkimrotcancel">'+t("Cancel the next key")+'</button>':"")+
+    (s.retiring?'<button class="btn ghost sm" data-act="dkimrotretire">'+t("Retire the old selector now")+'</button>':"");
+  return '<p class="note">'+escHtml(tf("Phase: {0}",t(ROTATION_PHASES[s.phase]||s.phase)))+'</p>'+error+current+next+retiring+retired+
+    (waiting?'<ul class="hint">'+waiting+'</ul>':"")+
+    '<div class="row" style="margin-top:14px" data-enter="dkimrotstart">'+buttons+'<div class="err" id="err_dkimrot">'+escHtml(editing.rotationError||"")+'</div></div>';
+}
+function drawRotation(){const box=$("#dkimRotation");if(box)box.innerHTML=rotationHtml();}
+async function rotationAct(kind){
+  setErr("err_dkimrot","");
+  const name=editing.name;
+  let method="POST",action="",body={},done="";
+  if(kind==="start"){
+    const selector=($("#dkimrot_selector")||{value:""}).value.trim();
+    action="/start";if(selector)body.selector=selector;done=t("A new key was generated and staged. Publish its record.");
+  }else if(kind==="check"){action="/check";done=t("The records were checked.");}
+  else if(kind==="switch"){
+    const force=!!($("#dkimrot_force")&&$("#dkimrot_force").checked);
+    if(!confirm(force?tf("Move signing for {0} to the next key now, without waiting for the propagation period?",name):tf("Move signing for {0} to the next key now?",name)))return;
+    action="/switch";if(force)body.force=true;done=t("Signing moved to the next key.");
+  }else if(kind==="retire"){
+    if(!confirm(tf("Retire the old selector of {0} now? Its record may then be removed.",name)))return;
+    action="/retire";done=t("The old selector was retired.");
+  }else if(kind==="cancel"){
+    if(!confirm(tf("Cancel the next key of {0}? Signing does not change.",name)))return;
+    method="DELETE";action="/next";body=undefined;done=t("The next key was cancelled.");
+  }
+  try{
+    editing.rotation=await api(rotationPath(action),{method:method,body:body===undefined?undefined:JSON.stringify(body)});
+    editing.rotationError="";
+    // The selectors are the domain's own keys too, and the editor above shows them.
+    cache.domains=asList(await api("/api/v1/domains"),"domains");
+    const fresh=cache.domains.filter(d=>d.name===name)[0];
+    if(fresh)["dkim_selector","dkim_private_key_file"].forEach(k=>{editing.values[k]=fresh[k];const el=document.getElementById("dom_"+k);if(el)el.value=fresh[k]||"";});
+    toast(done);
+    drawRotation();
+  }catch(e){
+    if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+    try{await reloadRotation();}catch(_){}
+    drawRotation();
+    setErr("err_dkimrot",e.message);
+  }
+}
+function rotationCopy(slot,i){
+  const s=editing&&editing.rotation&&editing.rotation[slot];
+  const r=s&&s.records&&s.records[Number(i)];
+  if(r&&r.value)navigator.clipboard.writeText(r.value).then(()=>toast(t("Copied to clipboard")));
 }
 async function deleteDomain(name){
   if(!confirm(tf("Delete the domain {0} with every account, alias and list in it? Their messages go with them.",name)))return;

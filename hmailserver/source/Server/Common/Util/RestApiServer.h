@@ -188,6 +188,15 @@ namespace HM
          RouteListDelete,
          RouteCertificateList,
          RouteDkimGet,
+         // DKIM keys that rotate (RestApiDkimRotation.cpp). The six under a domain
+         // are scoped to the key's domains; the run is server-wide.
+         RouteDkimRotationGet,
+         RouteDkimRotationStart,
+         RouteDkimRotationCheck,
+         RouteDkimRotationSwitch,
+         RouteDkimRotationRetire,
+         RouteDkimRotationCancel,
+         RouteDkimRotationRun,
          RouteRuleList,
          RouteLogList,
          RouteLogTail,
@@ -976,6 +985,8 @@ namespace HM
       HttpResponse HandleDeleteList_(const String &address);
       HttpResponse HandleListCertificates_();
       HttpResponse HandleDkim_(const String &domainName);
+      HttpResponse HandleDkimRotation_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiDkimRotationPaths_();
       HttpResponse HandleListRules_();
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);

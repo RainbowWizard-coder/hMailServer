@@ -77,6 +77,7 @@ public:
    STDMETHOD(GetMetricHistory)(/*[in]*/ BSTR Metric, /*[in]*/ long MinutesBack, /*[in]*/ long BucketMinutes, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(SearchArchive)(/*[in]*/ BSTR Domain, /*[in]*/ BSTR Mailbox, /*[in]*/ BSTR Sender, /*[in]*/ BSTR Recipient, /*[in]*/ BSTR Subject, /*[in]*/ BSTR Since, /*[in]*/ BSTR Until, /*[in]*/ VARIANT_BOOL HoldOnly, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(SetArchiveHold)(/*[in]*/ long ArchiveID, /*[in]*/ VARIANT_BOOL Hold, /*[out, retval]*/ VARIANT_BOOL *Found);
+   STDMETHOD(RunDkimRotation)(/*[in]*/ long SecondsAhead, /*[out, retval]*/ BSTR *Summary);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(Utilities), InterfaceUtilities)

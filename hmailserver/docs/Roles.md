@@ -39,7 +39,7 @@ domains is refused them whatever it holds.
 |---|---|:-:|:-:|:-:|:-:|
 | `administer_server` | Everything, including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
 | `administer_domain` | Every COM gate that has always asked "is this a domain administrator?" | ✅ | ✅ | | |
-| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised — never a secret | ✅ | ✅ | | ✅ |
+| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation — never a secret | ✅ | ✅ | | ✅ |
 | `view_accounts` | Domains, accounts, aliases, lists, groups, fetch accounts, the OpenAPI document | ✅ | ✅ | ✅ | ✅ |
 | `view_mailbox` | Another account's folders and messages | ✅ | ✅ | | ✅ |
 | `view_queue` | The delivery queue *(server-wide)* | ✅ | | | ✅ |
@@ -48,7 +48,7 @@ domains is refused them whatever it holds.
 | `view_logs` | The logs *(server-wide)* | ✅ | | | ✅ |
 | `view_message_trace` | The message trace — see below — and, with `view_configuration`, the reports | ✅ | ✅ | ✅ | ✅ |
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
-| `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, and a domain's own allow and block list | ✅ | ✅ | | |
+| `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, a domain's own allow and block list, and a domain's DKIM key rotation (rotate, check, switch, retire and cancel now) | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
 | `unlock_account` | `POST /api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` (both locks), `Account.UnlockMailbox` (the POP3 mailbox lock alone; an account's own is its own to clear) - each on the audit trail as `unlocked` - and clearing the logon-failure list (`POST /api/v1/settings/logon-failures/clear`; `Settings.ClearLogonFailureList` answers the server administrator only), on it as `logon failures` / `cleared` | ✅ | ✅ | ✅ | |
 | `manage_mailbox` | Another account's folders, messages and folder rights, and a support session | ✅ | ✅ | | |
@@ -57,7 +57,7 @@ domains is refused them whatever it holds.
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
 | `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, and the breach check's endpoint test *(server-wide)* | ✅ | | | |
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
-| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass now *(server-wide)* | ✅ | | | |
+| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass or the DKIM key rotation pass now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
 
 The REST API's **key store** (`/api/v1/apikeys`) and the `[Settings]` section of

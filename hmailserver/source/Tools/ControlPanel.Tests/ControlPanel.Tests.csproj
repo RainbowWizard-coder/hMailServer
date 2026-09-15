@@ -109,6 +109,14 @@
          and it carries no COM, no service control and no WPF. -->
     <Compile Include="..\ControlPanel\Services\LocalHostNames.cs" />
     <Compile Include="..\ControlPanel\Services\HostReachability.cs" />
+
+    <!-- The DKIM tab's reading of the server's key rotation status: the document's
+         field names and the words for each phase, check and waiting reason. The
+         server decides all of it, so this is only the saying of it, and a word read
+         under the wrong name or missing from the tables is caught here rather than
+         by an administrator looking at an empty slot. It uses StatusLevel, which is
+         compiled in above, so it is here and not in ControlPanel.Core. -->
+    <Compile Include="..\ControlPanel\Services\DkimRotationStatus.cs" />
   </ItemGroup>
 
   <ItemGroup>

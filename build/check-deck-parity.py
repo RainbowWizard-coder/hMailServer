@@ -118,6 +118,10 @@ PATH_SCOPE = {
     'backup': ['BackupSettings', 'Backup'],
     'messages': ['ServerMessage'],
     'dkim': ['Domain'],
+    # A domain's DKIM key rotation (/api/v1/domains/{domain}/dkim/rotation and
+    # the run at /api/v1/dkim/rotation/run), and its staged key (.../next).
+    'rotation': ['Domain'],
+    'next': ['Domain'],
     'app-passwords': ['AppPassword'],
     'groups': ['Group'],
     'folders': ['IMAPFolder'],
@@ -146,7 +150,7 @@ PATH_SCOPE = {
 # Trailing path segments that are verbs on the resource before them.
 VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'download',
                  'run', 'install', 'reinitialize', 'evaluate', 'history', 'start', 'index',
-                 'copy', 'match', 'test'}
+                 'copy', 'match', 'test', 'switch', 'retire'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

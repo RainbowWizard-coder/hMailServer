@@ -213,6 +213,25 @@ END_COM_MAP()
    STDMETHOD(get_DisclaimerHTML)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_DisclaimerHTML)(/*[in]*/ BSTR newVal);
 
+   // DKIM keys that rotate: the policy, saved by Save, and the operations, which
+   // act at once. See Common/AntiSpam/DKIM/DkimRotation.h.
+   STDMETHOD(get_DKIMRotationEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_DKIMRotationEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_DKIMRotationIntervalDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_DKIMRotationIntervalDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_DKIMRotationPropagationHours)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_DKIMRotationPropagationHours)(/*[in]*/ long newVal);
+   STDMETHOD(get_DKIMRotationRetentionDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_DKIMRotationRetentionDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_DKIMRotationKeyBits)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_DKIMRotationKeyBits)(/*[in]*/ long newVal);
+   STDMETHOD(get_DKIMRotationStatus)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(DKIMRotationStart)(/*[in]*/ BSTR Selector, /*[out, retval]*/ BSTR *Status);
+   STDMETHOD(DKIMRotationCheck)(/*[out, retval]*/ BSTR *Status);
+   STDMETHOD(DKIMRotationSwitch)(/*[in]*/ VARIANT_BOOL Force, /*[out, retval]*/ BSTR *Status);
+   STDMETHOD(DKIMRotationRetire)(/*[out, retval]*/ BSTR *Status);
+   STDMETHOD(DKIMRotationCancel)(/*[out, retval]*/ BSTR *Status);
+
    // dkim end.
 private:
    

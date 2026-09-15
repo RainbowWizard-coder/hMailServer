@@ -16,6 +16,7 @@
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
+#include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../Util/AcmeClient.h"
 #include "../Util/FileUtilities.h"
 #include "../Application/IniFileSettings.h"
@@ -146,6 +147,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing InlineImageParts\n"));
       InlineImagePartsTester inlineImagePartsTester;
       inlineImagePartsTester.Test();
+
+      // DKIM keys that rotate: every clock boundary of the walk, the record match,
+      // the selector rules and a generated key's round trip through a signature.
+      // The regression fixtures prove the wiring against the suite's DNS zone;
+      // these prove the rule, at the second either side of each period.
+      OutputDebugString(_T("hMailServer: Testing DkimRotationPlan\n"));
+      DkimRotationTester dkimRotationTester;
+      dkimRotationTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

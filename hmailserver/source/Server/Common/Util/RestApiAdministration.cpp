@@ -58,6 +58,8 @@
 #include "../Persistence/PersistentDistributionListRecipient.h"
 #include "../Persistence/PersistentSecurityRange.h"
 #include "../Persistence/PersistenceMode.h"
+#include "../AntiSpam/DKIM/DkimRotation.h"
+#include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../TCPIP/IPAddress.h"
 #include "Time.h"
 #include "VariantDateTime.h"
@@ -264,6 +266,8 @@ namespace HM
          "dkim_enabled", "dkim_selector", "dkim_private_key_file", "dkim_signing_algorithm",
          "dkim_header_canonicalization", "dkim_body_canonicalization", "dkim_secondary_selector",
          "dkim_secondary_private_key_file", "dkim_sign_aliases",
+         "dkim_rotation_enabled", "dkim_rotation_interval_days", "dkim_rotation_propagation_hours",
+         "dkim_rotation_retention_days", "dkim_rotation_key_bits",
          "message_retention_days", "relay_host", "relay_port", "relay_requires_auth", "relay_username",
          "relay_password", "relay_connection_security",
          "vacation_enabled", "vacation_subject", "vacation_message",
@@ -339,6 +343,29 @@ namespace HM
              !ReadInteger(body, "quarantine_digest_hour", 0, 23, digestHour, error))
             return false;
 
+         // The rotation policy, in the ranges DkimRotationPlan::Policy::Validate
+         // holds every interface to; the key size is a set, not a range.
+         long rotationInterval = domain->GetDKIMRotationIntervalDays();
+         long rotationPropagation = domain->GetDKIMRotationPropagationHours();
+         long rotationRetention = domain->GetDKIMRotationRetentionDays();
+         long rotationKeyBits = domain->GetDKIMRotationKeyBits();
+
+         if (!ReadInteger(body, "dkim_rotation_interval_days", 1, 3650, rotationInterval, error) ||
+             !ReadInteger(body, "dkim_rotation_propagation_hours", 1, 720, rotationPropagation, error) ||
+             !ReadInteger(body, "dkim_rotation_retention_days", 1, 365, rotationRetention, error) ||
+             !ReadInteger(body, "dkim_rotation_key_bits", 2048, 4096, rotationKeyBits, error))
+            return false;
+
+         DkimRotationPlan::Policy rotationPolicy;
+         rotationPolicy.interval_days = (int) rotationInterval;
+         rotationPolicy.propagation_hours = (int) rotationPropagation;
+         rotationPolicy.retention_days = (int) rotationRetention;
+         rotationPolicy.key_bits = (int) rotationKeyBits;
+
+         AnsiString rotationField;
+         if (!DkimRotationPlan::Policy::Validate(rotationPolicy, rotationField, error))
+            return false;
+
          bool active = domain->GetIsActive();
          bool maxAccountsEnabled = domain->GetMaxNoOfAccountsEnabled(), maxAliasesEnabled = domain->GetMaxNoOfAliasesEnabled();
          bool maxListsEnabled = domain->GetMaxNoOfDistributionListsEnabled();
@@ -350,6 +377,7 @@ namespace HM
          bool externalTagSubject = domain->GetExternalTagSubject(), externalTagHeader = domain->GetExternalTagHeader();
          bool firstContactTip = domain->GetFirstContactTip(), disclaimerEnabled = domain->GetDisclaimerEnabled();
          bool quarantineDigest = domain->GetQuarantineDigest();
+         bool dkimRotationEnabled = domain->GetDKIMRotationEnabled();
 
          if (!ReadBool(body, "active", active, error) ||
              !ReadBool(body, "max_accounts_enabled", maxAccountsEnabled, error) ||
@@ -362,6 +390,7 @@ namespace HM
              !ReadBool(body, "signature_add_to_local_mail", signatureLocal, error) ||
              !ReadBool(body, "dkim_enabled", dkimEnabled, error) ||
              !ReadBool(body, "dkim_sign_aliases", dkimSignAliases, error) ||
+             !ReadBool(body, "dkim_rotation_enabled", dkimRotationEnabled, error) ||
              !ReadBool(body, "relay_requires_auth", relayAuth, error) ||
              !ReadBool(body, "vacation_enabled", vacationOn, error) ||
              !ReadBool(body, "vacation_external_override", vacationExternalOverride, error) ||
@@ -484,6 +513,11 @@ namespace HM
          domain->SetDKIMSecondarySelector(dkimSecondarySelector);
          domain->SetDKIMSecondaryPrivateKeyFile(dkimSecondaryKeyFile);
          domain->SetDKIMAliasesEnabled(dkimSignAliases);
+         domain->SetDKIMRotationEnabled(dkimRotationEnabled);
+         domain->SetDKIMRotationIntervalDays((int) rotationInterval);
+         domain->SetDKIMRotationPropagationHours((int) rotationPropagation);
+         domain->SetDKIMRotationRetentionDays((int) rotationRetention);
+         domain->SetDKIMRotationKeyBits((int) rotationKeyBits);
          domain->SetMessageRetentionDays((int) retention);
          domain->SetRelayHost(relayHost);
          domain->SetRelayPort(relayPort);
@@ -587,6 +621,15 @@ namespace HM
       text("dkim_secondary_selector", String(domain->GetDKIMSecondarySelector()));
       text("dkim_secondary_private_key_file", domain->GetDKIMSecondaryPrivateKeyFile());
       flag("dkim_sign_aliases", domain->GetDKIMAliasesEnabled());
+      flag("dkim_rotation_enabled", domain->GetDKIMRotationEnabled());
+
+      AnsiString rotation;
+      rotation.Format(",\"dkim_rotation_interval_days\":%d,\"dkim_rotation_propagation_hours\":%d,\"dkim_rotation_retention_days\":%d,\"dkim_rotation_key_bits\":%d",
+         domain->GetDKIMRotationIntervalDays(),
+         domain->GetDKIMRotationPropagationHours(),
+         domain->GetDKIMRotationRetentionDays(),
+         domain->GetDKIMRotationKeyBits());
+      entry += rotation;
       text("relay_host", domain->GetRelayHost());
       flag("relay_requires_auth", domain->GetRelayRequiresAuth());
       text("relay_username", domain->GetRelayUsername());
@@ -648,10 +691,25 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"domain not found\"}");
 
       String oldName = domain->GetName();
+
+      // The domain as stored, before the body is applied, for the DKIM rotation's
+      // guard: a configuration replayed from an old export carries the selector
+      // the rotation has since moved away from.
+      std::shared_ptr<Domain> stored = std::shared_ptr<Domain>(new Domain());
+      if (!PersistentDomain::ReadObject(stored, domain->GetID()))
+         return BuildResponse_(500, "{\"error\":\"failed to read domain\"}");
+
       AnsiString error;
       bool renamed = false;
       if (!ApplyDomainBody(body, domain, error, renamed))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
+
+      String rotationRefusal;
+      if (DkimRotation::RefusesKeyChange(*stored, *domain, rotationRefusal))
+      {
+         LOG_APPLICATION("RestApi: Refused to update domain " + oldName + ": " + rotationRefusal);
+         return BuildResponse_(409, ErrorBody(quote, rotationRefusal));
+      }
 
       String saveError;
       if (!PersistentDomain::SaveObject(domain, saveError, PersistenceModeNormal))

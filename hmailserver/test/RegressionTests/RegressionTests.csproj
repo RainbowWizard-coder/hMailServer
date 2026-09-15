@@ -414,6 +414,7 @@
     <Compile Include="Shared\ExceptionPolicy.cs" />
     <Compile Include="Shared\IniFile.cs" />
     <Compile Include="Shared\Paths.cs" />
+    <Compile Include="Shared\MiniJson.cs" />
     <Compile Include="Shared\FakeDnsServer.cs" />
     <Compile Include="Shared\DnssecSigner.cs" />
     <Compile Include="Security\DnssecDenialOfExistence.cs" />
@@ -537,6 +538,7 @@
     <Compile Include="AntiSpam\DmarcNonExistentSubdomainPolicy.cs" />
     <Compile Include="AntiSpam\DKIM\ArcInboundFiltering.cs" />
     <Compile Include="AntiSpam\DKIM\DualSelectorRotation.cs" />
+    <Compile Include="AntiSpam\DKIM\DkimKeyRotation.cs" />
     <Compile Include="AntiSpam\DKIM\Signing.cs" />
     <Compile Include="AntiSpam\DKIM\Verification.cs" />
     <Compile Include="AntiSpam\DKIM\Sha1SignatureRejection.cs" />
@@ -681,6 +683,7 @@
     <Compile Include="API\UpdateSchedule.cs" />
     <Compile Include="API\RestApiCoverage.cs" />
     <Compile Include="API\RestApiDomains.cs" />
+    <Compile Include="API\RestApiDkimRotation.cs" />
     <Compile Include="API\RestApiFetchAccounts.cs" />
     <Compile Include="API\RestApiSettings.cs" />
     <Compile Include="API\RestApiRules.cs" />

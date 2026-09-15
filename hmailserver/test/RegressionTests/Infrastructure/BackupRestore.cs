@@ -283,6 +283,14 @@ namespace RegressionTests.Infrastructure
 
          domain.SignaturePlainText = "PLS";
          domain.SignatureHTML = "HTML";
+
+         // The DKIM key rotation's policy rides the domain through the backup. The
+         // schedule is left off: a keyless domain with it on would be given a key by
+         // the first scheduled pass, which is not what this test is about.
+         ComSetDkimRotationIntervalDays(domain, 90);
+         ComSetDkimRotationPropagationHours(domain, 48);
+         ComSetDkimRotationRetentionDays(domain, 14);
+         ComSetDkimRotationKeyBits(domain, 3072);
          domain.Save();
 
          var da = domain.DomainAliases.Add();
@@ -775,6 +783,12 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual("PLS", domain.SignaturePlainText);
          Assert.AreEqual("HTML", domain.SignatureHTML);
 
+         Assert.IsFalse(ComDkimRotationEnabled(domain));
+         Assert.AreEqual(90, ComDkimRotationIntervalDays(domain), "The rotation interval did not survive the backup.");
+         Assert.AreEqual(48, ComDkimRotationPropagationHours(domain), "The propagation period did not survive the backup.");
+         Assert.AreEqual(14, ComDkimRotationRetentionDays(domain), "The retention period did not survive the backup.");
+         Assert.AreEqual(3072, ComDkimRotationKeyBits(domain), "The key size did not survive the backup.");
+
          Assert.AreEqual("example.test", _application.Domains[0].Name);
          Assert.AreEqual(2, _application.Domains[0].DomainAliases.Count);
          Assert.AreEqual("test1.com", _application.Domains[0].DomainAliases[0].AliasName);
@@ -916,5 +930,84 @@ namespace RegressionTests.Infrastructure
          _backupMessages = false;
          Assert.IsTrue(Execute());
       }
+
+      [Test]
+      [Description("A restore deletes every domain before it loads the backup's, and deletes no key file a DKIM key rotation generated doing it: the restored domain names the same file and the file is still on disk. The restored domain's new ID is the control that the restore really did delete and recreate it.")]
+      public void ARestoreKeepsTheKeyFilesTheRotationGenerated()
+      {
+         _backupMessages = false;
+
+         Domain domain = _application.Domains.get_ItemByName("example.test");
+         string keyFile = MiniJson.Text(MiniJson.Object(ComDkimRotationStart(domain, "")), "next.key_file");
+         Assert.IsTrue(File.Exists(keyFile), "The rotation did not write its key: " + keyFile);
+         int idBefore = domain.ID;
+
+         try
+         {
+            Assert.IsTrue(BackupEnvironment(), "The backup did not complete.");
+            RestoreEnvironment();
+
+            Domain restored = _application.Domains.get_ItemByName("example.test");
+            Assert.AreNotEqual(idBefore, restored.ID, "The restore did not replace the domain, so this proves nothing about what a replaced domain keeps.");
+            Assert.AreEqual(keyFile, restored.DKIMSecondaryPrivateKeyFile, "The restored domain does not name the key file the backup named.");
+            Assert.IsTrue(File.Exists(keyFile), "The restore deleted the key file the rotation had generated for a domain it put back.");
+         }
+         finally
+         {
+            if (Directory.Exists(_backupDir))
+               Directory.Delete(_backupDir, true);
+
+            // Named by no rotation now - the restore does not carry the rotation's
+            // state - so no domain delete will remove it. As far as the key's
+            // permissions let the test.
+            try
+            {
+               if (File.Exists(keyFile))
+                  File.Delete(keyFile);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+         }
+      }
+
+      // The DKIM key rotation's members of Domain and Utilities are newer than the
+      // type library build-tests.ps1 compiles against until an elevated
+      // build/register-com.ps1 has run, so they bind late, as Roles.cs's do; a
+      // refusal still arrives as a COMException.
+      private static string ComDkimRotationStatus(Domain domain) => (string) ((dynamic) domain).DKIMRotationStatus;
+
+      private static string ComDkimRotationStart(Domain domain, string selector) => (string) ((dynamic) domain).DKIMRotationStart(selector);
+
+      private static string ComDkimRotationCheck(Domain domain) => (string) ((dynamic) domain).DKIMRotationCheck();
+
+      private static string ComDkimRotationSwitch(Domain domain, bool force) => (string) ((dynamic) domain).DKIMRotationSwitch(force);
+
+      private static string ComDkimRotationRetire(Domain domain) => (string) ((dynamic) domain).DKIMRotationRetire();
+
+      private static string ComDkimRotationCancel(Domain domain) => (string) ((dynamic) domain).DKIMRotationCancel();
+
+      private static bool ComDkimRotationEnabled(Domain domain) => (bool) ((dynamic) domain).DKIMRotationEnabled;
+
+      private static void ComSetDkimRotationEnabled(Domain domain, bool value) => ((dynamic) domain).DKIMRotationEnabled = value;
+
+      private static int ComDkimRotationIntervalDays(Domain domain) => (int) ((dynamic) domain).DKIMRotationIntervalDays;
+
+      private static void ComSetDkimRotationIntervalDays(Domain domain, int value) => ((dynamic) domain).DKIMRotationIntervalDays = value;
+
+      private static int ComDkimRotationPropagationHours(Domain domain) => (int) ((dynamic) domain).DKIMRotationPropagationHours;
+
+      private static void ComSetDkimRotationPropagationHours(Domain domain, int value) => ((dynamic) domain).DKIMRotationPropagationHours = value;
+
+      private static int ComDkimRotationRetentionDays(Domain domain) => (int) ((dynamic) domain).DKIMRotationRetentionDays;
+
+      private static void ComSetDkimRotationRetentionDays(Domain domain, int value) => ((dynamic) domain).DKIMRotationRetentionDays = value;
+
+      private static int ComDkimRotationKeyBits(Domain domain) => (int) ((dynamic) domain).DKIMRotationKeyBits;
+
+      private static void ComSetDkimRotationKeyBits(Domain domain, int value) => ((dynamic) domain).DKIMRotationKeyBits = value;
    }
 }

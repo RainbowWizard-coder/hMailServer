@@ -75,6 +75,7 @@
     <Compile Include="..\RegressionTests\Shared\RestRequest.cs" Link="Shared\RestRequest.cs" />
     <Compile Include="..\RegressionTests\Shared\POP3ClientSimulator.cs" Link="Shared\POP3ClientSimulator.cs" />
     <Compile Include="..\RegressionTests\Shared\Paths.cs" Link="Shared\Paths.cs" />
+    <Compile Include="..\RegressionTests\Shared\MiniJson.cs" Link="Shared\MiniJson.cs" />
     <Compile Include="..\RegressionTests\Shared\Pop3ServerSimulator.cs" Link="Shared\Pop3ServerSimulator.cs" />
     <Compile Include="..\RegressionTests\Shared\RetryableAssert.cs" Link="Shared\RetryableAssert.cs" />
     <Compile Include="..\RegressionTests\Shared\SMTPClientSimulator.cs" Link="Shared\SMTPClientSimulator.cs" />
@@ -102,6 +103,7 @@
     <Compile Include="..\RegressionTests\API\RestApiArchive.cs" Link="API\RestApiArchive.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAuthorization.cs" Link="API\RestApiAuthorization.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDomains.cs" Link="API\RestApiDomains.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiDkimRotation.cs" Link="API\RestApiDkimRotation.cs" />
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSignatureImages.cs" Link="API\RestApiSignatureImages.cs" />

@@ -38,9 +38,6 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name=" (inactive)" xml:space="preserve">
     <value> (inactief)</value>
   </data>
-  <data name=" (key file: {0})." xml:space="preserve">
-    <value> (sleutelbestand: {0}).</value>
-  </data>
   <data name=" (published {0})" xml:space="preserve">
     <value> (gepubliceerd {0})</value>
   </data>
@@ -200,9 +197,6 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="(The private key file could not be read from this machine, so the record value cannot be derived here. Run this page on the server itself, or use the domain's DKIM tab.)" xml:space="preserve">
     <value>(Het privésleutelbestand kon niet vanaf deze machine worden gelezen, dus de recordwaarde kan hier niet worden afgeleid. Voer deze pagina op de server zelf uit, of gebruik het DKIM-tabblad van het domein.)</value>
   </data>
-  <data name="(The staged private key file could not be read from this machine, so the record value cannot be shown here. It was shown when the rotation was started; if it is lost, cancel the rotation and start again.)" xml:space="preserve">
-    <value>(Het klaargezette privésleutelbestand kon niet vanaf deze machine worden gelezen, dus de recordwaarde kan hier niet worden getoond. Die werd getoond toen de rotatie werd gestart; als die verloren is, annuleer de rotatie en begin opnieuw.)</value>
-  </data>
   <data name="(account #{0})" xml:space="preserve">
     <value>(account #{0})</value>
   </data>
@@ -238,9 +232,6 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(de Windows-computernaam van de server)</value>
-  </data>
-  <data name="(the staged pair has no selector)" xml:space="preserve">
-    <value>(het klaargezette paar heeft geen selector)</value>
   </data>
   <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
     <value>, en markeert accounts als inactief wanneer hun directoryvermelding is verdwenen.</value>
@@ -350,12 +341,6 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scan deze QR-code met een authenticator-app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
   </data>
-  <data name="1. Currently signing with selector &quot;{0}&quot;" xml:space="preserve">
-    <value>1. Ondertekent momenteel met selector "{0}"</value>
-  </data>
-  <data name="1. No signing selector is configured yet." xml:space="preserve">
-    <value>1. Er is nog geen ondertekeningsselector geconfigureerd.</value>
-  </data>
   <data name="12+ characters" xml:space="preserve">
     <value>12+ tekens</value>
   </data>
@@ -368,29 +353,14 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="2.  Or enter the setup key shown below by hand." xml:space="preserve">
     <value>2.  Of voer de hieronder getoonde instelsleutel handmatig in.</value>
   </data>
-  <data name="2. A rotation is staged: selector &quot;{0}&quot;, key file {1}." xml:space="preserve">
-    <value>2. Een rotatie is klaargezet: selector "{0}", sleutelbestand {1}.</value>
-  </data>
-  <data name="2. Stage a new key pair under a new selector name:" xml:space="preserve">
-    <value>2. Zet een nieuw sleutelpaar klaar onder een nieuwe selectornaam:</value>
-  </data>
   <data name="24 hours" xml:space="preserve">
     <value>24 uur</value>
-  </data>
-  <data name="3. Publish this DNS TXT record at your DNS provider. Host/Name:" xml:space="preserve">
-    <value>3. Publiceer dit DNS-TXT-record bij uw DNS-provider. Host/Naam:</value>
   </data>
   <data name="30 days" xml:space="preserve">
     <value>30 dagen</value>
   </data>
-  <data name="4. Check that the record is visible in DNS:" xml:space="preserve">
-    <value>4. Controleer of het record zichtbaar is in DNS:</value>
-  </data>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>451 4.3.1-antwoorden</value>
-  </data>
-  <data name="5. Promote the staged key to become the signing key:" xml:space="preserve">
-    <value>5. Promoveer de klaargezette sleutel tot ondertekeningssleutel:</value>
   </data>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 is de geregistreerde poort voor UDP en voor gewone TCP; 6514 is de geregistreerde poort voor syslog over TLS.</value>
@@ -413,14 +383,8 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>Een DMARC-record met p={0} staat live op {1} - strenger dan het beginpunt p=none. Dat is juist als u al weet dat uw mail de uitlijning haalt; als u SPF en DKIM nog aan het instellen bent, wordt mail die faalt op dit moment {2}. Gepubliceerd: {3}</value>
   </data>
-  <data name="A TXT record exists at {0}, but it does not match the staged key. Waiting will not fix this: correct the published record so it matches the value above, then check again." xml:space="preserve">
-    <value>Er bestaat een TXT-record op {0}, maar het komt niet overeen met de klaargezette sleutel. Wachten lost dit niet op: corrigeer het gepubliceerde record zodat het overeenkomt met de waarde hierboven, en controleer dan opnieuw.</value>
-  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Er bestaat een TXT-record op {0}, maar het privésleutelbestand kon niet vanaf deze machine worden gelezen, dus of het de JUISTE sleutel draagt kan vanaf hier niet worden geverifieerd. Voer de controle op de server zelf uit, of gebruik het DKIM-tabblad van het domein.</value>
-  </data>
-  <data name="A TXT record exists, but the staged private key file ({0}) could not be read from this machine, so the record cannot be compared against the key. Run this check on the server itself, or cancel the rotation and start it again from here." xml:space="preserve">
-    <value>Er bestaat een TXT-record, maar het klaargezette privésleutelbestand ({0}) kon niet vanaf deze machine worden gelezen, dus het record kan niet met de sleutel worden vergeleken. Voer deze controle op de server zelf uit, of annuleer de rotatie en start die vanaf hier opnieuw.</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Een plafond voor één doorloop, zodat een zoekbasis die één niveau te hoog staat niet kan worden beantwoord door een heel forest te lezen. Wordt het bereikt, dan zegt de run dat en schakelt hij helemaal niets uit - voorbij de grens is een bestaande vermelding niet te onderscheiden van een verwijderde.</value>
@@ -494,6 +458,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Een moderne beheertoepassing voor hMailServer: live dashboard, domeinen en accounts, bezorgwachtrij, logstreaming, volledige serverinstellingen en de transportbeveiligingsfuncties van 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
+    <value>Er is een nieuwe sleutel gegenereerd en klaargezet. Publiceer het record ervan.</value>
+  </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Er is een nieuw serviceaccountwachtwoord getypt EN "het opgeslagen wachtwoord verwijderen" is aangevinkt. Haal een van beide weg - raden wat bedoeld was, is niet aan deze pagina.</value>
   </data>
@@ -538,9 +505,6 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Een rol is een benoemde verzameling rechten, en een toewijzing geeft die aan een account binnen genoemde domeinen. De vier ingebouwde rollen zijn niet te bewerken: hun rechten staan in de code van de server, zodat een wijziging in de database niemand bevoegdheid kan geven. Een account zonder rol hier heeft wat zijn beheerdersniveau het altijd heeft gegeven.</value>
-  </data>
-  <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
-    <value>Er is al een rotatie klaargezet. Als het DNS-record is gepubliceerd, druk op "DNS controleren"; promoveren wordt ontgrendeld zodra de controle in deze sessie slaagt.</value>
   </data>
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Een route overschrijft de MX-opzoeking voor de genoemde domeinen.</value>
@@ -1569,13 +1533,11 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Cancel" xml:space="preserve">
     <value>Annuleren</value>
   </data>
-  <data name="Cancel rotat_ion…" xml:space="preserve">
-    <value>Rotat_ie annuleren…</value>
+  <data name="Cancel the ne_xt key…" xml:space="preserve">
+    <value>_Volgende sleutel annuleren…</value>
   </data>
-  <data name="Cancel this rotation?&#10;&#10;The staged selector &quot;{0}&quot; is removed from the server configuration; signing continues with the current key, untouched. The generated key file stays on disk, and the DNS record for the staged selector - if you already published it - can simply be deleted." xml:space="preserve">
-    <value>Deze rotatie annuleren?
-
-De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het ondertekenen gaat onaangeroerd verder met de huidige sleutel. Het gegenereerde sleutelbestand blijft op schijf staan, en het DNS-record voor de klaargezette selector - als u dat al hebt gepubliceerd - kan gewoon worden verwijderd.</value>
+  <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
+    <value>De volgende sleutel van {0} annuleren? De klaargezette selector wordt verwijderd, een sleutelbestand dat de rotatie ervoor heeft gegenereerd wordt gewist, en het ondertekenen verandert niet.</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Kan hiervandaan niet worden gecontroleerd</value>
@@ -1682,8 +1644,8 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   <data name="Check" xml:space="preserve">
     <value>Controleren</value>
   </data>
-  <data name="Check D_NS" xml:space="preserve">
-    <value>D_NS controleren</value>
+  <data name="Check DNS n_ow" xml:space="preserve">
+    <value>DNS nu _controleren</value>
   </data>
   <data name="Check PTR record" xml:space="preserve">
     <value>PTR-record controleren</value>
@@ -1726,9 +1688,6 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Controleren wat er buiten deze server nog moet gebeuren…</value>
-  </data>
-  <data name="Checking {0}…" xml:space="preserve">
-    <value>{0} controleren…</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Controleren…</value>
@@ -1994,9 +1953,6 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   <data name="Copy every sample of {0} to the clipboard as tab-separated text" xml:space="preserve">
     <value>Elk meetpunt van {0} als tabgescheiden tekst naar het klembord kopiëren</value>
   </data>
-  <data name="Copy h_ost" xml:space="preserve">
-    <value>H_ost kopiëren</value>
-  </data>
   <data name="Copy host" xml:space="preserve">
     <value>Host kopiëren</value>
   </data>
@@ -2053,9 +2009,6 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   </data>
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Kon de route niet toevoegen: {0}</value>
-  </data>
-  <data name="Could not cancel the rotation: {0}" xml:space="preserve">
-    <value>Kon de rotatie niet annuleren: {0}</value>
   </data>
   <data name="Could not change logging: {0}" xml:space="preserve">
     <value>Kon de logboekregistratie niet wijzigen: {0}</value>
@@ -2197,9 +2150,6 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kon {0} niet openen: {1}</value>
   </data>
-  <data name="Could not promote the staged key: {0}" xml:space="preserve">
-    <value>Kon de klaargezette sleutel niet promoveren: {0}</value>
-  </data>
   <data name="Could not read the backup settings: {0}" xml:space="preserve">
     <value>Kon de back-upinstellingen niet lezen: {0}</value>
   </data>
@@ -2208,6 +2158,9 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Kon het bestand niet lezen: {0}</value>
+  </data>
+  <data name="Could not read the key rotation: {0}" xml:space="preserve">
+    <value>Kon de sleutelrotatie niet lezen: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Kon de status van de logboekregistratie niet lezen: {0}</value>
@@ -2290,9 +2243,6 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kon niet opslaan: {0}</value>
   </data>
-  <data name="Could not stage the rotation on the server: {0}" xml:space="preserve">
-    <value>Kon de rotatie niet op de server klaarzetten: {0}</value>
-  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kon de back-up niet starten: {0}</value>
   </data>
@@ -2362,6 +2312,9 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>"{0}" aangemaakt. Voer het in de client in als het wachtwoord van dat account.</value>
   </data>
+  <data name="Created {0}" xml:space="preserve">
+    <value>Aangemaakt {0}</value>
+  </data>
   <data name="Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to." xml:space="preserve">
     <value>Maakt postvakken aan en werkt ze bij zodat ze overeenkomen met een LDAP-directory. Alleen domeinen waarvoor een Active Directory-domeinnaam is ingesteld doen mee, dus dit kan niet per ongeluk in een gehost domein inrichten. Niets hier verwijdert ooit een account of een bericht: het uiterste is er een als inactief markeren, en alleen wanneer u daarom vraagt.</value>
   </data>
@@ -2382,6 +2335,9 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Kritiek, Hoog en Gemiddeld</value>
+  </data>
+  <data name="Current key" xml:space="preserve">
+    <value>Huidige sleutel</value>
   </data>
   <data name="Custom" xml:space="preserve">
     <value>Aangepast</value>
@@ -2520,6 +2476,12 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   </data>
   <data name="Date this key stops working" xml:space="preserve">
     <value>Datum waarop deze sleutel stopt met werken</value>
+  </data>
+  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
+    <value>Dagen tussen _rotaties (1 tot 3650)</value>
+  </data>
+  <data name="Days between rotations" xml:space="preserve">
+    <value>Dagen tussen rotaties</value>
   </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Dagen bewaren op de server (0 = verwijderen na het downloaden)</value>
@@ -2749,6 +2711,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostiek mislukt: {0}</value>
+  </data>
+  <data name="Different" xml:space="preserve">
+    <value>Afwijkend</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Uur van het overzicht</value>
@@ -3016,9 +2981,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
     <value>Ingeschakeld maar niet geconfigureerd: {0} is niet ingesteld.</value>
   </data>
-  <data name="Enabled once &quot;Check DNS&quot; has confirmed the published record matches the staged key." xml:space="preserve">
-    <value>Ingeschakeld zodra "DNS controleren" heeft bevestigd dat het gepubliceerde record overeenkomt met de klaargezette sleutel.</value>
-  </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Ingeschakeld zodra "Controleren" heeft bevestigd dat het gepubliceerde record de publieke sleutel van deze sleutel draagt.</value>
   </data>
@@ -3048,9 +3010,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Voer een geheim in</value>
-  </data>
-  <data name="Enter a selector name for the new key first." xml:space="preserve">
-    <value>Voer eerst een selectornaam in voor de nieuwe sleutel.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Voer een geldige domeinnaam in.</value>
@@ -3343,6 +3302,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Finish" xml:space="preserve">
     <value>Voltooien</value>
   </data>
+  <data name="First seen {0}" xml:space="preserve">
+    <value>Voor het eerst gezien {0}</value>
+  </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Eerst: welke helft zit vast?</value>
   </data>
@@ -3456,9 +3418,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>Een sterk wachtwoord genereren (gekopieerd naar het klembord)</value>
-  </data>
-  <data name="Generate and stage _key…" xml:space="preserve">
-    <value>Sleutel genereren en _klaarzetten…</value>
   </data>
   <data name="Generated password" xml:space="preserve">
     <value>Gegenereerd wachtwoord</value>
@@ -3775,6 +3734,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identiteit waaronder de resultaten worden geschreven (leeg = de naam van deze computer)</value>
   </data>
+  <data name="Idle" xml:space="preserve">
+    <value>In rust</value>
+  </data>
   <data name="Idle timeouts" xml:space="preserve">
     <value>Inactiviteitstime-outs</value>
   </data>
@@ -3909,6 +3871,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (de door de provider gepubliceerde ondertekeningssleutels; leeg = alleen het sleutelbestand)</value>
   </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Behouden</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
     <value>Greylisting actief houden tijdens het venster waarin het record verloopt (herstart vereist)</value>
   </data>
@@ -3924,6 +3889,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>De status gelezen/ongelezen behouden</value>
   </data>
+  <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
+    <value>Houd het record van de selector die wordt uitgefaseerd, "{0}", gepubliceerd tot {1}, voor e-mail die ermee is ondertekend en nog onderweg is.</value>
+  </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Meerdere generaties berichten bewaren vereist compressie: zonder 'Doelbestanden comprimeren (zip)' schrijft elke back-up zijn berichtbestanden naar dezelfde DataBackup-map en overschrijft daarmee die van de vorige run, zodat de bewaring alleen generaties van de kleine archieven met instellingen en domeinen kan bewaren.</value>
   </data>
@@ -3935,6 +3903,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Key file present" xml:space="preserve">
     <value>Sleutelbestand aanwezig</value>
+  </data>
+  <data name="Key file: {0}" xml:space="preserve">
+    <value>Sleutelbestand: {0}</value>
   </data>
   <data name="Key matches certificate" xml:space="preserve">
     <value>Sleutel komt overeen met het certificaat</value>
@@ -3948,8 +3919,14 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Key rotation" xml:space="preserve">
     <value>Sleutelrotatie</value>
   </data>
+  <data name="Key si_ze" xml:space="preserve">
+    <value>Sle_utelgrootte</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Sleutelopslag</value>
+  </data>
+  <data name="Key unreadable" xml:space="preserve">
+    <value>Sleutel onleesbaar</value>
   </data>
   <data name="LDAPS" xml:space="preserve">
     <value>LDAPS</value>
@@ -4299,6 +4276,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Aan EEN WILLEKEURIG criterium voldoen (OR)</value>
   </data>
+  <data name="Matches" xml:space="preserve">
+    <value>Komt overeen</value>
+  </data>
   <data name="Matches the certificate" xml:space="preserve">
     <value>Komt overeen met het certificaat</value>
   </data>
@@ -4569,6 +4549,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Move _up" xml:space="preserve">
     <value>Om_hoog verplaatsen</value>
   </data>
+  <data name="Move signing for {0} to the next key now?" xml:space="preserve">
+    <value>Het ondertekenen voor {0} nu naar de volgende sleutel verplaatsen?</value>
+  </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Het berichtbestand naar SpamAssassin verplaatsen in plaats van het te kopiëren (herstart vereist)</value>
   </data>
@@ -4652,6 +4635,12 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Next" xml:space="preserve">
     <value>Volgende</value>
+  </data>
+  <data name="Next key" xml:space="preserve">
+    <value>Volgende sleutel</value>
+  </data>
+  <data name="Next rotation due {0}" xml:space="preserve">
+    <value>Volgende rotatie gepland {0}</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Volgende poging</value>
@@ -4869,6 +4858,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Er is geen openbare hostnaam geconfigureerd in de SMTP-instellingen.</value>
   </data>
+  <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
+    <value>Er is geen rotatie gepland. Start er een met ‘Nu roteren’.</value>
+  </data>
   <data name="No routes defined yet." xml:space="preserve">
     <value>Er zijn nog geen routes gedefinieerd.</value>
   </data>
@@ -4947,11 +4939,11 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Nog niet gecontroleerd (Controleren op updates, of zet de dagelijkse controle aan onder Updates op de pagina API en monitoring)</value>
   </data>
-  <data name="Not checked yet. Publish the record, allow time for propagation, then press &quot;Check DNS&quot;." xml:space="preserve">
-    <value>Nog niet gecontroleerd. Publiceer het record, geef het tijd om te propageren, en druk dan op "DNS controleren".</value>
-  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Niet verbonden</value>
+  </data>
+  <data name="Not found" xml:space="preserve">
+    <value>Niet gevonden</value>
   </data>
   <data name="Not listening" xml:space="preserve">
     <value>Luistert niet</value>
@@ -5540,6 +5532,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Permissions - {0} (saved)" xml:space="preserve">
     <value>Rechten - {0} (opgeslagen)</value>
   </data>
+  <data name="Phase: {0}" xml:space="preserve">
+    <value>Fase: {0}</value>
+  </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Wijs de server een SpamAssassin-host aan en kies hoe zijn score wordt meegewogen.</value>
   </data>
@@ -5657,12 +5652,11 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Prometheus-metrics, gezondheidseindpunten en de REST-API worden hier ingeschakeld.</value>
   </data>
-  <data name="Promote the staged selector &quot;{0}&quot;?&#10;&#10;From the next message on, mail from {1} is signed with the new key, and the old selector is cleared from the configuration.&#10;&#10;Leave the OLD DNS record ({2}) published for at least a few days. Mail signed with the old key may still be in transit, and receivers can only verify it for as long as that record exists." xml:space="preserve">
-    <value>De klaargezette selector "{0}" promoveren?
-
-Vanaf het volgende bericht wordt mail van {1} met de nieuwe sleutel ondertekend en wordt de oude selector uit de configuratie gewist.
-
-Laat het OUDE DNS-record ({2}) nog minstens een paar dagen gepubliceerd. Mail die met de oude sleutel is ondertekend, kan nog onderweg zijn, en ontvangers kunnen die alleen verifiëren zolang dat record bestaat.</value>
+  <data name="Propagating" xml:space="preserve">
+    <value>Bezig met propageren</value>
+  </data>
+  <data name="Propagation period in hours" xml:space="preserve">
+    <value>Propagatieperiode in uren</value>
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Eigenschappen</value>
@@ -5702,6 +5696,9 @@ Laat het OUDE DNS-record ({2}) nog minstens een paar dagen gepubliceerd. Mail di
   </data>
   <data name="Public — anyone can send" xml:space="preserve">
     <value>Openbaar — iedereen mag verzenden</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Publiceren</value>
   </data>
   <data name="Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
     <value>Publiceer een openbaar A/AAAA-record voor elke naam die in AcmeDomains staat, en sta inkomend TCP op de challengepoort vanaf internet toe (stuur de poort door achter elke NAT). Bereikbaarheid van buitenaf kan niet van binnenuit worden gepeild, dus test die vanaf een extern netwerk of met een online poortcontrole.</value>
@@ -5867,6 +5864,9 @@ Laat het OUDE DNS-record ({2}) nog minstens een paar dagen gepubliceerd. Mail di
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Leest nu de releasefeed van het project en zegt of er een nieuwere release bestaat. Hierdoor wordt niets gedownload of geïnstalleerd.</value>
+  </data>
+  <data name="Ready to switch" xml:space="preserve">
+    <value>Klaar om over te stappen</value>
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Realtime blackhole-lijsten die worden gecontroleerd tegen het verbindende IP-adres.</value>
@@ -6040,6 +6040,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remote domains" xml:space="preserve">
     <value>Externe domeinen</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Verlopen _items verwijderen</value>
   </data>
@@ -6091,9 +6094,6 @@ Elk aangepast bereik - inclusief eventuele vermeldingen van automatisch verbanne
     <value>ALLE geconfigureerde poorten vervangen door de standaardwaarden?
 
 SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten en aangepaste bindingen worden verwijderd. De wijziging gaat in wanneer de server opnieuw wordt gestart.</value>
-  </data>
-  <data name="Replace the DKIM key without a gap in verification: stage a new key next to the current one, publish its DNS record, wait for the record to propagate, check it, and only then promote it." xml:space="preserve">
-    <value>Vervang de DKIM-sleutel zonder gat in de verificatie: zet een nieuwe sleutel klaar naast de huidige, publiceer het bijbehorende DNS-record, wacht tot het record is gepropageerd, controleer het, en promoveer het pas dan.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Vervang het certificaat hier; van elk certificaat staat de vervaldatum vermeld.</value>
@@ -6241,6 +6241,30 @@ Doorgaan?</value>
   <data name="Retention" xml:space="preserve">
     <value>Bewaring</value>
   </data>
+  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
+    <value>Bewaarper_iode in dagen (1 tot 365)</value>
+  </data>
+  <data name="Retention period in days" xml:space="preserve">
+    <value>Bewaarperiode in dagen</value>
+  </data>
+  <data name="Retire due {0}" xml:space="preserve">
+    <value>Uitfaseren gepland {0}</value>
+  </data>
+  <data name="Retire the old ke_y now…" xml:space="preserve">
+    <value>Oude sleutel nu uit_faseren…</value>
+  </data>
+  <data name="Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted." xml:space="preserve">
+    <value>De oude selector van {0} nu uitfaseren? Het TXT-record ervan mag daarna worden verwijderd, en een sleutelbestand dat de rotatie heeft gegenereerd wordt gewist.</value>
+  </data>
+  <data name="Retired key" xml:space="preserve">
+    <value>Uitgefaseerde sleutel</value>
+  </data>
+  <data name="Retired {0}" xml:space="preserve">
+    <value>Uitgefaseerd {0}</value>
+  </data>
+  <data name="Retiring key" xml:space="preserve">
+    <value>Sleutel die wordt uitgefaseerd</value>
+  </data>
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Opnieuw proberen via Windows-_aanmelding wanneer de directory niet beschikbaar is (FallbackToWindowsLogon)</value>
   </data>
@@ -6278,6 +6302,15 @@ Doorgaan?</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
+  </data>
+  <data name="Rotate _now…" xml:space="preserve">
+    <value>_Nu roteren…</value>
+  </data>
+  <data name="Rotate now" xml:space="preserve">
+    <value>Nu roteren</value>
+  </data>
+  <data name="Rotate the _key on a schedule" xml:space="preserve">
+    <value>De sleutel volgens een sche_ma roteren</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>De sessieticketsleutel elke N seconden roteren (0 = de enkele, niet-roterende sleutel van OpenSSL)</value>
@@ -6494,9 +6527,6 @@ Doorgaan?</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>De tellers elke N seconden naar schijf schrijven (standaard 10)</value>
-  </data>
-  <data name="Save the new DKIM private key" xml:space="preserve">
-    <value>De nieuwe DKIM-privésleutel opslaan</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>De wachtwoordzin van de privésleutel voor het geselecteerde certificaat opslaan</value>
@@ -6788,6 +6818,9 @@ Doorgaan?</value>
   </data>
   <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
     <value>Selecteer het XML-back-upbestand dat door een eerdere back-up is gemaakt (in de doelmap). De inhoud vervangt de huidige gegevens voor de geselecteerde categorieën.</value>
+  </data>
+  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
+    <value>Selector voor de nieuwe sleutel (laat leeg voor een selector die naar de datum van vandaag is genoemd)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selectornaam voor de nieuwe DKIM-sleutel</value>
@@ -7151,6 +7184,9 @@ Nu herstarten?</value>
   <data name="Signing in…" xml:space="preserve">
     <value>Bezig met aanmelden…</value>
   </data>
+  <data name="Signing moved to the next key." xml:space="preserve">
+    <value>Het ondertekenen is naar de volgende sleutel overgestapt.</value>
+  </data>
   <data name="Signs outgoing mail so receivers can verify it really came from your domain; without the DNS record every signature fails verification." xml:space="preserve">
     <value>Ondertekent uitgaande mail zodat ontvangers kunnen verifiëren dat die echt van uw domein komt; zonder het DNS-record faalt elke handtekening bij verificatie.</value>
   </data>
@@ -7165,6 +7201,9 @@ Nu herstarten?</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Gelijktijdige verbindingen (0 is onbeperkt)</value>
+  </data>
+  <data name="Since {0}" xml:space="preserve">
+    <value>Sinds {0}</value>
   </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Groottelimiet en scanners…</value>
@@ -7352,6 +7391,12 @@ Nu herstarten?</value>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Indieningslimieten</value>
   </data>
+  <data name="Sw_itch now…" xml:space="preserve">
+    <value>Nu oversta_ppen…</value>
+  </data>
+  <data name="Switch due {0}" xml:space="preserve">
+    <value>Overstap gepland {0}</value>
+  </data>
   <data name="Switch to the dark theme" xml:space="preserve">
     <value>Overschakelen naar het donkere thema</value>
   </data>
@@ -7474,6 +7519,9 @@ Nu herstarten?</value>
   </data>
   <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
     <value>TLS-RPT — vraag andere servers om TLS-fouten te melden bij bezorging aan </value>
+  </data>
+  <data name="TXT record value for {0}" xml:space="preserve">
+    <value>Waarde van het TXT-record voor {0}</value>
   </data>
   <data name="TXT record(s) exist at {0} but none carries this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
     <value>Er bestaan TXT-record(s) op {0}, maar geen ervan draagt de publieke sleutel van deze sleutel, dus elke handtekening die met deze sleutel is gemaakt faalt bij verificatie. Wachten lost dit niet op - corrigeer de gepubliceerde waarde zodat die overeenkomt met de waarde hierboven.</value>
@@ -7601,11 +7649,11 @@ Nu herstarten?</value>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>De DMARC-faalscore is momenteel {0}. ARC werkt door die score te compenseren, dus bij nul kan ARC-filtering niets doen, zelfs niet met vertrouwde verzegelaars in de lijst. Stel eerst een positieve DMARC-faalscore in op de pagina Antispaminstellingen.</value>
   </data>
+  <data name="The DNS lookup failed. It is tried again on the next pass." xml:space="preserve">
+    <value>De DNS-opzoeking is mislukt. Die wordt bij de volgende ronde opnieuw geprobeerd.</value>
+  </data>
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>De DNS-opzoeking voor {0} is zelf mislukt: {1} Dit zegt niets over het record - deze machine kon geen antwoord van zijn DNS-server krijgen. Controleer het netwerk en probeer het opnieuw.</value>
-  </data>
-  <data name="The DNS lookup itself failed: {0} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
-    <value>De DNS-opzoeking is zelf mislukt: {0} Dit zegt niets over het record - deze machine kon geen antwoord van zijn DNS-server krijgen. Controleer het netwerk en probeer het opnieuw.</value>
   </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>De hostnaam op E-mailbezorging is LEEG, dus valt de server terug op zijn Windows-computernaam{0}. Een kale computernaam is geen publieke DNS-naam: ontvangers die HELO met DNS vergelijken zullen dat bestraffen, en geen enkele PTR kan ermee overeenkomen. Stel eerst een echte hostnaam in.</value>
@@ -7780,6 +7828,12 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>De directory antwoordde en WEIGERDE deze referenties: {0} (LDAP-fout {1}). De verbinding, het transport en de configuratie werken allemaal - dit is een probleem met de referenties, precies wat een gebruiker die een verkeerd wachtwoord typt te zien krijgt.</value>
   </data>
+  <data name="The domain has no signing key yet." xml:space="preserve">
+    <value>Het domein heeft nog geen ondertekeningssleutel.</value>
+  </data>
+  <data name="The domain is inactive, so the schedule starts no rotation." xml:space="preserve">
+    <value>Het domein is inactief, dus het schema start geen rotatie.</value>
+  </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>De domeinlijst bevat geen domeinnamen. Laat het vak leeg om de sleutel op elk domein te laten werken - een lijst met alleen scheidingstekens zou stilzwijgend hetzelfde betekenen, en dat is niet wat u hebt gevraagd.</value>
   </data>
@@ -7887,6 +7941,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Het sleutelbestand is beveiligd met een wachtwoordzin (een versleutelde PEM). Het laadt alleen als de bijbehorende wachtwoordzin bij dit certificaat is opgeslagen.</value>
   </data>
+  <data name="The key file was kept: {0}" xml:space="preserve">
+    <value>Het sleutelbestand is behouden: {0}</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>De sleutel is versleuteld en dit paneel ontsleutelt hem bewust niet, dus of hij bij het certificaat past, blijkt pas wanneer de server het paar laadt.</value>
   </data>
@@ -7913,6 +7970,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>De taal kon niet worden opgeslagen: {0}</value>
+  </data>
+  <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
+    <value>De laatste poging is mislukt op {0}: {1}</value>
   </data>
   <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
     <value>De laatste vijf instellingen op deze kaart zijn bedoeld voor een site die zijn eigen releases bouwt en die met zijn eigen Sigstore ondertekent, of die de releases van dit project spiegelt. Laat ze allemaal leeg en de server vertrouwt precies één ding: een installatieprogramma dat is ondertekend door de eigen release-workflow van dit project, vastgelegd in het openbare transparantielogboek. Een ervan instellen versmalt dat of vervangt het, en er een verkeerd zetten betekent ofwel echte releases weigeren ofwel die van iemand anders vertrouwen.</value>
@@ -7959,8 +8019,29 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The new API key, shown once" xml:space="preserve">
     <value>De nieuwe API-sleutel, één keer getoond</value>
   </data>
-  <data name="The new selector must be different from the current selector (&quot;{0}&quot;). A rotation runs both keys side by side under different DNS names." xml:space="preserve">
-    <value>De nieuwe selector moet verschillen van de huidige selector ("{0}"). Bij een rotatie draaien beide sleutels naast elkaar onder verschillende DNS-namen.</value>
+  <data name="The new key's file could not be read." xml:space="preserve">
+    <value>Het bestand van de nieuwe sleutel kon niet worden gelezen.</value>
+  </data>
+  <data name="The new key's record has not been checked yet." xml:space="preserve">
+    <value>Het record van de nieuwe sleutel is nog niet gecontroleerd.</value>
+  </data>
+  <data name="The new key's record was not found. Publish it." xml:space="preserve">
+    <value>Het record van de nieuwe sleutel is niet gevonden. Publiceer het.</value>
+  </data>
+  <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
+    <value>Het nieuwe record is nog niet de hele propagatieperiode opgelost. Het ondertekenen toch verplaatsen? Ontvangers van wie de resolvers nog niet zijn bijgewerkt, laten de nieuwe handtekeningen mislukken tot ze dat wel zijn. Het record zelf moet wel worden opgelost: de server controleert het in elk geval eerst.</value>
+  </data>
+  <data name="The next key was cancelled." xml:space="preserve">
+    <value>De volgende sleutel is geannuleerd.</value>
+  </data>
+  <data name="The next rotation starts when the interval has passed." xml:space="preserve">
+    <value>De volgende rotatie begint zodra het interval voorbij is.</value>
+  </data>
+  <data name="The old selector is kept for mail still on its way." xml:space="preserve">
+    <value>De oude selector blijft bewaard voor e-mail die nog onderweg is.</value>
+  </data>
+  <data name="The old selector was retired." xml:space="preserve">
+    <value>De oude selector is uitgefaseerd.</value>
   </data>
   <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
     <value>De andere manier om bij een DN te komen: stel dit in en de server slaat het zoeken over - en daarmee de noodzaak van een SearchBase en een serviceaccount. Een UPN werkt tegen Active Directory. Dezelfde tijdelijke aanduidingen %u, %d en %m, escaped voor een distinguished name.</value>
@@ -8009,8 +8090,8 @@ Toch toevoegen?</value>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>De openbare verzameling staat op https://api.pwnedpasswords.com/range/. Een organisatie met een eigen spiegel vult die hier in: de vijf tekens worden aan het pad toegevoegd, of ingevuld waar {prefix} staat. Onversleuteld http wordt alleen geaccepteerd naar localhost, 127.0.0.1 of ::1.</value>
   </data>
-  <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
-    <value>Het gepubliceerde record komt overeen met de klaargezette sleutel. Promoveren is veilig.</value>
+  <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
+    <value>Het gepubliceerde record bevat de nieuwe sleutel niet. Corrigeer het.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Het record op {0} draagt p={1}, wat geen beleid is dat ontvangers herkennen (none, quarantine, reject). Gepubliceerd: {2}</value>
@@ -8030,11 +8111,14 @@ Toch toevoegen?</value>
   <data name="The record at {0} matches the suggestion." xml:space="preserve">
     <value>Het record op {0} komt overeen met het voorstel.</value>
   </data>
-  <data name="The record was not found yet. New DNS records usually appear within minutes but can take hours to propagate - publish the record above if you have not already, then check again later." xml:space="preserve">
-    <value>Het record is nog niet gevonden. Nieuwe DNS-records verschijnen meestal binnen enkele minuten, maar propageren kan uren duren - publiceer het record hierboven als u dat nog niet hebt gedaan, en controleer later opnieuw.</value>
+  <data name="The record is propagating." xml:space="preserve">
+    <value>Het record propageert.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>De records die deze server gepubliceerd wil zien in de DNS-zone van elk domein: type, host en waarde, klaar om in de console van uw DNS-provider te kopiëren, met een controle of elk record echt live is. De controles gebruiken de Windows-resolver van deze machine - dezelfde die de DKIM-rotatiecontrole gebruikt.</value>
+  </data>
+  <data name="The records were checked." xml:space="preserve">
+    <value>De records zijn gecontroleerd.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>De relay vereist _authenticatie</value>
@@ -8045,10 +8129,8 @@ Toch toevoegen?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>De aantallen nieuwe pogingen en de intervallen staan hier, samen met wat er gebeurt wanneer ze op zijn.</value>
   </data>
-  <data name="The rotation is complete: mail is now signed with selector &quot;{0}&quot;.&#10;&#10;Keep the old DNS record ({1}) for a few more days while mail signed with the old key is still in transit, then remove it." xml:space="preserve">
-    <value>De rotatie is voltooid: mail wordt nu ondertekend met selector "{0}".
-
-Houd het oude DNS-record ({1}) nog een paar dagen aan zolang er nog mail onderweg is die met de oude sleutel is ondertekend, en verwijder het daarna.</value>
+  <data name="The rotation refused: {0}" xml:space="preserve">
+    <value>De rotatie weigerde: {0}</value>
   </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>De run is niet voltooid. De rijen hieronder zeggen wat er al gedaan was voordat hij stopte - lees ze voordat u hem opnieuw uitvoert.</value>
@@ -8064,6 +8146,9 @@ Houd het oude DNS-record ({1}) nog een paar dagen aan zolang er nog mail onderwe
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Het scanresultaat is alleen leesbaar op de servermachine - hMailServer.INI is hier niet gevonden. De server publiceert hetzelfde getal als het meetpunt hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
+    <value>Het schema wordt met het domein opgeslagen. De knoppen hieronder werken meteen. Zolang de rotatie het domein beheert, wijzigt alleen zij de selector en het sleutelbestand hierboven.</value>
   </data>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>De score wordt over beide fasen opgeteld. De server stopt binnen een fase met testen zodra het lopende totaal {0} bereikt - de hoogste van de twee drempels - dus een controle die laat in de volgorde staat, draait mogelijk nooit.</value>
@@ -8101,6 +8186,9 @@ Houd het oude DNS-record ({1}) nog een paar dagen aan zolang er nog mail onderwe
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>De server heeft de verzending niet in de wachtrij gezet. Controleer het jokerteken in het adres en het foutenlogboek van hMailServer.</value>
   </data>
+  <data name="The server did not report the key rotation." xml:space="preserve">
+    <value>De server heeft de sleutelrotatie niet gemeld.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>De server heeft geen bruikbare inschrijving teruggegeven. Zie zijn foutenlogboek.</value>
   </data>
@@ -8111,6 +8199,9 @@ Houd het oude DNS-record ({1}) nog een paar dagen aan zolang er nog mail onderwe
     <value>De server heeft geen mailservers gevonden voor {0}.
 
 Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezorging gebruikt, inclusief een eventuele aangepaste DNSServer die in hMailServer.INI is ingesteld - dus mail die vanaf deze server naar dit domein wordt gestuurd, zou nu niet bezorgd kunnen worden.</value>
+  </data>
+  <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
+    <value>De server genereert de volgende sleutel, toont het TXT-record dat moet worden gepubliceerd, controleert het via zijn eigen resolver en verplaatst het ondertekenen pas naar die sleutel wanneer het record de hele propagatieperiode is opgelost. De oude selector wordt de bewaarperiode lang bewaard en daarna uitgefaseerd.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
     <value>De server bewaart geen geschiedenis: MetricsHistoryDays is 0 in hMailServer.ini. Zet die op het aantal te bewaren dagen en herstart de service.</value>
@@ -8138,6 +8229,9 @@ Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezo
   </data>
   <data name="The server's host name could not be read, so the suggestion authorises only the domain's MX hosts (&quot;mx&quot;)." xml:space="preserve">
     <value>De hostnaam van de server kon niet worden gelezen, dus het voorstel autoriseert alleen de MX-hosts van het domein ("mx").</value>
+  </data>
+  <data name="The server's key rotation has a next key, selector &quot;{0}&quot;. Publish its record as well; signing moves to it once the record has resolved for the propagation period, and the domain's DKIM tab shows the rest." xml:space="preserve">
+    <value>De sleutelrotatie van de server heeft een volgende sleutel, selector "{0}". Publiceer ook het record daarvan; het ondertekenen stapt ernaar over zodra het record de propagatieperiode lang is opgelost, en het DKIM-tabblad van het domein toont de rest.</value>
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Het serviceaccount kan niet worden gelezen: {0}</value>
@@ -8182,12 +8276,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>De bronbeperking moet een adres (10.0.0.5), een bereik (10.0.0.1-10.0.0.99) of CIDR (10.0.0.0/24) zijn. Laat leeg om de sleutel vanaf elk adres te accepteren.</value>
-  </data>
-  <data name="The staged pair has no selector, so there is no DNS name to check. Cancel the rotation and start again." xml:space="preserve">
-    <value>Het klaargezette paar heeft geen selector, dus er is geen DNS-naam om te controleren. Annuleer de rotatie en begin opnieuw.</value>
-  </data>
-  <data name="The staged rotation is incomplete (the selector or the key file is missing), so the server will refuse to promote it. Cancel the rotation and start again." xml:space="preserve">
-    <value>De klaargezette rotatie is onvolledig (de selector of het sleutelbestand ontbreekt), dus de server weigert hem te promoveren. Annuleer de rotatie en begin opnieuw.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>De opgeslagen vervaldatum kon niet worden gelezen in de vorm die deze pagina verwacht (YYYY-MM-DD HH:MM:SS), dus hiervandaan valt niet te zeggen of de server deze sleutel nog accepteert. Is de regel met de hand bewerkt, corrigeer die dan; trek anders de sleutel in en maak een vervanger aan.</value>
@@ -8331,6 +8419,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Dit draait terwijl de verzendende server op zijn antwoord op DATA wacht, dus het getal is een belofte over het slechtste geval en geen hint. Het begrenst de verbinding én het antwoord: een engine waarvan de machine is verdwenen, zou anders bij elk bericht de eigen TCP-time-out van het besturingssysteem kosten.</value>
+  </data>
+  <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
+    <value>Deze server roteert geen DKIM-sleutels; hij is ouder dan dit Control Panel.</value>
   </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Deze server CONTROLEERT SPF alleen op inkomende mail; het record publiceren is voor alle anderen - het vertelt ontvangende servers welke machines mail mogen versturen die beweert te komen van</value>
@@ -8721,6 +8812,15 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Wachten op een databaseverbinding uit de pool. 0 = geen begrenzing.</value>
+  </data>
+  <data name="Waiting for the DNS record" xml:space="preserve">
+    <value>Wachten op het DNS-record</value>
+  </data>
+  <data name="Waiting for the old selector to be retired." xml:space="preserve">
+    <value>Wachten tot de oude selector is uitgefaseerd.</value>
+  </data>
+  <data name="Waiting for the old selector to retire" xml:space="preserve">
+    <value>Wachten op het uitfaseren van de oude selector</value>
   </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Wekt de indexeerder in plaats van op zijn volgende doorgang te wachten, en meldt hoeveel van de berichten van deze server op dit moment geïndexeerd zijn. De doorgang zelf draait op de achtergrond en wordt begrensd door de limieten hierboven, dus bij een grote achterstand boekt hij vooruitgang zonder klaar te komen. Met indexering uitgeschakeld is er geen indexeerder om te wekken, en dan zegt dit dat, in plaats van succes te melden.</value>
@@ -9352,8 +9452,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
     <value>_Prioriteit (hoger wint wanneer bereiken overlappen)</value>
   </data>
-  <data name="_Promote…" xml:space="preserve">
-    <value>_Promoveren…</value>
+  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
+    <value>Propa_gatieperiode in uren (1 tot 720)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Eigenschappen</value>
@@ -10324,6 +10424,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>Er bestaan {0} TXT-record(s) op {1}, maar geen ervan begint met "v=spf1", dus ontvangers zien helemaal geen SPF-beleid.</value>
   </data>
+  <data name="{0} Until {1}." xml:space="preserve">
+    <value>{0} Tot {1}.</value>
+  </data>
   <data name="{0} account(s) found{1}." xml:space="preserve">
     <value>{0} account(s) gevonden{1}.</value>
   </data>
@@ -10570,6 +10673,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, een virtueel serviceaccount zonder wachtwoord</value>
   </data>
+  <data name="{0}, checked {1}." xml:space="preserve">
+    <value>{0}, gecontroleerd {1}.</value>
+  </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>
   </data>
@@ -10587,6 +10693,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} van {2} actief.</value>
+  </data>
+  <data name="{0}: TXT record at {1}" xml:space="preserve">
+    <value>{0}: TXT-record op {1}</value>
   </data>
   <data name="{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: er bestaan TXT-record(s) op {1}, maar geen ervan begint met v=STSv1, dus afzenders herkennen daar geen beleid. Corrigeer de waarde van het record.</value>
@@ -10686,6 +10795,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: het {1}-TXT-record is gepubliceerd. Niet vanaf hier te controleren: dat mta-sts.{2} naar deze server verwijst, en dat het certificaat die naam dekt.</value>
+  </data>
+  <data name="{0}: {1}" xml:space="preserve">
+    <value>{0}: {1}</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} bevat geen PEM-certificaatblok, dus het bevat geen bruikbaar CA-certificaat (serverfout 6140). Exporteer het CA-certificaat in PEM-indeling (Base64).</value>

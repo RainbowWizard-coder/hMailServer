@@ -86,7 +86,8 @@ anything, and there is no function that enumerates them.
 | Table and column | What it is |
 |---|---|
 | `hm_sslcertificates.sslcertificatefile`, `.sslprivatekeyfile` | Certificate and key files |
-| `hm_domains.domaindkimprivatekeyfile`, `.domaindkimsecondaryprivatekeyfile` | DKIM signing keys |
+| `hm_domains.domaindkimprivatekeyfile`, `.domaindkimsecondaryprivatekeyfile` | DKIM signing keys - by default, those the key rotation generated live under the data directory's `DKIM` folder |
+| `hm_dkimrotations.dkrcurrentkeyfile`, `.dkrnextkeyfile`, `.dkrretiringkeyfile`, `.dkrretiredkeyfile` | The DKIM key rotation's copy of the same paths ([DkimKeyRotation.md](DkimKeyRotation.md)). The rotation follows the domain's own columns at its next pass, so correct those; a retiring key's path is only used to delete it, and a stale one deletes nothing, because the file must be inside the current `DKIM` folder |
 | `hm_tcpipports.portclientcertificatecafile` | The CA bundle for inbound client certificates |
 | `hm_settings` row `backupdestination` | Where backups are written |
 | `hm_settings` rows `avclamwinexec`, `avclamwindb` | ClamWin's scanner and database |
@@ -193,6 +194,9 @@ For each row from step 1's database table that pointed under the old root:
   for the passphrase, so each certificate must be deleted and re-added with its
   new file names, or set over COM.
 - **DKIM keys.** *Domain → DKIM*, both the primary and, if used, the secondary.
+  A domain whose key rotation manages its keys refuses that edit: cancel the next
+  key, retire or wait out the old one and switch the schedule off first, or let
+  the rotation make a new key under the new data directory.
 - **Client-certificate CA bundle.** *Advanced → TCP/IP ports*, per port. A port
   set to *require* a client certificate refuses every client when its bundle
   cannot be loaded.
