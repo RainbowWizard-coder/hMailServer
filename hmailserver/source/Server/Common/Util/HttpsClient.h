@@ -69,6 +69,8 @@ namespace HM
       // http(s)://host[:port]/path -> parts. Port defaults to 443 or 80; path to "/".
       static bool ParseUrl(const AnsiString &url, bool &https, AnsiString &host, AnsiString &port, AnsiString &path);
 
+      // localhost, or a literal address that is loopback (127.0.0.0/8, ::1). A name
+      // that merely starts with 127. is not.
       static bool IsLoopbackHost(const AnsiString &host);
 
       // application/x-www-form-urlencoded, one value.

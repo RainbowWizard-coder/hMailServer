@@ -11,8 +11,6 @@
 #include "../Application/Configuration.h"
 #include "../Application/PropertySet.h"
 
-#include <boost/asio/ip/address.hpp>
-
 #include <algorithm>
 #include <cctype>
 #include <chrono>
@@ -89,22 +87,10 @@ namespace HM
    PasswordBreachCheck::IsLoopbackHost_(const AnsiString &host)
    {
       // Parsed as an address, never matched as text: "127.example.com" starts with
-      // "127." and is somebody else's machine. localhost is the one name accepted,
-      // and only spelled exactly so.
-      AnsiString lower = host;
-      lower.MakeLower();
-      if (lower == "localhost")
-         return true;
-
-      boost::system::error_code ec;
-      const boost::asio::ip::address address = boost::asio::ip::make_address(std::string(host.c_str()), ec);
-      if (ec)
-         return false;
-
-      if (address.is_v6() && address.to_v6().is_v4_mapped())
-         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, address.to_v6()).is_loopback();
-
-      return address.is_loopback();
+      // "127." and is somebody else's machine. HttpsClient::IsLoopbackHost answers
+      // exactly that way since this check arrived, and it is asked here rather than
+      // copied so the endpoint accepted is the endpoint the client will reach.
+      return HttpsClient::IsLoopbackHost(host);
    }
 
    bool

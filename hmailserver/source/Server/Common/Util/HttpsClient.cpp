@@ -15,6 +15,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
+#include <chrono>
 #include <string>
 
 #ifdef _DEBUG
@@ -71,6 +72,45 @@ namespace HM
          response.body = raw.substr(headerEnd + 4).c_str();
 
          return true;
+      }
+
+      // boost::asio::connect with a deadline. The receive and send timeouts below are
+      // set once a socket is connected, and nothing bounded the connect itself: a
+      // host that drops the SYN cost the operating system's own connect timeout,
+      // about 21 seconds on Windows and two minutes on Linux, on whichever thread
+      // asked - a REST worker with a 30-second request of its own, or the Control
+      // Panel's thread while it sets a password. Closing the socket is what ends the
+      // composed operation (it stops trying the next endpoint once the socket is not
+      // open), and the context is run once more so its handler has finished before
+      // the stack it refers to goes away.
+      template <typename EndpointSequence>
+      void ConnectWithin_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket,
+                          const EndpointSequence &endpoints, int timeout_seconds)
+      {
+         boost::system::error_code result = boost::asio::error::would_block;
+
+         boost::asio::async_connect(socket, endpoints,
+            [&result](const boost::system::error_code &ec, const boost::asio::ip::tcp::endpoint &)
+            {
+               result = ec;
+            });
+
+         io.restart();
+         io.run_for(std::chrono::seconds(timeout_seconds > 0 ? timeout_seconds : 20));
+
+         if (result == boost::asio::error::would_block)
+         {
+            boost::system::error_code ignored;
+            socket.close(ignored);
+            io.restart();
+            io.run();
+            throw boost::system::system_error(boost::asio::error::timed_out);
+         }
+
+         io.restart();
+
+         if (result)
+            throw boost::system::system_error(result);
       }
 
       void SetSocketTimeouts_(boost::asio::ip::tcp::socket &socket, int timeout_seconds)
@@ -228,7 +268,7 @@ namespace HM
                   refused.empty() ? String(host) : String(refused.c_str()));
                return false;
             }
-            boost::asio::connect(socket, vetted);
+            ConnectWithin_(io, socket, vetted, timeout_seconds);
             SetSocketTimeouts_(socket, timeout_seconds);
             return true;
          }
@@ -239,12 +279,12 @@ namespace HM
 
          if (proxyHost.empty())
          {
-            boost::asio::connect(socket, resolver.resolve(std::string(host.c_str()), std::string(port.c_str())));
+            ConnectWithin_(io, socket, resolver.resolve(std::string(host.c_str()), std::string(port.c_str())), timeout_seconds);
             SetSocketTimeouts_(socket, timeout_seconds);
             return true;
          }
 
-         boost::asio::connect(socket, resolver.resolve(proxyHost, proxyPort));
+         ConnectWithin_(io, socket, resolver.resolve(proxyHost, proxyPort), timeout_seconds);
          SetSocketTimeouts_(socket, timeout_seconds);
 
          if (!https)
@@ -361,11 +401,23 @@ namespace HM
       AnsiString h = host;
       h.MakeLower();
 
-      if (h == "localhost" || h == "::1")
+      if (h == "localhost")
          return true;
 
-      // 127.0.0.0/8
-      return h.StartsWith("127.");
+      // An address, parsed - never a prefix of the text. "127." used to be enough,
+      // which let http://127.attacker.example/ through as "loopback" for the JWKS
+      // document, the introspection verdict and the update feed alike; that name is
+      // whatever its owner's DNS says it is. 127.0.0.0/8, ::1, and 127/8 carried in
+      // an IPv4-mapped IPv6 address.
+      boost::system::error_code ec;
+      const boost::asio::ip::address address = boost::asio::ip::make_address(std::string(h.c_str()), ec);
+      if (ec)
+         return false;
+
+      if (address.is_v6() && address.to_v6().is_v4_mapped())
+         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, address.to_v6()).is_loopback();
+
+      return address.is_loopback();
    }
 
    AnsiString
