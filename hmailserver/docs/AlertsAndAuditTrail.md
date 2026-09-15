@@ -28,7 +28,7 @@ deleted, and every server setting written. One row per change, in `hm_audit`:
 | Column | What it holds |
 |---|---|
 | `audittime` | When, in seconds since the epoch, UTC. |
-| `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. |
+| `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. An account signed in with its own password — a domain administrator, a help desk, an auditor — is its address over COM and `account:<address>` over REST and the Deck. |
 | `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
 | `auditinterface` | `COM`, `REST` or `Deck`. |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
