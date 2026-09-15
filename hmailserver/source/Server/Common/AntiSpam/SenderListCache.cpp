@@ -1,0 +1,209 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+#include "StdAfx.h"
+
+#include "SenderListCache.h"
+#include "../BO/SenderListEntry.h"
+#include "../BO/SenderListEntries.h"
+
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
+
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+
+namespace HM
+{
+   namespace
+   {
+      boost::shared_mutex sender_list_mutex;
+   }
+
+   std::vector<std::shared_ptr<SenderListEntry> > SenderListCache::entries_;
+   bool SenderListCache::need_refresh_ = true;
+
+   void
+   SenderListCache::SetNeedRefresh()
+   {
+      need_refresh_ = true;
+   }
+
+   void
+   SenderListCache::Refresh_()
+   {
+      SenderListEntries all;
+
+      if (!all.RefreshAll())
+      {
+         // The database could not be read. Keep what is here and leave the flag
+         // set so the next message retries. Replacing the list with an empty one
+         // would silently drop every allow entry - and an allow entry is the
+         // thing standing between a customer's invoice and the junk folder, so
+         // "we could not read it, therefore nobody allowed anything" is the one
+         // answer that must never be given.
+         return;
+      }
+
+      entries_ = all.GetConstVector();
+      need_refresh_ = false;
+   }
+
+   bool
+   SenderListCache::IsEmpty()
+   {
+      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+      if (need_refresh_)
+      {
+         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+         Refresh_();
+      }
+
+      return entries_.empty();
+   }
+
+   String
+   SenderListCache::ScopeName(int scope)
+   {
+      switch (scope)
+      {
+      case SenderListEntry::ScopeAccount:
+         return _T("account");
+      case SenderListEntry::ScopeDomain:
+         return _T("domain");
+      case SenderListEntry::ScopeServer:
+         return _T("server");
+      default:
+         return _T("unknown");
+      }
+   }
+
+   SenderListCache::Decision
+   SenderListCache::Evaluate_(const String &senderAddress, int scope, __int64 ownerId)
+   {
+      Decision decision;
+      decision.scope = scope;
+
+      int bestSpecificity = -1;
+
+      for (const std::shared_ptr<SenderListEntry> &entry : entries_)
+      {
+         if (entry->GetScope() != scope)
+            continue;
+
+         if (entry->GetOwnerID() != ownerId)
+            continue;
+
+         if (entry->HasExpired())
+            continue;
+
+         if (!entry->Matches(senderAddress))
+            continue;
+
+         const int specificity = entry->Specificity();
+         const Verdict verdict = entry->GetBlocked() ? Blocked : Allowed;
+
+         if (specificity > bestSpecificity)
+         {
+            bestSpecificity = specificity;
+            decision.verdict = verdict;
+            decision.value = entry->GetValue();
+            decision.reason = entry->GetReason();
+            continue;
+         }
+
+         // An exact tie between an allow and a block. Block wins; see the header
+         // for why. The allow's text is discarded so the log line and the header
+         // name the entry that actually decided.
+         if (specificity == bestSpecificity && verdict == Blocked && decision.verdict != Blocked)
+         {
+            decision.verdict = Blocked;
+            decision.value = entry->GetValue();
+            decision.reason = entry->GetReason();
+         }
+      }
+
+      return decision;
+   }
+
+   SenderListCache::Decision
+   SenderListCache::DecideAtScope(const String &senderAddress, int scope, __int64 ownerId)
+   {
+      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+      if (need_refresh_)
+      {
+         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+         Refresh_();
+      }
+
+      return Evaluate_(senderAddress, scope, ownerId);
+   }
+
+   SenderListCache::Decision
+   SenderListCache::Decide(const String &senderAddress, __int64 accountId, __int64 domainId)
+   {
+      Decision decision;
+
+      if (senderAddress.IsEmpty())
+      {
+         // The null sender carries bounces. Nothing lists it, and nothing may
+         // stop it: a list that could swallow a delivery status notification
+         // would make a delivery failure invisible to the person who sent the
+         // message.
+         return decision;
+      }
+
+      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+      if (need_refresh_)
+      {
+         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+         Refresh_();
+      }
+
+      if (entries_.empty())
+         return decision;
+
+      // Nearest first, and the first scope with anything to say is the last one
+      // consulted. Written as a loop over the three scopes in order rather than
+      // as three blocks, so that the order is one line to read and one line to
+      // change.
+      const int scopes[] =
+      {
+         SenderListEntry::ScopeAccount,
+         SenderListEntry::ScopeDomain,
+         SenderListEntry::ScopeServer
+      };
+
+      for (const int scope : scopes)
+      {
+         __int64 ownerId = 0;
+
+         if (scope == SenderListEntry::ScopeAccount)
+         {
+            if (accountId == 0)
+               continue;
+            ownerId = accountId;
+         }
+         else if (scope == SenderListEntry::ScopeDomain)
+         {
+            if (domainId == 0)
+               continue;
+            ownerId = domainId;
+         }
+
+         decision = Evaluate_(senderAddress, scope, ownerId);
+
+         if (decision.verdict != NoOpinion)
+            return decision;
+      }
+
+      Decision none;
+      return none;
+   }
+}

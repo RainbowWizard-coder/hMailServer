@@ -269,6 +269,8 @@ namespace HM
          "vacation_enabled", "vacation_subject", "vacation_message",
          "vacation_internal_subject", "vacation_internal_message", "vacation_external_override",
          "ad_domain_name"
+         "ad_domain_name",
+         "quarantine_digest", "quarantine_digest_hour"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -318,6 +320,7 @@ namespace HM
          long maxMessageSize = domain->GetMaxMessageSize(), maxSize = domain->GetMaxSizeMB(), maxAccountSize = domain->GetMaxAccountSize();
          long maxAccounts = domain->GetMaxNoOfAccounts(), maxAliases = domain->GetMaxNoOfAliases(), maxLists = domain->GetMaxNoOfDistributionLists();
          long retention = domain->GetMessageRetentionDays(), relayPort = domain->GetRelayPort();
+         long digestHour = domain->GetQuarantineDigestHour();
 
          if (!ReadInteger(body, "max_message_size_kb", 0, 2000000000L, maxMessageSize, error) ||
              !ReadInteger(body, "max_size_mb", 0, 2000000000L, maxSize, error) ||
@@ -326,7 +329,8 @@ namespace HM
              !ReadInteger(body, "max_aliases", 0, 2000000000L, maxAliases, error) ||
              !ReadInteger(body, "max_lists", 0, 2000000000L, maxLists, error) ||
              !ReadInteger(body, "message_retention_days", 0, 100000, retention, error) ||
-             !ReadInteger(body, "relay_port", 0, 65535, relayPort, error))
+             !ReadInteger(body, "relay_port", 0, 65535, relayPort, error) ||
+             !ReadInteger(body, "quarantine_digest_hour", 0, 23, digestHour, error))
             return false;
 
          bool active = domain->GetIsActive();
@@ -337,6 +341,7 @@ namespace HM
          bool signatureLocal = domain->GetAddSignaturesToLocalMail(), dkimEnabled = domain->GetDKIMEnabled();
          bool relayAuth = domain->GetRelayRequiresAuth(), vacationOn = domain->GetVacationMessageIsOn();
          bool dkimSignAliases = domain->GetDKIMAliasesEnabled(), vacationExternalOverride = domain->GetVacationExternalOverride();
+         bool quarantineDigest = domain->GetQuarantineDigest();
 
          if (!ReadBool(body, "active", active, error) ||
              !ReadBool(body, "max_accounts_enabled", maxAccountsEnabled, error) ||
@@ -351,7 +356,8 @@ namespace HM
              !ReadBool(body, "dkim_sign_aliases", dkimSignAliases, error) ||
              !ReadBool(body, "relay_requires_auth", relayAuth, error) ||
              !ReadBool(body, "vacation_enabled", vacationOn, error) ||
-             !ReadBool(body, "vacation_external_override", vacationExternalOverride, error))
+             !ReadBool(body, "vacation_external_override", vacationExternalOverride, error) ||
+             !ReadBool(body, "quarantine_digest", quarantineDigest, error))
             return false;
 
          // The two canonicalisation methods, as put_DKIMHeaderCanonicalizationMethod
@@ -469,6 +475,8 @@ namespace HM
          domain->SetVacationInternalSubject(vacationInternalSubject);
          domain->SetVacationInternalMessage(vacationInternalMessage);
          domain->SetVacationExternalOverride(vacationExternalOverride);
+         domain->SetQuarantineDigest(quarantineDigest);
+         domain->SetQuarantineDigestHour((int) digestHour);
          domain->SetADDomainName(adDomainName);
          return true;
       }
@@ -507,12 +515,13 @@ namespace HM
          domain->GetMaxAccountSize());
 
       AnsiString limits;
-      limits.Format(",\"max_accounts\":%d,\"max_aliases\":%d,\"max_lists\":%d,\"message_retention_days\":%d,\"relay_port\":%ld",
+      limits.Format(",\"max_accounts\":%d,\"max_aliases\":%d,\"max_lists\":%d,\"message_retention_days\":%d,\"relay_port\":%ld,\"quarantine_digest_hour\":%d",
          domain->GetMaxNoOfAccounts(),
          domain->GetMaxNoOfAliases(),
          domain->GetMaxNoOfDistributionLists(),
          domain->GetMessageRetentionDays(),
-         domain->GetRelayPort());
+         domain->GetRelayPort(),
+         domain->GetQuarantineDigestHour());
       entry += limits;
 
       auto flag = [&entry](const char *name, bool value)
@@ -559,6 +568,7 @@ namespace HM
       text("vacation_internal_subject", domain->GetVacationInternalSubject());
       text("vacation_internal_message", domain->GetVacationInternalMessage());
       flag("vacation_external_override", domain->GetVacationExternalOverride());
+      flag("quarantine_digest", domain->GetQuarantineDigest());
       text("ad_domain_name", domain->GetADDomainName());
       entry += "}";
       return entry;

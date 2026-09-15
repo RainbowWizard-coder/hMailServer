@@ -107,6 +107,17 @@ namespace HM
       String GetMirrorAddress() const;
       void SetMirrorAddress(const String &sAddress);
 
+      // The quarantine digest, in hm_settings as a setting added after 15
+      // September 2026 belongs. The base URL is the absolute address the digest
+      // writes its release links against; empty means no digest is sent, because
+      // a link nobody can follow is worse than no message. The link hours are how
+      // long one of those links stays usable, and each also works only once.
+      String GetQuarantineDigestBaseUrl() const;
+      void SetQuarantineDigestBaseUrl(const String &url);
+
+      int GetQuarantineDigestLinkHours() const;
+      void SetQuarantineDigestLinkHours(int hours);
+
 
       // BACKUP OPTIONS
       String GetBackupDestination() const;

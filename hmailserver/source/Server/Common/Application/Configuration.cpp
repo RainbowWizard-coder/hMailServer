@@ -263,6 +263,30 @@ namespace HM
       return GetSettings()->GetString(PROPERTY_MIRROREMAILADDRESS);
    }
 
+   void
+   Configuration::SetQuarantineDigestBaseUrl(const String &url)
+   {
+      GetSettings()->SetString(PROPERTY_QUARANTINE_DIGEST_BASE_URL, url);
+   }
+
+   String
+   Configuration::GetQuarantineDigestBaseUrl() const
+   {
+      return GetSettings()->GetString(PROPERTY_QUARANTINE_DIGEST_BASE_URL);
+   }
+
+   void
+   Configuration::SetQuarantineDigestLinkHours(int hours)
+   {
+      GetSettings()->SetLong(PROPERTY_QUARANTINE_DIGEST_LINK_HOURS, hours);
+   }
+
+   int
+   Configuration::GetQuarantineDigestLinkHours() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_QUARANTINE_DIGEST_LINK_HOURS);
+   }
+
    bool
    Configuration::GetLogSMTPConversations() const
    {

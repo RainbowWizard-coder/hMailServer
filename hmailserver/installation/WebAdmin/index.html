@@ -816,6 +816,9 @@ const DOMAIN_GROUPS=[
     vacation_enabled:{type:"boolean",description:K("Send a domain-wide out-of-office reply. It answers only for accounts that have no vacation message of their own, and at most one reply answers any message.")},
     vacation_subject:{type:"string",description:K("The reply's subject.")},
     vacation_message:{type:"string",format:"multiline",description:K("The reply's text.")}}},
+  {title:K("Quarantine digest"),props:{
+    quarantine_digest:{type:"boolean",description:K("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default, and nothing is sent until the server's QuarantineDigestBaseUrl names the address those links point at.")},
+    quarantine_digest_hour:{type:"integer",description:K("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")}}},
   {title:K("DKIM"),props:{
     dkim_enabled:{type:"boolean",description:K("Sign outgoing mail from this domain.")},
     dkim_selector:{type:"string",description:K("The selector, which names the DNS record the public key is published under.")},
@@ -2109,6 +2112,9 @@ const COLLECTIONS=[
   {id:"attachments",path:"/api/v1/blocked-attachments",title:K("Blocked attachments"),columns:["wildcard","description"],
     add:K("Add a blocked attachment"),fresh:K("New blocked attachment"),edit:K("Edit blocked attachment {0}"),save:K("Save blocked attachment"),ask:K("Delete the blocked attachment {0}?"),saved:K("Blocked attachment saved"),deleted:K("Blocked attachment deleted"),
     defaults:{wildcard:"*.exe"},hints:{wildcard:K("A file-name pattern, such as *.exe."),description:K("A note.")}},
+  {id:"senderlist",path:"/api/v1/sender-list",title:K("Allow and block list"),columns:["value","blocked","reason","expires"],
+    add:K("Add an entry"),fresh:K("New list entry"),edit:K("Edit list entry {0}"),save:K("Save list entry"),ask:K("Delete the list entry {0}?"),saved:K("List entry saved"),deleted:K("List entry deleted"),
+    defaults:{blocked:false,expires:false},hints:{value:K("An address, or a domain that covers its subdomains."),blocked:K("On blocks the sender for every account; off lets its mail past the spam filter."),reason:K("Why the entry is there."),expires:K("Whether the entry stops mattering at a time."),expires_time:K("When it stops mattering, as YYYY-MM-DD HH:MM:SS.")}},
   {id:"greylist",path:"/api/v1/greylisting-white-addresses",title:K("Greylisting white list"),columns:["ip_address","description"],
     add:K("Add a greylisting white address"),fresh:K("New greylisting white address"),edit:K("Edit greylisting white address {0}"),save:K("Save greylisting white address"),ask:K("Delete the greylisting white address {0}?"),saved:K("Greylisting white address saved"),deleted:K("Greylisting white address deleted"),
     defaults:{},hints:{ip_address:K("An address, or a pattern such as 192.168.* or 2001:db8:*."),description:K("A note.")}},

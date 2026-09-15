@@ -2841,6 +2841,94 @@ STDMETHODIMP InterfaceSettings::get_IniSettingNames(BSTR *pVal)
    }
 }
 
+STDMETHODIMP InterfaceSettings::get_QuarantineDigestBaseUrl(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetQuarantineDigestBaseUrl().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_QuarantineDigestBaseUrl(BSTR newVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String url = newVal;
+      url.Trim();
+
+      // Refused rather than stored and ignored. A value that is not an absolute
+      // http or https URL silently switches the whole digest off - the sender
+      // checks the same thing and sends nothing - and an administrator who typed
+      // "mail.example.com" would be left with a feature that is on in every
+      // domain and never does anything.
+      if (!url.IsEmpty())
+      {
+         HM::String lowered = url;
+         lowered.MakeLower();
+
+         if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
+            return COMError::GenerateError("The base URL is absolute and begins with http:// or https://, such as https://mail.example.com.");
+      }
+
+      config_->SetQuarantineDigestBaseUrl(url);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_QuarantineDigestLinkHours(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = (long) config_->GetQuarantineDigestLinkHours();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_QuarantineDigestLinkHours(long newVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 720)
+         return COMError::GenerateError("A release link lives between 1 and 720 hours.");
+
+      config_->SetQuarantineDigestLinkHours((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceSettings::TestLdapDirectory(long MaxUsers, BSTR *ResultText, VARIANT_BOOL *pResult)
 {
    try

@@ -20,6 +20,9 @@
 #include "InterfaceGreyListingWhiteAddresses.h"
 #include "InterfaceWhiteListAddresses.h"
 #include "InterfaceBlockedSenders.h"
+#include "InterfaceSenderListEntries.h"
+#include "../Common/BO/SenderListEntries.h"
+#include "../Common/BO/SenderListEntry.h"
 #include "InterfaceSURBLServers.h"
 #include "InterfaceDNSBlackLists.h"
 
@@ -607,6 +610,38 @@ STDMETHODIMP InterfaceAntiSpam::get_BlockedSenders(IInterfaceBlockedSenders **pV
       pBlockedSenders->AddRef();
 
       *pVal = pBlockedSenders;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_SenderList(IInterfaceSenderListEntries **pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      // A fresh collection every time rather than one the configuration holds.
+      // The server does not read this collection - SenderListCache does, out of
+      // its own copy of the whole table, which every save and delete
+      // invalidates - so there is no live list here to keep in step, and a
+      // caller that held a stale one would be editing yesterday's rows.
+      std::shared_ptr<HM::SenderListEntries> entries =
+         std::shared_ptr<HM::SenderListEntries>(new HM::SenderListEntries(HM::SenderListEntry::ScopeServer, 0));
+
+      entries->Refresh();
+
+      CComObject<InterfaceSenderListEntries>* pInterface = new CComObject<InterfaceSenderListEntries>();
+      pInterface->SetAuthentication(authentication_);
+      pInterface->Attach(entries);
+      pInterface->AddRef();
+
+      *pVal = pInterface;
 
       return S_OK;
    }

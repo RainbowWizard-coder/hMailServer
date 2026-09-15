@@ -11,6 +11,8 @@
 #include "PersistentAccount.h"
 #include "../Util/StorePath.h"
 #include "PersistentACLPermission.h"
+#include "PersistentSenderListEntry.h"
+#include "../BO/SenderListEntry.h"
 #include "PersistentFetchAccount.h"
 #include "PersistentRule.h"
 #include "PersistentIMAPFolder.h"
@@ -121,6 +123,13 @@ namespace HM
 
       if (!PersistentACLPermission::DeleteOwnedByAccount(iID))
          orphans.push_back(_T("the folder permissions it granted"));
+
+      // Its own safe-sender and blocked-sender list. Account ids are reissued,
+      // so a list left behind would become somebody else's the day the number is
+      // handed out again - and an allow list inherited by a stranger is a
+      // stranger's mail skipping the spam filter.
+      if (!PersistentSenderListEntry::DeleteByOwner(SenderListEntry::ScopeAccount, iID))
+         orphans.push_back(_T("its safe-sender and blocked-sender list"));
 
       if (!orphans.empty())
       {

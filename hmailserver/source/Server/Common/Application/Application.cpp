@@ -71,6 +71,7 @@
 #include "ArchiveRetentionTask.h"
 #include "MailboxRetentionTask.h"
 #include "MetricsHistoryTask.h"
+#include "QuarantineDigestTask.h"
 #include "UpdateCheckTask.h"
 #include "../Util/UpdateApplyToken.h"
 #include "../Util/UpdateChecker.h"
@@ -733,6 +734,17 @@ namespace HM
       metricsHistoryTask->SetReoccurance(ScheduledTask::RunInfinitely);
       metricsHistoryTask->SetMinutesBetweenRun(1);
       scheduler_->ScheduleTask(metricsHistoryTask);
+
+      // The quarantine digest. Every five minutes rather than once a day, so
+      // that a domain's sends are spread across its digest hour instead of
+      // arriving as one storm; the task no-ops when the quarantine is off, when
+      // no domain has the digest switched on, or when no base URL has been set
+      // for its links. No startup run: a restart must not send anybody a second
+      // digest.
+      std::shared_ptr<QuarantineDigestTask> quarantineDigestTask = std::shared_ptr<QuarantineDigestTask>(new QuarantineDigestTask);
+      quarantineDigestTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      quarantineDigestTask->SetMinutesBetweenRun(5);
+      scheduler_->ScheduleTask(quarantineDigestTask);
 
       // The update check: does the project have a newer release than this one.
       // The task no-ops until UpdateCheckEnabled=1 (Status.CheckForUpdate is the

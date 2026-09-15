@@ -80,6 +80,20 @@ namespace HM
       int GetMessageRetentionDays() const { return message_retention_days_; }
       void SetMessageRetentionDays(int days) { message_retention_days_ = days; }
 
+      // The quarantine digest: one message to each account of this domain that
+      // has something newly held for it, listing what was held and carrying a
+      // link that releases it. Off by default and per domain, because the digest
+      // is the first mail this server sends to its own users unprompted, and an
+      // upgrade must not start doing that on its own.
+      bool GetQuarantineDigest() const { return quarantine_digest_ ? true : false; }
+      void SetQuarantineDigest(bool newVal) { quarantine_digest_ = newVal ? 1 : 0; }
+
+      // The hour of the local day the digest goes out, 0 to 23. The sends are
+      // spread across that hour rather than fired at the top of it; see
+      // QuarantineDigestTask.
+      int GetQuarantineDigestHour() const { return quarantine_digest_hour_; }
+      void SetQuarantineDigestHour(int newVal) { quarantine_digest_hour_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bNewVal);
 
@@ -274,6 +288,8 @@ namespace HM
       unsigned int max_message_size_;
       int max_size_mb_;
       int message_retention_days_;
+      int quarantine_digest_;
+      int quarantine_digest_hour_;
       int max_no_of_accounts_;
       int max_no_of_aliases_;
       int max_no_of_distribution_lists_;

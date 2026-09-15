@@ -213,8 +213,8 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section'];
-  var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'security-section', 'password-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section'];
+  var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
     el('settings-head').hidden = SETTINGS_PANELS.indexOf(id) < 0;
@@ -1766,6 +1766,7 @@
     if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadContacts(); return; }
     if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
     if (head === 'storage') { showPanel('storage-section', 'Storage'); markNav('/storage'); loadStorage(); loadFiles(); return; }
+    if (head === 'senders') { showPanel('senders-section', t('Safe senders')); markNav('/senders'); loadSenderList(); loadDigestSetting(); return; }
     if (head === 'security') { showPanel('security-section', 'Security'); markNav('/security'); loadSecurity(); return; }
     if (head === 'password') {
       if (directoryLinked) { replaceWith('/f/' + inboxId); return; }
@@ -2947,6 +2948,29 @@
   // The account's own password goes with the request, and the one-time
   // code when the server asks for it: minting a credential is proven by
   // the person, not by the session.
+  el('sender-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = {
+      value: el('sender-value').value,
+      blocked: el('sender-kind').value === 'block',
+      reason: el('sender-reason').value
+    };
+    call('POST', '/api/v1/me/sender-list', body).then(function (result) {
+      if (result.status !== 201 && result.status !== 200) { say('sender-status', describe(result, t('Could not add it')), false); return; }
+      el('sender-value').value = '';
+      el('sender-reason').value = '';
+      say('sender-status', result.status === 200 ? t('That address was already on your list; it has been changed.') : t('Added.'), true);
+      loadSenderList();
+    });
+  });
+  el('digest-enabled').addEventListener('change', function () {
+    var wanted = el('digest-enabled').checked;
+    call('PUT', '/api/v1/me/quarantine-digest', { enabled: wanted }).then(function (result) {
+      if (result.status !== 200 || !result.data) { say('digest-status', describe(result, t('Could not save that')), false); loadDigestSetting(); return; }
+      renderDigestSetting(result.data);
+      say('digest-status', wanted ? t('You will get the digest.') : t('You will not get the digest. Held mail is still held, and still listed here.'), true);
+    });
+  });
   el('apppassword-form').addEventListener('submit', function (event) {
     event.preventDefault();
     forgetSecret();
@@ -4486,6 +4510,7 @@
     add('Contacts', 'page', function () { go('/contacts'); });
     add('Away and forwarding', 'page', function () { go('/away'); });
     add('Storage', 'page', function () { go('/storage'); });
+    add('Safe senders', 'page', function () { go('/senders'); });
     add('Security', 'page', function () { go('/security'); });
     if (!directoryLinked) { add('Change password', 'page', function () { go('/password'); }); }
     add('Light or dark', 'action', function () { el('theme-btn').click(); });
@@ -5462,17 +5487,80 @@
     });
   };
   el('message-phish').addEventListener('click', function () { if (current) { closeMenus(); reportPhishing(current); } });
+  // Block this sender. It used to write a rule into the account's own Sieve
+  // script - a move-to-Junk, or a discard when the account had no Junk folder.
+  // It writes to the blocked-sender list instead, and the reasons are worth
+  // keeping: a rule could not say "and everything under that domain" without a
+  // second rule, it could not expire, it was invisible to the administrator
+  // looking at why a sender was not getting through, and the discard branch
+  // destroyed mail - which is the one thing "block" must never mean. An
+  // existing rule somebody already has is left exactly where it is; nothing
+  // migrates and nothing is deleted.
   var blockSender = function (address) {
     address = String(address || '').trim();
     if (!address) { return; }
-    withRules(function (rules) {
-      var junk = allFolders.filter(function (f) { return !f.owner && folderIs(f.id, 'Junk'); })[0];
-      var rule = junk ? { field: 'from', text: address, action: 'move', folder: junk.path } : { field: 'from', text: address, action: 'discard' };
-      var before = rules.slice();
-      return saveRules(rules.concat([rule])).then(function (ok) {
-        if (!ok) { return; }
-        toast(tf('Messages from {0} will go to {1}.', address, junk ? junk.path : t('nowhere')), function () { saveRules(before); });
+    call('POST', '/api/v1/me/sender-list', { value: address, blocked: true }).then(function (result) {
+      if (result.status !== 201 && result.status !== 200) { toast(describe(result, t('Could not add it'))); return; }
+      var id = result.data && result.data.id;
+      toast(tf('Mail from {0} will be held as junk.', address), id ? function () {
+        call('DELETE', '/api/v1/me/sender-list/' + id).then(function () { loadSenderList(); });
+      } : null);
+      loadSenderList();
+    });
+  };
+  // Safe senders and blocked senders: one list, one row per address or domain,
+  // and a POST of a value already on it rewrites that row rather than adding a
+  // second - so moving an address from safe to blocked is one action and never
+  // leaves the two halves arguing.
+  var renderSenderList = function (items) {
+    var rows = el('sender-rows');
+    clear(rows);
+    items.forEach(function (entry) {
+      var tr = document.createElement('tr');
+      tr.appendChild(node('td', entry.value));
+      tr.appendChild(node('td', entry.blocked ? t('Blocked') : t('Safe')));
+      tr.appendChild(node('td', entry.reason || ''));
+      var actions = document.createElement('td');
+      var flip = button(entry.blocked ? t('Make safe') : t('Block'));
+      flip.addEventListener('click', function () {
+        call('PUT', '/api/v1/me/sender-list/' + entry.id, { blocked: !entry.blocked }).then(function (result) {
+          if (result.status !== 200) { say('sender-status', describe(result, t('Could not change it')), false); return; }
+          loadSenderList();
+        });
       });
+      var remove = button(t('Remove'));
+      remove.addEventListener('click', function () {
+        call('DELETE', '/api/v1/me/sender-list/' + entry.id).then(function (result) {
+          if (result.status !== 200) { say('sender-status', describe(result, t('Could not remove it')), false); return; }
+          say('sender-status', t('Removed.'), true);
+          loadSenderList();
+        });
+      });
+      actions.appendChild(flip);
+      actions.appendChild(remove);
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('sender-empty').hidden = items.length > 0;
+    el('sender-table').hidden = items.length === 0;
+  };
+  var loadSenderList = function () {
+    return call('GET', '/api/v1/me/sender-list').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('sender-status', describe(result, t('Could not read your lists')), false); return; }
+      renderSenderList(result.data.items || []);
+    });
+  };
+  var renderDigestSetting = function (state) {
+    el('digest-enabled').checked = !!state.enabled;
+    el('digest-enabled').disabled = !state.available;
+    el('digest-note').textContent = state.available
+      ? (state.last_sent ? tf('The last one was sent {0}.', state.last_sent) : t('None has been sent to you yet.'))
+      : t('Your server does not send a digest, so there is nothing to switch on here.');
+  };
+  var loadDigestSetting = function () {
+    return call('GET', '/api/v1/me/quarantine-digest').then(function (result) {
+      if (result.status !== 200 || !result.data) { return; }
+      renderDigestSetting(result.data);
     });
   };
   // The account's rules as the server has them now - the page's copy is only

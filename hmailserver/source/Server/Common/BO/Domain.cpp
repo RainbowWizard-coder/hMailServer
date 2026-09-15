@@ -28,6 +28,8 @@ namespace HM
       anti_spam_options_(1),
       max_size_mb_(0),
       message_retention_days_(0),
+      quarantine_digest_(0),
+      quarantine_digest_hour_(7),
       enable_signature_(false),
       signature_method_(SMSetIfNotSpecifiedInAccount),
       add_signatures_to_local_mail_(true),

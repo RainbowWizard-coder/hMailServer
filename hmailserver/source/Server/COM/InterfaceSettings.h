@@ -259,6 +259,12 @@ END_COM_MAP()
    STDMETHOD(DeleteIniSetting)(/*[in]*/ BSTR Name);
    STDMETHOD(get_IniSettingNames)(/*[out, retval]*/ BSTR *pVal);
 
+   // The quarantine digest, which lives in hm_settings rather than the ini.
+   STDMETHOD(get_QuarantineDigestBaseUrl)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_QuarantineDigestBaseUrl)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_QuarantineDigestLinkHours)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuarantineDigestLinkHours)(/*[in]*/ long newVal);
+
    STDMETHOD(TestLdapDirectory)(/*[in]*/ long MaxUsers, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);
 
    STDMETHOD(PreviewDirectorySync)(/*[in]*/ BSTR DomainName, /*[in]*/ VARIANT_BOOL DisableMissing, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);
