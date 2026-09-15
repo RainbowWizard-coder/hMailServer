@@ -47,6 +47,15 @@ Four things are checked, and the last two are the ones that earn this script:
      classified in PermissionFor_ as well, since a second permission can only
      narrow a route somebody already decided about.
 
+     The second permissions that were DECIDED are pinned in SECOND_REQUIRED:
+     the reports need view_message_trace beside view_configuration, because
+     their senders and recipients are who mails whom. Without the pin, deleting
+     the case from SecondPermissionFor_ would pass every rule above - the
+     invariant only judges what is there - and the decision would be guarded
+     by a regression test alone. And Authorize_ must ask for the second
+     permission with an AND: the check names the whole expression, so that an
+     OR, which would let either permission open the route, fails here too.
+
      The API-key routes are the documented exception: they are refused to every
      credential but the administrator password in Authorize_ before any
      permission is consulted, so their classification (manage_roles) is about
@@ -120,12 +129,27 @@ REQUIRED = [
     (ROLE_H, "static RoleGrant GrantForApiKey("),
     (REST_H, "static RolePermission PermissionFor_(RouteKind kind);"),
     (REST_H, "static bool SecondPermissionFor_(RouteKind kind, RolePermission &permission);"),
-    # Authorize_ must ask for the second permission, or naming one guards nothing.
+    # Authorize_ must ask for the second permission, or naming one guards
+    # nothing - and ask for it with an AND after the first, so that neither
+    # permission alone opens the route. The whole expression, line by line.
     (REST_CPP, "SecondPermissionFor_(route.kind, secondPermission)"),
+    (REST_CPP, "RoleManager::Allows(caller.grant, PermissionFor_(route.kind), routeDomain, roleRefusal) &&"),
+    (REST_CPP, "RoleManager::Allows(caller.grant, secondPermission, routeDomain, roleRefusal));"),
     (REST_H, "static bool IsSessionRoute_(RouteKind kind);"),
     (COM_CPP, "RoleManager::Allows(grant_, RolePermission::AdministerServer)"),
     (COM_CPP, "RoleManager::Allows(grant_, RolePermission::AdministerDomain)"),
 ]
+
+# The second permissions that were decided, and must stay decided. A route
+# here must be named in SecondPermissionFor_ with exactly this permission;
+# the invariant above cannot notice a case that was deleted.
+#
+#   RouteReport   GET /api/v1/reports and its senders and recipients list who
+#                 mails whom, which is traffic metadata read out of the
+#                 message trace and not configuration (15 September 2026).
+SECOND_REQUIRED = {
+    "RouteReport": "ViewMessageTrace",
+}
 
 # Refused to every credential but the administrator password before any
 # permission is consulted; see Authorize_.
@@ -280,6 +304,13 @@ def check_routes(problems, header, cpp, role_cpp):
                 "permission narrows a route somebody classified, it does not classify one"
                 % (REST_CPP, kind))
 
+    for kind, permission in sorted(SECOND_REQUIRED.items()):
+        if second.get(kind) != permission:
+            problems.append(
+                "%s: %s needs '%s' as its second permission and has %s - that permission was "
+                "decided, not derived, and deleting the case from SecondPermissionFor_ does not undecide it"
+                % (REST_CPP, kind, permission, "'%s'" % second[kind] if kind in second else "none"))
+
     for kind, permission in sorted(classified.items()):
         if kind in API_KEY_ROUTES:
             continue
@@ -423,6 +454,8 @@ def self_test():
          "a read whose second permission the auditor lacks is not reported"),
         ("RouteSecondAndNothingElse is named in SecondPermissionFor_ and not in PermissionFor_",
          "a second permission on a route nobody classified is not reported"),
+        ("RouteReport needs 'ViewMessageTrace' as its second permission and has none",
+         "a decided second permission missing from SecondPermissionFor_ is not reported"),
         ("domainadmin does not hold AdministerDomain", "a domainadmin without its level is not reported"),
         ("helpdesk holds AdministerServer", "a narrow role holding the full authority is not reported"),
     ]
