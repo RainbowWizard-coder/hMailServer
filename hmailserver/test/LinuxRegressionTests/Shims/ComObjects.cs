@@ -2866,14 +2866,17 @@ namespace hMailServer
       // Sending the rest as well would write the shim's own idea of them over the
       // account - which is how a test that switched forwarding off and asserted the
       // address was kept came to fail: the object it saved had been read back from
-      // the listing, which carries neither the address nor the names.
+      // the listing, which carries no forwarding address.
       private readonly Dictionary<string, string> _changed = new Dictionary<string, string>();
 
-      // GET /api/v1/domains/{domain}/accounts reports an address and whether it is
-      // active, and nothing else - no name, no forwarding, no signature, no admin
-      // level. So an account object made from that listing knows those two things
-      // and no more, and a fixture that reads one of the others off it is reading a
-      // value nobody gave it. Rather than answer with this shim's own default, which
+      // GET /api/v1/domains/{domain}/accounts reports the six columns a spreadsheet
+      // export writes - address, active, max_size_mb, first_name, last_name and
+      // admin_level - and on a server from before that change an address and
+      // whether it is active, nothing else; neither says anything of forwarding
+      // or a signature. An account object made from the listing is seeded with the
+      // address and the active flag alone, whichever server it is, and a fixture
+      // that reads another field off it is reading a value nobody gave this object.
+      // Rather than answer with this shim's own default, which
       // would be a test passing or failing on a value the server never said, each
       // field is answered only when the run knows it: because it was just written
       // here, or because it came from a route that reports it.
@@ -3272,10 +3275,17 @@ namespace hMailServer
          if (Unsaved)
          {
             var domain = DomainName ?? Address.Substring(Address.IndexOf('@') + 1);
+
+            // A field the create does not carry goes through the update straight
+            // after it; a server without the update cannot store one, and the test
+            // is stopped with that reason before anything is made.
+            if (_changed.Keys.Any(field => !CreateCarries_(field)) && !ServerApi.HasAccountUpdateRoute)
+               NotOnThisServer.Ignore(NotOnThisServer.NoAccountUpdate);
+
             var created = ServerApi.Post("/api/v1/domains/" + domain + "/accounts",
                "{\"address\":" + ServerApi.Quote(Address) + ",\"password\":" + ServerApi.Quote(_password ?? string.Empty) +
                ",\"active\":" + (_active ? "true" : "false") +
-               (_maxSize != 0 ? ",\"max_size_mb\":" + _maxSize : string.Empty) + "}");
+               (_maxSize != 0 ? ",\"max_size_mb\":" + _maxSize : string.Empty) + NamesAndLevelForTheCreate_() + "}");
 
             if (created.Status == 400)
                throw new System.Runtime.InteropServices.COMException("Failed to save object. " + created.Error);
@@ -3285,7 +3295,15 @@ namespace hMailServer
             created.Expect(201, "POST /api/v1/domains/" + domain + "/accounts " + Address);
             RegressionTests.Shared.TestSetup.RememberPassword(Address, _password);
             Unsaved = false;
-            _changed.Clear();
+            foreach (var field in _changed.Keys.Where(CreateCarries_).ToList())
+               _changed.Remove(field);
+
+            // The rest, as a Save of the account now made.
+            if (_changed.Count > 0)
+            {
+               Save();
+               return;
+            }
          }
          else
          {
@@ -3354,6 +3372,39 @@ namespace hMailServer
          }
 
          _vacationTouched = false;
+      }
+
+      // What POST /api/v1/domains/{domain}/accounts carries besides the address and
+      // the password. active and max_size_mb it has always read; first_name,
+      // last_name and admin_level it reads on a server whose create documents
+      // admin_level. Everything else a test sets before the first Save - those
+      // three on an older server, forwarding, a signature, a retention - goes
+      // through PUT /api/v1/accounts/{address} straight after the create, as a COM
+      // Save stores every field it was given. Before, the create sent the address,
+      // the password, active and max_size_mb and cleared the rest, so a name or a
+      // level set before Save never reached the server while the getter answered
+      // it from here.
+      private static readonly string[] CreateNamesAndLevel = { "first_name", "last_name", "admin_level" };
+
+      private static bool CreateCarries_(string field)
+      {
+         if (field == "active" || field == "max_size_mb")
+            return true;
+
+         return Array.IndexOf(CreateNamesAndLevel, field) >= 0 && ServerApi.AccountCreateTakesNamesAndLevel;
+      }
+
+      private string NamesAndLevelForTheCreate_()
+      {
+         var extra = new System.Text.StringBuilder();
+         foreach (var field in CreateNamesAndLevel)
+         {
+            string json;
+            if (CreateCarries_(field) && _changed.TryGetValue(field, out json))
+               extra.Append(',').Append(ServerApi.Quote(field)).Append(':').Append(json);
+         }
+
+         return extra.ToString();
       }
 
       private static string AdminLevelName(eAdminLevel level)

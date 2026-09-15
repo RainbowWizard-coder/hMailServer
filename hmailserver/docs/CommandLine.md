@@ -149,25 +149,69 @@ hmctl accounts import new-people.csv
 hmctl accounts export example.com accounts.csv
 ```
 
-The header row names the fields and `address` is the only one required; anything
-the account resource takes may be a column, so the file does not need changing
-when the account gains a field.
-
-```csv
-address,password,name,active,max_size_mb
-ann@example.com,Sup3rSecret!,Ann Adams,true,500
-bob@example.com,An0therOne!,Bob Brown,true,
+```powershell
+Import-HmAccount -Path .\new-people.csv -WhatIf
+Import-HmAccount -Path .\new-people.csv
+Export-HmAccount -Domain example.com -Path .\accounts.csv
 ```
 
-An empty cell is not sent, so the server's own default applies. **An address
-that already exists is left alone and counted**, never overwritten: an import
-that silently reset a password would lock a hundred people out with one command.
-`--dry-run` makes no request that changes anything and prints what would happen,
-line by line.
+The file is UTF-8 - in Excel, *CSV UTF-8* - and its header row names the
+columns. These are the columns, and there are no others:
 
-The export writes no password column, because the server does not have the
-passwords to give. A file exported and re-imported makes no accounts; it is for
-an inventory, not a round trip.
+| Column | Required | Sent as | Notes |
+|---|---|---|---|
+| `address` | yes | text | Created under the address's own domain. |
+| `password` | yes | text | Digits alone are still a password: `20260915` is sent as the text it is. Never trimmed: white space at either end is refused. Judged by the server's password policy, then stored under its configured hash. |
+| `first_name` | | text | At most 60 characters, counted as UTF-16 code units, so a character outside the Basic Multilingual Plane (an emoji) counts two. |
+| `last_name` | | text | As `first_name`. |
+| `active` | | true or false | `true`, `yes`, `on` or `1`; `false`, `no`, `off` or `0`. Default true. |
+| `max_size_mb` | | a whole number | Megabytes; `0` is no limit, and is the default. |
+| `admin_level` | | `user`, `domain` or `server` | Default `user`. |
+
+```csv
+address,password,first_name,last_name,active,max_size_mb,admin_level
+ann@example.com,Sup3rSecret!,Ann,Adams,true,500,user
+bob@example.com,An0therOne!,Bob,"Brown, Jr",true,,domain
+```
+
+A person's name is two columns, not one: a name split at a space is a guess
+("Mary Ann Smith"), and the file has to come back out exactly as it went in. The
+columns may come in any order, their names in any case, and every cell but the
+password is trimmed. An empty cell is not sent, so the server's default applies.
+A value with a comma in it goes in quotes, as `"Brown, Jr"` does; a row with more
+cells than the header has columns is refused rather than shifted along.
+
+Each row becomes one `POST /api/v1/domains/<domain>/accounts`, and that route
+refuses a field it does not know by name rather than ignoring it - so **a column
+that is not in the table is refused before anything is sent**, a `name` column
+included. The clients also refuse, before anything is sent and in the words the
+server would use, a row with no password, an `active` that is not one of the
+eight words, a `max_size_mb` that is not a whole number, an `admin_level` that is
+not one of the three and a name past its 60 characters - which is why `--dry-run`
+and `-WhatIf` refuse the rows the create would refuse for their cells. They
+refuse one row the server would take: a password with a space or a tab at its
+start or end, which a spreadsheet cell rarely means and which trimming would
+silently turn into a different password. What only the server can judge - the
+password policy, the domain's account limit, an address it does not accept - is
+refused per row when the import runs, and listed with its address and the
+server's reason (hmctl adds the line number); a dry run cannot foresee those.
+
+**An address that already exists is left alone and counted**, never overwritten:
+an import that silently reset a password would lock a hundred people out with
+one command. `--dry-run` makes no request that changes anything and prints what
+would happen, line by line; the exit code is 1 when any row was refused.
+
+`admin_level` is decided by who is asking, as it is everywhere else: the
+administrator password, or a key issued for every domain, may make a server
+administrator; a key restricted to named domains may make users and domain
+administrators, and a row asking it for `server` is refused with a 403.
+
+The export writes the same columns less `password`, from the domain's account
+listing, because the server does not have the passwords to give. Add a password
+column and change the addresses, and the exported file imports into another
+domain or another server as the same accounts: names, sizes, levels and whether
+each is active. `build/check-cli.py` holds both clients to exactly that round
+trip, and `RegressionTests/API/RestApiAccountImport.cs` holds the server to it.
 
 The configuration as one file
 -----------------------------

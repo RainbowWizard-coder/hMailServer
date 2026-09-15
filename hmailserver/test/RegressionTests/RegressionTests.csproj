@@ -730,6 +730,7 @@
     <Compile Include="API\RestApiGroups.cs" />
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
+    <Compile Include="API\RestApiAccountImport.cs" />
     <Compile Include="Shared\RestRequest.cs" />
   </ItemGroup>
   <ItemGroup>
