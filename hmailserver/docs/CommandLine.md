@@ -79,6 +79,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `ini` | list, get, set, delete | The `hMailServer.ini` keys the server exposes. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
+| `dkim` | status, rotate, check, switch, retire, cancel, run | A domain's DKIM key rotation and the records it needs published. The schedule is five keys of the domain: `domain update`. |
 | `app-password` | list, create, delete | Under an account's address. |
 | `match` | *(a criterion and a value)* | What a rule criterion would decide, without a rule. |
 | `accounts` | import, export | A CSV file, with a dry run. |
@@ -95,6 +96,7 @@ hmctl settings get antispam use_spf
 hmctl settings set antispam --set use_spf=true --set spam_mark_threshold=5
 hmctl queue list --json | jq '.[] | select(.retry_count > 3)'
 hmctl match contains viagra "cheap viagra here"
+hmctl dkim status example.com
 hmctl report sections
 hmctl report traffic --from 2026-09-01 --to 2026-09-15 --domain example.com
 hmctl report mailboxes --top 25 --csv mailboxes.csv
@@ -139,6 +141,41 @@ same statement as "nothing happened". `hmctl report sections` says which sources
 are recording, how long each is kept, and the two questions this server cannot
 answer at all: spam and virus counts per domain, and storage growth per domain.
 [Reports.md](Reports.md) is why.
+
+DKIM keys that rotate
+---------------------
+
+```bash
+hmctl domain update example.com --set dkim_rotation_enabled=true    # the schedule, with its defaults
+hmctl dkim rotate example.com                     # or start one now; --selector names it
+hmctl dkim status example.com                     # what to publish, keep and remove
+hmctl dkim status example.com | grep '^  publish' # just the records to add
+hmctl dkim check example.com                      # look them up from the server's resolver now
+hmctl dkim switch example.com --force             # before the propagation period is over
+hmctl dkim retire example.com                     # before the retention period is over
+hmctl dkim cancel example.com                     # drop the next key; signing is unchanged
+```
+
+`status` prints the phase, then one block per key - current, next, retiring and
+retired - with its times and its last check, and under each the records as
+`ACTION HOST TXT VALUE` lines: `publish` for the next key, `keep` for the current
+and retiring ones, `remove` for a retired selector. Then what is waiting, and until
+when, in the server's words. `--json` is the status document itself.
+
+The server does the work on its own schedule; these verbs only make it happen now.
+`switch` is refused - exit 1, with the status and the reason word - until the next
+key's record resolves with that key in a check made for the request, and without
+`--force` until it has resolved for the whole propagation period. The other
+refusals are the same shape: a second `rotate` while a next key is staged, a
+`retire` with nothing retiring. `run` makes one pass over every domain, and
+`--seconds-ahead` moves the clock for that pass only, which is how a test waits out
+three days; it needs the administrator password or a server-wide key.
+[DkimKeyRotation.md](DkimKeyRotation.md) is the whole walk.
+
+In the PowerShell module the same verbs are `Get-HmDkimRotation` (with
+`-Records`, one object per record), `Start-HmDkimRotation`, `Test-HmDkimRotation`,
+`Complete-HmDkimRotation`, `Remove-HmDkimRetiringKey`, `Stop-HmDkimRotation` and
+`Invoke-HmDkimRotation`.
 
 Accounts from a spreadsheet
 ---------------------------
@@ -203,6 +240,13 @@ What it does not carry, and why:
 * **What lives under an account** - application passwords, fetch accounts,
   folder permissions - which are the account holder's rather than the
   configuration's.
+* **The selector and key files of a domain whose DKIM key rotation is on.** The
+  rotation moves them on its own schedule, so an export taken before a switch
+  would differ from the server after it, and applying it would ask for the old
+  key back - which the server refuses. They are left out of the document, out of
+  the comparison and out of what `apply` sends while the rotation is on, in the
+  document or on the server; the schedule itself (`dkim_rotation_enabled` and the
+  four periods) is configuration and travels.
 
 ### A repository that is the configuration
 
@@ -234,6 +278,7 @@ New-HmAccount -Domain example.com -Address ann@example.com -Password (Read-Host 
 Set-HmAccount -Address ann@example.com -Property @{ max_size_mb = 500 }
 Set-HmSetting -Group antispam -Property @{ use_spf = $true }
 Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery
+Get-HmDkimRotation -Domain example.com -Records | Where-Object Action -eq publish
 Import-HmAccount -Path .\new-people.csv -WhatIf
 ```
 

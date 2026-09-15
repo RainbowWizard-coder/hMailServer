@@ -854,6 +854,188 @@ function Test-HmRuleCriterion {
 }
 
 # ---------------------------------------------------------------------------
+# DKIM key rotation
+# ---------------------------------------------------------------------------
+
+function Get-HmDkimRotation {
+    <#
+    .SYNOPSIS
+        A domain's DKIM key rotation: the phase, the current, next, retiring and
+        retired keys, what is waiting, and the TXT records to publish, keep or
+        remove.
+    .DESCRIPTION
+        The status document GET /api/v1/domains/{domain}/dkim/rotation answers.
+        Times are seconds since the epoch. -Records answers only the records, one
+        object per record with its Slot, Action, Host, Type and Value - the list
+        to hand to whoever edits the DNS. The schedule itself is five properties
+        of the domain: Set-HmDomain -Name example.com -Property @{ dkim_rotation_enabled = $true }.
+    .EXAMPLE
+        Get-HmDkimRotation -Domain example.com -Records | Where-Object Action -eq publish
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Name')]
+        [string] $Domain,
+        [switch] $Records
+    )
+    process {
+        $status = Invoke-HmApi -Method GET -Path (Get-HmDkimRotationPath -Domain $Domain)
+        if (-not $Records) { return $status }
+
+        foreach ($slot in 'current', 'next', 'retiring', 'retired') {
+            $entry = $status.$slot
+            if (-not $entry) { continue }
+            foreach ($record in @($entry.records)) {
+                if (-not $record) { continue }
+                # A record listed for removal carries no value.
+                $names = $record.PSObject.Properties.Name
+                [pscustomobject] @{
+                    Slot     = $slot
+                    Selector = $entry.selector
+                    Action   = $record.action
+                    Host     = $record.host
+                    Type     = if ($names -contains 'type') { $record.type } else { 'TXT' }
+                    Value    = if ($names -contains 'value') { $record.value } else { '' }
+                }
+            }
+        }
+    }
+}
+
+function Start-HmDkimRotation {
+    <#
+    .SYNOPSIS
+        Rotate now: the server generates the next key and stages it. Signing does
+        not move until its record has resolved for the propagation period.
+    .EXAMPLE
+        Start-HmDkimRotation -Domain example.com
+    .EXAMPLE
+        Start-HmDkimRotation -Domain example.com -Selector mail2026
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Name')]
+        [string] $Domain,
+        [string] $Selector
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Domain, 'Generate and stage the next DKIM key')) {
+            $body = @{}
+            if ($Selector) { $body['selector'] = $Selector }
+            Invoke-HmApi -Method POST -Path ((Get-HmDkimRotationPath -Domain $Domain) + '/start') -Body $body
+        }
+    }
+}
+
+function Test-HmDkimRotation {
+    <#
+    .SYNOPSIS
+        Looks the rotation's TXT records up from the server's own resolver now,
+        rather than at the next pass, and answers the status with what was found.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Name')]
+        [string] $Domain
+    )
+    process {
+        Invoke-HmApi -Method POST -Path ((Get-HmDkimRotationPath -Domain $Domain) + '/check') -Body @{}
+    }
+}
+
+function Complete-HmDkimRotation {
+    <#
+    .SYNOPSIS
+        Moves signing to the next key now.
+    .DESCRIPTION
+        Refused unless the next key's record matches in a check the server makes
+        for this request, and - without -Force - until the record has resolved for
+        the whole propagation period. -Force skips the period, never the check.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Name')]
+        [string] $Domain,
+        [switch] $Force
+    )
+    process {
+        $what = if ($Force) { 'Move signing to the next DKIM key without waiting for the propagation period' } else { 'Move signing to the next DKIM key' }
+        if ($PSCmdlet.ShouldProcess($Domain, $what)) {
+            $body = @{}
+            if ($Force) { $body['force'] = $true }
+            Invoke-HmApi -Method POST -Path ((Get-HmDkimRotationPath -Domain $Domain) + '/switch') -Body $body
+        }
+    }
+}
+
+function Remove-HmDkimRetiringKey {
+    <#
+    .SYNOPSIS
+        Retires the old selector now, before its retention period ends. Its TXT
+        record may then be removed, and a key file the rotation generated for it
+        is deleted.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Name')]
+        [string] $Domain
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Domain, 'Retire the old DKIM selector')) {
+            Invoke-HmApi -Method POST -Path ((Get-HmDkimRotationPath -Domain $Domain) + '/retire') -Body @{}
+        }
+    }
+}
+
+function Stop-HmDkimRotation {
+    <#
+    .SYNOPSIS
+        Cancels the next key: the staged selector is removed and the key file the
+        rotation generated for it deleted. Signing does not change.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [Alias('Name')]
+        [string] $Domain
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Domain, 'Cancel the next DKIM key')) {
+            Invoke-HmApi -Method DELETE -Path ((Get-HmDkimRotationPath -Domain $Domain) + '/next')
+        }
+    }
+}
+
+function Invoke-HmDkimRotation {
+    <#
+    .SYNOPSIS
+        One pass of the DKIM key rotation over every domain, now - the pass the
+        server makes every fifteen minutes.
+    .DESCRIPTION
+        -SecondsAhead moves the clock forward for this pass only, which is how a
+        propagation or retention period is tried without waiting. Server
+        administrators only; a non-zero offset is written to the application log.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param([ValidateRange(0, 316224000)] [int] $SecondsAhead = 0)
+    if ($PSCmdlet.ShouldProcess('every domain', 'Run a pass of the DKIM key rotation')) {
+        $body = @{}
+        if ($SecondsAhead -gt 0) { $body['seconds_ahead'] = $SecondsAhead }
+        Invoke-HmApi -Method POST -Path '/api/v1/dkim/rotation/run' -Body $body
+    }
+}
+
+function Get-HmDkimRotationPath {
+    param([Parameter(Mandatory = $true)] [string] $Domain)
+    '/api/v1/domains/' + [uri]::EscapeDataString($Domain) + '/dkim/rotation'
+}
+
+# ---------------------------------------------------------------------------
 # Accounts in bulk
 # ---------------------------------------------------------------------------
 
@@ -986,6 +1168,29 @@ $script:NotConfiguration = @(
     'created', 'modified', 'last_used', 'last_login', 'last_logon'
 )
 
+# A domain's selector and key files while its DKIM key rotation is on: the rotation
+# moves them on its own schedule, so they are the server's state and not the
+# document's. An export taken before a switch would otherwise differ from the
+# server after it, and importing it would ask for the old key back, which the
+# server refuses. Left out of the document, out of the comparison and out of what
+# is sent whenever the domain has the rotation on - the same rule as hmctl's.
+$script:RotationOwned = @('dkim_selector', 'dkim_private_key_file', 'dkim_secondary_selector', 'dkim_secondary_private_key_file')
+
+function Remove-HmRotationOwned {
+    param([Parameter(Mandatory = $true)] $Row, [bool] $RotationOn = $false)
+    $on = $RotationOn -or ($Row.PSObject.Properties.Name -contains 'dkim_rotation_enabled' -and $Row.dkim_rotation_enabled -eq $true) -or
+          ($Row -is [System.Collections.IDictionary] -and $Row.Contains('dkim_rotation_enabled') -and $Row['dkim_rotation_enabled'] -eq $true)
+    if (-not $on) { return $Row }
+    $kept = [ordered] @{}
+    if ($Row -is [System.Collections.IDictionary]) {
+        foreach ($key in $Row.Keys) { if ($script:RotationOwned -notcontains $key) { $kept[$key] = $Row[$key] } }
+    }
+    else {
+        foreach ($property in $Row.PSObject.Properties) { if ($script:RotationOwned -notcontains $property.Name) { $kept[$property.Name] = $property.Value } }
+    }
+    [pscustomobject] $kept
+}
+
 function ConvertTo-HmConfigurationRow {
     param([Parameter(Mandatory = $true)] $Row)
     $ordered = [ordered] @{}
@@ -1060,7 +1265,9 @@ function Export-HmConfiguration {
             }
             catch { continue }
             foreach ($row in (Get-HmCollection -Answer $answer -Key $section.Name)) {
-                $rows += [pscustomobject] (ConvertTo-HmConfigurationRow -Row $row)
+                $entry = [pscustomobject] (ConvertTo-HmConfigurationRow -Row $row)
+                if ($section.Name -eq 'domains') { $entry = Remove-HmRotationOwned -Row $entry }
+                $rows += $entry
             }
         }
 
@@ -1127,7 +1334,14 @@ function Compare-HmConfiguration {
         }
         $there = @{}
         foreach ($row in @($wanted.sections.($section.Name))) {
-            if ($row) { $there[[string] $row.($section.Key)] = $row }
+            if (-not $row) { continue }
+            $key = [string] $row.($section.Key)
+            if ($section.Name -eq 'domains') {
+                $liveOn = $here.ContainsKey($key) -and ($here[$key].PSObject.Properties.Name -contains 'dkim_rotation_enabled') -and
+                          $here[$key].dkim_rotation_enabled -eq $true
+                $row = Remove-HmRotationOwned -Row $row -RotationOn $liveOn
+            }
+            $there[$key] = $row
         }
 
         foreach ($key in ($there.Keys | Sort-Object)) {
@@ -1205,6 +1419,8 @@ function Import-HmConfiguration {
             continue
         }
 
+        if ($step.Section -eq 'domains' -and $step.Verb -eq 'update') { $row = Remove-HmRotationOwned -Row $row }
+
         $body = @{}
         foreach ($property in $row.PSObject.Properties) {
             if ($property.Name -eq 'domain') { continue }
@@ -1257,6 +1473,7 @@ $script:CompleterAddress = {
 
 Register-ArgumentCompleter -CommandName Get-HmAccount, New-HmAccount, Get-HmAlias, New-HmAlias, Export-HmAccount, Get-HmDomain, Set-HmDomain, Remove-HmDomain -ParameterName Domain -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmDomain, Set-HmDomain, Remove-HmDomain -ParameterName Name -ScriptBlock $script:CompleterDomain
+Register-ArgumentCompleter -CommandName Get-HmDkimRotation, Start-HmDkimRotation, Test-HmDkimRotation, Complete-HmDkimRotation, Remove-HmDkimRetiringKey, Stop-HmDkimRotation -ParameterName Domain -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount -ParameterName Address -ScriptBlock $script:CompleterAddress
 
 Export-ModuleMember -Function @(
@@ -1270,6 +1487,8 @@ Export-ModuleMember -Function @(
     'Get-HmQueue', 'Start-HmQueueDelivery', 'Remove-HmQueueMessage',
     'Get-HmQuarantine', 'Restore-HmQuarantineMessage',
     'Get-HmLog', 'Get-HmBackup', 'Start-HmBackup', 'Test-HmRuleCriterion',
+    'Get-HmDkimRotation', 'Start-HmDkimRotation', 'Test-HmDkimRotation', 'Complete-HmDkimRotation',
+    'Remove-HmDkimRetiringKey', 'Stop-HmDkimRotation', 'Invoke-HmDkimRotation',
     'Import-HmAccount', 'Export-HmAccount',
     'Export-HmConfiguration', 'Compare-HmConfiguration', 'Import-HmConfiguration',
     'ConvertTo-HmConfigurationRow', 'Get-HmSettingPath'
