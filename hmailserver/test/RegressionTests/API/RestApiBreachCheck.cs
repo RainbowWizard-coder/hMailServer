@@ -231,18 +231,6 @@ namespace RegressionTests.API
       {
          string domainPath = "/api/v1/domains/" + _domain.Name + "/accounts";
 
-         // A password outside ASCII, with neither rule on: stored as UTF-8, so the same
-         // characters validate. Read through String(AnsiString), as it was, it did not.
-         const string accented = "p\u00e4ssw\u00f6rd-2026-cr\u00e9\u00e9";
-         string accentedAddress = "breachutf8@" + _domain.Name;
-         (int status, string body) created = Http("POST", domainPath, AdminHeader(),
-            "{\"address\":\"" + accentedAddress + "\",\"password\":\"" + accented + "\"}");
-         Assert.AreEqual(201, created.status, created.body);
-         Account createdAccount = _domain.Accounts.get_ItemByAddress(accentedAddress);
-         ClassicAssert.IsTrue(createdAccount.ValidatePassword(accented), "The account must validate the exact characters it was created with.");
-         ClassicAssert.IsFalse(createdAccount.ValidatePassword("p\u00c3\u00a4ssw\u00c3\u00b6rd-2026-cr\u00c3\u00a9\u00c3\u00a9"),
-            "Negative control: the UTF-8 bytes read as Windows-1252 are a different password.");
-
          using (var corpus = new FakeBreachCorpus())
          {
             corpus.Add("password", 10434004);
@@ -272,6 +260,23 @@ namespace RegressionTests.API
          Assert.AreEqual(400, tooShort.status, tooShort.body);
          StringAssert.Contains("16", tooShort.body, "The refusal names the requirement.");
          Assert.AreEqual(404, Http("GET", "/api/v1/accounts/" + shortAddress, AdminHeader()).status, "A refused create must create nothing.");
+
+         ServerIniFile.SetSetting("PasswordPolicyMinimumLength", null);
+         _application.Reinitialize();
+
+         // A password outside ASCII, with neither rule on: stored as UTF-8, so the same
+         // characters validate. Read through String(AnsiString), as it was, it did not.
+         // Last, because Account.ValidatePassword has no REST route: against the Linux
+         // suite's shim it skips the test here, after everything above has run.
+         const string accented = "p\u00e4ssw\u00f6rd-2026-cr\u00e9\u00e9";
+         string accentedAddress = "breachutf8@" + _domain.Name;
+         (int status, string body) created = Http("POST", domainPath, AdminHeader(),
+            "{\"address\":\"" + accentedAddress + "\",\"password\":\"" + accented + "\"}");
+         Assert.AreEqual(201, created.status, created.body);
+         Account createdAccount = _domain.Accounts.get_ItemByAddress(accentedAddress);
+         ClassicAssert.IsTrue(createdAccount.ValidatePassword(accented), "The account must validate the exact characters it was created with.");
+         ClassicAssert.IsFalse(createdAccount.ValidatePassword("p\u00c3\u00a4ssw\u00c3\u00b6rd-2026-cr\u00c3\u00a9\u00c3\u00a9"),
+            "Negative control: the UTF-8 bytes read as Windows-1252 are a different password.");
       }
 
       [Test]

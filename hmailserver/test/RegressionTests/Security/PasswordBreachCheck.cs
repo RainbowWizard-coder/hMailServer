@@ -516,7 +516,22 @@ namespace RegressionTests.Security
 
             try
             {
-               var ex = Assert.Throws<COMException>(() => _settings.SetAdministratorPassword(leaked));
+               // Caught by type rather than with Assert.Throws: against the Linux
+               // suite's shim no route sets the administrator password, and the shim
+               // says so with Assert.Ignore - which Assert.Throws would catch and
+               // report as the wrong exception, failing a test that cannot run there
+               // instead of skipping it.
+               COMException ex = null;
+               try
+               {
+                  _settings.SetAdministratorPassword(leaked);
+               }
+               catch (COMException refused)
+               {
+                  ex = refused;
+               }
+
+               ClassicAssert.IsNotNull(ex, "An administrator password in the corpus must be refused.");
                StringAssert.Contains(BreachedSentence, ex.Message);
 
                ClassicAssert.IsNotNull(new hMailServer.Application().Authenticate("Administrator", AdminPassword),
