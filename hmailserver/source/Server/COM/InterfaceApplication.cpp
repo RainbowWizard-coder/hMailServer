@@ -691,6 +691,15 @@ STDMETHODIMP InterfaceApplication::get_RoleAssignments(BSTR *pVal)
          if (!HM::PersistentAccount::ReadObject(account, assignment.account_id) || account->GetID() == 0)
             continue;
 
+         // Narrowed to the domains a confined credential reaches, as the REST
+         // listing is, so that a domain administrator learns nothing about who
+         // administers any other domain.
+         if (!authentication_->ReachesEveryDomain() &&
+             !authentication_->AllowsForDomain(HM::RolePermission::ViewConfiguration, HM::StringParser::ExtractDomain(account->GetAddress())))
+         {
+            continue;
+         }
+
          // A fourth field says whether an empty list means every domain, so that
          // the Control Panel shows what the assignment reaches without knowing
          // the rule itself.

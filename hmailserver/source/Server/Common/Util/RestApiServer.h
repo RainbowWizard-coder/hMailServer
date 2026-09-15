@@ -1031,7 +1031,7 @@ namespace HM
       HttpResponse HandleRoleGet_(const AnsiString &name);
       HttpResponse HandleRoleSave_(const AnsiString &name, const AnsiString &requestBody, bool creating);
       HttpResponse HandleRoleDelete_(const AnsiString &name);
-      HttpResponse HandleRoleAssignmentList_();
+      HttpResponse HandleRoleAssignmentList_(const Caller &caller);
       HttpResponse HandleRoleAssign_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
       HttpResponse HandleRoleUnassign_(const Caller &caller, const AnsiString &address);
       HttpResponse HandleSessionGet_(const Caller &caller);

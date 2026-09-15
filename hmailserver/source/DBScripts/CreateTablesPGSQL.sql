@@ -16,7 +16,9 @@ select hm_drop_table('hm_settings');
 select hm_drop_table('hm_inisettings');
 
 select hm_drop_table('hm_roleassignments');
+
 select hm_drop_table('hm_roles');
+
 select hm_drop_table('hm_calendarobjects');
 
 select hm_drop_table('hm_calendars');

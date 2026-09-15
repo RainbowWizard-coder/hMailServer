@@ -184,6 +184,35 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A domain administrator sees who holds a role in its own domain and nobody in another, over REST and over COM, and is refused the server-wide settings")]
+      public void ADomainAdministratorSeesOnlyItsOwnDomainsAssignments()
+      {
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(other, "olaf@" + OtherDomain, AccountPassword);
+         Assign("helen@example.test", "helpdesk", "");
+         Assign("olaf@" + OtherDomain, "helpdesk", "");
+
+         (int status, string body) mine = AsAccount("dora@example.test", "GET", "/api/v1/role-assignments");
+         Assert.AreEqual(200, mine.status, mine.body);
+         StringAssert.Contains("helen@example.test", mine.body);
+         StringAssert.DoesNotContain("olaf@", mine.body, "Who administers another domain is not a domain administrator's to know.");
+
+         var overCom = new Application();
+         Assert.IsNotNull(overCom.Authenticate("dora@example.test", AccountPassword));
+         StringAssert.Contains("helen@example.test", overCom.RoleAssignments);
+         StringAssert.DoesNotContain("olaf@", overCom.RoleAssignments);
+
+         (int status, string body) settings = AsAccount("dora@example.test", "GET", "/api/v1/settings");
+         Assert.AreEqual(403, settings.status, "The settings are server-wide. Body: " + settings.body);
+         StringAssert.Contains("restricted to named domains", settings.body);
+      }
+
+      [Test]
       [Description("A help desk resets a password and unlocks an account over REST, the new password works, and a settings change is refused with the role and the permission named")]
       public void HelpdeskResetsAPasswordAndIsRefusedASettingsChange()
       {

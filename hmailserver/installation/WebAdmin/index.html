@@ -184,20 +184,20 @@ pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padd
     <nav class="nav" id="nav">
       <button data-view="dash" data-needs="view_configuration" class="on"><span class="ico">◈</span>Dashboard</button>
       <button data-view="domains" data-needs="view_accounts"><span class="ico">⌂</span>Domains</button>
-      <button data-view="ipranges" data-needs="view_configuration"><span class="ico">⌗</span>IP ranges</button>
+      <button data-view="ipranges" data-serverwide="1" data-needs="view_configuration"><span class="ico">⌗</span>IP ranges</button>
       <button data-view="fetch" data-needs="view_accounts"><span class="ico">⇓</span>Fetch accounts</button>
       <button data-view="lists" data-needs="view_accounts"><span class="ico">≣</span>Lists</button>
-      <button data-view="queue" data-needs="view_queue"><span class="ico">⇶</span>Delivery queue</button>
+      <button data-view="queue" data-serverwide="1" data-needs="view_queue"><span class="ico">⇶</span>Delivery queue</button>
       <button data-view="tlsa" data-needs="view_configuration"><span class="ico">⛨</span>DANE / TLSA</button>
-      <button data-view="settings" data-needs="view_configuration"><span class="ico">⚙</span>Settings</button>
-      <button data-view="backup" data-needs="view_configuration"><span class="ico">⛃</span>Backup</button>
-      <button data-view="messages" data-needs="view_configuration"><span class="ico">✎</span>Server messages</button>
-      <button data-view="rules" data-needs="view_configuration"><span class="ico">⚖</span>Rules</button>
-      <button data-view="routes" data-needs="view_configuration"><span class="ico">⇥</span>Routes</button>
-      <button data-view="certs" data-needs="view_configuration"><span class="ico">⚿</span>Certificates</button>
-      <button data-view="ports" data-needs="view_configuration"><span class="ico">⊞</span>Ports</button>
+      <button data-view="settings" data-serverwide="1" data-needs="view_configuration"><span class="ico">⚙</span>Settings</button>
+      <button data-view="backup" data-serverwide="1" data-needs="view_configuration"><span class="ico">⛃</span>Backup</button>
+      <button data-view="messages" data-serverwide="1" data-needs="view_configuration"><span class="ico">✎</span>Server messages</button>
+      <button data-view="rules" data-serverwide="1" data-needs="view_configuration"><span class="ico">⚖</span>Rules</button>
+      <button data-view="routes" data-serverwide="1" data-needs="view_configuration"><span class="ico">⇥</span>Routes</button>
+      <button data-view="certs" data-serverwide="1" data-needs="view_configuration"><span class="ico">⚿</span>Certificates</button>
+      <button data-view="ports" data-serverwide="1" data-needs="view_configuration"><span class="ico">⊞</span>Ports</button>
       <button data-view="roles" data-needs="view_configuration"><span class="ico">⚑</span>Roles</button>
-      <button data-view="logs" data-needs="view_logs"><span class="ico">≡</span>Logs</button>
+      <button data-view="logs" data-serverwide="1" data-needs="view_logs"><span class="ico">≡</span>Logs</button>
     </nav>
     <div class="foot">
       <div class="pill"><span class="dot"></span><span id="connState">Connected</span></div>
@@ -462,13 +462,17 @@ function signedOut(message){
    read leaves every view in place rather than hiding the Deck from somebody
    whose credential is perfectly good. */
 let permissions=null;
+/* True when the credential is confined to named domains. A view whose data is
+   the whole server's - the settings, the queue, the logs - is refused to such a
+   credential whatever permission it holds, so it is left out for it too. */
+let confined=false;
 /* administer_server is the whole of it, as it is in RoleManager::Allows. */
 function may(permission){return !permissions||!permission||permissions.indexOf("administer_server")>=0||permissions.indexOf(permission)>=0;}
 function applyPermissions(){
   const buttons=Array.from(document.querySelectorAll("#nav button[data-view]"));
   let visible=null;
   buttons.forEach(b=>{
-    const allowed=may(b.dataset.needs);
+    const allowed=may(b.dataset.needs)&&!(confined&&b.dataset.serverwide);
     b.hidden=!allowed;
     if(allowed&&!visible)visible=b.dataset.view;
   });
@@ -479,10 +483,11 @@ function applyPermissions(){
   }
 }
 async function readSession(){
-  permissions=null;
+  permissions=null;confined=false;
   try{
     const who=await api("/api/v1/session");
     if(who&&Array.isArray(who.permissions))permissions=who.permissions;
+    confined=!!(who&&Array.isArray(who.domains)&&who.domains.length>0);
   }catch(_){/* an older server, or a request that did not arrive: show everything */}
   applyPermissions();
 }

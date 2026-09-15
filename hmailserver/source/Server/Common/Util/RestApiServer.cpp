@@ -1520,7 +1520,7 @@ namespace HM
             return HandleRoleDelete_(route.identifier);
 
          case RouteRoleAssignmentList:
-            return HandleRoleAssignmentList_();
+            return HandleRoleAssignmentList_(caller);
 
          case RouteRoleAssign:
             return HandleRoleAssign_(caller, route.identifier, GetRequestBody_(request));

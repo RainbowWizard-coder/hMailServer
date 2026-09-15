@@ -5,7 +5,9 @@ drop table if exists hm_settings;
 drop table if exists hm_inisettings;
 
 drop table if exists hm_roleassignments;
+
 drop table if exists hm_roles;
+
 drop table if exists hm_calendarobjects;
 
 drop table if exists hm_calendars;

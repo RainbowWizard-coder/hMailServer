@@ -46,6 +46,7 @@
 #include "../Persistence/PersistentAccount.h"
 #include "../../POP3/POP3Sessions.h"
 #include "MessageTrace.h"
+#include "Parsing/StringParser.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -190,7 +191,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleRoleAssignmentList_()
+   RestApiServer::HandleRoleAssignmentList_(const Caller &caller)
    {
       std::vector<RoleAssignment> assignments = RoleManager::ListAssignments();
 
@@ -205,6 +206,13 @@ namespace HM
          // with the account through the foreign key; this is for the moment
          // between the delete and the reload.
          if (!PersistentAccount::ReadObject(account, assignment.account_id) || account->GetID() == 0)
+            continue;
+
+         // Narrowed rather than refused, as the domain listing is: a credential
+         // confined to named domains - a domain administrator - sees who holds a
+         // role in those domains, and learns nothing about the accounts of any
+         // other.
+         if (!IsDomainAllowed_(caller.domains, StringParser::ExtractDomain(account->GetAddress())))
             continue;
 
          AnsiString item;

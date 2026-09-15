@@ -2758,6 +2758,19 @@ async function main() {
 
    click($('#logoutBtn'));
    await flush();
+   whoami = { identity: 'account:dora@example.com', credential: 'account', administrative: true,
+      role: 'domainadmin', permissions: ['administer_domain', 'view_configuration', 'view_accounts', 'view_mailbox', 'view_quarantine',
+         'view_message_trace', 'manage_accounts', 'reset_password', 'unlock_account', 'manage_mailbox', 'manage_quarantine'],
+      domains: ['example.com'] };
+   await signIn();
+   check('a domain administrator is shown its domain\'s views and the dashboard',
+      !$('#nav button[data-view="domains"]').hidden && !$('#nav button[data-view="dash"]').hidden && !$('#nav button[data-view="roles"]').hidden);
+   check('and not the server-wide ones it holds view_configuration for, which a credential confined to a domain is refused',
+      $('#nav button[data-view="settings"]').hidden && $('#nav button[data-view="rules"]').hidden &&
+      $('#nav button[data-view="ports"]').hidden && $('#nav button[data-view="certs"]').hidden && $('#nav button[data-view="ipranges"]').hidden);
+
+   click($('#logoutBtn'));
+   await flush();
    whoami = { identity: 'account:nobody@example.com', credential: 'account', administrative: false,
       role: '', permissions: [], domains: [] };
    await signIn();
