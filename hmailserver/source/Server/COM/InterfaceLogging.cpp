@@ -540,6 +540,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -572,6 +574,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogHost(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -605,6 +609,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogPort(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -637,6 +643,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogTransport(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -669,6 +677,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogFacility(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -701,6 +711,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogMinimumSeverity(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -733,6 +745,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogLogSMTP(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -765,6 +779,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogLogPOP3(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -797,6 +813,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogLogIMAP(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -829,6 +847,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogLogApplication(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -861,6 +881,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogLogTCPIP(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 
@@ -893,6 +915,8 @@ STDMETHODIMP InterfaceLogging::put_SyslogLogDebug(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return GetAccessDenied();
 

@@ -212,6 +212,33 @@ namespace HM
       /// </summary>
       static bool DeleteRow_(const String &name);
 
+      /// <summary>One row's stored value. False when there is no row, or no database.</summary>
+      static bool ReadRow_(const String &name, String &value);
+
+      /// <summary>
+      /// The audit trail's record of one administrative change to a stored setting:
+      /// the value the row held and the value it holds now, "(default)" for the side
+      /// on which there is no row, and a secret as "(changed)" - AuditTrail decides
+      /// that by the name, as it does for hm_settings.
+      ///
+      /// THIS is the settings chokepoint for hm_inisettings, and it is called from
+      /// the three writes an administrator can cause - WriteSetting, RemoveSetting
+      /// and XMLLoad - and from nothing else. Every interface reaches the first two
+      /// through IniFileSettings::WriteSettingsValue and RemoveSettingsValue: COM
+      /// SetIniSetting and DeleteIniSetting, PUT and DELETE /api/v1/settings/ini,
+      /// the /api/v1/settings fields that are these keys, the tarpit setters, the
+      /// branding and file-link routes. Synchronize does not record: it reconciles
+      /// the file with the store at start-up, under no actor, and the stored value
+      /// is what it keeps. hm_inisettings is not one of the statement chokepoint's
+      /// tables, so a change is recorded here once and not a second time there.
+      ///
+      /// Nothing is recorded when nothing moved - a write of the value already
+      /// stored, or a removal of a key that had no row - which is the same rule
+      /// PropertySet applies, for the same reason: a settings page that writes
+      /// every field it shows would otherwise bury the one that changed.
+      /// </summary>
+      static void RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value);
+
       /// <summary>
       /// Writes one key into a section of the ini. Returns false when the write did
       /// not take - which is not fatal, but must stop filevalue being advanced.

@@ -37,9 +37,22 @@ namespace HM
       // writes - messages, recipients, folder rows, greylisting triples, index
       // terms, metric samples - is traffic, and belongs in a log, not here.
       //
-      // hm_settings is deliberately ABSENT: PropertySet records a setting with
-      // the value it had as well as the value it was given, which a statement
-      // cannot show, and a table entry here would record it a second time.
+      // Matched EXACTLY against the name the statement carries, so a name here
+      // that is not the table the server writes records nothing and says
+      // nothing. Five of these were wrong for as long as the list existed -
+      // hm_domainaliases, hm_incomingrelays, hm_whiteaddresses, hm_greyliststats
+      // and hm_blockedsenders, none of which any CREATE TABLE defines - and so
+      // domain aliases, incoming relays, both white lists and blocked senders
+      // were never recorded. build/check-audit-choke-point.py now refuses a name
+      // the create scripts do not define, and refuses a table they define that
+      // is neither listed here nor named in its own NOT_AUDITED list with the
+      // reason, which is how a new configuration table gets decided rather than
+      // forgotten.
+      //
+      // hm_settings and hm_inisettings are deliberately ABSENT: PropertySet and
+      // IniSettingStore record a setting with the value it had as well as the
+      // value it was given, which a statement cannot show, and a table entry
+      // here would record it a second time.
       //
       // hm_audit is absent for the obvious reason.
       struct TableName
@@ -51,7 +64,7 @@ namespace HM
       const TableName AuditedTables[] =
       {
          { L"hm_domains",                     L"domain" },
-         { L"hm_domainaliases",               L"domain alias" },
+         { L"hm_domain_aliases",              L"domain alias" },
          { L"hm_accounts",                    L"account" },
          { L"hm_aliases",                     L"alias" },
          { L"hm_distributionlists",           L"distribution list" },
@@ -64,19 +77,21 @@ namespace HM
          { L"hm_securityranges",              L"ip range" },
          { L"hm_tcpipports",                  L"tcp/ip port" },
          { L"hm_sslcertificates",             L"ssl certificate" },
-         { L"hm_incomingrelays",              L"incoming relay" },
+         { L"hm_incoming_relays",             L"incoming relay" },
          { L"hm_dnsbl",                       L"dns blacklist" },
          { L"hm_surblservers",                L"surbl server" },
-         { L"hm_whiteaddresses",              L"white list address" },
-         { L"hm_greyliststats",               L"greylisting white address" },
+         { L"hm_whitelist",                   L"white list address" },
+         { L"hm_greylisting_whiteaddresses",  L"greylisting white address" },
          { L"hm_blocked_attachments",         L"blocked attachment" },
-         { L"hm_blockedsenders",              L"blocked sender" },
+         { L"hm_blocked_senders",             L"blocked sender" },
          { L"hm_servermessages",              L"server message" },
          { L"hm_groups",                      L"group" },
          { L"hm_group_members",               L"group member" },
          { L"hm_fetchaccounts",               L"fetch account" },
          { L"hm_apppasswords",                L"application password" },
          { L"hm_alertrules",                  L"alert rule" },
+         { L"hm_acl",                         L"folder permission" },
+         { L"hm_remotedomainpolicies",        L"remote domain policy" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a
@@ -87,6 +102,24 @@ namespace HM
          L"password", L"passwd", L"secret", L"privatekey", L"private_key",
          L"apikey", L"api_key", L"token", L"totp", L"hash", L"salt", L"pepper",
          L"credential", L"keyfile", L"passphrase",
+      };
+
+      // Settings whose NAME carries one of the fragments above and whose value
+      // is not a secret, by the exact name. Without these a change-control
+      // reader is told that the minimum password length "(changed)" and not
+      // that it went from 12 to 4, which is the one thing they asked. An exact
+      // list and not a looser pattern, on purpose: a setting added later that
+      // merely looks like one of these is withheld until somebody decides it
+      // is not a secret, which is the safe way round for this to be wrong.
+      const wchar_t *NotSecretNames[] =
+      {
+         L"passwordpolicyhistorycount", L"passwordpolicymaximumagedays",
+         L"passwordpolicyminimumlength", L"passwordpolicyrejectcommon",
+         L"passwordpolicyrequiredigit", L"passwordpolicyrequiremixedcase",
+         L"passwordpolicyrequirenonalphanumeric",
+         L"preferredhashalgorithm", L"minimumacceptedhashalgorithm",
+         L"protectstoredsecretswithdpapi",
+         L"oauth2publickeyfile", L"updatelogpublickeyfile",
       };
 
       String Truncate(const String &value, int maximum)
@@ -163,6 +196,12 @@ namespace HM
    {
       String lower = name;
       lower.MakeLower();
+
+      for (const wchar_t *exception : NotSecretNames)
+      {
+         if (lower == exception)
+            return false;
+      }
 
       for (const wchar_t *fragment : SecretFragments)
       {
@@ -288,7 +327,8 @@ namespace HM
          return String();
 
       // The name a person would recognise, preferred over the row id: a column
-      // ending in "name" or "address" that is not itself a secret.
+      // ending in "name", "address" or "alias" (a domain alias is daalias) that
+      // is not itself a secret.
       const std::list<SQLParameter> &parameters = command.GetParameters();
       for (const SQLParameter &parameter : parameters)
       {
@@ -297,7 +337,7 @@ namespace HM
          if (IsSecretName(column))
             continue;
 
-         if (!column.EndsWith(_T("name")) && !column.EndsWith(_T("address")))
+         if (!column.EndsWith(_T("name")) && !column.EndsWith(_T("address")) && !column.EndsWith(_T("alias")))
             continue;
 
          if (parameter.GetType() != SQLParameter::ParamTypeString)
@@ -443,7 +483,7 @@ namespace HM
    }
 
    void
-   AuditTrail::RecordSettingChange(const String &name, const String &oldValue, const String &newValue)
+   AuditTrail::RecordSettingChange(const String &name, const String &oldValue, const String &newValue, const String &action)
    {
       if (!actor_.present || writing_)
          return;
@@ -460,7 +500,7 @@ namespace HM
                   _T(" -> ") + Truncate(OneLine(newValue), MaxValueLength);
       }
 
-      Write_(_T("setting"), name, _T("updated"), Truncate(detail, MaxDetailLength));
+      Write_(_T("setting"), name, action, Truncate(detail, MaxDetailLength));
    }
 
    String

@@ -6,6 +6,7 @@
 #include "IniSettingStore.h"
 
 #include "IniFileSettings.h"
+#include "../Util/AuditTrail.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
@@ -211,6 +212,51 @@ namespace HM
       command.AddParameter("@NAME", name);
 
       return database->Execute(command);
+   }
+
+   bool
+   IniSettingStore::ReadRow_(const String &name, String &value)
+   {
+      value = String();
+
+      std::shared_ptr<DatabaseConnectionManager> database = StoreDatabase_();
+
+      if (!database)
+         return false;
+
+      // The same comparison DeleteRow_ makes, so that the row read here is the row
+      // the delete then removes - on every backend, PostgreSQL's case-sensitive
+      // one included.
+      SQLCommand command("select inisettingvalue from hm_inisettings where inisettingname = @NAME");
+      command.AddParameter("@NAME", name);
+
+      std::shared_ptr<DALRecordset> recordset = database->OpenRecordset(command);
+
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      value = recordset->GetStringValue("inisettingvalue");
+      return true;
+   }
+
+   void
+   IniSettingStore::RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value)
+   {
+      if (!wasStored && !isStored)
+         return;
+
+      if (wasStored && isStored && previousValue.Compare(value) == 0)
+         return;
+
+      // A side with no row is the setting at its default, which is what an
+      // administrator reading the trail needs to be told - not an empty string,
+      // which is a value a setting can really hold.
+      const String notStored = _T("(default)");
+
+      AuditTrail::Instance()->RecordSettingChange(name,
+         wasStored ? previousValue : notStored,
+         isStored ? value : notStored,
+         isStored ? String(_T("updated")) : String(_T("deleted")));
    }
 
    void
@@ -519,12 +565,19 @@ namespace HM
       // for one - no line at all.
       String previousFileValue = existing == rows.end() ? String() : (*existing).second.second;
 
+      bool wasStored = existing != rows.end();
+      String previousValue = wasStored ? (*existing).second.first : String();
+
       bool stored = existing == rows.end()
          ? InsertRow_(name, value, value)
          : UpdateRow_(name, value, value);
 
       if (!stored)
          return false;
+
+      // Recorded as soon as the store has the value, which is the moment the change
+      // is real: a file write that fails below does not undo it, and says so.
+      RecordChange_(name, wasStored, previousValue, true, value);
 
       // The cache second, and a failure here does not fail the write: the value is
       // stored and is what the server will use. Said out loud rather than swallowed,
@@ -571,6 +624,12 @@ namespace HM
       // behind - and "Key=" is not the same thing at all, because
       // GetPrivateProfileInt reads an empty value as 0 rather than falling back to
       // the caller's default. That distinction has bitten this project twice.
+
+      // What is being removed, read before anything is: the audit trail records the
+      // value the setting had, and after the delete there is nothing left to read.
+      String previousValue;
+      bool wasStored = ReadRow_(name, previousValue);
+
       String iniFile = IniFileSettings::GetInitializationFile();
 
       if (!iniFile.IsEmpty())
@@ -591,6 +650,8 @@ namespace HM
 
          return false;
       }
+
+      RecordChange_(name, wasStored, previousValue, false, String());
 
       return true;
    }
@@ -673,15 +734,28 @@ namespace HM
 
          String fileValue = written ? value : String();
 
-         if (rows.find(name) == rows.end())
+         // A restore is an administrative change too, and one that can move every
+         // setting at once, so each value it replaces is recorded like any other
+         // write - and one it leaves as it was is not.
+         auto current = rows.find(name);
+         bool wasStored = current != rows.end();
+         String previousValue = wasStored ? (*current).second.first : String();
+
+         if (!wasStored)
          {
             if (InsertRow_(name, value, fileValue))
+            {
                rows[name] = std::make_pair(value, fileValue);
+               RecordChange_(name, false, previousValue, true, value);
+            }
          }
          else
          {
             if (UpdateRow_(name, value, fileValue))
+            {
                rows[name] = std::make_pair(value, fileValue);
+               RecordChange_(name, true, previousValue, true, value);
+            }
          }
       }
 

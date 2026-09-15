@@ -4,13 +4,14 @@
 
 // The append-only, hash-chained record of every administrative change.
 //
-// WHERE IT IS WRITTEN FROM, AND WHY THERE ARE EXACTLY TWO PLACES
+// WHERE IT IS WRITTEN FROM, AND WHY THERE ARE EXACTLY THREE PLACES
 //
-// An administrative change is, in the end, one of two things: a row in a
-// configuration table, or a value in hm_settings. Every interface - COM (and so
-// the Control Panel), REST (and so the Deck and hmctl) - reaches those through
-// the same code, so the record is taken BELOW the interfaces rather than in
-// them:
+// An administrative change is, in the end, one of three things: a row in a
+// configuration table, a value in hm_settings, or a value in hm_inisettings
+// (the [Settings] keys that left hMailServer.INI at schema 6042). Every
+// interface - COM (and so the Control Panel), REST (and so the Deck and hmctl)
+// - reaches those through the same code, so the record is taken BELOW the
+// interfaces rather than in them:
 //
 //   objects   DatabaseConnectionManager::Execute, the single statement
 //             chokepoint the whole server already runs every write through.
@@ -23,8 +24,16 @@
 //             audited table, so a setting is recorded once, with its old value
 //             and its new one, and not twice.
 //
+//   [Settings] IniSettingStore::WriteSetting, ::RemoveSetting and ::XMLLoad,
+//             the three administrative writes of hm_inisettings, which every
+//             COM SetIniSetting/DeleteIniSetting, every /api/v1/settings/ini
+//             route and every /api/v1/settings field backed by one of those
+//             keys goes through. The stored value is read there before it is
+//             replaced, and hm_inisettings is not an audited table either, for
+//             the same reason as hm_settings.
+//
 // Nothing else may call Record*: build/check-audit-choke-point.py fails the
-// build if it does, and fails it if either of those two call sites goes away.
+// build if it does, and fails it if any of those call sites goes away.
 //
 // WHO IT SAYS DID IT
 //
@@ -119,10 +128,12 @@ namespace HM
          int offset;
       };
 
-      // The two recording chokepoints. Nothing else may call these; see the
-      // header comment and build/check-audit-choke-point.py.
+      // The recording chokepoints. Nothing else may call these; see the header
+      // comment and build/check-audit-choke-point.py. A setting's action is
+      // "updated", or "deleted" for a [Settings] key returned to its default.
       void RecordStatement(const SQLCommand &command, bool succeeded);
-      void RecordSettingChange(const String &name, const String &oldValue, const String &newValue);
+      void RecordSettingChange(const String &name, const String &oldValue, const String &newValue,
+                               const String &action = String(_T("updated")));
 
       bool Query(const Filter &filter, std::vector<Entry> &entries, int &total);
 
@@ -136,7 +147,9 @@ namespace HM
       // which is the default: an audit trail that quietly forgets is not one.
       int PurgeOlderThan(int days);
 
-      // True for a column or setting name whose value is a secret.
+      // True for a column or setting name whose value is a secret: a name
+      // carrying password, secret, token, hash, salt, private key and the rest,
+      // except the few settings named in NotSecretNames that only look like one.
       static bool IsSecretName(const String &name);
 
       // The thread's actor. Installed by AuditScope, which is the only thing
