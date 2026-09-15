@@ -8,8 +8,11 @@ database columns that hold absolute file names an administrator typed. This is
 the ordered list of every one of them, what repairs each, and the two places
 where the honest answer is "there is no clean fix".
 
-It is written for 6.3.0. Every claim below was read out of the code; the file
-and line references are there so you can check any of them.
+It is written for 6.3.0, and steps 1, 4 and 9 were revised on 15 September 2026
+for schema 6042, which made the database the store for the settings the
+`[Settings]` section of `hMailServer.ini` used to hold. Every claim below was read
+out of the code; the file and line references are there so you can check any of
+them.
 
 **Installing somewhere new is a different, solved problem.** `/DIR="<path>"` on
 the installer puts a *fresh* installation wherever you want. This document is
@@ -54,13 +57,23 @@ path; step 0 tells you whether yours does.
 | `[Directories]` | `LogFolder` | Logs are written to the old tree, silently |
 | `[Directories]` | `TempFolder` | Message assembly and backup staging |
 | `[Directories]` | `EventFolder` | Event scripts are not found; events stop running |
-| `[Settings]` | `ArchiveDir` | Archiving stops; existing archived copies are not found |
-| `[Settings]` | `AcmeCertificateDirectory` | ACME state and issued certificates |
-| `[Settings]` | `OAuth2PublicKeyFile`, `UpdateTrustRootsFile`, `UpdateLogPublicKeyFile` | Token validation and update verification refuse |
-| `[Settings]` | `RestApiCertificateFile` / `PrivateKeyFile`, `MetricsServerCertificateFile` / `PrivateKeyFile`, `WebServicesCertificateFile` / `PrivateKeyFile` | The listener starts without TLS, or does not start |
 | `[Database]` | `PostgreSQLSslRootCert` | PostgreSQL TLS verification fails |
 
 Leave the `[Database]` connection keys alone. They name a server, not a path.
+
+### In the settings store (`hm_inisettings`)
+
+These were `[Settings]` keys of `hMailServer.ini`, and the file still holds a copy
+of each. Since schema 6042 the database is where they are stored: a value edited
+into the file is named in the error log as `HM5804` and put back at the next start
+(`IniSettingStore::Synchronize`). They are changed in step 9, not in step 4.
+
+| Setting | What breaks if it is left pointing at the old tree |
+|---|---|
+| `ArchiveDir` | Archiving stops; existing archived copies are not found |
+| `AcmeCertificateDirectory` | ACME state and issued certificates |
+| `OAuth2PublicKeyFile`, `UpdateTrustRootsFile`, `UpdateLogPublicKeyFile` | Token validation and update verification refuse |
+| `RestApiCertificateFile` / `PrivateKeyFile`, `MetricsServerCertificateFile` / `PrivateKeyFile`, `WebServicesCertificateFile` / `PrivateKeyFile` | The listener starts without TLS, or does not start |
 
 ### In the registry
 
@@ -80,7 +93,7 @@ changes nothing and looks like it worked.**
 
 ### In the database
 
-Nine places hold a path an administrator typed. None of them is rewritten by
+Each of these holds a path an administrator typed. None of them is rewritten by
 anything, and there is no function that enumerates them.
 
 | Table and column | What it is |
@@ -91,7 +104,7 @@ anything, and there is no function that enumerates them.
 | `hm_settings` row `backupdestination` | Where backups are written |
 | `hm_settings` rows `avclamwinexec`, `avclamwindb` | ClamWin's scanner and database |
 | `hm_settings` row `customvirusscannerexecutable` | An external scanner command line |
-| `hm_inisettings` | Every setting the `[Settings]` section used to hold — the store itself since schema 6042, and therefore the copy that has to be corrected; the section in the INI is a cache the server rewrites from it at the next start |
+| `hm_inisettings` | The path settings listed above, under *In the settings store* |
 | `hm_archiveindex.archivepath` | One row per archived copy |
 | `hm_quarantine.quarantinefilename` | Held messages |
 | `hm_rule_actions.actionfilename` | A rule that runs a program or writes a file |
@@ -121,10 +134,26 @@ write its log directory starts and then says nothing.
 
 ---
 
-## 4. Rewrite `hMailServer.ini`
+## 4. Rewrite the file keys in `hMailServer.ini`
 
-Edit `<new root>\Bin\hMailServer.ini` and change every key from step 1 whose
-value was under the old root. Nothing else.
+Edit `<new root>\Bin\hMailServer.ini` and change the keys from step 1's
+`hMailServer.ini` table whose value was under the old root: the `[Directories]`
+folders and `[Database]` `PostgreSQLSslRootCert`. Nothing else.
+
+**Not the settings-store paths.** Editing one of them in the `[Settings]` section
+changes nothing: at the next start the stored value is used, the edit is named in
+the error log as `HM5804`, and the line is put back to the old path. They move in
+step 9, once the moved server is running.
+
+What is still read from this file, and only from it, is what the server needs to
+reach the database or to let an administrator in without one: `[Directories]`,
+`[Database]` and `[Security]` (the administrator password and its second factor),
+with the language list in `[GUILanguages]`. So are the sections the settings store
+has not taken over - `[LDAP]`, `[SendingLimits]` and `[SendingLimitsOverrides]`,
+none of which holds a path; a `[SettingsOverride]` section, if you have one, which
+is applied over the store at every start (a path in it moves here too); and one
+`[Settings]` key, `PasswordPepper`, which is kept out of the database on purpose
+and is not a path.
 
 The file is read from the directory the running `hMailServer.exe` sits in when
 one is there, and otherwise from the registry (`Common/Util/Utilities.cpp:102`),
@@ -187,8 +216,16 @@ are not uniform and the file layout is derived, not stored.
 
 ## 9. Fix the database-borne paths
 
-For each row from step 1's database table that pointed under the old root:
+For each row from step 1's settings-store and database tables that pointed
+under the old root:
 
+- **The settings-store paths.** In the Control Panel under **Settings**, whose
+  search box finds each one by name; or `Settings.SetIniSetting` over COM,
+  `PUT /api/v1/settings/ini/{name}`, or `hmctl ini set <name> <value>`. Each
+  stores the new value in the database and writes it into the file's copy as
+  well. Restart the service afterwards, because these are read when it starts.
+  Until then the server runs on the old paths, which still resolve because step 3
+  copied the tree rather than moving it and step 12 keeps it.
 - **SSL certificates.** The Control Panel's certificate grid is read-only except
   for the passphrase, so each certificate must be deleted and re-added with its
   new file names, or set over COM.

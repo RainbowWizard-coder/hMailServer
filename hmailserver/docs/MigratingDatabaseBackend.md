@@ -145,20 +145,27 @@ and will tell you why.
 **If your mail store is large, use the database-only mode.** Set
 `BackupMessagesDBOnly` to `1` before both the backup and the restore — in the
 Control Panel, over the REST API (`PUT /api/v1/settings/ini/BackupMessagesDBOnly`
-with `1`), or with `hmctl` — and restart the service, because it is read at start.
-It is stored in the database, not in `hMailServer.ini`: writing it into the file
-does not set it, and since schema 6042 the server names the edit in its error log
-and puts the line back. This stores and restores the message *rows* — which is what
+with `1`), or with `hmctl ini set BackupMessagesDBOnly 1` — and restart the
+service, because it is read at start. It is stored in the database, which is the
+settings store since schema 6042, and is not typed into `hMailServer.ini`: a line
+added to the file is taken into the store only while the store has never held the
+setting, and once it has, an edit to the file is named in the error log (`HM5804`)
+and put back. This stores and restores the message *rows* — which is what
 you are actually migrating — while leaving the `.eml` files alone on disk. On an
 installation with a few hundred gigabytes of mail this is the difference between
 minutes and most of a day, and since the data folder is not moving, copying it out
 and back achieves nothing.
 
-The setting has to be identical for the backup and the restore, and this is one of
-the few places where that means setting it **on both servers**: it is a setting of
-the server doing the work, and the new server has its own database. Remove it
-afterwards, in the same place, so your ordinary scheduled backups go back to
-including the files.
+The setting has to be identical for the backup and the restore, and the restore
+runs against the new database, which has a settings store of its own. It comes
+across without being set again, the way every setting does (see step 4): the new
+database's store starts empty, and the first start against it adopts the
+`[Settings]` section of `hMailServer.ini`, which is the server's copy of the old
+store and has held `BackupMessagesDBOnly=1` since the moment it was stored. Check it
+on the new database before you restore (`hmctl ini get BackupMessagesDBOnly`, or the
+Control Panel); if the old server named it in `HM5806` or `HM5803` - its line could
+not be written into the file - set it again and restart. Remove it afterwards, in
+the same place, so your ordinary scheduled backups go back to including the files.
 
 ### 3. Create the new database
 
@@ -199,6 +206,15 @@ job with prompts. Use it if you would rather enter the connection details in a
 dialog than edit the ini file by hand; it writes the same `[Database]` section.
 
 ### 4. Restore
+
+When the server first starts against the new database it finds the settings store
+empty and adopts every line of the `[Settings]` section of `hMailServer.ini` into
+it - the server's copy of the old store, as of the last time a setting was written
+into the file - and says so in the application log ("setting(s) from the
+[Settings] section of hMailServer.INI are now stored in the database"). A setting
+the old server could not write into the file, which it reported as `HM5806` or
+`HM5803`, is not in that copy. Restoring with **Back up settings**, below, writes
+the archived settings over the adopted ones either way.
 
 Start the service and restore the archive:
 
@@ -244,6 +260,12 @@ Until you delete the old database, rollback is exact and takes a minute: stop th
 service, put the original `[Database]` section back in `hMailServer.ini`, start
 the service. The old database is untouched by everything above — the migration
 only ever read from it.
+
+The settings come back with it. The file's `[Settings]` section now holds what
+the new server stored, so at that start each setting changed since the cutover is
+named in the error log as `HM5804` and put back to the old database's value -
+which is the rollback working, not a fault - and a setting first stored on the new
+server, which the old database has no row for, is adopted into it.
 
 **Keep it until you are satisfied**, and remember that any mail that arrived after
 the cutover exists only in the new database. That is the one thing rolling back
