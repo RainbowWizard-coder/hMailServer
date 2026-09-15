@@ -10,15 +10,15 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 349 |
-| of them writable over REST | 349 |
-| of them reachable from a Deck view | 343 |
+| COM properties the desktop program writes | 352 |
+| of them writable over REST | 352 |
+| of them reachable from a Deck view | 346 |
 | missing over REST | 0 |
 | over REST but not reached by any Deck view | 6 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 94 |
 | desktop pages read | 58 |
-| REST routes (path and method) | 236, 107 of them writes |
+| REST routes (path and method) | 243, 112 of them writes |
 | Deck views | 18 |
 
 ## Missing over REST, by interface
@@ -139,8 +139,11 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `DKIMBodyCanonicalizationMethod` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMHeaderCanonicalizationMethod` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMPrivateKeyFile` | DnsRecordsView, DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
-| `DKIMSecondaryPrivateKeyFile` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
-| `DKIMSecondarySelector` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `DKIMRotationEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `DKIMRotationIntervalDays` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `DKIMRotationKeyBits` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `DKIMRotationPropagationHours` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `DKIMRotationRetentionDays` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMSelector` | DnsRecordsView, DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMSignAliasesEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMSignEnabled` | DnsRecordsView, DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
@@ -604,7 +607,11 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `PreviewDirectorySync` | DirectorySyncView | - |
 | Settings | `SetAdministratorPassword` | ServerSettingsView | - |
 | Settings | `SetSMTPRelayerPassword` | ServerSettingsView | - |
-| Domain | `DKIMPromoteSecondary` | DomainDialog | - |
+| Domain | `DKIMRotationCancel` | DomainDialog | - |
+| Domain | `DKIMRotationCheck` | DomainDialog | `POST /api/v1/domains/{domain}/dkim/rotation/check`<br>`POST /api/v1/update/check` |
+| Domain | `DKIMRotationRetire` | DomainDialog | `POST /api/v1/domains/{domain}/dkim/rotation/retire` |
+| Domain | `DKIMRotationStart` | DomainDialog | `POST /api/v1/domains/{domain}/dkim/rotation/start` |
+| Domain | `DKIMRotationSwitch` | DomainDialog | `POST /api/v1/domains/{domain}/dkim/rotation/switch` |
 | Accounts | `Add` | DomainsView | - |
 | Account | `DeleteMessages` | AccountDialog | - |
 | Account | `DisableTOTP` | AccountTwoFactorPanel | - |
@@ -680,8 +687,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}/fetch-accounts/{id}` | FetchAccount | `connection_security`, `days_to_keep_messages`, `enable_route_recipients`, `enabled`, `field`, `first`, `message`, `mime_recipient_headers`, `minutes_between_fetch`, `mirror_folders`, `name`, `password`, `port`, `process_mime_date`, `process_mime_recipients`, `server_address`, `server_type`, `starttls_optional`, `starttls_required`, `type`, `use_antispam`, `use_antivirus`, `username`, `value` | yes |
 | `POST /api/v1/accounts/{address}/fetch-accounts/{id}/download` | FetchAccount | - | yes |
 | `POST /api/v1/accounts/{address}/folders/{id}/messages` | ServerMessage | - | - |
-| `POST /api/v1/accounts/{address}/folders/{id}/permissions` | IMAPFolderPermission | `account`, `account_id`, `administer`, `create`, `delete_mailbox`, `expunge`, `folder`, `group`, `group_id`, `insert`, `lookup`, `name`, `post`, `read`, `rights`, `type`, `write_deleted`, `write_others`, `write_seen` | - |
-| `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` | IMAPFolderPermission | `account`, `account_id`, `administer`, `body`, `create`, `delete_mailbox`, `expunge`, `field`, `folder`, `group`, `group_id`, `insert`, `lookup`, `name`, `new`, `post`, `read`, `rights`, `to`, `type`, `value`, `write_deleted`, `write_others`, `write_seen` | - |
+| `POST /api/v1/accounts/{address}/folders/{id}/permissions` | IMAPFolderPermission | `account`, `account_id`, `administer`, `create`, `delete_mailbox`, `expunge`, `folder`, `force`, `group`, `group_id`, `insert`, `lookup`, `name`, `post`, `read`, `rights`, `type`, `write_deleted`, `write_others`, `write_seen` | - |
+| `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` | IMAPFolderPermission | `account`, `account_id`, `administer`, `body`, `create`, `delete_mailbox`, `expunge`, `field`, `folder`, `force`, `group`, `group_id`, `insert`, `lookup`, `name`, `new`, `post`, `read`, `rights`, `to`, `type`, `value`, `write_deleted`, `write_others`, `write_seen` | - |
 | `PUT /api/v1/accounts/{address}/messages/{id}` | ServerMessage | `answered`, `deleted`, `draft`, `flagged`, `folder`, `seen`, `value` | - |
 | `POST /api/v1/accounts/{address}/messages/{id}/copy` | ServerMessage | `account`, `destination`, `folder`, `folder_id`, `to` | - |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
@@ -697,21 +704,26 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/blocked-senders/{id}` | BlockedSender | `address`, `body`, `description`, `field`, `message`, `read`, `score`, `value` | - |
 | `POST /api/v1/calendar/expand` | ? | `all_day`, `calendar`, `end`, `first`, `last`, `limit`, `recurrence_id`, `start`, `to` | - |
 | `POST /api/v1/certificates` | SSLCertificate | `certificate_file`, `name`, `private_key_file`, `private_key_password` | yes |
+| `POST /api/v1/dkim/rotation/run` | Domain | `seconds_ahead` | - |
 | `POST /api/v1/dns-blacklists` | DNSBlackList | `active`, `dns_host`, `expected_result`, `message`, `read`, `reject_message`, `score`, `wildcard` | yes |
 | `PUT /api/v1/dns-blacklists/{id}` | DNSBlackList | `active`, `body`, `dns_host`, `expected_result`, `field`, `message`, `read`, `reject_message`, `score`, `value`, `wildcard` | - |
 | `POST /api/v1/domains` | Domain | `active`, `name`, `new`, `postmaster` | yes |
-| `PUT /api/v1/domains/{domain}` | Domain | `account`, `active`, `ad_domain_name`, `address`, `disclaimer_enabled`, `disclaimer_html`, `disclaimer_plain_text`, `dkim_body_canonicalization`, `dkim_enabled`, `dkim_header_canonicalization`, `dkim_private_key_file`, `dkim_secondary_private_key_file`, `dkim_secondary_selector`, `dkim_selector`, `dkim_sign_aliases`, `dkim_signing_algorithm`, `external_tag_header`, `external_tag_subject`, `external_tag_text`, `field`, `first_contact_tip`, `from`, `header`, `key`, `log`, `max_account_size_mb`, `max_accounts`, `max_accounts_enabled`, `max_aliases`, `max_aliases_enabled`, `max_lists`, `max_lists_enabled`, `max_message_size_kb`, `max_size_mb`, `message_retention_days`, `name`, `new`, `plus_addressing_character`, `plus_addressing_enabled`, `postmaster`, `relay_connection_security`, `relay_host`, `relay_password`, `relay_port`, `relay_requires_auth`, `relay_username`, `set_if_not_specified`, `signature_add_to_local_mail`, `signature_add_to_replies`, `signature_enabled`, `signature_html`, `signature_method`, `signature_plain_text`, `subject`, `to`, `type`, `use_greylisting`, `vacation_enabled`, `vacation_external_override`, `vacation_internal_message`, `vacation_internal_subject`, `vacation_message`, `vacation_subject`, `value` | yes |
+| `PUT /api/v1/domains/{domain}` | Domain | `account`, `active`, `ad_domain_name`, `address`, `disclaimer_enabled`, `disclaimer_html`, `disclaimer_plain_text`, `dkim_body_canonicalization`, `dkim_enabled`, `dkim_header_canonicalization`, `dkim_private_key_file`, `dkim_rotation_enabled`, `dkim_rotation_interval_days`, `dkim_rotation_key_bits`, `dkim_rotation_propagation_hours`, `dkim_rotation_retention_days`, `dkim_secondary_private_key_file`, `dkim_secondary_selector`, `dkim_selector`, `dkim_sign_aliases`, `dkim_signing_algorithm`, `external_tag_header`, `external_tag_subject`, `external_tag_text`, `field`, `first_contact_tip`, `from`, `header`, `key`, `log`, `max_account_size_mb`, `max_accounts`, `max_accounts_enabled`, `max_aliases`, `max_aliases_enabled`, `max_lists`, `max_lists_enabled`, `max_message_size_kb`, `max_size_mb`, `message_retention_days`, `name`, `new`, `plus_addressing_character`, `plus_addressing_enabled`, `postmaster`, `relay_connection_security`, `relay_host`, `relay_password`, `relay_port`, `relay_requires_auth`, `relay_username`, `selector`, `set_if_not_specified`, `signature_add_to_local_mail`, `signature_add_to_replies`, `signature_enabled`, `signature_html`, `signature_method`, `signature_plain_text`, `subject`, `to`, `type`, `use_greylisting`, `vacation_enabled`, `vacation_external_override`, `vacation_internal_message`, `vacation_internal_subject`, `vacation_message`, `vacation_subject`, `value` | yes |
 | `POST /api/v1/domains/{domain}/accounts` | Account | `active`, `address`, `max_size_mb`, `password` | yes |
 | `POST /api/v1/domains/{domain}/aliases` | Alias | `account`, `active`, `address`, `limit`, `message`, `name`, `to`, `value` | yes |
+| `POST /api/v1/domains/{domain}/dkim/rotation/check` | Domain | - | - |
+| `POST /api/v1/domains/{domain}/dkim/rotation/retire` | Domain | - | - |
+| `POST /api/v1/domains/{domain}/dkim/rotation/start` | Domain | `selector` | - |
+| `POST /api/v1/domains/{domain}/dkim/rotation/switch` | Domain | `force` | - |
 | `POST /api/v1/domains/{domain}/domain-aliases` | DomainAlias | `name` | yes |
 | `POST /api/v1/domains/{domain}/lists` | DistributionList | `active`, `address`, `addresses`, `bounce_address`, `domain_members`, `members`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to` | yes |
 | `POST /api/v1/greylisting-white-addresses` | GreyListingWhiteAddress | `address`, `description`, `ip_address`, `read` | yes |
 | `PUT /api/v1/greylisting-white-addresses/{id}` | GreyListingWhiteAddress | `address`, `body`, `description`, `field`, `ip_address`, `read`, `value` | - |
 | `POST /api/v1/groups` | Group | `group`, `name`, `read`, `to` | yes |
 | `PUT /api/v1/groups/{id}` | Group | `group`, `name`, `read`, `to` | yes |
-| `POST /api/v1/groups/{id}/members` | DistributionListRecipient, GroupMember | `account`, `account_id`, `address`, `name`, `read` | yes |
-| `POST /api/v1/incoming-relays` | IncomingRelay | `lower_ip`, `name`, `read`, `upper_ip` | yes |
-| `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `field`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
+| `POST /api/v1/groups/{id}/members` | DistributionListRecipient, GroupMember | `account`, `account_id`, `address`, `force`, `name`, `read` | yes |
+| `POST /api/v1/incoming-relays` | IncomingRelay | `force`, `lower_ip`, `name`, `read`, `upper_ip` | yes |
+| `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `field`, `force`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
 | `POST /api/v1/ipranges` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `expires`, `expires_time`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `virus_protection` | yes |
 | `PUT /api/v1/ipranges/{id}` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `body`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `expires`, `expires_time`, `field`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `value`, `virus_protection` | yes |
 | `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `domain_members`, `field`, `members`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |

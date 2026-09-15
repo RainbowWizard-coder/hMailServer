@@ -172,6 +172,10 @@ namespace hMailServer.ControlPanel.Views
          public string DkimSelector = "";
          public string DkimKeyFile = "";
          public string DkimSecondarySelector = "";
+
+         // The server's key rotation, when it has one to report: the records it
+         // derived from keys this machine may not be able to read.
+         public DkimRotationStatus Rotation;
       }
 
       private void Reload()
@@ -246,7 +250,8 @@ namespace hMailServer.ControlPanel.Views
                      DkimEnabled = (bool)domain.DKIMSignEnabled,
                      DkimSelector = ((string)domain.DKIMSelector ?? "").Trim(),
                      DkimKeyFile = ((string)domain.DKIMPrivateKeyFile ?? "").Trim(),
-                     DkimSecondarySelector = ReadSecondarySelector(domain)
+                     DkimSecondarySelector = ReadSecondarySelector(domain),
+                     Rotation = ReadRotation(domain)
                   });
                }
                finally
@@ -265,6 +270,21 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)domains);
          }
          return result;
+      }
+
+      /// <summary>The server's key rotation, read defensively for the same reason as
+      /// the secondary selector below: a server older than the rotation has no such
+      /// property, and the page must keep working without it.</summary>
+      private static DkimRotationStatus ReadRotation(dynamic domain)
+      {
+         try
+         {
+            return DkimRotationStatus.Parse((string)domain.DKIMRotationStatus);
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return null;
+         }
       }
 
       /// <summary>Read defensively, like DomainDialog does: against an older server
@@ -518,6 +538,19 @@ namespace hMailServer.ControlPanel.Views
          // presence-only and says so, exactly like the rotation flow does.
          string expected = DeriveDkimRecord(domain.DkimKeyFile);
 
+         // A key the server's rotation generated is readable only by the server and
+         // the administrators, so a Control Panel that is not elevated - or not on the
+         // server at all - cannot derive the record from it. The server derived it,
+         // and says what it is.
+         if (expected == null && domain.Rotation?.Current != null &&
+             string.Equals(domain.Rotation.Current.Selector, domain.DkimSelector, StringComparison.OrdinalIgnoreCase))
+         {
+            expected = domain.Rotation.Current.Records
+               .Where(r => string.Equals(r.Host, host, StringComparison.OrdinalIgnoreCase) && r.Value.Length > 0)
+               .Select(r => r.Value)
+               .FirstOrDefault();
+         }
+
          content.Children.Add(Paragraph(F("Derived from the domain's configured key: selector \"{0}\", private key file {1}. Signing is currently ", domain.DkimSelector, domain.DkimKeyFile)
             + (domain.DkimEnabled ? L("ON.") : L("OFF - it can be switched on below once the record is confirmed published."))
             + (domain.DkimEnabled && expected == null
@@ -532,9 +565,32 @@ namespace hMailServer.ControlPanel.Views
             copyWarning: null,
             valueCopyable: expected != null);
 
-         if (domain.DkimSecondarySelector.Length > 0)
+         if (domain.Rotation?.Next != null)
+         {
+            // The server's rotation says what to publish next, and checks it itself;
+            // the switch, the retire and the cancel are on the domain's DKIM tab.
+            content.Children.Add(Paragraph(F("The server's key rotation has a next key, selector \"{0}\". Publish its record as well; signing moves to it once the record has resolved for the propagation period, and the domain's DKIM tab shows the rest.", domain.Rotation.Next.Selector),
+               Typography.Caption));
+
+            foreach (DkimRotationStatus.Record record in domain.Rotation.Next.Records)
+            {
+               content.Children.Add(Label(F("{0}: TXT record at {1}", DkimRotationStatus.ActionText(record.Action), record.Host)));
+               TextBox next = ReadOnlyBox(0);
+               next.Text = record.Value;
+               System.Windows.Automation.AutomationProperties.SetName(next, F("TXT record value for {0}", record.Host));
+               content.Children.Add(next);
+            }
+         }
+         else if (domain.DkimSecondarySelector.Length > 0)
          {
             content.Children.Add(Paragraph(F("A key rotation is staged (selector \"{0}\"). The staged record and the promote step are managed from the domain's DKIM tab, which gates promotion on its own DNS check; it is deliberately not repeated here.", domain.DkimSecondarySelector),
+               Typography.Caption));
+         }
+
+         if (domain.Rotation?.Retiring != null)
+         {
+            content.Children.Add(Paragraph(F("Keep the record of the retiring selector \"{0}\" published until {1}, for mail signed with it that is still on its way.",
+                  domain.Rotation.Retiring.Selector, DkimRotationStatus.When(domain.Rotation.Retiring.RetireDue)),
                Typography.Caption));
          }
 
