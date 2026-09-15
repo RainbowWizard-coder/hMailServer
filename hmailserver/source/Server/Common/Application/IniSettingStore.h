@@ -217,7 +217,10 @@ namespace HM
       /// For `hmailserver --set-setting`, which refuses any other name: storing a
       /// key nothing reads would change nothing and report success. The REST API
       /// and COM store any name on purpose, for a setting a script of the
-      /// administrator's own reads, and are not held to this.
+      /// administrator's own reads, and are not held to this. Nor is the handful
+      /// of keys read by name where they are used rather than by the loader - the
+      /// webmail's branding and file-link policy, with their ".<domain>" twins -
+      /// which the baseline does not list and which have REST pages of their own.
       /// </summary>
       static bool IsSettingTheServerReads(const String &name, String &spelling);
 

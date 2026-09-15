@@ -16,8 +16,10 @@
 #                                   Without it the REST API refuses to start, and
 #                                   on Linux the REST API is the administration.
 #   HM_REST_PORT, HM_REST_BIND_ADDRESS, HM_REST_CERTIFICATE_FILE,
-#   HM_REST_PRIVATE_KEY_FILE     -> [Settings] RestApiPort, RestApiBindAddress,
-#                                   RestApiCertificateFile, RestApiPrivateKeyFile.
+#   HM_REST_PRIVATE_KEY_FILE     -> RestApiPort, RestApiBindAddress,
+#                                   RestApiCertificateFile, RestApiPrivateKeyFile,
+#                                   stored with the server's own --set-setting
+#                                   once the database is there (store_setting).
 #                                   The packaged file has the port at 0 (off) and
 #                                   the bind at 127.0.0.1, which inside a container
 #                                   is the container's own loopback; to reach the
@@ -62,30 +64,19 @@ needs_writable_ini() {
    fi
 }
 
-# set_key SECTION KEY VALUE: the key's line in that section is replaced (a
-# commented-out ";KEY=" counts, so the packaged file's ;RestApiCertificateFile=
-# becomes a live setting); a missing key is added at the end of the section; a
-# missing section is added at the end of the file. Written back through the
-# existing file, so its owner and mode stay.
-set_key() {
-   local tmp
-   tmp="$(mktemp)"
-   awk -v s="[$1]" -v k="$2" -v v="$3" '
-      BEGIN { insec = 0; done = 0 }
-      /^\[/ {
-         if (insec && !done) { print k "=" v; done = 1 }
-         insec = ($0 == s)
-      }
-      insec && !done && $0 ~ ("^;?" k "=") { print k "=" v; done = 1; next }
-      { print }
-      END {
-         if (!done) {
-            if (!insec) print s
-            print k "=" v
-         }
-      }' "$INI" > "$tmp"
-   cat "$tmp" > "$INI"
-   rm -f "$tmp"
+# store_setting NAME VALUE: one of the server's settings, stored the way the
+# REST API stores one. From schema 6042 the database is the settings store and
+# the [Settings] section of hMailServer.ini is the server's copy of it, so a line
+# written into that section is taken only while the store has no row for it - at
+# the first start - and a value changed on any later start (a new HM_REST_PORT, a
+# certificate named by a helm upgrade) is named in the error log as HM5804 and
+# put back. That is what this entrypoint used to do. hmailserver --set-setting
+# writes the row and the file's line together and keeps the file's owner and
+# mode; it needs the database at this build's schema, so it runs after the
+# create and upgrade steps below.
+store_setting() {
+   needs_writable_ini "$1"
+   hmailserver --config "$INI" --set-setting "$1=$2"
 }
 
 write_database_section() {
@@ -119,29 +110,6 @@ if [ -n "${HM_DB_TYPE:-}" ]; then
    echo "[Database] written from the environment: $HM_DB_TYPE on ${HM_DB_HOST:-db}:${HM_DB_PORT:-$default_port}, database ${HM_DB_NAME:-hmailserver}"
 fi
 
-rest_written=""
-if [ -n "${HM_REST_PORT:-}" ]; then
-   needs_writable_ini "RestApiPort"
-   set_key Settings RestApiPort "$HM_REST_PORT"
-   rest_written="${rest_written} port ${HM_REST_PORT}"
-fi
-if [ -n "${HM_REST_BIND_ADDRESS:-}" ]; then
-   needs_writable_ini "RestApiBindAddress"
-   set_key Settings RestApiBindAddress "$HM_REST_BIND_ADDRESS"
-   rest_written="${rest_written} bind ${HM_REST_BIND_ADDRESS}"
-fi
-if [ -n "${HM_REST_CERTIFICATE_FILE:-}" ]; then
-   needs_writable_ini "RestApiCertificateFile"
-   set_key Settings RestApiCertificateFile "$HM_REST_CERTIFICATE_FILE"
-   rest_written="${rest_written} certificate ${HM_REST_CERTIFICATE_FILE}"
-fi
-if [ -n "${HM_REST_PRIVATE_KEY_FILE:-}" ]; then
-   needs_writable_ini "RestApiPrivateKeyFile"
-   set_key Settings RestApiPrivateKeyFile "$HM_REST_PRIVATE_KEY_FILE"
-   rest_written="${rest_written} key ${HM_REST_PRIVATE_KEY_FILE}"
-fi
-[ -z "$rest_written" ] || echo "[Settings] REST API written from the environment:${rest_written}"
-
 if [ -n "${HM_ADMIN_PASSWORD:-}" ]; then
    needs_writable_ini "AdministratorPassword"
    # The server's own verb: one line on standard input, a PBKDF2 hash in the
@@ -159,6 +127,13 @@ fi
 if [ "${HM_UPGRADE_DATABASE:-1}" != 0 ]; then
    hmailserver --config "$INI" --upgrade-database
 fi
+
+# Each prints what it stored; a failure stops the container, as a database the
+# server could not start on would.
+[ -z "${HM_REST_PORT:-}" ] || store_setting RestApiPort "$HM_REST_PORT"
+[ -z "${HM_REST_BIND_ADDRESS:-}" ] || store_setting RestApiBindAddress "$HM_REST_BIND_ADDRESS"
+[ -z "${HM_REST_CERTIFICATE_FILE:-}" ] || store_setting RestApiCertificateFile "$HM_REST_CERTIFICATE_FILE"
+[ -z "${HM_REST_PRIVATE_KEY_FILE:-}" ] || store_setting RestApiPrivateKeyFile "$HM_REST_PRIVATE_KEY_FILE"
 
 if [ "${1:-}" = "hmailserver" ] && ! printf '%s\n' "$@" | grep -q -- '--config'; then
    shift

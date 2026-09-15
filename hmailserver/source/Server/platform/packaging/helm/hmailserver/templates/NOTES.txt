@@ -22,5 +22,8 @@ A domain and an account, over the API:
   curl -k -u Administrator:... -X POST https://<address>:{{ .Values.rest.port }}/api/v1/domains -H 'Content-Type: application/json' -d '{"name":"example.com"}'
 
 The message store, the logs and the configuration are on the three volumes of
-the StatefulSet; hMailServer.ini on the config volume is rewritten from the
-chart's values on every start where a value is set.
+the StatefulSet. The chart's values are applied on every start where a value is
+set: the database connection and the administrator password into hMailServer.ini
+on the config volume, and the REST listener's settings into the database, which
+is the settings store, with hmailserver --set-setting - so a changed rest.port or
+rest.tlsSecretName takes effect when the pod next starts.

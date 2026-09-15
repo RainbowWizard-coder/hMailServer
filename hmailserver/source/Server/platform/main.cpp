@@ -464,9 +464,10 @@ namespace
       HM::String spelling;
       if (!HM::IniSettingStore::IsSettingTheServerReads(name, spelling))
       {
-         std::fprintf(stderr, "'%s' is not a [Settings] key this server reads, so storing it would change nothing. "
-            "The keys are the ones README.md lists under Settings. A setting of your own - one an event script reads - "
-            "is stored over the REST API, PUT /api/v1/settings/ini/{name}, which takes any name.\n",
+         std::fprintf(stderr, "'%s' is not one of the [Settings] keys the server's settings loader reads, so storing it here would change nothing. "
+            "README.md's Configuration reference and the wiki's Settings Reference describe them. The webmail's branding and file-link "
+            "settings, and a setting of your own that an event script reads, are stored over the REST API once the listener is on: "
+            "PUT /api/v1/settings/ini/{name} takes any name.\n",
             HM::AnsiString(name).c_str());
          return 2;
       }
@@ -558,12 +559,12 @@ namespace
             }
             else if (had)
             {
-               std::printf("%s=%s stored in the database (hm_inisettings), where it was %s, and written to %s. It applies when the server next starts or is reloaded: systemctl restart hmailserver.\n",
+               std::printf("%s=%s stored in the database (hm_inisettings), where it was %s, and written to %s. It applies when the server next starts or is reloaded.\n",
                   shown.c_str(), stored.c_str(), previous.IsEmpty() ? "empty" : previous.c_str(), iniFile.c_str());
             }
             else
             {
-               std::printf("%s=%s stored in the database (hm_inisettings) as a new row and written to %s. It applies when the server next starts or is reloaded: systemctl restart hmailserver.\n",
+               std::printf("%s=%s stored in the database (hm_inisettings) as a new row and written to %s. It applies when the server next starts or is reloaded.\n",
                   shown.c_str(), stored.c_str(), iniFile.c_str());
             }
 
