@@ -129,6 +129,12 @@ namespace HM
       std::shared_ptr<MimeBody> FindPart(const String &sType) const;
       std::shared_ptr<MimeBody> FindPartNoRecurse(std::shared_ptr<MimeBody> parent, const AnsiString &sType) const;
 
+      // CreatePart's view of an HTML body that shows images carried beside it
+      // (multipart/related): kept whole across the rebuild.
+      bool IsFormattedRelated_(std::shared_ptr<MimeBody> part) const;
+      std::shared_ptr<MimeBody> FindFormattedBodyNoRecurse_(std::shared_ptr<MimeBody> parent) const;
+      std::shared_ptr<MimeBody> LiftRelatedBody_();
+
       std::shared_ptr<Message> message_;
       std::shared_ptr<MimeBody> mime_mail_;
       std::shared_ptr<Attachments> attachments_;

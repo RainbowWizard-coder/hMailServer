@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using hMailServer;
@@ -30,6 +31,12 @@ namespace RegressionTests.API
    ///    read over POP3 - and not the route's answer, and each positive assertion has
    ///    the thing that would make it vacuous checked beside it: the image's bytes are
    ///    compared, not just the absence of data:, so a message that lost its HTML fails.
+   ///
+   ///    Two things beside the send path: a file added to such a message afterwards the
+   ///    way an event script adds one (Message.Attachments.Add, MessageData::CreatePart)
+   ///    keeps the HTML and its image together; and a message is given no more image
+   ///    parts than the webmail's own view puts back in place, so every image of a Sent
+   ///    copy or a draft still shows there.
    /// </summary>
    [TestFixture]
    public class RestApiSignatureImages : TestFixtureBase
@@ -243,6 +250,87 @@ namespace RegressionTests.API
          string delivered = Pop3ClientSimulator.AssertGetFirstMessageText(other, UserPassword);
          AssertInlineImage(delivered, image, "The message the domain signature was added to");
          StringAssert.Contains("Example Ltd", QuotedPrintableUnfolded(delivered));
+      }
+
+      [Test]
+      [Description("A file added afterwards the way an event script adds one - Message.Attachments.Add - keeps the HTML and its inline image together, on a message with no file and on one that has a file already")]
+      public void AFileAddedAfterwardsKeepsTheHtmlAndItsImageTogether()
+      {
+         byte[] image = Convert.FromBase64String(SmallPng);
+         string html = "<p>Draft</p><div><br>-- <br><p>Ada</p>" + ImageTag(image) + "</div>";
+         string file = Paths.Combine(Path.GetTempPath(), "signature-images-added.txt");
+         File.WriteAllText(file, "added afterwards");
+
+         try
+         {
+            // The webmail's two shapes: multipart/alternative at the top, and multipart/mixed
+            // around it when the message carries a file. Before MessageData::CreatePart knew a
+            // related part, adding a file dropped the HTML and the image from both.
+            string[] withFiles = { "", ",\"attachments\":[{\"name\":\"first.txt\",\"type\":\"text/plain\",\"data\":\"Zmlyc3Q=\"}]" };
+            foreach (string withFile in withFiles)
+            {
+               string what = withFile.Length == 0 ? "The draft a file was added to" : "The draft with a file that another was added to";
+
+               (int status, string body) drafted = Me("POST", "/api/v1/me/drafts",
+                  "{\"to\":\"someone@example.com\",\"subject\":\"Not yet\",\"text\":\"Draft\",\"html\":\"" + Json(html) + "\"" + withFile + "}");
+               Assert.AreEqual(201, drafted.status, "Body: " + drafted.body);
+               long draftId = long.Parse(Regex.Match(drafted.body, "\"id\":(\\d+)").Groups[1].Value);
+
+               hMailServer.Message stored = _domain.Accounts.ItemByAddress[Address].IMAPFolders.get_ItemByName("Drafts").Messages.get_ItemByDBID(draftId);
+               Assert.IsNotNull(stored, "COM must find the draft by its id.");
+               stored.Attachments.Add(file);
+               stored.Save();
+
+               string rewritten = File.ReadAllText(stored.Filename);
+               StringAssert.Contains("signature-images-added.txt", rewritten, what + " does not carry the file: " + Truncated(rewritten));
+               if (withFile.Length > 0)
+                  StringAssert.Contains("first.txt", rewritten, what + " lost the file it had: " + Truncated(rewritten));
+               StringAssert.Contains("<p>Ada</p>", QuotedPrintableUnfolded(rewritten), what + " lost its HTML: " + Truncated(rewritten));
+               AssertInlineImage(rewritten, image, what);
+
+               // And the webmail still shows the image in place.
+               (int status, string body) shown = Me("GET", "/api/v1/me/messages/" + draftId + "/html", null);
+               Assert.AreEqual(200, shown.status, "Body: " + Truncated(shown.body));
+               StringAssert.Contains("data:image/png;base64," + SmallPng, shown.body, what + " no longer shows its image in the webmail.");
+            }
+         }
+         finally
+         {
+            File.Delete(file);
+         }
+      }
+
+      [Test]
+      [Description("Of sixty-five different images, sixty-four become parts - as many as the webmail's view of a message puts back in place - and the last stays a data: URL, so the webmail shows every one")]
+      public void ImagesPastWhatTheWebmailPutsBackInPlaceStayDataUrls()
+      {
+         // InlineImageParts::MostImages, and the /html route's count.
+         const int MostImages = 64;
+
+         var html = new StringBuilder("<p>Many</p>");
+         for (int i = 0; i <= MostImages; i++)
+         {
+            byte[] different = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, (byte) ('A' + i % 26), (byte) ('a' + i / 26) };
+            html.Append(ImageTag(different));
+         }
+
+         (int status, string body) drafted = Me("POST", "/api/v1/me/drafts",
+            "{\"to\":\"someone@example.com\",\"subject\":\"Many\",\"text\":\"Many\",\"html\":\"" + Json(html.ToString()) + "\"}");
+         Assert.AreEqual(201, drafted.status, "Body: " + drafted.body);
+         long draftId = long.Parse(Regex.Match(drafted.body, "\"id\":(\\d+)").Groups[1].Value);
+
+         (int status, string body) source = Me("GET", "/api/v1/me/messages/" + draftId + "/source", null);
+         Assert.AreEqual(200, source.status, "Body: " + Truncated(source.body));
+         Assert.AreEqual(MostImages, Regex.Matches(source.body, "^Content-ID:", RegexOptions.Multiline | RegexOptions.IgnoreCase).Count,
+            "Sixty-four images must be parts: " + Truncated(source.body));
+         Assert.AreEqual(1, Regex.Matches(QuotedPrintableUnfolded(source.body), "data:image/png;base64,").Count,
+            "The sixty-fifth must be left a data: URL: " + Truncated(source.body));
+
+         (int status, string body) shown = Me("GET", "/api/v1/me/messages/" + draftId + "/html", null);
+         Assert.AreEqual(200, shown.status, "Body: " + Truncated(shown.body));
+         Assert.AreEqual(MostImages + 1, Regex.Matches(shown.body, "data:image/png;base64,").Count,
+            "The webmail's view must show every image, the parts put back and the data: URL as it was: " + Truncated(shown.body));
+         StringAssert.DoesNotContain("cid:", shown.body);
       }
 
       /// <summary>

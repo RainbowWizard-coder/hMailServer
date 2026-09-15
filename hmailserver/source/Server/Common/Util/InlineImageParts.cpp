@@ -74,6 +74,100 @@ namespace HM
          part->SetParameter(CMimeConst::ContentType(), "type", "text/html");
          part->SetBoundary(NULL);
       }
+
+      // For the tester: the trees a script's Attachments.Add is given.
+      std::shared_ptr<MimeBody> NewPart(const char *type, const String &text)
+      {
+         std::shared_ptr<MimeBody> part = std::shared_ptr<MimeBody>(new MimeBody);
+         part->SetContentType(type, "");
+         part->SetUnicodeText(text);
+         return part;
+      }
+
+      void MakeMultipart(std::shared_ptr<MimeBody> part, const char *type)
+      {
+         part->SetContentType(type, "");
+         part->SetRawText("This is a multi-part message.\r\n\r\n");
+         part->SetBoundary(NULL);
+      }
+
+      void MakeFile(std::shared_ptr<MimeBody> part, const char *file_name)
+      {
+         part->SetContentType("application/octet-stream", "");
+         part->SetTransferEncoding("base64");
+         part->SetRawText("QUJD\r\n");
+         part->SetRawFieldValue(CMimeConst::ContentDisposition(), CMimeConst::Attachment(), "");
+         part->SetParameter(CMimeConst::ContentDisposition(), CMimeConst::Filename(), file_name);
+      }
+
+      std::shared_ptr<MimeBody> FindRelatedPart(std::shared_ptr<MimeBody> node, int depth)
+      {
+         if (!node || depth > MaxDepth)
+            return nullptr;
+
+         if (node->GetCleanContentType().CompareNoCase(_T("multipart/related")) == 0)
+            return node;
+
+         std::vector<std::shared_ptr<MimeBody> > children;
+         for (std::shared_ptr<MimeBody> child = node->FindFirstPart(); child; child = node->FindNextPart())
+            children.push_back(child);
+
+         for (std::shared_ptr<MimeBody> child : children)
+         {
+            std::shared_ptr<MimeBody> found = FindRelatedPart(child, depth + 1);
+            if (found)
+               return found;
+         }
+
+         return nullptr;
+      }
+
+      // After a file is added the way Attachments.Add adds one: the message is
+      // mixed, the file is one of its own parts, the HTML is still the body and
+      // still names its image, and the image is still beside the HTML in a
+      // related part under the Content-ID the HTML names.
+      void AssertKeptTogether(MessageData &data, std::shared_ptr<MimeBody> added, bool with_text, const std::string &shape)
+      {
+         std::shared_ptr<MimeBody> root = data.GetMimeMessage();
+         if (root->GetCleanContentType().CompareNoCase(_T("multipart/mixed")) != 0)
+            throw std::logic_error("Adding a file did not make the message multipart/mixed: " + shape);
+
+         bool added_at_top = false;
+         for (std::shared_ptr<MimeBody> child = root->FindFirstPart(); child; child = root->FindNextPart())
+         {
+            if (child == added)
+               added_at_top = true;
+         }
+
+         if (!added_at_top)
+            throw std::logic_error("The file added is not a part of the message: " + shape);
+
+         const String html = data.GetHTMLBody();
+         if (html.Find(_T("<p>Ada</p>")) < 0 || html.Find(_T("cid:img1.")) < 0)
+            throw std::logic_error("The HTML was dropped when a file was added: " + shape);
+
+         if (with_text && data.GetBody().Find(_T("Ada")) < 0)
+            throw std::logic_error("The text was dropped when a file was added: " + shape);
+
+         std::shared_ptr<MimeBody> related = FindRelatedPart(root, 0);
+         if (!related)
+            throw std::logic_error("The related part was dropped when a file was added: " + shape);
+
+         bool named = false;
+         for (std::shared_ptr<MimeBody> child = related->FindFirstPart(); child; child = related->FindNextPart())
+         {
+            const char *content_id = child->GetRawFieldValue(_T("Content-ID"));
+            if (content_id == NULL || child->GetCleanContentType().CompareNoCase(_T("image/png")) != 0)
+               continue;
+
+            AnsiString id = content_id;
+            if (id.StartsWith("<") && id.EndsWith(">") && html.Find(_T("cid:") + String(id.Mid(1, id.GetLength() - 2))) >= 0)
+               named = true;
+         }
+
+         if (!named)
+            throw std::logic_error("The image the HTML names is no longer beside it in the related part: " + shape);
+      }
    }
 
    bool
@@ -266,6 +360,12 @@ namespace HM
          if (seen != known.end())
          {
             index = seen->second;
+         }
+         else if (images.size() >= (size_t) MostImages)
+         {
+            // Past what the webmail's view puts back in place: left as a data:
+            // URL, which that view shows as it is (InlineImageParts.h).
+            continue;
          }
          else
          {
@@ -570,6 +670,131 @@ namespace HM
 
          if (InlineImageParts::FromDataUrls(root) != 0 || root->GetPartCount() != 1)
             throw std::logic_error("A signed message was rearranged.");
+      }
+
+      // At most MostImages distinct images become parts; a new one past that
+      // stays a data: URL, and the first image named again is still replaced.
+      {
+         String many;
+         String first_url;
+         for (int i = 0; i <= InlineImageParts::MostImages; i++)
+         {
+            AnsiString bytes;
+            bytes.append("\x89PNG\r\n\x1a\n", 8);
+            bytes += (char) ('A' + (i % 26));
+            bytes += (char) ('a' + (i / 26));
+            const String url = _T("data:image/png;base64,") + String(Base64::Encode(bytes.c_str(), bytes.GetLength()));
+            if (i == 0)
+               first_url = url;
+            many += _T("<img src=\"") + url + _T("\" alt=\"\">");
+         }
+         many += _T("<img src=\"") + first_url + _T("\" alt=\"\">");
+
+         std::vector<InlineImageParts::Image> images;
+         const String rewritten = InlineImageParts::RewriteHtml(many, images, "example.test");
+         if (images.size() != (size_t) InlineImageParts::MostImages)
+            throw std::logic_error("More or fewer images than MostImages were taken from a message with one more than that.");
+
+         String lower = rewritten;
+         lower.ToLower();
+         const int left = lower.Find(_T("data:image/png"));
+         if (left < 0 || lower.Find(_T("data:image/png"), left + 1) >= 0)
+            throw std::logic_error("The image past MostImages was not left as the one data: URL.");
+
+         const String tail = _T("cid:") + String(images[0].content_id) + _T("\" alt=\"\">");
+         if (rewritten.Right(tail.GetLength()) != tail)
+            throw std::logic_error("The first image, named again after the limit, was not replaced.");
+      }
+
+      // A file added afterwards the way a script adds one - Message.Attachments.Add,
+      // which rebuilds the message in MessageData::CreatePart - keeps the HTML and
+      // its image together, in every shape the move leaves: the webmail's
+      // alternative, the same with a file already on it, an HTML-only message
+      // (which became the related part), and Outlook's related around the
+      // alternative, with and without a file.
+      {
+         const char *shapes[] = { "alternative", "mixed around the alternative", "HTML only", "related around the alternative", "mixed around related" };
+         for (int shape = 0; shape < 5; shape++)
+         {
+            MessageData data;
+            std::shared_ptr<MimeBody> root = data.GetMimeMessage();
+            std::shared_ptr<MimeBody> alternative = std::shared_ptr<MimeBody>(new MimeBody);
+            MakeMultipart(alternative, "multipart/alternative");
+            alternative->AddPart(NewPart("text/plain", _T("Ada")));
+            alternative->AddPart(NewPart("text/html", html));
+
+            if (shape == 0)
+            {
+               MakeMultipart(root, "multipart/alternative");
+               root->AddPart(NewPart("text/plain", _T("Ada")));
+               root->AddPart(NewPart("text/html", html));
+            }
+            else if (shape == 1)
+            {
+               MakeMultipart(root, "multipart/mixed");
+               root->AddPart(alternative);
+               std::shared_ptr<MimeBody> file = std::shared_ptr<MimeBody>(new MimeBody);
+               MakeFile(file, "first.bin");
+               root->AddPart(file);
+            }
+            else if (shape == 2)
+            {
+               root->SetContentType("text/html", "");
+               root->SetUnicodeText(html);
+            }
+            else if (shape == 3)
+            {
+               MakeMultipart(root, "multipart/related");
+               root->AddPart(alternative);
+            }
+            else
+            {
+               MakeMultipart(root, "multipart/mixed");
+               std::shared_ptr<MimeBody> related = std::shared_ptr<MimeBody>(new MimeBody);
+               MakeMultipart(related, "multipart/related");
+               related->AddPart(alternative);
+               root->AddPart(related);
+               std::shared_ptr<MimeBody> file = std::shared_ptr<MimeBody>(new MimeBody);
+               MakeFile(file, "first.bin");
+               root->AddPart(file);
+            }
+
+            if (InlineImageParts::FromDataUrls(data) != 1)
+               throw std::logic_error(std::string("The image was not moved into a part: ") + shapes[shape]);
+
+            std::shared_ptr<MimeBody> added = data.CreatePart("application/octet-stream");
+            MakeFile(added, "added.bin");
+            AssertKeptTogether(data, added, shape != 2, shapes[shape]);
+
+            // And a second file, the message now rebuilt from what the first left.
+            added = data.CreatePart("application/octet-stream");
+            MakeFile(added, "again.bin");
+            AssertKeptTogether(data, added, shape != 2, std::string(shapes[shape]) + ", a second file");
+         }
+      }
+
+      // A plain body set afterwards on an HTML-only message (Message.Body, which
+      // creates the text part through CreatePart): an alternative of the text and
+      // the related part, not the image turned into an attachment.
+      {
+         MessageData data;
+         std::shared_ptr<MimeBody> root = data.GetMimeMessage();
+         root->SetContentType("text/html", "");
+         root->SetUnicodeText(html);
+
+         if (InlineImageParts::FromDataUrls(data) != 1)
+            throw std::logic_error("The image in an HTML-only message was not moved into a part.");
+
+         std::shared_ptr<MimeBody> text = data.CreatePart("text/plain");
+         std::shared_ptr<MimeBody> first = root->FindFirstPart();
+         std::shared_ptr<MimeBody> second = root->FindNextPart();
+         if (root->GetCleanContentType().CompareNoCase(_T("multipart/alternative")) != 0 || root->GetPartCount() != 2 || first != text ||
+             !second || second->GetCleanContentType().CompareNoCase(_T("multipart/related")) != 0 || second->GetPartCount() != 2)
+            throw std::logic_error("A text part added to an HTML-only message with an image did not make an alternative of the text and the related part.");
+
+         std::shared_ptr<MimeBody> related_html = second->FindFirstPart();
+         if (!related_html || related_html->GetCleanContentType().CompareNoCase(_T("text/html")) != 0 || related_html->GetUnicodeText().Find(_T("cid:img1.")) < 0)
+            throw std::logic_error("The related part does not begin with the HTML naming its image.");
       }
    }
 }

@@ -9023,7 +9023,7 @@ namespace HM
    // so remote images and styles are blocked here unless the reader asked for
    // them with ?remote=1, nothing runs, no form is submitted and no address is
    // rewritten. Images the message embeds (cid:) are put in as data: URLs
-   // under the same budget the page gives inline images.
+   // under the budget below.
    HttpResponse
    RestApiServer::HandleMeMessageHtml_(const Caller &caller, __int64 messageId, const AnsiString &query)
    {
@@ -9052,10 +9052,12 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"the message has no HTML part\"}");
 
       // cid: references, resolved to the parts they name - image types only,
-      // 4 MB each, 12 MB and twelve parts together.
+      // 4 MB each, 12 MB together, and as many parts as the send path moves
+      // out of the HTML (InlineImageParts::MostImages), so a Sent copy or a
+      // draft shows every image it was written with.
       const __int64 InlineEach = 4 * 1024 * 1024;
       const __int64 InlineTogether = 12 * 1024 * 1024;
-      const int InlineMost = 12;
+      const int InlineMost = InlineImageParts::MostImages;
       std::shared_ptr<Attachments> attachments = messageData.GetAttachments();
       std::list<std::shared_ptr<MimeBody>> parts;
       std::shared_ptr<MimeBody> mimeMessage = messageData.GetMimeMessage();
