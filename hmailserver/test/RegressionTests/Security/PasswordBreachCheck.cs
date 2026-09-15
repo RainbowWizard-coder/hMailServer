@@ -280,7 +280,7 @@ namespace RegressionTests.Security
       [Description("The hash is SHA-1 over UTF-8: found under its UTF-8 digest, and not under its Windows-1252 or UTF-16 digests")]
       public void TheHashIsTakenOverUtf8()
       {
-         const string password = "pässwörd-2026";
+         const string password = "p\u00e4ssw\u00f6rd-2026";
          string utf8 = FakeBreachCorpus.Sha1HexUtf8(password);
          string ansi = FakeBreachCorpus.Sha1Hex(Encoding.GetEncoding(28591).GetBytes(password));
          string utf16 = FakeBreachCorpus.Sha1Hex(Encoding.Unicode.GetBytes(password));
@@ -504,6 +504,10 @@ namespace RegressionTests.Security
       public void TheAdministratorPasswordIsChecked()
       {
          const string leaked = "administrator-password-in-corpus";
+
+         // The password the rest of the suite signs in with, set while the check is
+         // off, so that "still works" below is about this test and not about the bench.
+         _settings.SetAdministratorPassword(AdminPassword);
 
          using (var corpus = new FakeBreachCorpus())
          {

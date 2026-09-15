@@ -549,7 +549,7 @@ namespace HM
          throw std::logic_error("PasswordBreachCheck::Sha1HexUpper did not produce SHA-1(\"password\") in upper case.");
 
       // UTF-8, not the ANSI code page and not UTF-16: p-a-umlaut-s-s-w-o-umlaut-r-d-2026.
-      if (!PasswordBreachCheck::Sha1HexUpper(L"pässwörd-2026", hex) || hex != "7DF5AB98EEEBE93B14A0AB70F4284204AC981A4B")
+      if (!PasswordBreachCheck::Sha1HexUpper(L"p\u00e4ssw\u00f6rd-2026", hex) || hex != "7DF5AB98EEEBE93B14A0AB70F4284204AC981A4B")
          throw std::logic_error("PasswordBreachCheck::Sha1HexUpper did not hash a non-ASCII password over its UTF-8 bytes.");
 
       if (hex == "6C5D660DACA251FD5140ACCDE9F22F03A0A476EF" || hex == "C0CBAF78F9AA1186C3F926CF166E53A52E12E48D")
@@ -591,7 +591,7 @@ namespace HM
          L"https://mirror.example:0/range/",
          L"https://mirror.example:70000/range/",
          L"https:///range/",
-         L"https://mérror.example/range/"
+         L"https://m\u00e9rror.example/range/"
       };
 
       String reason;

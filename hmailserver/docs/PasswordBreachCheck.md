@@ -87,12 +87,15 @@ minimum.
 
 **What the endpoint learns:** a five-character prefix - one of 1,048,576, and the
 same for every password whose hash begins with it - the address this server
-connected from, and the time - which
-says that somebody chose a password on this server at that moment. It does not
-learn the password, the hash, the suffix, which account it was for, or whether the
-password was found. Over https, whoever is between the two learns only that this
-server contacted that host. If `HttpProxy` is set in `hMailServer.ini`, the request
-goes through the proxy, which then learns the host and the time as well.
+connected from, and the time, which says that somebody chose a password on this
+server at that moment. It does not learn the password, the hash, the suffix, which
+account it was for, or whether the password was found. Over https, whoever is
+between the two learns only that this server contacted that host. If `HttpProxy`
+is set in `hMailServer.ini`, the request goes through the proxy, which then learns
+the host and the time as well. A plain-http mirror on this machine is asked
+through the proxy too, and there the proxy sees the whole request, prefix
+included, and is asked for its own loopback address rather than this server's;
+leave `HttpProxy` empty when the mirror is local.
 
 **What is never written to any log:** the password, its hash, the prefix, the
 suffix and the request path. A refusal is logged naming the account and nothing
@@ -158,11 +161,13 @@ it, which is what a page of your own should translate by.
 When the endpoint cannot be used
 --------------------------------
 
-"Cannot be used" is any of: no connection within eight seconds (the connection
-itself is bounded as well as the reading), a TLS certificate that does not verify
-for the host, no answer within eight seconds, an HTTP status other than 200, an
-answer larger than 256 KB, or an answer that is not a list of suffixes and counts -
-a captive portal's sign-in page is not a verdict, and neither is a JSON error.
+"Cannot be used" is any of: a host name that does not resolve (resolution is the
+operating system's and takes as long as it takes), no connection within eight
+seconds (the connection itself is bounded as well as the reading), a TLS
+certificate that does not verify for the host, no answer within eight seconds, an
+HTTP status other than 200, an answer larger than 256 KB, or an answer that is not
+a list of suffixes and counts - a captive portal's sign-in page is not a verdict,
+and neither is a JSON error.
 
 What happens then is `BreachCheckUnreachableAction`. **Allow** (the default) lets
 the change through without the check. **Refuse** refuses it with the second

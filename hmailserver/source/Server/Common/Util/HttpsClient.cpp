@@ -113,6 +113,23 @@ namespace HM
             throw boost::system::system_error(result);
       }
 
+      // Why a request failed, in the words an administrator reads in the error log
+      // and in a REST answer. A system_error's what() ends with the source location
+      // Boost attaches to a code raised inside its own headers - the path of
+      // win_iocp_socket_connect_op.hpp on the build machine, a line number and a
+      // template signature longer than the sentence - so for one of those the
+      // message and the category:value are taken from the code instead.
+      String ReasonOf_(const std::exception &e)
+      {
+         const boost::system::system_error *systemError = dynamic_cast<const boost::system::system_error *>(&e);
+         if (!systemError)
+            return String(e.what());
+
+         const boost::system::error_code code = systemError->code();
+         const std::string reason = code.message() + " [" + code.to_string() + "]";
+         return String(reason.c_str());
+      }
+
       void SetSocketTimeouts_(boost::asio::ip::tcp::socket &socket, int timeout_seconds)
       {
          DWORD timeout = (DWORD) timeout_seconds * 1000;
@@ -569,7 +586,7 @@ namespace HM
       }
       catch (const std::exception &e)
       {
-         error = Formatter::Format(_T("The request to {0} failed: {1}"), String(host), String(e.what()));
+         error = Formatter::Format(_T("The request to {0} failed: {1}"), String(host), ReasonOf_(e));
          return false;
       }
    }
@@ -772,7 +789,7 @@ namespace HM
          {
             sink.close();
             FileUtilities::DeleteFile(path);
-            error = Formatter::Format(_T("The request to {0} failed: {1}"), String(host), String(e.what()));
+            error = Formatter::Format(_T("The request to {0} failed: {1}"), String(host), ReasonOf_(e));
             return false;
          }
 
