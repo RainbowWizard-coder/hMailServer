@@ -118,6 +118,28 @@ RESOURCES = {
         "verbs": ["list", "create", "update", "delete"],
         "help": "distribution lists",
     },
+    "suppression": {
+        "collection": "/api/v1/domains/{parent}/suppressions",
+        "item": "/api/v1/domains/{parent}/suppressions/{id}",
+        "parent": "domain",
+        "key": "items",
+        "id": "address",
+        "search": True,
+        "columns": ["address", "category", "status", "source", "created", "expires"],
+        "verbs": ["list", "create", "delete"],
+        "help": "addresses a domain no longer sends to because mail to them bounced",
+        "create_example": "hmctl suppression create --domain example.com --set address=gone@elsewhere.test --set-string note=\"old export\"",
+    },
+    "bounce": {
+        "collection": "/api/v1/domains/{parent}/bounces",
+        "parent": "domain",
+        "key": "items",
+        "id": "address",
+        "search": True,
+        "columns": ["address", "hard", "soft", "mailbox_full", "policy", "other", "consecutive_hard", "last_status", "suppressed"],
+        "verbs": ["list"],
+        "help": "the bounce counts a domain's suppression list is fed from",
+    },
     "group": {
         "collection": "/api/v1/groups",
         "item": "/api/v1/groups/{id}",
@@ -202,6 +224,7 @@ SETTING_GROUPS = [
     "cache",
     "indexing",
     "scripting",
+    "bounces",
     "directories",
 ]
 
@@ -468,7 +491,10 @@ def resource_command(client, arguments):
         return path.replace("{id}", urllib.parse.quote(str(arguments.id), safe="@"))
 
     if verb == "list":
-        answer = client.request("GET", collection_path())
+        path = collection_path()
+        if resource.get("search") and getattr(arguments, "search", None):
+            path += "?search=" + urllib.parse.quote(arguments.search, safe="@")
+        answer = client.request("GET", path)
         render(collection(answer, resource["key"]), arguments.json, resource["columns"])
         return EXIT_OK
 
@@ -1174,6 +1200,40 @@ def report_command(client, arguments):
     return EXIT_OK
 
 
+def bounces_command(client, arguments):
+    """How the server would read a bounce, and the suppression list's sweep.
+
+    classify asks the server rather than holding a copy of the table here: the
+    trust rule - a code the remote did not send itself is never a dead mailbox -
+    is the part that matters, and a second implementation of it would drift from
+    the one that decides.
+    """
+    if arguments.verb == "classify":
+        body = {"status": arguments.status, "diagnostic": arguments.diagnostic or ""}
+        answer = client.request("POST", "/api/v1/bounces/classify", body=body)
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        print("%s: %s%s" % (answer.get("status") or arguments.status, answer.get("category"),
+                            " - counts towards the suppression list" if answer.get("suppresses") else ""))
+        if not answer.get("trusted"):
+            print("(not trusted: the code was not the remote's own, so it is read by its words and never as a dead mailbox)")
+        return EXIT_OK
+
+    if arguments.verb == "expire":
+        answer = client.request("POST", "/api/v1/bounces/expire")
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        print("%d expired entr%s, %d old count%s and %d old report key%s removed."
+              % (answer.get("suppressions_expired", 0), "y" if answer.get("suppressions_expired", 0) == 1 else "ies",
+                 answer.get("counts_pruned", 0), "" if answer.get("counts_pruned", 0) == 1 else "s",
+                 answer.get("report_keys_pruned", 0), "" if answer.get("report_keys_pruned", 0) == 1 else "s"))
+        return EXIT_OK
+
+    raise ApiError(0, "bounces takes classify or expire")
+
+
 def api_command(client, arguments):
     body = None
     if arguments.body:
@@ -1243,6 +1303,8 @@ def build_parser():
             if resource.get("parent"):
                 verb_parser.add_argument("--" + resource["parent"],
                                          help="the %s these belong to" % resource["parent"])
+            if verb == "list" and resource.get("search"):
+                verb_parser.add_argument("--search", help="only the addresses containing this")
 
     queue = commands.add_parser("queue", help="the delivery queue")
     queue.set_defaults(handler=queue_command)
@@ -1365,6 +1427,14 @@ def build_parser():
                         help="how many rows the senders, recipients and mailboxes sections return (1-200)")
     report.add_argument("--csv", metavar="FILE", nargs="?", const="-",
                         help="ask the server for the table as CSV and write it here, or to stdout")
+
+    bounces = commands.add_parser("bounces", help="how a bounce is read, and the suppression list's sweep")
+    bounces.set_defaults(handler=bounces_command)
+    bounces_verbs = bounces.add_subparsers(dest="verb")
+    classify = bounces_verbs.add_parser("classify", parents=[common])
+    classify.add_argument("status", help="an enhanced status code (5.1.1) or a reply (\"550 5.1.1 User unknown\")")
+    classify.add_argument("diagnostic", nargs="?", help="a delivery report's Diagnostic-Code, when status is its Status field")
+    bounces_verbs.add_parser("expire", parents=[common])
 
     api = commands.add_parser("api", parents=[common], help="any method on any path - the escape hatch")
     api.set_defaults(handler=api_command)

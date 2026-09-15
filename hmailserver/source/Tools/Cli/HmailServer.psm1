@@ -615,7 +615,7 @@ function Remove-HmGroupMember {
 # Settings
 # ---------------------------------------------------------------------------
 
-$script:SettingGroups = @('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'directories')
+$script:SettingGroups = @('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories')
 
 function Get-HmSettingPath {
     param([string] $Group)
@@ -635,7 +635,7 @@ function Get-HmSetting {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'directories')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories')]
         [string] $Group = 'settings',
 
         [Parameter(Position = 1)]
@@ -668,7 +668,7 @@ function Set-HmSetting {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'directories')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories')]
         [string] $Group = 'settings',
 
         [Parameter(Mandatory = $true)]
@@ -851,6 +851,120 @@ function Test-HmRuleCriterion {
     }
 
     [bool] $answer.match
+}
+
+# ---------------------------------------------------------------------------
+# Bounces and the suppression list
+# ---------------------------------------------------------------------------
+
+function Get-HmSuppressionPath {
+    param([string] $Domain, [string] $Tail)
+    "/api/v1/domains/" + [uri]::EscapeDataString($Domain) + $Tail
+}
+
+function Get-HmSuppression {
+    <#
+    .SYNOPSIS
+        The addresses a domain no longer sends to because mail to them bounced,
+        or because an administrator put them there.
+    .EXAMPLE
+        Get-HmSuppression -Domain example.com | Format-Table address, category, status, created
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [string] $Search
+    )
+    $path = Get-HmSuppressionPath -Domain $Domain -Tail '/suppressions'
+    if ($Search) { $path += '?search=' + [uri]::EscapeDataString($Search) }
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path $path) -Key 'items'
+}
+
+function Add-HmSuppression {
+    <#
+    .SYNOPSIS
+        Puts an address on a domain's suppression list by hand. The next message
+        from the domain to it is refused, dropped or delivered and recorded, as
+        the bounce settings say.
+    .EXAMPLE
+        Add-HmSuppression -Domain example.com -Address gone@elsewhere.test -Note 'from the old export' -ExpiresDays 90
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [Parameter(Mandatory = $true, Position = 1)] [string] $Address,
+        [string] $Note,
+        [ValidateRange(0, 3650)] [int] $ExpiresDays = 0
+    )
+    $body = @{ address = $Address; expires_days = $ExpiresDays }
+    if ($PSBoundParameters.ContainsKey('Note')) { $body['note'] = $Note }
+    if ($PSCmdlet.ShouldProcess("$Address for $Domain", 'Add to the suppression list')) {
+        Invoke-HmApi -Method POST -Path (Get-HmSuppressionPath -Domain $Domain -Tail '/suppressions') -Body $body
+    }
+}
+
+function Remove-HmSuppression {
+    <#
+    .SYNOPSIS
+        Takes an address off a domain's suppression list. The next message to it
+        is sent, and its run of hard bounces starts again.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [Parameter(Mandatory = $true, Position = 1, ValueFromPipelineByPropertyName = $true)] [string] $Address
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess("$Address for $Domain", 'Remove from the suppression list')) {
+            Invoke-HmApi -Method DELETE -Path (Get-HmSuppressionPath -Domain $Domain -Tail ('/suppressions/' + [uri]::EscapeDataString($Address))) | Out-Null
+        }
+    }
+}
+
+function Get-HmBounceCount {
+    <#
+    .SYNOPSIS
+        The bounce counts a domain's suppression list is fed from: hard, soft,
+        mailbox full, policy and other, and the run of hard bounces.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [string] $Search
+    )
+    $path = Get-HmSuppressionPath -Domain $Domain -Tail '/bounces'
+    if ($Search) { $path += '?search=' + [uri]::EscapeDataString($Search) }
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path $path) -Key 'items'
+}
+
+function Test-HmBounceStatus {
+    <#
+    .SYNOPSIS
+        Asks the server how it would read a bounce: a bare status as a delivery
+        report's Status field, a reply with its three digits as a refusal met
+        while delivering. Reads and writes nothing.
+    .EXAMPLE
+        Test-HmBounceStatus -Status '550 5.1.1 User unknown'
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Status,
+        [Parameter(Position = 1)] [string] $Diagnostic = ''
+    )
+    Invoke-HmApi -Method POST -Path '/api/v1/bounces/classify' -Body @{ status = $Status; diagnostic = $Diagnostic }
+}
+
+function Invoke-HmBounceMaintenance {
+    <#
+    .SYNOPSIS
+        Runs the suppression list's hourly sweep now: expired entries, old
+        counts and old report keys.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param()
+    if ($PSCmdlet.ShouldProcess('the suppression lists', 'Expire and prune')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/bounces/expire'
+    }
 }
 
 # ---------------------------------------------------------------------------
@@ -1270,6 +1384,8 @@ Export-ModuleMember -Function @(
     'Get-HmQueue', 'Start-HmQueueDelivery', 'Remove-HmQueueMessage',
     'Get-HmQuarantine', 'Restore-HmQuarantineMessage',
     'Get-HmLog', 'Get-HmBackup', 'Start-HmBackup', 'Test-HmRuleCriterion',
+    'Get-HmSuppression', 'Add-HmSuppression', 'Remove-HmSuppression', 'Get-HmBounceCount',
+    'Test-HmBounceStatus', 'Invoke-HmBounceMaintenance',
     'Import-HmAccount', 'Export-HmAccount',
     'Export-HmConfiguration', 'Compare-HmConfiguration', 'Import-HmConfiguration',
     'ConvertTo-HmConfigurationRow', 'Get-HmSettingPath'
