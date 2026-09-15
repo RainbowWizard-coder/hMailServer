@@ -561,8 +561,8 @@ namespace HM
          return entry;
       }
 
-      // The account as the update answers it: the listing's two fields first
-      // and in its order, then every field the update accepts, so a client
+      // The account as the update answers it: address and active first, as
+      // the listing begins, then every field the update accepts, so a client
       // can PUT back what it was given. No password, no hash, no TOTP secret.
       AnsiString AccountEntryJson(std::shared_ptr<Account> account, const Quote &quote)
       {
@@ -658,9 +658,10 @@ namespace HM
 
    // The account whole, as the update answers it - what InterfaceAccount
    // reports over COM less the password, the hash and the TOTP secret. The
-   // listing beside it reports an address and whether it is active, and
-   // nothing else; a client (and the Linux suite's fixture layer) that wants
-   // the rest reads it here. Scoped to the address's domain like the update.
+   // listing beside it reports the six fields a spreadsheet export writes
+   // (AccountListEntryJson_ below); a client (and the Linux suite's fixture
+   // layer) that wants the rest reads it here. Scoped to the address's domain
+   // like the update.
    HttpResponse
    RestApiServer::HandleGetAccount_(const String &address)
    {
@@ -671,6 +672,169 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"account not found\"}");
 
       return BuildResponse_(200, AccountEntryJson(account, quote));
+   }
+
+   // ------------------------------------------------------------------------
+   // Accounts from a spreadsheet. hmctl accounts import and export, and
+   // Import-HmAccount and Export-HmAccount, promise a CSV of address,
+   // password, first_name, last_name, active, max_size_mb and admin_level
+   // that goes in through the create and comes back out of the listing. The
+   // server is where that promise is kept or broken, so both halves are here,
+   // beside the update whose field names and checks they share.
+
+   // One entry of GET /api/v1/domains/{domain}/accounts. address and active
+   // first and in that order, as the listing has always begun, so a client
+   // that matched on them still does; then every column the export writes,
+   // under the names the create and the update take, so a row read here can
+   // be sent back as a create body with a password added. Nothing that reads
+   // a file per account (the Sieve script) - a listing of a thousand accounts
+   // is one query.
+   AnsiString
+   RestApiServer::AccountListEntryJson_(const std::shared_ptr<Account> &account)
+   {
+      AnsiString entry;
+      entry.Format("{\"address\":\"%hs\",\"active\":%hs,\"max_size_mb\":%ld,\"first_name\":\"%hs\",\"last_name\":\"%hs\",\"admin_level\":\"%hs\"}",
+         JsonEscape_(Utf8_(account->GetAddress())).c_str(),
+         account->GetActive() ? "true" : "false",
+         (long) account->GetAccountMaxSize(),
+         JsonEscape_(Utf8_(account->GetPersonFirstName())).c_str(),
+         JsonEscape_(Utf8_(account->GetPersonLastName())).c_str(),
+         AdminLevelWord(account->GetAdminLevel()));
+
+      return entry;
+   }
+
+   // The body of POST /api/v1/domains/{domain}/accounts, read as a document
+   // with the update's typed reads, so that every field an import sends is
+   // either stored or refused by name.
+   //
+   // What this replaced searched the body's text for five keys. A key it did
+   // not search for - name, admin_level - was dropped and the account made
+   // without it, which is how a spreadsheet's names and levels vanished on
+   // import; and its string reader answered empty for a value that was not a
+   // string, so a password of digits alone sent as a JSON number was refused
+   // as missing. Now an unknown field is a 400 naming it, a field of the wrong
+   // type is a 400 naming it, and a password is a string or nothing.
+   bool
+   RestApiServer::ReadNewAccount_(const Caller &caller, const AnsiString &requestBody,
+      std::shared_ptr<Account> account, String &password, HttpResponse &refusal)
+   {
+      Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
+
+      JsonValue body;
+      AnsiString error;
+
+      if (!ParseObjectBody(requestBody, body, error))
+      {
+         refusal = BuildResponse_(400, ErrorBody(quote, String(error)));
+         return false;
+      }
+
+      // maxSizeMB is the spelling the OpenAPI document once advertised; it is
+      // still taken, and max_size_mb wins when a body names both.
+      static const char *const knownKeys[] =
+      {
+         "address", "password", "active", "first_name", "last_name", "max_size_mb", "maxSizeMB", "admin_level"
+      };
+
+      std::string unknown = FirstUnknownKey(body, knownKeys, sizeof(knownKeys) / sizeof(knownKeys[0]));
+      if (!unknown.empty())
+      {
+         refusal = BuildResponse_(400, ErrorBody(quote, Utf8ToString("unknown field: " + unknown.substr(0, 48))));
+         return false;
+      }
+
+      String address;
+      bool active = true;
+      String firstName;
+      String lastName;
+
+      if (!ReadString(body, "address", address, error) ||
+          !ReadString(body, "password", password, error) ||
+          !ReadBool(body, "active", active, error) ||
+          !ReadString(body, "first_name", firstName, error) ||
+          !ReadString(body, "last_name", lastName, error))
+      {
+         refusal = BuildResponse_(400, ErrorBody(quote, String(error)));
+         return false;
+      }
+
+      if (address.IsEmpty() || password.IsEmpty())
+      {
+         refusal = BuildResponse_(400, "{\"error\":\"address and password are required\"}");
+         return false;
+      }
+
+      // The width of accountpersonfirstname and accountpersonlastname in every
+      // create script. Past it MySQL and PostgreSQL refuse the INSERT, which
+      // the caller would have been told only as "failed to save account".
+      const int MaxPersonNameLength = 60;
+      if (firstName.GetLength() > MaxPersonNameLength || lastName.GetLength() > MaxPersonNameLength)
+      {
+         refusal = BuildResponse_(400, "{\"error\":\"first_name and last_name are at most 60 characters each\"}");
+         return false;
+      }
+
+      // The size limit in megabytes. It was advertised in the OpenAPI document
+      // before it was read, and a domain with a maximum account size refuses
+      // an account without one - the limitation check requires a size when
+      // the domain has one.
+      long maxSize = 0;
+      static const char *const sizeKeys[] = { "maxSizeMB", "max_size_mb" };
+      for (const char *key : sizeKeys)
+      {
+         const JsonValue *member = body.Get(key);
+         if (!member || member->IsNull())
+            continue;
+
+         double number = member->IsNumber() ? member->AsNumber() : -1.0;
+         if (!member->IsNumber() || std::floor(number) != number || number < 0.0 || number > 2147483647.0)
+         {
+            refusal = BuildResponse_(400, "{\"error\":\"max_size_mb must be a whole number of megabytes, 0 for no limit\"}");
+            return false;
+         }
+
+         maxSize = (long) number;
+      }
+
+      // The level, in the update's three words and with the update's rule
+      // about who may give it: the administrator password or a key issued for
+      // every domain may make any of the three; a key restricted to named
+      // domains carries a domain administrator's authority, and
+      // InterfaceAccount::put_AdminLevel refuses that authority a server
+      // administrator - whose password is a COM logon with the server's whole
+      // authority. Without this check an import run with a customer's key
+      // could have minted one.
+      Account::AdminLevel adminLevel = Account::NormalUser;
+
+      if (HasMember(body, "admin_level"))
+      {
+         const JsonValue *member = body.Get("admin_level");
+         if (!member->IsString() || !ParseAdminLevelWord(member->AsString(), adminLevel))
+         {
+            refusal = BuildResponse_(400, "{\"error\":\"admin_level must be user, domain or server\"}");
+            return false;
+         }
+
+         const bool unrestricted = caller.domains.empty();
+
+         if (adminLevel == Account::ServerAdmin && !unrestricted)
+         {
+            LOG_APPLICATION("RestApi: Refused to create account " + address + " as a server administrator for " +
+               String(caller.identity) + ": the key is restricted to named domains.");
+            refusal = BuildResponse_(403, "{\"error\":\"this api key is restricted to named domains and cannot make an account a server administrator; only the administrator password or a key issued for every domain can\"}");
+            return false;
+         }
+      }
+
+      account->SetAddress(address);
+      account->SetActive(active);
+      account->SetPersonFirstName(firstName);
+      account->SetPersonLastName(lastName);
+      account->SetAccountMaxSize(maxSize);
+      account->SetAdminLevel(adminLevel);
+
+      return true;
    }
 
    // ------------------------------------------------------------------------

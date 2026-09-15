@@ -819,7 +819,17 @@ namespace HM
       static HttpResponse HandleUpdateDomain_(const Caller &caller, const String &domainName, const AnsiString &requestBody);
       static HttpResponse HandleDeleteDomain_(const String &domainName);
       static HttpResponse HandleListAccounts_(const String &domainName);
-      static HttpResponse HandleCreateAccount_(const String &domainName, const AnsiString &requestBody);
+      static HttpResponse HandleCreateAccount_(const Caller &caller, const String &domainName, const AnsiString &requestBody);
+
+      // RestApiRoutes.cpp, beside the account update. The listing's entry is
+      // what a spreadsheet export writes (address, active, max_size_mb,
+      // first_name, last_name, admin_level); the create's body is read as a
+      // typed document with every field named, so what an import sends is
+      // either stored or refused by name - never dropped. On false, refusal
+      // holds the answer to send.
+      static AnsiString AccountListEntryJson_(const std::shared_ptr<Account> &account);
+      static bool ReadNewAccount_(const Caller &caller, const AnsiString &requestBody,
+         std::shared_ptr<Account> account, String &password, HttpResponse &refusal);
       static HttpResponse HandleDeleteAccount_(const String &address);
       static HttpResponse HandleListQueue_();
       static HttpResponse HandleQueueRetry_(__int64 messageId);

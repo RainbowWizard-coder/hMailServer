@@ -1515,7 +1515,7 @@ namespace HM
             return HandleListAccounts_(String(route.identifier));
 
          case RouteAccountCreate:
-            return HandleCreateAccount_(String(route.identifier), GetRequestBody_(request));
+            return HandleCreateAccount_(caller, String(route.identifier), GetRequestBody_(request));
 
          case RouteAccountDelete:
             return HandleDeleteAccount_(String(route.identifier));
@@ -5034,12 +5034,11 @@ namespace HM
          if (count > 0)
             body += ",";
 
-         AnsiString entry;
-         entry.Format("{\"address\":\"%hs\",\"active\":%hs}",
-            JsonEscape_(Utf8_(account->GetAddress())).c_str(),
-            account->GetActive() ? "true" : "false");
-
-         body += entry;
+         // address and active first, as the listing has always begun, then
+         // the four fields a spreadsheet export writes. Before, the entry was
+         // those two alone, so an export of a real server had empty name, size
+         // and level columns.
+         body += AccountListEntryJson_(account);
          count++;
       }
 
@@ -5049,15 +5048,25 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleCreateAccount_(const String &domainName, const AnsiString &requestBody)
+   RestApiServer::HandleCreateAccount_(const Caller &caller, const String &domainName, const AnsiString &requestBody)
    {
-      AnsiString address = GetJsonStringValue_(requestBody, "address");
-      AnsiString password = GetJsonStringValue_(requestBody, "password");
+      // The body is read as a document in ReadNewAccount_ (RestApiRoutes.cpp,
+      // beside the update): address and password, active, first_name,
+      // last_name, max_size_mb and admin_level, each of its type, and any other
+      // field refused by name. Before, this searched the text for five keys,
+      // so a spreadsheet import's name and admin_level columns were dropped
+      // without a word and a password of digits alone - sent as a JSON number
+      // - was reported as missing.
+      std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
+      String password;
+      HttpResponse refusal;
 
-      if (address.IsEmpty() || password.IsEmpty())
-         return BuildResponse_(400, "{\"error\":\"address and password are required\"}");
+      if (!ReadNewAccount_(caller, requestBody, account, password, refusal))
+         return refusal;
 
-      String addressDomain = StringParser::ExtractDomain(String(address));
+      const String address = account->GetAddress();
+
+      String addressDomain = StringParser::ExtractDomain(address);
       if (addressDomain.CompareNoCase(domainName) != 0)
          return BuildResponse_(400, "{\"error\":\"address does not belong to the domain\"}");
 
@@ -5070,74 +5079,19 @@ namespace HM
 
       // Reject duplicates.
       std::shared_ptr<Account> existingAccount = std::shared_ptr<Account>(new Account());
-      if (PersistentAccount::ReadObject(existingAccount, String(address)) && existingAccount->GetID() > 0)
+      if (PersistentAccount::ReadObject(existingAccount, address) && existingAccount->GetID() > 0)
          return BuildResponse_(409, "{\"error\":\"account already exists\"}");
 
+      // The password is the UTF-8 the body carried, decoded as the update
+      // decodes it; the conversion used before read those bytes in the
+      // machine's ANSI code page, so a password with an accented letter made
+      // here was not the password the Control Panel or the update would set.
       int preferredHashAlgorithm = IniFileSettings::Instance()->GetPreferredHashAlgorithm();
-      String hashedPassword = Crypt::Instance()->EnCrypt(String(password), (Crypt::EncryptionType) preferredHashAlgorithm);
+      String hashedPassword = Crypt::Instance()->EnCrypt(password, (Crypt::EncryptionType) preferredHashAlgorithm);
 
-      std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
       account->SetDomainID(domain->GetID());
-      account->SetAddress(String(address));
       account->SetPassword(hashedPassword);
       account->SetPasswordEncryption(preferredHashAlgorithm);
-
-      // The optional fields, as the InterfaceAccount setters take them after
-      // InterfaceAccounts::Add: active (default true), the person's names, and
-      // the size limit in megabytes. The limit was advertised in the OpenAPI
-      // document (as maxSizeMB) and never read, so a domain with a maximum
-      // account size refused every account created here - the limitation
-      // check requires a size when the domain has one - and nothing the caller
-      // sent could change that. Both spellings are accepted; max_size_mb is the
-      // one every other field here follows.
-      account->SetActive(GetJsonBoolValue_(requestBody, "active", true));
-      account->SetPersonFirstName(JsonUtf8Value_(requestBody, "first_name"));
-      account->SetPersonLastName(JsonUtf8Value_(requestBody, "last_name"));
-
-      {
-         // A number in the body is not a string, so read it the way
-         // HandleCreateIpRange_ reads priority: the digits after the colon.
-         long maxSizeMb = 0;
-         bool maxSizeGiven = false;
-
-         const char *sizeKeys[] = { "\"max_size_mb\"", "\"maxSizeMB\"" };
-         for (const char *needle : sizeKeys)
-         {
-            int keyPosition = requestBody.Find(needle);
-            if (keyPosition < 0)
-               continue;
-
-            int colon = requestBody.Find(":", keyPosition + AnsiString(needle).GetLength());
-            if (colon < 0)
-               continue;
-
-            AnsiString digits;
-            for (int i = colon + 1; i < requestBody.GetLength(); i++)
-            {
-               char c = requestBody[i];
-               if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-                  continue;
-               if ((c >= '0' && c <= '9') || (c == '-' && digits.IsEmpty()))
-               {
-                  digits += c;
-                  continue;
-               }
-               break;
-            }
-
-            if (digits.IsEmpty() || digits.GetLength() > 10)
-               return BuildResponse_(400, "{\"error\":\"max_size_mb must be a whole number of megabytes, 0 for no limit\"}");
-
-            maxSizeMb = atol(digits.c_str());
-            maxSizeGiven = true;
-            break;
-         }
-
-         if (maxSizeGiven && maxSizeMb < 0)
-            return BuildResponse_(400, "{\"error\":\"max_size_mb must be a whole number of megabytes, 0 for no limit\"}");
-
-         account->SetAccountMaxSize(maxSizeMb);
-      }
 
       // createInbox: true. This argument is the whole reason this call changed,
       // and it was losing mail.
@@ -5186,7 +5140,7 @@ namespace HM
          // and deliberately without detail.
          if (!saveError.IsEmpty())
          {
-            LOG_APPLICATION("RestApi: Refused to create account " + String(address) + ": " + saveError);
+            LOG_APPLICATION("RestApi: Refused to create account " + address + ": " + saveError);
 
             AnsiString body;
             body.Format("{\"error\":\"%hs\"}", JsonEscape_(Utf8_(saveError)).c_str());
@@ -5208,18 +5162,18 @@ namespace HM
       // delete, so the question has to be put to the database.
       std::shared_ptr<Account> savedAccount = std::shared_ptr<Account>(new Account());
 
-      if (!PersistentAccount::ReadObject(savedAccount, String(address)) || savedAccount->GetID() == 0)
+      if (!PersistentAccount::ReadObject(savedAccount, address) || savedAccount->GetID() == 0)
       {
-         LOG_APPLICATION("RestApi: Account " + String(address) +
+         LOG_APPLICATION("RestApi: Account " + address +
             " could not be created - it was not present after being saved, which happens when its inbox could not be created.");
 
          return BuildResponse_(500, "{\"error\":\"failed to save account\"}");
       }
 
-      LOG_APPLICATION("RestApi: Account " + String(address) + " created.");
+      LOG_APPLICATION("RestApi: Account " + address + " created.");
 
       AnsiString body;
-      body.Format("{\"address\":\"%hs\",\"created\":true}", JsonEscape_(address).c_str());
+      body.Format("{\"address\":\"%hs\",\"created\":true}", JsonEscape_(Utf8_(address)).c_str());
 
       return BuildResponse_(201, body);
    }
@@ -10879,8 +10833,8 @@ namespace HM
          "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
-         "\"get\":{\"summary\":\"List accounts in a domain\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
-         "\"post\":{\"summary\":\"Create an account\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"max_size_mb\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"Malformed request\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
+         "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"post\":{\"summary\":\"Create an account\",\"description\":\"Body: address and password (required, and both strings - a password of digits alone is sent quoted), active (default true), first_name and last_name (at most 60 characters each), max_size_mb (megabytes, default 0 for no limit; maxSizeMB is the older spelling) and admin_level (user, domain or server; default user). An unknown field, or a field of the wrong type, is refused by name rather than ignored. The address must be in the domain and is judged, with the domain's limits, as the Control Panel judges it; the password is stored under the configured hash. A key restricted to named domains may make a user or a domain administrator, never a server administrator. hmctl accounts import and Import-HmAccount send each row of a spreadsheet here. Scoped to the domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"additionalProperties\":false,\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"},\"first_name\":{\"type\":\"string\",\"maxLength\":60},\"last_name\":{\"type\":\"string\",\"maxLength\":60},\"max_size_mb\":{\"type\":\"integer\",\"minimum\":0},\"maxSizeMB\":{\"type\":\"integer\",\"minimum\":0,\"deprecated\":true},\"admin_level\":{\"type\":\"string\",\"enum\":[\"user\",\"domain\",\"server\"]}}}}}},\"responses\":{\"201\":{\"description\":\"Created: address, created\"},\"400\":{\"description\":\"address or password missing, an unknown field, a field of the wrong type, a name longer than 60 characters, a max_size_mb that is not a whole number of megabytes, an admin_level that is not user, domain or server, an address outside the domain, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A domain-restricted key naming admin_level server, or a domain outside the key's own\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"An account with that address exists\"}}}},"
          "\"/api/v1/queue\":{\"get\":{\"summary\":\"List the delivery queue\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of queued messages\"}}}},"
          "\"/api/v1/queue/{id}/retry\":{\"post\":{\"summary\":\"Retry a queued message now\",\"responses\":{\"200\":{\"description\":\"Rescheduled\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"

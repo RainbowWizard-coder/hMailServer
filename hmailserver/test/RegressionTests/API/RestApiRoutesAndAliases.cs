@@ -595,7 +595,9 @@ namespace RegressionTests.API
          StringAssert.Contains("\"active\":false", offBody);
          Assert.IsFalse(AccountOverCom(account.Address).Active);
          Assert.IsFalse(ImapClientSimulator.ValidatePassword(account.Address, "New-Tux-Pass-5678"), "An inactive account must not log on.");
-         StringAssert.Contains("{\"address\":\"" + account.Address + "\",\"active\":false}", Http("GET", "/api/v1/domains/example.test/accounts").body);
+         // The listing's entry begins with these two and goes on with the
+         // fields a spreadsheet export writes (RestApiAccountImport holds those).
+         StringAssert.Contains("{\"address\":\"" + account.Address + "\",\"active\":false,", Http("GET", "/api/v1/domains/example.test/accounts").body);
 
          Assert.AreEqual(200, Http("PUT", "/api/v1/accounts/" + account.Address, "{\"active\":true}").status);
          Assert.IsTrue(AccountOverCom(account.Address).Active);
