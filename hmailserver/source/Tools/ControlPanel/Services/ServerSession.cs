@@ -86,7 +86,8 @@ namespace hMailServer.ControlPanel.Services
       /// not say what it holds. See the note on <see cref="Permissions"/>.
       /// </summary>
       public bool May(string permission)
-         => Permissions == null || string.IsNullOrEmpty(permission) || Permissions.Contains(permission);
+         => Permissions == null || string.IsNullOrEmpty(permission) ||
+            Permissions.Contains("administer_server") || Permissions.Contains(permission);
       public bool IsConnected => app_ != null;
 
       /// <summary>Raised after the session has healed itself, so the shell can

@@ -33,11 +33,11 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The permission a role must hold for this page to be shown, or null for
-      /// a page every signed-in credential may open. It decides what is DRAWN
-      /// and never what is ALLOWED: the server refuses the COM call whatever
-      /// the shell shows, and a credential the server did not describe sees
-      /// every page, as it did before roles existed.
+      /// The permission a role must hold for this page to be shown, or empty
+      /// for a page every signed-in credential may open. It decides what is
+      /// DRAWN and never what is ALLOWED: the server refuses the COM call
+      /// whatever the shell shows, and a credential the server did not describe
+      /// sees every page, as it did before roles existed.
       /// </summary>
       public string Needs { get; }
 
@@ -198,14 +198,12 @@ namespace hMailServer.ControlPanel.Services
          if (children.Count == 0)
             return null;
 
-         // A copy, so that the map itself is never narrowed: two windows on one
-         // machine could hold two credentials, and a static list filtered in
-         // place would show the second one the first one's tree.
-         var copy = new NavNode(null, node.Title, node.Purpose, node.Aliases, node.SeeAlso, children, node.Icon);
-         foreach (NavNode child in children)
-            child.Parent = copy;
-
-         return copy;
+         // A copy of the heading, so that the map itself is never narrowed: a
+         // static list filtered in place would show the next credential the
+         // last one's tree. The pages under it are the map's own nodes and keep
+         // the map's own Parent - the breadcrumb walks that, and pointing it at
+         // this short-lived copy would narrow the map after all.
+         return new NavNode(null, node.Title, node.Purpose, node.Aliases, node.SeeAlso, children, node.Icon);
       }
 
       /// <summary>The page with this navigation key, or null.</summary>
@@ -390,8 +388,23 @@ namespace hMailServer.ControlPanel.Services
       /// table is that a maintainer can read the alias list and judge whether it
       /// covers how people talk.
       /// </summary>
+      /// <summary>
+      /// What a page needs when its row does not say: the server administrator.
+      /// Nearly every page of this program reaches the server through
+      /// Application.Settings, Status, Diagnostics or the delivery queue, and
+      /// COM refuses each of those to anything less - so a page is left out for
+      /// a narrower role unless its row names the permission that lets that
+      /// role use it. A new page therefore starts hidden from the narrow roles,
+      /// which is the safe way round: shown by mistake it would be a page of
+      /// refusals, and hidden by mistake it is one line to fix.
+      /// </summary>
+      internal const string ServerAdministration = "administer_server";
+
+      /// <summary>A page any signed-in credential may open.</summary>
+      internal const string EveryCredential = "";
+
       private static NavNode Page(string key, string title, string purpose, string aliases = "", string seeAlso = "",
-         string needs = null)
+         string needs = ServerAdministration)
          => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>(), null, needs);
 
       private static NavNode Group(string title, string purpose, string aliases, params NavNode[] children)
@@ -417,7 +430,8 @@ namespace hMailServer.ControlPanel.Services
             Page("welcome", N("Welcome"),
                N("Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do."),
                aliases: "Home|Start|Getting started|Quick actions|First steps",
-               seeAlso: "dashboard"),
+               seeAlso: "dashboard",
+               needs: EveryCredential),
 
             Page("dashboard", N("Dashboard"),
                N("Live counters and charts for processed mail, spam, viruses and sessions."),
@@ -511,10 +525,15 @@ namespace hMailServer.ControlPanel.Services
                N("The people and the domains this server carries mail for."),
                "Users|Mailboxes|People|Addresses|Tenants",
 
+               // A domain administrator's page since 2007: Application.Domains
+               // answers any signed-in credential, and narrows the collection
+               // to the credential's own domain for anything less than the
+               // server administrator.
                Page("domains", N("Domains"),
                   N("Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection."),
                   aliases: "Accounts|Users|Mailboxes|Add a user|Aliases|Distribution lists|Mailing list|Quota|Size limit|DKIM|External accounts|Domain aliases|Signatures|Forwarding",
-                  seeAlso: "publicfolders|groups|rules"),
+                  seeAlso: "publicfolders|groups|rules",
+                  needs: "administer_domain"),
 
                Page("publicfolders", N("Public folders"),
                   N("Shared IMAP folders, and which accounts or groups may read and write each one."),
@@ -826,7 +845,8 @@ namespace hMailServer.ControlPanel.Services
 
             Page("about", N("About"),
                N("Version, build, licence and where to get support."),
-               aliases: "Version|Build|Licence|License|Support|Credits|Copyright")
+               aliases: "Version|Build|Licence|License|Support|Credits|Copyright",
+               needs: EveryCredential)
          };
       }
    }
