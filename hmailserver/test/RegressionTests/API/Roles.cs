@@ -41,7 +41,8 @@ namespace RegressionTests.API
    ///      * the two historical levels exactly as they were, with no row written;
    ///      * a custom role somebody holds refused deletion, over REST and as COM
    ///        sees it, so that nobody narrowed to it is handed back the authority
-   ///        of its admin level;
+   ///        of its admin level, and an account narrowed to a role that has come
+   ///        to hold nothing an ordinary account rather than its admin level;
    ///      * the reports, which need the configuration and the message trace both;
    ///      * the COM path that let any account reach another account's full
    ///        object through a permission on a folder of its own, closed;
@@ -543,9 +544,62 @@ namespace RegressionTests.API
          Assert.AreEqual(409, Admin("DELETE", "/api/v1/roles/rolestest-held").status, "The role was deleted while narrowed@example.test still held it.");
          Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/narrowed@example.test").status);
 
+         // The negative control: without its role the account is the server
+         // administrator its level says, which is the authority the refused
+         // deletes kept from it. Without this, every refusal above could be
+         // guarding an account that was never wider than its role.
+         (int status, string body) unnarrowed = AsAccount("narrowed@example.test", "GET", "/api/v1/session");
+         Assert.AreEqual(200, unnarrowed.status, unnarrowed.body);
+         StringAssert.Contains("administer_server", unnarrowed.body,
+            "Without its role the account is not the server administrator its admin level says, so the refused deletes proved nothing. Body: " + unnarrowed.body);
+
          (int status, string body) deleted = Admin("DELETE", "/api/v1/roles/rolestest-held");
          Assert.AreEqual(200, deleted.status, "A role nobody holds is deleted as it always was. Body: " + deleted.body);
          Assert.AreEqual(404, Admin("GET", "/api/v1/roles/rolestest-held").status);
+      }
+
+      [Test]
+      [Description("An assignment decides an account's authority even when the role it names has come to hold nothing - a row edited by hand, or a permission a later version renamed: an account whose admin level says server administrator, narrowed to such a role, is an ordinary account over REST and over COM, and is not handed back the authority of its admin level")]
+      public void AnAssignedRoleThatHoldsNothingDoesNotHandBackTheAdminLevel()
+      {
+         Account narrowed = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "narrowed@example.test", AccountPassword);
+         narrowed.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         narrowed.Save();
+
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-emptied\",\"description\":\"finds accounts\",\"permissions\":\"view_accounts\"}").status);
+         Assign("narrowed@example.test", "rolestest-emptied", "");
+
+         // The row, edited the way a person would, or the way an upgrade that
+         // renamed a permission would leave it: it names nothing this version has.
+         // Neither editor saves a role like that, so the table is written directly,
+         // and another role is made so that the server reads the table again.
+         _application.Database.ExecuteSQL("update hm_roles set rolepermissions = 'view_accounts_renamed' where rolename = 'rolestest-emptied'");
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles", "{\"name\":\"rolestest-reload\",\"permissions\":\"view_logs\"}").status);
+         StringAssert.Contains("\"permissions\":\"view_accounts_renamed\"", Admin("GET", "/api/v1/roles/rolestest-emptied").body,
+            "The server did not read the edited row, so this test would prove nothing.");
+
+         (int status, string body) who = AsAccount("narrowed@example.test", "GET", "/api/v1/session");
+         Assert.AreEqual(200, who.status, who.body);
+         StringAssert.Contains("\"administrative\":false", who.body,
+            "An account narrowed to a role that holds nothing fell back to the admin level its assignment had narrowed it away from. Body: " + who.body);
+         StringAssert.DoesNotContain("administer_server", who.body);
+
+         (int status, string body) settings = AsAccount("narrowed@example.test", "PUT", "/api/v1/settings", "{\"welcome_smtp\":\"changed by an emptied role\"}");
+         Assert.AreEqual(403, settings.status, "The account changed the settings. Body: " + settings.body);
+
+         var overCom = new Application();
+         Assert.IsNotNull(overCom.Authenticate("narrowed@example.test", AccountPassword));
+         StringAssert.DoesNotContain("administer_server", overCom.CurrentPermissions);
+         StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => { var reached = overCom.Settings; }).Message,
+            "The account reached the settings over COM.");
+
+         // The negative control: with the assignment taken away, the same account
+         // is the server administrator its level says, so everything refused above
+         // was the assignment's doing.
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/narrowed@example.test").status);
+         StringAssert.Contains("administer_server", AsAccount("narrowed@example.test", "GET", "/api/v1/session").body,
+            "Without its role the account is not the server administrator its admin level says, so this test proved nothing.");
       }
 
       [Test]
@@ -829,6 +883,16 @@ namespace RegressionTests.API
          StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => asNarrowed.AssignRole("narrowed@example.test", "serveradmin", "")).Message);
 
          _application.AssignRole("narrowed@example.test", "", "");
+
+         // The negative control, over COM: without its role the account is the
+         // server administrator its level says, so what COM refused it above was
+         // the role's doing and not an account that was never wider.
+         var unnarrowed = new Application();
+         Assert.IsNotNull(unnarrowed.Authenticate("narrowed@example.test", AccountPassword));
+         Assert.AreEqual("serveradmin", unnarrowed.CurrentRole,
+            "Without its role the account is not the server administrator its admin level says, so the refusals proved nothing.");
+         StringAssert.Contains("administer_server", unnarrowed.CurrentPermissions);
+
          Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-held").status, "A role nobody holds is deleted as it always was.");
          StringAssert.DoesNotContain("rolestest-held", _application.Roles);
       }
