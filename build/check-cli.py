@@ -83,6 +83,13 @@ ANSWERS = {
          "last_name": "", "admin_level": "server"},
     ],
     ("POST", "/api/v1/domains/example.org/accounts"): {"address": "new@example.org", "created": True},
+    # A create the server refuses, in its own words (ReadNewAccount_ to a key
+    # restricted to named domains): the import must report the reason, not a
+    # client error of its own.
+    ("POST", "/api/v1/domains/example.net/accounts"): (403, {"error": "this api key is restricted to named domains "
+                                                                   "and cannot make an account a server administrator; "
+                                                                   "only the administrator password or a key issued for "
+                                                                   "every domain can"}),
     ("GET", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": True, "vacation_message": ""},
     ("PUT", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": False},
     ("DELETE", "/api/v1/accounts/bob@example.com"): None,
@@ -213,6 +220,10 @@ class Recorder(BaseHTTPRequestHandler):
             return
 
         answer = ANSWERS[(method, path)]
+        status = 201 if method == "POST" else 200
+        if isinstance(answer, tuple):
+            # (status, body): a refusal, answered as the real route answers one.
+            status, answer = answer
         if answer is None:
             self.send_response(204)
             self.send_header("Content-Length", "0")
@@ -220,7 +231,7 @@ class Recorder(BaseHTTPRequestHandler):
             return
 
         payload = json.dumps(answer).encode("utf-8")
-        self.send_response(201 if method == "POST" else 200)
+        self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
@@ -661,13 +672,15 @@ def run_config_cases(url, tmp):
 # a password is a string whatever it looks like, a name goes in first_name and
 # last_name, active is a boolean, max_size_mb a number and admin_level one of
 # three lower-case words. Five rows are refused by the client before anything
-# is sent, in the create's own words, so a dry run refuses them too.
+# is sent, in the create's own words, so a dry run refuses them too; one more is
+# sent and refused by the server, and must be reported in the server's words.
 IMPORT_CSV = (
     "address,password,first_name,last_name,active,max_size_mb,admin_level\r\n"
     "ann@example.com,secret,Ann,Adams,true,100,domain\r\n"            # exists: left alone
     "carol@example.com,20260915,Carol,Clark,yes,50,DOMAIN\r\n"        # a password of digits alone
     "dave@example.com,true,,,false,,\r\n"                             # a password that reads as a boolean
     "una@example.org, pass word ,\u00dana,\"\u00d3 N\u00e9ill, Jr\",TRUE,0,user\r\n"
+    "kim@example.net,Kim-Pass-1,Kim,,,,server\r\n"                       # sent, and refused by the server
     "erin@example.com,Erin-Pass-1,Erin,,maybe,,\r\n"                  # refused: active
     "frank@example.com,,Frank,,,,\r\n"                                # refused: no password
     "gina@example.com,Gina-Pass-1,,,,5.5,\r\n"                        # refused: max_size_mb
@@ -684,7 +697,12 @@ IMPORT_BODIES = [
     ("/api/v1/domains/example.org/accounts",
      {"address": "una@example.org", "password": "pass word", "first_name": "\u00dana",
       "last_name": "\u00d3 N\u00e9ill, Jr", "active": True, "max_size_mb": 0, "admin_level": "user"}),
+    ("/api/v1/domains/example.net/accounts",
+     {"address": "kim@example.net", "password": "Kim-Pass-1", "first_name": "Kim", "admin_level": "server"}),
 ]
+
+# The row the server refuses, and the words it must be reported in.
+SERVER_REFUSED = ("kim@example.net", "restricted to named domains")
 
 IMPORT_REFUSED = {
     "erin@example.com": "active must be true or false",
@@ -791,8 +809,8 @@ def run_import_cases(url, tmp):
           % (completed.returncode, completed.stderr))
     check(all(r["method"] == "GET" for r in requests),
           "accounts import --dry-run made a request that was not a GET: %s" % [r["method"] for r in requests])
-    check("3 would be made, 1 already there, 5 refused." in completed.stdout,
-          "accounts import --dry-run should count three to make, one there and five refused:\n%s" % completed.stdout)
+    check("4 would be made, 1 already there, 5 refused." in completed.stdout,
+          "accounts import --dry-run should count four to make, one there and five refused:\n%s" % completed.stdout)
     check("ann@example.com (exists; left alone)" in completed.stdout,
           "accounts import --dry-run should leave the existing account alone and say so:\n%s" % completed.stdout)
     for address, reason in sorted(IMPORT_REFUSED.items()):
@@ -802,6 +820,10 @@ def run_import_cases(url, tmp):
     completed, requests = run(["accounts", "import", people])
     check(completed.returncode == 1, "accounts import with refused rows should exit 1, exited %d" % completed.returncode)
     check_import_posts("hmctl accounts import", [r for r in requests if r["method"] == "POST"])
+    check("3 made, 1 already there, 6 refused." in completed.stdout,
+          "accounts import should count three made, one there and six refused:\n%s" % completed.stdout)
+    check(any(SERVER_REFUSED[0] in line and SERVER_REFUSED[1] in line for line in completed.stdout.splitlines()),
+          "accounts import should report the server's refusal of %s in its words:\n%s" % (SERVER_REFUSED[0], completed.stdout))
 
     completed, requests = run(["accounts", "import", named])
     check(completed.returncode != 0 and "'name'" in completed.stderr and "first_name and last_name" in completed.stderr,
@@ -884,9 +906,14 @@ def run_powershell_import_cases(url, tmp):
             check(reason in (failed.get(address) or ""),
                   "Import-HmAccount -WhatIf should refuse %s with %r, said %r" % (address, reason, failed.get(address)))
 
-    completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null" % quoted(people))
+    completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | ConvertTo-Json -Compress -Depth 5" % quoted(people))
     check(completed.returncode == 0, "Import-HmAccount: exit %d - %s" % (completed.returncode, completed.stderr.strip()[:400]))
     check_import_posts("Import-HmAccount", [r for r in requests if r["method"] == "POST"])
+    result = outcome(completed)
+    failed = dict((f.get("Address"), f.get("Error")) for f in as_list((result or {}).get("Failed")))
+    check(SERVER_REFUSED[1] in (failed.get(SERVER_REFUSED[0]) or ""),
+          "Import-HmAccount should report the server's refusal of %s in its words, said %r"
+          % (SERVER_REFUSED[0], failed.get(SERVER_REFUSED[0])))
 
     completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null" % quoted(named))
     check(completed.returncode != 0 and "'name'" in completed.stderr and "first_name and last_name" in completed.stderr,

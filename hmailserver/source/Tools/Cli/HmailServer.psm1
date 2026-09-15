@@ -223,7 +223,15 @@ function Invoke-HmApi {
         }
         Invoke-RestMethod @arguments
     }
-    catch [System.Net.WebException], [Microsoft.PowerShell.Commands.HttpResponseException] {
+    catch {
+        # By name rather than as a typed catch: Windows PowerShell 5.1 has no
+        # HttpResponseException, and a catch naming it answered every refusal
+        # there with "Unable to find type" instead of the server's reason.
+        $failure = $_.Exception.GetType().FullName
+        if ($failure -ne 'System.Net.WebException' -and $failure -ne 'Microsoft.PowerShell.Commands.HttpResponseException') {
+            throw
+        }
+
         $status = $null
         try { $status = [int] $_.Exception.Response.StatusCode } catch { }
 
