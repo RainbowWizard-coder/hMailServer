@@ -655,6 +655,13 @@ function domainRecord(name, active, postmaster) {
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '' };
 }
 
+const SUPPRESSIONS_POST = 'Body: address (required), note (kept as the entry\'s diagnostic) and expires_days (0, the default, for an entry that stays until it is removed; at most 3650). An address this server hosts is refused.';
+// An entry as BounceTracker::SuppressionsJson emits it, and a count row as CountsJson does.
+function suppressionRecord(address, source, category, status) {
+   return { address, source, category, status, diagnostic: source === 'manual' ? '' : '550 ' + status + ' <' + address + '>: User unknown',
+      remote_mta: source === 'manual' ? '' : 'mx.remote.test', created: '2026-09-14 10:00:00', expires: '', expired: false };
+}
+
 function body(props, required) {
    return { content: { 'application/json': { schema: Object.assign({ type: 'object', properties: props }, required ? { required } : {}) } } };
 }
@@ -730,6 +737,22 @@ const SETTING_GROUPS = {
          total_message_count: { type: 'integer', description: 'How many delivered messages there are to index.', readOnly: true }
       },
       values: { enabled: true, total_indexed_count: 40, total_message_count: 45 }
+   },
+   // Bounces read, and the suppression list: a group like the others, with a
+   // word setting for the action and the sweep as its verb.
+   '/api/v1/settings/bounces': {
+      props: {
+         processing_enabled: { type: 'boolean', description: 'The master switch: classify bounces, count them per address, and keep a suppression list per sending domain.' },
+         hard_bounce_threshold: { type: 'integer', description: 'Hard bounces in a row, with no delivery between them, that put an address on its sending domain\'s list. 1 to 100; 1 by default.' },
+         mailbox_full_is_hard: { type: 'boolean', description: 'Whether a full mailbox (X.2.2) counts as a hard bounce.' },
+         suppression_action: { type: 'string', description: 'What happens to a listed recipient.', enum: ['refuse', 'drop', 'observe'] },
+         suppression_expiry_days: { type: 'integer', description: 'Days after which an entry made by a bounce or a report stops applying.' },
+         read_delivery_reports: { type: 'boolean', description: 'Whether RFC 3464 delivery reports are read.' },
+         count_retention_days: { type: 'integer', description: 'Days bounce counts are kept.' },
+         report_window_days: { type: 'integer', description: 'Days after a message is sent that a report about it is still matched.' }
+      },
+      values: { processing_enabled: false, hard_bounce_threshold: 1, mailbox_full_is_hard: false, suppression_action: 'refuse', suppression_expiry_days: 0,
+         read_delivery_reports: true, count_retention_days: 90, report_window_days: 7 }
    },
    '/api/v1/settings/backup': {
       props: {
@@ -849,6 +872,14 @@ const spec = {
       },
       '/api/v1/groups/{id}/members/{account_id}': { delete: { summary: 'Remove an account from a group', description: 'By the account\'s id, as the membership is the pair.' } },
       '/api/v1/settings/backup': settingsPath('/api/v1/settings/backup'),
+      '/api/v1/settings/bounces': settingsPath('/api/v1/settings/bounces'),
+      '/api/v1/bounces/expire': { post: { summary: 'Run the suppression list\'s maintenance sweep now', description: 'What the hourly task does: expired entries, old counts and old report keys are removed.' } },
+      '/api/v1/domains/{domain}/suppressions': {
+         get: { summary: 'The suppression list of a domain', description: 'Addresses this domain no longer sends to because mail to them bounced, or because an administrator put them there.' },
+         post: { summary: 'Put an address on a domain\'s suppression list by hand', description: SUPPRESSIONS_POST, requestBody: body({ address: { type: 'string' }, note: { type: 'string' }, expires_days: { type: 'integer' } }, ['address']) }
+      },
+      '/api/v1/domains/{domain}/suppressions/{address}': { delete: { summary: 'Take an address off a domain\'s suppression list' } },
+      '/api/v1/domains/{domain}/bounces': { get: { summary: 'The bounce counts of a domain\'s recipients', description: 'Per address this domain has sent to and had bounce: the counts, the run of hard bounces and whether the address is listed now.' } },
       ...collectionPaths(),
       '/api/v1/settings/messages': { get: { summary: 'The server\'s message texts', description: 'The texts the server puts in the mail it writes itself - Settings.ServerMessages over COM. Each entry: id, name, text. Server-wide; refused for domain-restricted keys.' } },
       '/api/v1/settings/messages/{name}': { put: { summary: 'Change one server message text', description: 'Body: text. The name is the table\'s own, as the listing shows it. In use at once. Server-wide; refused for domain-restricted and read-only keys.', requestBody: body({ text: { type: 'string' } }, ['text']) } },
@@ -901,6 +932,14 @@ const state = {
    fetchAccounts: {
       'anna@example.com': [Object.assign(fetchRecord(7, 'ISP POP3'), { server_address: 'pop.isp.example', port: 995, connection_security: 'tls', username: 'anna.isp', next_download_time: '2026-09-14 10:30:00' })]
    },
+   suppressions: {
+      'example.com': [suppressionRecord('gone@remote.test', 'bounce', 'hard', '5.1.1')]
+   },
+   bounceCounts: {
+      'example.com': [{ address: 'gone@remote.test', hard: 2, soft: 1, mailbox_full: 0, policy: 0, other: 0, consecutive_hard: 2, last_status: '5.1.1', last_category: 'hard',
+         last_bounce: '2026-09-14 10:00:00', last_delivered: '', suppressed: true }]
+   },
+   bounceSweeps: 0,
    fetcherDown: false,
    backup: { status: '', log: ['2026-09-13 02:00:00 Backup started.', '2026-09-13 02:00:09 Backup completed.'] },
    backupRunning: false,
@@ -1378,6 +1417,43 @@ function answer(method, path, headers, raw) {
       state.queue = state.queue.filter((m) => m.id !== id);
       return json(200, { deleted: true });
    }
+
+   // The suppression list and the counts, under a domain; the sweep.
+   if (/^\/api\/v1\/domains\/[^/]+\/(suppressions|bounces)(\?|$)/.test(path) && method === 'GET') {
+      const domain = segment(path, 4);
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      const parameter = (name) => { const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0]; return hit ? decodeURIComponent(hit.split('=').slice(1).join('=')) : ''; };
+      const search = parameter('search');
+      const offset = Number(parameter('offset') || 0);
+      const limit = Number(parameter('limit') || 100);
+      const all = (path.split('?')[0].endsWith('/bounces') ? state.bounceCounts[domain] : state.suppressions[domain]) || [];
+      const matching = search ? all.filter((e) => e.address.indexOf(search) >= 0) : all;
+      const answerBody = { domain, total: matching.length, offset, items: matching.slice(offset, offset + limit) };
+      if (!path.split('?')[0].endsWith('/bounces')) { answerBody.processing_enabled = SETTING_GROUPS['/api/v1/settings/bounces'].values.processing_enabled; answerBody.action = SETTING_GROUPS['/api/v1/settings/bounces'].values.suppression_action; }
+      return json(200, answerBody);
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/suppressions$/.test(path) && method === 'POST') {
+      const domain = segment(path, 4);
+      const address = String(parsed.address || '').trim().toLowerCase();
+      for (const key of Object.keys(parsed)) { if (['address', 'note', 'expires_days'].indexOf(key) < 0) { return json(400, { error: 'unknown field: ' + key }); } }
+      if (!/^[^@\s]+@[^@\s]+$/.test(address)) { return json(400, { error: 'address is not a valid email address' }); }
+      if (address.endsWith('@' + domain)) { return json(400, { error: 'that address is hosted on this server; the suppression list only applies to addresses outside it' }); }
+      state.suppressions[domain] = state.suppressions[domain] || [];
+      if (state.suppressions[domain].some((e) => e.address === address)) { return json(409, { error: 'that address is already on the suppression list of this domain' }); }
+      const record = Object.assign(suppressionRecord(address, 'manual', 'none', ''), { diagnostic: parsed.note || '' });
+      state.suppressions[domain].unshift(record);
+      return json(201, record);
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/suppressions\/[^/]+$/.test(path) && method === 'DELETE') {
+      const domain = segment(path, 4);
+      const address = segment(path, 6);
+      const list = state.suppressions[domain] || [];
+      const at = list.findIndex((e) => e.address === address);
+      if (at < 0) { return json(404, { error: 'that address is not on the suppression list of this domain' }); }
+      list.splice(at, 1);
+      return json(200, { removed: true });
+   }
+   if (path === '/api/v1/bounces/expire' && method === 'POST') { state.bounceSweeps += 1; return json(200, { suppressions_expired: 0, counts_pruned: 0, report_keys_pruned: 0 }); }
 
    if (path === '/api/v1/tlsa') { return json(200, state.tlsa); }
 
@@ -1920,6 +1996,71 @@ async function main() {
    click(act('listdel', { address: 'team@example.com' }));
    await flush();
    check('yes deletes by address and the re-read list is without it', called(before, 'DELETE', '/api/v1/lists/team%40example.com').length === 1 && rows().length === 1 && rows()[0].textContent.indexOf('all@example.com') >= 0);
+
+   // ---- the suppression list of a domain
+   click(act('domains'));
+   await flush();
+   check('each domain row carries a way to its suppression list', act('suppressions', { domain: 'example.com' }) !== null && act('suppressions', { domain: 'second.example' }) !== null);
+   before = requests.length;
+   click(act('suppressions', { domain: 'example.com' }));
+   await flush();
+   check('Suppressions reads the domain\'s list and its counts, a page at a time', called(before, 'GET', '/api/v1/domains/example.com/suppressions?limit=50&offset=0').length === 1 &&
+      called(before, 'GET', '/api/v1/domains/example.com/bounces?limit=50').length === 1, paths(before));
+   check('an entry shows its address, the remote\'s words, its category and status, where it came from and that it never expires',
+      rows()[0].textContent.indexOf('gone@remote.test') >= 0 && rows()[0].textContent.indexOf('User unknown') >= 0 && rows()[0].textContent.indexOf('Hard') >= 0 &&
+      rows()[0].textContent.indexOf('5.1.1') >= 0 && rows()[0].textContent.indexOf('A bounce') >= 0 && rows()[0].textContent.indexOf('mx.remote.test') >= 0 && rows()[0].textContent.indexOf('Never') >= 0,
+      rows().length ? rows()[0].textContent : 'no rows');
+   check('the counts are drawn beside the list, the run of hard bounces and the listed mark among them', rows().length === 2 && rows()[1].textContent.indexOf('gone@remote.test') >= 0 &&
+      rows()[1].textContent.indexOf('Listed') >= 0 && rows()[1].querySelectorAll('td').length === 10, rows().length ? rows()[rows().length - 1].textContent : 'no rows');
+   check('with processing off, the page says the list is not being applied, and says what the action is', content().textContent.indexOf('Bounce processing is off') >= 0 &&
+      content().textContent.indexOf('A listed recipient is refused, with the reason.') >= 0);
+   const drawnSuppNew = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('suppnew_') === 0).map((id) => id.slice(8)).sort();
+   check('the add form has every key of the create, the expiry at the default its description names', JSON.stringify(drawnSuppNew) === '["address","expires_days","note"]' &&
+      document.getElementById('suppnew_expires_days').value === '0' && document.getElementById('suppnew_address').closest('.fr').textContent.indexOf('required') >= 0, JSON.stringify(drawnSuppNew));
+   before = requests.length;
+   click(act('suppnew'));
+   await flush();
+   check('an empty address is refused by the page', called(before, 'POST', /suppressions/).length === 0 && document.getElementById('err_suppnew').textContent === 'An address is required.');
+   setValue('suppnew_address', 'dead@remote.test');
+   setValue('suppnew_note', 'Bounced from the old CRM export');
+   before = requests.length;
+   click(act('suppnew'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/suppressions');
+   check('adding posts the address, the note and the expiry', !!posted && posted.address === 'dead@remote.test' && posted.note === 'Bounced from the old CRM export' && posted.expires_days === 0, JSON.stringify(posted));
+   check('and the re-read list has it first, made by an administrator', called(before, 'GET', /\/api\/v1\/domains\/example\.com\/suppressions\?/).length === 1 &&
+      rows()[0].textContent.indexOf('dead@remote.test') >= 0 && rows()[0].textContent.indexOf('An administrator') >= 0 && toastText() === 'Added to the suppression list: dead@remote.test', toastText());
+   setValue('suppnew_address', 'anna@example.com');
+   click(act('suppnew'));
+   await flush();
+   check('a hosted address is the server\'s refusal beside the form', document.getElementById('err_suppnew').textContent.indexOf('hosted on this server') >= 0, document.getElementById('err_suppnew').textContent);
+   setValue('suppSearch', 'dead');
+   before = requests.length;
+   click(act('suppsearch'));
+   await flush();
+   check('searching asks the server for the substring and draws what it answers', called(before, 'GET', '/api/v1/domains/example.com/suppressions?limit=50&offset=0&search=dead').length === 1 &&
+      called(before, 'GET', '/api/v1/domains/example.com/bounces?limit=50&search=dead').length === 1 && document.getElementById('suppSearch').value === 'dead', paths(before));
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('suppdel', { address: 'dead@remote.test' }));
+   await flush();
+   check('removing an entry asks first, naming the address and what happens next', called(before, 'DELETE', /suppressions/).length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('dead@remote.test') >= 0 && confirmations[confirmations.length - 1].indexOf('will be sent') >= 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('suppdel', { address: 'dead@remote.test' }));
+   await flush();
+   check('yes deletes it by address and the list is read again without it', called(before, 'DELETE', '/api/v1/domains/example.com/suppressions/dead%40remote.test').length === 1 &&
+      toastText() === 'Removed from the suppression list: dead@remote.test' && content().textContent.indexOf('dead@remote.test') < 0, paths(before));
+   nextRefusal = 'The entry could not be removed.';
+   click(act('suppsearch'));
+   await flush();
+   setValue('suppSearch', '');
+   click(act('suppsearch'));
+   await flush();
+   click(act('suppdel', { address: 'gone@remote.test' }));
+   await flush();
+   check('a refused removal is the server\'s sentence above the table', document.getElementById('err_supp').textContent === 'The entry could not be removed.', document.getElementById('err_supp').textContent);
 
    // ---- the aliases of a domain
    click(act('domains'));
@@ -2510,6 +2651,24 @@ async function main() {
    click(act('setpost', { group: 'index', path: '/api/v1/settings/indexing/clear' }));
    await flush();
    check('a refused verb is the server\'s sentence beside its group', document.getElementById('err_set_index').textContent === 'The index is being rebuilt already.');
+
+   // ---- the bounce settings, a group like the others with the sweep beside it
+   const action = document.getElementById('set_bounce_suppression_action');
+   check('the bounce group is drawn from its schema, the action as a select of its three words', action !== null && action.tagName === 'SELECT' &&
+      action.querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'refuse,drop,observe' && action.value === 'refuse' &&
+      document.getElementById('set_bounce_processing_enabled').checked === false && document.getElementById('set_bounce_hard_bounce_threshold').value === '1',
+      action ? action.innerHTML : 'no select');
+   setChecked('set_bounce_processing_enabled', true);
+   setValue('set_bounce_suppression_action', 'observe');
+   before = requests.length;
+   click(act('setsave', { group: 'bounce' }));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/settings/bounces');
+   check('saving the bounce group sends the switch and the word that changed', JSON.stringify(put) === '{"processing_enabled":true,"suppression_action":"observe"}', JSON.stringify(put));
+   before = requests.length;
+   click(act('setpost', { group: 'bounce', path: '/api/v1/bounces/expire' }));
+   await flush();
+   check('Expire and prune now posts to the sweep', called(before, 'POST', '/api/v1/bounces/expire').length === 1 && state.bounceSweeps === 1 && toastText() === 'Expire and prune now: done', toastText());
 
    // ---- backup: a settings group of its own, beside the manager's status
    before = requests.length;
