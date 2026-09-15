@@ -12,7 +12,7 @@ setter, or a new REST route, written by somebody who had no reason to know this
 class existed. So it fails here, with the file and the line, rather than being
 discovered by a regulator.
 
-Six rules, in the shape of build/check-authz-choke-point.py:
+Seven rules, in the shape of build/check-authz-choke-point.py:
 
   recorded    AuditTrail::RecordStatement is called from ONE file - the
               statement chokepoint in the DAL - and ::RecordSettingChange from
@@ -32,12 +32,20 @@ Six rules, in the shape of build/check-authz-choke-point.py:
               authorisation questions - which installs the actor on the thread
               that is about to do the writing - or carries an AuditScope of its
               own. EXEMPT below is the list of write-shaped methods that change
-              nothing persistent, each with the reason.
+              nothing persistent, each with the reason, and every name in it
+              must be a COM method that exists: an exemption for a method
+              nobody wrote reads as a decision somebody made about it.
 
   rest        Every route kind that mutates is answered through the dispatch in
               ProcessRequest_, which is where the scope is installed. A handler
               reached any other way is a change made with no actor on the
               thread, and so a change nobody made.
+
+  store       IniSettingStore::WriteSetting and ::RemoveSetting, the two writes
+              of hm_inisettings an interface reaches, each call RecordChange_.
+              XMLLoad (a restore) must NOT: it runs on the maintenance work
+              queue, where no actor is installed, so a call there records
+              nothing while reading as though it did.
 
   table       hm_audit is written by AuditTrail and by nothing else. The row a
               caller writes for itself is the row that says whatever it likes.
@@ -171,15 +179,7 @@ EXEMPT = {
    "InterfaceMessage::Save": "a message, which is traffic and not configuration.",
    "InterfaceMessages::Clear": "the messages of a folder.",
    "InterfaceMessages::DeleteByDBID": "one message of a folder.",
-   "InterfaceMessages::Delete": "one message of a folder.",
    "InterfaceAccount::DeleteMessages": "empties a mailbox; the account itself is unchanged.",
-   "InterfaceDatabase::SetPassword": "the setup wizard's connection test, before there is a database to record into.",
-   "InterfaceDatabase::SetUsername": "as SetPassword.",
-   "InterfaceDatabase::SetServer": "as SetPassword.",
-   "InterfaceDatabase::SetPort": "as SetPassword.",
-   "InterfaceDatabase::SetDatabaseName": "as SetPassword.",
-   "InterfaceDatabase::SetDatabaseType": "as SetPassword.",
-   "InterfaceDatabase::SetDatabaseServerFailureType": "as SetPassword.",
 }
 
 # The create scripts. A table has to be defined by all three to be listed: the
@@ -209,7 +209,10 @@ NOT_AUDITED = {
                     "recorded, and docs/AlertsAndAuditTrail.md says so: both end in the same 'delete from hm_quarantine where "
                     "quarantineid = @ID', so a listed table would record a release and a delete as the same row, naming an id that "
                     "identifies nothing once the row is gone. Recording it needs a record of its own in QuarantineStore.",
-   "hm_imapfolders": "an account's folders, which its mail client creates and deletes as much as any administrator does; the permissions on them (hm_acl) are audited.",
+   "hm_imapfolders": "every account's folders, which its mail client and its webmail create and delete as much as any administrator does - the webmail "
+                     "under the account's own actor, so listing the table would record each folder a person makes in their own mailbox. Public "
+                     "folders share the table, so an administrator creating, renaming or deleting one is NOT recorded, and "
+                     "docs/AlertsAndAuditTrail.md says so. The permissions on folders (hm_acl) are audited.",
    "hm_imapexpunged": "IMAP's record of expunged messages for QRESYNC; traffic.",
    "hm_imap_metadata": "IMAP METADATA an account or its client sets on its own mailbox.",
    "hm_fetchaccounts_uids": "which messages an external fetch has already downloaded; traffic.",
@@ -323,6 +326,8 @@ def check_ini_store(problems):
 
 
 def check_com(problems):
+   seen = set()
+
    for name in sorted(os.listdir(COM)):
       if not name.endswith(".cpp"):
          continue
@@ -332,6 +337,7 @@ def check_com(problems):
 
       for match in COM_METHOD.finditer(text):
          method = "%s::%s" % (match.group(1), match.group(2))
+         seen.add(method)
          if method in EXEMPT:
             continue
 
@@ -346,6 +352,16 @@ def check_com(problems):
          problems.append("COM/%s:%d: %s persists something without installing the audit actor - ask "
                          "GetIsServerAdmin/GetIsDomainAdmin, or open an AuditScope(GetAuditActor()), "
                          "or name it in EXEMPT with the reason" % (name, line, method))
+
+   # Until 15 September 2026 seven of these named InterfaceDatabase setters and
+   # an InterfaceMessages::Delete that no COM file defines, so the list recorded
+   # decisions about methods that did not exist - and the methods that really
+   # write [Database], CreateInternalDatabase, CreateExternalDatabase and
+   # SetDefaultDatabase, ask GetIsServerAdmin and need no exemption.
+   for method in sorted(EXEMPT):
+      if method not in seen:
+         problems.append("build/check-audit-choke-point.py: EXEMPT names %s, which no file under COM defines - "
+                         "remove it, or correct the name" % method)
 
 
 def check_rest(problems):

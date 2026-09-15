@@ -73,8 +73,8 @@ Every other table the server creates is named in `build/check-audit-choke-point.
 with the reason it is not recorded: messages and everything derived from them
 are traffic, and calendars, contacts, webmail preferences, attached files,
 scheduled sends and S/MIME keys are an account's own data rather than server
-configuration. The quarantine is the one that is not so simple, and is under
-*What this does not do*.
+configuration. The quarantine and the folder table are the two that are not so
+simple, and both are under *What this does not do*.
 
 A setting's row reads `Name: old -> new`. For a `[Settings]` key, a side on which
 there is no stored value is `(default)`: the first time a key is set it reads
@@ -439,14 +439,23 @@ What this does not do
   deletion uses, so a listed table would record both as the same row naming an
   id that identifies nothing once the row is gone. It needs a record of its own
   in `QuarantineStore`, which is not built.
+* **Creating, renaming or deleting a public folder is not recorded.** A public
+  folder is a row in `hm_imapfolders`, the table every account's own folders
+  are kept in too, and the webmail creates, renames and deletes those under
+  the account's own name — so listing the table would record every folder a
+  person makes in their own mailbox. Who may use a public folder is recorded:
+  its permissions are `hm_acl` rows. Recording the folders themselves needs a
+  record of their own that tells a public folder from an account's.
 * **An erasure is recorded with the address it erased.** Among the stores
   `Utilities.EraseAddressTraces` sweeps are aliases, distribution-list
   recipients and (with the archive included) the archive index, all of them
-  recorded tables, so each deletion there is a row that names the address. The trail is append-only by design; a retention period
+  recorded tables, so each deletion there is a row that names the address.
+  The trail is append-only by design; a retention period
   (`audit_retention_days`) is the way those rows age out.
 * **The sections of `hMailServer.ini` that are not settings are not recorded.**
-  Changing the administrator password or its second factor (`[Security]`), or a
-  folder in `[Directories]`, writes the file and nothing else. Those sections are
+  Changing the administrator password or its second factor (`[Security]`), a
+  folder in `[Directories]`, or the database connection in `[Database]` writes
+  the file and nothing else. Those sections are
   how the server is reached before there is a database — the setup wizard writes
   them with none to record into — so recording them needs a decision about that
   case first.
