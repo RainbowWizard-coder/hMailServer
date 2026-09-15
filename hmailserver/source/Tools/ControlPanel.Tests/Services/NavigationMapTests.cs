@@ -360,12 +360,6 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// MainWindow must build the tree from the map rather than writing it out
-      /// again. Two sources of truth is how the palette and the sidebar came to
-      /// disagree in the first place - the palette read page names back out of
-      /// TreeViewItem headers - and the copy is easy to reintroduce by hand.
-      /// </summary>
-      /// <summary>
       /// A page a role may not use is left out of the tree rather than shown
       /// and refused. What is checked is the map's half of that: the filter
       /// drops exactly the pages whose permission the credential lacks, drops a
@@ -431,6 +425,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("", NavigationMap.Find("welcome").Needs);
       }
 
+      /// <summary>
+      /// MainWindow must build the tree from the map rather than writing it out
+      /// again. Two sources of truth is how the palette and the sidebar came to
+      /// disagree in the first place - the palette read page names back out of
+      /// TreeViewItem headers - and the copy is easy to reintroduce by hand.
+      /// </summary>
       [Fact]
       public void MainWindow_BuildsTheTreeFromTheNavigationMap()
       {
