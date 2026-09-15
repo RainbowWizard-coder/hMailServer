@@ -188,6 +188,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>«mx» разрешает всё, на что указывают MX-записи домена {0}; «a:{1}» разрешает адрес того имени узла, которое сервер сообщает в HELO/EHLO (Доставка почты &gt; Имя узла). «~all» даёт мягкий отказ всему остальному — намеренно мягче, чем «-all», пока вы не убедитесь, что список полон.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>«{0}» не сохранено: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>«{0}» не является временем в 24-часовом формате ЧЧ:ММ. Сервер принимает значения вида 02:00 или 23:45 и отклоняет всё остальное, вместо того чтобы гадать. Оставьте поле пустым, если ежедневное резервное копирование не нужно.</value>
   </data>
@@ -331,6 +334,9 @@
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 общая папка.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 отклоняет пароль, который встретился в базе хотя бы один раз.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 образец скопирован в буфер обмена.</value>
@@ -1696,6 +1702,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Проверка…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Проверяет новый пароль по опубликованной базе утёкших паролей в момент его выбора — здесь, в редакторе учётной записи, в веб-почте, сценарием или через REST API — и отклоняет пароль, который в ней встречается. Этот сервер покидают только первые пять символов хеша SHA-1 пароля; конечная точка отвечает всеми хешами, которые с них начинаются, дополненными так, чтобы и размер ответа ничего не выдавал, а сравнение выполняется здесь. При входе проверка никогда не применяется, поэтому пароль, который работает сегодня, продолжит работать. По умолчанию выключено, потому что при этом что-то уходит с сервера.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Проверяет политику SPF отправителя по адресу, с которого идёт подключение. Успешная проверка может также обойти серые списки.</value>
@@ -3957,6 +3966,9 @@ Control Panel может читать файлы сообщений только
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Разрешить устройству или принтеру отправлять почту</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Пропустить изменение и записать это в журнал ошибок</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Позволяет Outlook, Thunderbird и мобильным клиентам настроиться самостоятельно по одному лишь адресу электронной почты, получая URL конфигурации этого сервера.</value>
   </data>
@@ -5406,6 +5418,9 @@ Control Panel может читать файлы сообщений только
   <data name="Password storage" xml:space="preserve">
     <value>Хранение паролей</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Пароли, найденные в опубликованных утечках</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Пароли и то, чему разрешено их переносить</value>
   </data>
@@ -5730,6 +5745,9 @@ Control Panel может читать файлы сообщений только
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Случайный разброс, добавляемый ко времени повторных попыток (минуты, 0 — выключено)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Конечная точка диапазонов (https или http к этому компьютеру)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>Проверить состояние _заново</value>
   </data>
@@ -5875,17 +5893,29 @@ Control Panel может читать файлы сообщений только
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Отклонять переполненный почтовый ящик прямо в ходе диалога (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Отклонять новый пароль, найденный в опубликованных утечках данных</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Отклонять почту с временной ошибкой, когда свободного места меньше указанного (МБ; 0 — никогда)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Отклонять подписи на входящей почте, срок действия которых истёк</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Отклонить изменение и записать это в журнал ошибок</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Отклонять, если он встретился не меньше стольких раз</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Отклонено до постановки сообщения в очередь, поэтому следить не за чем.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Отклонённые подключения</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Отклонение строже, но пока конечная точка недоступна, ни один пароль нигде нельзя сменить, включая пароль администратора.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Зарегистрируйте шлюз как входящий ретранслятор, чтобы его адрес не принимался за адрес клиента.</value>
@@ -7454,6 +7484,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Проверить подключение к каталогу со значениями, указанными на этой странице</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Проверить конечную точку…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Идёт проверка на {0} по {1}...</value>
   </data>
@@ -7684,6 +7717,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>Включённые проверки в сумме могут добавить не более {0}, что ниже порога пометки {1}: ни одно сообщение не может достичь ни одного из порогов, каким бы плохим оно ни было.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>Конечная точка ответила; записей: {0}.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>Не удалось использовать конечную точку: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Вердикт движка приходит в виде оценки, чтобы он лёг рядом с SPF, DKIM и DMARC, а что делать - решали ваши существующие пороги; а не как второе, параллельное понятие спама, которое пришлось бы сводить с первым. Вот сколько стоит его самый сильный вердикт.</value>
   </data>
@@ -7857,6 +7896,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Обзор называет те сочетания, которые молча ничего не делают - нулевой порог, порог, недостижимый ни для одной включённой проверки, проверку с нулевой оценкой.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>Сейчас не удалось проверить пароль по опубликованным утечкам данных, а этот сервер настроен отклонять изменение, которое он не может проверить. Повторите попытку позже.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Люди и домены, для которых этот сервер обслуживает почту.</value>
   </data>
@@ -7891,6 +7933,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Открытая половина закрытого ключа идентична открытому ключу сертификата - пара принадлежит друг другу.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>Общедоступная база находится по адресу https://api.pwnedpasswords.com/range/. Организация, у которой есть собственное зеркало, указывает его здесь: пять символов добавляются к пути или подставляются туда, где написано {prefix}. Незашифрованный http принимается только для localhost, 127.0.0.1 или ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>Опубликованная запись соответствует подготовленному ключу. Его можно безопасно повысить.</value>
@@ -8202,6 +8247,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Эта панель умеет сравнивать ключи RSA и ECDSA; этот ключ не разбирается ни как тот, ни как другой, поэтому соответствие сертификату доказывается только когда сервер загружает пару.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Этот пароль встречается в опубликованной утечке данных, поэтому его попробуют против этой учётной записи одним из первых. Выберите другой.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>Этот диапазон _истекает</value>
@@ -8733,6 +8781,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>Когда в ходе диалога SMTP выполняются запросы к чёрным спискам. Какие чёрные списки опрашиваются - на странице «Чёрные списки DNS».</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Когда конечная точка недоступна</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Через что уходит почта ОТ этого домена. Это другой вопрос, чем маршрут, который решает, куда отправляется почта, адресованная домену, - это для сервера, размещающего несколько независимых доменов, у каждого из которых свой провайдер доставки.</value>

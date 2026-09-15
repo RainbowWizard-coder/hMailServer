@@ -502,17 +502,31 @@ async function api(path,opts){
     // A refused request answers {"error":"<a sentence written for the administrator>"};
     // that sentence is the message, and it is what the page shows beside the
     // control that caused it. The whole exchange goes to the console for diagnosis.
+    // Some refusals carry a reason word beside the sentence - the breach check's
+    // do - and a page that knows the word shows the refusal in its reader's
+    // language (refusalText) rather than in the server's English.
     let body="";
     try{body=await res.text();}catch(_){}
-    let message="";
-    try{message=String(JSON.parse(body).error||"");}catch(_){}
+    let message="",reason="";
+    try{const parsed=JSON.parse(body);message=String(parsed.error||"");reason=String(parsed.reason||"");}catch(_){}
     console.error("API request failed",{path:path,status:res.status,body:body});
     const err=new Error(message||("HTTP "+res.status));
     err.status=res.status;
+    err.reason=reason;
     throw err;
   }
   const text=await res.text();
   return text?JSON.parse(text):{};
+}
+/* The refusals the page translates, by the reason word the server sends beside
+   its sentence; any other refusal is shown in the server's own words. */
+const REFUSAL_REASONS={
+  breached:K("This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one."),
+  breach_check_unavailable:K("The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.")
+};
+function refusalText(e){
+  if(e&&e.reason&&Object.prototype.hasOwnProperty.call(REFUSAL_REASONS,e.reason))return t(REFUSAL_REASONS[e.reason]);
+  return e?e.message:"";
 }
 function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2600);}
@@ -1565,7 +1579,7 @@ async function addAccount(domain){
     await api("/api/v1/domains/"+encodeURIComponent(domain)+"/accounts",
       {method:"POST",body:JSON.stringify({address:address,password:password})});
     toast(tf("Account created: {0}",address));showAccounts(domain);
-  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_account",e.message);}
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_account",refusalText(e));}
 }
 
 async function delAccount(address,domain){
@@ -1601,7 +1615,7 @@ const ACCOUNT_GROUPS=[
 ];
 const ACCOUNT_HINTS={
   active:K("Account enabled: it receives mail and can sign in."),first_name:K("The person's first name."),last_name:K("The person's last name."),
-  password:K("A new password goes through the password policy, the reuse history and the configured hash exactly as when the Control Panel sets one, and the next logon uses it."),
+  password:K("A new password goes through the password policy, the reuse history, the breach check and the configured hash exactly as when the Control Panel sets one, and the next logon uses it."),
   max_size_mb:K("Maximum mailbox size in MB; 0 is unlimited."),
   admin_level:K("user, domain or server. Who is asking decides what it may become: a key restricted to named domains may set user or domain only."),
   message_retention_days:K("Delete messages older than this many days; -1 keeps forever, 0 follows the domain."),
@@ -1672,7 +1686,7 @@ async function saveAccount(){
     editing.values=await api("/api/v1/accounts/"+encodeURIComponent(address));
     toast(t("Account saved"));
     renderAccountEditor();
-  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountedit",e.message);}
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountedit",refusalText(e));}
 }
 
 /* ---------- Aliases ----------
@@ -2025,7 +2039,8 @@ async function renderTlsa(){
    the index run or emptied - draws a button per verb, worded from the route's
    own summary, and re-reads the group after one so its counters follow. */
 const SETTING_GROUPS=[
-  {id:"srv",  path:"/api/v1/settings",          title:K("Server"),save:K("Save server settings")},
+  {id:"srv",  path:"/api/v1/settings",          title:K("Server"),save:K("Save server settings"),
+    verbs:[{path:"/api/v1/settings/breach-check/test",label:K("Test the breach check endpoint")}]},
   {id:"spam", path:"/api/v1/settings/antispam", title:K("Anti-spam"),save:K("Save anti-spam settings")},
   {id:"av",   path:"/api/v1/settings/antivirus", title:K("Anti-virus"),save:K("Save anti-virus settings")},
   {id:"log",  path:"/api/v1/settings/logging",  title:K("Logging"),save:K("Save logging settings")},
@@ -2100,6 +2115,13 @@ async function settingsPost(groupId,path,label){
   setErr("err_set_"+groupId,"");
   try{
     const answer=await api(path,{method:"POST"});
+    // The breach check's endpoint test answers whether the endpoint could be
+    // used, and what it said about itself; nothing in the group changed.
+    if(answer&&answer.reachable!==undefined){
+      if(!answer.reachable){setErr("err_set_"+groupId,tf("The endpoint could not be used: {0}",String(answer.error||("HTTP "+answer.status))));return;}
+      toast(answer.padded?tf("The endpoint answered with {0} entries, padded.",answer.entries):tf("The endpoint answered with {0} entries, not padded.",answer.entries));
+      return;
+    }
     if(answer&&answer.result!==undefined){
       if(answer.result){setErr("err_set_"+groupId,String(answer.result));return;}
       toast(t("The script parses."));return;

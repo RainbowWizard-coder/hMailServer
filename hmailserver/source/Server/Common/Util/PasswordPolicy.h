@@ -10,9 +10,13 @@
 // Utilities.IsStrongPassword - and nothing in the server has ever called it. An
 // administrator could set every mailbox to "test" and the server would agree.
 //
-// Enforced where a password is CHOSEN, and nowhere else. That is one place:
-// InterfaceAccount::put_Password, which every route to setting an account
-// password goes through - the Control Panel, DBSetup, scripts, the API. It is
+// Enforced where a password is CHOSEN, and nowhere else. That was one place,
+// InterfaceAccount::put_Password, and is now five: that property (the Control
+// Panel, DBSetup, scripts), the REST account create and update routes, the
+// account holder's own POST /api/v1/me/password, and a chosen app password over
+// COM and REST. Each runs the same sequence - this policy, the reuse history, the
+// breach check (PasswordBreachCheck), then the history recorded and the hash set -
+// and build/check-password-choice-sites.py fails when one of them stops. It is
 // deliberately NOT applied where a password is verified, re-hashed by the
 // upgrade path, or read back from the database, because those are not choices:
 // a policy that rejected an existing password at logon would lock people out of

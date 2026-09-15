@@ -188,6 +188,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>「mx」は {0} の MX レコードが指すホストをすべて許可します。「a:{1}」は、このサーバーが HELO/EHLO で名乗るホスト名のアドレスを許可します (メール配信 &gt; ホスト名)。「~all」はそれ以外をソフトフェイルにします。リストが完全だと確信できるまでは、意図的に「-all」より緩くしてあります。</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>「{0}」は保存されませんでした: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' は 24 時間制の HH:MM 形式の時刻ではありません。サーバーは 02:00 や 23:45 のような値だけを受け付け、それ以外は推測せずに拒否します。毎日のバックアップを行わない場合は、この欄を空のままにしてください。</value>
   </data>
@@ -331,6 +334,9 @@
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>公開フォルダー 1 件。</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 にすると、コーパスに一度でも現れたパスワードを拒否します。</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 件のサンプルをクリップボードにコピーしました。</value>
@@ -1696,6 +1702,9 @@
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>確認中…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>新しいパスワードが設定されるとき (ここ、アカウント エディター、Web メール、スクリプト、REST API のいずれでも) に、公開されている漏えいパスワードのコーパスと照合し、そこに現れたパスワードを拒否します。このサーバーから送信されるのは、パスワードの SHA-1 ハッシュの先頭 5 文字だけです。エンドポイントはその 5 文字で始まるすべてのハッシュを返し、応答のサイズからも何も分からないようにパディングされます。比較はこのサーバーで行われます。ログオン時には決して適用されないため、今日使えているパスワードはそのまま使えます。サーバーの外に何かを送信するため、既定ではオフです。</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>送信者の SPF ポリシーを接続元アドレスと照らし合わせて確認します。合格するとグレイリスティングもバイパスできます。</value>
@@ -3957,6 +3966,9 @@
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>機器やプリンターにメールを送らせる</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>変更を通し、エラー ログに記録する</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Outlook、Thunderbird、モバイル クライアントが、このサーバーの設定 URL を取得することで、メール アドレスだけで自分自身を設定できるようにします。</value>
   </data>
@@ -5406,6 +5418,9 @@
   <data name="Password storage" xml:space="preserve">
     <value>パスワードの保存</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>公開された漏えいに含まれるパスワード</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>パスワードと、それを運ぶことを許可されるもの</value>
   </data>
@@ -5730,6 +5745,9 @@
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>再試行時刻に加えるランダムなジッター (分、0 = 無効)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>範囲エンドポイント (https、またはこのコンピューターへの http)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>状態を再確認(_K)</value>
   </data>
@@ -5875,17 +5893,29 @@
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>通信中に満杯のメールボックスを拒否する (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>公開されたデータ漏えいに含まれる新しいパスワードを拒否する</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>空き容量がこの値を下回ったらメールを一時エラーで拒否する (MB、0 = 拒否しない)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>受信メールの署名のうち、有効期限を過ぎたものを拒否する</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>変更を拒否し、エラー ログに記録する</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>この回数以上現れたパスワードを拒否する</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>メッセージがキューに入る前に拒否されたため、追跡できるメッセージはありません。</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>拒否された接続</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>拒否のほうが厳格ですが、エンドポイントに到達できない間は、管理者パスワードを含め、どこでもパスワードを変更できなくなります。</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>ゲートウェイを受信リレーとして登録し、そのアドレスがクライアントとして扱われないようにします。</value>
@@ -7454,6 +7484,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>このページの値でディレクトリ接続をテスト</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>エンドポイントをテスト…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>{1} 経由で {0} をテスト中...</value>
   </data>
@@ -7684,6 +7717,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>有効なチェックを合計しても最大 {0} にしかならず、マークしきい値の {1} を下回っています。どれほど悪質なメッセージでも、どちらのしきい値にも達することはできません。</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>エンドポイントは {0} 件のエントリを返しました。</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>エンドポイントを使用できませんでした: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>エンジンの判定はスコアとして届きます。SPF、DKIM、DMARC と並び、既存のしきい値が結果を決めるようにするためで、最初のものと整合させなければならない第 2 の並行したスパム概念にはなりません。これがエンジンの最も強い判定の重みです。</value>
   </data>
@@ -7857,6 +7896,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概要には、黙って何もしていない構成が挙げられます。ゼロのしきい値、有効なチェックのどれも到達できないしきい値、スコアがゼロのチェックなどです。</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>現在、公開されたデータ漏えいとパスワードを照合できませんでした。このサーバーは照合できない変更を拒否するように設定されています。しばらくしてからもう一度お試しください。</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>このサーバーがメールを扱う人とドメイン。</value>
   </data>
@@ -7891,6 +7933,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>秘密鍵の公開部分は証明書の公開鍵と同一です。このペアは対応しています。</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>公開コーパスは https://api.pwnedpasswords.com/range/ です。独自のミラーを運用している組織はここに指定します。5 文字はパスの末尾に追加されるか、{prefix} と書かれた位置に挿入されます。暗号化されていない http は localhost、127.0.0.1、::1 に対してのみ受け付けます。</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>公開されたレコードは準備中の鍵と一致しています。安全に昇格させることができます。</value>
@@ -8202,6 +8247,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>このパネルは RSA と ECDSA の鍵を比較できますが、この鍵はどちらとしても解析できないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>このパスワードは公開されたデータ漏えいに含まれているため、このアカウントに対して真っ先に試されるパスワードの一つです。別のパスワードを選んでください。</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>この範囲は期限切れになる(_E)</value>
@@ -8733,6 +8781,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>SMTP 会話のどの時点でブラックリスト検索を行うか。どのブラックリストを照会するかは DNS ブラックリスト ページにあります。</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>エンドポイントに到達できない場合</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>このドメインからのメールがどこを通って出て行くか。これは、ドメイン宛てのメールをどこに送るかを決めるルートとは別の問題です。それぞれ独自の配信プロバイダーを持つ複数の独立したドメインをホストするサーバー向けです。</value>

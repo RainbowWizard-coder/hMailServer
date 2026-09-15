@@ -188,6 +188,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>« mx » autorise tout ce vers quoi pointent les enregistrements MX de {0} ; « a:{1} » autorise l'adresse du nom d'hôte que ce serveur annonce en HELO/EHLO (Livraison du courrier &gt; Nom d'hôte). « ~all » fait échouer en douceur tout le reste - délibérément plus doux que « -all » tant que vous n'êtes pas sûr que la liste est complète.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>« {0} » n'a pas été enregistré : {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>« {0} » n'est pas une heure HH:MM sur 24 heures. Le serveur accepte des valeurs comme 02:00 ou 23:45 et refuse tout le reste plutôt que de deviner. Laissez la case vide pour ne pas avoir de sauvegarde quotidienne.</value>
   </data>
@@ -331,6 +334,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 dossier public.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 refuse un mot de passe apparu dans le corpus ne serait-ce qu'une fois.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 échantillon copié dans le presse-papiers.</value>
@@ -1696,6 +1702,9 @@ Le sélecteur préparé « {0} » est retiré de la configuration du serveur ; l
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Vérification…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Vérifie un nouveau mot de passe dans le corpus publié des mots de passe divulgués au moment où il est choisi - ici, dans l'éditeur de compte, dans le webmail, par un script ou par l'API REST - et refuse celui qui y figure. Seuls les cinq premiers caractères du hachage SHA-1 du mot de passe quittent ce serveur ; le point d'accès répond avec tous les hachages qui commencent par eux, complétés pour que la taille de la réponse ne révèle rien non plus, et la comparaison se fait ici. La vérification n'est jamais appliquée à la connexion : un mot de passe qui fonctionne aujourd'hui continue de fonctionner. Désactivé par défaut, parce que quelque chose quitte le serveur.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Vérifie la politique SPF de l'expéditeur contre l'adresse qui se connecte. Un succès peut aussi contourner le greylisting.</value>
@@ -3957,6 +3966,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Permettre à un appareil ou à une imprimante d'envoyer du courrier</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Laisser passer la modification et la consigner dans le journal d'erreurs</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Permet à Outlook, Thunderbird et aux clients mobiles de se configurer à partir d'une simple adresse e-mail, en récupérant les URL de configuration de ce serveur.</value>
   </data>
@@ -5406,6 +5418,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Password storage" xml:space="preserve">
     <value>Stockage des mots de passe</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Mots de passe trouvés dans des fuites publiées</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Les mots de passe, et ce qui a le droit de les transporter</value>
   </data>
@@ -5730,6 +5745,9 @@ Laissez l'ANCIEN enregistrement DNS ({2}) publié pendant au moins quelques jour
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Gigue aléatoire ajoutée aux heures de nouvelle tentative (minutes, 0 = désactivé)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Point d'accès par plage (https, ou http vers cette machine)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>Revérifier l'éta_t</value>
   </data>
@@ -5875,17 +5893,29 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Refuser une boîte pleine pendant la conversation (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Refuser un nouveau mot de passe trouvé dans des fuites de données publiées</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Refuser le courrier avec une erreur temporaire en dessous de cet espace libre (Mo ; 0 = jamais)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Refuser les signatures du courrier entrant dont l'expiration est passée</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Refuser la modification et la consigner dans le journal d'erreurs</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Refuser dès qu'il est apparu au moins ce nombre de fois</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Refusé avant que le message ne soit mis en file, il n'y a donc aucun message à suivre.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Connexions refusées</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Refuser est plus strict, mais tant que le point d'accès est injoignable, aucun mot de passe ne peut être modifié nulle part, pas même le mot de passe administrateur.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Enregistrez la passerelle comme relais entrant pour que son adresse ne soit pas traitée comme celle du client.</value>
@@ -7454,6 +7484,9 @@ Le redémarrer maintenant ?</value>
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Tester la connexion à l'annuaire avec les valeurs de cette page</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Tester le point d'accès…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Test contre {0} via {1}...</value>
   </data>
@@ -7684,6 +7717,12 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>Les vérifications activées peuvent ajouter au plus {0} à elles toutes, ce qui est en dessous du seuil de marquage de {1} : aucun message ne peut atteindre l'un ou l'autre seuil, aussi mauvais soit-il.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>Le point d'accès a répondu avec {0} entrées.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>Le point d'accès n'a pas pu être utilisé : {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Le verdict du moteur arrive sous forme de score, pour qu'il se place à côté de SPF, DKIM et DMARC et que vos seuils existants décident de ce qui se passe - plutôt que comme une seconde notion parallèle du spam qu'il faudrait réconcilier avec la première. Voici ce que vaut son verdict le plus fort.</value>
   </data>
@@ -7857,6 +7896,9 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>La vue d'ensemble nomme les configurations qui ne font silencieusement rien - un seuil à zéro, un seuil qu'aucune vérification activée ne peut atteindre, une vérification dont le score est zéro.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>Le mot de passe n'a pas pu être vérifié dans les fuites de données publiées pour l'instant, et ce serveur est réglé pour refuser une modification qu'il ne peut pas vérifier. Réessayez plus tard.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Les personnes et les domaines pour lesquels ce serveur transporte du courrier.</value>
   </data>
@@ -7891,6 +7933,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>La moitié publique de la clé privée est identique à la clé publique du certificat - la paire va bien ensemble.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>Le corpus public est https://api.pwnedpasswords.com/range/. Une organisation qui exploite son propre miroir l'indique ici : les cinq caractères sont ajoutés au chemin, ou placés là où {prefix} est écrit. Le http en clair n'est accepté que vers localhost, 127.0.0.1 ou ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>L'enregistrement publié correspond à la clé préparée. La promotion est sans risque.</value>
@@ -8202,6 +8247,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Ce Control Panel sait comparer des clés RSA et ECDSA ; cette clé ne s'analyse ni comme l'une ni comme l'autre : savoir si elle correspond au certificat n'est donc prouvé que lorsque le serveur charge la paire.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Ce mot de passe figure dans une fuite de données publiée : il serait donc parmi les premiers essayés contre ce compte. Choisissez-en un autre.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>Cette plage _expire</value>
@@ -8733,6 +8781,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>À quel moment de la conversation SMTP les recherches en liste noire ont lieu. Les listes noires interrogées sont sur la page Listes noires DNS.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Quand le point d'accès est injoignable</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Par où sort le courrier PROVENANT de ce domaine. C'est une question différente de celle d'une route, qui décide où est envoyé le courrier adressé À un domaine - cela sert à un serveur qui héberge plusieurs domaines indépendants dont chacun a son propre fournisseur de livraison.</value>

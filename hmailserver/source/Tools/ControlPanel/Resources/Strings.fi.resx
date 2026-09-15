@@ -188,6 +188,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" valtuuttaa sen, mihin verkkotunnuksen {0} MX-tietueet osoittavat; "a:{1}" valtuuttaa sen konenimen osoitteen, jonka tämä palvelin ilmoittaa HELO/EHLO-komennossa (Sähköpostin toimitus &gt; Konenimi). "~all" antaa kaikelle muulle lievän hylkäyksen – tarkoituksella lievempi kuin "-all", kunnes olet varma että lista on täydellinen.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>Kohdetta "{0}" ei tallennettu: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' ei ole 24 tunnin HH:MM-muotoinen kellonaika. Palvelin hyväksyy arvot kuten 02:00 tai 23:45 ja hylkää muut sen sijaan että arvaisi. Jätä kenttä tyhjäksi, jos päivittäistä varmuuskopiota ei oteta.</value>
   </data>
@@ -331,6 +334,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 julkinen kansio.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 hylkää salasanan, joka on esiintynyt kokoelmassa edes kerran.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 näyte kopioitu leikepöydälle.</value>
@@ -1696,6 +1702,9 @@ Valmisteltu valitsin "{0}" poistetaan palvelimen määrityksestä; allekirjoitus
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Tarkistetaan…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Tarkistaa uuden salasanan julkaistua vuotaneiden salasanojen kokoelmaa vasten, kun salasana valitaan – täällä, tilieditorissa, verkkopostissa, komentosarjalla tai REST API:n kautta – ja hylkää salasanan, joka on esiintynyt siinä. Palvelimelta lähtevät vain salasanan SHA-1-tiivisteen viisi ensimmäistä merkkiä; päätepiste vastaa kaikilla niillä alkavilla tiivisteillä, täytettyinä niin, ettei vastauksen kokokaan paljasta mitään, ja vertailu tehdään täällä. Tarkistusta ei koskaan tehdä kirjautumisen yhteydessä, joten tänään toimiva salasana toimii jatkossakin. Oletuksena pois päältä, koska se lähettää jotain palvelimen ulkopuolelle.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Tarkistaa lähettäjän SPF-käytännön yhdistävää osoitetta vasten. Läpäisy voi myös ohittaa harmaalistauksen.</value>
@@ -3957,6 +3966,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Anna laitteen tai tulostimen lähettää postia</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Päästä muutos läpi ja kirjaa se virhelokiin</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Antaa Outlookin, Thunderbirdin ja mobiiliasiakkaiden määrittää itsensä pelkästä sähköpostiosoitteesta noutamalla tämän palvelimen määritys-URL:t.</value>
   </data>
@@ -5406,6 +5418,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Password storage" xml:space="preserve">
     <value>Salasanojen tallennus</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Julkaistuista tietovuodoista löytyneet salasanat</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Salasanat ja se, mikä saa kuljettaa niitä</value>
   </data>
@@ -5730,6 +5745,9 @@ Jätä VANHA DNS-tietue ({2}) julkaistuksi vähintään muutamaksi päiväksi. V
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Uudelleenyritysaikoihin lisättävä satunnainen hajonta (minuuttia, 0 = pois)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Aluepäätepiste (https tai http tähän koneeseen)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>Tarkista tila _uudelleen</value>
   </data>
@@ -5875,17 +5893,29 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Hylkää täysi postilaatikko keskustelun aikana (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Hylkää uusi salasana, joka löytyy julkaistuista tietovuodoista</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Hylkää posti tilapäisellä virheellä, kun vapaata tilaa on alle tämän (Mt; 0 = ei koskaan)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Hylkää saapuvan postin allekirjoitukset, joiden vanhenemisaika on ohitettu</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Hylkää muutos ja kirjaa se virhelokiin</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Hylkää, kun se on esiintynyt vähintään näin monta kertaa</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Hylätty ennen viestin jonottamista, joten seurattavaa viestiä ei ole.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Hylätyt yhteydet</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Hylkääminen on tiukempaa, mutta niin kauan kuin päätepisteeseen ei saada yhteyttä, mitään salasanaa ei voi vaihtaa missään, ei edes ylläpitäjän salasanaa.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Rekisteröi yhdyskäytävä saapuvaksi välityspalvelimeksi, jotta sen osoitetta ei käsitellä asiakkaana.</value>
@@ -7454,6 +7484,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Testaa hakemistoyhteys tämän sivun arvoilla</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Testaa päätepiste…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Testataan kohdetta {0} yhteydellä {1}...</value>
   </data>
@@ -7684,6 +7717,12 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>Käytössä olevat tarkistukset voivat yhteensä lisätä enintään {0}, mikä on alle merkintäkynnyksen {1}: yksikään viesti ei voi saavuttaa kumpaakaan kynnystä, olipa se kuinka huono tahansa.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>Päätepiste vastasi {0} merkinnällä.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>Päätepistettä ei voitu käyttää: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Moottorin tuomio saapuu pistemääränä, jotta se asettuu SPF:n, DKIM:n ja DMARC:n rinnalle ja nykyiset kynnysarvosi ratkaisevat, mitä tapahtuu - toisen, rinnakkaisen roskapostikäsitteen sijaan, joka pitäisi sovittaa yhteen ensimmäisen kanssa. Tämän arvoinen sen vahvin tuomio on.</value>
   </data>
@@ -7857,6 +7896,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Yleiskatsaus nimeää järjestelyt, jotka eivät hiljaa tee mitään - nollakynnys, kynnys, jota yksikään käytössä oleva tarkistus ei voi saavuttaa, tarkistus, joka antaa nolla pistettä.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>Salasanaa ei juuri nyt voitu tarkistaa julkaistuja tietovuotoja vasten, ja tämä palvelin on asetettu hylkäämään muutoksen, jota se ei voi tarkistaa. Yritä myöhemmin uudelleen.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Ihmiset ja verkkotunnukset, joiden postia tämä palvelin kuljettaa.</value>
   </data>
@@ -7891,6 +7933,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Yksityisen avaimen julkinen puolisko on identtinen varmenteen julkisen avaimen kanssa - pari kuuluu yhteen.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>Julkinen kokoelma on osoitteessa https://api.pwnedpasswords.com/range/. Organisaatio, jolla on oma peilinsä, antaa sen tässä: viisi merkkiä liitetään polun perään tai kohtaan, jossa lukee {prefix}. Salaamaton http hyväksytään vain osoitteisiin localhost, 127.0.0.1 tai ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>Julkaistu tietue vastaa valmisteltua avainta. Sen voi turvallisesti ottaa käyttöön.</value>
@@ -8202,6 +8247,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Tämä paneeli osaa verrata RSA- ja ECDSA-avaimia; tämä avain ei jäsenny kummaksikaan, joten se, vastaako se varmennetta, todistetaan vasta, kun palvelin lataa parin.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Tämä salasana esiintyy julkaistussa tietovuodossa, joten sitä kokeiltaisiin tätä tiliä vastaan ensimmäisten joukossa. Valitse toinen.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>_Tämä alue vanhenee</value>
@@ -8733,6 +8781,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>Missä vaiheessa SMTP-keskustelua estolistahaut tapahtuvat. Se, mitä estolistoja kysytään, on DNS-estolistat-sivulla.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Kun päätepisteeseen ei saada yhteyttä</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Mistä tästä verkkotunnuksesta LÄHTEVÄ posti lähtee ulos. Tämä on eri kysymys kuin reitti, joka päättää, minne verkkotunnukseen OSOITETTU posti lähetetään - se on palvelimelle, joka isännöi useita riippumattomia verkkotunnuksia, joilla kullakin on oma toimituspalveluntarjoajansa.</value>

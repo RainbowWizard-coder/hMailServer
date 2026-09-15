@@ -301,6 +301,12 @@ namespace RegressionTests.Shared
       public const string RebindsTheRestListener =
          "rebinds the REST listener - to another address, or with a certificate - and that listener is the one this suite is talking to";
 
+      public const string NoBreachCheck =
+         "needs the password breach check's endpoint test, and this server's REST API has no POST /api/v1/settings/breach-check/test (it arrived after 6.3.3)";
+
+      public const string NoPasswordValidation =
+         "needs Account.ValidatePassword, and no REST route checks a password except by signing in with it";
+
       public const string NoAppPasswords =
          "needs an account's application passwords, and this server's REST API has no /api/v1/accounts/{address}/app-passwords (it arrived after 6.3.2)";
 

@@ -867,7 +867,9 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not save the account: {0}", ex.Message));
+            // L(): a refusal the server writes in English - the breach check's - is
+            // shown in the reader's language when the catalogue holds it.
+            notice_.Show(StatusLevel.Critical, F("Could not save the account: {0}", L(ServerSentences.MessageOf(ex))));
          }
          finally
          {

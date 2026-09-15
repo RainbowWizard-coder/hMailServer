@@ -23,6 +23,7 @@
 #include "../../IMAP/IMAPConfiguration.h"
 #include "../Cache/CacheConfiguration.h"
 #include "../Util/AWStats.h"
+#include "../Util/PasswordBreachCheck.h"
 
 // BACKUP
 #include "../BO/Rules.h"
@@ -112,6 +113,14 @@ namespace HM
       // diagnostic chatter, and a collector charged by volume is a real cost.
       property_set_->EnsureLong(PROPERTY_SYSLOG_LOGTYPES,
          Logger::LSSMTP | Logger::LSPOP3 | Logger::LSApplication | Logger::LSIMAP);
+
+      // The password breach check: off, the public corpus, one sighting, and an
+      // endpoint that cannot be used lets the change through. Off is the server as
+      // it has always been, which no change on upgrade may alter.
+      property_set_->EnsureLong(PROPERTY_BREACH_CHECK_ENABLED, 0);
+      property_set_->EnsureString(PROPERTY_BREACH_CHECK_URL, PasswordBreachCheck::DefaultUrl);
+      property_set_->EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
+      property_set_->EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
    }
 
    void
@@ -576,6 +585,57 @@ namespace HM
          types &= ~mask;
 
       GetSettings()->SetLong(PROPERTY_SYSLOG_LOGTYPES, types);
+   }
+
+   bool
+   Configuration::GetBreachCheckEnabled() const
+   {
+      return GetSettings()->GetBool(PROPERTY_BREACH_CHECK_ENABLED);
+   }
+
+   void
+   Configuration::SetBreachCheckEnabled(bool newVal)
+   {
+      GetSettings()->SetBool(PROPERTY_BREACH_CHECK_ENABLED, newVal);
+   }
+
+   String
+   Configuration::GetBreachCheckUrl() const
+   {
+      String url = GetSettings()->GetString(PROPERTY_BREACH_CHECK_URL);
+      return url.IsEmpty() ? String(PasswordBreachCheck::DefaultUrl) : url;
+   }
+
+   void
+   Configuration::SetBreachCheckUrl(const String &newVal)
+   {
+      GetSettings()->SetString(PROPERTY_BREACH_CHECK_URL, newVal);
+   }
+
+   long
+   Configuration::GetBreachCheckMinimumCount() const
+   {
+      long minimum = GetSettings()->GetLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT);
+      return minimum < 1 ? 1 : minimum;
+   }
+
+   void
+   Configuration::SetBreachCheckMinimumCount(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, newVal);
+   }
+
+   long
+   Configuration::GetBreachCheckUnreachableAction() const
+   {
+      return GetSettings()->GetLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION) == PasswordBreachCheck::UnreachableRefuse
+         ? PasswordBreachCheck::UnreachableRefuse : PasswordBreachCheck::UnreachableAllow;
+   }
+
+   void
+   Configuration::SetBreachCheckUnreachableAction(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, newVal);
    }
 
    String 

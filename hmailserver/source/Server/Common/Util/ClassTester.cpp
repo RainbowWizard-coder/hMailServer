@@ -12,6 +12,7 @@
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
 #include "../Util/MessageOrigin.h"
+#include "../Util/PasswordBreachCheck.h"
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
@@ -124,6 +125,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing MessageOrigin\n"));
       MessageOriginTester messageOriginTester;
       messageOriginTester.Test();
+
+      // The breach check's hashing, endpoint rules and range parsing, and the
+      // verdict from a fetcher that stands in for the network: everything but the
+      // request itself, which the regression fixtures make against a fake range
+      // server. The hash vectors are what catch a password hashed in the ANSI code
+      // page rather than UTF-8, a defect no ASCII password can show.
+      OutputDebugString(_T("hMailServer: Testing PasswordBreachCheck\n"));
+      PasswordBreachCheckTester passwordBreachCheckTester;
+      passwordBreachCheckTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing ExternalSenderTagger\n"));
       ExternalSenderTaggerTester externalSenderTaggerTester;

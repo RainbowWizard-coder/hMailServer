@@ -23,6 +23,7 @@
 #include "Totp.h"
 #include "AccountLogon.h"
 #include "PasswordPolicy.h"
+#include "PasswordBreachCheck.h"
 #include "PasswordHistory.h"
 #include "../Cache/AccountSizeCache.h"
 #include "AcmeClient.h"
@@ -1675,6 +1676,8 @@ namespace HM
             return HandleScriptingReload_();
          case RouteScriptingCheck:
             return HandleScriptingCheck_();
+         case RouteBreachCheckTest:
+            return HandleBreachCheckTest_(GetRequestBody_(request));
          case RouteSettingsCacheGet:
             return HandleSettingsCache_();
          case RouteSettingsCachePut:
@@ -3314,6 +3317,12 @@ namespace HM
          return;
       }
 
+      if (method == "POST" && path == "/api/v1/settings/breach-check/test")
+      {
+         route.kind = RouteBreachCheckTest;
+         return;
+      }
+
       if (path == "/api/v1/settings/cache" && (method == "GET" || method == "PUT"))
       {
          route.kind = method == "GET" ? RouteSettingsCacheGet : RouteSettingsCachePut;
@@ -3612,6 +3621,8 @@ namespace HM
       case RouteLogonFailuresClear:
       case RouteSettingsScriptingPut:
       case RouteScriptingReload:
+      // Makes the server send a request to a URL the caller chose.
+      case RouteBreachCheckTest:
       case RouteSettingsCachePut:
       case RouteCacheClear:
       case RouteSettingsIndexingPut:
@@ -3901,6 +3912,7 @@ namespace HM
       case RouteSettingsScriptingPut:
       case RouteScriptingReload:
       case RouteScriptingCheck:
+      case RouteBreachCheckTest:
       case RouteSettingsCacheGet:
       case RouteSettingsCachePut:
       case RouteCacheClear:
@@ -5096,13 +5108,14 @@ namespace HM
       if (PersistentAccount::ReadObject(existingAccount, address) && existingAccount->GetID() > 0)
          return BuildResponse_(409, "{\"error\":\"account already exists\"}");
 
-      // A password chosen at creation is a password chosen: the policy applies
-      // as it does in InterfaceAccount::put_Password, which the Control Panel's
-      // new account goes through, and in the update. The create applied none,
-      // so a spreadsheet import - which makes domain and server administrators
-      // too - walked round a policy every other door enforces. After the
-      // duplicate check, so an import run twice still hears 409 for the rows
-      // it made the first time.
+      // A password chosen at creation is a password chosen: the policy and the
+      // breach check apply as they do in InterfaceAccount::put_Password, which
+      // the Control Panel's new account goes through, and in the update. The
+      // create applied neither, so a spreadsheet import - which makes domain and
+      // server administrators too - walked round a policy every other door
+      // enforces. After the duplicate check, so an import run twice still hears
+      // 409 for the rows it made the first time; the breach check after the
+      // policy, so a password the policy refuses costs no request.
       {
          String policyFailure;
          if (!PasswordPolicy::IsAcceptable(address, password, policyFailure))
@@ -5111,6 +5124,16 @@ namespace HM
             AnsiString body;
             body.Format("{\"error\":\"%hs\"}", JsonEscape_(Utf8_(policyFailure)).c_str());
             return BuildResponse_(400, body);
+         }
+
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+         if (!PasswordBreachCheck::IsAcceptable(address, password, breachRefusal, breachReason, breachStatus))
+         {
+            AnsiString body;
+            body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", JsonEscape_(Utf8_(breachRefusal)).c_str(), breachReason.c_str());
+            return BuildResponse_(breachStatus, body);
          }
       }
 
@@ -6390,6 +6413,21 @@ namespace HM
 
       if (PasswordHistory::IsReuse(account, newPassword))
          return BuildResponse_(409, "{\"error\":\"this password has been used recently on this account; choose one that has not\"}");
+
+      // The breach corpus last, so that the rules decided here cost no request, and
+      // before anything is recorded. The reason word is what the webmail translates.
+      {
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+
+         if (!PasswordBreachCheck::IsAcceptable(account->GetAddress(), newPassword, breachRefusal, breachReason, breachStatus))
+         {
+            AnsiString body;
+            body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", JsonEscape_(Utf8_(breachRefusal)).c_str(), breachReason.c_str());
+            return BuildResponse_(breachStatus, body);
+         }
+      }
 
       std::shared_ptr<Account> mutableAccount = std::shared_ptr<Account>(new Account());
       if (!PersistentAccount::ReadObject(mutableAccount, account->GetID()) || mutableAccount->GetID() == 0)
@@ -10837,7 +10875,7 @@ namespace HM
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, argon2id, post_quantum_key_exchange\"}}}},"
          "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now. Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"Reinitialising; the listeners restart in a moment\"}}}},"
          "\"/api/v1/me\":{\"get\":{\"summary\":\"The signed-in account's own state\",\"description\":\"HTTP Basic with the account's address and password - the same credential and the same checks as an IMAP logon, including a per-name lockout and the auto-ban. Refused for the administrator password and for API keys.\",\"responses\":{\"200\":{\"description\":\"address, domain, active, quota (limit_mb, used_bytes), vacation (enabled, active, subject, message, expires, expires_date), password_changed, second_factor, directory_linked\"},\"401\":{\"description\":\"Not an account's credentials\"},\"403\":{\"description\":\"The administrator password or an API key was presented\"}}}},"
-         "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy and the reuse history apply exactly as when an administrator sets a password.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, or the policy refused the new password (the reason is in error)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"}}}},"
+         "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"
          "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}}},"
          "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default). Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
@@ -10898,7 +10936,7 @@ namespace HM
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
-         "\"post\":{\"summary\":\"Create an account\",\"description\":\"One account, made in the domain as the Control Panel makes one: the address must be in the domain and is judged with the domain's own limits, and the password goes through the password policy, as when the Control Panel sets one, before it is stored under the configured hash. hmctl accounts import and Import-HmAccount send each row of a spreadsheet here. An unknown field, or a field of the wrong type, is refused by name rather than ignored, so a password of digits alone is sent as a string. A key restricted to named domains may make a user or a domain administrator, never a server administrator. Scoped to the domain. Body: address and password (required), active (default true), first_name and last_name (at most 60 characters each), max_size_mb (megabytes; 0, the default, is none; maxSizeMB is the older spelling) and admin_level (user, domain or server; default user).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"additionalProperties\":false,\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"},\"first_name\":{\"type\":\"string\",\"maxLength\":60},\"last_name\":{\"type\":\"string\",\"maxLength\":60},\"max_size_mb\":{\"type\":\"integer\",\"minimum\":0},\"maxSizeMB\":{\"type\":\"integer\",\"minimum\":0,\"deprecated\":true},\"admin_level\":{\"type\":\"string\",\"enum\":[\"user\",\"domain\",\"server\"]}}}}}},\"responses\":{\"201\":{\"description\":\"Created: address, created\"},\"400\":{\"description\":\"address or password missing, an unknown field, a field of the wrong type, a name longer than 60 characters, a max_size_mb that is not a whole number of megabytes, an admin_level that is not user, domain or server, an address outside the domain, a password the policy refuses, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A domain-restricted key naming admin_level server, or a domain outside the key's own\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"An account with that address exists\"}}}},"
+         "\"post\":{\"summary\":\"Create an account\",\"description\":\"One account, made in the domain as the Control Panel makes one: the address must be in the domain and is judged with the domain's own limits, and the password, read as UTF-8, goes through the password policy and the breach check (breach_check_enabled), as when the Control Panel sets one, before it is stored under the configured hash. hmctl accounts import and Import-HmAccount send each row of a spreadsheet here. An unknown field, or a field of the wrong type, is refused by name rather than ignored, so a password of digits alone is sent as a string. A key restricted to named domains may make a user or a domain administrator, never a server administrator. Scoped to the domain. Body: address and password (required), active (default true), first_name and last_name (at most 60 characters each), max_size_mb (megabytes; 0, the default, is none; maxSizeMB is the older spelling) and admin_level (user, domain or server; default user).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"additionalProperties\":false,\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"},\"first_name\":{\"type\":\"string\",\"maxLength\":60},\"last_name\":{\"type\":\"string\",\"maxLength\":60},\"max_size_mb\":{\"type\":\"integer\",\"minimum\":0},\"maxSizeMB\":{\"type\":\"integer\",\"minimum\":0,\"deprecated\":true},\"admin_level\":{\"type\":\"string\",\"enum\":[\"user\",\"domain\",\"server\"]}}}}}},\"responses\":{\"201\":{\"description\":\"Created: address, created\"},\"400\":{\"description\":\"address or password missing, an unknown field, a field of the wrong type, a name longer than 60 characters, a max_size_mb that is not a whole number of megabytes, an admin_level that is not user, domain or server, an address outside the domain, a password the policy refuses or one found in the published breach corpus (reason: breached), or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A domain-restricted key naming admin_level server, or a domain outside the key's own\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"An account with that address exists\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/queue\":{\"get\":{\"summary\":\"List the delivery queue\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of queued messages\"}}}},"
          "\"/api/v1/queue/{id}/retry\":{\"post\":{\"summary\":\"Retry a queued message now\",\"responses\":{\"200\":{\"description\":\"Rescheduled\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"

@@ -104,6 +104,8 @@ PATH_SCOPE = {
     'greylisting-white-addresses': ['GreyListingWhiteAddress'],
     'fetch-accounts': ['FetchAccount'],
     'settings': ['Settings'],
+    # POST /api/v1/settings/breach-check/test: Settings.TestBreachCheckEndpoint.
+    'breach-check': ['Settings'],
     'antispam': ['AntiSpam'],
     'antivirus': ['AntiVirus'],
     'logging': ['Logging'],
@@ -141,7 +143,7 @@ PATH_SCOPE = {
 # Trailing path segments that are verbs on the resource before them.
 VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'download',
                  'run', 'install', 'reinitialize', 'evaluate', 'history', 'start', 'index',
-                 'copy', 'match'}
+                 'copy', 'match', 'test'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

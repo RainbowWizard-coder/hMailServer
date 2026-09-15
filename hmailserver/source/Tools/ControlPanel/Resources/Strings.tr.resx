@@ -188,6 +188,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx", {0} için MX kayıtlarının işaret ettiği her şeyi yetkilendirir; "a:{1}", bu sunucunun HELO/EHLO'da duyurduğu ana bilgisayar adının adresini yetkilendirir (E-posta teslimi &gt; Ana bilgisayar adı). "~all" diğer her şeyi yumuşak biçimde başarısız kılar - listenin eksiksiz olduğundan emin olana kadar "-all" yerine bilinçli olarak seçilen daha yumuşak seçenek budur.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>"{0}" kaydedilmedi: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' 24 saatlik HH:MM biçiminde bir saat değil. Sunucu 02:00 veya 23:45 gibi değerleri kabul eder, bunun dışındakileri tahmin etmek yerine reddeder. Günlük yedekleme istemiyorsanız kutuyu boş bırakın.</value>
   </data>
@@ -331,6 +334,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 genel klasör.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1, derlemde tek bir kez bile görülmüş bir parolayı reddeder.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 örnek panoya kopyalandı.</value>
@@ -1696,6 +1702,9 @@ Hazırlanan "{0}" seçicisi sunucu yapılandırmasından kaldırılır; imzalama
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Denetleniyor…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Yeni bir parola seçildiğinde - burada, hesap düzenleyicisinde, web postasında, bir betikle veya REST API ile - onu yayımlanmış sızdırılmış parolalar derlemine karşı denetler ve derlemde görülmüş olanı reddeder. Bu sunucudan yalnızca parolanın SHA-1 özetinin ilk beş karakteri çıkar; uç nokta bunlarla başlayan tüm özetlerle yanıt verir, yanıtın boyutu da bir şey ele vermesin diye dolgu eklenir ve karşılaştırma burada yapılır. Oturum açarken asla uygulanmaz; bugün çalışan bir parola çalışmaya devam eder. Sunucunun dışına bir şey gönderdiği için varsayılan olarak kapalıdır.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Gönderenin SPF ilkesini bağlanan adrese karşı denetler. Başarılı bir sonuç greylisting'i de atlayabilir.</value>
@@ -3957,6 +3966,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Bir cihazın veya yazıcının posta göndermesine izin verin</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Değişikliğin geçmesine izin ver ve hata günlüğüne kaydet</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Outlook, Thunderbird ve mobil istemcilerin bu sunucunun yapılandırma URL'lerini getirerek yalnızca bir e-posta adresinden kendilerini kurmasına olanak verir.</value>
   </data>
@@ -5406,6 +5418,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Password storage" xml:space="preserve">
     <value>Parola saklama</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Yayımlanmış sızıntılarda bulunan parolalar</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Parolalar ve onları taşımasına izin verilenler</value>
   </data>
@@ -5730,6 +5745,9 @@ ESKİ DNS kaydını ({2}) en az birkaç gün yayında bırakın. Eski anahtarla 
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Yeniden deneme zamanlarına eklenen rastgele sapma (dakika, 0 = kapalı)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Aralık uç noktası (https veya bu makineye http)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>D_urumu yeniden denetle</value>
   </data>
@@ -5875,17 +5893,29 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Dolu bir posta kutusunu görüşme sırasında reddet (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Yayımlanmış veri sızıntılarında bulunan yeni bir parolayı reddet</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Boş alan bu kadarın altındayken postayı geçici bir hatayla reddet (MB; 0 = hiçbir zaman)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Gelen postada süre sonu geçmiş imzaları reddet</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Değişikliği reddet ve hata günlüğüne kaydet</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>En az bu kadar kez görülmüşse reddet</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>İleti kuyruğa alınmadan reddedildi; bu yüzden izlenecek bir ileti yok.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Reddedilen bağlantılar</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Reddetmek daha katıdır, ancak uç noktaya ulaşılamadığı sürece hiçbir yerde hiçbir parola değiştirilemez; yönetici parolası da buna dahildir.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Ağ geçidini gelen aktarma olarak kaydedin; böylece adresi istemci olarak değerlendirilmez.</value>
@@ -7454,6 +7484,9 @@ Devam edilsin mi?</value>
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Dizin bağlantısını bu sayfadaki değerlerle sına</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Uç noktayı sına…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>{1} üzerinden {0} sınanıyor...</value>
   </data>
@@ -7684,6 +7717,12 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>Etkin denetimler birlikte en fazla {0} ekleyebilir; bu da {1} olan işaretleme eşiğinin altında: hiçbir ileti, ne kadar kötü olursa olsun, iki eşiğe de ulaşamaz.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>Uç nokta {0} girdiyle yanıt verdi.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>Uç nokta kullanılamadı: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Motorun kararı bir puan olarak gelir; böylece SPF, DKIM ve DMARC'ın yanına oturur ve ne olacağına mevcut eşikleriniz karar verir - ilkiyle bağdaştırılması gereken ikinci, paralel bir spam kavramı yerine. En güçlü kararının değeri budur.</value>
   </data>
@@ -7857,6 +7896,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Genel bakış, sessizce hiçbir şey yapmayan düzenlemeleri adlandırır - sıfır eşik, etkin hiçbir denetimin ulaşamayacağı bir eşik, sıfır puan veren bir denetim.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>Parola şu anda yayımlanmış veri sızıntılarına karşı denetlenemedi ve bu sunucu, denetleyemediği bir değişikliği reddedecek şekilde ayarlanmış. Daha sonra yeniden deneyin.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Bu sunucunun postasını taşıdığı kişiler ve etki alanları.</value>
   </data>
@@ -7891,6 +7933,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Özel anahtarın ortak yarısı sertifikanın ortak anahtarıyla aynı - çift birbirine ait.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>Herkese açık derlem https://api.pwnedpasswords.com/range/ adresindedir. Kendi yansısını çalıştıran bir kuruluş onu burada belirtir: beş karakter yola eklenir veya {prefix} yazan yere konur. Şifrelenmemiş http yalnızca localhost, 127.0.0.1 veya ::1 için kabul edilir.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>Yayımlanan kayıt hazırlanan anahtarla eşleşiyor. Terfi ettirmek güvenli.</value>
@@ -8202,6 +8247,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Bu panel RSA ve ECDSA anahtarlarını karşılaştırabilir; bu anahtar ikisi olarak da ayrıştırılmıyor; bu yüzden sertifikayla eşleşip eşleşmediği yalnızca sunucu çifti yüklediğinde kanıtlanır.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Bu parola yayımlanmış bir veri sızıntısında yer alıyor, bu yüzden bu hesaba karşı ilk denenecekler arasında olur. Başka bir parola seçin.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>_Bu aralığın süresi dolar</value>
@@ -8733,6 +8781,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>SMTP konuşması sırasında kara liste aramalarının ne zaman yapıldığı. Hangi kara listelerin sorgulandığı DNS kara listeleri sayfasındadır.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Uç noktaya ulaşılamadığında</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Bu etki alanından GELEN postanın nereden çıktığı. Bu, bir etki alanına adreslenen postanın nereye gönderileceğine karar veren bir rotadan farklı bir sorudur - her birinin kendi teslim sağlayıcısı olan birden çok bağımsız etki alanını barındıran bir sunucu içindir.</value>

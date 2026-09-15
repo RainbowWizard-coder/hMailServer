@@ -75,7 +75,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `apikey` | list, create, delete | Administrator password only, never an API key. |
 | `queue` | list, retry, delete | |
 | `quarantine` | list, release, delete | |
-| `settings` | get, set | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `directories`. |
+| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `directories`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
 | `ini` | list, get, set, delete | The `hMailServer.ini` keys the server exposes. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
@@ -93,6 +93,8 @@ hmctl account create --domain example.com --set address=ann@example.com --set pa
 hmctl account list --domain example.com
 hmctl settings get antispam use_spf
 hmctl settings set antispam --set use_spf=true --set spam_mark_threshold=5
+hmctl settings set --set breach_check_enabled=true
+hmctl settings breach-test --endpoint https://mirror.example/range/
 hmctl queue list --json | jq '.[] | select(.retry_count > 3)'
 hmctl match contains viagra "cheap viagra here"
 hmctl report sections
@@ -161,7 +163,7 @@ columns. These are the columns, and there are no others:
 | Column | Required | Sent as | Notes |
 |---|---|---|---|
 | `address` | yes | text | Created under the address's own domain. |
-| `password` | yes | text | Digits alone are still a password: `20260915` is sent as the text it is. Never trimmed: white space at either end is refused. Judged by the server's password policy, then stored under its configured hash. |
+| `password` | yes | text | Digits alone are still a password: `20260915` is sent as the text it is. Never trimmed: white space at either end is refused. Judged by the server's password policy and, when it is switched on, the breach check ([PasswordBreachCheck.md](PasswordBreachCheck.md)), then stored under its configured hash. |
 | `first_name` | | text | At most 60 characters, counted as UTF-16 code units, so a character outside the Basic Multilingual Plane (an emoji) counts two. |
 | `last_name` | | text | As `first_name`. |
 | `active` | | true or false | `true`, `yes`, `on` or `1`; `false`, `no`, `off` or `0`. Default true. |
@@ -277,6 +279,7 @@ Get-HmAccount -Domain example.com | Sort-Object max_size_mb -Descending | Select
 New-HmAccount -Domain example.com -Address ann@example.com -Password (Read-Host -AsSecureString)
 Set-HmAccount -Address ann@example.com -Property @{ max_size_mb = 500 }
 Set-HmSetting -Group antispam -Property @{ use_spf = $true }
+Test-HmBreachCheckEndpoint -Url https://mirror.example/range/
 Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery
 Import-HmAccount -Path .\new-people.csv -WhatIf
 ```

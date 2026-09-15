@@ -189,6 +189,21 @@
 #define PROPERTY_SYSLOG_SEVERITY                _T("SyslogMinimumSeverity")
 #define PROPERTY_SYSLOG_LOGTYPES                _T("SyslogLogTypes")
 
+// The check of a new password against the published breach corpus
+// (PasswordBreachCheck). In hm_settings for the same reason as the syslog sink,
+// with rows created by EnsureSettingDefaults_. Off by default, because it sends
+// five characters of the password's hash off the server; the default endpoint is
+// the public corpus; one sighting is enough to refuse; and an endpoint that
+// cannot be used lets the change through (0) rather than refusing it (1).
+//
+// The names say BreachCheck and never Password on purpose: AuditTrail::IsSecretName
+// records any setting whose name contains "password" as "(changed)", and an auditor
+// needs to read that this one went from false to true.
+#define PROPERTY_BREACH_CHECK_ENABLED           _T("BreachCheckEnabled")
+#define PROPERTY_BREACH_CHECK_URL               _T("BreachCheckUrl")
+#define PROPERTY_BREACH_CHECK_MINIMUM_COUNT     _T("BreachCheckMinimumCount")
+#define PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION _T("BreachCheckUnreachableAction")
+
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
 //      hm_domains.domaindkimsecondaryprivatekeyfile, the staged half of a DKIM key

@@ -337,6 +337,9 @@ const requests = [];
 let signedIn = false;
 let changeStep = 0;
 let renameRefusal = null;
+// What POST /api/v1/me/password answers: a changed password, unless a test
+// sets a refusal with its status and body.
+let passwordAnswer = null;
 // One message arrives while the reader is looking at the folder: the probe
 // says so, and from then on the folder tree and the listing both show it.
 let arrived = false;
@@ -542,6 +545,10 @@ function answer(method, path, body) {
    if (wantsCatalogue && method === 'GET') {
       try { return { status: 200, headers: { 'Content-Type': 'application/json' }, body: fs.readFileSync(cataloguesDir + wantsCatalogue[1] + '.json', 'utf8') }; }
       catch (e) { return json(404, { error: 'No catalogue: ' + wantsCatalogue[1] }); }
+   }
+   if (path === '/api/v1/me/password' && method === 'POST') {
+      if (passwordAnswer) { return json(passwordAnswer.status, passwordAnswer.body); }
+      return json(200, { changed: true });
    }
    if (path === '/api/v1/me/folders' && method === 'POST') { return json(201, { id: 9, name: 'Bills' }); }
    if (/^\/api\/v1\/me\/folders\/\d+$/.test(path) && method === 'PUT') {
@@ -1882,6 +1889,40 @@ async function main() {
       String(document.documentElement.getAttribute('dir')) + ' ' + String(document.documentElement.getAttribute('lang')));
    check('and the caption is the German', document.getElementById('keys-title').textContent === german['Keyboard shortcuts'],
       document.getElementById('keys-title').textContent);
+
+   // ---- a refusal the server gives a reason for, in the reader's language:
+   // the password breach check's two, which arrive as English sentences with a
+   // reason word beside them.
+   const changePassword = async () => {
+      document.getElementById('current').value = 'a-real-password';
+      document.getElementById('new').value = 'password';
+      document.getElementById('confirm').value = 'password';
+      document.getElementById('password-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      return document.getElementById('password-status').textContent;
+   };
+   const breached = 'This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.';
+   const unavailable = 'The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.';
+   passwordAnswer = { status: 400, body: { error: breached, reason: 'breached' } };
+   let passwordSaid = await changePassword();
+   check('German: a password found in a published breach is refused in German, not in the server\'s English',
+      passwordSaid === german[breached] && german[breached] !== breached, passwordSaid);
+   passwordAnswer = { status: 503, body: { error: unavailable, reason: 'breach_check_unavailable' } };
+   passwordSaid = await changePassword();
+   check('German: a change the breach check could not make is refused in German too', passwordSaid === german[unavailable] && german[unavailable] !== unavailable, passwordSaid);
+   passwordAnswer = { status: 400, body: { error: 'A sentence the page has no word for.', reason: 'something_new' } };
+   passwordSaid = await changePassword();
+   check('a reason the page does not know shows the server\'s own sentence', passwordSaid === 'A sentence the page has no word for.', passwordSaid);
+   document.getElementById('pref-language').value = 'ar';
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   passwordAnswer = { status: 400, body: { error: breached, reason: 'breached' } };
+   passwordSaid = await changePassword();
+   check('Arabic, written right to left: the same refusal in Arabic', passwordSaid === arabic[breached] && /[\u0600-\u06FF]/.test(passwordSaid), passwordSaid);
+   passwordAnswer = null;
+   document.getElementById('pref-language').value = 'de';
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
 
    // ---- the tour: teaching the page while somebody uses it
    // Every check here is a way a tour can be wrong that nobody would notice

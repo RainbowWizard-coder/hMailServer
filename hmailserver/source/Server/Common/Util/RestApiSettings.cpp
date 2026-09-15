@@ -48,6 +48,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "Utilities.h"
+#include "PasswordBreachCheck.h"
 #include "../Application/IniSettingStore.h"
 #include "../Application/Backup.h"
 #include "../BO/ServerMessages.h"
@@ -287,6 +288,18 @@ namespace
    const char *TarpitDelayRefusal = "TarpitDelay must be between 0 and 30 seconds.";
    const char *TarpitCountRefusal = "TarpitCount cannot be negative.";
    const char *IniWriteFailure = "The setting could not be written to hMailServer.INI. Nothing has been changed.";
+
+   // InterfaceSettings::put_BreachCheckMinimumCount's sentence, verbatim.
+   const char *BreachCheckMinimumRefusal =
+      "BreachCheckMinimumCount must be 1 or more: a password is refused when it has appeared in the corpus at least this many times.";
+
+   // PasswordBreachCheck::UnreachableAction, as the Control Panel lists it.
+   const Word BreachCheckUnreachableWords[] =
+   {
+      { "allow", PasswordBreachCheck::UnreachableAllow },
+      { "refuse", PasswordBreachCheck::UnreachableRefuse },
+      { nullptr, 0 }
+   };
 
    // Every logging switch is one bit of PROPERTY_LOGGING, and each Configuration
    // setter rewrites the whole mask, so setting one bit at a time is what COM
@@ -580,6 +593,32 @@ namespace
       { "alert_webhook_max_attempts", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many times a webhook is attempted before the event is dead-lettered. 1 to 20.",
         ROW_NUMBER(Config()->GetAlertWebhookMaxAttempts()), ROW_SET(Config()->SetAlertWebhookMaxAttempts((int) v.number)), ROW_NO_CHECK },
+
+      // The password breach check (PasswordBreachCheck). In hm_settings, read at
+      // every password change. The checks are the COM setters' own, so a value
+      // the Control Panel refuses is refused here in the same words.
+      { "breach_check_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a new password found in the published breach corpus is refused. Off by default, because it sends the first five characters of the password's SHA-1 to breach_check_url and nothing else.",
+        ROW_FLAG(Config()->GetBreachCheckEnabled()), ROW_SET(Config()->SetBreachCheckEnabled(v.flag)), ROW_NO_CHECK },
+      { "breach_check_url", KindString, ReadWrite, EffectNow, nullptr,
+        "The range endpoint the breach check asks, https or plain http to this machine only; the prefix is appended, or put where {prefix} is. Defaults to https://api.pwnedpasswords.com/range/.",
+        ROW_TEXT(Config()->GetBreachCheckUrl()), ROW_SET(Config()->SetBreachCheckUrl(v.text)),
+        [] (const Value &v) -> String
+        {
+           String reason;
+           PasswordBreachCheck::ValidateEndpoint(v.text, reason);
+           return reason;
+        } },
+      { "breach_check_minimum_count", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many times a password must appear in the corpus to be refused; 1 or more, 1 by default.",
+        ROW_NUMBER(Config()->GetBreachCheckMinimumCount()), ROW_SET(Config()->SetBreachCheckMinimumCount(v.number)),
+        [] (const Value &v) -> String
+        {
+           return v.number < 1 ? String(BreachCheckMinimumRefusal) : String();
+        } },
+      { "breach_check_unreachable_action", KindEnum, ReadWrite, EffectNow, BreachCheckUnreachableWords,
+        "What happens to a password change when the endpoint cannot be used: allow lets it through, refuse refuses it. Both are recorded in the error log.",
+        ROW_NUMBER(Config()->GetBreachCheckUnreachableAction()), ROW_SET(Config()->SetBreachCheckUnreachableAction(v.number)), ROW_NO_CHECK },
    };
 
    const Row AntiSpamRows[] =
@@ -1821,6 +1860,9 @@ namespace
       "\"/api/v1/settings/indexing/index\":{\"post\":{\"summary\":\"Index the messages not yet indexed, now\",\"description\":\"What Settings.MessageIndexing.Index does over COM: the indexer runs at once rather than at its next tick; the answer does not wait for it. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{started: true}\"}}}},"
       "\"/api/v1/settings/indexing/clear\":{\"post\":{\"summary\":\"Empty the message index\",\"description\":\"What Settings.MessageIndexing.Clear does over COM: every indexed message's metadata, the full-text terms and the backfill cursor go, so the indexer starts again from the first message when it next runs. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"}}}}";
 
+   const char *BreachCheckTestPath =
+      ",\"/api/v1/settings/breach-check/test\":{\"post\":{\"summary\":\"Ask the password breach check endpoint for a range\",\"description\":\"What Settings.TestBreachCheckEndpoint does over COM: the endpoint - url in the body, or breach_check_url when the body has none - is asked for the prefix 00000, which belongs to no password, with the padding header and the timeout a real check uses, and the answer is reported: reachable, the HTTP status, how many entries came back, whether any was padding, and how long it took. The body of the answer is never returned. A url the check would not accept is a 400 with the reason. Nothing is changed. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"url\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{reachable: true, status, entries, padded, milliseconds}, or {reachable: false, status (0 when no answer arrived), error, milliseconds}\"},\"400\":{\"description\":\"The body is not a JSON object, url is not a string, or the url is not one the check accepts (the reason is in error)\"}}}}";
+
    const char *IniAndLogonFailurePaths =
       ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The keys in hMailServer.ini's [Settings] section\",\"description\":\"names: every key the section holds, in file order - what Settings.IniSettingNames lists over COM. The values are read one at a time. Administrator password only: an api key of any scope is refused, since the section holds the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...]}\"}}}},"
       "\"/api/v1/settings/ini/{name}\":{"
@@ -1864,6 +1906,7 @@ namespace HM
       paths += OpenApiPath(CacheGroup, "The cache settings and counters", "Change the cache settings", bridge);
       paths += OpenApiPath(IndexingGroup, "The message indexing settings and counts", "Change the indexing settings", bridge);
       paths += CacheAndIndexingPaths;
+      paths += BreachCheckTestPath;
       return paths;
    }
 
@@ -1979,6 +2022,64 @@ namespace HM
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       String result = ScriptServer::Instance()->CheckSyntax();
       return BuildResponse_(200, "{\"result\":\"" + bridge.escape(Utf8(result)) + "\"}");
+   }
+
+   // Settings.TestBreachCheckEndpoint over REST. The answer carries what the
+   // endpoint said about itself and never what it sent: an administrator's key
+   // must not turn this into a way of reading an arbitrary URL through the server.
+   HttpResponse
+   RestApiServer::HandleBreachCheckTest_(const AnsiString &requestBody)
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+
+      String url;
+      std::string trimmed(requestBody.c_str(), (size_t) requestBody.GetLength());
+      if (trimmed.find_first_not_of(" \t\r\n") != std::string::npos)
+      {
+         JsonValue document;
+         std::string parseError;
+         if (!JsonValue::Parse(trimmed, document, parseError) || !document.IsObject())
+            return Refusal(bridge, 400, "the body must be a JSON object");
+
+         const JsonValue *member = document.Get("url");
+         if (member && !member->IsNull())
+         {
+            if (!member->IsString())
+               return Refusal(bridge, 400, "url must be a string");
+            Unicode::MultiByteToWide(AnsiString(member->AsString().c_str()), url);
+         }
+      }
+
+      if (!url.IsEmpty())
+      {
+         String reason;
+         if (!PasswordBreachCheck::ValidateEndpoint(url, reason))
+            return Refusal(bridge, 400, Utf8(reason));
+      }
+
+      int status = 0;
+      int entries = 0;
+      bool padded = false;
+      int milliseconds = 0;
+      String error;
+      const bool reachable = PasswordBreachCheck::Probe(url, status, entries, padded, milliseconds, error);
+
+      AnsiString body;
+      if (reachable)
+      {
+         body.Format("{\"reachable\":true,\"status\":%d,\"entries\":%d,\"padded\":%s,\"milliseconds\":%d}",
+            status, entries, padded ? "true" : "false", milliseconds);
+      }
+      else
+      {
+         body.Format("{\"reachable\":false,\"status\":%d,\"error\":\"%s\",\"milliseconds\":%d}",
+            status, bridge.escape(Utf8(error)).c_str(), milliseconds);
+      }
+
+      LOG_APPLICATION(String(_T("RestApi: the password breach check endpoint was tested; it was ")) +
+         (reachable ? String(_T("reachable.")) : String(_T("not reachable."))));
+
+      return bridge.respond(200, body, "");
    }
 
    HttpResponse

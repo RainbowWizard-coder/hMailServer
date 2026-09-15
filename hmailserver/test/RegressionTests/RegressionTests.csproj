@@ -419,6 +419,7 @@
     <Compile Include="SMTP\OutboundPipelining.cs" />
     <Compile Include="Shared\FakeFilterEngine.cs" />
     <Compile Include="Shared\FakeHttpEndpoint.cs" />
+    <Compile Include="Shared\FakeBreachCorpus.cs" />
     <Compile Include="Shared\FakeHttpProxy.cs" />
     <Compile Include="Shared\FakeSigstore.cs" />
     <Compile Include="Shared\ServerIniFile.cs" />
@@ -699,6 +700,7 @@
     <Compile Include="Security\AppPasswords.cs" />
     <Compile Include="Security\AutoBanFirewall.cs" />
     <Compile Include="Security\PasswordPolicyTests.cs" />
+    <Compile Include="Security\PasswordBreachCheck.cs" />
     <Compile Include="Security\PasswordExpiryTests.cs" />
     <Compile Include="Security\TwoFactorAuthentication.cs" />
     <Compile Include="Security\AccountLockoutTests.cs" />
@@ -726,6 +728,7 @@
     <Compile Include="Infrastructure\MetricsSecurity.cs" />
     <Compile Include="Infrastructure\ScheduledBackup.cs" />
     <Compile Include="API\RestApiAccountAppPasswords.cs" />
+    <Compile Include="API\RestApiBreachCheck.cs" />
     <Compile Include="API\RestApiFolderPermissions.cs" />
     <Compile Include="API\RestApiAccountMessages.cs" />
     <Compile Include="API\RestApiGroups.cs" />

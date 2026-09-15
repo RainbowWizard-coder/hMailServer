@@ -54,6 +54,36 @@ namespace RegressionTests.Shared
          new Thread(Serve) {IsBackground = true, Name = "FakeHttpEndpoint"}.Start();
       }
 
+      /// <summary>
+      ///    The same endpoint on a port the test names, for a fixture whose port was
+      ///    allocated to it rather than taken from the ephemeral range - so that the
+      ///    address a setting stores, and the address nothing is listening on once the
+      ///    endpoint is disposed, is known before the endpoint exists. The content type
+      ///    is required here so that this overload and the ephemeral one can never be
+      ///    confused by an int where a status was meant.
+      /// </summary>
+      public FakeHttpEndpoint(int port, int statusCode, string body, string contentType)
+         : this(IPAddress.Loopback, port, statusCode, body, contentType)
+      {
+      }
+
+      /// <summary>
+      ///    The same on a loopback address the test names - IPAddress.IPv6Loopback, for an
+      ///    endpoint the server must reach as http://[::1]:port/.
+      /// </summary>
+      public FakeHttpEndpoint(IPAddress address, int port, int statusCode, string body, string contentType)
+      {
+         _statusCode = statusCode;
+         _body = body;
+         _contentType = contentType;
+         _listener = new TcpListener(address, port);
+         // A previous listener's connections may still be in TIME_WAIT on this port.
+         _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+         _listener.Start();
+         Port = ((IPEndPoint) _listener.LocalEndpoint).Port;
+         new Thread(Serve) {IsBackground = true, Name = "FakeHttpEndpoint"}.Start();
+      }
+
       public int Port { get; }
 
       public string UrlFor(string path)

@@ -177,6 +177,9 @@ namespace RegressionTests.Shared
       {
          var restartRequired = false;
 
+         // First, before anything below sets a password.
+         ResetBreachCheck();
+
          var domain = SingletonProvider<TestSetup>.Instance.AddTestDomain();
 
          _settings.TCPIPPorts.SetDefault();
@@ -352,6 +355,54 @@ namespace RegressionTests.Shared
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
 
          return domain;
+      }
+
+      /// <summary>
+      ///    The password breach check off, with its endpoint, minimum and action at their
+      ///    defaults. While it is on it sends a request for every password set, and this
+      ///    class sets one for every account the suite creates: a run interrupted inside
+      ///    PasswordBreachCheck or RestApiBreachCheck would leave it on and pointed at a
+      ///    fake corpus nobody is serving any more, and every later fixture would write
+      ///    HM6600 to the error log for each account it made - or, left set to refuse,
+      ///    make none at all.
+      ///
+      ///    By late binding, as those fixtures write it, because the members are newer
+      ///    than the checked-in interop. A server whose Settings object has no such
+      ///    member cannot have had the check switched on through it, so an unknown name
+      ///    is nothing to reset rather than a reason to fail every test in the suite.
+      /// </summary>
+      private void ResetBreachCheck()
+      {
+         object settings = _settings;
+         Type type = settings.GetType();
+
+         try
+         {
+            if (Convert.ToBoolean(type.InvokeMember("BreachCheckEnabled", BindingFlags.GetProperty, null, settings, null)))
+               type.InvokeMember("BreachCheckEnabled", BindingFlags.SetProperty, null, settings, new object[] { false });
+         }
+         catch (Exception ex) when (IsUnknownMember(ex))
+         {
+            return;
+         }
+
+         if (Convert.ToInt32(type.InvokeMember("BreachCheckUnreachableAction", BindingFlags.GetProperty, null, settings, null)) != 0)
+            type.InvokeMember("BreachCheckUnreachableAction", BindingFlags.SetProperty, null, settings, new object[] { 0 });
+
+         if (Convert.ToInt32(type.InvokeMember("BreachCheckMinimumCount", BindingFlags.GetProperty, null, settings, null)) != 1)
+            type.InvokeMember("BreachCheckMinimumCount", BindingFlags.SetProperty, null, settings, new object[] { 1 });
+
+         const string defaultUrl = "https://api.pwnedpasswords.com/range/";
+         if (Convert.ToString(type.InvokeMember("BreachCheckUrl", BindingFlags.GetProperty, null, settings, null)) != defaultUrl)
+            type.InvokeMember("BreachCheckUrl", BindingFlags.SetProperty, null, settings, new object[] { defaultUrl });
+      }
+
+      private static bool IsUnknownMember(Exception ex)
+      {
+         const int DispEUnknownName = unchecked((int) 0x80020006);
+         return ex is MissingMemberException ||
+                (ex is COMException && ((COMException) ex).ErrorCode == DispEUnknownName) ||
+                (ex is TargetInvocationException && ex.InnerException != null && IsUnknownMember(ex.InnerException));
       }
 
       private string GetCipherList()

@@ -188,6 +188,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" autoriza todo aquello a lo que apunten los registros MX de {0}; "a:{1}" autoriza la dirección del nombre de host que este servidor anuncia en HELO/EHLO (Entrega de correo &gt; Nombre de host). "~all" hace fallar suavemente todo lo demás - deliberadamente más suave que "-all" hasta que esté seguro de que la lista está completa.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>"{0}" no se guardó: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' no es una hora HH:MM de 24 horas. El servidor acepta valores como 02:00 o 23:45 y rechaza cualquier otra cosa en vez de adivinar. Deje la casilla vacía para no hacer copia diaria.</value>
   </data>
@@ -331,6 +334,9 @@
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 carpeta pública.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 rechaza una contraseña que haya aparecido en el corpus aunque sea una sola vez.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 muestra copiada al portapapeles.</value>
@@ -1696,6 +1702,9 @@ El selector preparado "{0}" se elimina de la configuración del servidor; la fir
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Comprobando…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Comprueba una contraseña nueva contra el corpus publicado de contraseñas filtradas cuando se elige - aquí, en el editor de cuentas, en el webmail, por un script o por la API REST - y rechaza la que haya aparecido en él. Solo los cinco primeros caracteres del hash SHA-1 de la contraseña salen de este servidor; el punto de acceso responde con todos los hashes que empiezan por ellos, rellenados para que tampoco el tamaño de la respuesta revele nada, y la comparación se hace aquí. Nunca se aplica al iniciar sesión, así que una contraseña que funciona hoy sigue funcionando. Desactivado de forma predeterminada, porque envía algo fuera del servidor.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Comprueba la política SPF del remitente contra la dirección que se conecta. Un resultado positivo también puede omitir el greylisting.</value>
@@ -3957,6 +3966,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Permitir que un dispositivo o una impresora envíe correo</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Dejar pasar el cambio y anotarlo en el registro de errores</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Permite que Outlook, Thunderbird y los clientes móviles se configuren solos a partir de una dirección de correo, descargando las URL de configuración de este servidor.</value>
   </data>
@@ -5406,6 +5418,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Password storage" xml:space="preserve">
     <value>Almacenamiento de contraseñas</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Contraseñas encontradas en filtraciones publicadas</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Las contraseñas, y qué puede transportarlas</value>
   </data>
@@ -5730,6 +5745,9 @@ Deje publicado el registro DNS ANTIGUO ({2}) al menos unos días. Puede haber to
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Variación aleatoria añadida a los tiempos de reintento (minutos, 0 = desactivado)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Punto de acceso de rangos (https, o http a esta máquina)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>Volver a comprobar el _estado</value>
   </data>
@@ -5875,17 +5893,29 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Rechazar un buzón lleno durante la conversación (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Rechazar una contraseña nueva encontrada en filtraciones de datos publicadas</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Rechazar el correo con un error temporal por debajo de este espacio libre (MB; 0 = nunca)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Rechazar las firmas del correo entrante cuya caducidad haya pasado</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Rechazar el cambio y anotarlo en el registro de errores</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Rechazar cuando haya aparecido al menos este número de veces</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Rechazado antes de encolar el mensaje, así que no hay ningún mensaje al que seguir.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Conexiones rechazadas</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Rechazar es más estricto, pero mientras no se pueda alcanzar el punto de acceso no se podrá cambiar ninguna contraseña en ningún sitio, ni siquiera la de administrador.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Registre la pasarela como relé entrante para que su dirección no se trate como la del cliente.</value>
@@ -7454,6 +7484,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Probar la conexión con el directorio usando los valores de esta página</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Probar el punto de acceso…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Probando contra {0} por {1}...</value>
   </data>
@@ -7684,6 +7717,12 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>Las comprobaciones activadas pueden sumar como mucho {0} entre todas, lo que está por debajo del umbral de marcado de {1}: ningún mensaje puede alcanzar ninguno de los dos umbrales, por malo que sea.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>El punto de acceso respondió con {0} entradas.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>No se pudo usar el punto de acceso: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>El veredicto del motor llega como una puntuación, para que aterrice junto a SPF, DKIM y DMARC y sean sus umbrales existentes los que decidan qué ocurre - en vez de una segunda noción paralela de spam que haya que reconciliar con la primera. Esto es lo que vale su veredicto más fuerte.</value>
   </data>
@@ -7857,6 +7896,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>El resumen nombra las configuraciones que en silencio no hacen nada - un umbral a cero, un umbral que ninguna comprobación activada puede alcanzar, una comprobación que puntúa cero.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>No se pudo comprobar ahora la contraseña contra las filtraciones de datos publicadas, y este servidor está configurado para rechazar un cambio que no puede comprobar. Vuelva a intentarlo más tarde.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Las personas y los dominios para los que este servidor transporta correo.</value>
   </data>
@@ -7891,6 +7933,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>La mitad pública de la clave privada es idéntica a la clave pública del certificado - el par va junto.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>El corpus público está en https://api.pwnedpasswords.com/range/. Una organización que mantiene su propia réplica la indica aquí: los cinco caracteres se añaden a la ruta o se colocan donde esté escrito {prefix}. El http sin cifrar solo se acepta hacia localhost, 127.0.0.1 o ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>El registro publicado coincide con la clave preparada. Es seguro promoverla.</value>
@@ -8202,6 +8247,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Este panel puede comparar claves RSA y ECDSA; esta clave no se interpreta como ninguna de las dos, así que el que coincida con el certificado solo queda demostrado cuando el servidor carga el par.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Esta contraseña aparece en una filtración de datos publicada, así que estaría entre las primeras que se probarían contra esta cuenta. Elija otra.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>Este rango _caduca</value>
@@ -8733,6 +8781,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>En qué momento de la conversación SMTP se hacen las búsquedas en listas negras. Qué listas negras se consultan está en la página Listas negras DNS.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Cuando no se puede alcanzar el punto de acceso</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Por dónde sale el correo DE este dominio. Es una cuestión distinta de una ruta, que decide adónde se envía el correo dirigido A un dominio - es para un servidor que aloja varios dominios independientes en el que cada uno tiene su propio proveedor de entrega.</value>

@@ -805,6 +805,62 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.Server, "create_default_special_use_folders", value); }
       }
 
+      // ---- The password breach check: four keys of the server-wide group ----
+
+      public bool BreachCheckEnabled
+      {
+         get { return Flag("breach_check_enabled"); }
+         set { SettingsApi.Put(SettingsApi.Server, "breach_check_enabled", value); }
+      }
+
+      public string BreachCheckUrl
+      {
+         get { return Str("breach_check_url"); }
+         set { SettingsApi.Put(SettingsApi.Server, "breach_check_url", value ?? string.Empty, true); }
+      }
+
+      public int BreachCheckMinimumCount
+      {
+         get { return Num("breach_check_minimum_count"); }
+         set { SettingsApi.Put(SettingsApi.Server, "breach_check_minimum_count", value); }
+      }
+
+      /// <summary>
+      ///    0 lets a change through when the endpoint cannot be used, 1 refuses it - the
+      ///    COM numbers, carried over REST as the words allow and refuse. A number that
+      ///    is neither is sent as a word the route refuses, so the COMException is the
+      ///    server's and not the shim's.
+      /// </summary>
+      public int BreachCheckUnreachableAction
+      {
+         get { return Str("breach_check_unreachable_action") == "refuse" ? 1 : 0; }
+         set
+         {
+            string word = value == 0 ? "allow" : value == 1 ? "refuse" : "action-" + value;
+            SettingsApi.Put(SettingsApi.Server, "breach_check_unreachable_action", word, true);
+         }
+      }
+
+      /// <summary>
+      ///    POST /api/v1/settings/breach-check/test: the entries the endpoint answered
+      ///    with, or the COMException the COM method raises with the reason.
+      /// </summary>
+      public int TestBreachCheckEndpoint(string url)
+      {
+         if (!ServerApi.HasRoute("/api/v1/settings/breach-check/test", "post"))
+            NotOnThisServer.Ignore(NotOnThisServer.NoBreachCheck);
+
+         var answer = ServerApi.Post("/api/v1/settings/breach-check/test", "{\"url\":" + ServerApi.Quote(url ?? string.Empty) + "}");
+         if (answer.Status == 400)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+
+         answer.Expect(200, "POST /api/v1/settings/breach-check/test");
+         if (!ServerApi.FlagOf(answer.Json.Value, "reachable", false))
+            throw new System.Runtime.InteropServices.COMException(ServerApi.StringOf(answer.Json.Value, "error"));
+
+         return (int) ServerApi.LongOf(answer.Json.Value, "entries", 0);
+      }
+
       // ---- What no route offers ----
 
       /// <summary>
@@ -3130,6 +3186,16 @@ namespace hMailServer
       /// <summary>The account's app passwords, under its address on the API.</summary>
       public AppPasswords AppPasswords => new AppPasswords(this);
 
+      /// <summary>
+      ///    Account.ValidatePassword: no route checks a password except by signing in
+      ///    with it, and the sign-in decodes a Basic credential its own way, which is
+      ///    not what the fixtures that call this are asking about.
+      /// </summary>
+      public bool ValidatePassword(string password)
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoPasswordValidation);
+      }
+
       public bool TOTPEnabled
       {
          get
@@ -3287,7 +3353,7 @@ namespace hMailServer
                ",\"active\":" + (_active ? "true" : "false") +
                (_maxSize != 0 ? ",\"max_size_mb\":" + _maxSize : string.Empty) + NamesAndLevelForTheCreate_() + "}");
 
-            if (created.Status == 400)
+            if (created.Status == 400 || created.Status == 503)
                throw new System.Runtime.InteropServices.COMException("Failed to save object. " + created.Error);
             if (created.Status == 409)
                throw new System.Runtime.InteropServices.COMException("Failed to save object. The account address is already in use.");
@@ -3326,7 +3392,9 @@ namespace hMailServer
                // 400 is a refusal by the validation the COM Save applies; 409 is the
                // password-reuse history and the directory link. The COM Save reports
                // both as a failure to save, which is what the fixtures assert on.
-               if (answer.Status == 400 || answer.Status == 409)
+               // 503 is the breach check, unable to reach its endpoint, with the
+               // server set to refuse a change it cannot check.
+               if (answer.Status == 400 || answer.Status == 409 || answer.Status == 503)
                   throw new System.Runtime.InteropServices.COMException("Failed to save object. " + answer.Error);
 
                answer.Expect(200, "PUT /api/v1/accounts/" + Address);

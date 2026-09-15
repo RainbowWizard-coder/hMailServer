@@ -85,6 +85,11 @@
          StatusSemantics above precisely so that it does not. -->
     <Compile Include="..\ControlPanel\Services\VirusPipeline.cs" />
     <Compile Include="..\ControlPanel\Services\TlsPosture.cs" />
+    <!-- The server's refusals the Control Panel translates where it shows them.
+         Linked so a test can hold each sentence to the server source it copies and
+         to every complete catalogue: a sentence that drifted from the server would
+         otherwise fall back to English with no failure anywhere. -->
+    <Compile Include="..\ControlPanel\Services\ServerSentences.cs" />
 
     <!-- The report a directory synchronisation returns is one tab-separated string.
          Turning it into rows a page can count and sort is the only logic in that

@@ -438,6 +438,9 @@ const requests = [];
 let signedIn = false;
 let otpRequired = false;
 let nextRefusal = null;
+// A refusal with a status and a body of its own, for the ones that carry a
+// reason word beside the sentence: the breach check's 400 and 503.
+let nextRefusalAnswer = null;
 let restartProbes = 0;
 let nextId = 100;
 // The language route's two failure shapes: a server without the catalogues
@@ -876,6 +879,7 @@ const spec = {
       '/api/v1/settings/scripting': settingsPath('/api/v1/settings/scripting'),
       '/api/v1/settings/scripting/reload': { post: { summary: 'Load the event-handler script again', description: 'What Scripting.Reload does over COM: the script file is read again and the handlers it defines take over from the next event.' } },
       '/api/v1/settings/scripting/check': { post: { summary: 'Check the event-handler script\'s syntax', description: 'What Scripting.CheckSyntax does over COM: result is empty when the script parses, and the parser\'s message otherwise. Nothing is changed.' } },
+      '/api/v1/settings/breach-check/test': { post: { summary: 'Ask the password breach check endpoint for a range', description: 'What Settings.TestBreachCheckEndpoint does over COM: the endpoint is asked for the prefix 00000 and the answer is reported. Nothing is changed.' } },
       '/api/v1/settings/cache': settingsPath('/api/v1/settings/cache'),
       '/api/v1/settings/cache/clear': { post: { summary: 'Empty the caches', description: 'What Settings.Cache.Clear does over COM: the domain, account, alias and distribution-list caches are emptied.' } },
       '/api/v1/settings/indexing': settingsPath('/api/v1/settings/indexing'),
@@ -927,6 +931,8 @@ const state = {
    backupRunning: false,
    scriptReloads: 0,
    scriptProblem: '',
+   // What POST /api/v1/settings/breach-check/test answers.
+   breachProbe: { reachable: true, status: 200, entries: 812, padded: true, milliseconds: 41 },
    messages: [
       { id: 1, name: 'BOUNCE_MESSAGE', text: 'Your message could not be delivered.' },
       { id: 2, name: 'VIRUS_NOTIFICATION', text: 'A virus was found in a message sent to you.' }
@@ -1089,6 +1095,7 @@ function answer(method, path, headers, raw) {
    if (!signedIn) { return json(401, { error: 'Not signed in.' }, { 'WWW-Authenticate': 'Basic realm="hMailServer"' }); }
    if (method !== 'GET' && headers['X-Requested-With'] !== 'hMailServer') { return json(403, { error: 'A write from a browser session must carry X-Requested-With.' }); }
    if (method !== 'GET' && nextRefusal) { const sentence = nextRefusal; nextRefusal = null; return json(400, { error: sentence }); }
+   if (method !== 'GET' && nextRefusalAnswer) { const refusal = nextRefusalAnswer; nextRefusalAnswer = null; return json(refusal.status, refusal.body); }
 
    if (path === '/api/v1/status') { return json(200, state.status); }
    if (path === '/api/v1/openapi.json') { return json(200, spec); }
@@ -1421,6 +1428,7 @@ function answer(method, path, headers, raw) {
    // The verbs beside three of the groups.
    if (method === 'POST' && path === '/api/v1/settings/scripting/reload') { state.scriptReloads += 1; return json(200, { reloaded: true }); }
    if (method === 'POST' && path === '/api/v1/settings/scripting/check') { return json(200, { result: state.scriptProblem }); }
+   if (method === 'POST' && path === '/api/v1/settings/breach-check/test') { return json(200, state.breachProbe); }
    if (method === 'POST' && path === '/api/v1/settings/cache/clear') {
       SETTING_GROUPS['/api/v1/settings/cache'].values.domain_cache_size_kb = 0;
       SETTING_GROUPS['/api/v1/settings/cache'].values.domain_hit_rate = 0;
@@ -1897,6 +1905,15 @@ async function main() {
    click(act('accountsave'));
    await flush();
    check('a refusal keeps the editor open with the server\'s sentence', document.getElementById('err_accountedit').textContent === 'The password does not meet the policy.' && document.getElementById('acct_max_size_mb').value === '500');
+   nextRefusalAnswer = { status: 400, body: { error: 'This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.', reason: 'breached' } };
+   click(act('accountsave'));
+   await flush();
+   check('a breach-check refusal is shown in English on an English page', document.getElementById('err_accountedit').textContent === 'This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.',
+      document.getElementById('err_accountedit').textContent);
+   nextRefusalAnswer = { status: 400, body: { error: 'A sentence the page has no word for.', reason: 'something_new' } };
+   click(act('accountsave'));
+   await flush();
+   check('a reason the page does not know shows the server\'s own sentence', document.getElementById('err_accountedit').textContent === 'A sentence the page has no word for.', document.getElementById('err_accountedit').textContent);
    before = requests.length;
    click(act('accounts', { domain: 'example.com' }));
    await flush();
@@ -2546,6 +2563,24 @@ async function main() {
    click(act('setpost', { group: 'script', path: '/api/v1/settings/scripting/check' }));
    await flush();
    check('and says so when it parses', document.getElementById('err_set_script').textContent === '' && toastText() === 'The script parses.', toastText());
+   // The breach check's endpoint test, beside the server group whose keys it tests.
+   check('the server group carries the breach check endpoint test as a verb', act('setpost', { group: 'srv', path: '/api/v1/settings/breach-check/test' }) !== null &&
+      act('setpost', { group: 'srv', path: '/api/v1/settings/breach-check/test' }).textContent === 'Test the breach check endpoint');
+   before = requests.length;
+   click(act('setpost', { group: 'srv', path: '/api/v1/settings/breach-check/test' }));
+   await flush();
+   check('an endpoint that answered is a toast with the entries and the padding, and the group is not read again', called(before, 'POST', '/api/v1/settings/breach-check/test').length === 1 &&
+      toastText() === 'The endpoint answered with 812 entries, padded.' && called(before, 'GET', /settings/).length === 0 && document.getElementById('err_set_srv').textContent === '', toastText());
+   state.breachProbe = { reachable: true, status: 200, entries: 3, padded: false, milliseconds: 9 };
+   click(act('setpost', { group: 'srv', path: '/api/v1/settings/breach-check/test' }));
+   await flush();
+   check('an answer with no padding says so', toastText() === 'The endpoint answered with 3 entries, not padded.', toastText());
+   state.breachProbe = { reachable: false, status: 0, error: 'The request to mirror.example failed: connection refused', milliseconds: 2003 };
+   click(act('setpost', { group: 'srv', path: '/api/v1/settings/breach-check/test' }));
+   await flush();
+   check('an endpoint that could not be used shows why beside the group', document.getElementById('err_set_srv').textContent === 'The endpoint could not be used: The request to mirror.example failed: connection refused',
+      document.getElementById('err_set_srv').textContent);
+   state.breachProbe = { reachable: true, status: 200, entries: 812, padded: true, milliseconds: 41 };
    before = requests.length;
    click(act('setpost', { group: 'script', path: '/api/v1/settings/scripting/reload' }));
    await flush();
@@ -3425,6 +3460,32 @@ async function main() {
    await flush();
    check('the farewell carries the tour\'s name in that language too',
       toastText() === de['{0} closed. It picks up where you left off.'].replace('{0}', de['Show me around']), toastText());
+   // A refusal the server gives a reason for is shown in the reader's language:
+   // the breach check's two, when an account is made and when one is saved.
+   await goTo('domains');
+   click(act('accounts', { domain: 'renamed.example' }));
+   await flush();
+   setValue('newAddr', 'leaked@example.com');
+   setValue('newPass', 'password');
+   nextRefusalAnswer = { status: 400, body: { error: 'This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.', reason: 'breached' } };
+   click(act('add', { domain: 'renamed.example' }));
+   await flush();
+   check('German: a breached password refused on create is shown in German, not in the server\'s English',
+      $('#err_account').textContent === de['This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.'], $('#err_account').textContent);
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   setValue('acct_password', 'another-password');
+   nextRefusalAnswer = { status: 503, body: { error: 'The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.', reason: 'breach_check_unavailable' } };
+   click(act('accountsave'));
+   await flush();
+   check('German: a change the breach check could not make, refused with 503, is shown in German too',
+      document.getElementById('err_accountedit').textContent === de['The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.'],
+      document.getElementById('err_accountedit').textContent);
+   check('German: the password hint names the breach check', document.getElementById('acct_password').closest('.fr').querySelector('.hint').textContent ===
+      de['A new password goes through the password policy, the reuse history, the breach check and the configured hash exactly as when the Control Panel sets one, and the next logon uses it.'],
+      document.getElementById('acct_password').closest('.fr').querySelector('.hint').textContent);
+   click(act('accounts', { domain: 'renamed.example' }));
+   await flush();
    await choose($('#langSel'), 'en');
    try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
 

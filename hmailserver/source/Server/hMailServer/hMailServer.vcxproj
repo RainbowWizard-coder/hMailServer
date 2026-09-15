@@ -617,6 +617,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\MessageTrace.cpp" />
     <ClCompile Include="..\Common\Util\PasswordHistory.cpp" />
     <ClCompile Include="..\Common\Util\PasswordPolicy.cpp" />
+    <ClCompile Include="..\Common\Util\PasswordBreachCheck.cpp" />
     <ClCompile Include="..\Common\Util\Pop3LoginDelay.cpp" />
     <ClCompile Include="..\Common\Util\AccountLockout.cpp" />
     <ClCompile Include="..\Common\Util\DmarcRptStore.cpp" />
@@ -1356,6 +1357,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\MessageTrace.h" />
     <ClInclude Include="..\Common\Util\PasswordHistory.h" />
     <ClInclude Include="..\Common\Util\PasswordPolicy.h" />
+    <ClInclude Include="..\Common\Util\PasswordBreachCheck.h" />
     <ClInclude Include="..\Common\Util\Pop3LoginDelay.h" />
     <ClInclude Include="..\Common\Util\AccountLockout.h" />
     <ClInclude Include="..\Common\Util\DmarcRptStore.h" />

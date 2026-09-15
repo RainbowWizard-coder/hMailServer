@@ -95,6 +95,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "PasswordPolicy.h"
+#include "PasswordBreachCheck.h"
 #include "FileUtilities.h"
 #include "MessageUtilities.h"
 #include "../Application/Logger.h"
@@ -170,6 +171,12 @@ namespace
    HttpResponse Refusal(const Bridge &bridge, int status, const String &sentence)
    {
       return bridge.respond(status, "{\"error\":\"" + bridge.escape(Utf8(sentence)) + "\"}", "");
+   }
+
+   // A refusal with the reason word a page translates beside the sentence.
+   HttpResponse RefusalWithReason(const Bridge &bridge, int status, const String &sentence, const AnsiString &reason)
+   {
+      return bridge.respond(status, "{\"error\":\"" + bridge.escape(Utf8(sentence)) + "\",\"reason\":\"" + reason + "\"}", "");
    }
 
    bool ParseObjectBody(const AnsiString &requestBody, JsonValue &body)
@@ -358,6 +365,13 @@ namespace
          String policyFailure;
          if (!PasswordPolicy::IsAcceptable(_T(""), chosen, policyFailure))
             return Refusal(bridge, 400, policyFailure);
+
+         // ...and InterfaceAppPassword::SetPassword's third, the breach corpus.
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+         if (!PasswordBreachCheck::IsAcceptable(_T("an app password for ") + account->GetAddress(), chosen, breachRefusal, breachReason, breachStatus))
+            return RefusalWithReason(bridge, breachStatus, breachRefusal, breachReason);
 
          clearText = chosen;
       }
@@ -1408,7 +1422,7 @@ namespace
    const char *AccountResourcesPaths =
       ",\"/api/v1/accounts/{address}/app-passwords\":{"
       "\"get\":{\"summary\":\"An account's app passwords (administrator)\",\"description\":\"What Account.AppPasswords lists over COM: id, name, created, last_used, active - never the password. The same entries the account's own GET /api/v1/me/app-passwords shows. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"app_passwords\"},\"404\":{\"description\":\"No such account\"}}},"
-      "\"post\":{\"summary\":\"Make an app password for an account (administrator)\",\"description\":\"Body: name (required: what the password is for), password (optional: a chosen secret of at least 12 characters that the password policy accepts, as InterfaceAppPassword.SetPassword requires; left out, one is generated as Generate does) and active (default true). Saved as InterfaceAppPassword.Save saves it: the store judges the name, the hash and the ceiling of twenty per account, and its sentence is the 400. The answer carries the password in clear text, the only time it exists outside the caller. No account password is asked for - the administrator credential is the proof - and the issue is logged with the account's address.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"id, name, created, last_used, active, password\"},\"400\":{\"description\":\"No name, a chosen password the policy or the floor of twelve refuses, an unknown field, or twenty already\"},\"404\":{\"description\":\"No such account\"}}}},"
+      "\"post\":{\"summary\":\"Make an app password for an account (administrator)\",\"description\":\"Body: name (required: what the password is for), password (optional: a chosen secret of at least 12 characters that the password policy and the breach check accept, as InterfaceAppPassword.SetPassword requires; left out, one is generated as Generate does) and active (default true). Saved as InterfaceAppPassword.Save saves it: the store judges the name, the hash and the ceiling of twenty per account, and its sentence is the 400. The answer carries the password in clear text, the only time it exists outside the caller. No account password is asked for - the administrator credential is the proof - and the issue is logged with the account's address.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"id, name, created, last_used, active, password\"},\"400\":{\"description\":\"No name, a chosen password the policy or the floor of twelve refuses or one found in the published breach corpus (reason: breached), an unknown field, or twenty already\"},\"404\":{\"description\":\"No such account\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
       "\"/api/v1/accounts/{address}/app-passwords/{id}\":{"
       "\"put\":{\"summary\":\"Rename an app password, or revoke it without deleting (administrator)\",\"description\":\"Body: name and/or active - the two things the COM setters change on a stored app password, saved as InterfaceAppPassword.Save saves them. active false refuses the credential without deleting it, so it can be put back with active true; the secret is never changed here (delete and issue another). A field left out keeps its value. Logged with the account's address.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, name, created, last_used, active\"},\"400\":{\"description\":\"An empty name, an unknown field, or a value of the wrong type\"},\"404\":{\"description\":\"No such account, or no app password with that id in it\"}}},"
       "\"delete\":{\"summary\":\"Remove an account's app password (administrator)\",\"description\":\"Through the account's collection, as InterfaceAppPasswords.DeleteByDBID goes; an app password of another account is not found here. Logged with the account's address.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account, or no app password with that id in it\"}}}},"

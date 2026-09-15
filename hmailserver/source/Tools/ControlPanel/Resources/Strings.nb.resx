@@ -188,6 +188,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>«mx» autoriserer det MX-oppføringene til {0} peker på; «a:{1}» autoriserer adressen til vertsnavnet denne serveren oppgir i HELO/EHLO (Levering av e-post &gt; Vertsnavn). «~all» gir myk feil for alt annet - bevisst mildere enn «-all» til du er sikker på at listen er komplett.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>«{0}» ble ikke lagret: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' er ikke et klokkeslett på 24-timers formen HH:MM. Serveren godtar verdier som 02:00 eller 23:45 og avviser alt annet i stedet for å gjette. La feltet stå tomt for ingen daglig sikkerhetskopi.</value>
   </data>
@@ -331,6 +334,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 offentlig mappe.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 avviser et passord som har dukket opp i samlingen bare én gang.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 eksempel kopiert til utklippstavlen.</value>
@@ -1696,6 +1702,9 @@ Den klargjorte selektoren "{0}" fjernes fra serverkonfigurasjonen; signering for
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Sjekker…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Kontrollerer et nytt passord mot den publiserte samlingen av lekkede passord når det velges - her, i kontoredigeringen, i webmailen, av et skript eller via REST-API-et - og avviser et som har dukket opp i den. Bare de fem første tegnene i passordets SHA-1-hash forlater denne serveren; endepunktet svarer med alle hasher som begynner med dem, fylt ut slik at heller ikke størrelsen på svaret avslører noe, og sammenligningen gjøres her. Den brukes aldri ved innlogging, så et passord som virker i dag, fortsetter å virke. Av som standard, fordi noe sendes ut fra serveren.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Sjekker avsenderens SPF-policy mot den tilkoblende adressen. En godkjenning kan også hoppe over grålisting.</value>
@@ -3957,6 +3966,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>La en enhet eller skriver sende post</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Slipp endringen gjennom, og registrer det i feilloggen</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Lar Outlook, Thunderbird og mobilklienter sette seg opp selv fra bare en e-postadresse, ved å hente denne serverens konfigurasjons-URL-er.</value>
   </data>
@@ -5406,6 +5418,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Password storage" xml:space="preserve">
     <value>Passordlagring</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Passord funnet i publiserte datalekkasjer</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Passord, og hva som har lov til å bære dem</value>
   </data>
@@ -5730,6 +5745,9 @@ La den GAMLE DNS-oppføringen ({2}) stå publisert i minst noen dager. Post sign
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Tilfeldig jitter lagt til tidspunktene for nye forsøk (minutter, 0 = av)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Områdeendepunkt (https, eller http til denne maskinen)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>K_ontroller status på nytt</value>
   </data>
@@ -5875,17 +5893,29 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Avvis en full postboks under samtalen (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Avvis et nytt passord som finnes i publiserte datalekkasjer</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Avvis post med en midlertidig feil under så mye ledig plass (MB; 0 = aldri)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Avvis signaturer på innkommende post der utløpet har passert</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Avvis endringen, og registrer det i feilloggen</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Avvis når det har dukket opp minst så mange ganger</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Avvist før meldingen ble lagt i kø, så det er ingen melding å følge.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Avviste forbindelser</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Å avvise er strengere, men så lenge endepunktet ikke kan nås, kan ingen passord endres noe sted, heller ikke administratorpassordet.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Registrer gatewayen som et innkommende relay, slik at adressen dens ikke behandles som klienten.</value>
@@ -7454,6 +7484,9 @@ Starte den på nytt nå?</value>
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Test katalogtilkoblingen med verdiene på denne siden</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Test endepunktet…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Tester mot {0} over {1}...</value>
   </data>
@@ -7684,6 +7717,12 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>De aktiverte kontrollene kan til sammen legge til høyst {0}, som er under merketerskelen på {1}: ingen melding kan nå noen av tersklene, uansett hvor ille den er.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>Endepunktet svarte med {0} oppføringer.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>Endepunktet kunne ikke brukes: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Motorens dom kommer som poeng, slik at den lander ved siden av SPF, DKIM og DMARC, og de eksisterende tersklene dine avgjør hva som skjer - i stedet for et annet, parallelt spambegrep som må forenes med det første. Så mye er den sterkeste dommen dens verdt.</value>
   </data>
@@ -7857,6 +7896,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Oversikten nevner oppsettene som stille gjør ingenting - en terskel på null, en terskel ingen aktivert kontroll kan nå, en kontroll som gir null poeng.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>Passordet kunne ikke kontrolleres mot publiserte datalekkasjer akkurat nå, og denne serveren er satt til å avvise en endring den ikke kan kontrollere. Prøv igjen senere.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Personene og domenene denne serveren bærer post for.</value>
   </data>
@@ -7891,6 +7933,9 @@ Legg til likevel?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Den offentlige halvdelen av den private nøkkelen er identisk med sertifikatets offentlige nøkkel - paret hører sammen.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>Den offentlige samlingen er https://api.pwnedpasswords.com/range/. En organisasjon som driver sitt eget speil, oppgir det her: de fem tegnene legges til stien, eller settes inn der {prefix} står. Ukryptert http godtas bare til localhost, 127.0.0.1 eller ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>Den publiserte oppføringen samsvarer med den klargjorte nøkkelen. Det er trygt å forfremme.</value>
@@ -8202,6 +8247,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Dette panelet kan sammenligne RSA- og ECDSA-nøkler; denne nøkkelen parses som ingen av delene, så om den samsvarer med sertifikatet, bevises først når serveren laster paret.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Dette passordet finnes i en publisert datalekkasje, så det ville vært blant de første som ble prøvd mot denne kontoen. Velg et annet.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>Dette området _utløper</value>
@@ -8733,6 +8781,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>Når i SMTP-samtalen svartelisteoppslag skjer. Hvilke svartelister som spørres, er på siden DNS-svartelister.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Når endepunktet ikke kan nås</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Hvor post FRA dette domenet går ut gjennom. Dette er et annet spørsmål enn en rute, som avgjør hvor post adressert TIL et domene sendes - det er for en server som hoster flere uavhengige domener der hvert har sin egen leveringsleverandør.</value>

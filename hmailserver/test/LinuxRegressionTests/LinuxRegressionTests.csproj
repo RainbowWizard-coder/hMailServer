@@ -65,6 +65,7 @@
     <Compile Include="..\RegressionTests\Shared\FakeDnsServer.cs" Link="Shared\FakeDnsServer.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeFilterEngine.cs" Link="Shared\FakeFilterEngine.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeHttpEndpoint.cs" Link="Shared\FakeHttpEndpoint.cs" />
+    <Compile Include="..\RegressionTests\Shared\FakeBreachCorpus.cs" Link="Shared\FakeBreachCorpus.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeHttpProxy.cs" Link="Shared\FakeHttpProxy.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeSigstore.cs" Link="Shared\FakeSigstore.cs" />
     <Compile Include="..\RegressionTests\Shared\IMAPClientSimulator.cs" Link="Shared\IMAPClientSimulator.cs" />
@@ -285,6 +286,7 @@
     <Compile Include="..\RegressionTests\Security\PasswordHashUpgrade.cs" Link="Security\PasswordHashUpgrade.cs" />
     <Compile Include="..\RegressionTests\Security\PasswordPepper.cs" Link="Security\PasswordPepper.cs" />
     <Compile Include="..\RegressionTests\Security\PasswordPolicyTests.cs" Link="Security\PasswordPolicyTests.cs" />
+    <Compile Include="..\RegressionTests\Security\PasswordBreachCheck.cs" Link="Security\PasswordBreachCheck.cs" />
     <Compile Include="..\RegressionTests\Security\PasswordScrypt.cs" Link="Security\PasswordScrypt.cs" />
     <Compile Include="..\RegressionTests\Security\SMTPAuthentication.cs" Link="Security\SMTPAuthentication.cs" />
     <Compile Include="..\RegressionTests\Security\SaslCredentialMasking.cs" Link="Security\SaslCredentialMasking.cs" />
@@ -325,6 +327,7 @@
     <Compile Include="..\RegressionTests\Stress\IMAP\NotificationThreadingStressTests.cs" Link="Stress\IMAP\NotificationThreadingStressTests.cs" />
     <Compile Include="..\RegressionTests\Stress\StabilitySanityTests.cs" Link="Stress\StabilitySanityTests.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountAppPasswords.cs" Link="API\RestApiAccountAppPasswords.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiBreachCheck.cs" Link="API\RestApiBreachCheck.cs" />
     <Compile Include="..\RegressionTests\API\RestApiFolderPermissions.cs" Link="API\RestApiFolderPermissions.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountMessages.cs" Link="API\RestApiAccountMessages.cs" />
     <Compile Include="..\RegressionTests\Security\AppPasswords.cs" Link="Security\AppPasswords.cs" />

@@ -509,7 +509,7 @@ namespace hMailServer
                     (chosen == null ? string.Empty : ",\"password\":" + ServerApi.Quote(chosen)) + "}";
 
          var answer = ServerApi.Post(_owner.Base, body);
-         if (answer.Status == 400)
+         if (answer.Status == 400 || answer.Status == 503)
             throw new System.Runtime.InteropServices.COMException(answer.Error);
 
          answer.Expect(201, "POST " + _owner.Base);

@@ -188,6 +188,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>„mx“ autorizuje vše, na co ukazují MX záznamy domény {0}; „a:{1}“ autorizuje adresu názvu hostitele, který tento server oznamuje v HELO/EHLO (Doručování e-mailů &gt; Název hostitele). „~all“ vše ostatní měkce odmítá (soft fail) – záměrně mírnější než „-all“, dokud si nejste jisti, že je seznam úplný.</value>
   </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>„{0}“ se neuložilo: {1}</value>
+  </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' není čas ve 24hodinovém formátu HH:MM. Server přijímá hodnoty jako 02:00 nebo 23:45 a cokoli jiného raději odmítne, než aby hádal. Chcete-li denní zálohu vypnout, nechte pole prázdné.</value>
   </data>
@@ -331,6 +334,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 veřejná složka.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 odmítne heslo, které se v databázi objevilo byť jen jednou.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 vzorek zkopírován do schránky.</value>
@@ -1696,6 +1702,9 @@ Připravený selektor „{0}“ se odebere z konfigurace serveru; podepisování
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Kontroluje se…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Při volbě nového hesla – zde, v editoru účtu, ve webmailu, skriptem nebo přes REST API – ho ověří proti zveřejněné databázi uniklých hesel a odmítne heslo, které se v ní objevilo. Tento server opouští jen prvních pět znaků hashe SHA-1 hesla; koncový bod odpoví všemi hashi, které jimi začínají, doplněnými tak, aby ani velikost odpovědi nic neprozradila, a porovnání proběhne zde. Při přihlášení se nikdy nepoužije, takže heslo, které funguje dnes, funguje dál. Ve výchozím stavu vypnuto, protože něco opouští server.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Kontroluje politiku SPF odesílatele proti připojující se adrese. Úspěch může také přeskočit greylisting.</value>
@@ -3957,6 +3966,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Nechat zařízení nebo tiskárnu odesílat poštu</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Změnu povolit a zaznamenat do protokolu chyb</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Umožňuje Outlooku, Thunderbirdu a mobilním klientům nastavit se pouze z e-mailové adresy tím, že si stáhnou konfigurační URL tohoto serveru.</value>
   </data>
@@ -5406,6 +5418,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Password storage" xml:space="preserve">
     <value>Ukládání hesel</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Hesla nalezená ve zveřejněných únicích</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Hesla a co je smí přenášet</value>
   </data>
@@ -5730,6 +5745,9 @@ STARÝ DNS záznam ({2}) nechte publikovaný ještě alespoň několik dní. Po�
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Náhodný rozptyl přidávaný k časům opakování (minuty, 0 = vypnuto)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Koncový bod rozsahu (https, nebo http na tento počítač)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>Zno_vu zkontrolovat stav</value>
   </data>
@@ -5875,17 +5893,29 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Odmítnout plnou poštovní schránku během konverzace (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Odmítat nové heslo nalezené ve zveřejněných únicích dat</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Odmítat poštu dočasnou chybou pod tímto množstvím volného místa (MB; 0 = nikdy)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Odmítat podpisy příchozí pošty, jejichž platnost vypršela</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Změnu odmítnout a zaznamenat do protokolu chyb</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Odmítnout, pokud se objevilo alespoň tolikrát</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Odmítnuto dřív, než byla zpráva zařazena do fronty, takže není žádná zpráva ke sledování.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Odmítnutá připojení</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Odmítnutí je přísnější, ale dokud je koncový bod nedostupný, nelze nikde změnit žádné heslo, ani heslo správce.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Zaregistrujte bránu jako příchozí relay, aby se s její adresou nezacházelo jako s klientem.</value>
@@ -7454,6 +7484,9 @@ Restartovat ji nyní?</value>
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Otestovat připojení k adresáři s hodnotami z této stránky</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Otestovat koncový bod…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Testuje se proti {0} přes {1}...</value>
   </data>
@@ -7684,6 +7717,12 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>Zapnuté kontroly mohou dohromady přidat nejvýš {0}, což je pod prahem označení {1}: žádná zpráva nemůže dosáhnout ani jednoho prahu, ať je jakkoli špatná.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>Koncový bod odpověděl; počet záznamů: {0}.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>Koncový bod nelze použít: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Verdikt engine přichází jako skóre, aby se zařadil vedle SPF, DKIM a DMARC a o výsledku rozhodly vaše stávající prahy - místo druhého, paralelního pojetí spamu, které by se muselo srovnávat s tím prvním. Tolik stojí jeho nejsilnější verdikt.</value>
   </data>
@@ -7857,6 +7896,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Přehled pojmenovává uspořádání, která potichu nic nedělají - nulový práh, práh, kterého žádná zapnutá kontrola nedosáhne, kontrolu se skóre nula.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>Heslo se teď nepodařilo ověřit proti zveřejněným únikům dat a tento server je nastaven tak, aby odmítl změnu, kterou nemůže ověřit. Zkuste to později.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Lidé a domény, pro které tento server přenáší poštu.</value>
   </data>
@@ -7891,6 +7933,9 @@ Přesto přidat?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Veřejná polovina soukromého klíče je totožná s veřejným klíčem certifikátu - dvojice patří k sobě.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>Veřejná databáze je https://api.pwnedpasswords.com/range/. Organizace, která provozuje vlastní zrcadlo, ho uvede zde: pět znaků se připojí k cestě, nebo se vloží tam, kde je napsáno {prefix}. Prosté http se přijímá jen na localhost, 127.0.0.1 nebo ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>Publikovaný záznam odpovídá připravenému klíči. Je bezpečné ho povýšit.</value>
@@ -8202,6 +8247,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Tento panel umí porovnávat klíče RSA a ECDSA; tento klíč se nenačte ani jako jeden z nich, takže zda odpovídá certifikátu, se prokáže až tehdy, když server dvojici načte.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>Toto heslo se objevilo ve zveřejněném úniku dat, takže by patřilo k prvním, které by někdo proti tomuto účtu zkusil. Zvolte jiné.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>_Tento rozsah vyprší</value>
@@ -8733,6 +8781,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>Kdy během konverzace SMTP probíhají dotazy na blacklisty. Které blacklisty se dotazují, je na stránce DNS blacklisty.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>Když koncový bod není dostupný</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Kudy odchází pošta Z této domény. Je to jiná otázka než trasa, která rozhoduje, kam se posílá pošta adresovaná DO domény - je to pro server hostující několik nezávislých domén, z nichž každá má vlastního poskytovatele doručování.</value>
