@@ -155,6 +155,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["queue"] = () => new QueueView();
          pageFactories_["stalledmail"] = () => new StalledMailView();
          pageFactories_["messagetrace"] = () => new MessageTraceView();
+         pageFactories_["suppressions"] = () => new SuppressionListView();
          pageFactories_["logs"] = () => new LogsView();
          pageFactories_["domains"] = () => new DomainsView();
          pageFactories_["rules"] = () => new RulesView();

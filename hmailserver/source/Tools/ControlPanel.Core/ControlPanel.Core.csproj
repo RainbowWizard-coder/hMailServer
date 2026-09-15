@@ -23,6 +23,9 @@
     <!-- Parser for the server's message-store consistency report. No WPF, so the
          tests can pin the format the server actually writes. -->
     <Compile Include="..\ControlPanel\Services\MessageStoreConsistencyReport.cs" />
+    <!-- The suppression list's two JSON documents, read into rows. No WPF, so the
+         tests can pin the shape BounceTracker writes. -->
+    <Compile Include="..\ControlPanel\Services\SuppressionListReport.cs" />
     <!-- Settings search index: plain data plus a search function, no WPF, so the
          tests can verify it still matches the settings pages. -->
     <Compile Include="..\ControlPanel\Services\SettingsSearchIndex.cs" />

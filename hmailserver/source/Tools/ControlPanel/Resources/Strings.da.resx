@@ -18,6 +18,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
+    <value>
+
+Vil du gemme denne svage adgangskode alligevel?</value>
+  </data>
   <data name="  Configured database type: {0}." xml:space="preserve">
     <value>  Konfigureret databasetype: {0}.</value>
   </data>
@@ -174,11 +179,6 @@
   <data name=" — applied immediately." xml:space="preserve">
     <value> — træder i kraft med det samme.</value>
   </data>
-  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
-    <value>
-
-Vil du gemme denne svage adgangskode alligevel?</value>
-  </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>"Alle i domænet" betyder, at afsenderens adresse ligger i et domæne, som denne server hoster, hvilket en udenforstående kan påstå, medmindre listen også kræver godkendelse. Sæt hak i det nedenfor, hvis listen skal være begrænset til personer, der er logget på.</value>
   </data>
@@ -290,6 +290,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
     <value>0 er den medfølgende standard. 2 er et fornuftigt udgangspunkt: en fejlindtastet adgangskode koster et menneske to sekunder én gang, og en klient, der gennemprøver adgangskoder, to, fire, seks… sekunder pr. gæt. Træder i kraft efter en genstart af tjenesten.</value>
   </data>
+  <data name="0 keeps the entry until it is removed." xml:space="preserve">
+    <value>0 beholder posten, til den fjernes.</value>
+  </data>
   <data name="0 means archives are never deleted. Retention runs on the server after every backup into this folder - scheduled or started by hand with Start backup now - and only once the new archive has been written and verified readable, so a failed backup never deletes anything. The newest archive is never deleted, the age limit always leaves the two newest alone, and only this server's own HMBackup archives are counted - other files in the folder are never touched." xml:space="preserve">
     <value>0 betyder, at arkiver aldrig slettes. Opbevaringsreglen kører på serveren efter hver sikkerhedskopiering til denne mappe – planlagt eller startet manuelt med Start sikkerhedskopiering nu – og først når det nye arkiv er skrevet og verificeret læsbart, så en mislykket sikkerhedskopiering sletter aldrig noget. Det nyeste arkiv slettes aldrig, aldersgrænsen lader altid de to nyeste være, og kun denne servers egne HMBackup-arkiver tælles med – andre filer i mappen røres aldrig.</value>
   </data>
@@ -304,6 +307,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 konto er medlem.</value>
+  </data>
+  <data name="1 address listed." xml:space="preserve">
+    <value>1 adresse på listen.</value>
   </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 app-adgangskode.</value>
@@ -436,6 +442,12 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>En brugerdefineret virusscanner eller et eksternt værktøj, der hænger – begrænset af ExternalProcessTimeout.</value>
+  </data>
+  <data name="A delivery between two hard bounces starts the count again. A refusal this server cannot trust as a dead mailbox - a bare 550 with no enhanced code, a policy refusal, its own connection failures - never counts." xml:space="preserve">
+    <value>En levering mellem to hårde returmails starter optællingen forfra. En afvisning, som denne server ikke kan stole på som en postkasse, der ikke findes - et nøgent 550 uden udvidet kode, en politikafvisning, dens egne forbindelsesfejl - tæller aldrig.</value>
+  </data>
+  <data name="A delivery report" xml:space="preserve">
+    <value>En leveringsrapport</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Et domæne, der hostes på denne server</value>
@@ -670,6 +682,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-kompatibel log</value>
+  </data>
+  <data name="A_ddress" xml:space="preserve">
+    <value>_Adresse</value>
   </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>Afbryd ved meddelelser, der er _markeret som spam</value>
@@ -926,11 +941,20 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Føj nøglen nedenfor til en godkendelsesapp, og bekræft derefter med en kode. Når den først er tilmeldt, kan administratoradgangskoden alene ikke logge på – COM-API'et og REST-API'et kræver også en kode. Opbevar nøglen et sikkert sted: hvis du mister godkendelsesappen, skal en lokal administrator fjerne AdministratorTotpSecret fra hMailServer.ini for at komme ind igen.</value>
   </data>
+  <data name="Add to the suppression list" xml:space="preserve">
+    <value>Føj til spærrelisten</value>
+  </data>
+  <data name="Add to the suppression list of {0}" xml:space="preserve">
+    <value>Føj til spærrelisten for {0}</value>
+  </data>
   <data name="Add {0}" xml:space="preserve">
     <value>Tilføj {0}</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Tilføjet {0}.</value>
+  </data>
+  <data name="Added by hand" xml:space="preserve">
+    <value>Tilføjet manuelt</value>
   </data>
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Tilføjes én gang, til post med mindst én modtager uden for denne server. Aldrig til en signeret eller krypteret meddelelse, et automatisk svar, en returmail eller et listeindlæg, og aldrig anden gang til et svar, der allerede citerer den.</value>
@@ -944,14 +968,26 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Address attri_bute" xml:space="preserve">
     <value>Adresseattri_but</value>
   </data>
+  <data name="Address contains" xml:space="preserve">
+    <value>Adressen indeholder</value>
+  </data>
   <data name="Address or domain" xml:space="preserve">
     <value>Adresse eller domæne</value>
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Adresse at tilføje</value>
   </data>
+  <data name="Address to stop sending to" xml:space="preserve">
+    <value>Adresse, der ikke længere skal sendes til</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresser</value>
+  </data>
+  <data name="Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand." xml:space="preserve">
+    <value>Adresser, som et domæne ikke længere sender til, fordi post til dem er kommet retur - synlige og manuelt fjernbare.</value>
+  </data>
+  <data name="Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain." xml:space="preserve">
+    <value>Adresser, som et domæne ikke længere sender til, fordi post til dem er kommet retur for altid, eller fordi nogen har sat dem her - med tællingerne bag hver enkelt. Listen gælder for hvert afsendende domæne.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>Tilføjer ARC-segl til videresendt post, så efterfølgende servere kan stole på de oprindelige godkendelsesresultater (RFC 8617). Forseglingen låner det videresendende domænes DKIM-selector og private nøgle, så den kræver mindst ét hostet domæne med DKIM-signering konfigureret – uden det står kontakten på aktiveret og forsegler ingenting, med kun en linje i fejlsøgningsloggen til at fortælle det. Siden Ekstern opsætning kontrollerer dine domæner for dette.</value>
@@ -1073,6 +1109,15 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>En konto kan slås fra uden at blive slettet, hvilket bevarer posten og afviser nye pålogninger.</value>
   </data>
+  <data name="An address is required." xml:space="preserve">
+    <value>En adresse er påkrævet.</value>
+  </data>
+  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
+    <value>En adresse, som denne server er vært for, afvises: listen gælder kun post, der forlader serveren.</value>
+  </data>
+  <data name="An administrator" xml:space="preserve">
+    <value>En administrator</value>
+  </data>
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Et alias peger én adresse mod en anden uden behov for endnu en postkasse.</value>
   </data>
@@ -1193,6 +1238,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Træder i kraft ved næste genstart af tjenesten eller ved Reinitialiser. Logfilerne påvirkes ikke: dette sender en kopi, det flytter ikke noget. Uden en samlervært nedenfor skriver en server under systemd på Linux i stedet til journalen - på Linux er denne ene kontakt altså hele opsætningen.</value>
+  </data>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
+    <value>Gælder kun, mens behandling af returmails er slået til. En rapport tælles kun, når den nævner en besked, som denne server faktisk leverede til modtageren, kom uautentificeret udefra og bestod SPF og DMARC, hvor de registreres - men enhver, der modtog den samme besked, kan forfalske en for en anden synlig modtager. Slået fra læses rapporter slet ikke; afvisninger under levering tælles stadig.</value>
   </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Anvend katalogsynkronisering</value>
@@ -1454,6 +1502,15 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Begge tærskler er 0, så ingen score kan markere eller afvise noget - serveren tester dem med "større end 0", før den bruger dem. Den holder også op med at teste, så snart den løbende sum når den højeste tærskel, som er 0, så præcis én kontrol kører i hver fase, og dens resultat kasseres.</value>
+  </data>
+  <data name="Bounce counts" xml:space="preserve">
+    <value>Antal returmails</value>
+  </data>
+  <data name="Bounce processing is off, so nothing is being counted or listed and the entries here are not applied. The switch is on the Delivery of e-mail page." xml:space="preserve">
+    <value>Behandling af returmails er slået fra, så intet tælles eller listes, og posterne her anvendes ikke. Kontakten findes på siden Levering af e-mail.</value>
+  </data>
+  <data name="Bounces and the suppression list" xml:space="preserve">
+    <value>Returmails og spærrelisten</value>
   </data>
   <data name="Bounces and virus notifications are sent from mailer-daemon@&lt;domain&gt;. This overrides the &lt;domain&gt; part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed." xml:space="preserve">
     <value>Afvisninger og virusmeddelelser sendes fra mailer-daemon@&lt;domain&gt;. Dette tilsidesætter &lt;domain&gt;-delen. Efterlades det tomt, bruger serveren sit eget værtsnavn, derefter det lokale domæne, meddelelsen vedrører, derefter denne computers navn. Det er ikke en leveringsindstilling og ændrer ikke, hvor post rutes hen.</value>
@@ -1774,6 +1831,9 @@ Den klargjorte selector "{0}" fjernes fra serverkonfigurationen; signering forts
   </data>
   <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>Begrænset til 5-3600 af eksportøren. Bruges kun, når metrik-endpointet ovenfor er sat.</value>
+  </data>
+  <data name="Classify bounces and keep a suppression list" xml:space="preserve">
+    <value>Klassificér returmails og før en spærreliste</value>
   </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Ryd greylisting-tripler</value>
@@ -2269,6 +2329,9 @@ Den klargjorte selector "{0}" fjernes fra serverkonfigurationen; signering forts
   <data name="Couldn't load distribution lists: " xml:space="preserve">
     <value>Kunne ikke indlæse distributionslister:</value>
   </data>
+  <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
+    <value>Tæl en fuld postkasse som en hård returmail</value>
+  </data>
   <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
     <value>Talte pålogningsfejl ryddet. Adresser, der allerede er blokeret, forbliver blokeret, indtil deres "Auto-ban:"-interval udløber - slet det på siden IP-intervaller for at frigive en nu.</value>
   </data>
@@ -2470,8 +2533,20 @@ Den klargjorte selector "{0}" fjernes fra serverkonfigurationen; signering forts
   <data name="Date this key stops working" xml:space="preserve">
     <value>Dato, hvor denne nøgle holder op med at virke</value>
   </data>
+  <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
+    <value>Dage efter afsendelse, hvor en leveringsrapport stadig matches (1 til 30)</value>
+  </data>
+  <data name="Days before an entry made by a bounce expires (0 = never)" xml:space="preserve">
+    <value>Dage før en post oprettet af en returmail udløber (0 = aldrig)</value>
+  </data>
+  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
+    <value>Dage, antal returmails gemmes (0 = behold)</value>
+  </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Dage, der skal beholdes på serveren (0 = slet efter download)</value>
+  </data>
+  <data name="Days until the entry expires" xml:space="preserve">
+    <value>Dage til posten udløber</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>S_let regel</value>
@@ -2629,6 +2704,9 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   </data>
   <data name="Deliver _local → local" xml:space="preserve">
     <value>Levér _lokal → lokal</value>
+  </data>
+  <data name="Deliver it, and only record it" xml:space="preserve">
+    <value>Lever den og registrér den kun</value>
   </data>
   <data name="Deliver local → _remote" xml:space="preserve">
     <value>Levér lokal → _ekstern</value>
@@ -2823,6 +2901,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Hent og verificér installationsprogrammet, så snart der findes en udgivelse</value>
+  </data>
+  <data name="Drop it without a report" xml:space="preserve">
+    <value>Fjern den uden rapport</value>
   </data>
   <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
     <value>Afbryd for store indgående meddelelser over N byte midt i overførslen (0 = fra)</value>
@@ -3478,6 +3559,15 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Overdrager det verificerede installationsprogram til opdateringshjælperen. Tjenesten stopper og starter; hvis den ikke kommer tilbage, geninstalleres den forrige version. Resultatet rapporteres her, når tjenesten er tilbage.</value>
   </data>
+  <data name="Hard" xml:space="preserve">
+    <value>Hård</value>
+  </data>
+  <data name="Hard bounce" xml:space="preserve">
+    <value>Hård returmail</value>
+  </data>
+  <data name="Hard bounces in a row before an address is listed (1 to 100)" xml:space="preserve">
+    <value>Hårde returmails i træk, før en adresse listes (1 til 100)</value>
+  </data>
   <data name="Hard link each local recipient's copy instead of copying the file" xml:space="preserve">
     <value>Opret et hardlink til hver lokal modtagers kopi i stedet for at kopiere filen</value>
   </data>
@@ -3715,6 +3805,12 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>I en DNSSEC-signeret zone offentliggøres en TLSA-post (normalt usage 3, selector 1, matching type 1 - '3 1 1' med SHA-256 af dit certifikats offentlige nøgle) på _25._tcp.&lt;mx-host&gt; for hver MX-vært. Verificér med: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer kan ikke offentliggøre DNS-poster eller signere din zone, og dette panel har intet TLSA-opslag at kontrollere dem med.</value>
   </data>
+  <data name="In a row" xml:space="preserve">
+    <value>I træk</value>
+  </data>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
+    <value>Gælder fra næste besked. Slået fra klassificeres, tælles eller listes intet, og listen anvendes ikke; posterne på den bliver, og den timevise oprydning lader dem stadig udløbe. En database, der ikke kan læses, sender posten, som om adressen ikke var listet, og siger det i fejlloggen én gang i timen.</value>
+  </data>
   <data name="In queue" xml:space="preserve">
     <value>I kø</value>
   </data>
@@ -3849,6 +3945,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Keeps a copy of every message received over SMTP in a folder tree, in addition to delivering it as normal - it does not divert or hold back mail. Mail from a local sender is filed under &lt;domain&gt;\&lt;mailbox&gt;, mail from elsewhere under Inbound, and messages with no envelope sender (bounces and delivery reports) under Error, plus a copy in the folder of each local recipient." xml:space="preserve">
     <value>Gemmer en kopi af hver meddelelse, der modtages over SMTP, i et mappetræ, ud over at levere den som normalt - den omdirigerer eller tilbageholder ikke post. Post fra en lokal afsender arkiveres under &lt;domain&gt;\&lt;mailbox&gt;, post fra andre steder under Inbound, og meddelelser uden konvolutafsender (bounces og leveringsrapporter) under Error, plus en kopi i mappen for hver lokal modtager.</value>
   </data>
+  <data name="Kept with the entry, for whoever reads the list next." xml:space="preserve">
+    <value>Gemmes med posten, til den der læser listen næste gang.</value>
+  </data>
   <data name="Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)" xml:space="preserve">
     <value>Nøgleudvekslingsgrupper, i prioriteret rækkefølge (tomt = det klassiske fallback secp384r1:x25519:secp256r1)</value>
   </data>
@@ -3891,8 +3990,17 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Seneste sikkerhedskopi: {0} ({1}).</value>
   </data>
+  <data name="Last bounce" xml:space="preserve">
+    <value>Seneste returmail</value>
+  </data>
+  <data name="Last delivered" xml:space="preserve">
+    <value>Senest leveret</value>
+  </data>
   <data name="Last l_ogon" xml:space="preserve">
     <value>Seneste pål_ogning</value>
+  </data>
+  <data name="Last status" xml:space="preserve">
+    <value>Seneste status</value>
   </data>
   <data name="Last update: {0}. " xml:space="preserve">
     <value>Seneste opdatering: {0}. </value>
@@ -3962,6 +4070,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Angiv de lokale porte, hvor AUTH ikke skal annonceres - typisk en port 25, der kun tager imod indgående post.</value>
+  </data>
+  <data name="Listed" xml:space="preserve">
+    <value>Listet</value>
   </data>
   <data name="Listener" xml:space="preserve">
     <value>Lytter</value>
@@ -4167,6 +4278,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Postkassen er tømt.</value>
   </data>
+  <data name="Mailbox full" xml:space="preserve">
+    <value>Postkasse fuld</value>
+  </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Postkasseadgangskoder sættes på kontoen, inde i dens domæne.</value>
   </data>
@@ -4307,6 +4421,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Maksimal timeout (sekunder)</value>
+  </data>
+  <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
+    <value>Måles fra, da posten blev oprettet, så en sænkning gælder også de poster, der allerede findes. En manuelt tilføjet post beholder sin egen udløbstid.</value>
   </data>
   <data name="Medium" xml:space="preserve">
     <value>Mellem</value>
@@ -4622,6 +4739,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Ingen aktive sessioner</value>
+  </data>
+  <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
+    <value>Der er ingen adresse på dette domænes spærreliste. En adresse kommer her, når post til den kommer retur for altid, eller når du tilføjer en.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Ingen aliasser for dette domæne.</value>
@@ -5013,6 +5133,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>Slået fra som standard. Med ubeskyttet LDAP og en simpel binding sender serveren IKKE adgangskoden og gætter IKKE på, hvad du mente: den afviser pålogningen og rapporterer modsigelsen, én gang i minuttet. At slå dette til sender adgangskoder i klartekst og bør kun nogensinde ske på et netværk, du kontrollerer fra ende til anden.</value>
   </data>
+  <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
+    <value>Slået fra som standard: en fuld postkasse tømmes som regel, og at liste den ville stoppe post til en, der læser den i næste uge.</value>
+  </data>
   <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
     <value>Fra, og fra er, hvad RFC 8301 kræver: den fjernede rsa-sha1 fra DKIM helt og aldeles, så en signerer må ikke bruge den, og en verificerer skal behandle en signatur, der gør, som ugyldig. En DKIM-signatur er en påstand om identitet, og DMARC-alignment er bygget på den, og SHA-1-kollisioner har været praktisk mulige siden 2020 - en signatur, nogen kan forfalske, er mindre værd end ingen signatur overhovedet, fordi den bærer signererens domæne forbi en aligned DMARC-kontrol. At slå dette til genopretter begge halvdele: signaturer, der bruger den, verificeres igen, og et domæne, der er konfigureret til at signere med den, gør det i stedet for at blive opgraderet til rsa-sha256. Nøgler kortere end 1024 bit afvises uanset hvad, og denne indstilling påvirker ikke det. Gælder efter en genstart af tjenesten.</value>
   </data>
@@ -5232,6 +5355,12 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Organization name in TLS reports" xml:space="preserve">
     <value>Organisationsnavn i TLS-rapporter</value>
   </data>
+  <data name="Other" xml:space="preserve">
+    <value>Andet</value>
+  </data>
+  <data name="Other failure" xml:space="preserve">
+    <value>Anden fejl</value>
+  </data>
   <data name="Out of office" xml:space="preserve">
     <value>Ikke til stede</value>
   </data>
@@ -5438,6 +5567,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Peg serveren på en ACME-myndighed som Let's Encrypt, så fornyer den af sig selv.</value>
   </data>
+  <data name="Policy" xml:space="preserve">
+    <value>Politik</value>
+  </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Mønstre for politikkens MX-værter (tomt = udled fra hvert domænes MX)</value>
   </data>
@@ -5449,6 +5581,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
     <value>Politikkens maks. alder (sekunder; standard 604800 = 7 dage)</value>
+  </data>
+  <data name="Policy refusal" xml:space="preserve">
+    <value>Politikafvisning</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Port</value>
@@ -5733,6 +5868,9 @@ Lad den GAMLE DNS-post ({2}) forblive offentliggjort i mindst nogle dage. Post s
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Tilbage_kald / gendan</value>
   </data>
+  <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
+    <value>Læs leveringsrapporter, der ankommer for denne servers afsendere</value>
+  </data>
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Læst fra [Directories] LogFolder i hMailServer.INI, som ikke kan læses fra denne maskine - Control Panel kører et andet sted end serveren.</value>
   </data>
@@ -5753,6 +5891,9 @@ Lad den GAMLE DNS-post ({2}) forblive offentliggjort i mindst nogle dage. Post s
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Læser projektets udgivelsesfeed nu og siger, om der findes en nyere udgivelse. Intet downloades eller installeres af dette.</value>
+  </data>
+  <data name="Reads the refusals and delivery reports that come back for this server's senders, counts them per address, and stops sending to an address that has bounced for good. The list is per sending domain, and it is on the Suppression list page." xml:space="preserve">
+    <value>Læser de afvisninger og leveringsrapporter, der kommer tilbage for denne servers afsendere, tæller dem pr. adresse og holder op med at sende til en adresse, der er kommet retur for altid. Listen gælder for hvert afsendende domæne og findes på siden Spærreliste.</value>
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Realtidssortlister (RBL), der kontrolleres mod den forbindende IP-adresse.</value>
@@ -5839,6 +5980,12 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Afvis en fuld postkasse under samtalen (452 4.2.2)</value>
   </data>
+  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>Afvis besvarer en indsendelse ved RCPT med begrundelsen og returnerer alt andet - et alias, en videresendelse, en planlagt afsendelse - til afsenderen i en leveringsstatusmeddelelse. Post, der allerede står i kø til en adresse, møder listen ved næste leveringsforsøg. Lever den og registrér den kun er den sikre måde at se, hvad listen ville gøre, før den gør det.</value>
+  </data>
+  <data name="Refuse it, with the reason" xml:space="preserve">
+    <value>Afvis den med begrundelsen</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Afvis post med en midlertidig fejl under så meget ledig plads (MB; 0 = aldrig)</value>
   </data>
@@ -5850,6 +5997,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Afviste forbindelser</value>
+  </data>
+  <data name="Refused while delivering" xml:space="preserve">
+    <value>Afvist under levering</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Registrér gatewayen som et indgående relay, så dens adresse ikke behandles som klienten.</value>
@@ -5910,6 +6060,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Fjern _udløbne</value>
+  </data>
+  <data name="Remove from the suppression list" xml:space="preserve">
+    <value>Fjern fra spærrelisten</value>
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>Fjern meddelelse {0} fra køen?</value>
@@ -6642,6 +6795,9 @@ Vil du fortsætte?</value>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Vælg en Active Directory-konto</value>
   </data>
+  <data name="Select an address first." xml:space="preserve">
+    <value>Vælg en adresse først.</value>
+  </data>
   <data name="Select an app password first." xml:space="preserve">
     <value>Vælg en app-adgangskode først.</value>
   </data>
@@ -7019,6 +7175,9 @@ Genstart den nu?</value>
   <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no SearchBase and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
     <value>Simple er standarden. Negotiate kører en SSPI-udveksling (Kerberos, med fallback til NTLM), der aldrig sender adgangskoden og signerer forbindelsen - det er den eneste metode, en moderne domænecontroller med standardkonfiguration accepterer, når den ikke har noget certifikat installeret, den har ikke brug for søgning, SearchBase eller tjenestekonto, og den virker fra en vært, der ikke er tilsluttet et domæne.</value>
   </data>
+  <data name="Since" xml:space="preserve">
+    <value>Siden</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Størrelsesgrænse og scannere…</value>
   </data>
@@ -7031,11 +7190,17 @@ Genstart den nu?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Bremser en session, der nævner flere modtagere, end en legitim meddelelse har brug for. Over antallet venter hver yderligere RCPT TO i en ugodkendt session på forsinkelsen, før den besvares - et ordbogsangreb eller en spamkørsel nævner hundredvis af adresser og betaler for hver enkelt, mens en afsendende MTA nævner en håndfuld og aldrig når antallet. Godkendte sessioner og IP-intervaller med spambeskyttelse slået fra er undtaget. Ventetiden er en timer på forbindelsen, ikke en sovende tråd. Får virkning med det samme; gemmes i hMailServer.ini som SmtpTarpitCount og SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Soft" xml:space="preserve">
+    <value>Blød</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Nogen gætter adgangskoder</value>
   </data>
   <data name="Something on this machine is listening on that address and port. This check reads the operating system's list of open ports, so it cannot tell hMailServer's listener from another program's - if connections are being refused or answered by the wrong service, that is what to look for." xml:space="preserve">
     <value>Noget på denne maskine lytter på den adresse og port. Denne kontrol læser operativsystemets liste over åbne porte, så den kan ikke skelne hMailServers lytter fra et andet programs - hvis forbindelser afvises eller besvares af den forkerte tjeneste, er det det, du skal kigge efter.</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Kilde</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Kildeadresser, den må bruges fra (valgfrit)</value>
@@ -7205,6 +7370,9 @@ Genstart den nu?</value>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Hastighedsgrænser for indlevering</value>
   </data>
+  <data name="Suppression list" xml:space="preserve">
+    <value>Spærreliste</value>
+  </data>
   <data name="Switch to the dark theme" xml:space="preserve">
     <value>Skift til det mørke tema</value>
   </data>
@@ -7346,6 +7514,11 @@ Genstart den nu?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Mærkning og ansvarsfraskrivelse</value>
   </data>
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+    <value>Fjern {0} fra spærrelisten for {1}?
+
+Den næste besked til adressen bliver sendt, og én hård returmail mere sætter den tilbage.</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Får virkning med det samme, men holdes kun i hukommelsen: intet gemmer denne værdi, så hver genstart af tjenesten nulstiller den til de indbyggede 10240 KB (10 MB). For at beholde en anden grænse skal den sættes igen efter hver genstart, for eksempel fra et opstartsscript gennem COM API'et. TTL'erne og aktiveringskontakten på dette kort gemmes og overlever genstarter.</value>
   </data>
@@ -7382,6 +7555,9 @@ Genstart den nu?</value>
   <data name="Temporarily rejects mail from unknown senders; legitimate servers retry and pass." xml:space="preserve">
     <value>Afviser midlertidigt post fra ukendte afsendere; legitime servere prøver igen og kommer igennem.</value>
   </data>
+  <data name="Temporary failure" xml:space="preserve">
+    <value>Midlertidig fejl</value>
+  </data>
   <data name="Test" xml:space="preserve">
     <value>Test</value>
   </data>
@@ -7414,6 +7590,9 @@ Genstart den nu?</value>
   </data>
   <data name="Text" xml:space="preserve">
     <value>Tekst</value>
+  </data>
+  <data name="That address is already on this domain's list." xml:space="preserve">
+    <value>Adressen står allerede på dette domænes liste.</value>
   </data>
   <data name="That code does not match. Make sure the authenticator app has the new key, then try the current code." xml:space="preserve">
     <value>Den kode passer ikke. Sørg for, at authenticator-appen har den nye nøgle, og prøv så den aktuelle kode.</value>
@@ -7660,13 +7839,13 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Selve hentningen mislykkedes: {0} Det siger intet om politikken.</value>
   </data>
-  <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
-    <value>Filen kunne ikke parses som et PEM-certifikat. Serveren indlæser kun certifikater i PEM-format, så denne fil indlæses ikke, og enhver TLS-port, der bruger den, vil ikke kunne starte (serverfejl 5113).</value>
-  </data>
   <data name="The file&#13;&#10;   {0}&#13;&#10;could not be loaded. The message has probably been delivered and is no longer in the queue." xml:space="preserve">
     <value>Filen
    {0}
 kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i køen.</value>
+  </data>
+  <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
+    <value>Filen kunne ikke parses som et PEM-certifikat. Serveren indlæser kun certifikater i PEM-format, så denne fil indlæses ikke, og enhver TLS-port, der bruger den, vil ikke kunne starte (serverfejl 5113).</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Den første scanner, der finder noget, afslutter scanningen, så rækkefølgen er også prisen: en langsom scanner foran en hurtig betales for på hver ren meddelelse.</value>
@@ -7805,6 +7984,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   </data>
   <data name="The new selector must be different from the current selector (&quot;{0}&quot;). A rotation runs both keys side by side under different DNS names." xml:space="preserve">
     <value>Den nye selector skal være forskellig fra den nuværende selector ("{0}"). En rotation kører begge nøgler side om side under forskellige DNS-navne.</value>
+  </data>
+  <data name="The next message from this domain to the address is refused, dropped or delivered and recorded, as the bounce settings say. Mail already queued to it meets the list on its next delivery attempt." xml:space="preserve">
+    <value>Den næste besked fra dette domæne til adressen afvises, fjernes eller leveres og registreres, som indstillingerne for returmails siger. Post, der allerede står i kø til den, møder listen ved næste leveringsforsøg.</value>
   </data>
   <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
     <value>Den anden vej til et DN: sæt dette, og serveren springer søgningen over - og dermed behovet for en SearchBase og en tjenestekonto. Et UPN virker mod Active Directory. Samme pladsholdere %u, %d, %m, escapet til et distinguished name.</value>
@@ -7965,6 +8147,9 @@ Det er serverens egen resolver, der svarer - den samme, som SMTP-levering bruger
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Serverens Værtsnavn (Levering af e-mail) er TOMT, så den annoncerer sit Windows-computernavn i HELO/EHLO - ikke et offentligt DNS-navn - og ingen "a:"-mekanisme kan ærligt tilbydes. Forslaget autoriserer kun domænets MX-værter. Sæt værtsnavnet først; flere poster på denne side har brug for det.</value>
   </data>
+  <data name="The server's answer could not be read: {0}" xml:space="preserve">
+    <value>Serverens svar kunne ikke læses: {0}</value>
+  </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>Serverens værtsnavn kunne ikke læses, så det navn, den annoncerer i HELO/EHLO, er ukendt herfra.</value>
   </data>
@@ -8077,6 +8262,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="There are no accounts on this server to add." xml:space="preserve">
     <value>Der er ingen konti på denne server at tilføje.</value>
+  </data>
+  <data name="There are no domains, so there is no list to show." xml:space="preserve">
+    <value>Der er ingen domæner, så der er ingen liste at vise.</value>
   </data>
   <data name="There is a total of {0} auto-ban IP range(s)." xml:space="preserve">
     <value>Der er i alt {0} IP-interval(ler) fra automatisk blokering.</value>
@@ -8620,6 +8808,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
     <value>Hvad der sker med en TCP-forbindelse, denne server afviser, før nogen protokolsamtale starter: en fra en adresse, intet IP-interval tillader, eller en over det intervals forbindelsesgrænse. Begge dele konfigureres på siden IP-intervaller. At låse en adresse ude, der bliver ved med at fejle pålogning, er en helt anden mekanisme og er på siden Automatisk blokering.</value>
   </data>
+  <data name="What happens to a listed recipient" xml:space="preserve">
+    <value>Hvad der sker med en listet modtager</value>
+  </data>
   <data name="What happens to a message" xml:space="preserve">
     <value>Hvad der sker med en meddelelse</value>
   </data>
@@ -8770,6 +8961,12 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Hvem der må forbinde, hvem der må godkende, og hvad der sker, når nogen bliver ved med at prøve.</value>
   </data>
+  <data name="Why" xml:space="preserve">
+    <value>Hvorfor</value>
+  </data>
+  <data name="Why it is listed" xml:space="preserve">
+    <value>Hvorfor den er listet</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Jokertegn</value>
   </data>
@@ -8886,6 +9083,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>Adresse (_ændres den, omdøbes postkassen; den skal blive i dette domæne)</value>
+  </data>
+  <data name="_Add…" xml:space="preserve">
+    <value>_Tilføj…</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Tillad at sende adgangskoden over en _ubeskyttet forbindelse (AllowUnprotectedPassword)</value>
@@ -9013,6 +9213,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Tilmeld en anden faktor</value>
   </data>
+  <data name="_Expires after (days)" xml:space="preserve">
+    <value>_Udløber efter (dage)</value>
+  </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>_Udløbsdato</value>
   </data>
@@ -9114,6 +9317,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Navn</value>
+  </data>
+  <data name="_Note" xml:space="preserve">
+    <value>_Note</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>Antal _leveringsgenforsøg</value>
@@ -10084,6 +10290,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, udløber {2}</value>
   </data>
+  <data name="{0} (expired)" xml:space="preserve">
+    <value>{0} (udløbet)</value>
+  </data>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inaktiv)</value>
   </data>
@@ -10122,6 +10331,12 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} active of {1}" xml:space="preserve">
     <value>{0} aktive af {1}</value>
+  </data>
+  <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
+    <value>{0} adresser på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
+  </data>
+  <data name="{0} addresses listed." xml:space="preserve">
+    <value>{0} adresser på listen.</value>
   </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} og {1}</value>
@@ -10215,6 +10430,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} er slået til, men scorer 0, så den koster et opslag på hver meddelelse og kan aldrig ændre udfaldet. Giv den en score, eller slå den fra.</value>
+  </data>
+  <data name="{0} is on the suppression list of {1}." xml:space="preserve">
+    <value>{0} står på spærrelisten for {1}.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} er slået til, men kan ikke køre. {1} Hver scanning, den bliver bedt om, mislykkes, og en mislykket scanning er ikke en mislykket meddelelse: fejlen logges, og meddelelsen leveres, som om den var blevet undersøgt og fundet ren.</value>
@@ -10344,6 +10562,12 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} værdi(er) kunne ikke læses — {1} Rækkerne nedenfor kan være ufuldstændige.</value>
+  </data>
+  <data name="{0} was not on the list any more." xml:space="preserve">
+    <value>{0} stod ikke længere på listen.</value>
+  </data>
+  <data name="{0} was removed from the list." xml:space="preserve">
+    <value>{0} blev fjernet fra listen.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} med fuld myndighed</value>
