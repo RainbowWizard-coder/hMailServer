@@ -1692,6 +1692,17 @@ namespace HM
             return HandleSettingsBackup_();
          case RouteSettingsBackupPut:
             return HandleSettingsBackupPut_(GetRequestBody_(request));
+         case RouteSettingsBouncesGet:
+            return HandleSettingsBounces_();
+         case RouteSettingsBouncesPut:
+            return HandleSettingsBouncesPut_(GetRequestBody_(request));
+         case RouteSuppressionList:
+         case RouteSuppressionCreate:
+         case RouteSuppressionDelete:
+         case RouteBounceCountList:
+         case RouteBounceClassify:
+         case RouteBounceExpire:
+            return HandleBounces_(route, GetRequestBody_(request));
          case RouteServerMessageList:
             return HandleServerMessageList_();
          case RouteServerMessagePut:
@@ -2854,6 +2865,52 @@ namespace HM
          }
       }
 
+      // /api/v1/domains/<name>/suppressions, one entry under it by address, and
+      // /api/v1/domains/<name>/bounces. The address is the last segment and may
+      // be percent-encoded; the handler decodes it.
+      if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/suppressions"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/suppressions").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteSuppressionList : RouteSuppressionCreate;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
+      if (method == "DELETE" && path.StartsWith(domainsPrefix) && path.Find("/suppressions/") > 0)
+      {
+         AnsiString rest = path.Mid(domainsPrefix.GetLength());
+         const AnsiString marker = "/suppressions/";
+         int at = rest.Find(marker);
+         AnsiString domainName = at > 0 ? rest.Mid(0, at) : AnsiString();
+         AnsiString address = at > 0 ? rest.Mid(at + marker.GetLength()) : AnsiString();
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0 && !address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteSuppressionDelete;
+            route.identifier = domainName;
+            route.name = address;
+            return;
+         }
+      }
+
+      if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/bounces"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/bounces").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = RouteBounceCountList;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
       if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/aliases"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -3301,6 +3358,24 @@ namespace HM
          return;
       }
 
+      if (path == "/api/v1/settings/bounces" && (method == "GET" || method == "PUT"))
+      {
+         route.kind = method == "GET" ? RouteSettingsBouncesGet : RouteSettingsBouncesPut;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/bounces/classify")
+      {
+         route.kind = RouteBounceClassify;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/bounces/expire")
+      {
+         route.kind = RouteBounceExpire;
+         return;
+      }
+
       // The server's message texts, named as the table names them.
       const AnsiString messagesPath = "/api/v1/settings/messages";
       if (path == messagesPath)
@@ -3594,6 +3669,10 @@ namespace HM
       case RouteServerReinitialize:
       case RouteArchiveHold:
       case RouteArchiveRelease:
+      case RouteSuppressionCreate:
+      case RouteSuppressionDelete:
+      case RouteBounceExpire:
+      case RouteSettingsBouncesPut:
       // An update check changes the recorded verdict and makes the server call
       // out, neither of which a read-only credential should be able to cause;
       // a download writes a file the next part will run; an install runs it.
@@ -3842,6 +3921,11 @@ namespace HM
       case RouteIndexingClear:
       case RouteSettingsBackupGet:
       case RouteSettingsBackupPut:
+      // The bounce settings apply to every domain, and the sweep removes entries
+      // from every domain's list.
+      case RouteSettingsBouncesGet:
+      case RouteSettingsBouncesPut:
+      case RouteBounceExpire:
       case RouteServerMessageList:
       case RouteServerMessagePut:
       case RouteSieveEvaluate:
@@ -3902,6 +3986,10 @@ namespace HM
       case RouteDomainAliasList:
       case RouteDomainAliasCreate:
       case RouteDomainAliasDelete:
+      case RouteSuppressionList:
+      case RouteSuppressionCreate:
+      case RouteSuppressionDelete:
+      case RouteBounceCountList:
          targetDomain = String(route.identifier);
          break;
       case RouteListDelete:
@@ -10896,6 +10984,7 @@ namespace HM
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiAuditPaths_();
+      openApiJson += OpenApiBouncesPaths_();
       openApiJson += OpenApiReportsPaths_();
       openApiJson += openApiTail;
 

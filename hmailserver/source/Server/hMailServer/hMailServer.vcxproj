@@ -573,6 +573,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiPortal.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSettings.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAudit.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiBounces.cpp" />
     <ClCompile Include="..\Common\Util\AuditTrail.cpp" />
     <ClCompile Include="..\Common\Util\AlertManager.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
