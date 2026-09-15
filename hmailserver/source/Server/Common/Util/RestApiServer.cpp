@@ -3709,6 +3709,18 @@ namespace HM
       return false;
    }
 
+   bool
+   RestApiServer::HoldsServerAuthority_(const Caller &caller)
+   {
+      // An empty domain list is the administrator password or a key issued for
+      // every domain. A key restricted to named domains carries a domain
+      // administrator's authority, which InterfaceAccount::put_AdminLevel and
+      // Save refuse a server administrator's account. One definition, asked by
+      // the update and by the create alike: when the credential grows another
+      // narrowing, this is the one place that learns it.
+      return caller.domains.empty();
+   }
+
    RestApiServer::AuthorizationResult
    RestApiServer::Authorize_(const Caller &caller, const Route &route, AnsiString &refusalReason)
    {
@@ -5081,6 +5093,24 @@ namespace HM
       std::shared_ptr<Account> existingAccount = std::shared_ptr<Account>(new Account());
       if (PersistentAccount::ReadObject(existingAccount, address) && existingAccount->GetID() > 0)
          return BuildResponse_(409, "{\"error\":\"account already exists\"}");
+
+      // A password chosen at creation is a password chosen: the policy applies
+      // as it does in InterfaceAccount::put_Password, which the Control Panel's
+      // new account goes through, and in the update. The create applied none,
+      // so a spreadsheet import - which makes domain and server administrators
+      // too - walked round a policy every other door enforces. After the
+      // duplicate check, so an import run twice still hears 409 for the rows
+      // it made the first time.
+      {
+         String policyFailure;
+         if (!PasswordPolicy::IsAcceptable(address, password, policyFailure))
+         {
+            LOG_APPLICATION("RestApi: Refused a password for new account " + address + ": " + policyFailure);
+            AnsiString body;
+            body.Format("{\"error\":\"%hs\"}", JsonEscape_(Utf8_(policyFailure)).c_str());
+            return BuildResponse_(400, body);
+         }
+      }
 
       // The password is the UTF-8 the body carried, decoded as the update
       // decodes it; the conversion used before read those bytes in the
@@ -10834,7 +10864,7 @@ namespace HM
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
-         "\"post\":{\"summary\":\"Create an account\",\"description\":\"One account, made in the domain as the Control Panel makes one: the address must be in the domain and is judged with the domain's own limits, and the password is stored under the configured hash. hmctl accounts import and Import-HmAccount send each row of a spreadsheet here. An unknown field, or a field of the wrong type, is refused by name rather than ignored, so a password of digits alone is sent as a string. A key restricted to named domains may make a user or a domain administrator, never a server administrator. Scoped to the domain. Body: address and password (required), active (default true), first_name and last_name (at most 60 characters each), max_size_mb (megabytes; 0, the default, is none; maxSizeMB is the older spelling) and admin_level (user, domain or server; default user).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"additionalProperties\":false,\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"},\"first_name\":{\"type\":\"string\",\"maxLength\":60},\"last_name\":{\"type\":\"string\",\"maxLength\":60},\"max_size_mb\":{\"type\":\"integer\",\"minimum\":0},\"maxSizeMB\":{\"type\":\"integer\",\"minimum\":0,\"deprecated\":true},\"admin_level\":{\"type\":\"string\",\"enum\":[\"user\",\"domain\",\"server\"]}}}}}},\"responses\":{\"201\":{\"description\":\"Created: address, created\"},\"400\":{\"description\":\"address or password missing, an unknown field, a field of the wrong type, a name longer than 60 characters, a max_size_mb that is not a whole number of megabytes, an admin_level that is not user, domain or server, an address outside the domain, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A domain-restricted key naming admin_level server, or a domain outside the key's own\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"An account with that address exists\"}}}},"
+         "\"post\":{\"summary\":\"Create an account\",\"description\":\"One account, made in the domain as the Control Panel makes one: the address must be in the domain and is judged with the domain's own limits, and the password goes through the password policy, as when the Control Panel sets one, before it is stored under the configured hash. hmctl accounts import and Import-HmAccount send each row of a spreadsheet here. An unknown field, or a field of the wrong type, is refused by name rather than ignored, so a password of digits alone is sent as a string. A key restricted to named domains may make a user or a domain administrator, never a server administrator. Scoped to the domain. Body: address and password (required), active (default true), first_name and last_name (at most 60 characters each), max_size_mb (megabytes; 0, the default, is none; maxSizeMB is the older spelling) and admin_level (user, domain or server; default user).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"additionalProperties\":false,\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"},\"first_name\":{\"type\":\"string\",\"maxLength\":60},\"last_name\":{\"type\":\"string\",\"maxLength\":60},\"max_size_mb\":{\"type\":\"integer\",\"minimum\":0},\"maxSizeMB\":{\"type\":\"integer\",\"minimum\":0,\"deprecated\":true},\"admin_level\":{\"type\":\"string\",\"enum\":[\"user\",\"domain\",\"server\"]}}}}}},\"responses\":{\"201\":{\"description\":\"Created: address, created\"},\"400\":{\"description\":\"address or password missing, an unknown field, a field of the wrong type, a name longer than 60 characters, a max_size_mb that is not a whole number of megabytes, an admin_level that is not user, domain or server, an address outside the domain, a password the policy refuses, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A domain-restricted key naming admin_level server, or a domain outside the key's own\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"An account with that address exists\"}}}},"
          "\"/api/v1/queue\":{\"get\":{\"summary\":\"List the delivery queue\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of queued messages\"}}}},"
          "\"/api/v1/queue/{id}/retry\":{\"post\":{\"summary\":\"Retry a queued message now\",\"responses\":{\"200\":{\"description\":\"Rescheduled\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"

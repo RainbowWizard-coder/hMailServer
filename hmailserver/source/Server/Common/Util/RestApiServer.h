@@ -546,6 +546,13 @@ namespace HM
       // and nothing else decides access.
       static AuthorizationResult Authorize_(const Caller &caller, const Route &route, AnsiString &refusalReason);
 
+      // True when the request carries the server administrator's whole
+      // authority: the administrator password, or a key issued for every
+      // domain. The account update and the account create ask this, and
+      // nothing else, before a server administrator's account is changed or
+      // one is made, so the two cannot come to answer differently.
+      static bool HoldsServerAuthority_(const Caller &caller);
+
       static bool IsMutatingRoute_(RouteKind kind);
       static bool IsApiKeyRoute_(RouteKind kind);
       static bool IsSelfServiceRoute_(RouteKind kind);

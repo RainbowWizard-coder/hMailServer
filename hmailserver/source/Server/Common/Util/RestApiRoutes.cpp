@@ -804,7 +804,9 @@ namespace HM
       // InterfaceAccount::put_AdminLevel refuses that authority a server
       // administrator - whose password is a COM logon with the server's whole
       // authority. Without this check an import run with a customer's key
-      // could have minted one.
+      // could have minted one. Who holds that authority is HoldsServerAuthority_'s
+      // to say, for this and the update both: a copy of the test here would go
+      // on answering the old question when the definition changed.
       Account::AdminLevel adminLevel = Account::NormalUser;
 
       if (HasMember(body, "admin_level"))
@@ -816,9 +818,7 @@ namespace HM
             return false;
          }
 
-         const bool unrestricted = caller.domains.empty();
-
-         if (adminLevel == Account::ServerAdmin && !unrestricted)
+         if (adminLevel == Account::ServerAdmin && !HoldsServerAuthority_(caller))
          {
             LOG_APPLICATION("RestApi: Refused to create account " + address + " as a server administrator for " +
                String(caller.identity) + ": the key is restricted to named domains.");
@@ -1252,7 +1252,7 @@ namespace HM
       // account that already is one - because a server administrator's mailbox
       // can sit in a domain somebody else administers, and its password is a
       // COM logon with the server's whole authority.
-      const bool unrestricted = caller.domains.empty();
+      const bool unrestricted = HoldsServerAuthority_(caller);
 
       if (account->GetAdminLevel() == Account::ServerAdmin && !unrestricted)
       {

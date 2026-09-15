@@ -38,7 +38,8 @@ namespace RegressionTests.API
    ///    Every stored value is read back through COM, as the Control Panel reads it, and
    ///    a password is proved by the server accepting it. The accounts live in
    ///    example.test, which PerformBasicSetup recreates before every test; the API keys
-   ///    made here are revoked in TearDown.
+   ///    made here are revoked, and the password policy one test sets is removed, in
+   ///    TearDown.
    /// </summary>
    [TestFixture]
    public class RestApiAccountImport : TestFixtureBase
@@ -54,7 +55,12 @@ namespace RegressionTests.API
       private const string ONeill = "\u00D3 N\u00E9ill, Jr";
       private const string Zoe = "Zo\u00EB";
 
+      // The password policy's minimum length, set by the one test that needs a
+      // policy and returned to its default in TearDown.
+      private const string PolicyMinimumLength = "PasswordPolicyMinimumLength";
+
       private readonly List<string> _keyIds = new List<string>();
+      private bool _policySet;
 
       [SetUp]
       public void StartRestApi()
@@ -80,6 +86,12 @@ namespace RegressionTests.API
          }
          finally
          {
+            if (_policySet)
+            {
+               IniFileSetting.Delete(PolicyMinimumLength);
+               _policySet = false;
+            }
+
             RestListener.Stop();
             _application.Reinitialize();
          }
@@ -183,6 +195,30 @@ namespace RegressionTests.API
 
          AssertCreated(AccountsPath, "{\"address\":\"csv-boss@example.test\",\"password\":\"Boss-Pass-1\",\"admin_level\":\"server\"}");
          Assert.AreEqual(eAdminLevel.hAdminLevelServerAdmin, AccountOverCom("csv-boss@example.test").AdminLevel);
+      }
+
+      [Test]
+      [Description("The password policy applies to the create as it does to Account.Password over COM and to the update: with a minimum length set, a row whose password is shorter is refused with the policy's own sentence and makes no account - not even the server administrator the row asked for - and a row whose password meets it is made. Against the create before this change the short password made the account.")]
+      public void APasswordThePolicyRefusesMakesNoAccount()
+      {
+         // The negative control first, with no policy: the same short password is
+         // taken, so the refusal below is the policy's and nothing else's.
+         AssertCreated(AccountsPath, "{\"address\":\"csv-before@example.test\",\"password\":\"20260915\"}");
+
+         IniFileSetting.Write(PolicyMinimumLength, "12");
+         _policySet = true;
+         _application.Reinitialize();
+
+         AssertRefused(400, "at least 12 characters", "csv-short@example.test",
+            "{\"address\":\"csv-short@example.test\",\"password\":\"20260915\",\"admin_level\":\"server\"}");
+
+         // A duplicate is still a duplicate, whatever its password: an import run
+         // a second time hears 409 for the rows it made the first time.
+         (int status, string body) again = Http("POST", AccountsPath, "{\"address\":\"csv-before@example.test\",\"password\":\"20260915\"}");
+         Assert.AreEqual(409, again.status, "An existing address is reported as existing before its password is judged. Answer: " + again.body);
+
+         AssertCreated(AccountsPath, "{\"address\":\"csv-policy@example.test\",\"password\":\"Long-Enough-Pass-1\"}");
+         Assert.IsTrue(AccountOverCom("csv-policy@example.test").ValidatePassword("Long-Enough-Pass-1"));
       }
 
       [Test]
