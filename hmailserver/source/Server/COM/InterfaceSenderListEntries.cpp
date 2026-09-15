@@ -43,6 +43,15 @@ InterfaceSenderListEntries::Clear()
       if (!object_)
          return GetAccessDenied();
 
+      // Server-admin only, as InterfaceSenderListEntry::Save and ::Delete are.
+      // Without it this collection was the one door into the table that
+      // asked nothing: Domain.SenderList hands the collection to a domain
+      // administrator, who could not save or delete one entry of it and
+      // could empty the whole list here. Asking the question is also what
+      // installs the audit actor for the deletes below.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
       object_->DeleteAll();
 
       return S_OK;
@@ -107,6 +116,10 @@ InterfaceSenderListEntries::DeleteByDBID(long DBID)
    {
       if (!object_)
          return GetAccessDenied();
+
+      // As Clear, above.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
 
       object_->DeleteItemByDBID(DBID);
       return S_OK;

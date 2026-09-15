@@ -3021,6 +3021,8 @@ STDMETHODIMP InterfaceSettings::put_QuarantineDigestBaseUrl(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -3072,6 +3074,8 @@ STDMETHODIMP InterfaceSettings::put_QuarantineDigestLinkHours(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
