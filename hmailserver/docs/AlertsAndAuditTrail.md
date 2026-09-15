@@ -406,6 +406,12 @@ What this does not do
   neither has the start-up pass that reconciles `hMailServer.ini` with
   `hm_inisettings` or a `[SettingsOverride]` section edited into the file. The
   override announces itself in the error log at every start instead.
+* **The sections of `hMailServer.ini` that are not settings are not recorded.**
+  Changing the administrator password or its second factor (`[Security]`), or a
+  folder in `[Directories]`, writes the file and nothing else. Those sections are
+  how the server is reached before there is a database — the setup wizard writes
+  them with none to record into — so recording them needs a decision about that
+  case first.
 * **A folder permission's row names the folder and the account by id**
   (`aclsharefolderid`, `aclpermissionaccountid`), because those are the columns
   the statement carries.
