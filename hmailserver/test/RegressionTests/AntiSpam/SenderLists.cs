@@ -368,6 +368,18 @@ namespace RegressionTests.AntiSpam
          {
             StringAssert.Contains("\"" + path + "\"", document, "The OpenAPI document must describe " + path + ".");
          }
+
+         // Described is not enough: the Deck JSON.parses this document to build every
+         // form it has. This unit's paths used to be appended without the comma that
+         // joins them to the paths before and with one too many after, so the text
+         // held every path and the document was not JSON. The suite has no JSON
+         // parser, so the two joins are checked where they break.
+         StringAssert.Contains(",\"/api/v1/sender-list\":{", document,
+            "The sender-list paths must be joined to the path before them with a comma.");
+         StringAssert.DoesNotContain("}\"/api/", document,
+            "A path must never follow the end of the previous one without a comma; the document would not be JSON.");
+         StringAssert.DoesNotContain(",,\"/api/", document,
+            "A path must never follow two commas; the document would not be JSON.");
       }
 
       // ---- helpers ---------------------------------------------------------

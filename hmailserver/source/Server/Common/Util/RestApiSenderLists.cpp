@@ -379,8 +379,12 @@ namespace
       return bridge.respond(200, "{\"deleted\":true}", "");
    }
 
+   // Begins with a comma and does not end with one, as every piece that
+   // HandleOpenApi_ appends does: it goes after another path, and the path after
+   // it brings its own comma. The other way round the document the Deck builds
+   // its forms from was not JSON, and the Deck's JSON.parse of it threw.
    const char *const SenderListPaths =
-      "\"/api/v1/sender-list\":{"
+      ",\"/api/v1/sender-list\":{"
       "\"get\":{\"summary\":\"The server's allow and block list\",\"description\":\"Every address and domain the server has been told is wanted, or is not, for every account. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. An entry covers a message when it matches the envelope sender or the address in the From header; a message with the null sender is never decided by any list. The account's own list is consulted first, then its domain's, then this one, and the nearest scope that says anything is the only one that decides - see the sender-list documentation. Each entry: id, scope, value, blocked, reason, expires, expires_time, expired, created.\",\"responses\":{\"200\":{\"description\":\"scope, items\"}}},"
       "\"post\":{\"summary\":\"Add an entry to the server's list\",\"description\":\"Body: value (an address or a domain; required), blocked (true to block, false - the default - to allow), reason (a note, at most 255 characters), expires (default false) and expires_time (YYYY-MM-DD HH:MM:SS, required when expires is true). A value this list already holds is rewritten rather than duplicated, and the answer is then 200 rather than 201.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"},\"blocked\":{\"type\":\"boolean\"},\"reason\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_time\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"The entry\"},\"200\":{\"description\":\"The entry, which replaced one with the same value\"},\"400\":{\"description\":\"A value refused, with the reason in error\"}}}},"
       "\"/api/v1/sender-list/{id}\":{"
@@ -400,7 +404,7 @@ namespace
       "\"delete\":{\"summary\":\"Remove one of the signed-in account's entries\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"Not this account's entry\"}}}},"
       "\"/api/v1/me/quarantine-digest\":{"
       "\"get\":{\"summary\":\"Whether the quarantine digest reaches the signed-in account\",\"description\":\"available says whether the account's domain sends one at all; hour is when; enabled is false when this account has asked to stop. last_sent is when the last one went, empty when none has.\",\"responses\":{\"200\":{\"description\":\"available, enabled, hour, last_sent\"}}},"
-      "\"put\":{\"summary\":\"Start or stop the digest for the signed-in account\",\"description\":\"Body: enabled. Only the account's own delivery is affected: mail is still held either way, and the Held mail page still shows it. An account cannot switch the digest on for a domain that does not send one.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing or not a boolean\"}}}},";
+      "\"put\":{\"summary\":\"Start or stop the digest for the signed-in account\",\"description\":\"Body: enabled. Only the account's own delivery is affected: mail is still held either way, and the Held mail page still shows it. An account cannot switch the digest on for a domain that does not send one.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing or not a boolean\"}}}}";
 }
 
 namespace HM
