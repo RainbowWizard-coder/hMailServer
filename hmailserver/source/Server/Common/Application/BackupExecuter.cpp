@@ -35,6 +35,7 @@
 #include "Reinitializator.h"
 
 #include "../SQL/DatabaseUnavailableMarker.h"
+#include "../AntiSpam/DKIM/DkimRotation.h"
 
 #include "../../IMAP/IMAPConfiguration.h"
 
@@ -1048,6 +1049,15 @@ namespace HM
          // drop the domain folders from the data directory. If we do this
          // in the wrong order, we'll hence first restore the data directory
          // and then drop it.
+         //
+         // The key files a DKIM key rotation generated are the exception, for as
+         // long as this block runs - the delete below and the one XMLLoad begins
+         // with. The domains the backup puts back name the same files, and a
+         // restore that does not bring the data directory back has no way to put a
+         // deleted private key back: its domain would go on naming a file that no
+         // longer exists, for a record already published.
+         DkimRotation::KeepKeysOnDomainDelete keepRotationKeys;
+
          std::shared_ptr<Domains> pDomains = std::shared_ptr<Domains>(new Domains);
 
          pDomains->Refresh();

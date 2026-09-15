@@ -357,16 +357,21 @@ namespace HM
             return false;
 
          // The key files the domain's DKIM rotation generated go with it, as its
-         // mail store does. Before the row, because the rotation's row cascades
-         // from it and is what says which files the rotation made; a key file an
-         // administrator supplied is left where it is.
-         DkimRotation::OnDomainDeleted(iDomainID);
+         // mail store does. Which files those are is read before the row goes,
+         // because the rotation's row cascades from it and is what says which files
+         // the rotation made; they are removed only after the delete has succeeded,
+         // so a delete that fails leaves a domain that can still sign. A key file an
+         // administrator supplied is left where it is, and a restore - which deletes
+         // every domain before it loads the backup's - removes none.
+         const DkimRotation::DeletedDomainKeys rotationKeys = DkimRotation::KeysOfDomainBeingDeleted(iDomainID);
 
          SQLCommand command("delete from hm_domains where domainid = @DOMAINID");
          command.AddParameter("@DOMAINID", iDomainID);
 
          if (!Application::Instance()->GetDBManager()->Execute(command))
             return false;
+
+         DkimRotation::RemoveKeysOfDeletedDomain(rotationKeys);
 
          // Only once the domain is definitely gone. Doing this first would
          // disable aliases and switch off forwarding for a domain that then

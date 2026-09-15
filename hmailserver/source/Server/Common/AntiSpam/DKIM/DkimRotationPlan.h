@@ -143,6 +143,17 @@ namespace HM
       // first sighting records now; anything but a match forgets the sighting.
       static void ApplyNextCheck(State &state, int status, __int64 now);
 
+      // What the dkim.rotation.stalled alert counts for one domain. waiting: a next
+      // key whose record has not been seen for thresholdDays since it was made,
+      // measured to the later of now and the rotation's own last look at it (a pass
+      // run with the clock moved forward looked at a later moment). failed: the last
+      // attempt to move the rotation failed, and the rotation is running - the
+      // schedule on, or a next or retiring selector in flight. A failed Rotate now on
+      // a domain with the schedule off and nothing staged stays in the status
+      // document, but nothing will ever try it again or clear it, so it is not an
+      // alert that could only ever stay raised.
+      static void Stalled(const State &state, bool scheduleOn, __int64 now, int thresholdDays, bool &waiting, bool &failed);
+
       // A selector is DNS labels of lower-case letters, digits and hyphens (never at
       // either end of a label), joined by dots, each label at most 63 characters and
       // the whole at most 63 - short enough that selector._domainkey.domain stays a

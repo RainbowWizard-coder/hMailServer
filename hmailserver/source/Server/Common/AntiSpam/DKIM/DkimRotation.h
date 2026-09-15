@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 namespace HM
 {
    class Domain;
@@ -26,8 +28,15 @@ namespace HM
    // THE CLOCK. Every entry point takes now. The scheduled task passes time(nullptr);
    // Utilities.RunDkimRotation and POST /api/v1/dkim/rotation/run pass it with a
    // number of seconds added, which is how the regression suite walks a rotation of
-   // three days and a week in a few seconds. Nothing is left set by that: the offset
-   // is one call's.
+   // three days and a week in a few seconds. The offset itself is one call's, but
+   // what that pass does is not: a switch or a retire it makes is real and early,
+   // and every time it records - a first sighting, the moment a key became current
+   // or started retiring, a check - is the moved clock's and stays in the row. The
+   // real-clock passes after it read those times as they are, so a sighting it
+   // recorded makes the switch wait the offset longer, a switch it made holds the
+   // next rotation and the retiring slot back by the offset, and a retire it made
+   // has already dropped the old selector. That is a test's tool, and the IDL, the
+   // OpenAPI document and both command-line clients say so.
    //
    // THE WRITES, AND WHY IN THAT ORDER. SQL Server Compact has no transactions
    // (PersistentDomain::DeleteObject says so), so a switch is two writes that cannot
@@ -40,9 +49,11 @@ namespace HM
    //
    // WHAT IS DELETED. Only a key file the rotation generated (a flag no interface can
    // set), inside <DataDirectory>/DKIM, that parses as a private key, and that no
-   // domain's primary or secondary and no other rotation's retiring slot names. A key
-   // file an administrator supplied is left where it is, which is what the manual
-   // walk has always done, and the status says so.
+   // domain's primary or secondary - the retiring domain's own included - and no
+   // other rotation's retiring slot names. A key file an administrator supplied is
+   // left where it is, which is what the manual walk has always done, and the status
+   // says so. A restore deletes every domain before it loads the backup's, and
+   // deletes no key file doing it (KeepKeysOnDomainDelete).
    //
    // WHAT IS NOT AN ERROR. A record not found, a record that differs, a lookup that
    // failed: those are the ordinary states of a rotation waiting for somebody to
@@ -111,9 +122,44 @@ namespace HM
       // rotation generated for it is removed. Signing is not touched.
       static Result Cancel(__int64 domainId, __int64 now);
 
-      // Called by PersistentDomain::DeleteObject before the domain's row goes: the
-      // key files the rotation generated for it are removed, under the guard above.
-      static void OnDomainDeleted(__int64 domainId);
+      // The key files a domain's rotation generated, as PersistentDomain::DeleteObject
+      // collects them before the domain's row goes (the rotation's row cascades
+      // from it, and is what says which files the rotation made) and hands them
+      // back once the delete has succeeded. Empty while a KeepKeysOnDomainDelete is
+      // alive on this thread.
+      struct DeletedDomainKeys
+      {
+         DeletedDomainKeys() : domain_id(0) {}
+
+         __int64 domain_id;
+         std::vector<String> files;
+      };
+
+      static DeletedDomainKeys KeysOfDomainBeingDeleted(__int64 domainId);
+
+      // Removes them, under the guard above, once the domain is gone. Never before:
+      // a delete that fails leaves a domain still signing with its files.
+      static void RemoveKeysOfDeletedDomain(const DeletedDomainKeys &keys);
+
+      // While one of these is alive on the thread, deleting a domain removes no key
+      // file. BackupExecuter holds one across a restore, which deletes every domain
+      // before it loads the backup's: the domains it puts back name the same key
+      // files, and a restore without the data directory has no way to put a
+      // deleted private key back.
+      class KeepKeysOnDomainDelete
+      {
+      public:
+         KeepKeysOnDomainDelete();
+         ~KeepKeysOnDomainDelete();
+
+         static bool Active();
+
+      private:
+         KeepKeysOnDomainDelete(const KeepKeysOnDomainDelete &);
+         KeepKeysOnDomainDelete &operator=(const KeepKeysOnDomainDelete &);
+
+         static thread_local int depth_;
+      };
 
       // Whether the rotation manages this domain's keys: its schedule is on, or a
       // next or retiring selector is in flight.
@@ -128,9 +174,10 @@ namespace HM
       static bool RefusesKeyChange(const Domain &stored, const Domain &proposed, String &reason);
 
       // For the dkim.rotation.stalled alert: every domain whose next key's record has
-      // not been seen for thresholdDays, or whose last attempt to move its rotation
-      // failed. Stored state only - no lookup. True when there is one; summary names
-      // them.
+      // not been seen for thresholdDays, or whose rotation is running (schedule on,
+      // or a next or retiring selector in flight) and whose last attempt to move it
+      // failed - DkimRotationPlan::Stalled. Stored state only - no lookup. True when
+      // there is one; summary names them.
       static bool CollectStalled(__int64 now, int thresholdDays, String &summary);
 
       // <DataDirectory>/DKIM, or empty when the data directory is not configured.

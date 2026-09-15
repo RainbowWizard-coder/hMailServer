@@ -328,9 +328,12 @@ namespace HM
          }
       }
 
-      // The whole of the deletion guard. excludeDomainId is a domain whose own
-      // references do not count - the one being deleted.
-      Removal RemoveGeneratedKey(const String &path, bool generated, __int64 excludeDomainId)
+      // The whole of the deletion guard. Every domain's primary and secondary key file
+      // counts, the one whose key is going included: its columns as stored now are
+      // what signs. ownRetiringDomainId is the one retiring slot that does not count -
+      // the row of the domain retiring this very file, which still names it until
+      // the retire is saved, or of a domain already deleted.
+      Removal RemoveGeneratedKey(const String &path, bool generated, __int64 ownRetiringDomainId)
       {
          if (path.IsEmpty())
             return Removed;
@@ -361,7 +364,7 @@ namespace HM
          domains.Refresh();
          for (std::shared_ptr<Domain> domain : domains.GetVector())
          {
-            if (!domain || domain->GetID() == excludeDomainId)
+            if (!domain)
                continue;
 
             const String primary = domain->GetDKIMPrivateKeyFile();
@@ -378,7 +381,7 @@ namespace HM
 
          for (const std::pair<__int64, String> &entry : retiring)
          {
-            if (entry.first == excludeDomainId)
+            if (ownRetiringDomainId > 0 && entry.first == ownRetiringDomainId)
                continue;
             if (SamePath(entry.second, path) || SamePath(Canonical(entry.second), file))
                return KeptInUse;
@@ -452,9 +455,10 @@ namespace HM
                else
                {
                   // Cancelled outside the rotation. A key the rotation made for it
-                  // never signed anything.
+                  // never signed anything - unless the domain now signs with that
+                  // very file under another selector, which the guard sees.
                   if (removeOrphans)
-                     RemoveGeneratedKey(state.next.key_file, state.next.generated, domain.GetID());
+                     RemoveGeneratedKey(state.next.key_file, state.next.generated, 0);
                }
 
                state.next = Slot();
@@ -465,7 +469,7 @@ namespace HM
          else if (secondary != state.next.selector || !SamePath(secondaryFile, state.next.key_file))
          {
             if (removeOrphans && !state.next.IsEmpty() && !SamePath(state.next.key_file, secondaryFile))
-               RemoveGeneratedKey(state.next.key_file, state.next.generated, domain.GetID());
+               RemoveGeneratedKey(state.next.key_file, state.next.generated, 0);
 
             Slot adopted;
             adopted.selector = secondary;
@@ -932,8 +936,12 @@ namespace HM
          if (state.retiring.IsEmpty())
             return Refuse(409, _T("No selector is retiring."), "nothing_retiring", *domain, state, now);
 
+         // This domain's own row still names the file in its retiring slot - the
+         // switch saved it there, and nothing saves the row again before the retire
+         // below - so that one slot is not counted as a use. Its primary and
+         // secondary still are, and so is every other domain's.
          const Slot old = state.retiring;
-         const Removal removal = RemoveGeneratedKey(old.key_file, old.generated, 0);
+         const Removal removal = RemoveGeneratedKey(old.key_file, old.generated, domain->GetID());
 
          state.retired_selector = old.selector;
          state.retired_at = now;
@@ -1019,6 +1027,11 @@ namespace HM
             result = Refuse(500, _T("The rotation state could not be read."));
             return false;
          }
+
+         // Not a column of the row: the domain's own switch, read with it, so that
+         // the schedule starts nothing for a domain that is off (a rotation already
+         // in flight is still carried to its end).
+         state.domain_active = domain->GetIsActive();
 
          changed = Reconcile(*domain, state, now, removeOrphans);
          return true;
@@ -1287,15 +1300,39 @@ namespace HM
       return result;
    }
 
-   void
-   DkimRotation::OnDomainDeleted(__int64 domainId)
+   thread_local int DkimRotation::KeepKeysOnDomainDelete::depth_ = 0;
+
+   DkimRotation::KeepKeysOnDomainDelete::KeepKeysOnDomainDelete()
    {
+      depth_++;
+   }
+
+   DkimRotation::KeepKeysOnDomainDelete::~KeepKeysOnDomainDelete()
+   {
+      depth_--;
+   }
+
+   bool
+   DkimRotation::KeepKeysOnDomainDelete::Active()
+   {
+      return depth_ > 0;
+   }
+
+   DkimRotation::DeletedDomainKeys
+   DkimRotation::KeysOfDomainBeingDeleted(__int64 domainId)
+   {
+      DeletedDomainKeys keys;
+      keys.domain_id = domainId;
+
+      if (KeepKeysOnDomainDelete::Active())
+         return keys;
+
       boost::lock_guard<boost::recursive_mutex> guard(Mutex());
 
       State state;
       bool exists = false;
       if (!PersistentDkimRotation::Read(domainId, state, exists) || !exists)
-         return;
+         return keys;
 
       std::shared_ptr<Domain> domain = ReadDomain(domainId);
 
@@ -1304,14 +1341,32 @@ namespace HM
       // from its domain does not get to delete what the domain no longer points at.
       if (domain)
       {
-         if (state.current.generated && SamePath(state.current.key_file, domain->GetDKIMPrivateKeyFile()))
-            RemoveGeneratedKey(state.current.key_file, true, domainId);
+         if (state.current.generated && !state.current.key_file.IsEmpty() && SamePath(state.current.key_file, domain->GetDKIMPrivateKeyFile()))
+            keys.files.push_back(state.current.key_file);
 
-         if (state.next.generated && SamePath(state.next.key_file, domain->GetDKIMSecondaryPrivateKeyFile()))
-            RemoveGeneratedKey(state.next.key_file, true, domainId);
+         if (state.next.generated && !state.next.key_file.IsEmpty() && SamePath(state.next.key_file, domain->GetDKIMSecondaryPrivateKeyFile()))
+            keys.files.push_back(state.next.key_file);
       }
 
-      RemoveGeneratedKey(state.retiring.key_file, state.retiring.generated, domainId);
+      if (state.retiring.generated && !state.retiring.key_file.IsEmpty())
+         keys.files.push_back(state.retiring.key_file);
+
+      return keys;
+   }
+
+   void
+   DkimRotation::RemoveKeysOfDeletedDomain(const DeletedDomainKeys &keys)
+   {
+      if (keys.files.empty())
+         return;
+
+      boost::lock_guard<boost::recursive_mutex> guard(Mutex());
+
+      // The domain's row is gone, and its rotation's row with it (ON DELETE CASCADE);
+      // should a backend have left the rotation's row behind, its retiring slot is
+      // still not a use. Every other domain's columns and retiring slot are.
+      for (const String &file : keys.files)
+         RemoveGeneratedKey(file, true, keys.domain_id);
    }
 
    bool
@@ -1365,26 +1420,26 @@ namespace HM
       if (!PersistentDkimRotation::ListAll(rows))
          return false;
 
-      if (thresholdDays < 1)
-         thresholdDays = 1;
-
       int count = 0;
       for (const std::pair<__int64, State> &row : rows)
       {
          const State &state = row.second;
 
-         // Measured to the rotation's own last look when that is later than now:
-         // a pass run with the clock moved forward has looked at a later moment
-         // than the wall clock, and what it saw then is what is stuck.
-         const __int64 lookedAt = state.next.checked > now ? state.next.checked : now;
-         const bool waitingTooLong = !state.next.IsEmpty() && state.next_first_seen <= 0 &&
-                                     lookedAt - state.next.since >= (__int64) thresholdDays * Plan::SecondsPerDay;
-         const bool failed = !state.last_error.IsEmpty() && state.last_error_time > 0;
+         // Asked first as if the schedule were on, which is the most it can count;
+         // the domain is read only for a row that might count, and then asked again
+         // with the schedule the domain really has.
+         bool waitingTooLong = false, failed = false;
+         Plan::Stalled(state, true, now, thresholdDays, waitingTooLong, failed);
 
          if (!waitingTooLong && !failed)
             continue;
 
          std::shared_ptr<Domain> domain = ReadDomain(row.first);
+         Plan::Stalled(state, domain && domain->GetDKIMRotationEnabled(), now, thresholdDays, waitingTooLong, failed);
+
+         if (!waitingTooLong && !failed)
+            continue;
+
          const String name = domain ? domain->GetName() : Formatter::Format(_T("(domain {0})"), row.first);
 
          String line;

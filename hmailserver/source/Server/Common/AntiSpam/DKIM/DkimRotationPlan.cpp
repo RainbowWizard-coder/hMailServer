@@ -138,6 +138,22 @@ namespace HM
       }
    }
 
+   void
+   DkimRotationPlan::Stalled(const State &state, bool scheduleOn, __int64 now, int thresholdDays, bool &waiting, bool &failed)
+   {
+      if (thresholdDays < 1)
+         thresholdDays = 1;
+
+      const bool hasNext = !state.next.IsEmpty();
+      const bool running = scheduleOn || hasNext || !state.retiring.IsEmpty();
+
+      const __int64 lookedAt = state.next.checked > now ? state.next.checked : now;
+      waiting = hasNext && state.next_first_seen <= 0 &&
+                lookedAt - state.next.since >= (__int64) thresholdDays * SecondsPerDay;
+
+      failed = running && !state.last_error.IsEmpty() && state.last_error_time > 0;
+   }
+
    DkimRotationPlan::Decision
    DkimRotationPlan::Decide(const Policy &policy, const State &state, __int64 now)
    {
@@ -546,6 +562,46 @@ namespace HM
 
          Plan::Decision both = Plan::Decide(policy, state, T + 7 * day);
          Require(both.retire_now && both.switch_now, "Retiring the old selector did not free the slot for the switch in the same pass.");
+      }
+
+      // ---- what the dkim.rotation.stalled alert counts
+      {
+         bool waiting = false, failed = false;
+
+         // A next key unseen: not before the threshold, and from the threshold on.
+         Plan::State unseen;
+         unseen.current = MakeSlot("s1", T, Plan::StatusMatches);
+         unseen.next = MakeSlot("s2", T, Plan::StatusNotFound);
+         Plan::Stalled(unseen, false, T + 7 * day - 1, 7, waiting, failed);
+         Require(!waiting && !failed, "A next key unseen for one second less than the threshold was counted as stalled.");
+         Plan::Stalled(unseen, false, T + 7 * day, 7, waiting, failed);
+         Require(waiting && !failed, "A next key unseen for the whole threshold was not counted as stalled.");
+
+         // Measured to the rotation's own later look, and never once it has been seen.
+         unseen.next.checked = T + 8 * day;
+         Plan::Stalled(unseen, false, T, 7, waiting, failed);
+         Require(waiting, "A pass with the clock moved past the threshold was not what the alert measured to.");
+         unseen.next_first_seen = T + 8 * day;
+         Plan::Stalled(unseen, false, T + 30 * day, 7, waiting, failed);
+         Require(!waiting, "A next key whose record has been seen was counted as stalled.");
+
+         // A failure counts while the rotation runs...
+         Plan::State broken;
+         broken.current = MakeSlot("s1", T, Plan::StatusMatches);
+         broken.last_error = _T("The DKIM key directory could not be created.");
+         broken.last_error_time = T;
+         Plan::Stalled(broken, true, T, 7, waiting, failed);
+         Require(failed && !waiting, "A failed rotation with the schedule on was not counted.");
+
+         Plan::State retiring = broken;
+         retiring.retiring = MakeSlot("s0", T, Plan::StatusMatches);
+         Plan::Stalled(retiring, false, T, 7, waiting, failed);
+         Require(failed, "A failed rotation with an old selector still retiring was not counted.");
+
+         // ...and not on a domain with the schedule off and nothing in flight, where
+         // nothing would ever try again or clear it.
+         Plan::Stalled(broken, false, T + 3650 * day, 7, waiting, failed);
+         Require(!failed && !waiting, "A failed Rotate now on a domain with the schedule off and nothing staged was counted as stalled.");
       }
 
       // ---- selectors
