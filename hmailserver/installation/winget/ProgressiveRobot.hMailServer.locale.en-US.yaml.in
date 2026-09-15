@@ -52,8 +52,8 @@ Description: |-
 
   This package installs the server, the Control Panel and the setup tools. An unattended
   install configures the embedded database and leaves the administrator password unset:
-  set one from the Control Panel, or with `hMailServer.exe --set-admin-password`, before the
-  server is reachable from anywhere but the machine itself.
+  set one from the Control Panel before the server is reachable from anywhere but the
+  machine itself.
 Moniker: hmailserver
 Tags:
   - mail

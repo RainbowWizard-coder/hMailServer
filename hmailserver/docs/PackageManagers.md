@@ -40,13 +40,9 @@ database.
 
 **An unattended install leaves the administrator password unset.** The wizard
 page that asks for one is skipped, and neither package invents a password. Set
-one before the server is reachable from anywhere but the machine itself:
-
-```powershell
-& "C:\Program Files\hMailServer\Bin\hMailServer.exe" --set-admin-password
-```
-
-or open the Control Panel from the Start menu.
+one before the server is reachable from anywhere but the machine itself: open
+the Control Panel from the Start menu. `hmailserver --set-admin-password` is the
+Linux server's command; `hMailServer.exe` on Windows has no such option.
 
 Uninstalling (`winget uninstall`, `choco uninstall`) runs the installer's own
 uninstaller. It does not delete the message store, the database or

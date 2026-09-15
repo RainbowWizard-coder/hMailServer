@@ -225,8 +225,8 @@ Building the standby
    store, certificates and DKIM keys.
 4. Record the DPAPI credential list (routes, fetch accounts, per-domain
    relays) somewhere that survives the primary.
-5. Set the administrator password on the standby as well
-   (`--set-admin-password`, or the Control Panel). It lives in
+5. Set the administrator password on the standby as well (the Control Panel on
+   Windows, `sudo hmailserver --set-admin-password` on Linux). It lives in
    `hMailServer.ini` and not in the database, so it does not travel; without it
    the standby has no REST API and no COM authentication when you most need
    both. Found by the rehearsal below, where the standby came up mute. Copy
@@ -327,8 +327,8 @@ user name. Two things did not travel, and both are worth knowing before a real
 failover rather than during one:
 
 * **The administrator password.** It lives in `hMailServer.ini`, not in the
-  database. Until `--set-admin-password` (or the Control Panel) sets it on the
-  standby, the standby has no REST API and no COM authentication - the API
+  database. Until the Control Panel (or `hmailserver --set-admin-password` on
+  Linux) sets it on the standby, the standby has no REST API and no COM authentication - the API
   refuses to start at all with an empty administrator password. The failover
   checklist above now says so.
 * **The route's relay password.** The route arrived; its password did not. The
