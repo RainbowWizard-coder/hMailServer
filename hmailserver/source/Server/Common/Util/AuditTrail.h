@@ -23,11 +23,16 @@
 //             audited table, so a setting is recorded once, with its old value
 //             and its new one, and not twice.
 //
-//   events    RecordEvent, for the administrative change that is neither: an
-//             account let back in clears an in-memory lockout and a POP3
-//             mailbox lock, and writes no row and no setting at all. Called
-//             where that change is made, at the two places it can be made -
-//             POST /api/v1/accounts/{address}/unlock and Application.UnlockAccount.
+//   events    RecordEvent, for the administrative change that is neither. An
+//             unlock, in every form it takes: an account let back in clears
+//             an in-memory lockout and a POP3 mailbox lock, and writes no row
+//             and no setting at all; Account.UnlockMailbox clears the POP3 lock
+//             alone; and clearing the logon-failure list deletes rows of
+//             hm_logon_failures, which is traffic and not an audited table.
+//             Called where each change is made - POST
+//             /api/v1/accounts/{address}/unlock and Application.UnlockAccount,
+//             Account.UnlockMailbox, and POST /api/v1/settings/logon-failures/clear
+//             and Settings.ClearLogonFailureList.
 //
 // Nothing else may call Record*: build/check-audit-choke-point.py fails the
 // build if it does, and fails it if any of those call sites goes away.
@@ -151,15 +156,18 @@ namespace HM
       void RecordStatement(const SQLCommand &command, bool succeeded);
       void RecordSettingChange(const String &name, const String &oldValue, const String &newValue);
 
-      // An administrative change that lands in no table and no setting, and so
-      // passes neither chokepoint: an account unlocked. Recorded exactly as the
-      // other two record - only with an actor installed on the calling thread,
-      // only while recording is on (or being switched), one line per field, and
-      // with the role the credential acted under at the end of the detail. The
-      // caller says what it did in the trail's own terms: objectType as
-      // AuditedTable spells it ("account"), objectName the name a person knows
-      // the object by, action a past-tense verb ("unlocked"). Named only at the
-      // call sites build/check-audit-choke-point.py lists.
+      // An administrative change that lands in no audited table and no
+      // setting, and so passes neither chokepoint: an account unlocked, a
+      // mailbox lock cleared, the logon-failure list cleared. Recorded exactly
+      // as the other two record - only with an actor installed on the calling
+      // thread, only while recording is on (or being switched), one line per
+      // field, and with the role the credential acted under at the end of the
+      // detail. The caller says what it did in the trail's own terms:
+      // objectType as AuditedTable spells it ("account") or, for a thing no
+      // table names, a noun of its own ("logon failures"), objectName the name
+      // a person knows the object by, action a past-tense verb ("unlocked",
+      // "cleared"). Named only at the call sites
+      // build/check-audit-choke-point.py lists.
       void RecordEvent(const String &objectType, const String &objectName, const String &action, const String &detail);
 
       bool Query(const Filter &filter, std::vector<Entry> &entries, int &total);

@@ -44,7 +44,8 @@ namespace RegressionTests.API
    ///        object through a permission on a folder of its own, closed;
    ///      * and the audit trail, which records a change made under a role with
    ///        the kind the role gives it and the role's name, over REST and over
-   ///        COM, and which the auditor reads and no API key does.
+   ///        COM, which records every way a lockout is lifted, and which the
+   ///        auditor reads and no API key does.
    /// </summary>
    [TestFixture]
    public class Roles : TestFixtureBase
@@ -982,7 +983,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("An unlock changes no row and no setting and is on the audit trail all the same: a help desk's unlock over REST and over COM is a row naming the account, the action unlocked and the role, under the help desk's own name")]
+      [Description("An unlock changes no row and no setting and is on the audit trail all the same: a help desk's unlock over REST and over COM is a row naming the account, the action unlocked and the role, under the help desk's own name; the POP3 mailbox lock cleared through Account.UnlockMailbox is a row under the administrator; and an account clearing its own mailbox lock is allowed and is nobody's change")]
       public void AnUnlockIsOnTheAuditTrail()
       {
          SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
@@ -998,6 +999,20 @@ namespace RegressionTests.API
          Assert.IsNotNull(desk.Authenticate("helen@example.test", AccountPassword));
          desk.UnlockAccount("user@example.test");
 
+         // The POP3 mailbox lock on its own, through the account object - which
+         // until 15 September 2026 asked nothing and recorded nothing.
+         AccountOverCom("user@example.test").UnlockMailbox();
+
+         // An account clearing its own lock: allowed, and not an administrative
+         // change, so not on the record. (The only other credential that holds
+         // another account's object over COM is a domain administrator of its
+         // domain, which holds unlock_account; the refusal in UnlockMailbox is
+         // there for the day a narrower one does.)
+         var self = new Application();
+         Account own = self.Authenticate("user@example.test", AccountPassword);
+         Assert.IsNotNull(own);
+         own.UnlockMailbox();
+
          (int status, string body) trail = Admin("GET", "/api/v1/audit?action=unlocked&limit=100");
          Assert.AreEqual(200, trail.status, trail.body);
 
@@ -1005,18 +1020,69 @@ namespace RegressionTests.API
          {
             List<JsonElement> unlocks = document.RootElement.GetProperty("entries").EnumerateArray().Select(e => e.Clone()).ToList();
 
-            Assert.AreEqual(2, unlocks.Count,
-               "One unlock over REST and one over COM, so two unlocked rows - an unlock writes no row and no setting, so without an explicit record there are none. Trail: " + trail.body);
+            Assert.AreEqual(3, unlocks.Count,
+               "One unlock over REST, one over COM and one mailbox lock cleared by the administrator, so three unlocked rows - an unlock writes no row and no setting, so without an explicit record there are none; and the account's own unlock is not a fourth. Trail: " + trail.body);
             Assert.IsTrue(unlocks.All(e => e.GetProperty("object_type").GetString() == "account" &&
-                                           e.GetProperty("object").GetString() == "user@example.test" &&
-                                           e.GetProperty("detail").GetString().Contains("[role: helpdesk]")),
+                                           e.GetProperty("object").GetString() == "user@example.test"),
                "Trail: " + trail.body);
+            Assert.AreEqual(2, unlocks.Count(e => e.GetProperty("detail").GetString().Contains("[role: helpdesk]")), "Trail: " + trail.body);
+
+            JsonElement mailbox = unlocks.Single(e => e.GetProperty("detail").GetString().StartsWith("the POP3 mailbox lock was cleared"));
+            Assert.AreEqual("Administrator", mailbox.GetProperty("actor").GetString(), "Row: " + mailbox);
+            Assert.AreEqual("COM", mailbox.GetProperty("interface").GetString());
+            StringAssert.Contains("[role: serveradmin]", mailbox.GetProperty("detail").GetString());
          }
 
          JsonElement restRow = AuditRow(trail.body, "account:helen@example.test", "REST");
          Assert.AreEqual("account", restRow.GetProperty("actor_type").GetString());
          JsonElement comRow = AuditRow(trail.body, "helen@example.test", "COM");
          Assert.AreEqual("account", comRow.GetProperty("actor_type").GetString());
+
+         (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");
+         Assert.AreEqual(200, verified.status, verified.body);
+         StringAssert.Contains("\"intact\":true", verified.body);
+      }
+
+      [Test]
+      [Description("Clearing the logon-failure list deletes rows of a table that is traffic, not configuration, and is on the audit trail all the same: over REST by the administrator and by a help desk, and over COM, each a row with the object type logon failures and the action cleared, under the credential and its role")]
+      public void ClearingTheLogonFailureListIsOnTheAuditTrail()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         Assign("helen@example.test", "helpdesk", "");
+
+         _application.Database.ExecuteSQL("delete from hm_audit");
+
+         (int status, string body) overRest = Admin("POST", "/api/v1/settings/logon-failures/clear", "{}");
+         Assert.AreEqual(200, overRest.status, overRest.body);
+
+         // The route is classified with the unlock, so a help desk reaches it.
+         (int status, string body) byTheDesk = AsAccount("helen@example.test", "POST", "/api/v1/settings/logon-failures/clear", "{}");
+         Assert.AreEqual(200, byTheDesk.status, byTheDesk.body);
+
+         _settings.ClearLogonFailureList();
+
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?action=cleared&limit=100");
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         {
+            List<JsonElement> cleared = document.RootElement.GetProperty("entries").EnumerateArray().Select(e => e.Clone()).ToList();
+
+            Assert.AreEqual(3, cleared.Count,
+               "Two clears over REST and one over COM, so three cleared rows - hm_logon_failures is not an audited table, so without an explicit record there are none. Trail: " + trail.body);
+            Assert.IsTrue(cleared.All(e => e.GetProperty("object_type").GetString() == "logon failures" &&
+                                           e.GetProperty("object").GetString() == "every recorded failure"),
+               "Trail: " + trail.body);
+         }
+
+         JsonElement restRow = AuditRow(trail.body, "administrator", "REST");
+         Assert.AreEqual("administrator", restRow.GetProperty("actor_type").GetString());
+         StringAssert.Contains("[role: serveradmin]", restRow.GetProperty("detail").GetString());
+         JsonElement deskRow = AuditRow(trail.body, "account:helen@example.test", "REST");
+         Assert.AreEqual("account", deskRow.GetProperty("actor_type").GetString());
+         StringAssert.Contains("[role: helpdesk]", deskRow.GetProperty("detail").GetString());
+         JsonElement comRow = AuditRow(trail.body, "Administrator", "COM");
+         Assert.AreEqual("administrator", comRow.GetProperty("actor_type").GetString());
 
          (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");
          Assert.AreEqual(200, verified.status, verified.body);

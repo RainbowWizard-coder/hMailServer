@@ -663,8 +663,25 @@ STDMETHODIMP InterfaceAccount::UnlockMailbox()
       if (!object_)
          return GetAccessDenied();
 
-      __int64 iAccountID = object_->GetID();
-      POP3Sessions::Instance()->Unlock(iAccountID);
+      // The account's own lock is its own to clear - a POP3 session it dropped
+      // is not an administrative matter - and anybody else's needs what an
+      // unlock needs, in the account's domain, exactly as Application.UnlockAccount
+      // and POST /api/v1/accounts/{address}/unlock ask it. Until 15 September
+      // 2026 this asked nothing at all.
+      if (authentication_->GetAccountID() != object_->GetID() &&
+          !authentication_->AllowsForDomain(HM::RolePermission::UnlockAccount, HM::StringParser::ExtractDomain(object_->GetAddress())))
+      {
+         return authentication_->GetAccessDenied();
+      }
+
+      POP3Sessions::Instance()->Unlock(object_->GetID());
+
+      // The lock is held in memory, so neither audit chokepoint sees this; it is
+      // recorded here, under the actor the question above installed. An account
+      // clearing its own lock installs none and is recorded as nothing, which is
+      // what it is.
+      HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("unlocked"),
+         _T("the POP3 mailbox lock was cleared"));
    
       return S_OK;
    }

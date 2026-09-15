@@ -369,7 +369,7 @@ namespace HM
          "\"parameters\":["
          "{\"name\":\"actor\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"Substring of the actor, so key: finds every API key.\"},"
          "{\"name\":\"object_type\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"domain, account, setting, rule and so on.\"},"
-         "{\"name\":\"action\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"created, updated or deleted; unlocked for an account let back in.\"},"
+         "{\"name\":\"action\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"created, updated or deleted; unlocked for an account let back in; cleared for the logon-failure list.\"},"
          "{\"name\":\"since\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Seconds since the epoch, inclusive.\"},"
          "{\"name\":\"until\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Seconds since the epoch, inclusive.\"},"
          "{\"name\":\"limit\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Rows to return, 1 to 1000. Default 100.\"},"
