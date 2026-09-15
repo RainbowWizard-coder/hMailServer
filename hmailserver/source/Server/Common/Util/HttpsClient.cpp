@@ -16,7 +16,14 @@
 #include <boost/asio/ssl.hpp>
 
 #include <chrono>
+#include <condition_variable>
+#include <cstdlib>
+#include <memory>
+#include <mutex>
+#include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -27,15 +34,219 @@ namespace HM
 {
    namespace
    {
+      typedef std::chrono::steady_clock Clock;
+
+      // The moment a step - or, for Request, the whole request - must be over by.
+      Clock::time_point DeadlineIn_(int timeout_seconds)
+      {
+         return Clock::now() + std::chrono::seconds(timeout_seconds > 0 ? timeout_seconds : 20);
+      }
+
+      // Waits, until deadline, for the one asynchronous operation just started on
+      // socket (or on a TLS stream over it) to call its handler, which sets finished.
+      //
+      // Every step of a request runs this way rather than synchronously, because a
+      // synchronous step has no deadline that holds everywhere. SO_RCVTIMEO bounds one
+      // read and never the request, so an endpoint that sent a byte every few seconds
+      // kept the thread for as long as it liked; POSIX takes it as a timeval and
+      // refused the DWORD this client used to pass; and once an asynchronous connect
+      // has put the socket into Asio's internal non-blocking mode, a synchronous read
+      // on POSIX polls with no timeout at all. The thread waiting is one of the REST
+      // API's four workers, or the one a COM client is blocked on, so "until the peer
+      // lets go" is not an answer.
+      //
+      // On the deadline the socket is closed, which completes the pending operation
+      // with an error, and the context is run until that handler has run, so nothing
+      // is left referring to the caller's frame; then the step is reported as not done
+      // in the time allowed.
+      void AwaitWithin_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket,
+                        const Clock::time_point &deadline, const bool &finished, const char *step)
+      {
+         io.restart();
+         if (Clock::now() < deadline)
+            io.run_until(deadline);
+
+         if (finished)
+            return;
+
+         boost::system::error_code ignored;
+         socket.close(ignored);
+         io.restart();
+         io.run();
+         throw std::runtime_error(std::string(step) + " in the time allowed");
+      }
+
+      template <typename EndpointSequence>
+      void ConnectWithin_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket,
+                          const EndpointSequence &endpoints, const Clock::time_point &deadline)
+      {
+         bool finished = false;
+         boost::system::error_code result;
+
+         // Closing the socket is also what ends the composed operation: it stops
+         // trying the next endpoint once the socket is not open.
+         boost::asio::async_connect(socket, endpoints,
+            [&finished, &result](const boost::system::error_code &ec, const boost::asio::ip::tcp::endpoint &)
+            {
+               result = ec;
+               finished = true;
+            });
+
+         AwaitWithin_(io, socket, deadline, finished, "no connection was made");
+
+         if (result)
+            throw boost::system::system_error(result);
+      }
+
+      template <typename TlsStream>
+      void HandshakeWithin_(boost::asio::io_context &io, TlsStream &stream, const Clock::time_point &deadline)
+      {
+         bool finished = false;
+         boost::system::error_code result;
+
+         stream.async_handshake(boost::asio::ssl::stream_base::client,
+            [&finished, &result](const boost::system::error_code &ec)
+            {
+               result = ec;
+               finished = true;
+            });
+
+         AwaitWithin_(io, stream.next_layer(), deadline, finished, "the TLS handshake did not finish");
+
+         if (result)
+            throw boost::system::system_error(result);
+      }
+
       template <typename Stream>
-      bool ReadWholeResponse_(Stream &stream, size_t max_response_bytes, std::string &raw)
+      void WriteWithin_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, Stream &stream,
+                        const char *data, size_t size, const Clock::time_point &deadline)
+      {
+         bool finished = false;
+         boost::system::error_code result;
+
+         boost::asio::async_write(stream, boost::asio::buffer(data, size),
+            [&finished, &result](const boost::system::error_code &ec, std::size_t)
+            {
+               result = ec;
+               finished = true;
+            });
+
+         AwaitWithin_(io, socket, deadline, finished, "the request was not sent");
+
+         if (result)
+            throw boost::system::system_error(result);
+      }
+
+      // One read of whatever has arrived. error is set as read_some sets it - at the
+      // end of the stream among other things - and the bytes read are returned.
+      template <typename Stream>
+      size_t ReadSomeWithin_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, Stream &stream,
+                             char *data, size_t size, const Clock::time_point &deadline, boost::system::error_code &error)
+      {
+         bool finished = false;
+         size_t bytes = 0;
+
+         stream.async_read_some(boost::asio::buffer(data, size),
+            [&finished, &bytes, &error](const boost::system::error_code &ec, std::size_t transferred)
+            {
+               error = ec;
+               bytes = transferred;
+               finished = true;
+            });
+
+         AwaitWithin_(io, socket, deadline, finished, "the answer was not complete");
+         return bytes;
+      }
+
+      bool PortNumber_(const std::string &port, unsigned short &number)
+      {
+         if (port.empty() || port.size() > 5 || port.find_first_not_of("0123456789") != std::string::npos)
+            return false;
+
+         const unsigned long value = strtoul(port.c_str(), nullptr, 10);
+         if (value > 65535)
+            return false;
+
+         number = (unsigned short) value;
+         return true;
+      }
+
+      // The addresses of host:port, within the deadline.
+      //
+      // A literal address is taken as written, without asking the resolver. A name is
+      // resolved on a thread of its own, which this one waits for until the deadline
+      // and then leaves behind: getaddrinfo cannot be cancelled, and Asio's own
+      // asynchronous resolve runs it on a thread the io_context joins when it is
+      // destroyed, which would wait out a hung lookup just as surely. The thread ends
+      // when the operating system's resolver gives up, and what it writes to is shared
+      // with it, so it may outlive this frame.
+      std::vector<boost::asio::ip::tcp::endpoint> ResolveWithin_(const std::string &host, const std::string &port,
+                                                                 const Clock::time_point &deadline)
+      {
+         boost::system::error_code notLiteral;
+         const boost::asio::ip::address literal = boost::asio::ip::make_address(host, notLiteral);
+         unsigned short portNumber = 0;
+         if (!notLiteral && PortNumber_(port, portNumber))
+            return std::vector<boost::asio::ip::tcp::endpoint>(1, boost::asio::ip::tcp::endpoint(literal, portNumber));
+
+         struct Lookup
+         {
+            std::mutex lock;
+            std::condition_variable done;
+            bool finished = false;
+            boost::system::error_code error;
+            std::vector<boost::asio::ip::tcp::endpoint> endpoints;
+         };
+
+         const std::shared_ptr<Lookup> lookup = std::make_shared<Lookup>();
+
+         std::thread([lookup, host, port]()
+         {
+            boost::system::error_code error;
+            std::vector<boost::asio::ip::tcp::endpoint> endpoints;
+
+            try
+            {
+               boost::asio::io_context io;
+               boost::asio::ip::tcp::resolver resolver(io);
+               for (const auto &entry : resolver.resolve(host, port, error))
+                  endpoints.push_back(entry.endpoint());
+            }
+            catch (const boost::system::system_error &e)
+            {
+               error = e.code();
+            }
+            catch (...)
+            {
+               error = boost::asio::error::no_recovery;
+            }
+
+            std::lock_guard<std::mutex> guard(lookup->lock);
+            lookup->error = error;
+            lookup->endpoints.swap(endpoints);
+            lookup->finished = true;
+            lookup->done.notify_all();
+         }).detach();
+
+         std::unique_lock<std::mutex> guard(lookup->lock);
+         if (!lookup->done.wait_until(guard, deadline, [&lookup]() { return lookup->finished; }))
+            throw std::runtime_error("the host name was not resolved in the time allowed");
+
+         if (lookup->error)
+            throw boost::system::system_error(lookup->error);
+
+         return lookup->endpoints;
+      }
+
+      template <typename ReadSome>
+      bool ReadWholeResponse_(ReadSome read_some, size_t max_response_bytes, std::string &raw)
       {
          char buffer[4096];
          boost::system::error_code errorCode;
 
          for (;;)
          {
-            const size_t bytesRead = stream.read_some(boost::asio::buffer(buffer, sizeof(buffer)), errorCode);
+            const size_t bytesRead = read_some(buffer, sizeof(buffer), errorCode);
             if (bytesRead > 0)
                raw.append(buffer, bytesRead);
 
@@ -74,45 +285,6 @@ namespace HM
          return true;
       }
 
-      // boost::asio::connect with a deadline. The receive and send timeouts below are
-      // set once a socket is connected, and nothing bounded the connect itself: a
-      // host that drops the SYN cost the operating system's own connect timeout,
-      // about 21 seconds on Windows and two minutes on Linux, on whichever thread
-      // asked - a REST worker with a 30-second request of its own, or the Control
-      // Panel's thread while it sets a password. Closing the socket is what ends the
-      // composed operation (it stops trying the next endpoint once the socket is not
-      // open), and the context is run once more so its handler has finished before
-      // the stack it refers to goes away.
-      template <typename EndpointSequence>
-      void ConnectWithin_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket,
-                          const EndpointSequence &endpoints, int timeout_seconds)
-      {
-         boost::system::error_code result = boost::asio::error::would_block;
-
-         boost::asio::async_connect(socket, endpoints,
-            [&result](const boost::system::error_code &ec, const boost::asio::ip::tcp::endpoint &)
-            {
-               result = ec;
-            });
-
-         io.restart();
-         io.run_for(std::chrono::seconds(timeout_seconds > 0 ? timeout_seconds : 20));
-
-         if (result == boost::asio::error::would_block)
-         {
-            boost::system::error_code ignored;
-            socket.close(ignored);
-            io.restart();
-            io.run();
-            throw boost::system::system_error(boost::asio::error::timed_out);
-         }
-
-         io.restart();
-
-         if (result)
-            throw boost::system::system_error(result);
-      }
-
       // Why a request failed, in the words an administrator reads in the error log
       // and in a REST answer. A system_error's what() ends with the source location
       // Boost attaches to a code raised inside its own headers - the path of
@@ -128,13 +300,6 @@ namespace HM
          const boost::system::error_code code = systemError->code();
          const std::string reason = code.message() + " [" + code.category().name() + ":" + std::to_string(code.value()) + "]";
          return String(reason.c_str());
-      }
-
-      void SetSocketTimeouts_(boost::asio::ip::tcp::socket &socket, int timeout_seconds)
-      {
-         DWORD timeout = (DWORD) timeout_seconds * 1000;
-         setsockopt(socket.native_handle(), SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(socket.native_handle(), SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
       }
    }
 
@@ -185,6 +350,38 @@ namespace HM
          proxy_host = host;
          proxy_port = port;
          return true;
+      }
+
+      // Whether a request to host goes through the proxy. An address on this machine
+      // is reached directly unless the proxy is on this machine too: a proxy anywhere
+      // else would connect to its own loopback address rather than this server's, and
+      // a plain-http request - which this client sends only to a loopback address -
+      // would cross the network to it in the clear on the way, a breach check mirror's
+      // prefix among it.
+      bool ThroughProxy_(const std::string &proxy_host, const AnsiString &host)
+      {
+         if (proxy_host.empty())
+            return false;
+
+         if (!HttpsClient::IsLoopbackHost(host))
+            return true;
+
+         return HttpsClient::IsLoopbackHost(AnsiString(proxy_host.c_str()));
+      }
+
+      // host[:port] as a Host header or a CONNECT target writes it: an IPv6 literal in
+      // the brackets ParseUrl took off, and the port - always, or only when it is not
+      // the scheme's default.
+      std::string Authority_(const AnsiString &host, const AnsiString &port, bool always_port, bool https)
+      {
+         std::string authority = host.c_str();
+         if (authority.find(':') != std::string::npos)
+            authority = "[" + authority + "]";
+
+         if (always_port || port != (https ? "443" : "80"))
+            authority += ":" + std::string(port.c_str());
+
+         return authority;
       }
 
       // An IPv4 address a request made on an outsider's behalf may reach: not
@@ -251,11 +448,11 @@ namespace HM
          return true;
       }
 
-      // Connects socket to host:port - directly, or through the proxy when one is
-      // configured. For an https target the proxy is asked to CONNECT and the TLS
-      // handshake then runs inside the tunnel, so the proxy sees the name it was
-      // asked for and nothing of what follows. For plain http the caller has put
-      // the absolute URL in its request line and the proxy forwards it.
+      // Connects socket to host:port by deadline - directly, or through the proxy
+      // when proxy_host is not empty. For an https target the proxy is asked to
+      // CONNECT and the TLS handshake then runs inside the tunnel, so the proxy sees
+      // the name it was asked for and nothing of what follows. For plain http the
+      // caller has put the absolute URL in its request line and the proxy forwards it.
       //
       // public_only (RequestPublic): the name is resolved here, every address it
       // gave is judged, and the connection is made to the addresses that passed
@@ -263,17 +460,15 @@ namespace HM
       // and a private one to the next gains nothing. Never through the proxy,
       // which would resolve the name itself, out of sight of this.
       bool Connect_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, const AnsiString &host,
-                    const AnsiString &port, bool https, int timeout_seconds, String &error, bool public_only = false)
+                    const AnsiString &port, bool https, const std::string &proxy_host, const std::string &proxy_port,
+                    const Clock::time_point &deadline, String &error, bool public_only = false)
       {
-         boost::asio::ip::tcp::resolver resolver(io);
-
          if (public_only)
          {
             std::vector<boost::asio::ip::tcp::endpoint> vetted;
             std::string refused;
-            for (const auto &entry : resolver.resolve(std::string(host.c_str()), std::string(port.c_str())))
+            for (const boost::asio::ip::tcp::endpoint &endpoint : ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline))
             {
-               const boost::asio::ip::tcp::endpoint endpoint = entry.endpoint();
                if (IsPublicAddress(endpoint.address()))
                   vetted.push_back(endpoint);
                else if (refused.empty())
@@ -285,37 +480,40 @@ namespace HM
                   refused.empty() ? String(host) : String(refused.c_str()));
                return false;
             }
-            ConnectWithin_(io, socket, vetted, timeout_seconds);
-            SetSocketTimeouts_(socket, timeout_seconds);
+            ConnectWithin_(io, socket, vetted, deadline);
             return true;
          }
 
-         std::string proxyHost, proxyPort;
-         if (!ProxySetting_(proxyHost, proxyPort, error))
-            return false;
-
-         if (proxyHost.empty())
+         if (proxy_host.empty())
          {
-            ConnectWithin_(io, socket, resolver.resolve(std::string(host.c_str()), std::string(port.c_str())), timeout_seconds);
-            SetSocketTimeouts_(socket, timeout_seconds);
+            ConnectWithin_(io, socket, ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline), deadline);
             return true;
          }
 
-         ConnectWithin_(io, socket, resolver.resolve(proxyHost, proxyPort), timeout_seconds);
-         SetSocketTimeouts_(socket, timeout_seconds);
+         ConnectWithin_(io, socket, ResolveWithin_(proxy_host, proxy_port, deadline), deadline);
 
          if (!https)
             return true;
 
-         const std::string target = std::string(host.c_str()) + ":" + std::string(port.c_str());
+         const std::string target = Authority_(host, port, true, true);
          const std::string connectRequest = "CONNECT " + target + " HTTP/1.1\r\nHost: " + target + "\r\nUser-Agent: hMailServer\r\n\r\n";
-         boost::asio::write(socket, boost::asio::buffer(connectRequest));
+         WriteWithin_(io, socket, socket, connectRequest.data(), connectRequest.size(), deadline);
 
          // The proxy's answer ends at the blank line, and a proxy sends nothing more
          // until the client speaks, so read_until cannot swallow TLS bytes. A proxy
          // that talks for longer than 16 KB before that line is refused by the cap.
          boost::asio::streambuf answer(16384);
-         boost::asio::read_until(socket, answer, "\r\n\r\n");
+         bool finished = false;
+         boost::system::error_code result;
+         boost::asio::async_read_until(socket, answer, "\r\n\r\n",
+            [&finished, &result](const boost::system::error_code &ec, std::size_t)
+            {
+               result = ec;
+               finished = true;
+            });
+         AwaitWithin_(io, socket, deadline, finished, "the proxy did not answer");
+         if (result)
+            throw boost::system::system_error(result);
 
          std::istream lines(&answer);
          std::string statusLine;
@@ -329,7 +527,7 @@ namespace HM
          if (status < 200 || status > 299)
          {
             error = Formatter::Format(_T("The proxy {0} refused CONNECT to {1}: {2}"),
-               String((proxyHost + ":" + proxyPort).c_str()), String(target.c_str()), String(statusLine.c_str()));
+               String((proxy_host + ":" + proxy_port).c_str()), String(target.c_str()), String(statusLine.c_str()));
             return false;
          }
 
@@ -343,7 +541,7 @@ namespace HM
          if (https || !via_proxy)
             return path;
 
-         const std::string absolute = "http://" + std::string(host.c_str()) + ":" + std::string(port.c_str()) + std::string(path.c_str());
+         const std::string absolute = "http://" + Authority_(host, port, true, false) + std::string(path.c_str());
          return AnsiString(absolute.c_str());
       }
    }
@@ -499,14 +697,19 @@ namespace HM
       std::string proxyHost, proxyPort;
       if (!ProxySetting_(proxyHost, proxyPort, error))
          return false;
-      const bool viaProxy = !proxyHost.empty() && !public_only;
+      if (public_only || !ThroughProxy_(proxyHost, host))
+      {
+         proxyHost.clear();
+         proxyPort.clear();
+      }
+      const bool viaProxy = !proxyHost.empty();
 
       AnsiString request;
       request.append(method);
       request.append(" ");
       request.append(RequestTarget_(host, port, path, https, viaProxy));
       request.append(" HTTP/1.0\r\nHost: ");
-      request.append(host);
+      request.append(Authority_(host, port, false, https).c_str());
       request.append("\r\nUser-Agent: hMailServer\r\nAccept: application/json\r\n");
 
       for (const AnsiString &header : extra_headers)
@@ -531,6 +734,11 @@ namespace HM
 
       try
       {
+         // One deadline for all of it, taken before the name is looked up: the lookup,
+         // the connection, the proxy's CONNECT, the handshake, the request and every
+         // read of the answer spend the same timeout_seconds between them.
+         const Clock::time_point deadline = DeadlineIn_(timeout_seconds);
+
          boost::asio::io_context ioContext;
 
          std::string raw;
@@ -546,7 +754,7 @@ namespace HM
             SslContextInitializer::InitClient(sslContext, false);
 
             boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
-            if (!Connect_(ioContext, stream.next_layer(), host, port, true, timeout_seconds, error, public_only))
+            if (!Connect_(ioContext, stream.next_layer(), host, port, true, proxyHost, proxyPort, deadline, error, public_only))
                return false;
 
             stream.set_verify_mode(boost::asio::ssl::verify_peer);
@@ -558,10 +766,15 @@ namespace HM
                return false;
             }
 
-            stream.handshake(boost::asio::ssl::stream_base::client);
-            boost::asio::write(stream, boost::asio::buffer(request.c_str(), request.GetLength()));
+            HandshakeWithin_(ioContext, stream, deadline);
+            WriteWithin_(ioContext, stream.next_layer(), stream, request.c_str(), (size_t) request.GetLength(), deadline);
 
-            if (!ReadWholeResponse_(stream, max_response_bytes, raw))
+            const auto readSome = [&ioContext, &stream, &deadline](char *data, size_t size, boost::system::error_code &ec)
+            {
+               return ReadSomeWithin_(ioContext, stream.next_layer(), stream, data, size, deadline, ec);
+            };
+
+            if (!ReadWholeResponse_(readSome, max_response_bytes, raw))
             {
                error = _T("The response exceeded the size limit.");
                return false;
@@ -570,12 +783,17 @@ namespace HM
          else
          {
             boost::asio::ip::tcp::socket socket(ioContext);
-            if (!Connect_(ioContext, socket, host, port, false, timeout_seconds, error, public_only))
+            if (!Connect_(ioContext, socket, host, port, false, proxyHost, proxyPort, deadline, error, public_only))
                return false;
 
-            boost::asio::write(socket, boost::asio::buffer(request.c_str(), request.GetLength()));
+            WriteWithin_(ioContext, socket, socket, request.c_str(), (size_t) request.GetLength(), deadline);
 
-            if (!ReadWholeResponse_(socket, max_response_bytes, raw))
+            const auto readSome = [&ioContext, &socket, &deadline](char *data, size_t size, boost::system::error_code &ec)
+            {
+               return ReadSomeWithin_(ioContext, socket, socket, data, size, deadline, ec);
+            };
+
+            if (!ReadWholeResponse_(readSome, max_response_bytes, raw))
             {
                error = _T("The response exceeded the size limit.");
                return false;
@@ -593,11 +811,11 @@ namespace HM
 
    namespace
    {
-      // Reads one response from stream: the status line and headers into header_block,
-      // then the body to sink, up to max_bytes. too_large is set when the body went
-      // past max_bytes; the read stops there.
-      template <typename Stream>
-      bool ReadResponseToSink_(Stream &stream, std::string &header_block, std::ofstream *sink, size_t max_bytes, size_t &body_bytes, bool &too_large)
+      // Reads one response through read_some: the status line and headers into
+      // header_block, then the body to sink, up to max_bytes. too_large is set when the
+      // body went past max_bytes; the read stops there.
+      template <typename ReadSome>
+      bool ReadResponseToSink_(ReadSome read_some, std::string &header_block, std::ofstream *sink, size_t max_bytes, size_t &body_bytes, bool &too_large)
       {
          char buffer[16384];
          std::string pending;
@@ -608,7 +826,7 @@ namespace HM
 
          for (;;)
          {
-            const size_t bytesRead = stream.read_some(boost::asio::buffer(buffer, sizeof(buffer)), errorCode);
+            const size_t bytesRead = read_some(buffer, sizeof(buffer), errorCode);
             if (bytesRead > 0)
             {
                if (!headersDone)
@@ -702,12 +920,17 @@ namespace HM
          std::string proxyHost, proxyPort;
          if (!ProxySetting_(proxyHost, proxyPort, error))
             return false;
+         if (!ThroughProxy_(proxyHost, host))
+         {
+            proxyHost.clear();
+            proxyPort.clear();
+         }
 
          AnsiString request;
          request.append("GET ");
          request.append(RequestTarget_(host, port, requestPath, https, !proxyHost.empty()));
          request.append(" HTTP/1.0\r\nHost: ");
-         request.append(host);
+         request.append(Authority_(host, port, false, https).c_str());
          request.append("\r\nUser-Agent: hMailServer\r\nAccept: */*\r\nConnection: close\r\n\r\n");
 
          std::string headerBlock;
@@ -721,6 +944,10 @@ namespace HM
          std::ofstream sink;
          try
          {
+            // A download is bounded step by step rather than as a whole: an installer
+            // is tens of megabytes, and a slow link is not a hung one. What it must not
+            // do is wait on any one step - the lookup and connection, the handshake,
+            // sending the request, one read - for longer than timeout_seconds.
             boost::asio::io_context ioContext;
 
             // The headers are read first with no sink; the body's first bytes are
@@ -753,7 +980,7 @@ namespace HM
                SslContextInitializer::InitClient(sslContext, false);
 
                boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
-               if (!Connect_(ioContext, stream.next_layer(), host, port, true, timeout_seconds, error))
+               if (!Connect_(ioContext, stream.next_layer(), host, port, true, proxyHost, proxyPort, DeadlineIn_(timeout_seconds), error))
                {
                   sink.close();
                   FileUtilities::DeleteFile(path);
@@ -768,21 +995,31 @@ namespace HM
                   FileUtilities::DeleteFile(path);
                   return false;
                }
-               stream.handshake(boost::asio::ssl::stream_base::client);
-               boost::asio::write(stream, boost::asio::buffer(request.c_str(), request.GetLength()));
-               responded = ReadResponseToSink_(stream, headerBlock, &sink, max_bytes, bodyBytes, tooLarge);
+               HandshakeWithin_(ioContext, stream, DeadlineIn_(timeout_seconds));
+               WriteWithin_(ioContext, stream.next_layer(), stream, request.c_str(), (size_t) request.GetLength(), DeadlineIn_(timeout_seconds));
+
+               const auto readSome = [&ioContext, &stream, timeout_seconds](char *data, size_t size, boost::system::error_code &ec)
+               {
+                  return ReadSomeWithin_(ioContext, stream.next_layer(), stream, data, size, DeadlineIn_(timeout_seconds), ec);
+               };
+               responded = ReadResponseToSink_(readSome, headerBlock, &sink, max_bytes, bodyBytes, tooLarge);
             }
             else
             {
                boost::asio::ip::tcp::socket socket(ioContext);
-               if (!Connect_(ioContext, socket, host, port, false, timeout_seconds, error))
+               if (!Connect_(ioContext, socket, host, port, false, proxyHost, proxyPort, DeadlineIn_(timeout_seconds), error))
                {
                   sink.close();
                   FileUtilities::DeleteFile(path);
                   return false;
                }
-               boost::asio::write(socket, boost::asio::buffer(request.c_str(), request.GetLength()));
-               responded = ReadResponseToSink_(socket, headerBlock, &sink, max_bytes, bodyBytes, tooLarge);
+               WriteWithin_(ioContext, socket, socket, request.c_str(), (size_t) request.GetLength(), DeadlineIn_(timeout_seconds));
+
+               const auto readSome = [&ioContext, &socket, timeout_seconds](char *data, size_t size, boost::system::error_code &ec)
+               {
+                  return ReadSomeWithin_(ioContext, socket, socket, data, size, DeadlineIn_(timeout_seconds), ec);
+               };
+               responded = ReadResponseToSink_(readSome, headerBlock, &sink, max_bytes, bodyBytes, tooLarge);
             }
          }
          catch (const std::exception &e)
@@ -826,12 +1063,7 @@ namespace HM
             {
                // Relative to the host: same scheme, host and port.
                std::string origin = https ? "https://" : "http://";
-               origin += host.c_str();
-               if (port != (https ? "443" : "80"))
-               {
-                  origin += ":";
-                  origin += port.c_str();
-               }
+               origin += Authority_(host, port, false, https);
                location = origin + location;
             }
             current = location.c_str();

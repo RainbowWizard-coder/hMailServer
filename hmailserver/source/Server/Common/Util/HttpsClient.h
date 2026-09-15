@@ -40,6 +40,15 @@ namespace HM
       // content_type and body are used for POST. Returns false, with error set, when
       // no response was obtained at all; an HTTP error status is a true return with the
       // status in the response, for the caller to judge.
+      //
+      // timeout_seconds bounds the whole request - the name lookup, the connection, a
+      // proxy's CONNECT, the TLS handshake, sending, and reading the answer to its end -
+      // on every platform, not each step of it: an endpoint that accepts and then
+      // trickles its answer is given up on at the deadline like one that never answers.
+      //
+      // HttpProxy, when set, carries the request - except to an address on this machine
+      // (localhost, 127.0.0.0/8, ::1), which is reached directly unless the proxy is on
+      // this machine too, since a proxy anywhere else would reach its own loopback.
       static bool Request(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                           const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                           int timeout_seconds = 20, size_t max_response_bytes = 1024 * 1024);
@@ -63,6 +72,9 @@ namespace HM
       // rather than held. True when a 200 response was written to path in full and
       // within max_bytes; otherwise false with error set and nothing left at path.
       // status_code is the last response's, or 0 when no response was obtained.
+      // timeout_seconds bounds each step - the lookup and connection, the handshake,
+      // sending, each read - rather than the whole, which a large file on a slow link
+      // would outlast without anything being wrong.
       static bool Download(const AnsiString &url, const String &path, size_t max_bytes, int &status_code, String &error,
                            int timeout_seconds = 60);
 
