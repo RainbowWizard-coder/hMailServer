@@ -41,6 +41,13 @@ namespace HM
 
       virtual String GetCollectionName() const { return "SenderListEntries"; }
 
+      // A restore: the entry takes this collection's scope and owner rather than
+      // the ones the archive recorded, because the account or domain it belongs
+      // to has been given a new id by the same restore - and an owner id carried
+      // across verbatim would hand one account's safe senders to whoever holds
+      // that number on the machine being restored.
+      virtual bool PreSaveObject(std::shared_ptr<SenderListEntry> entry, XNode *node);
+
    private:
 
       int scope_;

@@ -167,9 +167,22 @@ namespace HM
 
       // ---- building and sending -------------------------------------------
 
-      // The entries held for this account with an id above `sinceId`, newest
-      // first. Empty when there is nothing new, which is when no digest is sent.
-      static std::vector<QuarantinedMessage> Held(const String &address, __int64 sinceId);
+      // The entries held for this account that the last digest did not list,
+      // newest first: those with an id above `sinceId`, and those held after
+      // `lastSent` whatever their id. Empty when there is nothing new, which is
+      // when no digest is sent.
+      //
+      // The id alone is the rule in normal running - an entry is never given a
+      // lower id than one before it, and it is what keeps an entry listed once
+      // from being listed again. The time is for when that stops being true: a
+      // backup restored onto a fresh database carries hm_digeststate, but the
+      // quarantine starts again from 1, so every entry held after the restore
+      // would sit below the restored position and no digest would mention it
+      // until the ids caught up; and MySQL before 8.0 hands out an emptied
+      // table's auto-increment values again after a restart. An entry listed by
+      // the last digest was held before that digest was sent, so the second
+      // test never repeats one.
+      static std::vector<QuarantinedMessage> Held(const String &address, __int64 sinceId, const DateTime &lastSent);
 
       // Builds and queues one account's digest. False when nothing was sent -
       // no base URL, the account opted out, nothing new held, or a token could

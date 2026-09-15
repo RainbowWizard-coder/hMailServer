@@ -51,6 +51,15 @@ namespace HM
    }
 
    bool
+   SenderListEntries::PreSaveObject(std::shared_ptr<SenderListEntry> entry, XNode *node)
+   {
+      entry->SetScope(scope_);
+      entry->SetOwnerID(owner_id_);
+
+      return true;
+   }
+
+   bool
    SenderListEntries::RefreshAll()
    {
       // The whole table. It is a list people keep by hand - an address at a

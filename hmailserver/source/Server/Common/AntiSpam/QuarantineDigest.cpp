@@ -585,16 +585,29 @@ namespace HM
    }
 
    std::vector<QuarantinedMessage>
-   QuarantineDigest::Held(const String &address, __int64 sinceId)
+   QuarantineDigest::Held(const String &address, __int64 sinceId, const DateTime &lastSent)
    {
       std::vector<QuarantinedMessage> held;
 
       const std::vector<QuarantinedMessage> all = QuarantineStore::List(1000);
 
+      const bool haveLastSent = lastSent.GetStatus() == DateTime::valid;
+
       for (const QuarantinedMessage &message : all)
       {
          if (message.id <= sinceId)
-            continue;
+         {
+            // Below the position: new only if it was held after the last digest
+            // went, which is an identity that started again rather than an entry
+            // already shown. An unreadable time is not evidence of that.
+            if (!haveLastSent)
+               continue;
+
+            const DateTime created = Time::GetDateFromSystemDate(message.created);
+
+            if (created.GetStatus() != DateTime::valid || !(lastSent < created))
+               continue;
+         }
 
          if (!QuarantineStore::IsRecipient(message, address))
             continue;

@@ -187,7 +187,7 @@ namespace HM
             Due entry;
             entry.account = account;
             entry.domain = domain;
-            entry.held = QuarantineDigest::Held(account->GetAddress(), state.last_id);
+            entry.held = QuarantineDigest::Held(account->GetAddress(), state.last_id, state.last_sent);
 
             // The rule that keeps the feature welcome: no digest says "nothing
             // was held for you".
