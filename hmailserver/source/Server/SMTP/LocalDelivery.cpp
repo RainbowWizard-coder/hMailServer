@@ -1099,7 +1099,7 @@ namespace HM
          // message that was not actually stored anywhere is not discarded, it is
          // marked and delivered, because silent loss is worse than a junk
          // message in the junk folder.
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6360, "LocalDelivery::ApplySenderLists_",
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6746, "LocalDelivery::ApplySenderLists_",
             Formatter::Format("Message {0} could not be quarantined for {1}, whose {2} block list lists {3}. A marked copy has been delivered instead.",
                original_message_->GetID(), account->GetAddress(), scopeName, decision.value));
       }
@@ -1162,7 +1162,7 @@ namespace HM
       MessageData data;
       if (!data.LoadFromMessage(fileName, message))
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6361, "LocalDelivery::MarkAsBlocked_",
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6747, "LocalDelivery::MarkAsBlocked_",
             Formatter::Format("Message {0} could not be loaded while marking it for {1}, whose {2} block list lists {3}. The copy is delivered with its spam flag set but without the spam headers.",
                message->GetID(), account->GetAddress(), scopeName, entry));
          return;

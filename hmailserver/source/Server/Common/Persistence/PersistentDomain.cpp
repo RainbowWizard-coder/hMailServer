@@ -366,7 +366,7 @@ namespace HM
          // be the worse trade.
          if (!PersistentSenderListEntry::DeleteByOwner(SenderListEntry::ScopeDomain, iDomainID))
          {
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6365, "PersistentDomain::DeleteObject",
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6751, "PersistentDomain::DeleteObject",
                Formatter::Format("Domain {0} is being deleted but its allow and block list could not be, and will be left behind referring to a domain that no longer exists.",
                   iDomainID));
          }

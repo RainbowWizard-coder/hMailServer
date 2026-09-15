@@ -289,7 +289,7 @@ namespace HM
 
       if (RAND_bytes(bytes, (int) TokenBytes) != 1)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6362, "QuarantineDigest::IssueToken",
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6748, "QuarantineDigest::IssueToken",
             "No entropy was available for a quarantine digest link, so no digest has been sent to this account on this pass.");
          return AnsiString();
       }
@@ -781,7 +781,7 @@ namespace HM
 
       if (!FileUtilities::WriteToFile(fileName, content))
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6363, "QuarantineDigest::SendFor",
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6749, "QuarantineDigest::SendFor",
             "The quarantine digest for " + account->GetAddress() + " could not be written to the queue and has NOT been sent.");
          return false;
       }
@@ -802,7 +802,7 @@ namespace HM
       {
          FileUtilities::DeleteFile(fileName);
 
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6364, "QuarantineDigest::SendFor",
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6750, "QuarantineDigest::SendFor",
             "The quarantine digest for " + account->GetAddress() + " could not be saved and has NOT been sent.");
 
          return false;
