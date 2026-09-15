@@ -287,6 +287,12 @@ namespace HM
       message->SetState(Message::Delivering);
       message->SetFromAddress(quarantined.sender);
 
+      // Marked, so that the recipients' own block lists do not hold it a second
+      // time on its way back in: a release is a person overruling the filters,
+      // and a message released from a block would otherwise go straight back
+      // into the quarantine it was just taken out of.
+      message->SetReleasedFromQuarantine(true);
+
       const String targetFile = PersistentMessage::GetFileName(message);
 
       if (!FileUtilities::Copy(sourceFile, targetFile, true))
@@ -456,6 +462,12 @@ namespace HM
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetState(Message::Delivering);
       message->SetFromAddress(quarantined.sender);
+
+      // Marked, so that the recipients' own block lists do not hold it a second
+      // time on its way back in: a release is a person overruling the filters,
+      // and a message released from a block would otherwise go straight back
+      // into the quarantine it was just taken out of.
+      message->SetReleasedFromQuarantine(true);
 
       const String targetFile = PersistentMessage::GetFileName(message);
       if (!FileUtilities::Copy(sourceFile, targetFile, true))

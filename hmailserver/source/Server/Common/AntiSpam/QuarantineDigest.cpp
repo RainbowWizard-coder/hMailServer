@@ -26,6 +26,7 @@
 #include "../Util/FileUtilities.h"
 #include "../Util/Time.h"
 #include "../Util/Parsing/StringParser.h"
+#include "../Util/Unicode.h"
 #include "../../SMTP/RecipientParser.h"
 
 #include <openssl/rand.h>
@@ -76,39 +77,50 @@ namespace HM
          return true;
       }
 
+      // UTF-8, which is what the message declares. Assigning a String to an
+      // AnsiString converts through the system code page instead, and a subject
+      // in Greek or Japanese would then arrive as question marks under a charset
+      // that promised better.
+      AnsiString Utf8_(const String &value)
+      {
+         AnsiString out;
+         Unicode::WideToMultiByte(value, out);
+         return out;
+      }
+
+      String Flattened_(const String &value)
+      {
+         String flat = value;
+         flat.Replace(_T("\r"), _T(" "));
+         flat.Replace(_T("\n"), _T(" "));
+         flat.Replace(_T("\t"), _T(" "));
+         return flat;
+      }
+
       // One header value, with anything that could start a second header taken
       // out. Every value here comes from a message somebody else wrote.
       AnsiString HeaderSafe_(const String &value)
       {
-         AnsiString text = value;
-         AnsiString out;
-
-         for (int i = 0; i < text.GetLength(); i++)
-         {
-            const char c = text.GetAt(i);
-            out += (c == '\r' || c == '\n' || c == '\t') ? ' ' : c;
-         }
-
-         return out;
+         return Utf8_(Flattened_(value));
       }
 
       // One line of the digest body. A quarantined subject is attacker-chosen
       // text: a newline in it would let the sender forge a whole extra entry,
       // with a link of their choosing, into a message the reader trusts because
       // it came from their own server. So every line of every entry is flattened
-      // and cut.
+      // and cut - cut in characters, before the conversion, so that the cut never
+      // falls inside a multi-byte sequence.
       AnsiString BodySafe_(const String &value, int maxLength)
       {
-         AnsiString text = value;
-         AnsiString out;
+         String flat = Flattened_(value);
+         const bool cut = flat.GetLength() > maxLength;
 
-         for (int i = 0; i < text.GetLength() && (int) out.GetLength() < maxLength; i++)
-         {
-            const char c = text.GetAt(i);
-            out += (c == '\r' || c == '\n' || c == '\t') ? ' ' : c;
-         }
+         if (cut)
+            flat = flat.Mid(0, maxLength);
 
-         if (text.GetLength() > maxLength)
+         AnsiString out = Utf8_(flat);
+
+         if (cut)
             out += "...";
 
          return out;
@@ -346,6 +358,88 @@ namespace HM
    }
 
    QuarantineDigest::Outcome
+   QuarantineDigest::Inspect(const AnsiString &token)
+   {
+      Outcome outcome;
+
+      Token row;
+
+      if (!FindToken(token, row) || row.used || row.expired)
+      {
+         outcome.http_status = 410;
+         outcome.heading = _T("This link no longer works");
+         outcome.detail = _T("A link in a digest can be followed once, and stops working after a few days. Sign in to the webmail to see what is still being held for you.");
+         return outcome;
+      }
+
+      std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(row.account_id);
+
+      if (!account)
+      {
+         outcome.http_status = 410;
+         outcome.heading = _T("This link no longer works");
+         outcome.detail = _T("The account this link belonged to no longer exists.");
+         return outcome;
+      }
+
+      outcome.kind = row.kind;
+
+      if (row.kind == KindOptOut)
+      {
+         outcome.ok = true;
+         outcome.heading = _T("Stop these digests?");
+         outcome.detail = _T("You will no longer get the list of mail held for you. Mail will still be held, and the Held mail page of the webmail will still show it.");
+         return outcome;
+      }
+
+      if (row.kind == KindRelease)
+      {
+         QuarantinedMessage message;
+
+         if (!QuarantineStore::GetById(row.quarantine_id, message) ||
+             !QuarantineStore::IsRecipient(message, account->GetAddress()))
+         {
+            outcome.http_status = 410;
+            outcome.heading = _T("There is nothing left to release");
+            outcome.detail = _T("It has already been released or deleted. The Held mail page of the webmail shows what is still there.");
+            return outcome;
+         }
+
+         outcome.ok = true;
+         outcome.released = 1;
+         outcome.heading = _T("Deliver this message to your inbox?");
+         outcome.detail = Formatter::Format("From {0}: {1}", message.sender,
+            message.subject.IsEmpty() ? String(_T("(no subject)")) : message.subject);
+         return outcome;
+      }
+
+      int count = 0;
+      const std::vector<QuarantinedMessage> all = QuarantineStore::List(1000);
+
+      for (const QuarantinedMessage &message : all)
+      {
+         if (message.id <= row.quarantine_id && QuarantineStore::IsRecipient(message, account->GetAddress()))
+            count++;
+      }
+
+      if (count == 0)
+      {
+         outcome.http_status = 410;
+         outcome.heading = _T("There is nothing left to release");
+         outcome.detail = _T("Everything the digest listed has already been released or deleted.");
+         return outcome;
+      }
+
+      outcome.ok = true;
+      outcome.released = count;
+      outcome.heading = count == 1
+         ? String(_T("Deliver the message the digest listed?"))
+         : Formatter::Format("Deliver the {0} messages the digest listed?", count);
+      outcome.detail = _T("Only what the digest listed is delivered; anything held since then stays held.");
+      return outcome;
+   }
+
+   QuarantineDigest::Outcome
    QuarantineDigest::Redeem(const AnsiString &token)
    {
       Outcome outcome;
@@ -531,9 +625,9 @@ namespace HM
       body += held.size() == 1 ? AnsiString("one message") : AnsiString(StringParser::IntToString((int) held.size())) + " messages";
       body += " that it judged to be spam. Nothing below has been delivered to you.\r\n";
       body += "\r\n";
-      body += "If one of them is wanted, follow the link under it and it will be delivered.\r\n";
-      body += "Each link works once and stops working after a few days. This message never\r\n";
-      body += "asks for your password, and nothing in it points anywhere but your own server.\r\n";
+      body += "If one of them is wanted, follow the link under it and confirm, and it will be\r\n";
+      body += "delivered. Each link works once and stops working after a few days. Nothing\r\n";
+      body += "here asks for your password, and every link points at your own server.\r\n";
       body += "\r\n";
 
       for (size_t i = 0; i < held.size(); i++)
@@ -571,8 +665,8 @@ namespace HM
       body += "show it.\r\n";
 
       AnsiString content;
-      content += "From: <" + AnsiString(fromAddress) + ">\r\n";
-      content += "To: <" + AnsiString(toAddress) + ">\r\n";
+      content += "From: <" + HeaderSafe_(fromAddress) + ">\r\n";
+      content += "To: <" + HeaderSafe_(toAddress) + ">\r\n";
       content += "Subject: " + subject + "\r\n";
       content += "Date: " + AnsiString(Time::GetCurrentMimeDate()) + "\r\n";
 
@@ -586,7 +680,14 @@ namespace HM
       content += "X-Auto-Response-Suppress: All\r\n";
 
       if (!optOutToken.IsEmpty())
+      {
          content += "List-Unsubscribe: <" + optOutUrl + ">\r\n";
+
+         // RFC 8058: a client that offers an unsubscribe button POSTs to the link
+         // itself, which /held/stop answers without the confirmation page a
+         // browser gets - the POST is the confirmation.
+         content += "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n";
+      }
 
       content += "MIME-Version: 1.0\r\n";
       content += "Content-Type: text/plain; charset=\"utf-8\"\r\n";

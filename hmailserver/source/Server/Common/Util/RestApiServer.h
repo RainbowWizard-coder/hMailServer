@@ -966,8 +966,8 @@ namespace HM
       HttpResponse HandleMeQuarantineDigest_(const Caller &caller, const AnsiString &method, const AnsiString &requestBody);
       // The two pages a digest's links lead to, which carry no credentials at
       // all: the capability is the token (RestApiQuarantineDigest.cpp).
-      static HttpResponse HandleDigestRelease_(const AnsiString &query);
-      static HttpResponse HandleDigestStop_(const AnsiString &query);
+      static HttpResponse HandleDigestRelease_(const AnsiString &method, const AnsiString &query, const AnsiString &body);
+      static HttpResponse HandleDigestStop_(const AnsiString &method, const AnsiString &query, const AnsiString &body);
       // An account's resources under its address, administered
       // (RestApiAccountResources.cpp): the app passwords, the folders and
       // their ACLs, the messages. One entry point,

@@ -141,7 +141,23 @@ namespace HM
 
          int http_status = 200;
          int released = 0;
+
+         // The kind of token, for the page that asks: its button says Deliver or
+         // Stop.
+         int kind = KindRelease;
       };
+
+      // What a token would do, without doing it and without spending it: the
+      // page a link opens says "deliver this message from X?" and waits for a
+      // click, and this is what it says. ok is false, with the same one answer
+      // Redeem gives, for every token that names nothing this person may act on.
+      //
+      // WHY THE LINK DOES NOT ACT ON ITS OWN. Mail security products follow
+      // every link in a message before the reader sees it - to scan the page
+      // behind it - and a GET that released mail would have one of those
+      // releasing everything in every digest, spam included, into every inbox.
+      // So the link opens a page, and the page's button is the release.
+      static Outcome Inspect(const AnsiString &token);
 
       // Redeems a token: releases the entry, releases what the digest listed, or
       // stops the digest. A token that is unknown, used, expired, or whose

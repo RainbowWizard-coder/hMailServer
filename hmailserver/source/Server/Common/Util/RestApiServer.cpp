@@ -1399,11 +1399,11 @@ namespace HM
       // The two links a quarantine digest carries. No credentials: the token in
       // the query string is the whole capability, it names one account and one
       // entry, it works once and it expires. See RestApiQuarantineDigest.cpp.
-      if (method == "GET" && path == "/held/release")
-         return HandleDigestRelease_(query);
+      if ((method == "GET" || method == "POST") && path == "/held/release")
+         return HandleDigestRelease_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
 
-      if (method == "GET" && path == "/held/stop")
-         return HandleDigestStop_(query);
+      if ((method == "GET" || method == "POST") && path == "/held/stop")
+         return HandleDigestStop_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
 
       if (method == "GET" && path == "/portal-sw.js")
          return HandlePortalServiceWorker_();

@@ -1025,6 +1025,16 @@ namespace HM
    {
       decided = false;
 
+      // A message the quarantine released has been judged by a person already,
+      // and the person was the recipient or an administrator: a list must not
+      // overrule that and send it back into the quarantine it came out of. The
+      // mark is cleared on this copy, so it does not travel on into the mailbox.
+      if (original_message_->GetReleasedFromQuarantine())
+      {
+         accountLevelMessage->SetReleasedFromQuarantine(false);
+         return true;
+      }
+
       // An installation where nobody has listed anything pays one atomic read
       // per recipient and nothing else. That matters: this runs for every copy
       // of every delivered message, and the feature is off until somebody types
