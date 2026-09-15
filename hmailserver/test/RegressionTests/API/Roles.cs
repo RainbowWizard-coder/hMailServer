@@ -767,7 +767,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("The audit trail is the auditor's to read, and the server administrator's; a domain administrator, a confined auditor and every API key are refused it, the keys with a 401")]
+      [Description("The audit trail is the auditor's to read, and the server administrator's; a domain administrator, a confined auditor and every API key are refused it - a key of any scope or role on all seven audit and alert routes, with a 401")]
       public void TheAuditorReadsTheAuditTrailAndNoKeyDoes()
       {
          SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audrey@example.test", AccountPassword);
@@ -803,6 +803,35 @@ namespace RegressionTests.API
          Assert.AreEqual(201, readOnlyKey.status, readOnlyKey.body);
          (int status, string body) byReadOnlyKey = Bearer(JsonValue(readOnlyKey.body, "key"), "GET", "/api/v1/alerts/rules");
          Assert.AreEqual(401, byReadOnlyKey.status, byReadOnlyKey.body);
+
+         // And the widest keys there are - a full scope, and the server
+         // administrator's role written on the key - on every one of the seven
+         // routes, the writes included. An account holding a role reaches these
+         // through the permission decision; a key reaches none of them.
+         (int status, string body) fullKey = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest audit full\",\"scope\":\"full\"}");
+         Assert.AreEqual(201, fullKey.status, fullKey.body);
+         (int status, string body) serverAdminKey = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest audit serveradmin\",\"role\":\"serveradmin\"}");
+         Assert.AreEqual(201, serverAdminKey.status, serverAdminKey.body);
+
+         var routes = new[]
+         {
+            new[] { "GET", "/api/v1/audit", null },
+            new[] { "GET", "/api/v1/audit/verify", null },
+            new[] { "GET", "/api/v1/alerts/rules", null },
+            new[] { "PUT", "/api/v1/alerts/rules/disk.low", "{}" },
+            new[] { "GET", "/api/v1/alerts/events", null },
+            new[] { "POST", "/api/v1/alerts/test", "{\"condition\":\"disk.low\"}" },
+            new[] { "POST", "/api/v1/alerts/run", "{}" },
+         };
+
+         foreach (string token in new[] { JsonValue(fullKey.body, "key"), JsonValue(serverAdminKey.body, "key") })
+         {
+            foreach (string[] route in routes)
+            {
+               (int status, string body) refusedKey = Bearer(token, route[0], route[1], route[2]);
+               Assert.AreEqual(401, refusedKey.status, "A key reached " + route[0] + " " + route[1] + ". Body: " + refusedKey.body);
+            }
+         }
 
          (int status, string body) administrator = Admin("GET", "/api/v1/audit");
          Assert.AreEqual(200, administrator.status, administrator.body);

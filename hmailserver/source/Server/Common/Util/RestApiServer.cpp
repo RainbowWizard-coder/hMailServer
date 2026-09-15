@@ -3671,8 +3671,11 @@ namespace HM
       // nothing from asking. These seven - and only these - are not the
       // administrator password's alone: an account that holds a role goes on
       // from Authorize_ to the permission decision for them (view_audit for the
-      // trail, which is what the auditor role is for), and to the server-wide
-      // refusal when its role is confined to named domains.
+      // trail, which is what the auditor role is for; view_configuration to
+      // read the alert rules and events, manage_settings to change a rule or
+      // raise a test, manage_server to run a pass), and to the server-wide
+      // refusal when its role is confined to named domains. No key reaches
+      // them, whatever its scope or role.
       case RouteAuditList:
       case RouteAuditVerify:
       case RouteAlertRuleList:

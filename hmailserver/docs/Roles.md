@@ -39,7 +39,7 @@ domains is refused them whatever it holds.
 |---|---|:-:|:-:|:-:|:-:|
 | `administer_server` | Everything, including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
 | `administer_domain` | Every COM gate that has always asked "is this a domain administrator?" | ✅ | ✅ | | |
-| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them — never a secret | ✅ | ✅ | | ✅ |
+| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised — never a secret | ✅ | ✅ | | ✅ |
 | `view_accounts` | Domains, accounts, aliases, lists, groups, fetch accounts, the OpenAPI document | ✅ | ✅ | ✅ | ✅ |
 | `view_mailbox` | Another account's folders and messages | ✅ | ✅ | | ✅ |
 | `view_queue` | The delivery queue *(server-wide)* | ✅ | | | ✅ |
@@ -47,7 +47,7 @@ domains is refused them whatever it holds.
 | `view_archive` | The archive *(server-wide)* | ✅ | | | ✅ |
 | `view_logs` | The logs *(server-wide)* | ✅ | | | ✅ |
 | `view_message_trace` | The message trace — see below | ✅ | ✅ | ✅ | ✅ |
-| `view_audit` | The audit trail | ✅ | | | ✅ |
+| `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
 | `unlock_account` | `POST /api/v1/accounts/{address}/unlock`, `Application.UnlockAccount`, clearing the logon-failure list | ✅ | ✅ | ✅ | |
@@ -55,9 +55,9 @@ domains is refused them whatever it holds.
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
-| `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list *(server-wide)* | ✅ | | | |
+| `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list, an alert rule, and a test alert *(server-wide)* | ✅ | | | |
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
-| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update *(server-wide)* | ✅ | | | |
+| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
 
 The REST API's **key store** (`/api/v1/apikeys`) and the `[Settings]` section of
@@ -67,6 +67,16 @@ scope. A key that could mint keys could issue itself a replacement with no restr
 on it, and the file holds the server's secrets. An account is refused with a 403 and
 the reason; a key with the 401 that keeps "valid but not permitted" indistinguishable
 from "not a key".
+
+The **audit trail** (`/api/v1/audit`) and the **alerts** (`/api/v1/alerts/...`) are refused to
+every API key too, whatever its scope or role, and with the same 401: a stolen key must not
+read the record of what it did, nor silence the alerting or point it somewhere else. They
+are *not* the administrator password's alone. An account that holds a role reaches them
+through the permission decision like any other route — `view_audit` for the trail, which is
+what the `auditor` role is for; `view_configuration` to read the alert rules and events;
+`manage_settings` to change a rule or raise a test alert; `manage_server` to run a pass —
+provided its role reaches every domain. The trail records every domain's changes and the
+alerts watch the whole server, so a role confined to named domains is refused all of them.
 
 Two things are deliberately not permissions of any role but `serveradmin`:
 
@@ -167,7 +177,7 @@ Where each role works
 | `serveradmin` | Every view | Every route | Every page |
 | `domainadmin` | The dashboard, DANE / TLSA, domains, fetch accounts, lists, roles and the reports for its domains; not the settings, rules, routes, remote domains, certificates, ports, IP ranges, groups, backup, server messages, queue, logs or audit trail, which are server-wide | Its domains' accounts, aliases, lists and mailboxes, the status, and who holds a role in its domains | Domains and Administrator roles, as a domain administrator always has |
 | `helpdesk` | Domains, fetch accounts and lists, with *Reset password* and *Unlock* on every account | The reset, the unlock, the account listings and the trace of an address in its domains | Welcome and About only — use the Deck. `Application.ResetPassword`, `UnlockAccount` and `GlobalObjects.MessageTrace` answer a script |
-| `auditor` | Every view that reads, the audit trail and the reports included | Every read, the audit trail included (an API key is refused the trail whatever its role); every write refused | Welcome, About and Administrator roles. COM's settings objects answer only the server administrator, so an auditor reads the configuration through the Deck or REST |
+| `auditor` | Every view that reads, the audit trail and the reports included | Every read, the audit trail and the alert rules and events included (an API key is refused those whatever its role); every write refused | Welcome, About and Administrator roles. COM's settings objects answer only the server administrator, so an auditor reads the configuration through the Deck or REST |
 
 A page or a view a role may not use is left out rather than shown and refused, and so
 is a server-wide view for a role confined to named domains. That is

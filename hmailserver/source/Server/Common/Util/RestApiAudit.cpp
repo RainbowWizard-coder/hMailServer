@@ -13,9 +13,17 @@
 //   PUT /api/v1/alerts/rules/<name>  change one, or create one for a condition
 //                                    nothing has shipped.
 //   GET /api/v1/alerts/events        what has fired, newest first.
+//   POST /api/v1/alerts/test         raise a condition on request.
+//   POST /api/v1/alerts/run          run one alerting pass now.
 //
-// Every one is administrator-only: see IsApiKeyRoute_ in RestApiServer.cpp for
-// why an API key of any scope is refused, and refused with a 401.
+// No API key reaches any of them, whatever its scope or role: see
+// IsApiKeyRoute_ in RestApiServer.cpp for why a key is refused, and refused
+// with a 401. They are not the administrator password's alone, though. An
+// account that holds a role goes on to the permission decision like any other
+// route - view_audit for the trail, which is what the auditor role is for;
+// view_configuration to read the alert rules and events; manage_settings to
+// change a rule or raise a test; manage_server to run a pass - and a role
+// confined to named domains is refused all seven as server-wide.
 //
 // A webhook secret is never returned. It can be set and it can be cleared, and
 // the answer says whether one is configured - which is what an administrator

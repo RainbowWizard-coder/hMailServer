@@ -457,8 +457,11 @@ namespace HM
          // because the record of who changed what is the one thing a stolen key
          // must not be able to read, edit the rules of, or watch for its own
          // footprints. The administrator password reaches them, and so does an
-         // account whose role holds the permission PermissionFor_ names:
-         // view_audit for the trail, which is what the auditor role is for.
+         // account whose role holds the permission PermissionFor_ names and
+         // reaches every domain: view_audit for the trail, which is what the
+         // auditor role is for; view_configuration for the alert rules and
+         // events; manage_settings to change a rule or raise a test;
+         // manage_server to run a pass.
          RouteAuditList,
          RouteAuditVerify,
          RouteAlertRuleList,
