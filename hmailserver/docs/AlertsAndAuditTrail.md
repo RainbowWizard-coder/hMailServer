@@ -177,11 +177,15 @@ TLS-RPT reporter makes, for the same reason.
 | `queue.stalled` | no | `WorkQueueHealthTask`, when every worker thread of a monitored queue has been in the same task past `AsyncQueueStallThreshold`. |
 | `autoban.storm` | no | `AlertTask`, when auto-bans in the last hour reach the rule's threshold (25 by default). |
 | `minidump.written` | no | `AlertTask`, when a dump newer than the last one recorded appears in the log directory. |
+| `dkim.rotation.stalled` | **yes** | `AlertTask`, from the DKIM key rotation's stored state: a next key whose record has not been seen for the rule's threshold in days (7 by default), or a rotation whose last attempt to move failed. It never looks anything up. See [DkimKeyRotation.md](DkimKeyRotation.md). |
 
 Four are off because they fire on a healthy server often enough to be noise
-until somebody has decided they want them. The two that are on are the two whose
-whole value is arriving unasked: a backup that failed is not noticed until the
-day it is needed, which is the worst possible day to find out.
+until somebody has decided they want them. The three that are on are the three
+whose whole value is arriving unasked: a backup that failed is not noticed until
+the day it is needed, which is the worst possible day to find out, and a DKIM key
+rotation waiting on a record nobody published waits for ever. The rotation's
+condition is raised only for a domain whose rotation is running, so on a server
+that does not rotate keys it never fires.
 
 Nothing is mailed until `AlertRecipient` and `AlertSenderAddress` are set, which
 is what makes "on by default" safe in a stock install.
