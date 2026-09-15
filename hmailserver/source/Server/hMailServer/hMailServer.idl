@@ -993,11 +993,11 @@ interface IInterfaceDomain : IDispatch
       [propget, id(63), helpstring("The footer, as HTML. Empty means the plain text is used with its line breaks turned into <br>.")] HRESULT DisclaimerHTML([out, retval] BSTR *pVal);
       [propput, id(63), helpstring("The footer, as HTML. Empty means the plain text is used with its line breaks turned into <br>.")] HRESULT DisclaimerHTML([in] BSTR newVal);
 
-      [propget, id(57), helpstring("This domain's allow and block list: addresses and domains wanted, or not wanted, by every account of this domain. Consulted after an account's own list and before the server's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
-      [propget, id(58), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([out, retval] VARIANT_BOOL *pVal);
-      [propput, id(58), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([in] VARIANT_BOOL newVal);
-      [propget, id(59), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([out, retval] long *pVal);
-      [propput, id(59), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([in] long newVal);
+      [propget, id(64), helpstring("This domain's allow and block list: addresses and domains wanted, or not wanted, by every account of this domain. Consulted after an account's own list and before the server's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
+      [propget, id(65), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(65), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([in] VARIANT_BOOL newVal);
+      [propget, id(66), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([out, retval] long *pVal);
+      [propput, id(66), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([in] long newVal);
 
 };
 [
