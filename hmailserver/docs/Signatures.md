@@ -41,7 +41,9 @@ the four is refused.
 ### How large
 
 **64 KB — 64,000 bytes of UTF-8 — for the whole formatted signature, its images
-included.** One number, and every layer holds to it:
+included.** One number for the account's signature as the webmail sets it, which
+the page, the route and the database agree on (what does not check it is at the
+end of this section):
 
 | Layer | What it does |
 |---|---|
@@ -97,7 +99,13 @@ What is moved:
 * an image whose `data:` URL is the whole, quoted value of a `src` attribute
   (`<img src="data:image/png;base64,…">`);
 * of type PNG, JPEG, GIF or WebP, whose bytes start as that type does;
-* once: the same image named twice in the HTML is one part named twice.
+* once: the same image named twice in the HTML is one part named twice;
+* at most **64** different images in one message. A new image past the 64th stays
+  the `data:` URL it was. 64 is what the webmail's view of a message puts back in
+  place (below), so every image of a Sent copy or a draft still shows there — a
+  part put back, or a `data:` URL the view shows as it is; a recipient's client
+  shows the 64 parts and not what was left. It is more than a message written by
+  hand carries, a logo and a few screenshots.
 
 What is left as it was: a `data:` URL in CSS (`url(...)`) or in another attribute
 (`data-src`), an SVG or any other type, bytes that are not the image the URL says,
@@ -125,13 +133,21 @@ In the webmail
 
 The Sent copy and a draft show their images: the message page asks for the HTML
 through `GET /api/v1/me/messages/{id}/html`, which puts each `cid:` image back in
-place as a `data:` URL for its frame, and the image is listed under the message as
-an attachment marked *in the message*.
+place as a `data:` URL for its frame — up to 64 images, 4 MB each and 12 MB
+together — and the image is listed under the message as an attachment marked
+*in the message*. The page frames the HTML only of a message of up to 1 MB (a
+larger one is shown as its text, as it always was), so it is the count of 64, the
+same count the move keeps to, that could bind there, and it does not.
 
 A draft opened again in the compose form comes back as its text, as it always
-has. The images its HTML shows are not attached to it again as files — the
-signature's logo comes back with the formatted signature when formatting is
-switched on. A forward, whose HTML does not go with it, still carries the
+has. The images this webmail made parts of its HTML — those whose Content-ID is
+`img<n>.<32 hex digits>@<host>`, as the server writes one, or
+`img<n>.<16 hex digits>@webmail.invalid`, as the S/MIME module does — are not
+attached to it again as files: before they were parts they were `data:` URLs in
+that HTML, which a draft never brought back either, and the signature's logo comes
+back with the formatted signature when formatting is switched on. An image another
+mail client embedded in a draft it saved is carried as a file, as it always was.
+A forward, whose HTML does not go with it, still carries every one of the
 original's images as files.
 
 Sharp edges
@@ -141,11 +157,19 @@ Sharp edges
   arrives as a part like any other; a logo that has to show everywhere is safer as
   a PNG.
 * **An attachment added by a script after the message is written** —
-  `Message.Attachments.Add` in an event handler — rebuilds the message from its
-  top-level parts, and an HTML part inside a related part is not one of them. That
-  is true of any message with an inline image, including those Thunderbird and
-  Outlook send with an image in them, and is not new; a script that adds attachments to such messages
-  loses their HTML.
+  `Message.Attachments.Add` in an event handler, or setting `Message.Body` on a
+  message that has no text part — rebuilds the message in `MessageData::CreatePart`.
+  Before 15 September 2026 that rebuild knew only a text part, an HTML part and an
+  alternative at the top of the message. It dropped a `multipart/related` part,
+  and the HTML and images inside it, so a message Thunderbird sent with an image,
+  or Outlook with an image and an attachment, lost its HTML to a script that added
+  a file, and every message this move writes would have too. It now carries a
+  related part whose first part is the HTML, or an alternative with the HTML in
+  it, across whole; a message that is itself the related part (an HTML-only
+  message with images, or Outlook's related around the alternative) is put into a
+  related part of its own first. The added file goes beside it in
+  `multipart/mixed`, and a text part set afterwards beside it in
+  `multipart/alternative`.
 * **The size is checked on the way in, not on the way out.** A domain signature or
   a disclaimer set in the Control Panel with a large image is moved into a part
   like any other, whatever its size; only the account's signature through the
@@ -156,9 +180,10 @@ The code
 
 | Where | What |
 |---|---|
-| `Common/Util/InlineImageParts.*` | The move from `data:` URLs to `cid:` parts, and its in-process tests. |
-| `Common/Util/RestApiServer.cpp` | `HandleMeSettingsPut_` (the limit), `IsLargeRequest_` (the request cap), and the one call each in `HandleMeMessageSend_` and `HandleMeDraftSave_`. |
+| `Common/Util/InlineImageParts.*` | The move from `data:` URLs to `cid:` parts, `MostImages`, and the in-process tests (the move, and a file added afterwards to each shape it leaves). |
+| `Common/BO/MessageData.cpp` | `CreatePart`, with `FindFormattedBodyNoRecurse_`, `IsFormattedRelated_` and `LiftRelatedBody_`: a related part kept whole when a file or a text part is added. |
+| `Common/Util/RestApiServer.cpp` | `HandleMeSettingsPut_` (the limit), `IsLargeRequest_` (the request cap), the one call each in `HandleMeMessageSend_` and `HandleMeDraftSave_`, and `HandleMeMessageHtml_`, which puts back as many images as `MostImages`. |
 | `Common/Util/SignatureAdder.cpp`, `DisclaimerAdder.cpp` | The call after the HTML they append. |
 | `Common/Util/Portal.js` | `SIGNATURE_HTML_BYTES`, the page's check, `shrinkSignatureImage`. |
-| `Common/Util/PortalSmime.js` | `embedDataImages`, for a message the page signs or encrypts. |
-| `test/RegressionTests/API/RestApiSignatureImages.cs` | The limit at 64,000 bytes and one byte over, the delivered message's parts and bytes, the Sent copy and the draft in the webmail, the domain signature over SMTP, and a message with nothing to move. |
+| `Common/Util/PortalSmime.js` | `embedDataImages`, for a message the page signs or encrypts, keeping to the same 64. |
+| `test/RegressionTests/API/RestApiSignatureImages.cs` | The limit at 64,000 bytes and one byte over, the delivered message's parts and bytes, the Sent copy and the draft in the webmail, the domain signature over SMTP, a message with nothing to move, a file added afterwards through COM to a draft with and without a file, and sixty-five images of which sixty-four become parts. Linked into the Linux suite too, where the COM step is skipped. |
