@@ -358,6 +358,8 @@
     <Compile Include="AntiSpam\Quarantine.cs" />
     <Compile Include="AntiSpam\SenderBlacklist.cs" />
     <Compile Include="AntiSpam\PerAccountSpamSettings.cs" />
+    <Compile Include="AntiSpam\SenderLists.cs" />
+    <Compile Include="AntiSpam\QuarantineDigests.cs" />
     <Compile Include="AntiSpam\SpamAssassin.cs" />
     <Compile Include="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="AntiSpam\SpamAssassinLearning.cs" />

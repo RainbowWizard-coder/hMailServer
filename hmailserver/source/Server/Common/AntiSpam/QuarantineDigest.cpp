@@ -45,6 +45,11 @@ namespace HM
       // 32 bytes, 64 hex characters, which is the width of the dttoken column.
       const size_t TokenBytes = 32;
 
+      // What hm_digeststate.dssenttime holds for an account that has never had
+      // a digest - a row an opt-out made. Read back as "never".
+      const wchar_t *const NeverSent = L"2000-01-01 00:00:00";
+      const int NeverSentYear = 2000;
+
       AnsiString LowerHex_(const unsigned char *bytes, size_t count)
       {
          static const char *digits = "0123456789abcdef";
@@ -200,6 +205,11 @@ namespace HM
       out_state.last_id = recordset->GetInt64Value("dslastid");
       out_state.last_sent = Time::GetDateFromSystemDate(recordset->GetStringValue("dssenttime"));
 
+      // A row made by an opt-out before any digest was sent carries the
+      // placeholder SetOptOut writes, which is "never", not a date to show.
+      if (out_state.last_sent.GetStatus() == DateTime::valid && out_state.last_sent.GetYear() <= NeverSentYear)
+         out_state.last_sent.SetStatus(DateTime::invalid);
+
       return true;
    }
 
@@ -227,10 +237,15 @@ namespace HM
          statement.SetIdentityColumn("dsid");
          statement.AddColumnInt64("dsaccountid", accountId);
          statement.AddColumnInt64("dslastid", 0);
+
+         // The column is NOT NULL and no digest has been sent. Not the current
+         // time: switching the digest off or on is not sending one, and writing
+         // "now" here would both show the reader a digest that never came and
+         // hold back the next real one for twenty hours.
+         statement.AddColumn("dssenttime", String(NeverSent));
       }
 
       statement.AddColumn("dsoptout", optOut ? 1L : 0L);
-      statement.AddColumn("dssenttime", Time::GetCurrentDateTime());
 
       return Application::Instance()->GetDBManager()->Execute(statement);
    }

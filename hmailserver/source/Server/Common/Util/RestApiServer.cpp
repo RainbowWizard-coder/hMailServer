@@ -3544,6 +3544,16 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteSenderListCreate:
+      case RouteSenderListUpdate:
+      case RouteSenderListDelete:
+      case RouteSenderListDomainCreate:
+      case RouteSenderListDomainUpdate:
+      case RouteSenderListDomainDelete:
+      case RouteSenderListMeCreate:
+      case RouteSenderListMeUpdate:
+      case RouteSenderListMeDelete:
+      case RouteMeQuarantineDigestPut:
       case RouteGroupCreate:
       case RouteGroupUpdate:
       case RouteGroupDelete:
@@ -3778,6 +3788,10 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteSenderListList:
+      case RouteSenderListCreate:
+      case RouteSenderListUpdate:
+      case RouteSenderListDelete:
       case RouteCertificateList:
       case RouteRuleList:
       case RouteLogList:
