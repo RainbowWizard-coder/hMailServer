@@ -700,8 +700,10 @@ function Get-HmIniSetting {
 function Set-HmIniSetting {
     <#
     .SYNOPSIS
-        Writes an hMailServer.ini key. Some take effect only on a restart; the
-        server's OpenAPI document says which.
+        Stores one server setting - a key of the [Settings] section of
+        hMailServer.ini before schema 6042 - in the database, which is the
+        settings store, and the server writes the file's copy. Most apply when
+        the service next starts.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(

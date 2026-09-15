@@ -1297,7 +1297,7 @@ def build_parser():
     set_parser.add_argument("--from-json", metavar="FILE")
     set_parser.set_defaults(name=None)
 
-    ini = commands.add_parser("ini", help="hMailServer.ini keys the server exposes")
+    ini = commands.add_parser("ini", help="the server settings that were hMailServer.ini's [Settings] keys, stored in the database")
     ini.set_defaults(handler=ini_command)
     ini_verbs = ini.add_subparsers(dest="verb")
     ini_verbs.add_parser("list", parents=[common])

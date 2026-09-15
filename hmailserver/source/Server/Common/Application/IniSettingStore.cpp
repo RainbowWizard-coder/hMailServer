@@ -580,11 +580,14 @@ namespace HM
       if (lower.StartsWith(_T("passwordpolicy")))
          return false;
 
-      // The choice of a hash algorithm, a count of index tokens, and the switch
-      // that says whether stored secrets are protected.
+      // The choice of a hash algorithm; the full-text indexer's settings, whose
+      // tokens are the words of a message - IndexerFullTextMaxTokensPerMessage and
+      // IndexerFullTextMinTokenLength both carry the fragment, and an exact name
+      // for the first let the second be masked and dropped from every export;
+      // and the switch that says whether stored secrets are protected.
       if (lower.Find(_T("hashalgorithm")) >= 0)
          return false;
-      if (lower.Compare(_T("indexerfulltextmaxtokenspermessage")) == 0)
+      if (lower.StartsWith(_T("indexerfulltext")))
          return false;
       if (lower.Compare(_T("protectstoredsecretswithdpapi")) == 0)
          return false;

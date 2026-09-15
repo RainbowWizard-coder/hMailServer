@@ -799,15 +799,19 @@ namespace RegressionTests.API
       [Description("The list masks a setting whose name says its value is a secret as (set): the list is what a configuration export is built from, and an export goes into a repository. Read by name, the value is the value, as GetIniSetting answers over COM; a key FILE is a path and is not masked.")]
       public void IniSettingListMasksASecretAndNotAPath()
       {
-         // Two probe keys no shipped setting uses: one the rule takes for a secret,
-         // one it must not - the path to a private key file is not the key.
+         // Probe keys no shipped setting uses: one the rule takes for a secret, and
+         // two it must not - the path to a private key file is not the key, and the
+         // full-text indexer's "tokens" are words (IndexerFullTextMinTokenLength was
+         // masked, and dropped from every export, until the rule took the shape).
          const string secretKey = "RestApiIniProbeSecret";
          const string pathKey = "RestApiIniProbePrivateKeyFile";
+         const string indexerKey = "IndexerFullTextIniProbeTokenLength";
 
          try
          {
             Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + secretKey, "{\"value\":\"hunter2\"}").status);
             Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + pathKey, "{\"value\":\"/etc/hmailserver/rest.key\"}").status);
+            Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + indexerKey, "{\"value\":\"3\"}").status);
 
             (int listStatus, string listBody) = Http("GET", "/api/v1/settings/ini");
             Assert.AreEqual(200, listStatus, listBody);
@@ -816,6 +820,8 @@ namespace RegressionTests.API
             StringAssert.DoesNotContain("hunter2", listBody, "The list never carries a secret's value.");
             StringAssert.Contains("{\"name\":\"" + pathKey + "\",\"value\":\"/etc/hmailserver/rest.key\",\"secret\":false}", listBody,
                "A path is not a secret, though its name carries PrivateKeyFile: an export must keep it.");
+            StringAssert.Contains("{\"name\":\"" + indexerKey + "\",\"value\":\"3\",\"secret\":false}", listBody,
+               "A full-text indexer setting is not a secret, though its name carries Token: an export must keep it.");
             StringAssert.Contains("\"" + secretKey + "\"", listBody.Substring(0, listBody.IndexOf("\"settings\":[")),
                "The names list still holds every key, masked or not.");
 
@@ -832,6 +838,7 @@ namespace RegressionTests.API
          {
             Http("DELETE", "/api/v1/settings/ini/" + secretKey);
             Http("DELETE", "/api/v1/settings/ini/" + pathKey);
+            Http("DELETE", "/api/v1/settings/ini/" + indexerKey);
          }
       }
 
