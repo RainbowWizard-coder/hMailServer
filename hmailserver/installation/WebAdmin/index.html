@@ -2381,7 +2381,7 @@ async function renderRoles(){
   const options=roles.map(r=>`<option value="${escHtml(r.name)}">${escHtml(r.name)}</option>`).join("");
   const heldRows=(held.assignments||[]).map(a=>`
     <tr><td>${escHtml(a.address)}</td><td><code class="ro">${escHtml(a.role)}</code></td>
-        <td>${escHtml(a.domains||(a.every_domain?t("every domain"):t("the account's own domain")))}</td>
+        <td>${escHtml(a.every_domain?t("every domain"):(a.domains||t("the account's own domain")))}</td>
         <td style="text-align:right">${may("manage_roles")?`<button class="btn danger sm" data-act="unassign" data-address="${escHtml(a.address)}">${t("Remove")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`<div class="card view">
     <div class="tablewrap"><table><thead><tr><th>${t("Role")}</th><th>${t("What it is for")}</th><th></th><th>${t("Permissions")}</th></tr></thead>

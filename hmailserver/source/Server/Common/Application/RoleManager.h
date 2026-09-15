@@ -247,6 +247,14 @@ namespace HM
       // has to know the rule to show what an assignment reaches.
       static bool ReachesEveryDomainWhenUnlisted(const String &roleName);
 
+      // What an assignment's stored list reaches: "*" is every domain, which is
+      // how an administrator lets a confined role - a custom role holding a
+      // server-wide permission, a domain administrator of the whole server - be
+      // used by an account at all; empty is the rule above; anything else is
+      // that list. Assignments only: a key's Domains line keeps reading "*" as
+      // the name of no domain, as it always has.
+      static bool AssignmentReachesEveryDomain(const String &roleName, const String &domains);
+
       // True when a grant is confined to no list of domains - the server
       // administrator, an unrestricted key, an auditor given no list. A
       // question some resources have to ask before they can answer at all: a
@@ -292,6 +300,7 @@ namespace HM
       static AnsiString DescribeGrantFromSet_(unsigned __int64 set);
       static unsigned __int64 ParsePermissionList_(const String &list);
       static std::vector<String> SplitDomains_(const String &list);
+      static RoleGrant ConfineAssignment_(RoleGrant grant, const String &roleName, const String &domains, const String &ownDomain);
       static bool IsDomainReached_(const RoleGrant &grant, const String &domainName);
       static void EnsureLoaded_();
    };

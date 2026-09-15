@@ -142,7 +142,10 @@ whatever its role.
 An assignment with no domains reaches **every domain** for `serveradmin` and
 `auditor`, and **the account's own domain** for every other role, custom roles
 included. Naming domains is how an administrator widens a confined role; an auditor
-given a list is confined to it. The listings answer `every_domain` (REST) or a fourth
+given a list is confined to it. `*` is every domain, for any role — which is what a
+custom role holding a server-wide permission such as `manage_settings` needs before an
+account can use it at all. (A key's `Domains=` line still reads `*` as the name of no
+domain, as it always has.) The listings answer `every_domain` (REST) or a fourth
 field (COM) so that nobody has to remember the rule to read an assignment. A
 credential confined to named domains sees only the assignments of accounts in those
 domains: who administers another customer's domain is not a domain administrator's to

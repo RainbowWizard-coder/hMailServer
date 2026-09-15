@@ -428,6 +428,36 @@ namespace HM
    }
 
    bool
+   RoleManager::AssignmentReachesEveryDomain(const String &roleName, const String &domains)
+   {
+      String list = domains;
+      list.Trim();
+
+      if (list.Compare(_T("*")) == 0)
+         return true;
+
+      return list.IsEmpty() && ReachesEveryDomainWhenUnlisted(roleName);
+   }
+
+   RoleGrant
+   RoleManager::ConfineAssignment_(RoleGrant grant, const String &roleName, const String &domains, const String &ownDomain)
+   {
+      if (!grant.administrative)
+         return grant;
+
+      if (AssignmentReachesEveryDomain(roleName, domains))
+      {
+         grant.domains.clear();
+         return grant;
+      }
+
+      if (grant.domains.empty())
+         grant.domains.push_back(ownDomain);
+
+      return grant;
+   }
+
+   bool
    RoleManager::ReachesEveryDomainWhenUnlisted(const String &roleName)
    {
       const String name = Lower(roleName);
@@ -472,12 +502,8 @@ namespace HM
       if (!account)
          return RoleGrant();
 
-      RoleGrant grant = GrantForRole(roleName, SplitDomains_(domains));
-
-      if (grant.administrative && grant.domains.empty() && !ReachesEveryDomainWhenUnlisted(roleName))
-         grant.domains.push_back(Lower(StringParser::ExtractDomain(account->GetAddress())));
-
-      return grant;
+      return ConfineAssignment_(GrantForRole(roleName, SplitDomains_(domains)), roleName, domains,
+                                Lower(StringParser::ExtractDomain(account->GetAddress())));
    }
 
    RoleGrant
@@ -503,23 +529,18 @@ namespace HM
       {
          std::vector<String> domains = SplitDomains_(assignment.domains);
 
-         RoleGrant assignedGrant = GrantForRole(assignment.role_name, domains);
+         // A confined role with no list of its own reaches the account's own
+         // domain, and only that. serveradmin and auditor are the exceptions:
+         // the one has never been a domain's administrator, and an auditor
+         // confined to the domain its own mailbox happens to sit in could not
+         // read the settings, the logs or the queue - which are server-wide -
+         // and would not be reading everything. And "*" is every domain, for
+         // any role, because an administrator said so.
+         RoleGrant assignedGrant = ConfineAssignment_(GrantForRole(assignment.role_name, domains),
+                                                      assignment.role_name, assignment.domains, ownDomain);
 
          if (assignedGrant.administrative)
-         {
-            if (assignedGrant.domains.empty() && !ReachesEveryDomainWhenUnlisted(assignment.role_name))
-            {
-               // A confined role with no list of its own reaches the account's
-               // own domain, and only that. serveradmin and auditor are the
-               // exceptions: the one has never been a domain's administrator,
-               // and an auditor confined to the domain its own mailbox happens
-               // to sit in could not read the settings, the logs or the queue -
-               // which are server-wide - and would not be reading everything.
-               assignedGrant.domains.push_back(ownDomain);
-            }
-
             return assignedGrant;
-         }
 
          // The row named a role that no longer holds anything. Fall through to
          // the historical level rather than to nothing, so that deleting a

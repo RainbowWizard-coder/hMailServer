@@ -489,6 +489,27 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A custom role holding a server-wide permission is confined to the account's own domain when the assignment names none, and so refused the settings; given * it reaches every domain and reads them")]
+      public void AStarGivesAConfinedRoleEveryDomain()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sam@example.test", AccountPassword);
+
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-settings\",\"permissions\":\"view_configuration,manage_settings\"}").status);
+
+         Assign("sam@example.test", "rolestest-settings", "");
+         (int status, string body) confined = AsAccount("sam@example.test", "GET", "/api/v1/settings");
+         Assert.AreEqual(403, confined.status, "Unlisted, a custom role reaches the account's own domain, and the settings are server-wide. Body: " + confined.body);
+         StringAssert.Contains("\"every_domain\":false", Admin("GET", "/api/v1/role-assignments").body);
+
+         Assign("sam@example.test", "rolestest-settings", "*");
+         (int status, string body) everywhere = AsAccount("sam@example.test", "GET", "/api/v1/settings");
+         Assert.AreEqual(200, everywhere.status, everywhere.body);
+         StringAssert.Contains("\"every_domain\":true", Admin("GET", "/api/v1/role-assignments").body);
+         StringAssert.Contains("\"domains\":[]", AsAccount("sam@example.test", "GET", "/api/v1/session").body);
+      }
+
+      [Test]
       [Description("A help desk reads the trace of one address in its own domain - exactly that address, where the search itself matches a substring - and nothing server-wide, over REST and over COM; an auditor reads the whole trace")]
       public void AHelpDeskTracesOneAddressInItsDomainAndNothingServerWide()
       {

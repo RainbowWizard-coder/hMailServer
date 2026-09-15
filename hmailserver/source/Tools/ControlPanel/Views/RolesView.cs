@@ -198,7 +198,7 @@ namespace hMailServer.ControlPanel.Views
                {
                   Address = parts[0],
                   Role = parts[1],
-                  Domains = parts[2].Length > 0 ? parts[2] : (everyDomain ? L("every domain") : L("the account's own domain"))
+                  Domains = everyDomain ? L("every domain") : (parts[2].Length > 0 ? parts[2] : L("the account's own domain"))
                });
             }
          }

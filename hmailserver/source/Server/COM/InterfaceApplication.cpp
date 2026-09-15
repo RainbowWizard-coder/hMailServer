@@ -703,7 +703,7 @@ STDMETHODIMP InterfaceApplication::get_RoleAssignments(BSTR *pVal)
          // A fourth field says whether an empty list means every domain, so that
          // the Control Panel shows what the assignment reaches without knowing
          // the rule itself.
-         const bool everyDomain = assignment.domains.IsEmpty() && HM::RoleManager::ReachesEveryDomainWhenUnlisted(assignment.role_name);
+         const bool everyDomain = HM::RoleManager::AssignmentReachesEveryDomain(assignment.role_name, assignment.domains);
 
          HM::String line;
          line.Format(_T("%s\t%s\t%s\t%d\r\n"),
