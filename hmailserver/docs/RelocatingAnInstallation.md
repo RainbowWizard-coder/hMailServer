@@ -225,7 +225,8 @@ under the old root:
   stores the new value in the database and writes it into the file's copy as
   well. Restart the service afterwards, because these are read when it starts.
   Until then the server runs on the old paths, which still resolve because step 3
-  copied the tree rather than moving it and step 12 keeps it.
+  copied the tree rather than moving it. Do not make the old tree unreachable
+  (step 12) until that restart has picked up the new paths.
 - **SSL certificates.** The Control Panel's certificate grid is read-only except
   for the passphrase, so each certificate must be deleted and re-added with its
   new file names, or set over COM.

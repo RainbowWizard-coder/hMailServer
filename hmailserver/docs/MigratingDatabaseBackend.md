@@ -148,9 +148,9 @@ Control Panel, over the REST API (`PUT /api/v1/settings/ini/BackupMessagesDBOnly
 with `1`), or with `hmctl ini set BackupMessagesDBOnly 1` — and restart the
 service, because it is read at start. It is stored in the database, which is the
 settings store since schema 6042, and is not typed into `hMailServer.ini`: a line
-added to the file is taken into the store only while the store has never held the
-setting, and once it has, an edit to the file is named in the error log (`HM5804`)
-and put back. This stores and restores the message *rows* — which is what
+added to the file is taken into the store only while the store has no row for it
+(a setting never stored, or one deleted since), and while it has one, an edit to
+the file is named in the error log (`HM5804`) and put back. This stores and restores the message *rows* — which is what
 you are actually migrating — while leaving the `.eml` files alone on disk. On an
 installation with a few hundred gigabytes of mail this is the difference between
 minutes and most of a day, and since the data folder is not moving, copying it out
