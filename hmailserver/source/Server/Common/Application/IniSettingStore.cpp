@@ -734,28 +734,24 @@ namespace HM
 
          String fileValue = written ? value : String();
 
-         // A restore is an administrative change too, and one that can move every
-         // setting at once, so each value it replaces is recorded like any other
-         // write - and one it leaves as it was is not.
-         auto current = rows.find(name);
-         bool wasStored = current != rows.end();
-         String previousValue = wasStored ? (*current).second.first : String();
-
-         if (!wasStored)
+         // NOT recorded in the audit trail, and not by oversight. A restore runs as a
+         // BackupTask on the maintenance work queue, and the audit actor is
+         // thread-local: nothing installs one on that thread, so a RecordChange_ here
+         // could never write a row, and a call that cannot record is worse than none
+         // when the page describing the trail reads it as a promise. The rest of a
+         // restore is in the same position - PropertySet::XMLLoad and every table the restore
+         // rewrites record nothing either - so the whole of it is named as unrecorded
+         // in docs/AlertsAndAuditTrail.md until somebody decides whether a restore
+         // should be one row saying who restored which backup, or a row per value.
+         if (rows.find(name) == rows.end())
          {
             if (InsertRow_(name, value, fileValue))
-            {
                rows[name] = std::make_pair(value, fileValue);
-               RecordChange_(name, false, previousValue, true, value);
-            }
          }
          else
          {
             if (UpdateRow_(name, value, fileValue))
-            {
                rows[name] = std::make_pair(value, fileValue);
-               RecordChange_(name, true, previousValue, true, value);
-            }
          }
       }
 

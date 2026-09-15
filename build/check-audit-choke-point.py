@@ -113,9 +113,18 @@ REQUIRED = [
     "the chain can no longer be walked, which is the whole point of chaining it"),
 ]
 
-# The three administrative writes of hm_inisettings each have to reach the
+# The two administrative writes of hm_inisettings each have to reach the
 # recorder, or a route through the one that does not is a way round it.
-INI_STORE_RECORDS = ("IniSettingStore::WriteSetting", "IniSettingStore::RemoveSetting", "IniSettingStore::XMLLoad")
+INI_STORE_RECORDS = ("IniSettingStore::WriteSetting", "IniSettingStore::RemoveSetting")
+
+# Writes of hm_inisettings that must NOT call the recorder, because no actor is
+# ever on the thread they run on and a call there records nothing while reading
+# as though it did. XMLLoad is a restore, run as a BackupTask on the maintenance
+# work queue; docs/AlertsAndAuditTrail.md says a restore is not recorded, and a
+# RecordChange_ put back here would make that page look wrong without making the
+# trail any more complete. Recording a restore is a decision - one row for the
+# restore, or one per value - that starts by carrying the actor to that thread.
+INI_STORE_CANNOT_RECORD = ("IniSettingStore::XMLLoad",)
 
 # A COM method, by its signature.
 COM_METHOD = re.compile(r"^STDMETHODIMP\s+(\w+)::(\w+)\s*\(", re.M)
@@ -196,8 +205,10 @@ NOT_AUDITED = {
    "hm_messageindexterms": "the full-text index; traffic.",
    "hm_messageindexstate": "the full-text index's progress; traffic.",
    "hm_messagetrace": "where each message went; traffic.",
-   "hm_archiveindex": "the archive's index of messages; traffic.",
-   "hm_quarantine": "held messages; releasing or deleting one acts on a message, which is traffic.",
+   "hm_quarantine": "held messages, written by delivery and by each account's own portal. An administrator releasing or deleting one is NOT "
+                    "recorded, and docs/AlertsAndAuditTrail.md says so: both end in the same 'delete from hm_quarantine where "
+                    "quarantineid = @ID', so a listed table would record a release and a delete as the same row, naming an id that "
+                    "identifies nothing once the row is gone. Recording it needs a record of its own in QuarantineStore.",
    "hm_imapfolders": "an account's folders, which its mail client creates and deletes as much as any administrator does; the permissions on them (hm_acl) are audited.",
    "hm_imapexpunged": "IMAP's record of expunged messages for QRESYNC; traffic.",
    "hm_imap_metadata": "IMAP METADATA an account or its client sets on its own mailbox.",
@@ -297,6 +308,17 @@ def check_ini_store(problems):
       if "RecordChange_(" not in method_body(text, match.end()):
          line = text.count("\n", 0, match.start()) + 1
          problems.append("%s:%d: %s writes hm_inisettings without RecordChange_, so the change it makes leaves no audit row"
+                         % (rel, line, function))
+
+   for function in INI_STORE_CANNOT_RECORD:
+      match = re.search(r"^\s*" + re.escape(function) + r"\s*\(", text, re.M)
+      if match is None:
+         continue
+
+      if "RecordChange_(" in method_body(text, match.end()):
+         line = text.count("\n", 0, match.start()) + 1
+         problems.append("%s:%d: %s calls RecordChange_, but it runs where no audit actor is installed, so the call records nothing - "
+                         "carry the actor to that thread first, and change docs/AlertsAndAuditTrail.md and INI_STORE_CANNOT_RECORD with it"
                          % (rel, line, function))
 
 

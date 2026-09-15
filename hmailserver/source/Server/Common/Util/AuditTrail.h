@@ -24,13 +24,17 @@
 //             audited table, so a setting is recorded once, with its old value
 //             and its new one, and not twice.
 //
-//   [Settings] IniSettingStore::WriteSetting, ::RemoveSetting and ::XMLLoad,
-//             the three administrative writes of hm_inisettings, which every
-//             COM SetIniSetting/DeleteIniSetting, every /api/v1/settings/ini
-//             route and every /api/v1/settings field backed by one of those
-//             keys goes through. The stored value is read there before it is
-//             replaced, and hm_inisettings is not an audited table either, for
-//             the same reason as hm_settings.
+//   [Settings] IniSettingStore::WriteSetting and ::RemoveSetting, the two
+//             administrative writes of hm_inisettings, which every COM
+//             SetIniSetting/DeleteIniSetting, every /api/v1/settings/ini route
+//             and every /api/v1/settings field backed by one of those keys goes
+//             through. The stored value is read there before it is replaced,
+//             and hm_inisettings is not an audited table either, for the same
+//             reason as hm_settings.
+//
+// A RESTORE IS NOT RECORDED. It runs on the maintenance work queue, which no
+// actor is ever installed on, so none of the three places above writes a row
+// for anything a restore changes. docs/AlertsAndAuditTrail.md says so.
 //
 // Nothing else may call Record*: build/check-audit-choke-point.py fails the
 // build if it does, and fails it if any of those call sites goes away.

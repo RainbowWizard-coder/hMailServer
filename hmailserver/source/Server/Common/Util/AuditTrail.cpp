@@ -55,6 +55,14 @@ namespace HM
       // here would record it a second time.
       //
       // hm_audit is absent for the obvious reason.
+      //
+      // hm_archiveindex is here although most of what writes it is traffic, for
+      // the one write that is not: placing or releasing a legal hold, and the
+      // erasure of an address's index rows, both of which only an administrator
+      // can do. The archive's own writes - a copy indexed as it is received, the
+      // retention pass removing an expired one - run on threads with no actor
+      // and so record nothing, which is the same filter that keeps delivery out
+      // of every other table here.
       struct TableName
       {
          const wchar_t *table;
@@ -92,6 +100,7 @@ namespace HM
          { L"hm_alertrules",                  L"alert rule" },
          { L"hm_acl",                         L"folder permission" },
          { L"hm_remotedomainpolicies",        L"remote domain policy" },
+         { L"hm_archiveindex",                L"archive entry" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a
@@ -120,6 +129,8 @@ namespace HM
          L"preferredhashalgorithm", L"minimumacceptedhashalgorithm",
          L"protectstoredsecretswithdpapi",
          L"oauth2publickeyfile", L"updatelogpublickeyfile",
+         L"indexerfulltextmaxtokenspermessage", L"indexerfulltextmintokenlength",
+         L"outboundoauth2tokenurl",
       };
 
       String Truncate(const String &value, int maximum)

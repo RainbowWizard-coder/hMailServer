@@ -222,15 +222,18 @@ namespace HM
       /// that by the name, as it does for hm_settings.
       ///
       /// THIS is the settings chokepoint for hm_inisettings, and it is called from
-      /// the three writes an administrator can cause - WriteSetting, RemoveSetting
-      /// and XMLLoad - and from nothing else. Every interface reaches the first two
+      /// the two writes an administrator makes through an interface - WriteSetting
+      /// and RemoveSetting - and from nothing else. Every interface reaches them
       /// through IniFileSettings::WriteSettingsValue and RemoveSettingsValue: COM
       /// SetIniSetting and DeleteIniSetting, PUT and DELETE /api/v1/settings/ini,
       /// the /api/v1/settings fields that are these keys, the tarpit setters, the
       /// branding and file-link routes. Synchronize does not record: it reconciles
       /// the file with the store at start-up, under no actor, and the stored value
-      /// is what it keeps. hm_inisettings is not one of the statement chokepoint's
-      /// tables, so a change is recorded here once and not a second time there.
+      /// is what it keeps. XMLLoad does not record either: a restore runs on the
+      /// maintenance work queue, where no actor is ever installed, so a call there
+      /// could not write a row (see the comment in XMLLoad). hm_inisettings is not
+      /// one of the statement chokepoint's tables, so a change is recorded here
+      /// once and not a second time there.
       ///
       /// Nothing is recorded when nothing moved - a write of the value already
       /// stored, or a removal of a key that had no row - which is the same rule
