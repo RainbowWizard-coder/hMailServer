@@ -6,6 +6,7 @@
 #include "IniSettingStore.h"
 
 #include "IniFileSettings.h"
+#include "../Util/AuditTrail.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
@@ -211,6 +212,71 @@ namespace HM
       command.AddParameter("@NAME", name);
 
       return database->Execute(command);
+   }
+
+   bool
+   IniSettingStore::ReadRow_(const String &name, String &value)
+   {
+      value = String();
+
+      std::shared_ptr<DatabaseConnectionManager> database = StoreDatabase_();
+
+      if (!database)
+         return false;
+
+      // The same comparison DeleteRow_ makes, so that the row read here is the row
+      // the delete then removes - on every backend, PostgreSQL's case-sensitive
+      // one included.
+      SQLCommand command("select inisettingvalue from hm_inisettings where inisettingname = @NAME");
+      command.AddParameter("@NAME", name);
+
+      std::shared_ptr<DALRecordset> recordset = database->OpenRecordset(command);
+
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      value = recordset->GetStringValue("inisettingvalue");
+      return true;
+   }
+
+   bool
+   IniSettingStore::ReadFileValue_(const String &name, String &value)
+   {
+      value = String();
+
+      String iniFile = IniFileSettings::GetInitializationFile();
+
+      if (iniFile.IsEmpty())
+         return false;
+
+      // Read the way XMLLoad reads the same key. An empty line and no line are the
+      // same thing to a pepper, so either is "no value".
+      const DWORD bufferSize = 4096;
+      TCHAR current[bufferSize];
+      GetPrivateProfileString(_T("Settings"), name.c_str(), _T(""), current, bufferSize, iniFile.c_str());
+
+      value = String(current);
+      return !value.IsEmpty();
+   }
+
+   void
+   IniSettingStore::RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value)
+   {
+      if (!wasStored && !isStored)
+         return;
+
+      if (wasStored && isStored && previousValue.Compare(value) == 0)
+         return;
+
+      // A side with no row is the setting at its default, which is what an
+      // administrator reading the trail needs to be told - not an empty string,
+      // which is a value a setting can really hold.
+      const String notStored = _T("(default)");
+
+      AuditTrail::Instance()->RecordSettingChange(name,
+         wasStored ? previousValue : notStored,
+         isStored ? value : notStored,
+         isStored ? String(_T("updated")) : String(_T("deleted")));
    }
 
    void
@@ -583,10 +649,20 @@ namespace HM
          // The file, and a row taken out if an earlier start put one there. The
          // order is the file first: if the row cannot be dropped the value is still
          // right where the server reads it, and the next start drops the row.
+         //
+         // Recorded like every other key, with the file's line standing in for the
+         // row it does not have. The name makes the row read "(changed)" and never
+         // the value; the fact is what matters, because no hash made before a new
+         // pepper verifies after it.
+         String previousFileValue;
+         bool hadValue = ReadFileValue_(name, previousFileValue);
+
          if (!WriteIniValue_(_T("Settings"), name, value))
             return false;
 
          DeleteRow_(name);
+
+         RecordChange_(name, hadValue, previousFileValue, true, value);
          return true;
       }
 
@@ -604,12 +680,19 @@ namespace HM
       // for one - no line at all.
       String previousFileValue = existing == rows.end() ? String() : (*existing).second.second;
 
+      bool wasStored = existing != rows.end();
+      String previousValue = wasStored ? (*existing).second.first : String();
+
       bool stored = existing == rows.end()
          ? InsertRow_(name, value, value)
          : UpdateRow_(name, value, value);
 
       if (!stored)
          return false;
+
+      // Recorded as soon as the store has the value, which is the moment the change
+      // is real: a file write that fails below does not undo it, and says so.
+      RecordChange_(name, wasStored, previousValue, true, value);
 
       // The cache second, and a failure here does not fail the write: the value is
       // stored and is what the server will use. Said out loud rather than swallowed,
@@ -656,6 +739,15 @@ namespace HM
       // behind - and "Key=" is not the same thing at all, because
       // GetPrivateProfileInt reads an empty value as 0 rather than falling back to
       // the caller's default. That distinction has bitten this project twice.
+
+      // What is being removed, read before anything is: the audit trail records the
+      // value the setting had, and after the delete there is nothing left to read.
+      // The file-only key has no row, and its line is what is read.
+      String previousValue;
+      bool wasStored = IsFileOnlyName(name)
+         ? ReadFileValue_(name, previousValue)
+         : ReadRow_(name, previousValue);
+
       String iniFile = IniFileSettings::GetInitializationFile();
 
       if (!iniFile.IsEmpty())
@@ -676,6 +768,8 @@ namespace HM
 
          return false;
       }
+
+      RecordChange_(name, wasStored, previousValue, false, String());
 
       return true;
    }
@@ -784,6 +878,15 @@ namespace HM
 
          String fileValue = written ? value : String();
 
+         // NOT recorded in the audit trail, and not by oversight. A restore runs as a
+         // BackupTask on the maintenance work queue, and the audit actor is
+         // thread-local: nothing installs one on that thread, so a RecordChange_ here
+         // could never write a row, and a call that cannot record is worse than none
+         // when the page describing the trail reads it as a promise. The rest of a
+         // restore is in the same position - PropertySet::XMLLoad and every table the restore
+         // rewrites record nothing either - so the whole of it is named as unrecorded
+         // in docs/AlertsAndAuditTrail.md until somebody decides whether a restore
+         // should be one row saying who restored which backup, or a row per value.
          if (rows.find(name) == rows.end())
          {
             if (InsertRow_(name, value, fileValue))

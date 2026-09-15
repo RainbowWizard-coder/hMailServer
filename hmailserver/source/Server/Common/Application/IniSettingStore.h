@@ -228,6 +228,46 @@ namespace HM
       /// </summary>
       static bool DeleteRow_(const String &name);
 
+      /// <summary>One row's stored value. False when there is no row, or no database.</summary>
+      static bool ReadRow_(const String &name, String &value);
+
+      /// <summary>
+      /// The file's value for the one file-only key, which has no row for ReadRow_ to
+      /// read. False when the file has no line for it, or an empty one: an empty
+      /// pepper and no pepper are the same thing to Crypt, so either is "no value".
+      /// </summary>
+      static bool ReadFileValue_(const String &name, String &value);
+
+      /// <summary>
+      /// The audit trail's record of one administrative change to a [Settings] key:
+      /// the value the row held and the value it holds now, "(default)" for the side
+      /// on which there is no row, and a secret as "(changed)" - AuditTrail decides
+      /// that by the name, as it does for hm_settings. The one file-only key,
+      /// PasswordPepper, has no row on either side; its line in the file, read by
+      /// ReadFileValue_, stands in for the row, so that a new pepper - after which
+      /// no hash made before it verifies - is a row in the trail like any other.
+      ///
+      /// THIS is the settings chokepoint for hm_inisettings, and it is called from
+      /// the two writes an administrator makes through an interface - WriteSetting
+      /// and RemoveSetting - and from nothing else. Every interface reaches them
+      /// through IniFileSettings::WriteSettingsValue and RemoveSettingsValue: COM
+      /// SetIniSetting and DeleteIniSetting, PUT and DELETE /api/v1/settings/ini,
+      /// the /api/v1/settings fields that are these keys, the tarpit setters, the
+      /// branding and file-link routes. Synchronize does not record: it reconciles
+      /// the file with the store at start-up, under no actor, and the stored value
+      /// is what it keeps. XMLLoad does not record either: a restore runs on the
+      /// maintenance work queue, where no actor is ever installed, so a call there
+      /// could not write a row (see the comment in XMLLoad). hm_inisettings is not
+      /// one of the statement chokepoint's tables, so a change is recorded here
+      /// once and not a second time there.
+      ///
+      /// Nothing is recorded when nothing moved - a write of the value already
+      /// stored, or a removal of a key that had no row - which is the same rule
+      /// PropertySet applies, for the same reason: a settings page that writes
+      /// every field it shows would otherwise bury the one that changed.
+      /// </summary>
+      static void RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value);
+
       /// <summary>
       /// Writes one key into a section of the ini. Returns false when the write did
       /// not take - which is not fatal, but must stop filevalue being advanced.

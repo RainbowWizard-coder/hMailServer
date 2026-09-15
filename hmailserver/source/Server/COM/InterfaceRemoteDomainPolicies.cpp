@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "COMError.h"
+#include "../Common/Util/AuditTrail.h"
 #include "InterfaceRemoteDomainPolicies.h"
 
 #include "InterfaceRemoteDomainPolicy.h"
@@ -76,6 +77,8 @@ STDMETHODIMP InterfaceRemoteDomainPolicies::DeleteByDBID(long DBID)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!policies_)
          return GetAccessDenied();
 

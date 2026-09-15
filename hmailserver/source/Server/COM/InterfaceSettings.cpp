@@ -2954,6 +2954,11 @@ STDMETHODIMP InterfaceSettings::DeleteIniSetting(BSTR Name)
 {
    try
    {
+      // Returning a setting to its default is a change like any other, and it is
+      // recorded with the value it had - which needs the actor on THIS thread, not
+      // on whichever one asked GetIsServerAdmin when the object was loaded.
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 

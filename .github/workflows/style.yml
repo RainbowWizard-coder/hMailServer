@@ -119,6 +119,13 @@ jobs:
       - name: Every folder-access decision is ACLManager's
         run: python3 build/check-authz-choke-point.py
 
+      # "Who changed what" is only an answer if the record has no holes. This
+      # fails when a COM write installs no actor, when a recorder goes away, when
+      # AuditTrail.cpp lists a table no create script defines, or when a new
+      # table is neither audited nor named with the reason it is not.
+      - name: Every administrative change reaches the audit trail
+        run: python3 build/check-audit-choke-point.py
+
       # The portal's page and its script are C++ string literals, and what stood
       # behind them was a test asserting that certain substrings appeared - which
       # proves a name is spelled somewhere and nothing about what the page does.
