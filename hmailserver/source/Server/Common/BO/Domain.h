@@ -153,6 +153,29 @@ namespace HM
       // prevent. The caller is responsible for persisting the domain afterwards.
       bool PromoteDKIMSecondary(String &errorMessage);
 
+      // The rotation policy: whether the server rotates this domain's key on a
+      // schedule, how often, how long a new key's record must have been seen in
+      // DNS before signing moves to it, how long the old selector is kept for
+      // the verifiers that arrive late, and the size of the keys it generates.
+      // Off on every domain until somebody switches it on; the rotation itself -
+      // the next and retiring selectors and every time and DNS check - is kept
+      // in hm_dkimrotations by DkimRotation, which is where to read about it.
+      // Validated by DkimRotationPlan::Policy::Validate at the interfaces.
+      bool GetDKIMRotationEnabled() const { return dkim_rotation_enabled_; }
+      void SetDKIMRotationEnabled(bool newValue) { dkim_rotation_enabled_ = newValue; }
+
+      int GetDKIMRotationIntervalDays() const { return dkim_rotation_interval_days_; }
+      void SetDKIMRotationIntervalDays(int newValue) { dkim_rotation_interval_days_ = newValue; }
+
+      int GetDKIMRotationPropagationHours() const { return dkim_rotation_propagation_hours_; }
+      void SetDKIMRotationPropagationHours(int newValue) { dkim_rotation_propagation_hours_ = newValue; }
+
+      int GetDKIMRotationRetentionDays() const { return dkim_rotation_retention_days_; }
+      void SetDKIMRotationRetentionDays(int newValue) { dkim_rotation_retention_days_ = newValue; }
+
+      int GetDKIMRotationKeyBits() const { return dkim_rotation_key_bits_; }
+      void SetDKIMRotationKeyBits(int newValue) { dkim_rotation_key_bits_ = newValue; }
+
       // An outbound relay chosen by the SENDING domain, which is a different
       // question from the one routes answer. A route says "mail addressed to this
       // domain goes to that host"; this says "mail FROM this domain leaves through
@@ -334,6 +357,12 @@ namespace HM
 
       String dkim_secondary_selector_;
       String dkim_secondary_private_key_file_;
+
+      bool dkim_rotation_enabled_;
+      int dkim_rotation_interval_days_;
+      int dkim_rotation_propagation_hours_;
+      int dkim_rotation_retention_days_;
+      int dkim_rotation_key_bits_;
 
       String relay_host_;
       long relay_port_;

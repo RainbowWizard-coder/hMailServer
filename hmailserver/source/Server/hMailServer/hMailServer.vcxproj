@@ -201,6 +201,9 @@ EXIT 0
     <ClCompile Include="..\Common\AntiSpam\DKIM\DKIMParameters.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DKIM\Arc.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DKIM\DKIMSigner.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\DKIM\DkimKeyPair.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\DKIM\DkimRotation.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\DKIM\DkimRotationPlan.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DKIM\SpamTestDKIM.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DMARC\DMARC.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DMARC\SpamTestDMARC.cpp" />
@@ -272,6 +275,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\ArchiveRetentionTask.cpp" />
     <ClCompile Include="..\Common\Application\MailboxRetentionTask.cpp" />
     <ClCompile Include="..\Common\Application\MetricsHistoryTask.cpp" />
+    <ClCompile Include="..\Common\Application\DkimRotationTask.cpp" />
     <ClCompile Include="..\Common\Application\ScheduledMailTask.cpp" />
     <ClCompile Include="..\Common\Application\UpdateCheckTask.cpp" />
     <ClCompile Include="..\Common\Application\IMAPExpungeRetentionTask.cpp" />
@@ -402,6 +406,7 @@ EXIT 0
     <ClCompile Include="..\Common\Persistence\PersistentFetchAccountUID.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGreyList.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentKnownSender.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentDkimRotation.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGreyListingWhiteAddress.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGroup.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGroupMember.cpp" />
@@ -514,6 +519,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\SigstoreVerifier.cpp" />
     <ClCompile Include="..\Common\Util\UpdateDownloader.cpp" />
     <ClCompile Include="..\Common\Util\UpdateApplyToken.cpp" />
+    <ClCompile Include="..\Common\Util\ProtectedFile.cpp" />
     <ClCompile Include="..\Common\Util\UpdateInstaller.cpp" />
     <ClCompile Include="..\Common\Util\UpdateWindow.cpp" />
     <ClCompile Include="..\Common\Util\JwksKeySet.cpp" />
@@ -944,6 +950,9 @@ EXIT 0
     <ClInclude Include="..\Common\AntiSpam\DKIM\DKIM.h" />
     <ClInclude Include="..\Common\AntiSpam\DKIM\DKIMParameters.h" />
     <ClInclude Include="..\Common\AntiSpam\DKIM\DKIMSigner.h" />
+    <ClInclude Include="..\Common\AntiSpam\DKIM\DkimKeyPair.h" />
+    <ClInclude Include="..\Common\AntiSpam\DKIM\DkimRotation.h" />
+    <ClInclude Include="..\Common\AntiSpam\DKIM\DkimRotationPlan.h" />
     <ClInclude Include="..\Common\AntiSpam\DKIM\SpamTestDKIM.h" />
     <ClInclude Include="..\Common\AntiSpam\DMARC\DMARC.h" />
     <ClInclude Include="..\Common\AntiSpam\DMARC\SpamTestDMARC.h" />
@@ -1017,6 +1026,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\ArchiveRetentionTask.h" />
     <ClInclude Include="..\Common\Application\MailboxRetentionTask.h" />
     <ClInclude Include="..\Common\Application\MetricsHistoryTask.h" />
+    <ClInclude Include="..\Common\Application\DkimRotationTask.h" />
     <ClInclude Include="..\Common\Application\ScheduledMailTask.h" />
     <ClInclude Include="..\Common\Application\UpdateCheckTask.h" />
     <ClInclude Include="..\Common\Application\IMAPExpungeRetentionTask.h" />
@@ -1155,6 +1165,7 @@ EXIT 0
     <ClInclude Include="..\Common\Persistence\PersistentFetchAccountUID.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGreyList.h" />
     <ClInclude Include="..\Common\Persistence\PersistentKnownSender.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentDkimRotation.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGreyListingWhiteAddress.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGroup.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGroupMember.h" />
@@ -1286,6 +1297,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\SigstoreVerifier.h" />
     <ClInclude Include="..\Common\Util\UpdateDownloader.h" />
     <ClInclude Include="..\Common\Util\UpdateApplyToken.h" />
+    <ClInclude Include="..\Common\Util\ProtectedFile.h" />
     <ClInclude Include="..\Common\Util\UpdateInstaller.h" />
     <ClInclude Include="..\Common\Util\UpdateWindow.h" />
     <ClInclude Include="..\Common\Util\JwksKeySet.h" />

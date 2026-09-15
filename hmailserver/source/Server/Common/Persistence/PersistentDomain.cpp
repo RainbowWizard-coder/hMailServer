@@ -29,6 +29,7 @@
 #include "PreSaveLimitationsCheck.h"
 #include "PersistenceMode.h"
 #include "../Sieve/SieveStorage.h"
+#include "../AntiSpam/DKIM/DkimRotation.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -355,6 +356,12 @@ namespace HM
          if (!pDomain->GetDomainAliases()->DeleteAll())
             return false;
 
+         // The key files the domain's DKIM rotation generated go with it, as its
+         // mail store does. Before the row, because the rotation's row cascades
+         // from it and is what says which files the rotation made; a key file an
+         // administrator supplied is left where it is.
+         DkimRotation::OnDomainDeleted(iDomainID);
+
          SQLCommand command("delete from hm_domains where domainid = @DOMAINID");
          command.AddParameter("@DOMAINID", iDomainID);
 
@@ -473,6 +480,15 @@ namespace HM
       pDomain->SetDKIMSecondarySelector(pRS->GetStringValue("domaindkimsecondaryselector"));
       pDomain->SetDKIMSecondaryPrivateKeyFile(pRS->GetStringValue("domaindkimsecondaryprivatekeyfile"));
 
+      // The rotation policy (schema 6050). The columns default to off and to the
+      // shipped periods, so a domain that predates them reads back as one whose
+      // key has never been rotated by the server.
+      pDomain->SetDKIMRotationEnabled(pRS->GetLongValue("domaindkimrotationenabled") == 1);
+      pDomain->SetDKIMRotationIntervalDays(pRS->GetLongValue("domaindkimrotationintervaldays"));
+      pDomain->SetDKIMRotationPropagationHours(pRS->GetLongValue("domaindkimrotationpropagationhours"));
+      pDomain->SetDKIMRotationRetentionDays(pRS->GetLongValue("domaindkimrotationretentiondays"));
+      pDomain->SetDKIMRotationKeyBits(pRS->GetLongValue("domaindkimrotationkeybits"));
+
       pDomain->SetRelayHost(pRS->GetStringValue("domainrelayhost"));
       pDomain->SetRelayPort(pRS->GetLongValue("domainrelayport"));
       pDomain->SetRelayRequiresAuth(pRS->GetLongValue("domainrelayrequiresauth") == 1);
@@ -531,6 +547,14 @@ namespace HM
          if (!PersistentDomain::ReadObject(pTempDomain, iID))
             return false;
 
+         // A whole-domain save built from values read before the DKIM key
+         // rotation last moved would put the old selector back, and once the old
+         // key is retired that is a domain signing with a file that is gone. This
+         // is the one place a COM Save and a REST PUT both pass, so the guard is
+         // here; restores insert new rows and never reach it.
+         if (mode == PersistenceModeNormal && DkimRotation::RefusesKeyChange(*pTempDomain, *pDomain, sErrorMessage))
+            return false;
+
          if (pTempDomain->GetName().CompareNoCase(pDomain->GetName()) != 0)
          {
             // Disallow change, if not all files are partial in the database.
@@ -584,6 +608,11 @@ namespace HM
       oStatement.AddColumn("domaindkimprivatekeyfile", pDomain->GetDKIMPrivateKeyFile());
       oStatement.AddColumn("domaindkimsecondaryselector", pDomain->GetDKIMSecondarySelector());
       oStatement.AddColumn("domaindkimsecondaryprivatekeyfile", pDomain->GetDKIMSecondaryPrivateKeyFile());
+      oStatement.AddColumn("domaindkimrotationenabled", pDomain->GetDKIMRotationEnabled() ? 1 : 0);
+      oStatement.AddColumn("domaindkimrotationintervaldays", pDomain->GetDKIMRotationIntervalDays());
+      oStatement.AddColumn("domaindkimrotationpropagationhours", pDomain->GetDKIMRotationPropagationHours());
+      oStatement.AddColumn("domaindkimrotationretentiondays", pDomain->GetDKIMRotationRetentionDays());
+      oStatement.AddColumn("domaindkimrotationkeybits", pDomain->GetDKIMRotationKeyBits());
 
       oStatement.AddColumn("domainrelayhost", pDomain->GetRelayHost());
       oStatement.AddColumn("domainrelayport", pDomain->GetRelayPort());

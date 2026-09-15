@@ -6,16 +6,14 @@
 #include "UpdateApplyToken.h"
 #include "UpdateDownloader.h"
 #include "FileUtilities.h"
+#include "ProtectedFile.h"
 
 #include <openssl/rand.h>
 #ifdef HM_PLATFORM_POSIX
 
-// sddl.h has no counterpart here and needs none: the rule it is used to state -
-// this file is readable by the account the server runs as and by nobody else - is
-// a creation mode on this platform rather than a security descriptor. What the
-// POSIX branches below need instead is open(2), stat(2) and unlink(2), and
-// boost::filesystem to turn the wide path the server carries into the narrow one
-// those take.
+// The token file's permissions are ProtectedFile's to set. What the POSIX branch
+// below needs is stat(2), and boost::filesystem to turn the wide path the server
+// carries into the narrow one it takes.
 #include <boost/filesystem.hpp>
 
 #include <sys/stat.h>
@@ -25,8 +23,6 @@
 #include <cerrno>
 #include <ctime>
 
-#else
-#include <sddl.h>
 #endif
 
 #ifdef _DEBUG
@@ -40,151 +36,6 @@ namespace HM
    {
       const int TOKEN_BYTES = 32;
       const __int64 TOKEN_LIFETIME_SECONDS = 3600;
-#ifndef HM_PLATFORM_POSIX
-
-      // The SID of the account this process runs as, as a string, or empty when
-      // it cannot be read - in which case the DACL simply does not name it, and a
-      // service running as something other than SYSTEM fails to write the token
-      // rather than writing one it cannot read back.
-      String CurrentUserSid_()
-      {
-         HANDLE token = nullptr;
-         if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token))
-            return String();
-
-         DWORD needed = 0;
-         GetTokenInformation(token, TokenUser, nullptr, 0, &needed);
-         if (needed == 0)
-         {
-            CloseHandle(token);
-            return String();
-         }
-
-         std::vector<unsigned char> buffer(needed);
-         String result;
-         if (GetTokenInformation(token, TokenUser, &buffer[0], needed, &needed))
-         {
-            LPWSTR text = nullptr;
-            if (ConvertSidToStringSidW(((TOKEN_USER *) &buffer[0])->User.Sid, &text))
-            {
-               result = text;
-               LocalFree(text);
-            }
-         }
-
-         CloseHandle(token);
-         return result;
-      }
-#endif
-
-      // The token is the administrator password for one hour and one use, so the
-      // file it lives in is written with a DACL of its own rather than inheriting
-      // the data directory's. A default install puts Data under {app} in Program
-      // Files, where BUILTIN\Users can read - and a local user who can read this
-      // file can authenticate to the COM API as the administrator. The DACL is
-      // protected (P), so no inherited entry widens it, and it names nobody but
-      // SYSTEM, the local Administrators group and the account the service runs as.
-      //
-      // A failure here fails the issue: a token written where anyone can read it
-      // is worse than an upgrade that asks for a password.
-      bool WriteProtected_(const String &path, const AnsiString &token, String &error)
-      {
-#ifdef HM_PLATFORM_POSIX
-
-         // The POSIX statement of exactly the rule the DACL below states: this file
-         // is readable by the account the server runs as and by nobody else.
-         //
-         // 0600 is given to open(2) AT CREATION rather than applied with chmod
-         // afterwards, because a file created 0644 and narrowed a moment later is
-         // world-readable for that moment, and one moment is all a local user needs
-         // to read a token that authenticates as the administrator.
-         //
-         // The unlink-then-O_EXCL pair is the counterpart of the DeleteFile and
-         // CREATE_NEW in the Windows branch, and is there for the same reason:
-         // opening an existing file keeps whatever permissions that file already
-         // had, which is precisely the case this code exists to prevent.
-         const std::string native = boost::filesystem::path(std::wstring(path)).string();
-
-         ::unlink(native.c_str());
-
-         const int descriptor = ::open(native.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-
-         if (descriptor < 0)
-         {
-            error = Formatter::Format(_T("{0} could not be written (error {1})."), path, (int) errno);
-            return false;
-         }
-
-         const ssize_t written = ::write(descriptor, token.c_str(), (size_t) token.GetLength());
-
-         ::close(descriptor);
-
-         // A short write leaves a truncated token on disk, which would be redeemed by
-         // nothing and would look to the next Issue like a token already in hand, so
-         // the file goes rather than being left behind.
-         if (written != (ssize_t) token.GetLength())
-         {
-            ::unlink(native.c_str());
-            error = Formatter::Format(_T("{0} could not be written."), path);
-            return false;
-         }
-
-         return true;
-
-#else
-         // SYSTEM, the local Administrators group, and the account this process
-         // runs as. The last one matters: the service does not have to be
-         // LocalSystem - there is a setting for running it as a named account -
-         // and a DACL naming only SYSTEM would leave the server unable to read
-         // back the token it had just written.
-         String sddl = _T("D:P(A;;FA;;;SY)(A;;FA;;;BA)");
-         String owner = CurrentUserSid_();
-         if (!owner.IsEmpty() && owner != _T("S-1-5-18"))
-            sddl += Formatter::Format(_T("(A;;FA;;;{0})"), owner);
-
-         PSECURITY_DESCRIPTOR descriptor = nullptr;
-         if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(
-                sddl, SDDL_REVISION_1, &descriptor, nullptr))
-         {
-            error = Formatter::Format(_T("The token file's permissions could not be built (error {0})."), (int) GetLastError());
-            return false;
-         }
-
-         SECURITY_ATTRIBUTES attributes = {};
-         attributes.nLength = sizeof(attributes);
-         attributes.lpSecurityDescriptor = descriptor;
-         attributes.bInheritHandle = FALSE;
-
-         // CREATE_ALWAYS on an existing file keeps the file's existing DACL, so an
-         // earlier token file written before this code - or by anything else - is
-         // removed first and the new one created with the DACL above.
-         DeleteFile(path);
-
-         HANDLE handle = CreateFileW(path, GENERIC_WRITE, 0, &attributes, CREATE_NEW,
-                                     FILE_ATTRIBUTE_NORMAL, nullptr);
-         LocalFree(descriptor);
-
-         if (handle == INVALID_HANDLE_VALUE)
-         {
-            error = Formatter::Format(_T("{0} could not be written (error {1})."), path, (int) GetLastError());
-            return false;
-         }
-
-         DWORD written = 0;
-         bool ok = WriteFile(handle, token.c_str(), (DWORD) token.GetLength(), &written, nullptr) != 0 &&
-                   written == (DWORD) token.GetLength();
-         CloseHandle(handle);
-
-         if (!ok)
-         {
-            DeleteFile(path);
-            error = Formatter::Format(_T("{0} could not be written."), path);
-            return false;
-         }
-
-         return true;
-#endif
-      }
 
       bool FileAgeSeconds_(const String &path, __int64 &seconds)
       {
@@ -265,7 +116,13 @@ namespace HM
          return false;
       }
 
-      if (!WriteProtected_(path, token, error))
+      // The token is the administrator password for one hour and one use, so the
+      // file it lives in is written with permissions of its own rather than
+      // inheriting the data directory's: a local user who can read it can
+      // authenticate to the COM API as the administrator. A failure fails the
+      // issue - a token written where anyone can read it is worse than an
+      // upgrade that asks for a password. See ProtectedFile.
+      if (!ProtectedFile::Write(path, token, error))
          return false;
 
       return true;

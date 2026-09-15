@@ -38,6 +38,11 @@ namespace HM
       max_account_size_(0),
       limitations_enabled_(0),
       relay_port_(0),
+      dkim_rotation_enabled_(false),
+      dkim_rotation_interval_days_(180),
+      dkim_rotation_propagation_hours_(72),
+      dkim_rotation_retention_days_(7),
+      dkim_rotation_key_bits_(2048),
       relay_requires_auth_(false),
       relay_connection_security_(CSNone),
       vacation_message_on_(false),
@@ -155,6 +160,11 @@ namespace HM
       pNode->AppendAttr(_T("DKIMPrivateKeyFile"), dkim_private_key_file_);
       pNode->AppendAttr(_T("DKIMSecondarySelector"), dkim_secondary_selector_);
       pNode->AppendAttr(_T("DKIMSecondaryPrivateKeyFile"), dkim_secondary_private_key_file_);
+      pNode->AppendAttr(_T("DKIMRotationEnabled"), dkim_rotation_enabled_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("DKIMRotationIntervalDays"), StringParser::IntToString(dkim_rotation_interval_days_));
+      pNode->AppendAttr(_T("DKIMRotationPropagationHours"), StringParser::IntToString(dkim_rotation_propagation_hours_));
+      pNode->AppendAttr(_T("DKIMRotationRetentionDays"), StringParser::IntToString(dkim_rotation_retention_days_));
+      pNode->AppendAttr(_T("DKIMRotationKeyBits"), StringParser::IntToString(dkim_rotation_key_bits_));
 
       pNode->AppendAttr(_T("VacationMessageOn"), vacation_message_on_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("VacationSubject"), vacation_subject_);
@@ -225,6 +235,27 @@ namespace HM
       // old backup restores to today's behaviour.
       dkim_secondary_selector_ = pNode->GetAttrValue(_T("DKIMSecondarySelector"));
       dkim_secondary_private_key_file_ = pNode->GetAttrValue(_T("DKIMSecondaryPrivateKeyFile"));
+
+      // The rotation policy. A backup taken before it existed has none of these
+      // attributes: the schedule restores off, and a period read as 0 - which no
+      // valid policy has - restores as the shipped default, so switching it on
+      // after the restore starts from the same values a new domain gets. The
+      // rotation's state is not in the backup at all: it is rebuilt from the
+      // domain's own selectors by the first pass after the restore.
+      dkim_rotation_enabled_ = pNode->GetAttrValue(_T("DKIMRotationEnabled")) == _T("1");
+      dkim_rotation_interval_days_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationIntervalDays")));
+      dkim_rotation_propagation_hours_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationPropagationHours")));
+      dkim_rotation_retention_days_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationRetentionDays")));
+      dkim_rotation_key_bits_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationKeyBits")));
+
+      if (dkim_rotation_interval_days_ <= 0)
+         dkim_rotation_interval_days_ = 180;
+      if (dkim_rotation_propagation_hours_ <= 0)
+         dkim_rotation_propagation_hours_ = 72;
+      if (dkim_rotation_retention_days_ <= 0)
+         dkim_rotation_retention_days_ = 7;
+      if (dkim_rotation_key_bits_ <= 0)
+         dkim_rotation_key_bits_ = 2048;
 
       // A backup taken before these attributes existed restores as "off with empty
       // texts", which is the state of a domain that has never configured the
