@@ -348,6 +348,7 @@
   "None yet.": "Nog geen.",
   "Not junk": "Geen spam",
   "Not known yet.": "Nog niet bekend.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Er is niet verzonden naar {0}: mail aan dit adres is gebounced, en het staat op de onderdrukkingslijst van uw domein. Uw beheerder kan het verwijderen.",
   "Not sent. The message is still here.": "Niet verzonden. Het bericht is er nog.",
   "Nothing": "Niets",
   "Nothing from {0} in this folder.": "Niets van {0} in deze map.",

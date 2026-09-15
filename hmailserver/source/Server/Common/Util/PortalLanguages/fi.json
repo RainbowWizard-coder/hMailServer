@@ -348,6 +348,7 @@
   "None yet.": "Ei vielä yhtään.",
   "Not junk": "Ei roskapostia",
   "Not known yet.": "Ei vielä tiedossa.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Osoitteeseen {0} ei lähetetty: posti tähän osoitteeseen on palautunut, ja osoite on verkkotunnuksesi estolistalla. Ylläpitäjä voi poistaa sen.",
   "Not sent. The message is still here.": "Ei lähetetty. Viesti on yhä täällä.",
   "Nothing": "Ei mitään",
   "Nothing from {0} in this folder.": "Tässä kansiossa ei ole mitään lähettäjältä {0}.",

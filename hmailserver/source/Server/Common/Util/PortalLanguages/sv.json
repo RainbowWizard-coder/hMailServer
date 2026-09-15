@@ -348,6 +348,7 @@
   "None yet.": "Inga ännu.",
   "Not junk": "Inte skräppost",
   "Not known yet.": "Inte känt än.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Inget skickades till {0}: e-post till adressen har studsat, och den finns på spärrlistan för din domän. Din administratör kan ta bort den.",
   "Not sent. The message is still here.": "Inte skickat. Meddelandet finns kvar här.",
   "Nothing": "Ingenting",
   "Nothing from {0} in this folder.": "Inget från {0} i den här mappen.",

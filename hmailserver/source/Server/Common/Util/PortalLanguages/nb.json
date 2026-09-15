@@ -348,6 +348,7 @@
   "None yet.": "Ingen ennå.",
   "Not junk": "Ikke søppelpost",
   "Not known yet.": "Ikke kjent ennå.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Det ble ikke sendt til {0}: e-post til denne adressen har kommet i retur, og den står på domenets sperreliste. Administratoren din kan fjerne den.",
   "Not sent. The message is still here.": "Ikke sendt. Meldingen er fortsatt her.",
   "Nothing": "Ingenting",
   "Nothing from {0} in this folder.": "Ingenting fra {0} i denne mappen.",

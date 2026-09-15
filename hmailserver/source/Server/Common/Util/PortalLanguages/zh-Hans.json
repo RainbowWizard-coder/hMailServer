@@ -348,6 +348,7 @@
   "None yet.": "尚无。",
   "Not junk": "非垃圾邮件",
   "Not known yet.": "尚不清楚。",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "未发送到 {0}：发往该地址的邮件被退回，该地址已在您所在域的抑制列表中。管理员可以将其移除。",
   "Not sent. The message is still here.": "未发送。邮件仍在这里。",
   "Nothing": "无",
   "Nothing from {0} in this folder.": "此文件夹中没有来自 {0} 的邮件。",

@@ -337,6 +337,8 @@ const requests = [];
 let signedIn = false;
 let changeStep = 0;
 let renameRefusal = null;
+// The next send is refused as the suppression list refuses one, once.
+let sendRefusal = null;
 // One message arrives while the reader is looking at the folder: the probe
 // says so, and from then on the folder tree and the listing both show it.
 let arrived = false;
@@ -494,7 +496,10 @@ function answer(method, path, body) {
    if (/^\/api\/v1\/me\/messages\/\d+$/.test(path) && method === 'GET') {
       return json(200, withState(Object.assign(JSON.parse(JSON.stringify(WITH_IMAGE)), { id: Number(path.split('/').pop()), html: '', text: 'plain' })));
    }
-   if (path === '/api/v1/me/messages' && method === 'POST') { return json(201, { id: 300 }); }
+   if (path === '/api/v1/me/messages' && method === 'POST') {
+      if (sendRefusal) { const refusal = sendRefusal; sendRefusal = null; return json(400, refusal); }
+      return json(201, { id: 300 });
+   }
    if (path === '/api/v1/me/drafts' && method === 'POST') { return json(201, { id: 55 }); }
    if (/\/messages\/\d+\/flags$/.test(path)) {
       // The star and the keywords are kept, removed first then added, as the server does.
@@ -1093,6 +1098,24 @@ async function main() {
    await flush();
    await flush();
    check('a mention only in the quoted lines is the other person\'s and is not questioned', confirms.length === 2 && called(beforeQuoted, 'POST', '/api/v1/me/messages'), confirms.length + ' questions');
+   dismissAllToasts();
+
+   // ---- a recipient on the suppression list: the reason in the reader's words, naming the address
+   await writeMessage('See you on Monday.');
+   sendRefusal = { error: 'gone@remote.test: gone@remote.test is on the suppression list of example.com: mail to it bounced permanently (5.1.1) on 2026-09-14. An administrator can remove it.',
+      code: 'recipient_suppressed', address: 'gone@remote.test' };
+   const beforeSuppressed = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   const suppressedStatus = document.getElementById('compose-status').textContent;
+   check('a send refused by the suppression list says which address and why, in the page\'s own sentence', called(beforeSuppressed, 'POST', '/api/v1/me/messages') &&
+      suppressedStatus.indexOf('Not sent to gone@remote.test') === 0 && suppressedStatus.indexOf('suppression list of your domain') > 0, suppressedStatus);
+   check('and the message stays in the form, to be sent without that address', document.getElementById('compose-text').value === 'See you on Monday.');
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
    dismissAllToasts();
 
    // ---- shift-click and ctrl-click in the list select; a plain click still opens

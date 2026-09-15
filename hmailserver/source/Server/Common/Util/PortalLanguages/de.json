@@ -348,6 +348,7 @@
   "None yet.": "Noch keine.",
   "Not junk": "Kein Spam",
   "Not known yet.": "Noch nicht bekannt.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "An {0} wurde nicht gesendet: Nachrichten an diese Adresse sind als unzustellbar zurückgekommen, und sie steht auf der Sperrliste Ihrer Domain. Ihr Administrator kann sie entfernen.",
   "Not sent. The message is still here.": "Nicht gesendet. Die Nachricht ist noch hier.",
   "Nothing": "Nichts",
   "Nothing from {0} in this folder.": "Nichts von {0} in diesem Ordner.",

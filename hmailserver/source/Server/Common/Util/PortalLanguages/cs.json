@@ -348,6 +348,7 @@
   "None yet.": "Zatím žádné.",
   "Not junk": "Není spam",
   "Not known yet.": "Zatím není známo.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Na adresu {0} se neodesílalo: pošta na tuto adresu se vrátila jako nedoručitelná a adresa je na seznamu blokovaných vaší domény. Může ji odebrat váš administrátor.",
   "Not sent. The message is still here.": "Neodesláno. Zpráva je stále zde.",
   "Nothing": "Nic",
   "Nothing from {0} in this folder.": "V této složce není nic od {0}.",
