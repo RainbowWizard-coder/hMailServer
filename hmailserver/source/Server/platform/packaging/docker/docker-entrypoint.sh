@@ -119,8 +119,10 @@ if [ -n "${HM_ADMIN_PASSWORD:-}" ]; then
 fi
 
 if [ "${HM_CREATE_DATABASE:-1}" != 0 ]; then
-   # Exit status 0 also when the database already exists; anything else is a
-   # reason not to start.
+   # Exit status 0 also when the database already holds this build's schema or
+   # an older one, which the upgrade below brings forward - so this runs at every
+   # start. A schema from a newer build, or a database that cannot be reached,
+   # is a reason not to start.
    hmailserver --config "$INI" --create-database
 fi
 

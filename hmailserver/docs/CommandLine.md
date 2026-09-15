@@ -268,8 +268,13 @@ What neither client does
   the listener. The same verb stores any other key the server's settings
   loader reads (`build/ini-settings-baseline.txt`), for the ones needed before
   the API can be reached; the webmail's branding and file-link keys, read by
-  name where they are used, are stored over the API. On Windows the Control
-  Panel does this over COM.
+  name where they are used, are stored over the API. A key whose value is a
+  secret is refused with its value on the command line, where the shell's
+  history, the process list and sudo's log would keep it: give the name alone,
+  `sudo hmailserver --set-setting SRSSecret`, and the value on standard input,
+  typed at a prompt that does not echo it or piped in. A port must be a number
+  from 0 to 65535 and `RestApiBindAddress` an IP address or `localhost`. On
+  Windows the Control Panel does this over COM.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.

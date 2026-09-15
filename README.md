@@ -180,7 +180,7 @@ it behaves.
 How it is administered: the Control Panel and COM are Windows, so a Linux
 server is administered through its configuration file, its own command line
 (`--set-admin-password`, `--create-database`, `--upgrade-database`,
-`--check-config`), the REST API and the **Control Deck** at `/`, the browser
+`--set-setting`, `--check-config`), the REST API and the **Control Deck** at `/`, the browser
 front end for that API, which the packages install. Since 6.3.3 the API writes
 a domain whole - its limits, its signature, its relay host, its DKIM signing
 (selector, key file, canonicalisation, the secondary key) and its aliases -

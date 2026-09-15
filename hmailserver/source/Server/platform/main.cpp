@@ -34,6 +34,10 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+#include <cstdlib>
+#include <map>
+#include <string>
+#include <boost/asio/ip/address.hpp>
 
 #include "../Common/Application/Application.h"
 #include "../Common/Application/Version.h"
@@ -125,11 +129,15 @@ namespace
          "  --create-database create the database [Database] names, on the server it\n"
          "                    names, and run the create script for its type. What\n"
          "                    DBSetupQuick does on Windows; there is no COM here.\n"
+         "                    A database that already holds this build's schema, or\n"
+         "                    an older one, is left as it is with exit status 0, so\n"
+         "                    it can run at every start; a newer one exits 1.\n"
          "  --upgrade-database\n"
          "                    run every upgrade script from the database's version\n"
          "                    to this build's, in order. What DBUpdater does on\n"
          "                    Windows. The installer's post-install step runs it.\n"
          "  --set-setting NAME=VALUE\n"
+         "  --set-setting NAME\n"
          "                    store one [Settings] value in the database, which is\n"
          "                    the settings store, write the server's copy of it into\n"
          "                    the configuration file, and exit. For the settings the\n"
@@ -137,8 +145,14 @@ namespace
          "                    - RestApiPort above all. Editing the file instead sets\n"
          "                    nothing: the stored value wins at the next start. The\n"
          "                    name must be one this server reads; the value applies\n"
-         "                    when the server next starts or is reloaded. Run it as\n"
-         "                    root, as --set-admin-password is: the file is root's.\n"
+         "                    when the server next starts or is reloaded. With NAME\n"
+         "                    alone the value is one line of standard input, not\n"
+         "                    echoed at a terminal for a secret; a secret's value is\n"
+         "                    refused on the command line, where the shell history,\n"
+         "                    the process list and sudo's log would keep it. A port\n"
+         "                    must be 0-65535 and RestApiBindAddress an IP address\n"
+         "                    or localhost. Run it as root, as --set-admin-password\n"
+         "                    is: the file is root's.\n"
          "  --version         print the version and exit\n"
          "  --help            print this and exit\n"
          "\n"
@@ -252,8 +266,17 @@ namespace
       // themselves - the usual shape when the service role is not allowed to
       // create databases - has an empty database that this should fill rather
       // than a CREATE DATABASE failure to read; and one that already holds an
-      // hMailServer schema must not have the create script run over it, which
-      // is a refusal with the number and the command that applies.
+      // hMailServer schema must not have the create script run over it.
+      //
+      // That last case is not a failure, and until 15 September 2026 it exited 1.
+      // The container's entrypoint - and so the Helm chart - runs this at EVERY
+      // start, under `set -e` and before --upgrade-database, on the understanding
+      // that it does nothing once the database exists; so every start after the
+      // first stopped the container here, before the server or the REST settings
+      // the entrypoint stores after it. Nothing is created and the exit status is
+      // 0 for this build's schema or an older one, which --upgrade-database brings
+      // forward. A schema from a newer build is the one refusal, because nothing
+      // that runs after this can make it usable.
       HM::String error;
       std::shared_ptr<HM::DALConnection> database = Connect(withDatabase, "the database", true);
       if (database)
@@ -261,9 +284,24 @@ namespace
          const int existing = ReadSchemaVersion(database);
          if (existing > 0)
          {
-            std::fprintf(stderr, "Database %s already exists and is an hMailServer database at schema version %d. Nothing was changed; --upgrade-database is the command that brings it forward.\n",
-               HM::AnsiString(withDatabase->GetDatabaseName()).c_str(), existing);
-            return 1;
+            const HM::AnsiString databaseName(withDatabase->GetDatabaseName());
+            if (existing > REQUIRED_DB_VERSION)
+            {
+               std::fprintf(stderr, "Database %s already exists and is an hMailServer database at schema version %d, from a NEWER build than this one, which needs %d. Nothing was changed, and this build will not run against it.\n",
+                  databaseName.c_str(), existing, REQUIRED_DB_VERSION);
+               return 1;
+            }
+            if (existing == REQUIRED_DB_VERSION)
+            {
+               std::printf("Database %s already exists and is an hMailServer database at schema version %d, which is what this build needs. Nothing was created.\n",
+                  databaseName.c_str(), existing);
+            }
+            else
+            {
+               std::printf("Database %s already exists and is an hMailServer database at schema version %d; this build needs %d. Nothing was created: --upgrade-database brings it forward.\n",
+                  databaseName.c_str(), existing, REQUIRED_DB_VERSION);
+            }
+            return 0;
          }
          std::printf("Database %s already exists and holds no hMailServer schema; creating the schema in it.\n",
             HM::AnsiString(withDatabase->GetDatabaseName()).c_str());
@@ -414,7 +452,108 @@ namespace
       return 0;
    }
 
-   // --set-setting NAME=VALUE.
+   // The checks a value gets beyond what the store can hold, for the keys where a
+   // value the store takes happily is one the server cannot use. The loader reads
+   // a port with _ttoi, so "abc" and "" are 0 - the listener off - and 99999 is no
+   // port at all; the REST listener's address is parsed only when the listener
+   // starts, and a bad one is a line in the application log. Stored and reported
+   // as a success, either would leave the administrator who ran this to turn the
+   // REST listener on with no listener, no hmctl and nothing on the terminal -
+   // the situation this verb exists for. The ports are the six [Settings] keys the
+   // loader reads as port numbers (IniFileSettings::LoadSettings); the address is
+   // parsed as HttpServer::Listen parses it. Every other key is held only to what
+   // COM SetIniSetting and PUT /api/v1/settings/ini hold it to.
+   bool IsPortSetting(const HM::String &name)
+   {
+      return name.CompareNoCase(_T("RestApiPort")) == 0 ||
+             name.CompareNoCase(_T("MetricsServerPort")) == 0 ||
+             name.CompareNoCase(_T("ManageSieveServerPort")) == 0 ||
+             name.CompareNoCase(_T("WebServicesHttpPort")) == 0 ||
+             name.CompareNoCase(_T("WebServicesHttpsPort")) == 0 ||
+             name.CompareNoCase(_T("AcmeHttpPort")) == 0;
+   }
+
+   bool CheckValue(const HM::String &name, const HM::String &value)
+   {
+      if (!HM::IniSettingStore::IsStorableValue(value))
+      {
+         std::fprintf(stderr, "The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting. Nothing was changed.\n");
+         return false;
+      }
+
+      const HM::AnsiString shown(name);
+      const HM::AnsiString narrow(value);
+      const std::string text(narrow.c_str());
+
+      if (IsPortSetting(name))
+      {
+         bool valid = !text.empty() && text.size() <= 5 && text.find_first_not_of("0123456789") == std::string::npos;
+         if (valid && std::strtol(text.c_str(), nullptr, 10) > 65535)
+            valid = false;
+
+         if (!valid)
+         {
+            std::fprintf(stderr, "%s is a TCP port: a whole number from 0, which leaves its listener off, to 65535. '%s' is not one, and the server would not listen where you meant. Nothing was changed.\n",
+               shown.c_str(), text.c_str());
+            return false;
+         }
+      }
+
+      if (name.CompareNoCase(_T("RestApiBindAddress")) == 0)
+      {
+         // localhost is the one name HttpServer::Listen takes, as 127.0.0.1.
+         boost::system::error_code error;
+         if (text != "localhost")
+            (void) boost::asio::ip::make_address(text.c_str(), error);
+
+         if (text.empty() || error)
+         {
+            std::fprintf(stderr, "RestApiBindAddress is the address the REST listener binds: an IP address such as 127.0.0.1, ::1 or 0.0.0.0, or localhost. '%s' is not one, and the listener would not start. Nothing was changed.\n",
+               text.c_str());
+            return false;
+         }
+      }
+
+      return true;
+   }
+
+   // One line of standard input, for a value that is not to be on the command
+   // line. At a terminal it asks, and a secret is not echoed while it is typed -
+   // the way --set-admin-password reads a password. False when nothing could be
+   // read at all.
+   bool ReadValueFromInput(const HM::AnsiString &shown, bool secret, std::string &line)
+   {
+      const bool interactive = ::isatty(STDIN_FILENO) != 0;
+      struct termios original;
+      bool echo_disabled = false;
+      if (interactive)
+      {
+         std::printf("Value for %s: ", shown.c_str());
+         std::fflush(stdout);
+         if (secret && ::tcgetattr(STDIN_FILENO, &original) == 0)
+         {
+            struct termios quiet = original;
+            quiet.c_lflag &= ~(tcflag_t) ECHO;
+            echo_disabled = ::tcsetattr(STDIN_FILENO, TCSAFLUSH, &quiet) == 0;
+         }
+      }
+
+      const bool got = static_cast<bool>(std::getline(std::cin, line));
+
+      if (echo_disabled)
+      {
+         ::tcsetattr(STDIN_FILENO, TCSAFLUSH, &original);
+         std::printf("\n");
+      }
+
+      while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+         line.pop_back();
+
+      return got;
+   }
+
+   // --set-setting NAME=VALUE, or --set-setting NAME with the value on standard
+   // input.
    //
    // From schema 6042 the database is the settings store and the [Settings]
    // section of the configuration file is the server's copy of it: a value
@@ -428,36 +567,42 @@ namespace
    // database opened the way the server opens it and closed again.
    //
    // Refused: a name the store could not hold or a value it could not (the
-   // sentences SetIniSetting uses over COM), and a name this build does not
-   // read, since storing it would change nothing and say it had. The file must
-   // be writable by this user: on the packaged layout it is root's, 0640, and
-   // a row stored without its line would be reported at every start (HM5803)
-   // until somebody could write the line - so the refusal comes first and says
-   // to use sudo, as --set-admin-password does.
+   // sentences SetIniSetting uses over COM); a name this build does not read,
+   // since storing it would change nothing and say it had; a port or a REST
+   // listener address the server could not use (CheckValue); and a secret's
+   // value on the command line (below). The file must be writable by this user:
+   // on the packaged layout it is root's, 0640, and a row stored without its
+   // line would be reported at every start (HM5803) until somebody could write
+   // the line - so the refusal comes first and says to use sudo, as
+   // --set-admin-password does.
    int SetSetting(const std::string &assignment)
    {
       const std::string::size_type equals = assignment.find('=');
-      if (equals == std::string::npos || equals == 0)
+      if (assignment.empty() || equals == 0)
       {
-         std::fprintf(stderr, "--set-setting takes NAME=VALUE, for example --set-setting RestApiPort=8080.\n");
+         std::fprintf(stderr, "--set-setting takes NAME=VALUE, or NAME alone with the value on standard input; for example --set-setting RestApiPort=8080.\n");
          return 2;
       }
 
-      HM::String name(assignment.substr(0, equals).c_str());
-      HM::String value(assignment.substr(equals + 1).c_str());
+      // NAME alone: the value is one line of standard input, read once every
+      // check that needs no value has passed, so nobody types a secret only to be
+      // told the command has to be run as root.
+      const bool fromInput = equals == std::string::npos;
+
+      HM::String name((fromInput ? assignment : assignment.substr(0, equals)).c_str());
       name.Trim();
-      value.Trim();
+
+      HM::String value;
+      if (!fromInput)
+      {
+         value = HM::String(assignment.substr(equals + 1).c_str());
+         value.Trim();
+      }
 
       if (!HM::IniSettingStore::IsStorableName(name))
       {
          std::fprintf(stderr, "'%s' cannot be a setting name: it is empty, longer than 100 characters, or contains one of = [ ] or a line break.\n",
             HM::AnsiString(name).c_str());
-         return 2;
-      }
-
-      if (!HM::IniSettingStore::IsStorableValue(value))
-      {
-         std::fprintf(stderr, "The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.\n");
          return 2;
       }
 
@@ -473,6 +618,28 @@ namespace
       }
       name = spelling;
 
+      const HM::AnsiString shown(name);
+
+      // A secret's value is not taken from the command line at all: there it is
+      // in the shell's history, in the process list for as long as this runs, and
+      // in the COMMAND= line sudo writes to the system log - the reasons
+      // --set-admin-password reads its password from standard input. By the time
+      // this runs it has been disclosed, and all a refusal can do is say so and
+      // not print it again. An empty value discloses nothing and is how a secret
+      // is cleared.
+      const bool secret = HM::IniSettingStore::IsSecretName(name);
+      if (!fromInput && secret && !value.IsEmpty())
+      {
+         std::fprintf(stderr, "%s holds a secret, so its value is not taken from the command line, where the shell's history, the process list and sudo's log keep it. Nothing was changed. "
+            "Give the name alone - sudo hmailserver --set-setting %s - and the value on standard input: typed at the prompt, which does not echo it, or piped in as one line. "
+            "If the value just given was the real one, treat it as disclosed. %s= with nothing after it clears the setting.\n",
+            shown.c_str(), shown.c_str(), shown.c_str());
+         return 2;
+      }
+
+      if (!fromInput && !CheckValue(name, value))
+         return 2;
+
       // Reads the file, and refuses the two Windows-only backends by name before
       // a connection is tried.
       std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
@@ -482,9 +649,11 @@ namespace
       const HM::AnsiString iniFile(HM::IniFileSettings::GetInitializationFile());
       if (::access(iniFile.c_str(), W_OK) != 0)
       {
+         // The name only. A value given on the command line is not repeated: it
+         // may be one nobody wants printed again.
          std::fprintf(stderr, "%s is not writable by this user, and the server's copy of the setting is written there as well as into the database. "
-            "Run this as root (sudo hmailserver --set-setting %s), as --set-admin-password is run: the file keeps its owner and mode.\n",
-            iniFile.c_str(), assignment.c_str());
+            "Run this as root (sudo hmailserver --set-setting %s%s), as --set-admin-password is run: the file keeps its owner and mode.\n",
+            iniFile.c_str(), shown.c_str(), fromInput ? "" : "=...");
          return 1;
       }
 
@@ -523,6 +692,29 @@ namespace
          }
       }
 
+      // The value from standard input, now that the file and the database have
+      // been found ready for it.
+      if (fromInput)
+      {
+         std::string line;
+         const bool got = ReadValueFromInput(shown, secret, line);
+         value = HM::String(line.c_str());
+         value.Trim();
+
+         // Overwrite this process's narrow copy, as --set-admin-password does.
+         std::fill(line.begin(), line.end(), '\0');
+
+         if (!got || value.IsEmpty())
+         {
+            std::fprintf(stderr, "No value was read from standard input, so nothing was changed. An empty value is stored by giving %s= on the command line.\n",
+               shown.c_str());
+            return 2;
+         }
+
+         if (!CheckValue(name, value))
+            return 2;
+      }
+
       // The store writes through the connection manager the server runs on, so
       // the database is opened the way the server opens it.
       HM::String error;
@@ -543,19 +735,36 @@ namespace
          const bool had = rows.find(name) != rows.end();
          const HM::String previousValue(had ? rows[name].first : HM::String());
 
+         // The pepper as the file holds it before the write, for the warning
+         // below. A file-only key is never in the store or in the overlay, so this
+         // reads the file's line.
+         const HM::String previousPepper(fileOnly ? HM::IniFileSettings::Instance()->GetSettingsValue(name) : HM::String());
+
          if (HM::IniFileSettings::Instance()->WriteSettingsValue(name, value))
          {
-            // A secret is not echoed, and the one it replaced least of all: the
-            // new value was typed on this command line, the old one was not.
-            const bool secret = HM::IniSettingStore::IsSecretName(name);
-            const HM::AnsiString shown(name);
+            // A secret is not echoed: not the value stored, not the one it
+            // replaced, and not a value [SettingsOverride] forces over it.
             const HM::AnsiString stored(secret && !value.IsEmpty() ? HM::String(_T("(set)")) : value);
             const HM::AnsiString previous(secret && !previousValue.IsEmpty() ? HM::String(_T("(set)")) : previousValue);
 
             if (fileOnly)
             {
-               std::printf("%s=%s written to %s. This key is kept in the file only, never in the database - see the note on PasswordPepper in the README - and applies when the server next starts.\n",
+               std::printf("%s=%s written to %s. This key is kept in the file only, never in the database and never in a backup archive, and applies when the server next starts or is reloaded.\n",
                   shown.c_str(), stored.c_str(), iniFile.c_str());
+
+               // The pepper is the one setting whose change locks accounts out.
+               // Crypt::ApplyPepper_ mixes it into every Argon2id and scrypt hash
+               // as the hash is made and as it is checked, and a check does not
+               // retry without it.
+               if (previousPepper.Compare(value) != 0)
+               {
+                  const char *change = previousPepper.IsEmpty() ? "The pepper was empty and is now set"
+                                     : value.IsEmpty() ? "The pepper was set and is now cleared"
+                                     : "The pepper is now a different value from the one the file held";
+                  std::fprintf(stderr, "Warning: %s. Every Argon2id and scrypt password hash is made under the pepper in force when its password was set, and verifies under no other: once the server runs with this value, an account whose password is one of those hashes will not sign in until its password is set again. "
+                     "PBKDF2, SHA-256 and MD5 hashes, and the administrator password, do not use the pepper. Keep a copy of the value apart from the backups, which do not carry it.\n",
+                     change);
+               }
             }
             else if (had)
             {
@@ -575,8 +784,9 @@ namespace
             std::map<HM::String, HM::String>::const_iterator forced = overrides.find(name);
             if (forced != overrides.end())
             {
+               const HM::AnsiString forcedShown(secret && !forced->second.IsEmpty() ? HM::String(_T("(set)")) : forced->second);
                std::printf("Note: [SettingsOverride] in %s forces %s=%s, which is applied over the stored value at every start (HM5807). Remove it from that section to let the value stored now take effect.\n",
-                  iniFile.c_str(), shown.c_str(), HM::AnsiString(forced->second).c_str());
+                  iniFile.c_str(), shown.c_str(), forcedShown.c_str());
             }
 
             result = 0;
@@ -640,7 +850,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--set-setting needs NAME=VALUE, for example --set-setting RestApiPort=8080.\n");
+            std::fprintf(stderr, "--set-setting needs NAME=VALUE, or NAME with the value on standard input; for example --set-setting RestApiPort=8080.\n");
             return 2;
          }
          set_setting = argv[++index];
