@@ -25,22 +25,16 @@
 
 namespace HM
 {
-   void
-   OutgoingFooters::SenderOf(const String &envelope_sender,
-                             std::shared_ptr<const Domain> &sender_domain,
-                             std::shared_ptr<const Account> &sender_account)
+   std::shared_ptr<const Domain>
+   OutgoingFooters::SenderDomainOf(const String &envelope_sender)
    {
-      sender_domain.reset();
-      sender_account.reset();
-
       if (envelope_sender.IsEmpty())
-         return;
+         return nullptr;
 
       std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
       const String address = domainAliases->ApplyAliasesOnAddress(envelope_sender);
 
-      sender_domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(address));
-      sender_account = CacheContainer::Instance()->GetAccount(address);
+      return CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(address));
    }
 
    bool
@@ -63,7 +57,8 @@ namespace HM
    }
 
    void
-   OutgoingFooters::AddToWebmailMessage(std::shared_ptr<Message> message)
+   OutgoingFooters::AddToWebmailMessage(std::shared_ptr<Message> message,
+                                        std::shared_ptr<const Account> writer)
    {
       if (!message)
       {
@@ -71,9 +66,7 @@ namespace HM
          return;
       }
 
-      std::shared_ptr<const Domain> senderDomain;
-      std::shared_ptr<const Account> senderAccount;
-      SenderOf(message->GetFromAddress(), senderDomain, senderAccount);
+      std::shared_ptr<const Domain> senderDomain = SenderDomainOf(message->GetFromAddress());
 
       // Both adders need the sender's domain; a sender at no hosted domain -
       // which the webmail does not produce, but which costs nothing to say -
@@ -86,7 +79,7 @@ namespace HM
       const bool submissionIsOurs = true;
 
       std::shared_ptr<MessageData> messageData;
-      if (!Add(message, senderDomain, senderAccount, submissionIsOurs, AccountSignatureWrittenByClient, messageData) || !messageData)
+      if (!Add(message, senderDomain, writer, submissionIsOurs, AccountSignatureWrittenByClient, messageData) || !messageData)
          return;
 
       messageData->WriteReported(PersistentMessage::GetFileName(message), "The message signature and the domain disclaimer");

@@ -211,7 +211,7 @@ namespace HM
          return false;
 
       // The domain's signature and disclaimer, as the send route puts them on.
-      OutgoingFooters::AddToWebmailMessage(message);
+      OutgoingFooters::AddToWebmailMessage(message, account);
 
       message->SetSize((int) FileUtilities::FileSize(fileName));
       message->SetState(Message::Delivering);

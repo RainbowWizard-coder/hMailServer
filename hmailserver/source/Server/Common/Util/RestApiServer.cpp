@@ -9704,7 +9704,7 @@ namespace HM
 
       // The domain's signature and disclaimer, by the rules SMTP submission
       // applies, before the size is taken and the \Sent copy made.
-      OutgoingFooters::AddToWebmailMessage(message);
+      OutgoingFooters::AddToWebmailMessage(message, account);
 
       message->SetSize((int) FileUtilities::FileSize(fileName));
 

@@ -49,15 +49,12 @@ namespace HM
          AccountSignatureWrittenByClient = 1
       };
 
-      // The sender domain and account whose settings apply to mail sent from
-      // envelope_sender: the domain aliases applied, then the domain and the
-      // account looked up by name. It is the lookup SMTPConnection::ProtocolMAIL_
-      // makes for sender_domain_ and sender_account_, so a message from an
-      // address at domain A uses domain A's signature and disclaimer on every
-      // path. Either may come back empty.
-      static void SenderOf(const String &envelope_sender,
-                           std::shared_ptr<const Domain> &sender_domain,
-                           std::shared_ptr<const Account> &sender_account);
+      // The hosted domain whose settings apply to mail sent from envelope_sender:
+      // the domain aliases applied, then the domain looked up by name. It is the
+      // lookup SMTPConnection::ProtocolMAIL_ makes for sender_domain_, so a
+      // message from an address at domain A uses domain A's signature and
+      // disclaimer on every path. Empty for an address at no hosted domain.
+      static std::shared_ptr<const Domain> SenderDomainOf(const String &envelope_sender);
 
       // The signature, then the disclaimer, on message_data - loaded here from
       // the message file when the caller has not loaded it and one of them has
@@ -72,11 +69,18 @@ namespace HM
                       std::shared_ptr<MessageData> &message_data);
 
       // For a message the webmail has written into the queue for a signed-in
-      // account: the sender resolved from the envelope, both footers added,
-      // and the file rewritten only when something was added - a message
-      // neither changes, a signed or encrypted one above all, keeps its bytes.
-      // A failed rewrite is logged and the message goes as written, which is
-      // what the SMTP path does with one.
-      static void AddToWebmailMessage(std::shared_ptr<Message> message);
+      // account: the domain resolved from the envelope sender, both footers
+      // added, and the file rewritten only when something was added - a
+      // message neither changes, a signed or encrypted one above all, keeps its
+      // bytes. A failed rewrite is logged and the message goes as written,
+      // which is what the SMTP path does with one.
+      //
+      // writer is the signed-in account, and it stands where SMTP has the
+      // account of the MAIL FROM address: the signature the page wrote into the
+      // body is the writer's whichever identity the message is from, so the
+      // writer's is the one the domain's signature is decided against, and the
+      // writer's name is the one that fills the signature's macros.
+      static void AddToWebmailMessage(std::shared_ptr<Message> message,
+                                      std::shared_ptr<const Account> writer);
    };
 }
