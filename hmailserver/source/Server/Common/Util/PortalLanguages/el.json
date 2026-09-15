@@ -349,6 +349,7 @@
   "Not junk": "Δεν είναι ανεπιθύμητο",
   "Not known yet.": "Δεν είναι γνωστό ακόμη.",
   "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Δεν στάλθηκε στη διεύθυνση {0}: η αλληλογραφία προς αυτήν επιστράφηκε, και η διεύθυνση βρίσκεται στη λίστα αποκλεισμού του τομέα σας. Ο διαχειριστής σας μπορεί να την αφαιρέσει.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "Δεν στάλθηκε στη διεύθυνση {0}: ο διαχειριστής σας έχει προσθέσει αυτή τη διεύθυνση στη λίστα αποκλεισμού του τομέα σας και μπορεί να την αφαιρέσει ξανά.",
   "Not sent. The message is still here.": "Δεν στάλθηκε. Το μήνυμα είναι ακόμη εδώ.",
   "Nothing": "Τίποτα",
   "Nothing from {0} in this folder.": "Τίποτα από {0} σε αυτόν τον φάκελο.",

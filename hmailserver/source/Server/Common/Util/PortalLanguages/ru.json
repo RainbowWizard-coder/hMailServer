@@ -349,6 +349,7 @@
   "Not junk": "Не спам",
   "Not known yet.": "Пока неизвестно.",
   "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Письмо не отправлено на {0}: почта на этот адрес возвращалась с отказом, и адрес внесён в список подавления вашего домена. Администратор может его убрать.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "Письмо не отправлено на {0}: администратор внёс этот адрес в список подавления вашего домена и может его убрать.",
   "Not sent. The message is still here.": "Не отправлено. Письмо всё ещё здесь.",
   "Nothing": "Ничего",
   "Nothing from {0} in this folder.": "В этой папке нет писем от {0}.",

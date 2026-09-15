@@ -144,7 +144,12 @@
   var describe = function (result, fallback) {
     // The suppression list's refusal, said in the reader's language rather than
     // the server's English: the address is the one part of it that varies.
+    // An entry an administrator added by hand is not an address that bounced,
+    // and the route says which kind it is.
     if (result.data && result.data.code === 'recipient_suppressed' && result.data.address) {
+      if (result.data.source === 'manual') {
+        return tf('Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.', result.data.address);
+      }
       return tf('Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.', result.data.address);
     }
     if (result.data && result.data.error) { return result.data.error; }

@@ -349,6 +349,7 @@
   "Not junk": "לא דואר זבל",
   "Not known yet.": "עדיין לא ידוע.",
   "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "לא נשלח אל {0}: דואר לכתובת הזו הוחזר, והיא נמצאת ברשימת החסימה של הדומיין שלך. מנהל המערכת יכול להסיר אותה.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "לא נשלח אל {0}: מנהל המערכת הוסיף את הכתובת הזו לרשימת החסימה של הדומיין שלך, והוא יכול להסיר אותה ממנה.",
   "Not sent. The message is still here.": "לא נשלח. ההודעה עדיין כאן.",
   "Nothing": "כלום",
   "Nothing from {0} in this folder.": "אין דבר מאת {0} בתיקייה זו.",

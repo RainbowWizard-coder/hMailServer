@@ -349,6 +349,7 @@
   "Not junk": "Non è spam",
   "Not known yet.": "Non ancora noto.",
   "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Non è stato inviato a {0}: la posta a questo indirizzo è tornata indietro, e l'indirizzo è nella lista di soppressione del tuo dominio. Il tuo amministratore può rimuoverlo.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "Non è stato inviato a {0}: il tuo amministratore ha inserito questo indirizzo nella lista di soppressione del tuo dominio, e può rimuoverlo.",
   "Not sent. The message is still here.": "Non inviato. Il messaggio è ancora qui.",
   "Nothing": "Niente",
   "Nothing from {0} in this folder.": "Niente da {0} in questa cartella.",

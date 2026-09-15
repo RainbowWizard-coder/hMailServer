@@ -349,6 +349,7 @@
   "Not junk": "迷惑メールではない",
   "Not known yet.": "まだ不明です。",
   "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "{0} には送信されませんでした。このアドレスへのメールはバウンスしており、あなたのドメインの抑止リストに載っています。管理者が削除できます。",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "{0} には送信されませんでした。管理者がこのアドレスをあなたのドメインの抑止リストに追加しています。管理者はリストから削除することもできます。",
   "Not sent. The message is still here.": "送信されていません。メッセージはまだここにあります。",
   "Nothing": "何もしない",
   "Nothing from {0} in this folder.": "このフォルダーに {0} からのメッセージはありません。",

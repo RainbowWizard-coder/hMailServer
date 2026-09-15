@@ -349,6 +349,7 @@
   "Not junk": "هرزنامه نیست",
   "Not known yet.": "هنوز دانسته نیست.",
   "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "به {0} ارسال نشد: نامه‌ها به این نشانی برگشت خورده‌اند و این نشانی در فهرست مسدودی دامنهٔ شما است. مدیر شما می‌تواند آن را حذف کند.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "به {0} ارسال نشد: مدیر شما این نشانی را در فهرست مسدودی دامنهٔ شما قرار داده است و می‌تواند دوباره آن را حذف کند.",
   "Not sent. The message is still here.": "فرستاده نشد. پیام همچنان اینجاست.",
   "Nothing": "هیچ",
   "Nothing from {0} in this folder.": "چیزی از {0} در این پوشه نیست.",

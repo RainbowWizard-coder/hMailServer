@@ -1103,7 +1103,7 @@ async function main() {
    // ---- a recipient on the suppression list: the reason in the reader's words, naming the address
    await writeMessage('See you on Monday.');
    sendRefusal = { error: 'gone@remote.test: gone@remote.test is on the suppression list of example.com: mail to it bounced permanently (5.1.1) on 2026-09-14. An administrator can remove it.',
-      code: 'recipient_suppressed', address: 'gone@remote.test' };
+      code: 'recipient_suppressed', address: 'gone@remote.test', source: 'bounce' };
    const beforeSuppressed = requests.length;
    document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
    await flush();
@@ -1112,8 +1112,23 @@ async function main() {
    await flush();
    const suppressedStatus = document.getElementById('compose-status').textContent;
    check('a send refused by the suppression list says which address and why, in the page\'s own sentence', called(beforeSuppressed, 'POST', '/api/v1/me/messages') &&
-      suppressedStatus.indexOf('Not sent to gone@remote.test') === 0 && suppressedStatus.indexOf('suppression list of your domain') > 0, suppressedStatus);
+      suppressedStatus.indexOf('Not sent to gone@remote.test') === 0 && suppressedStatus.indexOf('suppression list of your domain') > 0 &&
+      suppressedStatus.indexOf('has bounced') > 0, suppressedStatus);
    check('and the message stays in the form, to be sent without that address', document.getElementById('compose-text').value === 'See you on Monday.');
+
+   // ---- the same refusal for an entry an administrator added: it does not say the address bounced
+   sendRefusal = { error: 'left@remote.test: left@remote.test is on the suppression list of example.com: it was added by an administrator on 2026-09-14. An administrator can remove it.',
+      code: 'recipient_suppressed', address: 'left@remote.test', source: 'manual' };
+   const beforeManual = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   const manualStatus = document.getElementById('compose-status').textContent;
+   check('a hand-made entry is refused in its own sentence, which names the address and does not claim it bounced', called(beforeManual, 'POST', '/api/v1/me/messages') &&
+      manualStatus.indexOf('Not sent to left@remote.test') === 0 && manualStatus.indexOf('your administrator has put this address') > 0 &&
+      manualStatus.indexOf('bounced') < 0, manualStatus);
    document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
    await flush();
    dismissAllToasts();
