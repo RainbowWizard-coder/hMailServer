@@ -21,6 +21,8 @@ select hm_drop_table('hm_alertrules');
 
 select hm_drop_table('hm_alertevents');
 
+select hm_drop_table('hm_dkimrotations');
+
 select hm_drop_table('hm_calendarobjects');
 
 select hm_drop_table('hm_calendars');
@@ -198,7 +200,12 @@ create table hm_domains
 	domainfirstcontacttip int not null default 0,
 	domaindisclaimerenabled int not null default 0,
 	domaindisclaimerplaintext text not null default '',
-	domaindisclaimerhtml text not null default ''
+	domaindisclaimerhtml text not null default '',
+	domaindkimrotationenabled int not null default 0,
+	domaindkimrotationintervaldays int not null default 180,
+	domaindkimrotationpropagationhours int not null default 72,
+	domaindkimrotationretentiondays int not null default 7,
+	domaindkimrotationkeybits int not null default 2048
 );
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
@@ -1171,11 +1178,48 @@ create table hm_knownsenders
 
 CREATE UNIQUE INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress);
 
+create table hm_dkimrotations
+(
+	dkrid bigserial not null primary key,
+	dkrdomainid int not null,
+	dkrcurrentselector varchar(255) not null,
+	dkrcurrentkeyfile varchar(255) not null,
+	dkrcurrentgenerated int not null,
+	dkrcurrentsince bigint not null,
+	dkrcurrentstatus int not null,
+	dkrcurrentchecked bigint not null,
+	dkrcurrentdetail varchar(255) not null,
+	dkrnextselector varchar(255) not null,
+	dkrnextkeyfile varchar(255) not null,
+	dkrnextgenerated int not null,
+	dkrnextcreated bigint not null,
+	dkrnextfirstseen bigint not null,
+	dkrnextstatus int not null,
+	dkrnextchecked bigint not null,
+	dkrnextdetail varchar(255) not null,
+	dkrretiringselector varchar(255) not null,
+	dkrretiringkeyfile varchar(255) not null,
+	dkrretiringgenerated int not null,
+	dkrretiringsince bigint not null,
+	dkrretiringstatus int not null,
+	dkrretiringchecked bigint not null,
+	dkrretiringdetail varchar(255) not null,
+	dkrretiredselector varchar(255) not null,
+	dkrretiredat bigint not null,
+	dkrretiredkeyfile varchar(255) not null,
+	dkrlasterror varchar(255) not null,
+	dkrlasterrortime bigint not null
+);
+
+CREATE UNIQUE INDEX idx_hm_dkimrotations_domain ON hm_dkimrotations (dkrdomainid);
+
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE;
 
@@ -1261,6 +1305,8 @@ insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethresh
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('minidump.written', 0, 0, 1, '', '', '', 60, 1);
 
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertsEnabled', '', 1);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertRecipient', '', 0);
@@ -1279,4 +1325,4 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Au
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AuditRetentionDays', '', 0);
 
-insert into hm_dbversion values (6044);
+insert into hm_dbversion values (6050);

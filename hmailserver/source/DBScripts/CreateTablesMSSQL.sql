@@ -4,6 +4,8 @@ if exists (select * from sysobjects where id = object_id('hm_alertrules') and ob
 
 if exists (select * from sysobjects where id = object_id('hm_alertevents') and objectproperty(id, 'isusertable') = 1) drop table hm_alertevents
 
+if exists (select * from sysobjects where id = object_id('hm_dkimrotations') and objectproperty(id, 'isusertable') = 1) drop table hm_dkimrotations
+
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
 if exists (select * from sysobjects where id = object_id('hm_contacts') and objectproperty(id, 'isusertable') = 1) drop table hm_contacts
@@ -285,7 +287,12 @@ create table hm_domains (
 	domainfirstcontacttip int not null default 0,
 	domaindisclaimerenabled int not null default 0,
 	domaindisclaimerplaintext ntext not null,
-	domaindisclaimerhtml ntext not null
+	domaindisclaimerhtml ntext not null,
+	domaindkimrotationenabled int not null default 0,
+	domaindkimrotationintervaldays int not null default 180,
+	domaindkimrotationpropagationhours int not null default 72,
+	domaindkimrotationretentiondays int not null default 7,
+	domaindkimrotationkeybits int not null default 2048
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -1367,6 +1374,43 @@ ALTER TABLE hm_knownsenders ADD CONSTRAINT hm_knownsenders_pk PRIMARY KEY NONCLU
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress)
 
+create table hm_dkimrotations
+(
+	dkrid bigint identity(1,1) not null,
+	dkrdomainid int not null,
+	dkrcurrentselector nvarchar(255) not null,
+	dkrcurrentkeyfile nvarchar(255) not null,
+	dkrcurrentgenerated int not null,
+	dkrcurrentsince bigint not null,
+	dkrcurrentstatus int not null,
+	dkrcurrentchecked bigint not null,
+	dkrcurrentdetail nvarchar(255) not null,
+	dkrnextselector nvarchar(255) not null,
+	dkrnextkeyfile nvarchar(255) not null,
+	dkrnextgenerated int not null,
+	dkrnextcreated bigint not null,
+	dkrnextfirstseen bigint not null,
+	dkrnextstatus int not null,
+	dkrnextchecked bigint not null,
+	dkrnextdetail nvarchar(255) not null,
+	dkrretiringselector nvarchar(255) not null,
+	dkrretiringkeyfile nvarchar(255) not null,
+	dkrretiringgenerated int not null,
+	dkrretiringsince bigint not null,
+	dkrretiringstatus int not null,
+	dkrretiringchecked bigint not null,
+	dkrretiringdetail nvarchar(255) not null,
+	dkrretiredselector nvarchar(255) not null,
+	dkrretiredat bigint not null,
+	dkrretiredkeyfile nvarchar(255) not null,
+	dkrlasterror nvarchar(255) not null,
+	dkrlasterrortime bigint not null
+)
+
+ALTER TABLE hm_dkimrotations ADD CONSTRAINT hm_dkimrotations_pk PRIMARY KEY NONCLUSTERED (dkrid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_dkimrotations_domain ON hm_dkimrotations (dkrdomainid)
+
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE
@@ -1461,6 +1505,8 @@ insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethresh
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('minidump.written', 0, 0, 1, '', '', '', 60, 1)
 
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertsEnabled', '', 1)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertRecipient', '', 0)
@@ -1481,4 +1527,6 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Au
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6044)
+ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+insert into hm_dbversion values (6050)

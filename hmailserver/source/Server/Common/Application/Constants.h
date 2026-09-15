@@ -205,4 +205,11 @@
 //      administrator names the sealers to trust. The rows exist rather than being
 //      absent-with-a-default because PropertySet reports error 5015 on every read of
 //      a missing property, which would fill the error log on ARC-bearing mail.
-#define REQUIRED_DB_VERSION            6044
+// 6050 adds five int columns to hm_domains - domaindkimrotationenabled,
+//      domaindkimrotationintervaldays, domaindkimrotationpropagationhours,
+//      domaindkimrotationretentiondays and domaindkimrotationkeybits, the per-domain
+//      DKIM key rotation policy, off on every existing domain - and hm_dkimrotations,
+//      one row per domain whose rotation the server manages, holding the current,
+//      next and retiring selectors with their times and DNS check results; and seeds
+//      the dkim.rotation.stalled alert rule.
+#define REQUIRED_DB_VERSION            6050
