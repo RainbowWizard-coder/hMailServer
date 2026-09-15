@@ -623,6 +623,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\TlsRptStore.cpp" />
     <ClCompile Include="..\Common\Util\ServiceManager.cpp" />
     <ClCompile Include="..\Common\Util\DisclaimerAdder.cpp" />
+    <ClCompile Include="..\Common\Util\InlineImageParts.cpp" />
     <ClCompile Include="..\Common\Util\ExternalSenderTagger.cpp" />
     <ClCompile Include="..\Common\Util\MessageOrigin.cpp" />
     <ClCompile Include="..\Common\Util\OutgoingFooters.cpp" />
@@ -1365,6 +1366,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />
     <ClInclude Include="..\Common\Util\DisclaimerAdder.h" />
+    <ClInclude Include="..\Common\Util\InlineImageParts.h" />
     <ClInclude Include="..\Common\Util\ExternalSenderTagger.h" />
     <ClInclude Include="..\Common\Util\MessageOrigin.h" />
     <ClInclude Include="..\Common\Util\OutgoingFooters.h" />

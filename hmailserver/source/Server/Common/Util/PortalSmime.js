@@ -807,14 +807,55 @@
 
   function boundaryText() { return '=_hm_' + hex(randomBytes(12)); }
 
-  // The MIME entity of a message written on the page: text, optional HTML,
-  // attachments (base64 as the page reads files). No RFC 5322 headers; those
-  // are put on by messageHeaders, outside whatever wraps this.
+  // An image the HTML holds as a data: URL - PNG, JPEG, GIF or WebP, the whole
+  // value of a src attribute, as the page's cleaner writes one - goes as a part
+  // beside the HTML in multipart/related, named by a cid: URL: Gmail and Outlook
+  // do not display a data: image. The server does the same for a message it
+  // writes (InlineImageParts.cpp), but a signed or an encrypted message is
+  // sealed here, before the server sees it, so here is where it has to happen.
+  // As there, at most MOST_IMAGES distinct images become parts and a new one
+  // past that stays a data: URL: what the webmail's view of the Sent copy puts
+  // back in place (InlineImageParts::MostImages).
+  const MOST_IMAGES = 64;
+  function embedDataImages(html) {
+    const images = [];
+    const known = new Map();
+    const stamp = hex(randomBytes(8));
+    const out = html.replace(/(\ssrc\s*=\s*)(["'])data:image\/(png|jpe?g|gif|webp);base64,([A-Za-z0-9+/=\s]+)\2/gi, function (whole, lead, quote, subtype, data) {
+      const clean = data.replace(/\s+/g, '');
+      if (!clean || clean.length % 4 !== 0 || /=[^=]/.test(clean)) { return whole; }
+      let image = known.get(clean);
+      if (!image && images.length >= MOST_IMAGES) { return whole; }
+      if (!image) {
+        const type = /^jpe?g$/i.test(subtype) ? 'image/jpeg' : 'image/' + subtype.toLowerCase();
+        const n = images.length + 1;
+        image = { type: type, data: clean, id: 'img' + n + '.' + stamp + '@webmail.invalid', name: 'image' + n + '.' + (type === 'image/jpeg' ? 'jpg' : type.slice(6)) };
+        known.set(clean, image);
+        images.push(image);
+      }
+      return lead + quote + 'cid:' + image.id + quote;
+    });
+    return { html: out, images: images };
+  }
+
+  // The MIME entity of a message written on the page: text, optional HTML (in
+  // multipart/related with its images when it holds any), attachments (base64
+  // as the page reads files). No RFC 5322 headers; those are put on by
+  // messageHeaders, outside whatever wraps this.
   function buildMime(spec) {
     const textPart = 'Content-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n' + qpEncode(utf8(spec.text || ''));
     let body = textPart;
     if (spec.html) {
-      const htmlPart = 'Content-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n' + qpEncode(utf8(spec.html));
+      const embedded = embedDataImages(spec.html);
+      let htmlPart = 'Content-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n' + qpEncode(utf8(embedded.html));
+      if (embedded.images.length) {
+        const r = boundaryText();
+        let related = 'Content-Type: multipart/related; type="text/html"; boundary="' + r + '"\r\n\r\n--' + r + '\r\n' + htmlPart;
+        for (const image of embedded.images) {
+          related += '\r\n--' + r + '\r\nContent-Type: ' + image.type + '; name="' + image.name + '"\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <' + image.id + '>\r\nContent-Disposition: inline; filename="' + image.name + '"\r\n\r\n' + lines76(image.data);
+        }
+        htmlPart = related + '\r\n--' + r + '--\r\n';
+      }
       const b = boundaryText();
       body = 'Content-Type: multipart/alternative; boundary="' + b + '"\r\n\r\n--' + b + '\r\n' + textPart + '\r\n--' + b + '\r\n' + htmlPart + '\r\n--' + b + '--\r\n';
     }

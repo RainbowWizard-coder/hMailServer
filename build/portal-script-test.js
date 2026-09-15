@@ -416,6 +416,24 @@ const WITH_IMAGE = {
    ]
 };
 
+// A draft this webmail saved: a file, the signature's logo as the server makes
+// an image a part (img<n>.<32 hex>@host), one the S/MIME module made
+// (img<n>.<16 hex>@webmail.invalid), and a photo another mail client embedded
+// under a Content-ID of its own.
+const DRAFT_WITH_LOGO = {
+   id: 105, folder_id: 1, uid: 15, subject: 'Unfinished', from: 'user@example.com', to: 'b@example.net', cc: '',
+   date: '2026-09-09 13:00', size: 900, message_id: '<draft@example.com>', references: '', in_reply_to: '',
+   text: 'Not yet', html: '<p>Not yet</p><img src="cid:img1.0123456789abcdef0123456789abcdef@mail.example.com" alt=""><img src="cid:img1.0123456789abcdef@webmail.invalid" alt=""><img src="cid:image001.jpg@01DC2A3B.4C5D6E70" alt="">',
+   html_remote: false,
+   flags: { seen: true, flagged: false, draft: true },
+   attachments: [
+      { index: 0, name: 'notes.txt', size: 12, content_type: 'text/plain', content_id: '' },
+      { index: 1, name: 'image1.png', size: 3400, content_type: 'image/png', content_id: '<img1.0123456789abcdef0123456789abcdef@mail.example.com>' },
+      { index: 2, name: 'image1.png', size: 3400, content_type: 'image/png', content_id: 'img1.0123456789abcdef@webmail.invalid' },
+      { index: 3, name: 'photo.jpg', size: 5100, content_type: 'image/jpeg', content_id: '<image001.jpg@01DC2A3B.4C5D6E70>' }
+   ]
+};
+
 function json(status, body, headers) {
    return { status, body: body === undefined ? '' : JSON.stringify(body), headers: headers || {} };
 }
@@ -485,6 +503,11 @@ function answer(method, path, body) {
       return { status: 200, body: 'PNGBYTES', headers: { 'Content-Type': types[index] || 'application/octet-stream' } };
    }
    if (path === '/api/v1/me/messages/102' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(WITH_IMAGE)))); }
+   if (/^\/api\/v1\/me\/messages\/105\/attachments\/(\d+)$/.test(path)) {
+      const types = { 0: 'text/plain', 1: 'image/png', 2: 'image/png', 3: 'image/jpeg' };
+      return { status: 200, body: 'FILEBYTES', headers: { 'Content-Type': types[Number(path.split('/').pop())] || 'application/octet-stream' } };
+   }
+   if (path === '/api/v1/me/messages/105' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(DRAFT_WITH_LOGO)))); }
    if (/^\/api\/v1\/me\/messages\/5\d\d$/.test(path) && method === 'GET') {
       const one = WORK_THREAD.filter((m) => m.id === Number(path.split('/').pop()))[0];
       if (one) { return json(200, withState(Object.assign({ folder_id: 3, cc: '', html: '', attachments: [] }, one))); }
@@ -1469,6 +1492,115 @@ async function main() {
    // harness's elements are not; what is checked here is that the page
    // sends the formatted signature as a field of its own.
    check('the formatted signature is saved as its own field', !!sigPut && typeof sigPut.signature.html === 'string', sigPut ? JSON.stringify(sigPut.signature) : 'no PUT');
+
+   // ---- the signature's 64 KB, images included: the number the server refuses
+   // above (RestApiServer.cpp) and MySQL's column holds, said before a file is picked
+   const sigEditor = document.getElementById('signature-html');
+   const sigImage = document.getElementById('signature-image');
+   const sigStatus = document.getElementById('settings-status');
+   const sigImages = () => sigEditor.children.filter((n) => n.tagName === 'IMG');
+   const pageNotes = (function collect(node, out) {
+      if (node instanceof Element && node.className === 'note') { out.push(node.textContent); }
+      (node.childNodes || []).forEach((child) => collect(child, out));
+      return out;
+   })(document.body, []);
+   check('the settings say how much the formatted signature holds before an image is chosen', pageNotes.some((n) => n.indexOf('64 KB, images included') >= 0), JSON.stringify(pageNotes.filter((n) => /signature/i.test(n))));
+   // A real 1x1 PNG: the page reads a file's first bytes, as the server does, before it believes the type.
+   const logo = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+   sigImage.files = [{ name: 'logo.svg', type: 'image/svg+xml', size: 40, base64: 'PHN2Zz4=' }];
+   sigImage.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('a picture that is not PNG, JPEG, GIF or WebP is refused', sigImages().length === 0 && /PNG, JPEG, GIF or WebP/.test(sigStatus.textContent), sigStatus.textContent);
+   sigImage.files = [{ name: 'logo.png', type: 'image/png', size: 70, base64: logo }];
+   sigImage.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('a logo that fits goes into the signature as a data: URL', sigImages().length === 1 && sigImages()[0].getAttribute('src') === 'data:image/png;base64,' + logo && sigImage.value === '',
+      sigImages().length + ' ' + sigStatus.textContent);
+   sigImage.files = [{ name: 'logo.jpg', type: 'image/jpeg', size: 70, base64: logo }];
+   sigImage.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('a PNG named as a JPEG goes in as the PNG it is', sigImages().length === 2 && sigImages()[1].getAttribute('src') === 'data:image/png;base64,' + logo, sigImages().length + ' ' + (sigImages()[1] ? sigImages()[1].getAttribute('src').slice(0, 30) : ''));
+   sigImage.files = [{ name: 'notes.png', type: 'image/png', size: 30, base64: 'VGhpcyBpcyBub3QgYSBwaWN0dXJlIGF0IGFsbA==' }];
+   sigImage.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('a file whose bytes are not an image is refused, whatever it is called', sigImages().length === 2 && /PNG, JPEG, GIF or WebP/.test(sigStatus.textContent), sigImages().length + ' ' + sigStatus.textContent);
+   // No canvas in this DOM, so an image that does not fit cannot be drawn smaller: refused, with the room left.
+   const photo = 'iVBORw0KGgoA' + 'A'.repeat(69988);
+   sigImage.files = [{ name: 'photo.png', type: 'image/png', size: 52500, base64: photo }];
+   sigImage.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('an image that does not fit, and cannot be made smaller, is refused with how much is free', sigImages().length === 2 && /64 KB/.test(sigStatus.textContent) && /63 KB of it is free/.test(sigStatus.textContent) && sigStatus.className.indexOf('error') >= 0,
+      sigImages().length + ' ' + sigStatus.textContent);
+   // With a canvas: drawn at most 600 by 200, and smaller again until it fits.
+   const drawn = [];
+   const realCreateElement = document.createElement;
+   document.createElement = function (tag) {
+      const made = realCreateElement(tag);
+      if (String(tag).toLowerCase() === 'canvas') {
+         made.getContext = () => ({ clearRect() {}, drawImage() { drawn.push(made.width + 'x' + made.height); } });
+         made.toDataURL = (type) => 'data:' + type + ';base64,' + 'A'.repeat(made.width * 150);
+      }
+      return made;
+   };
+   Object.defineProperty(globalThis, 'Image', { configurable: true, writable: true, value: class {
+      set src(value) { this.given = value; this.naturalWidth = 1200; this.naturalHeight = 400; Promise.resolve().then(() => this.onload()); }
+   } });
+   sigImage.files = [{ name: 'banner.png', type: 'image/png', size: 52500, base64: photo }];
+   sigImage.dispatchEvent(makeEvent('change'));
+   await flush();
+   document.createElement = realCreateElement;
+   delete globalThis.Image;
+   const shrunk = sigImages()[2];
+   check('an image that does not fit is drawn at most 600 by 200 first, then smaller until it fits', drawn[0] === '600x200' && drawn.length === 3 && !!shrunk && shrunk.getAttribute('src').length <= 64000 - 19 && /made smaller/.test(sigStatus.textContent),
+      JSON.stringify(drawn) + ' ' + (shrunk ? shrunk.getAttribute('src').length : 'none') + ' ' + sigStatus.textContent);
+   // A signature over 64 KB - an image pasted in rather than chosen - is not sent at all.
+   const pasted = document.createElement('img');
+   pasted.setAttribute('src', 'data:image/png;base64,' + photo);
+   sigEditor.appendChild(pasted);
+   const beforeOver = requests.length;
+   document.getElementById('settings-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('a formatted signature over 64 KB is not sent, and the page says why', !since(beforeOver).some((r) => r.path === '/api/v1/me/settings') && /over 64 KB/.test(sigStatus.textContent),
+      sigStatus.textContent + ' ' + JSON.stringify(since(beforeOver).map((r) => r.method + ' ' + r.path)));
+   sigEditor.removeChild(pasted);
+   const beforeFits = requests.length;
+   document.getElementById('settings-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const fitsPut = since(beforeFits).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/settings').map((r) => JSON.parse(r.body))[0];
+   check('under it, the signature is sent with its images in it', !!fitsPut && fitsPut.signature.html.indexOf('<img src="data:image/png;base64,' + logo + '" alt="">') === 0 && fitsPut.signature.html.length <= 64000,
+      fitsPut ? fitsPut.signature.html.length + ' ' + fitsPut.signature.html.slice(0, 80) : 'no PUT');
+   sigImages().forEach((n) => sigEditor.removeChild(n));
+
+   // ---- a draft reopens as its text, so the images this webmail made parts of
+   // its HTML - a signature's logo - are not attached again; an image another
+   // mail client embedded is, as it always was
+   const beforeDraft = requests.length;
+   location.hash = '#/compose?draft=105';
+   await flush();
+   await flush();
+   const draftFetched = since(beforeDraft).filter((r) => /\/messages\/105\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+   const draftNote = document.getElementById('compose-files-note').textContent;
+   check('a draft reopened carries its files, and not the images this webmail made parts of its HTML', draftFetched.join(',') === '0,3' && draftNote.indexOf('notes.txt') >= 0 && draftNote.indexOf('photo.jpg') >= 0 && draftNote.indexOf('image1.png') < 0,
+      JSON.stringify(draftFetched) + ' ' + draftNote);
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   const beforeOtherDraft = requests.length;
+   location.hash = '#/compose?draft=102';
+   await flush();
+   await flush();
+   const otherDraftFetched = since(beforeOtherDraft).filter((r) => /\/messages\/102\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+   check('a draft whose images another mail client embedded carries every one of them as a file', otherDraftFetched.join(',') === '0,1,2', JSON.stringify(otherDraftFetched));
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   const beforeForwardImages = requests.length;
+   location.hash = '#/compose?forward=105';
+   await flush();
+   await flush();
+   const forwardFetched = since(beforeForwardImages).filter((r) => /\/messages\/105\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+   check('a forward, whose HTML does not go with it, still carries this webmail\'s images as files', forwardFetched.join(',') === '0,1,2,3', JSON.stringify(forwardFetched));
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   dismissAllToasts();
 
    // ---- @mentions: the text asks the address book, the person goes to To
    location.hash = '#/compose';

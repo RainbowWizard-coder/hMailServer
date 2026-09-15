@@ -60,6 +60,7 @@
 #include "../Sieve/SieveStorage.h"
 #include "../Sieve/SieveScript.h"
 #include "GUIDCreator.h"
+#include "InlineImageParts.h"
 #include <iterator>
 #include <list>
 #include <set>
@@ -9013,7 +9014,7 @@ namespace HM
    // so remote images and styles are blocked here unless the reader asked for
    // them with ?remote=1, nothing runs, no form is submitted and no address is
    // rewritten. Images the message embeds (cid:) are put in as data: URLs
-   // under the same budget the page gives inline images.
+   // under the budget below.
    HttpResponse
    RestApiServer::HandleMeMessageHtml_(const Caller &caller, __int64 messageId, const AnsiString &query)
    {
@@ -9042,10 +9043,12 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"the message has no HTML part\"}");
 
       // cid: references, resolved to the parts they name - image types only,
-      // 4 MB each, 12 MB and twelve parts together.
+      // 4 MB each, 12 MB together, and as many parts as the send path moves
+      // out of the HTML (InlineImageParts::MostImages), so a Sent copy or a
+      // draft shows every image it was written with.
       const __int64 InlineEach = 4 * 1024 * 1024;
       const __int64 InlineTogether = 12 * 1024 * 1024;
-      const int InlineMost = 12;
+      const int InlineMost = InlineImageParts::MostImages;
       std::shared_ptr<Attachments> attachments = messageData.GetAttachments();
       std::list<std::shared_ptr<MimeBody>> parts;
       std::shared_ptr<MimeBody> mimeMessage = messageData.GetMimeMessage();
@@ -9688,6 +9691,9 @@ namespace HM
          if (attachmentStatus != 0)
             return BuildResponse_(attachmentStatus, attachmentError);
 
+         // Images the HTML holds as data: URLs go as cid: parts - last, after the attachments (InlineImageParts.h).
+         InlineImageParts::FromDataUrls(messageData);
+
          if (!messageData.Write(fileName))
             return BuildResponse_(500, "{\"error\":\"the message could not be written\"}");
       }
@@ -9957,6 +9963,14 @@ namespace HM
 
       const int MaxNameLength = 100;
       const int MaxSignatureLength = 20000;
+      // The formatted signature, counted in bytes of UTF-8 with its images in it:
+      // the webmail keeps an image there as a data: URL. The narrowest column
+      // decides - hm_accounts.accountsignaturehtml is text on MySQL, 65,535
+      // bytes, and ntext or text, far larger, on the other three - so 64,000,
+      // a number a person can be told, fits every backend. Portal.js holds the
+      // same number (SIGNATURE_HTML_BYTES), and this route is a large request
+      // (IsLargeRequest_) so that the listener's 64 KB cap is not what says no.
+      const int MaxSignatureHtmlBytes = 64000;
       const int MaxScriptLength = 256 * 1024;
    }
 
@@ -10046,8 +10060,10 @@ namespace HM
          bool enabled = GetJsonBoolValue_(signatureObject, "enabled", false);
          String text = JsonUtf8Value_(signatureObject, "text");
          String html = JsonUtf8Value_(signatureObject, "html");
-         if (text.GetLength() > MaxSignatureLength || html.GetLength() > MaxSignatureLength)
+         if (text.GetLength() > MaxSignatureLength)
             return BuildResponse_(400, "{\"error\":\"a signature is at most 20000 characters\"}");
+         if (Utf8_(html).GetLength() > MaxSignatureHtmlBytes)
+            return BuildResponse_(400, "{\"error\":\"a formatted signature is at most 64 KB (64,000 bytes), its images included\"}");
 
          mutableAccount->SetEnableSignature(enabled);
          mutableAccount->SetSignaturePlainText(text);
@@ -10465,6 +10481,9 @@ namespace HM
       if (attachmentStatus != 0)
          return BuildResponse_(attachmentStatus, attachmentError);
 
+      // As on a send, so a draft sent later by the schedule, or opened in another client, shows its images.
+      InlineImageParts::FromDataUrls(messageData);
+
       if (!messageData.Write(fileName))
          return BuildResponse_(500, "{\"error\":\"the draft could not be written\"}");
 
@@ -10681,9 +10700,13 @@ namespace HM
       if (query >= 0)
          path = path.Mid(0, query);
 
-      // A chunk of a file sent as a link: raw bytes, up to the large cap.
+      // A chunk of a file sent as a link: raw bytes, up to the large cap. And the
+      // account's settings, whose formatted signature may carry its images:
+      // 64,000 bytes of HTML beside a 20,000-character plain signature, JSON-
+      // escaped, is more than the ordinary cap - the route answers the exact
+      // limit itself, as a sentence (HandleMeSettingsPut_).
       if (method == "PUT")
-         return path.StartsWith("/api/v1/me/files/") && path.EndsWith("/content");
+         return (path.StartsWith("/api/v1/me/files/") && path.EndsWith("/content")) || path == "/api/v1/me/settings";
 
       if (method != "POST")
          return false;
@@ -10837,11 +10860,11 @@ namespace HM
          "\"/api/v1/me/quarantine/{id}/release\":{\"post\":{\"summary\":\"Deliver a held message to the signed-in account\",\"description\":\"Delivered to this address only; the entry stays for its other recipients and goes when this was the last. A message this address was not sent is 404.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
          "\"/api/v1/me/quarantine/{id}\":{\"delete\":{\"summary\":\"Give up the signed-in account's copy of a held message\",\"description\":\"This address leaves the entry; the entry and its file go when no recipient is left. Nothing is delivered.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
          "\"/api/v1/me/folders/{id}/messages\":{\"get\":{\"summary\":\"One folder's messages, newest first\",\"description\":\"Query parameters: limit (1-200, default 200), before_uid (only messages with a lower UID - the way to page back) and q (only messages containing the text, case-insensitively, in Subject, From, To, Cc, the text or the HTML; at most 2000 are looked at per request - scanned says how many, complete whether that was all, and next_before_uid where to continue). Each entry: id, uid, size, received, subject, from, date (decoded from the head of the file, as FETCH ENVELOPE would), flags (seen, flagged, answered, draft, deleted), message_id, in_reply_to, references, to, has_attachments, snippet (the first 160 characters of the text, quotations and the signature left out) and category - primary, social, promotions, updates or forums, decided from the header alone: the sender's domain, List-Post, List-Unsubscribe, Precedence and Auto-Submitted. total is the folder's count. A folder of another account, or one the ACL keeps from this one, is 404.\",\"responses\":{\"200\":{\"description\":\"folder_id, total, messages\"},\"404\":{\"description\":\"Not this account's folder\"}}}},"
-         "\"/api/v1/me/drafts\":{\"post\":{\"summary\":\"Keep a draft in the Drafts folder\",\"description\":\"Body: to, cc, bcc, subject, text, from (as on a send), and optionally replace_id - the draft this one supersedes, expunged once the new one is saved (new content is a new message with a new UID, as IMAP requires). The Drafts folder is made as Drafts when the account has none. The draft carries the \\\\Draft and \\\\Seen flags and is read, moved and deleted through the message routes.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"},\"replace_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"id, folder_id\"},\"403\":{\"description\":\"The Drafts folder does not allow it\"},\"413\":{\"description\":\"The mailbox is full\"}}}},"
-         "\"/api/v1/me/settings\":{\"get\":{\"summary\":\"The signed-in account's own settings\",\"responses\":{\"200\":{\"description\":\"name (first, last), forwarding (enabled, address, keep_original), signature (enabled, text, html)\"}}},\"put\":{\"summary\":\"Change the signed-in account's own settings\",\"description\":\"Each of name, forwarding and signature the body names is applied whole; one it does not name is left as it is. A forwarding that is enabled needs an e-mail address, and not the account's own.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"object\"},\"forwarding\":{\"type\":\"object\"},\"signature\":{\"type\":\"object\"}}}}}},\"responses\":{\"200\":{\"description\":\"The settings as saved\"},\"400\":{\"description\":\"Nothing named, a name or signature too long, or a forwarding address refused\"}}}},"
+         "\"/api/v1/me/drafts\":{\"post\":{\"summary\":\"Keep a draft in the Drafts folder\",\"description\":\"Body: to, cc, bcc, subject, text, html (its data: images kept as inline parts, as on a send), from (as on a send), and optionally replace_id - the draft this one supersedes, expunged once the new one is saved (new content is a new message with a new UID, as IMAP requires). The Drafts folder is made as Drafts when the account has none. The draft carries the \\\\Draft and \\\\Seen flags and is read, moved and deleted through the message routes.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"},\"replace_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"id, folder_id\"},\"403\":{\"description\":\"The Drafts folder does not allow it\"},\"413\":{\"description\":\"The mailbox is full\"}}}},"
+         "\"/api/v1/me/settings\":{\"get\":{\"summary\":\"The signed-in account's own settings\",\"responses\":{\"200\":{\"description\":\"name (first, last), forwarding (enabled, address, keep_original), signature (enabled, text, html)\"}}},\"put\":{\"summary\":\"Change the signed-in account's own settings\",\"description\":\"Each of name, forwarding and signature the body names is applied whole; one it does not name is left as it is. A forwarding that is enabled needs an e-mail address, and not the account's own. signature.text is at most 20,000 characters; signature.html, the formatted signature - where the webmail keeps an image as a data: URL - is at most 64,000 bytes of UTF-8, images included, which is what the narrowest backend's column (MySQL's text) holds. A request to this route may be as large as a message's, so the limit is answered here as a sentence rather than by the listener.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"object\"},\"forwarding\":{\"type\":\"object\"},\"signature\":{\"type\":\"object\"}}}}}},\"responses\":{\"200\":{\"description\":\"The settings as saved\"},\"400\":{\"description\":\"Nothing named, a name or signature too long, or a forwarding address refused\"}}}},"
          "\"/api/v1/me/filters\":{\"get\":{\"summary\":\"The signed-in account's active Sieve script\",\"responses\":{\"200\":{\"description\":\"active (the script, empty when none), name (the active script's name when ManageSieve set one)\"}}},\"put\":{\"summary\":\"Set the signed-in account's active Sieve script\",\"description\":\"Body: script. Checked as ManageSieve's PUTSCRIPT checks it, with the same wording in error; an empty script removes the filter. The script runs on every message that arrives from then on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"script\"],\"properties\":{\"script\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"active\"},\"400\":{\"description\":\"script missing, over 256 KB, or not parsing (the reason is in error)\"}}}},"
          "\"/api/v1/me/search\":{\"get\":{\"x-operators\":\"q takes words (every one must be found), quoted phrases, -term (a word, phrase or operator the message must not match), a OR b (one of the two must match, and so on through a OR b OR c; OR in capitals), and from:, to:, cc:, bcc: (address or name in that header; Bcc only where the sender's own copy kept it), subject:, has:attachment, has:link (an http or https address in the text, or a link to one in the HTML; the message is read for it), filename: (an attachment's file name contains), larger:10M and smaller: (bytes, or K, M, G for multiples of 1024), before:YYYY-MM-DD, after:YYYY-MM-DD, older_than:7d and newer_than: (d, w, m or y, against the time the message was stored, as before: and after: are), in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned (the $Muted and $Pinned keywords), label:name (an IMAP keyword the message carries; several must all be there), category: (primary, social, promotions, updates or forums - the tab the listing gives the message), in_reply_to:<message-id> (the id, with or without its angle brackets, is in In-Reply-To or References: the replies to that message, which is what the webmail asks for the Sent folder's nudges); a folder listing's q takes the same, without in:.\",\"summary\":\"Search every folder of the signed-in account\",\"description\":\"Query parameters: q (required) and limit (1-200, default 50). The same match as q on a folder listing, over every folder the account may read, newest first; at most 2000 messages are looked at per request (scanned, complete), and more says whether hits beyond limit were cut. Each hit names its folder_id and folder path.\",\"responses\":{\"200\":{\"description\":\"query, scanned, complete, more, messages\"},\"400\":{\"description\":\"q missing\"}}}},"
-         "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept)\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error)\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
+         "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept)\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error)\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
          "\"/api/v1/me/messages/{id}\":{\"get\":{\"summary\":\"One message, read\",\"description\":\"The listing's fields plus folder_id, to, cc, text, html and attachments (index, name, size, content_type, content_id). content_type is the media type the part declares, lower-cased and without its parameters, and is the empty string when the part declares none; content_id is the part's Content-ID with the angle brackets stripped - the form a cid: URL in html uses - and is the empty string when the part carries none. An inline image is an attachment here like any other part, so a page renders one by matching a cid: URL in html against content_id and pointing at the attachment route. A message over one megabyte is described with truncated true and no body. Another account's message, or one in a folder the ACL keeps from this account, is 404.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"Not this account's message\"}}},\"delete\":{\"summary\":\"Delete one message\",\"description\":\"Moved to the folder designated \\\\Trash when the account has one and the message is not in it already; expunged instead when the account has no Trash folder, when the message is already in it, or when the caller adds ?permanent=1. The rights EXPUNGE asks for.\",\"responses\":{\"200\":{\"description\":\"deleted true, or deleted false with moved_to and the new id\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/flags\":{\"put\":{\"summary\":\"Change one message's flags\",\"description\":\"Body: any of seen, flagged, answered, draft, deleted as booleans; only the flags named change. The rights STORE asks for - seen, deleted and the rest are three permissions. Every IMAP session on the folder is told.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, folder_id, flags\"},\"400\":{\"description\":\"No flag named\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/html\":{\"get\":{\"summary\":\"The message's HTML part as a document for a frame\",\"description\":\"text/html under a policy of its own: nothing runs, no form is submitted, no address is rewritten, and remote images and styles are blocked unless ?remote=1 is given - which the page does when the reader allowed this message or this sender. Images the message embeds (cid:) are inlined as data: URLs under the inline budget. The message JSON's html_remote says whether the part names anything remote at all. 404 when the message has no HTML part.\",\"responses\":{\"200\":{\"description\":\"The document\"},\"404\":{\"description\":\"No such message, or no HTML part\"}}}},"

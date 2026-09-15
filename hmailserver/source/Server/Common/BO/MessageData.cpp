@@ -537,6 +537,98 @@ namespace HM
       return empty;
    }
 
+   // A multipart/related part whose root - its first part, RFC 2387's default -
+   // is the formatted body: the HTML itself (Thunderbird's shape, and what
+   // InlineImageParts writes), or an alternative with the HTML in it (Outlook's).
+   // The images beside that root are the ones the HTML names by cid:.
+   bool
+   MessageData::IsFormattedRelated_(std::shared_ptr<MimeBody> part) const
+   {
+      String type = part->GetCleanContentType();
+      if (type.CompareNoCase(_T("multipart/related")) != 0)
+         return false;
+
+      std::shared_ptr<MimeBody> root = part->FindFirstPart();
+      if (!root || root->IsAttachment())
+         return false;
+
+      String rootType = root->GetCleanContentType();
+      if (rootType.CompareNoCase(_T("text/html")) == 0)
+         return true;
+
+      if (rootType.CompareNoCase(_T("multipart/alternative")) != 0)
+         return false;
+
+      for (std::shared_ptr<MimeBody> child = root->FindFirstPart(); child; child = root->FindNextPart())
+      {
+         if (child->GetCleanContentType().CompareNoCase(_T("text/html")) == 0 && !child->IsAttachment())
+            return true;
+      }
+
+      return false;
+   }
+
+   // The formatted body among a part's own children, for CreatePart to carry
+   // across the rebuild: an HTML part that is not an attachment, else a related
+   // part holding the HTML with its images - moved whole, since taking the HTML
+   // out of it and leaving the related part behind drops the HTML and the images
+   // together (a related part is multipart, so not an attachment, so not kept) -
+   // else whatever text/html part is there, as CreatePart always took.
+   std::shared_ptr<MimeBody>
+   MessageData::FindFormattedBodyNoRecurse_(std::shared_ptr<MimeBody> parent) const
+   {
+      std::vector<std::shared_ptr<MimeBody> > children;
+      for (std::shared_ptr<MimeBody> child = parent->FindFirstPart(); child; child = parent->FindNextPart())
+         children.push_back(child);
+
+      for (std::shared_ptr<MimeBody> child : children)
+      {
+         if (child->GetCleanContentType().CompareNoCase(_T("text/html")) == 0 && !child->IsAttachment())
+            return child;
+      }
+
+      for (std::shared_ptr<MimeBody> child : children)
+      {
+         if (IsFormattedRelated_(child))
+            return child;
+      }
+
+      return FindPartNoRecurse(parent, "text/html");
+   }
+
+   // The message is the related part (an HTML-only message with images, as
+   // InlineImageParts leaves one, or Outlook's related around the alternative):
+   // its parts move into a new related part, keeping the type and start the
+   // message named, and the message is left with no parts for CreatePart to
+   // rebuild around it.
+   std::shared_ptr<MimeBody>
+   MessageData::LiftRelatedBody_()
+   {
+      const AnsiString type = mime_mail_->GetParameter(CMimeConst::ContentType(), "type");
+      const AnsiString start = mime_mail_->GetParameter(CMimeConst::ContentType(), "start");
+
+      std::shared_ptr<MimeBody> related = std::shared_ptr<MimeBody>(new MimeBody);
+      related->SetContentType("multipart/related", "");
+      if (!type.IsEmpty())
+         related->SetParameter(CMimeConst::ContentType(), "type", type);
+      if (!start.IsEmpty())
+         related->SetParameter(CMimeConst::ContentType(), "start", start);
+      related->SetRawText("This is a multi-part message.\r\n\r\n");
+
+      std::vector<std::shared_ptr<MimeBody> > children;
+      for (std::shared_ptr<MimeBody> child = mime_mail_->FindFirstPart(); child; child = mime_mail_->FindNextPart())
+         children.push_back(child);
+
+      for (std::shared_ptr<MimeBody> child : children)
+      {
+         mime_mail_->ErasePart(child);
+         related->AddPart(child);
+      }
+
+      related->SetBoundary(NULL);
+      return related;
+   }
+
    std::shared_ptr<MimeBody> 
    MessageData::CreatePart(const String &sContentType)
    {
@@ -550,8 +642,14 @@ namespace HM
       AnsiString sMainBodyCharset = mime_mail_->GetCharset();
       sMainBodyType.MakeLower();
       
+      // A message that is itself HTML with the images it shows is lifted into a
+      // related part of its own first, which is then the formatted body.
+      std::shared_ptr<MimeBody> liftedBody;
+      if (sMainBodyType == "multipart/related" && IsFormattedRelated_(mime_mail_))
+         liftedBody = LiftRelatedBody_();
+
       std::shared_ptr<MimeBody> textPart = FindPartNoRecurse(mime_mail_, "text/plain");
-      std::shared_ptr<MimeBody> htmlPart = FindPartNoRecurse(mime_mail_, "text/html");
+      std::shared_ptr<MimeBody> htmlPart = liftedBody ? liftedBody : FindFormattedBodyNoRecurse_(mime_mail_);
 
       std::shared_ptr<MimeBody> retValue;
 
@@ -567,7 +665,7 @@ namespace HM
 
          if (!htmlPart)
          {
-            htmlPart = FindPartNoRecurse(alternativeNode, "text/html");
+            htmlPart = FindFormattedBodyNoRecurse_(alternativeNode);
 
             if (htmlPart)
                alternativeNode->ErasePart(htmlPart);

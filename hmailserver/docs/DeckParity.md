@@ -739,7 +739,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/app-passwords` | AppPassword | `account`, `address`, `name`, `password`, `text`, `to` | - |
 | `POST /api/v1/me/contacts` | ? | `account`, `address`, `name` | - |
 | `PUT /api/v1/me/contacts/{id}` | ? | `account`, `address`, `name` | - |
-| `POST /api/v1/me/drafts` | ? | `account`, `bcc`, `cc`, `deleted`, `draft`, `folder`, `from`, `message`, `new`, `read`, `replace_id`, `subject`, `text`, `to` | - |
+| `POST /api/v1/me/drafts` | ? | `account`, `bcc`, `cc`, `data`, `deleted`, `draft`, `folder`, `from`, `html`, `message`, `new`, `read`, `replace_id`, `subject`, `text`, `to` | - |
 | `POST /api/v1/me/drafts/{id}/schedule` | ? | `account`, `draft`, `folder`, `new`, `send_at` | - |
 | `POST /api/v1/me/files` | ? | `account`, `days`, `max_days`, `max_mb`, `name`, `password`, `quota_mb`, `size`, `to`, `type` | - |
 | `PUT /api/v1/me/files/{id}` | ? | `account`, `days`, `from`, `max_days`, `max_mb`, `name`, `password`, `quota_mb`, `size`, `to`, `type` | - |
@@ -749,7 +749,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/me/folders/{id}` | IMAPFolder | `account`, `create`, `first`, `folder`, `message`, `name`, `new`, `parent_id`, `to` | - |
 | `POST /api/v1/me/folders/{id}/empty` | ? | `older_than_days` | - |
 | `POST /api/v1/me/folders/{id}/messages` | ServerMessage | - | - |
-| `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `data`, `folder`, `from`, `in_reply_to`, `message`, `name`, `post`, `read`, `references`, `subject`, `text`, `to`, `type` | - |
+| `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `data`, `folder`, `from`, `html`, `in_reply_to`, `message`, `name`, `post`, `read`, `references`, `subject`, `text`, `to`, `type`, `value` | - |
 | `PUT /api/v1/me/messages/{id}/flags` | ? | `answered`, `deleted`, `draft`, `flagged`, `folder`, `rights`, `seen` | - |
 | `POST /api/v1/me/messages/{id}/move` | ? | `account`, `destination`, `folder`, `folder_id`, `name`, `new`, `to` | - |
 | `POST /api/v1/me/messages/{id}/receipt` | ? | - | - |

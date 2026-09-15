@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "DisclaimerAdder.h"
+#include "InlineImageParts.h"
 
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
@@ -314,6 +315,10 @@ namespace HM
          String content = htmlPart->GetUnicodeText();
          content += "<br/>\r\n" + html;
          htmlPart->SetUnicodeText(content);
+
+         // A logo in the footer, as a data: URL, goes as a cid: part (InlineImageParts.h).
+         if (InlineImageParts::HasDataImages(html))
+            InlineImageParts::FromDataUrls(*data);
       }
 
       data->SetFieldValue(String(AppliedHeader()), sender_domain->GetName());

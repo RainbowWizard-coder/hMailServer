@@ -179,6 +179,16 @@ attachment gets it in the text, not after the attachment. A message that has
 neither a text nor an HTML part (one attachment and nothing else) is left alone
 rather than given a text part it never had.
 
+The one change of shape: when the HTML footer carries an image as a `data:` URL
+(`<img src="data:image/png;base64,...">`, a logo), that image is sent as a part of
+its own that the HTML names by `cid:`, since Gmail and Outlook do not display a
+`data:` image. The HTML part is put inside a `multipart/related` part in its own
+place, beside the image — a message that is only HTML becomes that related part,
+and an HTML part already inside one has the image added to it — and every `data:`
+image in that HTML moves with it, the sender's own included. A footer with no such
+image leaves the message's shape as it was. [Signatures.md](Signatures.md)
+describes the move, which the signature shares.
+
 ### What it is never added to
 
 * **A signed or encrypted message** — `multipart/signed`, `multipart/encrypted`,
