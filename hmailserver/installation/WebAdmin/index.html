@@ -430,7 +430,7 @@ $("#loginForm").onsubmit=async e=>{
     // nothing, and so never makes a request the server answers 401 - which is
     // what would put the browser's own password box on the screen.
     try{sessionStorage.setItem("hmsSession","1");}catch(_){}
-    try{enter(await api("/api/v1/status"));}
+    try{await startDeck();}
     catch(err){$("#loginErr").textContent=tf("Signed in, but the server did not answer: {0}",err.message);}
     return;
   }
@@ -462,7 +462,8 @@ function signedOut(message){
    read leaves every view in place rather than hiding the Deck from somebody
    whose credential is perfectly good. */
 let permissions=null;
-function may(permission){return !permissions||!permission||permissions.indexOf(permission)>=0;}
+/* administer_server is the whole of it, as it is in RoleManager::Allows. */
+function may(permission){return !permissions||!permission||permissions.indexOf("administer_server")>=0||permissions.indexOf(permission)>=0;}
 function applyPermissions(){
   const buttons=Array.from(document.querySelectorAll("#nav button[data-view]"));
   let visible=null;
@@ -485,13 +486,20 @@ async function readSession(){
   }catch(_){/* an older server, or a request that did not arrive: show everything */}
   applyPermissions();
 }
+/* What happens after a session exists: the credential's permissions first,
+   then the status for the version in the footer - but only for a role that may
+   read it. A help desk may not, and asking would answer 403 and leave it
+   standing at the sign-in card with a working session. */
+async function startDeck(){
+  await readSession();
+  const status=may("view_configuration")?await api("/api/v1/status"):{};
+  enter(status);
+}
 function enter(status){
   $("#gate").style.display="none";$("#app").style.display="flex";
   $("#ver").textContent=status.version||"?";
-  readSession().then(()=>{
-    if(!view){$("#viewTitle").textContent="";$("#content").innerHTML='<div class="empty">'+t("This role reaches none of the pages of the Deck. Ask an administrator for one that does.")+'</div>';return;}
-    render();
-  });
+  if(!view){$("#viewTitle").textContent="";$("#content").innerHTML='<div class="empty">'+t("This role reaches none of the pages of the Deck. Ask an administrator for one that does.")+'</div>';return;}
+  render();
   if(!pollTimer)pollTimer=setInterval(()=>{if(view==="dash")render(true);},3000);
 }
 
@@ -599,6 +607,9 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="routeedit")openRoute(Number(d.id));
   else if(d.act==="routedel")deleteRoute(Number(d.id),d.name);
   else if(d.act==="routesave")saveRoute();
+  else if(d.act==="resetpick")pickReset(d.address);
+  else if(d.act==="resetpass")resetPassword(d.domain);
+  else if(d.act==="unlock")unlockAccount(d.address);
   else if(d.act==="assign")assignRole();
   else if(d.act==="unassign")unassignRole(d.address);
   else if(d.act==="cancel"){editing=null;render();}
@@ -1015,8 +1026,10 @@ async function showAccounts(domain){
     <tr><td><b>${escHtml(x.address)}</b></td>
         <td>${x.active?'<span class="badge good">'+t("Active")+'</span>':'<span class="badge warn">'+t("Disabled")+'</span>'}</td>
         <td style="text-align:right;white-space:nowrap">
-          <button class="btn ghost sm" data-act="accountedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>
-          <button class="btn danger sm" data-act="del" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button></td></tr>`).join("");
+          ${may("reset_password")?`<button class="btn ghost sm" data-act="resetpick" data-address="${escHtml(x.address)}">${t("Reset password")}</button>`:""}
+          ${may("unlock_account")?`<button class="btn ghost sm" data-act="unlock" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Unlock")}</button>`:""}
+          ${may("view_accounts")?`<button class="btn ghost sm" data-act="accountedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>`:""}
+          ${may("manage_accounts")?`<button class="btn danger sm" data-act="del" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`
   <div class="view">
     <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
@@ -1024,15 +1037,50 @@ async function showAccounts(domain){
       <div class="card"><div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Status")}</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="3" class="empty">'+t("No accounts.")+'</td></tr>'}</tbody></table></div></div>
     </div>
-    <div class="sect"><h2>${t("New account")}</h2>
+    ${may("reset_password")?`<div class="sect"><h2>${t("Reset a password")}</h2>
+      <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center" data-enter="resetpass">
+        <input id="helpAddr" placeholder="user@${escHtml(domain)}" aria-label="${t("Address")}" style="flex:1;min-width:220px">
+        <input id="helpPass" type="password" placeholder="${t("New password")}" aria-label="${t("New password")}" style="flex:1;min-width:160px">
+        <button class="btn" data-act="resetpass" data-domain="${escHtml(domain)}">${t("Reset password")}</button>
+        <div class="err" id="err_help"></div>
+      </div>
+    </div>`:""}
+    ${may("manage_accounts")?`<div class="sect"><h2>${t("New account")}</h2>
       <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center" data-enter="add">
         <input id="newAddr" placeholder="user@${escHtml(domain)}" aria-label="${t("Address")}" style="flex:1;min-width:220px">
         <input id="newPass" type="password" placeholder="${t("Password")}" aria-label="${t("Password")}" style="flex:1;min-width:160px">
         <button class="btn" data-act="add" data-domain="${escHtml(domain)}">${t("Create account")}</button>
         <div class="err" id="err_account"></div>
       </div>
-    </div>
+    </div>`:""}
+    <div class="err" id="err_accountrow"></div>
   </div>`;
+}
+
+/* A help desk's two actions, each its own route so that a role can be allowed
+   exactly these and nothing else. The password goes in the body of a POST and
+   is cleared from the page the moment it has been sent. */
+function pickReset(address){
+  const box=$("#helpAddr");if(!box)return;
+  box.value=address;
+  const pass=$("#helpPass");if(pass)pass.focus();
+}
+async function resetPassword(domain){
+  setErr("err_help","");
+  const address=($("#helpAddr").value||"").trim(),password=$("#helpPass").value;
+  if(!address||!password){setErr("err_help",t("An address and a new password are required."));return;}
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/password",{method:"POST",body:JSON.stringify({password:password})});
+    $("#helpPass").value="";
+    toast(tf("Password reset: {0}",address));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_help",e.message);}
+}
+async function unlockAccount(address){
+  setErr("err_accountrow","");
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/unlock",{method:"POST"});
+    toast(tf("Unlocked: {0}",address));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountrow",e.message);}
 }
 
 async function addAccount(domain){
@@ -2329,19 +2377,19 @@ async function renderRoles(){
   const heldRows=(held.assignments||[]).map(a=>`
     <tr><td>${escHtml(a.address)}</td><td><code class="ro">${escHtml(a.role)}</code></td>
         <td>${escHtml(a.domains||t("the account's own domain"))}</td>
-        <td style="text-align:right"><button class="btn danger sm" data-act="unassign" data-address="${escHtml(a.address)}">${t("Remove")}</button></td></tr>`).join("");
+        <td style="text-align:right">${may("manage_roles")?`<button class="btn danger sm" data-act="unassign" data-address="${escHtml(a.address)}">${t("Remove")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`<div class="card view">
     <div class="tablewrap"><table><thead><tr><th>${t("Role")}</th><th>${t("What it is for")}</th><th></th><th>${t("Permissions")}</th></tr></thead>
     <tbody>${roleRows}</tbody></table></div></div>
     <div class="card view" style="margin-top:14px">
     <div class="tablewrap"><table><thead><tr><th>${t("Account")}</th><th>${t("Role")}</th><th>${t("Domains")}</th><th></th></tr></thead>
     <tbody>${heldRows||'<tr><td colspan="4" class="empty">'+t("Nobody has been given a role yet. An account without one holds the authority its admin level gives it. ✦")+'</td></tr>'}</tbody></table></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    ${may("manage_roles")?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
       <input id="roleAddress" placeholder="${t("Account address")}" style="flex:1 1 220px">
       <select id="roleName" style="flex:0 1 180px">${options}</select>
       <input id="roleDomains" placeholder="${t("Domains, comma separated")}" style="flex:1 1 200px">
       <button class="btn" data-act="assign">${t("Give the role")}</button>
-    </div>
+    </div>`:""}
     <div class="err" id="err_roles" style="margin-top:10px"></div></div>`;
 }
 async function assignRole(){
@@ -2394,7 +2442,7 @@ async function showLog(name,lines){
    of the page's. */
 let resumed=false;
 try{resumed=sessionStorage.getItem("hmsSession")==="1";}catch(_){}
-if(resumed)api("/api/v1/status").then(enter).catch(()=>{signedOut(t("The session ended. Sign in again."));});
+if(resumed)startDeck().catch(()=>{signedOut(t("The session ended. Sign in again."));});
 /* The language: the one this browser remembers, else the browser's own. English
    is the page as it stands and asks the server for nothing. */
 let rememberedLanguage=null;

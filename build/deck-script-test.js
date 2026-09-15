@@ -1253,6 +1253,11 @@ function answer(method, path, headers, raw) {
    if (path === '/api/v1/role-assignments' && method === 'GET') {
       return json(200, { count: state.assignments.length, assignments: state.assignments });
    }
+   if (/^\/api\/v1\/accounts\/[^/]+\/password$/.test(path) && method === 'POST') {
+      if (!parsed.password) { return json(400, { error: 'password must not be empty' }); }
+      return json(200, { reset: true });
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/unlock$/.test(path) && method === 'POST') { return json(200, { unlocked: true }); }
    if (path.indexOf('/api/v1/role-assignments/') === 0) {
       const address = decodeURIComponent(path.slice('/api/v1/role-assignments/'.length));
       if (method === 'PUT') {
@@ -2701,7 +2706,10 @@ async function main() {
    whoami = { identity: 'account:helen@example.com', credential: 'account', administrative: true,
       role: 'helpdesk', permissions: ['view_accounts', 'view_message_trace', 'reset_password', 'unlock_account'],
       domains: ['example.com'] };
+   before = requests.length;
    await signIn();
+   check('a help desk signs in without asking for the status it may not read',
+      called(before, 'GET', '/api/v1/session').length === 1 && called(before, 'GET', '/api/v1/status').length === 0, paths(before));
    check('a help desk is shown the pages it may use',
       !$('#nav button[data-view="domains"]').hidden && !$('#nav button[data-view="lists"]').hidden);
    check('and not the ones it may not: the settings, the logs, the queue and the roles are gone',
@@ -2709,6 +2717,44 @@ async function main() {
       $('#nav button[data-view="queue"]').hidden && $('#nav button[data-view="roles"]').hidden);
    check('and the view it lands on is one it may use, not the dashboard it may not',
       $('#viewTitle').textContent === 'Domains', $('#viewTitle').textContent);
+
+   // The run renamed example.com earlier; its accounts went with it.
+   const helpDomain = Object.keys(state.accounts).filter((d) => state.accounts[d].length > 0 && d.indexOf('<') < 0)[0];
+   const helpAddresses = state.accounts[helpDomain].map((a) => a.address);
+   click(act('accounts', { domain: helpDomain }));
+   await flush();
+   check('its accounts list offers a password reset and an unlock on every row',
+      helpAddresses.length > 0 &&
+      content().querySelectorAll('button[data-act="resetpick"]').length === helpAddresses.length &&
+      content().querySelectorAll('button[data-act="unlock"]').length === helpAddresses.length, helpDomain + ' ' + JSON.stringify(helpAddresses));
+   check('and neither a delete nor a new-account form, which it may not use',
+      content().querySelectorAll('button[data-act="del"]').length === 0 && !document.getElementById('newAddr'));
+
+   click(act('resetpick', { address: helpAddresses[0] }));
+   await flush();
+   check('choosing a row puts its address in the reset form', document.getElementById('helpAddr').value === helpAddresses[0]);
+
+   before = requests.length;
+   setValue('helpPass', '');
+   click(act('resetpass', { domain: helpDomain }));
+   await flush();
+   check('a reset with no password is refused here and never sent',
+      called(before, 'POST', /\/password$/).length === 0 && $('#err_help').textContent.indexOf('new password') >= 0, $('#err_help').textContent);
+
+   before = requests.length;
+   setValue('helpPass', 'a-new-password');
+   click(act('resetpass', { domain: helpDomain }));
+   await flush();
+   put = lastBody(before, 'POST', /\/password$/);
+   check('the reset posts the password to the account\'s own password route and nowhere else',
+      called(before, 'POST', '/api/v1/accounts/' + encodeURIComponent(helpAddresses[0]) + '/password').length === 1 && put && put.password === 'a-new-password' &&
+      called(before, 'PUT', /^\/api\/v1\/accounts\//).length === 0, paths(before));
+   check('and clears the password from the page once it is sent', document.getElementById('helpPass').value === '');
+
+   before = requests.length;
+   click(act('unlock', { address: helpAddresses[0] }));
+   await flush();
+   check('unlock posts to the account\'s unlock route', called(before, 'POST', '/api/v1/accounts/' + encodeURIComponent(helpAddresses[0]) + '/unlock').length === 1, paths(before));
 
    click($('#logoutBtn'));
    await flush();
