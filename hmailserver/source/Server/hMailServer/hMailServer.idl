@@ -38,6 +38,8 @@ interface IInterfaceSecurityRanges;
 interface IInterfaceAntiVirus;
 interface IInterfaceRoute;
 interface IInterfaceRoutes;
+interface IInterfaceRemoteDomainPolicy;
+interface IInterfaceRemoteDomainPolicies;
 interface IInterfaceDNSBlackLists;
 interface IInterfaceDNSBlackList;
 interface IInterfaceRouteAddresses;
@@ -390,6 +392,27 @@ typedef
    [helpstring("STARTTLS (Required).")] 
    eCSSTARTTLSRequired = 3,
 } eConnectionSecurity;
+
+// How much transport security this server demands of a named remote domain.
+//
+// Ordered permissive to strict, and compared as a number, so composing this
+// with MTA-STS and DANE is a maximum. Zero is the permissive value because
+// zero is what an unfilled record produces: a policy nobody has configured
+// cannot start refusing a domain's mail.
+typedef
+[uuid(4DBB5C61-0D74-4A25-9C35-2C3F2F1E7A18),
+   helpstring("Remote domain TLS requirement")]
+   enum
+{
+   [helpstring("Whatever the server would do anyway, including any MTA-STS or DANE policy the domain publishes.")]
+   eRTNone = 0,
+   [helpstring("The session must be encrypted; the certificate is not judged.")]
+   eRTEncrypted = 1,
+   [helpstring("Encrypted, and the certificate must verify and name the host.")]
+   eRTVerified = 2,
+   [helpstring("Encrypted, and the certificate must match a DNSSEC-validated TLSA record.")]
+   eRTDane = 3,
+} eRemoteTlsRequirement;
 
 typedef
 [uuid(90745436-4C3F-11D9-AD17-A0BCEA20CD08),
@@ -811,6 +834,18 @@ interface IInterfaceSettings : IDispatch{
    [id(116), helpstring("Enrols a second factor on the administrator credential and returns the otpauth:// URI to show as a QR code. The secret is inside that URI and is not retrievable afterwards; it is enforced at once, on the COM API and the REST API alike. Server administrators only, and the administrator password must be set.")] HRESULT EnrolAdministratorTOTP([out, retval] BSTR *pVal);
    [id(117), helpstring("Removes the administrator credential's second factor; the password alone authenticates again at once. Server administrators only.")] HRESULT DisableAdministratorTOTP();
 
+   // What this server will do for a named remote domain: the TLS it demands of
+   // it outbound and inbound, the message size and the concurrency it will
+   // attempt, and whether a recipient is verified with the domain's own server
+   // before mail for it is accepted. See RemoteDomainPolicy.h.
+   //
+   // The dispatch id deliberately leaves a gap above DisableAdministratorTOTP.
+   // Several branches were adding members to this interface in the same week and
+   // a gap costs nothing - a dispatch id is a name, not a position - whereas two
+   // branches that both took 118 would produce a type library in which one of
+   // them silently answers the other's calls.
+   [propget, id(125), helpstring("Remote domain policies: per-domain TLS requirements, limits and recipient verification.")] HRESULT RemoteDomainPolicies([out, retval] IInterfaceRemoteDomainPolicies* *pVal);
+
 };
 
 
@@ -933,6 +968,24 @@ interface IInterfaceDomain : IDispatch
       [propput, id(54), helpstring("Text sent to senders whose address belongs to this server. Empty means use VacationMessage. Note this identifies the address, not the person: an envelope sender is forgeable, so treat it as a courtesy and never as access control.")] HRESULT VacationInternalMessage([in] BSTR newVal);
       [propget, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([out, retval] VARIANT_BOOL *pVal);
       [propput, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([in] VARIANT_BOOL newVal);
+
+      /*
+         WHAT THIS DOMAIN DOES TO A MESSAGE. All off by default.
+      */
+      [propget, id(57), helpstring("Put the tag text at the front of the Subject of mail this domain receives from outside. Breaks any DKIM signature the sender made over their Subject, exactly as the anti-spam subject prefix does; ExternalTagHeader costs the sender's signature nothing.")] HRESULT ExternalTagSubject([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(57), helpstring("Put the tag text at the front of the Subject of mail this domain receives from outside. Breaks any DKIM signature the sender made over their Subject, exactly as the anti-spam subject prefix does; ExternalTagHeader costs the sender's signature nothing.")] HRESULT ExternalTagSubject([in] VARIANT_BOOL newVal);
+      [propget, id(58), helpstring("Stamp X-hMailServer-External on mail this domain receives from outside, which the webmail shows as a banner. Prepending a field is signature-safe.")] HRESULT ExternalTagHeader([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(58), helpstring("Stamp X-hMailServer-External on mail this domain receives from outside, which the webmail shows as a banner. Prepending a field is signature-safe.")] HRESULT ExternalTagHeader([in] VARIANT_BOOL newVal);
+      [propget, id(59), helpstring("The text put at the front of the subject. Empty means the shipped tag, EXTERNAL in square brackets. At most 100 characters. Per domain, so a domain whose readers do not read English can say it in the language they do.")] HRESULT ExternalTagText([out, retval] BSTR *pVal);
+      [propput, id(59), helpstring("The text put at the front of the subject. Empty means the shipped tag, EXTERNAL in square brackets. At most 100 characters. Per domain, so a domain whose readers do not read English can say it in the language they do.")] HRESULT ExternalTagText([in] BSTR newVal);
+      [propget, id(60), helpstring("Tell the reader when an outside sender has not written to this account before, by stamping X-hMailServer-First-Contact. Costs a database lookup per delivered copy; see hmailserver/docs/DomainTransforms.md.")] HRESULT FirstContactTip([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(60), helpstring("Tell the reader when an outside sender has not written to this account before, by stamping X-hMailServer-First-Contact. Costs a database lookup per delivered copy; see hmailserver/docs/DomainTransforms.md.")] HRESULT FirstContactTip([in] VARIANT_BOOL newVal);
+      [propget, id(61), helpstring("Append the legal footer below to mail this domain sends outside the organisation. Never added to a signed or encrypted message, to an automatic reply, a bounce or a list posting, and never twice on a reply chain.")] HRESULT DisclaimerEnabled([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(61), helpstring("Append the legal footer below to mail this domain sends outside the organisation. Never added to a signed or encrypted message, to an automatic reply, a bounce or a list posting, and never twice on a reply chain.")] HRESULT DisclaimerEnabled([in] VARIANT_BOOL newVal);
+      [propget, id(62), helpstring("The footer, as plain text.")] HRESULT DisclaimerPlainText([out, retval] BSTR *pVal);
+      [propput, id(62), helpstring("The footer, as plain text.")] HRESULT DisclaimerPlainText([in] BSTR newVal);
+      [propget, id(63), helpstring("The footer, as HTML. Empty means the plain text is used with its line breaks turned into <br>.")] HRESULT DisclaimerHTML([out, retval] BSTR *pVal);
+      [propput, id(63), helpstring("The footer, as HTML. Empty means the plain text is used with its line breaks turned into <br>.")] HRESULT DisclaimerHTML([in] BSTR newVal);
 
 };
 [
@@ -1354,6 +1407,34 @@ interface IInterfaceLogging : IDispatch
    [propput, id(22), helpstring("Keep log file open between writes.")] HRESULT KeepFilesOpen([in] VARIANT_BOOL newVal);
 
    [propget, id(23), helpstring("Returns true if live logging is enabled. False otherwise.")] HRESULT LiveLoggingEnabled([out, retval] VARIANT_BOOL *pVal);
+
+   // The syslog sink (RFC 5424). Stored in hm_settings, read when the sink starts,
+   // so a change applies at the next service start or Reinitialize. SyslogHost empty
+   // is not "off": on Linux under systemd it selects the journal.
+   [propget, id(24), helpstring("Send log entries to a syslog collector, or to the systemd journal.")] HRESULT SyslogEnabled([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(24), helpstring("Send log entries to a syslog collector, or to the systemd journal.")] HRESULT SyslogEnabled([in] VARIANT_BOOL newVal);
+   [propget, id(25), helpstring("The syslog collector host name or address. Empty selects the systemd journal on Linux.")] HRESULT SyslogHost([out, retval] BSTR *pVal);
+   [propput, id(25), helpstring("The syslog collector host name or address.")] HRESULT SyslogHost([in] BSTR newVal);
+   [propget, id(26), helpstring("The syslog collector port. 514 for UDP and TCP, 6514 for TLS.")] HRESULT SyslogPort([out, retval] long *pVal);
+   [propput, id(26), helpstring("The syslog collector port.")] HRESULT SyslogPort([in] long newVal);
+   [propget, id(27), helpstring("How entries reach the collector: 0 UDP, 1 TCP, 2 TCP over TLS.")] HRESULT SyslogTransport([out, retval] long *pVal);
+   [propput, id(27), helpstring("How entries reach the collector: 0 UDP, 1 TCP, 2 TCP over TLS.")] HRESULT SyslogTransport([in] long newVal);
+   [propget, id(28), helpstring("The RFC 5424 facility, 0 to 23. 2 is mail.")] HRESULT SyslogFacility([out, retval] long *pVal);
+   [propput, id(28), helpstring("The RFC 5424 facility, 0 to 23. 2 is mail.")] HRESULT SyslogFacility([in] long newVal);
+   [propget, id(29), helpstring("The least severe entry that is sent, 0 emergency to 7 debug.")] HRESULT SyslogMinimumSeverity([out, retval] long *pVal);
+   [propput, id(29), helpstring("The least severe entry that is sent, 0 emergency to 7 debug.")] HRESULT SyslogMinimumSeverity([in] long newVal);
+   [propget, id(30), helpstring("Send SMTP conversations to syslog.")] HRESULT SyslogLogSMTP([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(30), helpstring("Send SMTP conversations to syslog.")] HRESULT SyslogLogSMTP([in] VARIANT_BOOL newVal);
+   [propget, id(31), helpstring("Send POP3 conversations to syslog.")] HRESULT SyslogLogPOP3([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(31), helpstring("Send POP3 conversations to syslog.")] HRESULT SyslogLogPOP3([in] VARIANT_BOOL newVal);
+   [propget, id(32), helpstring("Send IMAP conversations to syslog.")] HRESULT SyslogLogIMAP([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(32), helpstring("Send IMAP conversations to syslog.")] HRESULT SyslogLogIMAP([in] VARIANT_BOOL newVal);
+   [propget, id(33), helpstring("Send application events to syslog.")] HRESULT SyslogLogApplication([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(33), helpstring("Send application events to syslog.")] HRESULT SyslogLogApplication([in] VARIANT_BOOL newVal);
+   [propget, id(34), helpstring("Send TCP/IP activity to syslog.")] HRESULT SyslogLogTCPIP([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(34), helpstring("Send TCP/IP activity to syslog.")] HRESULT SyslogLogTCPIP([in] VARIANT_BOOL newVal);
+   [propget, id(35), helpstring("Send debug messages to syslog.")] HRESULT SyslogLogDebug([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(35), helpstring("Send debug messages to syslog.")] HRESULT SyslogLogDebug([in] VARIANT_BOOL newVal);
 };
 
 [
@@ -1771,6 +1852,98 @@ interface IInterfaceRoutes : IDispatch{
    [propget, id(4), helpstring("Returns a route by its given domainname.")] HRESULT ItemByName([in] BSTR ItemName, [out, retval] IInterfaceRoute** pVal);
    [propget, id(5), helpstring("Returns a route by its database identifier")] HRESULT ItemByDBID([in] long DBID, [out, retval] IInterfaceRoute* *pVal);
    [id(6), helpstring("Refreshes the collection.")] HRESULT Refresh();
+};
+
+// What this server will do when it talks to one named remote domain.
+//
+// A route says WHERE mail for a domain goes and replaces MX discovery; this
+// says what this server will and will not do when it gets there, whatever
+// found the server. A domain may have both.
+//
+// The TLS requirement composes with MTA-STS and DANE as the STRONGEST of the
+// three: nothing here can lower what a domain's own published policy demanded.
+[
+   object,
+   uuid(C5FE061A-5AC7-4A22-A60C-5D64910A7D77),
+   dual,
+   nonextensible,
+   helpstring("A remote domain policy: what this server will do when it talks to one named remote domain."),
+   pointer_default(unique)
+]
+interface IInterfaceRemoteDomainPolicy : IDispatch{
+   [propget, id(1), helpstring("Database identifier.")] HRESULT ID([out, retval] long *pVal);
+
+   [propget, id(2), helpstring("The domain this policy governs. May carry a wildcard; the most specific match wins.")] HRESULT DomainName([out, retval] BSTR *pVal);
+   [propput, id(2), helpstring("The domain this policy governs. May carry a wildcard; the most specific match wins.")] HRESULT DomainName([in] BSTR newVal);
+
+   [propget, id(3), helpstring("Description.")] HRESULT Description([out, retval] BSTR *pVal);
+   [propput, id(3), helpstring("Description.")] HRESULT Description([in] BSTR newVal);
+
+   [propget, id(4), helpstring("Whether this policy is applied at all. An inactive policy is skipped, and the next most specific active policy governs instead.")] HRESULT Active([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(4), helpstring("Whether this policy is applied at all. An inactive policy is skipped, and the next most specific active policy governs instead.")] HRESULT Active([in] VARIANT_BOOL newVal);
+
+   [propget, id(5), helpstring("The transport security demanded of outbound mail.")] HRESULT OutboundTls([out, retval] eRemoteTlsRequirement *pVal);
+   [propput, id(5), helpstring("The transport security demanded of outbound mail.")] HRESULT OutboundTls([in] eRemoteTlsRequirement newVal);
+
+   [propget, id(6), helpstring("Refuse mail FROM this domain that arrives on an unencrypted session.")] HRESULT RequireInboundTls([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(6), helpstring("Refuse mail FROM this domain that arrives on an unencrypted session.")] HRESULT RequireInboundTls([in] VARIANT_BOOL newVal);
+
+   [propget, id(7), helpstring("The largest message this server will attempt to send there, in KB. 0 is no limit.")] HRESULT MaxMessageSizeKB([out, retval] long *pVal);
+   [propput, id(7), helpstring("The largest message this server will attempt to send there, in KB. 0 is no limit.")] HRESULT MaxMessageSizeKB([in] long newVal);
+
+   [propget, id(8), helpstring("Simultaneous SMTP connections this server will hold open to the destination. 0 is unlimited.")] HRESULT MaxConnections([out, retval] long *pVal);
+   [propput, id(8), helpstring("Simultaneous SMTP connections this server will hold open to the destination. 0 is unlimited.")] HRESULT MaxConnections([in] long newVal);
+
+   [propget, id(9), helpstring("Messages a minute this server will send to the destination. 0 is unlimited.")] HRESULT MaxMessagesPerMinute([out, retval] long *pVal);
+   [propput, id(9), helpstring("Messages a minute this server will send to the destination. 0 is unlimited.")] HRESULT MaxMessagesPerMinute([in] long newVal);
+
+   [propget, id(10), helpstring("Whether an automatic reply may be sent to this domain.")] HRESULT AllowAutomaticReplies([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(10), helpstring("Whether an automatic reply may be sent to this domain.")] HRESULT AllowAutomaticReplies([in] VARIANT_BOOL newVal);
+
+   [propget, id(11), helpstring("Whether mail may be forwarded or redirected to this domain.")] HRESULT AllowForwarding([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(11), helpstring("Whether mail may be forwarded or redirected to this domain.")] HRESULT AllowForwarding([in] VARIANT_BOOL newVal);
+
+   [propget, id(12), helpstring("Verify a recipient with the domain's own server before accepting mail for it. For a domain this server is a backup MX for, and for nothing else.")] HRESULT CalloutEnabled([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(12), helpstring("Verify a recipient with the domain's own server before accepting mail for it. For a domain this server is a backup MX for, and for nothing else.")] HRESULT CalloutEnabled([in] VARIANT_BOOL newVal);
+
+   [propget, id(13), helpstring("The host to ask. Empty means the domain's own MX hosts, skipping this server.")] HRESULT CalloutHost([out, retval] BSTR *pVal);
+   [propput, id(13), helpstring("The host to ask. Empty means the domain's own MX hosts, skipping this server.")] HRESULT CalloutHost([in] BSTR newVal);
+
+   [propget, id(14), helpstring("The port to ask on.")] HRESULT CalloutPort([out, retval] long *pVal);
+   [propput, id(14), helpstring("The port to ask on.")] HRESULT CalloutPort([in] long newVal);
+
+   [propget, id(15), helpstring("How long a verification session may take, in seconds.")] HRESULT CalloutTimeoutSeconds([out, retval] long *pVal);
+   [propput, id(15), helpstring("How long a verification session may take, in seconds.")] HRESULT CalloutTimeoutSeconds([in] long newVal);
+
+   [propget, id(16), helpstring("How long a verdict is remembered, in minutes.")] HRESULT CalloutCacheMinutes([out, retval] long *pVal);
+   [propput, id(16), helpstring("How long a verdict is remembered, in minutes.")] HRESULT CalloutCacheMinutes([in] long newVal);
+
+   [propget, id(17), helpstring("How often this server will open a verification session to the domain, per minute.")] HRESULT CalloutMaxPerMinute([out, retval] long *pVal);
+   [propput, id(17), helpstring("How often this server will open a verification session to the domain, per minute.")] HRESULT CalloutMaxPerMinute([in] long newVal);
+
+   [id(18), helpstring("Saves changes of the object in the database.")] HRESULT Save();
+   [id(19), helpstring("Deletes the object from the database.")] HRESULT Delete();
+};
+
+[
+   object,
+   uuid(36551AA6-228C-47A4-8342-74B010ED4C1F),
+   dual,
+   nonextensible,
+   helpstring("The RemoteDomainPolicies object is a collection of every remote domain policy in the hMailServer installation."),
+   pointer_default(unique)
+]
+interface IInterfaceRemoteDomainPolicies : IDispatch{
+   [propget, id(0), defaultbind, helpstring("Returns a policy by its given index.")] HRESULT Item([in] long Index, [out, retval] IInterfaceRemoteDomainPolicy **pVal);
+   [propget, id(1), helpstring("The number of objects in the collection.")] HRESULT Count([out, retval] long *pVal);
+   [id(2), helpstring("Deletes an object in the database by its given database identifier.")] HRESULT DeleteByDBID([in] long DBID);
+   [id(3), helpstring("Adds a new object to the collection.")] HRESULT Add([out, retval] IInterfaceRemoteDomainPolicy **pVal);
+   [propget, id(4), helpstring("Returns a policy by its given domain name or pattern.")] HRESULT ItemByName([in] BSTR ItemName, [out, retval] IInterfaceRemoteDomainPolicy** pVal);
+   [propget, id(5), helpstring("Returns a policy by its database identifier.")] HRESULT ItemByDBID([in] long DBID, [out, retval] IInterfaceRemoteDomainPolicy* *pVal);
+   [id(6), helpstring("Refreshes the collection.")] HRESULT Refresh();
+   [propget, id(7), helpstring("Returns the policy that governs a named domain - the most specific active match - or nothing.")] HRESULT PolicyForDomain([in] BSTR DomainName, [out, retval] IInterfaceRemoteDomainPolicy* *pVal);
+   [id(8), helpstring("Forgets every remembered recipient verification verdict, so the next message asks the domain's server again.")] HRESULT ClearVerificationCache();
+   [propget, id(9), helpstring("How many verification verdicts are currently remembered.")] HRESULT VerificationCacheSize([out, retval] long *pVal);
 };
 
 [
@@ -3521,6 +3694,24 @@ library hMailServer
    coclass Routes
    {
       [default] interface IInterfaceRoutes;
+   };
+
+   [
+      uuid(4D0FACAF-3497-4F5C-A97D-B1A62179199D),
+      helpstring("RemoteDomainPolicy Class")
+   ]
+   coclass RemoteDomainPolicy
+   {
+      [default] interface IInterfaceRemoteDomainPolicy;
+   };
+
+   [
+      uuid(228C62B3-8962-49EB-B846-F20CB67B4D6A),
+      helpstring("RemoteDomainPolicies Class")
+   ]
+   coclass RemoteDomainPolicies
+   {
+      [default] interface IInterfaceRemoteDomainPolicies;
    };
    [
       uuid(4CC5C4F5-7303-4C69-96D3-EC73ECF6F255),

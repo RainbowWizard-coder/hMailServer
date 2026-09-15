@@ -278,6 +278,17 @@ class Element {
    }
    querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
    focus() { this.focused += 1; document.activeElement = this; }
+   /* There is no layout in this DOM, so an element has the rectangle a test
+      gives it (el.rect = {left, top, width, height}) and otherwise none at all.
+      That is enough for the tour, which asks only where the thing it points at
+      is; an element with no rectangle is one the tour draws no ring around,
+      which is exactly what a browser reports for something not on the screen. */
+   getBoundingClientRect() {
+      const r = this.rect || { left: 0, top: 0, width: 0, height: 0 };
+      return { left: r.left, top: r.top, width: r.width, height: r.height, x: r.left, y: r.top,
+               right: r.left + r.width, bottom: r.top + r.height };
+   }
+   get offsetHeight() { return (this.rect || { height: 0 }).height; }
    click() { this.dispatchEvent(makeEvent('click')); }
    blur() { }
    select() { }
@@ -396,6 +407,26 @@ const sessionStorage = storage();
 let clock = 0;
 const performance = { now: () => { clock += 1; return clock; } };
 
+/* The system's colour preference, and the listeners the page attaches to it:
+   the page's theme has three choices - light, dark and the system's - and
+   without this the third could only be guessed at. setSystemTheme changes the
+   preference and tells the listeners, which is what a reader turning their
+   desktop dark does. */
+let systemPrefersDark = true;
+const mediaListeners = [];
+function matchMedia(query) {
+   return {
+      media: query,
+      get matches() { return String(query).indexOf('dark') >= 0 ? systemPrefersDark : !systemPrefersDark; },
+      addEventListener: (type, fn) => { if (type === 'change') { mediaListeners.push(fn); } },
+      removeEventListener: () => { }
+   };
+}
+function setSystemTheme(dark) {
+   systemPrefersDark = dark;
+   mediaListeners.slice().forEach((fn) => fn({ matches: dark }));
+}
+
 const confirmations = [];
 let confirmAnswer = true;
 const consoleErrors = [];
@@ -428,6 +459,17 @@ const ROUTE_PROPS = {
 };
 const ROUTES_POST = 'Body: domain_name and target_smtp_host (required); target_smtp_port (default 25), number_of_tries (default 3), minutes_between_try (default 10), relayer_requires_authentication (default false, and then relayer_auth_username is required), relayer_auth_username, relayer_auth_password (write-only), treat_recipient_as_local_domain or treat_security_as_local_domain (default false), treat_sender_as_local_domain (default false), all_addresses (default true), addresses (an array of e-mail addresses) and connection_security (default none). Persisted and put into effect exactly as a route saved in the Control Panel is: the next message to the domain uses it. Server-wide; refused for domain-restricted keys.';
 
+const REMOTE_DOMAIN_PROPS = {
+   domain_name: { type: 'string' }, description: { type: 'string' }, active: { type: 'boolean' },
+   outbound_tls: { type: 'string', enum: ['none', 'encrypted', 'verified', 'dane'] },
+   require_inbound_tls: { type: 'boolean' },
+   max_message_size_kb: { type: 'integer' }, max_connections: { type: 'integer' }, max_messages_per_minute: { type: 'integer' },
+   allow_automatic_replies: { type: 'boolean' }, allow_forwarding: { type: 'boolean' },
+   callout_enabled: { type: 'boolean' }, callout_host: { type: 'string' }, callout_port: { type: 'integer' },
+   callout_timeout_seconds: { type: 'integer' }, callout_cache_minutes: { type: 'integer' }, callout_max_per_minute: { type: 'integer' }
+};
+const REMOTE_DOMAINS_POST = 'Body: domain_name (required; a domain, or a wildcard pattern such as *.example.com - the most specific active match governs a delivery). description; active (default true); outbound_tls (default none); require_inbound_tls (default false); max_message_size_kb (default 0, no limit); max_connections and max_messages_per_minute (default 0, unlimited); allow_automatic_replies and allow_forwarding (default true); callout_enabled (default false), callout_host, callout_port (default 25), callout_timeout_seconds (default 10, at most 60), callout_cache_minutes (default 60) and callout_max_per_minute (default 10). Server-wide; refused for domain-restricted keys.';
+
 const PORT_PROPS = {
    protocol: { type: 'string', enum: ['smtp', 'pop3', 'imap'] }, address: { type: 'string' }, port: { type: 'integer' },
    connection_security: { type: 'string', enum: ['none', 'tls', 'starttls_optional', 'starttls_required'] },
@@ -454,8 +496,10 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'signature_enabled', 'signature_method', 'signature_plain_text', 'signature_html', 'signature_add_to_replies', 'signature_add_to_local_mail',
    'dkim_enabled', 'dkim_selector', 'dkim_private_key_file', 'dkim_signing_algorithm',
    'message_retention_days', 'relay_host', 'relay_port', 'relay_requires_auth', 'relay_username', 'relay_password', 'relay_connection_security',
-   'vacation_enabled', 'vacation_subject', 'vacation_message'];
-const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
+   'vacation_enabled', 'vacation_subject', 'vacation_message',
+   'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
+   'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html'];
+const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
 // The account's update schema as RestApiRoutes.cpp emits it - every field
@@ -593,6 +637,19 @@ function fetchProblem(parsed, creating) {
    return null;
 }
 
+// The account groups, as RestApiGroups.cpp emits them. A membership is a pair
+// and not a property of either side, so the members are a collection under the
+// group and a member is removed by the account's id.
+const GROUPS_GET = 'Settings.Groups over COM: the named sets of accounts a folder permission can name as one principal. Each entry: id, name. Read from the database on every call, so a group the Control Panel made is here. Server-wide; refused for domain-restricted keys.';
+const GROUPS_POST = 'Body: name (required, at most 255 characters). Saved as Groups.Add and Group.Save save one over COM, with the same check - a second group of the same name is refused - and added to the collection ACLManager consults, so a permission may name it at once. Server-wide; refused for domain-restricted and read-only keys.';
+const GROUPS_PUT = 'Body: name. The same check as POST; nothing changes when it is refused, and the permissions that name the group by id keep naming it. Server-wide; refused for domain-restricted and read-only keys.';
+const GROUPS_DELETE = 'What Groups.DeleteByDBID does over COM: the group, its membership rows and every folder permission that named it go together, and the next IMAP command decides without them. Server-wide; refused for domain-restricted and read-only keys.';
+const MEMBERS_GET = 'Group.Members over COM, read from the database as ACLManager reads them for every decision. Each entry: id (the membership row), group_id, account_id, account (the address; empty when the account no longer exists).';
+const MEMBERS_POST = 'Body: account_id or account (the address); both, and they must name the same account. What GroupMembers.Add, put_AccountID and Save do over COM; in force for the next IMAP command. Server-wide; refused for domain-restricted and read-only keys.';
+// Every account the recorded server knows, by the id the store gave it: a
+// membership names the account by its id, and the address is the way in.
+const ACCOUNT_IDS = { 'anna@example.com': 1, 'bob@example.com': 2, 'carla@example.com': 3 };
+
 // A domain as DomainEntryJson_ emits it: every field, the relay password
 // never among them.
 function domainRecord(name, active, postmaster) {
@@ -604,7 +661,9 @@ function domainRecord(name, active, postmaster) {
       signature_add_to_replies: false, signature_add_to_local_mail: false,
       dkim_enabled: false, dkim_selector: '', dkim_private_key_file: '', dkim_signing_algorithm: 'sha256',
       relay_host: '', relay_requires_auth: false, relay_username: '', relay_connection_security: 'none',
-      vacation_enabled: false, vacation_subject: '', vacation_message: '' };
+      vacation_enabled: false, vacation_subject: '', vacation_message: '',
+      external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
+      disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '' };
 }
 
 function body(props, required) {
@@ -722,6 +781,16 @@ const spec = {
          put: { summary: 'Replace an SMTP route', description: 'The whole record, with the same fields, defaults and checks as the create.', requestBody: body(ROUTE_PROPS, ['domain_name', 'target_smtp_host']) },
          delete: { summary: 'Delete an SMTP route' }
       },
+      '/api/v1/remote-domains': {
+         get: { summary: 'List the remote domain policies', description: 'What this server will do when it talks to a named remote domain, as the running server holds them.' },
+         post: { summary: 'Create a remote domain policy', description: REMOTE_DOMAINS_POST, requestBody: body(REMOTE_DOMAIN_PROPS, ['domain_name']) }
+      },
+      '/api/v1/remote-domains/{id}': {
+         put: { summary: 'Replace a remote domain policy', description: 'The whole record, with the same fields, defaults and checks as the create.', requestBody: body(REMOTE_DOMAIN_PROPS, ['domain_name']) },
+         delete: { summary: 'Delete a remote domain policy' }
+      },
+      '/api/v1/remote-domains/effective': { get: { summary: 'The policy that governs a domain' } },
+      '/api/v1/remote-domains/verification-cache/clear': { post: { summary: 'Forget every remembered recipient verification verdict' } },
       '/api/v1/certificates': {
          get: { summary: 'List the SSL certificates', description: 'Names and file paths, never a private key password.' },
          post: { summary: 'Add an SSL certificate', description: 'A name and the paths of a PEM certificate file and its private key file on the server.', requestBody: body(CERT_PROPS, ['name', 'certificate_file', 'private_key_file']) }
@@ -786,6 +855,20 @@ const spec = {
          delete: { summary: 'Delete an external (fetch) account' }
       },
       '/api/v1/accounts/{address}/fetch-accounts/{id}/download': { post: { summary: 'Collect from the remote mailbox now' } },
+      '/api/v1/groups': {
+         get: { summary: 'List the account groups', description: GROUPS_GET },
+         post: { summary: 'Create a group', description: GROUPS_POST, requestBody: body({ name: { type: 'string' } }, ['name']) }
+      },
+      '/api/v1/groups/{id}': {
+         get: { summary: 'One group' },
+         put: { summary: 'Rename a group', description: GROUPS_PUT, requestBody: body({ name: { type: 'string' } }) },
+         delete: { summary: 'Delete a group', description: GROUPS_DELETE }
+      },
+      '/api/v1/groups/{id}/members': {
+         get: { summary: 'The accounts in a group', description: MEMBERS_GET },
+         post: { summary: 'Add an account to a group', description: MEMBERS_POST, requestBody: body({ account_id: { type: 'integer' }, account: { type: 'string' } }) }
+      },
+      '/api/v1/groups/{id}/members/{account_id}': { delete: { summary: 'Remove an account from a group', description: 'By the account\'s id, as the membership is the pair.' } },
       '/api/v1/settings/backup': settingsPath('/api/v1/settings/backup'),
       ...collectionPaths(),
       '/api/v1/settings/messages': { get: { summary: 'The server\'s message texts', description: 'The texts the server puts in the mail it writes itself - Settings.ServerMessages over COM. Each entry: id, name, text. Server-wide; refused for domain-restricted keys.' } },
@@ -872,6 +955,8 @@ const state = {
       '/api/v1/greylisting-white-addresses': [{ id: 16, ip_address: '10.0.0.*', description: 'The office' }],
       '/api/v1/incoming-relays': [{ id: 17, name: 'Front relay', lower_ip: '192.0.2.1', upper_ip: '192.0.2.1' }]
    },
+   groups: [{ id: 3, name: 'Support' }, { id: 4, name: 'Everyone' }],
+   groupMembers: { 3: [{ id: 30, group_id: 3, account_id: 1, account: 'anna@example.com' }], 4: [] },
    ranges: [
       Object.assign({ id: 1, name: 'My computer', lower: '127.0.0.1', upper: '127.0.0.1', priority: 15, expires: false, expires_time: '' }, RANGE_CREATE_DEFAULTS,
          { require_auth_local_to_remote: false, require_auth_remote_to_remote: false, deliver_local_to_remote: true, deliver_remote_to_remote: true }),
@@ -895,6 +980,12 @@ const state = {
          treat_security_as_local_domain: false, treat_recipient_as_local_domain: false, treat_sender_as_local_domain: false,
          all_addresses: true, connection_security: 'starttls_required', addresses: [] }
    ],
+   remotedomains: [
+      { id: 7, domain_name: 'bank.example', description: 'The regulated one', active: true, outbound_tls: 'verified',
+        require_inbound_tls: true, max_message_size_kb: 20480, max_connections: 2, max_messages_per_minute: 30,
+        allow_automatic_replies: false, allow_forwarding: true, callout_enabled: false, callout_host: '',
+        callout_port: 25, callout_timeout_seconds: 10, callout_cache_minutes: 60, callout_max_per_minute: 10 }
+   ],
    certificates: [{ id: 2, name: 'mail.example.com', certificate_file: '/etc/ssl/mail.pem', private_key_file: '/etc/ssl/mail.key' }],
    ports: [
       { id: 1, protocol: 'smtp', address: '0.0.0.0', port: 25, connection_security: 'starttls_optional', certificate_id: 2, client_certificate_policy: 'off', client_certificate_ca_file: '' },
@@ -904,7 +995,82 @@ const state = {
       { name: 'hmailserver_2026-09-14.log', size: 2048, created: '2026-09-14 00:00:01' },
       { name: 'ERROR_hmailserver_2026-09-14.log', size: 10, created: '2026-09-14 00:00:02' }
    ],
-   logLines: ['"SMTPD" 1 "2026-09-14 09:00:00.000" "127.0.0.1" "SENT: 220 mail.example.com"', '"SMTPD" 1 "2026-09-14 09:00:01.000" "127.0.0.1" "RECEIVED: QUIT"']
+   logLines: ['"SMTPD" 1 "2026-09-14 09:00:00.000" "127.0.0.1" "SENT: 220 mail.example.com"', '"SMTPD" 1 "2026-09-14 09:00:01.000" "127.0.0.1" "RECEIVED: QUIT"'],
+   // The audit trail. Two rows, one made over COM by the Control Panel and one
+   // made over REST by an API key, because the column that tells them apart is
+   // the point of the page.
+   audit: [
+      { id: 2, time: 1789000060, actor: 'key:reporting', actor_type: 'apikey', interface: 'REST', address: '192.0.2.9',
+        object_type: 'domain', object: 'example.com', action: 'created', detail: 'domainname=example.com', hash: 'bb', previous_hash: 'aa' },
+      { id: 1, time: 1789000000, actor: 'Administrator', actor_type: 'administrator', interface: 'COM', address: '',
+        object_type: 'setting', object: 'AutoBanMinutes', action: 'updated', detail: 'AutoBanMinutes: 60 -> 120', hash: 'aa', previous_hash: '' }
+   ],
+   auditIntact: true,
+   // The reports. The index says what each source is and how far back it can
+   // see; the sections are the tables. One of them is deliberately switched
+   // off (the trace), because the page has to SAY so rather than draw an empty
+   // table that reads as "nothing happened".
+   reportIndex: {
+      today: '2026-09-15',
+      sections: [
+         { name: 'traffic', scope: 'domain', source: 'hm_messagetrace', csv: true, summary: 'Messages in and out.' },
+         { name: 'storage', scope: 'server', source: 'hm_metricsamples', csv: true, summary: 'The store per day.' }
+      ],
+      sources: {
+         message_trace: { table: 'hm_messagetrace', enabled: true, retention_days: 30, oldest: '2026-09-01 08:00:00' },
+         metric_history: { table: 'hm_metricsamples', enabled: true, retention_days: 7, oldest: '2026-09-08 00:00:00' },
+         message_store: { table: 'hm_messages', enabled: true, retention_days: 0, oldest: '' }
+      },
+      not_answerable: ['Spam and virus counts per domain.', 'Storage growth per domain.']
+   },
+   reportOmitted: [],
+   reportSections: {
+      traffic: {
+         section: 'traffic', source: 'hm_messagetrace', enabled: true, truncated: false, note: 'Counted from the message trace.',
+         columns: ['day', 'domain', 'incoming', 'outgoing', 'failed_incoming', 'failed_outgoing'],
+         rows: [
+            { day: '2026-09-14', domain: 'example.com', incoming: 12, outgoing: 3, failed_incoming: 1, failed_outgoing: 0 },
+            { day: '2026-09-14', domain: 'second.example', incoming: 4, outgoing: 0, failed_incoming: 0, failed_outgoing: 2 },
+            { day: '2026-09-15', domain: 'example.com', incoming: 9, outgoing: 5, failed_incoming: 0, failed_outgoing: 0 }
+         ],
+         totals: { incoming: 25, outgoing: 8, failed_incoming: 1, failed_outgoing: 2 }
+      },
+      failures: {
+         section: 'failures', source: 'hm_messagetrace', enabled: true, truncated: false, note: 'The reason is the SMTP status code.',
+         columns: ['domain', 'status', 'reason', 'incoming', 'outgoing', 'total'],
+         rows: [{ domain: 'example.com', status: 550, reason: 'the mailbox was unavailable, or the message was refused', incoming: 1, outgoing: 0, total: 1 }]
+      },
+      senders: {
+         section: 'senders', source: 'hm_messagetrace', enabled: true, truncated: false, note: 'Local senders only.',
+         columns: ['sender', 'domain', 'messages', 'failed'],
+         rows: [{ sender: 'anna@example.com', domain: 'example.com', messages: 8, failed: 0 },
+            { sender: 'bob@example.com', domain: 'example.com', messages: 3, failed: 1 }]
+      },
+      recipients: {
+         section: 'recipients', source: 'hm_messagetrace', enabled: true, truncated: false, note: 'Local recipients only.',
+         columns: ['recipient', 'domain', 'messages', 'failed'],
+         rows: [{ recipient: 'anna@example.com', domain: 'example.com', messages: 21, failed: 1 }]
+      },
+      mailboxes: {
+         section: 'mailboxes', source: 'hm_messages', enabled: true, truncated: false, note: 'A size now, not a history.',
+         columns: ['address', 'domain', 'messages', 'bytes', 'megabytes'],
+         rows: [{ address: 'anna@example.com', domain: 'example.com', messages: 402, bytes: 41943040, megabytes: 40 }],
+         domains: [{ domain: 'example.com', mailboxes: 2, messages: 402, bytes: 41943040, megabytes: 40 }]
+      },
+      volume: {
+         section: 'volume', source: 'hm_metricsamples', enabled: false, truncated: false,
+         note: 'The metric history is switched off, so nothing is being recorded.',
+         columns: ['day', 'processed', 'delivered', 'deferred', 'bounced', 'spam', 'viruses'],
+         rows: []
+      },
+      storage: {
+         section: 'storage', source: 'hm_metricsamples', enabled: true, truncated: false, note: 'Sampled hourly.',
+         columns: ['day', 'bytes', 'megabytes', 'messages'],
+         rows: [{ day: '2026-09-14', bytes: 41943040, megabytes: 40, messages: 400 },
+            { day: '2026-09-15', bytes: 44040192, megabytes: 42, messages: 402 }],
+         growth_bytes: 2097152
+      }
+   }
 };
 
 function json(status, payload, headers) {
@@ -981,6 +1147,55 @@ function answer(method, path, headers, raw) {
          delete state.domainAliases[name];
          return json(200, { deleted: true });
       }
+   }
+   if (path === '/api/v1/groups' && method === 'GET') { return json(200, state.groups); }
+   if (path === '/api/v1/groups' && method === 'POST') {
+      for (const key of Object.keys(parsed || {})) { if (key !== 'name') { return json(400, { error: 'unknown field: ' + key }); } }
+      const name = String((parsed && parsed.name) || '').trim();
+      if (!name) { return json(400, { error: 'name is required' }); }
+      if (state.groups.some((g) => g.name === name)) { return json(409, { error: 'A group with this name already exists.' }); }
+      const record = { id: nextId++, name };
+      state.groups.push(record);
+      state.groupMembers[record.id] = [];
+      return json(201, record);
+   }
+   if (/^\/api\/v1\/groups\/\d+$/.test(path)) {
+      const id = Number(segment(path, 4));
+      const at = state.groups.findIndex((g) => g.id === id);
+      if (at < 0) { return json(404, { error: 'group not found' }); }
+      if (method === 'GET') { return json(200, state.groups[at]); }
+      if (method === 'PUT') {
+         for (const key of Object.keys(parsed || {})) { if (key !== 'name') { return json(400, { error: 'unknown field: ' + key }); } }
+         const name = String((parsed && parsed.name) || '').trim();
+         if (!name) { return json(400, { error: 'name must not be empty' }); }
+         if (state.groups.some((g) => g.name === name && g.id !== id)) { return json(409, { error: 'A group with this name already exists.' }); }
+         state.groups[at].name = name;
+         return json(200, state.groups[at]);
+      }
+      if (method === 'DELETE') { state.groups.splice(at, 1); delete state.groupMembers[id]; return json(200, { deleted: true }); }
+   }
+   if (/^\/api\/v1\/groups\/\d+\/members$/.test(path)) {
+      const id = Number(segment(path, 4));
+      if (!(id in state.groupMembers)) { return json(404, { error: 'group not found' }); }
+      if (method === 'GET') { return json(200, state.groupMembers[id]); }
+      if (method === 'POST') {
+         const address = String((parsed && parsed.account) || '');
+         const accountId = ACCOUNT_IDS[address];
+         if (!accountId) { return json(400, { error: 'no account ' + address }); }
+         if (state.groupMembers[id].some((m) => m.account_id === accountId)) { return json(409, { error: 'The account is already a member of the group.' }); }
+         const member = { id: nextId++, group_id: id, account_id: accountId, account: address };
+         state.groupMembers[id].push(member);
+         return json(201, member);
+      }
+   }
+   if (/^\/api\/v1\/groups\/\d+\/members\/\d+$/.test(path) && method === 'DELETE') {
+      const id = Number(segment(path, 4));
+      const accountId = Number(segment(path, 6));
+      if (!(id in state.groupMembers) || !state.groupMembers[id].some((m) => m.account_id === accountId)) {
+         return json(404, { error: 'the account is not a member of the group' });
+      }
+      state.groupMembers[id] = state.groupMembers[id].filter((m) => m.account_id !== accountId);
+      return json(200, { deleted: true });
    }
    if (/^\/api\/v1\/domains\/[^/]+\/domain-aliases$/.test(path)) {
       const domain = segment(path, 4);
@@ -1306,6 +1521,27 @@ function answer(method, path, headers, raw) {
       if (method === 'DELETE') { state.routes.splice(at, 1); return json(200, { deleted: true }); }
    }
 
+   if (path === '/api/v1/remote-domains' && method === 'GET') { return json(200, state.remotedomains); }
+   if (path === '/api/v1/remote-domains' && method === 'POST') {
+      const policy = Object.assign({ id: nextId++ }, parsed);
+      state.remotedomains.push(policy);
+      return json(201, policy);
+   }
+   if (path === '/api/v1/remote-domains/verification-cache/clear' && method === 'POST') {
+      return json(200, { cleared: 3 });
+   }
+   if (/^\/api\/v1\/remote-domains\/\d+$/.test(path)) {
+      const id = Number(segment(path, 4));
+      const at = state.remotedomains.findIndex((r) => r.id === id);
+      if (at < 0) { return json(404, { error: 'Unknown id' }); }
+      if (method === 'PUT') {
+         const policy = Object.assign({ id }, parsed);
+         state.remotedomains[at] = policy;
+         return json(200, policy);
+      }
+      if (method === 'DELETE') { state.remotedomains.splice(at, 1); return json(200, { deleted: true }); }
+   }
+
    if (path === '/api/v1/certificates' && method === 'GET') { return json(200, state.certificates); }
    if (path === '/api/v1/certificates' && method === 'POST') {
       const cert = { id: nextId++, name: parsed.name, certificate_file: parsed.certificate_file, private_key_file: parsed.private_key_file };
@@ -1335,6 +1571,18 @@ function answer(method, path, headers, raw) {
    }
    if (path === '/api/v1/server/reinitialize' && method === 'POST') { return json(202, { reinitializing: true }); }
 
+   if (path === '/api/v1/audit/verify' && method === 'GET') {
+      if (state.auditIntact) { return json(200, { intact: true, rows_checked: state.audit.length, first_broken_id: 0, reason: '' }); }
+      return json(200, { intact: false, rows_checked: 1, first_broken_id: 2, reason: 'the row has been edited' });
+   }
+   if (/^\/api\/v1\/audit(\?|$)/.test(path) && method === 'GET') {
+      const offset = Number((/offset=(\d+)/.exec(path) || [0, 0])[1]);
+      const limit = Number((/limit=(\d+)/.exec(path) || [0, 50])[1]);
+      const actor = (/actor=([^&]*)/.exec(path) || [0, ''])[1];
+      const matching = actor ? state.audit.filter((e) => e.actor.indexOf(decodeURIComponent(actor)) >= 0) : state.audit;
+      return json(200, { total: matching.length, offset, entries: matching.slice(offset, offset + limit) });
+   }
+
    if (path === '/api/v1/logs' && method === 'GET') { return json(200, state.logs); }
    if (/^\/api\/v1\/logs\/[^/]+/.test(path) && method === 'GET') {
       const name = segment(path, 4);
@@ -1343,6 +1591,46 @@ function answer(method, path, headers, raw) {
       if (name === 'gone.log' || !state.logs.some((l) => l.name === name)) { return json(404, { error: 'No such log file' }); }
       const lines = Number((/lines=(\d+)/.exec(path) || [0, 200])[1]);
       return json(200, { lines: state.logLines.slice(-lines) });
+   }
+
+   // The reports. The recorded answers echo the window, the domain and the row
+   // count out of the query string, so that what the page ASKED FOR is what the
+   // assertions can read back: the failure this catches is a picker that draws
+   // a date and sends yesterday's.
+   if (path.startsWith('/api/v1/reports') && method === 'GET') {
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      const parameter = (name) => {
+         const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0];
+         return hit ? decodeURIComponent(hit.split('=').slice(1).join('=')) : '';
+      };
+      const section = path.split('?')[0].slice('/api/v1/reports'.length).replace(/^\//, '');
+      const from = parameter('from') || '2026-08-17';
+      const to = parameter('to') || '2026-09-15';
+      const domain = parameter('domain');
+      const top = Number(parameter('top') || 10);
+
+      if (!section) { return json(200, Object.assign({ from, to }, state.reportIndex)); }
+
+      const built = (name) => {
+         const made = clone(state.reportSections[name]);
+         if (domain) { made.rows = made.rows.filter((r) => r.domain === undefined || r.domain === domain); }
+         if (name === 'senders' || name === 'recipients' || name === 'mailboxes') { made.rows = made.rows.slice(0, top); }
+         return made;
+      };
+
+      if (section === 'summary') {
+         const sections = {};
+         Object.keys(state.reportSections).forEach((name) => { sections[name] = built(name); });
+         return json(200, { section: 'summary', from, to, domain, top, sections, omitted: state.reportOmitted });
+      }
+
+      if (!state.reportSections[section]) { return json(404, { error: 'no such report section' }); }
+      if (parameter('format') === 'csv') {
+         const made = built(section);
+         const lines = [made.columns.join(',')].concat(made.rows.map((r) => made.columns.map((c) => r[c]).join(',')));
+         return { status: 200, body: lines.join('\r\n') + '\r\n', headers: { 'Content-Type': 'text/csv; charset=utf-8' } };
+      }
+      return json(200, Object.assign({ from, to, domain, top }, built(section)));
    }
 
    return json(404, { error: 'No such route: ' + method + ' ' + path });
@@ -1402,6 +1690,12 @@ function setValue(id, value) { const el = document.getElementById(id); if (!el) 
 function setChecked(id, on) { const el = document.getElementById(id); if (!el) { throw new Error('no control #' + id); } el.checked = on; return el; }
 function lastBody(from, method, pattern) { const list = called(from, method, pattern); return list.length ? JSON.parse(list[list.length - 1].body) : null; }
 function toastText() { return $('#toast').textContent; }
+/* A key pressed: on a control when one holds the keyboard, on the document
+   when none does. The page listens on the document and the event reaches it
+   by bubbling, as it does in a browser. */
+function press(key, on) { (on || document).dispatchEvent(makeEvent('keydown', { key, target: on || document })); }
+const styleText = () => document.querySelector('style').textContent;
+const themeStored = () => localStorage.getItem('hmsTheme');
 
 /* ------------------------------------------------------------------ the run */
 
@@ -1418,6 +1712,7 @@ const world = {
    clearInterval: (id) => { const at = intervals.findIndex((t) => t.id === id); if (at >= 0) { intervals.splice(at, 1); } },
    requestAnimationFrame: (fn) => { fn(performance.now() + 5000); return 1; },
    confirm: (question) => { confirmations.push(question); return confirmAnswer; },
+   matchMedia,
    navigator: { clipboard: { writeText: (text) => { clipboard = text; return Promise.resolve(); } } },
    console: { error: (...args) => consoleErrors.push(args), log: () => { }, warn: () => { } }
 };
@@ -1443,7 +1738,41 @@ async function main() {
    check('a first visit shows the sign-in card', $('#gate').style.display !== 'none' && $('#app').style.display === 'none',
       'gate=' + $('#gate').style.display + ' app=' + $('#app').style.display);
    check('and asks the server nothing before there is a session', requests.length === 0, paths(0));
-   check('the theme starts dark and is the body\'s attribute', document.body.getAttribute('data-theme') === 'dark');
+
+   // ---- the tokens: one palette, a dark theme beside it, and nothing else
+   const css = styleText();
+   const blocks = css.match(/:root\{[^}]*\}/g) || [];
+   const dark = css.match(/\[data-theme="dark"\]\{[^}]*\}/g) || [];
+   check('the page declares one palette and one dark theme beside it', blocks.length === 1 && dark.length === 1,
+      blocks.length + ' root blocks, ' + dark.length + ' dark blocks');
+   check('and its colours are the webmail\'s, value for value, rather than a second design language',
+      ['--bg:#f6f8fc', '--surface:#fff', '--accent:#1a73e8', '--accent-soft:#e8f0fe', '--danger:#d93025', '--good:#188038', '--warn:#b06000', '--cursor:#e8f0fe']
+         .every((d) => blocks[0].indexOf(d) >= 0), blocks[0].slice(0, 240));
+   check('the dark theme is the webmail\'s dark theme',
+      ['--bg:#111418', '--surface:#1b1f24', '--accent:#8ab4f8', '--danger:#f28b82', '--good:#81c995'].every((d) => dark[0].indexOf(d) >= 0), dark[0].slice(0, 240));
+   check('the spacing scale, the radii and the type ramp are the desktop console\'s',
+      ['--s1:4px', '--s2:8px', '--s3:12px', '--s4:16px', '--s5:24px', '--s6:32px', '--radius-control:4px', '--radius:8px', '--pill:999px',
+         '--fs-caption:12px', '--fs-body:14px', '--fs-subtitle:20px', '--fs-title:28px', '--cmdbar:48px'].every((d) => blocks[0].indexOf(d) >= 0));
+   const painted = [blocks[0], dark[0]].reduce((text, block) => text.replace(block, ''), css).match(/#[0-9a-fA-F]{3,8}\b|\brgba?\(/g) || [];
+   check('and every colour the page paints with comes from a token: not one literal outside those two blocks',
+      painted.length === 0, JSON.stringify(painted));
+   check('everything that takes the keyboard is ringed while it holds it',
+      /:focus-visible\{[^}]*outline:2px solid var\(--accent\)/.test(css) && (css.match(/:focus-visible/g) || []).length >= 4,
+      (css.match(/:focus-visible/g) || []).length + ' focus-visible rules');
+
+   // ---- the shape: the frame the desktop console has, in the Deck's markup
+   check('a command bar carries the brand, the view, the search, the link\'s pill and the buttons',
+      $('.cmdbar .brand') !== null && $('.cmdbar #viewTitle') !== null && $('.cmdbar #deckSearch') !== null && $('.cmdbar #connPill') !== null &&
+      $('.cmdbar #themeBtn') !== null && $('.cmdbar #keysBtn') !== null && $('.cmdbar #logoutBtn') !== null);
+   check('a navigation column stands beside a content area under it', $('.shell .side #nav') !== null && $('.shell .main #content') !== null);
+   check('and a link carries the keyboard past the navigation into the content',
+      $('a.skip').getAttribute('href') === '#content' && $('#content').getAttribute('tabindex') === '-1');
+   check('every view keeps its name as a tool tip, which is what it has left when the column is a rail',
+      $$('#nav button').every((b) => b.getAttribute('title') === b.textContent.replace(/^\S/, '')),
+      JSON.stringify($$('#nav button').map((b) => b.getAttribute('title'))));
+   check('the theme starts at the system\'s choice, which is dark here, and is the body\'s attribute',
+      document.body.getAttribute('data-theme') === 'dark' && $('#themeBtn').getAttribute('aria-label') === 'Theme: the system\'s choice',
+      $('#themeBtn').getAttribute('aria-label'));
 
    // ---- a wrong password is the server's sentence
    $('#user').value = 'Administrator';
@@ -1491,6 +1820,9 @@ async function main() {
    check('the state as a badge', $('#kpiState').textContent === 'Running' && $('#kpiState').querySelector('.badge.good') !== null, $('#kpiState').innerHTML);
    check('the live sessions', $('#sesSmtp').textContent === '3' && $('#sesImap').textContent === '12' && $('#sesPop3').textContent === '1');
    check('the dashboard polls on an interval', intervals.length === 1 && intervals[0].ms === 3000, intervals.length + ' intervals');
+   check('the link is a status pill: a colour, a mark and a word, never a colour alone',
+      $('#connPill').getAttribute('data-level') === 'good' && $('#connMark').textContent === '\u25a0' && $('#connState').textContent === 'Connected',
+      $('#connPill').innerHTML);
    const tile = $('#kpiProcessed');
    const beforePoll = requests.length;
    state.status.processedMessages = 1300;
@@ -2453,6 +2785,66 @@ async function main() {
    await flush();
    check('deleting a route names its domain and deletes by id', confirmations[confirmations.length - 1].indexOf('partner.example') >= 0 && called(before, 'DELETE', '/api/v1/routes/5').length === 1 && rows().length === 1);
 
+   // ---- remote domains
+   //
+   // The row that a policy is not a route: it names a domain this server does
+   // not host and says what it will and will not do when it talks to it. The
+   // checks are the ones that would catch the view drawing nothing from a good
+   // answer, sending a key the route refuses, or swallowing a refusal.
+   before = requests.length;
+   await goTo('remotedomains');
+   check('the remote domains view reads the policies', called(before, 'GET', '/api/v1/remote-domains').length === 1 && rows().length === 1);
+   check('a policy row shows the TLS it demands each way, its limits and whether it verifies recipients',
+      rows()[0].textContent.indexOf('Verified') >= 0 && rows()[0].textContent.indexOf('20480 KB') >= 0 &&
+      rows()[0].textContent.indexOf('2 connections') >= 0 && rows()[0].textContent.indexOf('30/minute') >= 0,
+      rows()[0].textContent);
+   click(act('rdnew'));
+   await flush();
+   check('a new policy starts at the defaults the document states - it demands nothing and verifies nothing',
+      document.getElementById('rd_outbound_tls').value === 'none' && document.getElementById('rd_require_inbound_tls').checked === false &&
+      document.getElementById('rd_max_message_size_kb').value === '0' && document.getElementById('rd_callout_enabled').checked === false &&
+      document.getElementById('rd_callout_port').value === '25' && document.getElementById('rd_callout_timeout_seconds').value === '10' &&
+      document.getElementById('rd_allow_forwarding').checked === true,
+      'tls=' + document.getElementById('rd_outbound_tls').value + ' size=' + document.getElementById('rd_max_message_size_kb').value);
+   check('only the domain is required', document.getElementById('rd_domain_name').closest('.fr').textContent.indexOf('required') >= 0 &&
+      document.getElementById('rd_callout_host').closest('.fr').textContent.indexOf('required') < 0);
+   setValue('rd_domain_name', 'partner.example');
+   setValue('rd_outbound_tls', 'dane');
+   setChecked('rd_require_inbound_tls', true);
+   setValue('rd_max_message_size_kb', '10240');
+   before = requests.length;
+   click(act('rdsave'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/remote-domains');
+   check('saving a new policy posts the form with the defaults filled in',
+      !!posted && posted.domain_name === 'partner.example' && posted.outbound_tls === 'dane' && posted.require_inbound_tls === true &&
+      posted.max_message_size_kb === 10240 && posted.callout_port === 25 && posted.allow_automatic_replies === true, JSON.stringify(posted));
+   check('and the re-read list has it', rows().length === 2 && rows()[1].textContent.indexOf('partner.example') >= 0,
+      rows().map((r) => r.textContent).join(' | '));
+   click(act('rdedit', { id: 7 }));
+   await flush();
+   check('editing a policy shows its values', document.getElementById('rd_outbound_tls').value === 'verified' &&
+      document.getElementById('rd_max_connections').value === '2' && document.getElementById('rd_allow_automatic_replies').checked === false);
+   setValue('rd_outbound_tls', 'encrypted');
+   before = requests.length;
+   click(act('rdsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/remote-domains/7');
+   check('saving an existing policy PUTs the whole record', !!put && put.outbound_tls === 'encrypted' && put.domain_name === 'bank.example' &&
+      put.max_connections === 2 && put.allow_automatic_replies === false, JSON.stringify(put));
+   before = requests.length;
+   click(act('rdclearcache'));
+   await flush();
+   check('forgetting the remembered verdicts posts to the cache route and says how many went',
+      called(before, 'POST', '/api/v1/remote-domains/verification-cache/clear').length === 1 &&
+      document.body.textContent.indexOf('3 verdict(s) forgotten') >= 0, document.body.textContent.slice(-200));
+   before = requests.length;
+   click(act('rddel', { id: 7 }));
+   await flush();
+   check('deleting a policy names its domain and deletes by id',
+      confirmations[confirmations.length - 1].indexOf('bank.example') >= 0 &&
+      called(before, 'DELETE', '/api/v1/remote-domains/7').length === 1 && rows().length === 1);
+
    // ---- certificates
    before = requests.length;
    await goTo('certs');
@@ -2483,6 +2875,10 @@ async function main() {
    check('the ports view reads the ports and the certificates', called(before, 'GET', '/api/v1/ports').length === 1 && called(before, 'GET', '/api/v1/certificates').length === 1 && rows().length === 2);
    check('a port row names its certificate rather than its id', rows()[0].textContent.indexOf('mail.example.com') >= 0 && rows()[0].textContent.indexOf('0.0.0.0:25') >= 0 && rows()[1].textContent.indexOf('—') >= 0);
    check('the restart wording is the document\'s', content().textContent.indexOf('takes effect when the server restarts') >= 0 && content().textContent.indexOf(REINITIALIZE.slice(0, 40)) >= 0);
+   check('and it is a notice at the warning level, with the mark and the word beside the colour',
+      content().querySelector('.notice[data-level="warn"]') !== null && content().querySelector('.notice .mark').textContent === '\u25b2' &&
+      content().querySelector('.notice[data-level="warn"]').textContent.indexOf('Warning') >= 0,
+      content().querySelector('.notice') ? content().querySelector('.notice').innerHTML : 'no notice');
    click(act('portnew'));
    await flush();
    check('a new port starts at the defaults the document states in prose', document.getElementById('port_address').value === '0.0.0.0' && document.getElementById('port_connection_security').value === 'none' &&
@@ -2564,14 +2960,272 @@ async function main() {
       document.getElementById('err_log').textContent);
    state.logs.pop();
 
+   // ---- the audit trail
+   before = requests.length;
+   await goTo('audit');
+   check('the audit view asks for the first page', called(before, 'GET', /^\/api\/v1\/audit\?limit=50&offset=0$/).length === 1, paths(before));
+   check('and lists both changes', rows().length === 2, String(rows().length));
+   check('naming the interface each was made over', rows()[0].textContent.indexOf('REST') >= 0 && rows()[1].textContent.indexOf('COM') >= 0,
+      rows().length ? rows()[0].textContent + ' | ' + rows()[1].textContent : 'no rows');
+   check('and showing the old and new value of a setting', rows()[1].textContent.indexOf('60 -> 120') >= 0, rows()[1].textContent);
+   before = requests.length;
+   click(act('auditpage', { by: '50' }));
+   await flush();
+   check('Older asks for the next page', called(before, 'GET', /offset=50/).length === 1, paths(before));
+   before = requests.length;
+   click(act('auditpage', { by: '-50' }));
+   await flush();
+   check('Newer comes back and never asks for a negative offset', called(before, 'GET', /offset=0/).length === 1, paths(before));
+   before = requests.length;
+   click(act('auditverify'));
+   await flush();
+   check('Verify the chain asks the server', called(before, 'GET', '/api/v1/audit/verify').length === 1, paths(before));
+   check('and says so when it is intact', $('#toast').textContent.indexOf('2') >= 0, $('#toast').textContent);
+   state.auditIntact = false;
+   click(act('auditverify'));
+   await flush();
+   check('a broken chain names the row, in the error line rather than a toast',
+      document.getElementById('err_audit').textContent.indexOf('2') >= 0 && document.getElementById('err_audit').textContent.indexOf('edited') >= 0,
+      document.getElementById('err_audit').textContent);
+   state.auditIntact = true;
+   const auditRows = state.audit;
+   state.audit = [];
+   await goTo('audit');
+   check('an empty trail says what will appear here', content().textContent.indexOf('Nothing has been recorded yet') >= 0, content().textContent.slice(0, 120));
+   state.audit = auditRows;
+   // ---- groups: the last thing the census counted as writable over REST and
+   // reachable from no view here
+   before = requests.length;
+   await goTo('groups');
+   check('the groups view reads the groups', called(before, 'GET', '/api/v1/groups').length === 1 && $('#viewTitle').textContent === 'Groups', paths(before));
+   check('one row per group, the id under the name', rows().length === 2 && rows()[0].textContent.indexOf('Support') >= 0 && rows()[0].textContent.indexOf('id 3') >= 0,
+      rows().map((r) => r.textContent).join(' | '));
+   check('what a delete takes with it is said as a notice, in the route\'s own words',
+      content().querySelector('.notice[data-level="info"]') !== null && content().querySelector('.notice .mark').textContent === '\u25c6' &&
+      content().querySelector('.notice').textContent.indexOf('Information') >= 0 &&
+      content().textContent.indexOf('every folder permission that named it go together') >= 0,
+      content().querySelector('.notice') ? content().querySelector('.notice').textContent : 'no notice');
+
+   before = requests.length;
+   setValue('newGroup', '');
+   click(act('groupnew'));
+   await flush();
+   check('an empty name is refused by the page, not the server',
+      called(before, 'POST', '/api/v1/groups').length === 0 && document.getElementById('err_groupnew').textContent.indexOf('required') >= 0,
+      document.getElementById('err_groupnew').textContent);
+
+   before = requests.length;
+   setValue('newGroup', 'Wardens');
+   click(act('groupnew'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/groups');
+   check('creating a group posts the one key the route takes', JSON.stringify(posted) === '{"name":"Wardens"}', JSON.stringify(posted));
+   check('and goes straight into its editor, on the record the server holds, with its members read',
+      called(before, 'GET', '/api/v1/groups').length === 1 && called(before, 'GET', /\/api\/v1\/groups\/\d+\/members$/).length === 1 &&
+      content().querySelector('h2').textContent.indexOf('Wardens') >= 0 && document.getElementById('group_name').value === 'Wardens', paths(before));
+   check('the name is a form row built from the create\'s own schema, marked required',
+      document.getElementById('group_name').closest('.fr').textContent.indexOf('required') >= 0 &&
+      document.getElementById('group_name').closest('.fr').querySelector('.hint').textContent.indexOf('folder permission') >= 0);
+   check('a group with nobody in it says so', content().textContent.indexOf('No accounts in this group.') >= 0);
+   check('and the toast names it', toastText() === 'Group created: Wardens', toastText());
+
+   before = requests.length;
+   setValue('group_name', 'Support');
+   click(act('groupsave'));
+   await flush();
+   check('a name another group already has is the server\'s sentence, with the editor kept open',
+      called(before, 'PUT', /\/api\/v1\/groups\/\d+$/).length === 1 &&
+      document.getElementById('err_groupedit').textContent === 'A group with this name already exists.' && document.getElementById('group_name') !== null,
+      document.getElementById('err_groupedit').textContent);
+
+   before = requests.length;
+   setValue('group_name', 'Wardens of the second floor');
+   click(act('groupsave'));
+   await flush();
+   put = lastBody(before, 'PUT', /\/api\/v1\/groups\/\d+$/);
+   check('renaming PUTs the name by id, reads it back and stays in the editor',
+      JSON.stringify(put) === '{"name":"Wardens of the second floor"}' && called(before, 'GET', '/api/v1/groups').length === 1 &&
+      document.getElementById('group_name').value === 'Wardens of the second floor' && toastText() === 'Group saved', JSON.stringify(put));
+
+   before = requests.length;
+   setValue('newMember', 'nobody@example.com');
+   click(act('memberadd'));
+   await flush();
+   check('an address that is nobody\'s is refused by the server, in its words, beside the box',
+      called(before, 'POST', /members$/).length === 1 && document.getElementById('err_member').textContent === 'no account nobody@example.com',
+      document.getElementById('err_member').textContent);
+
+   before = requests.length;
+   setValue('newMember', 'anna@example.com');
+   click(act('memberadd'));
+   await flush();
+   posted = lastBody(before, 'POST', /members$/);
+   check('adding an account posts the address, which is what the administrator has', JSON.stringify(posted) === '{"account":"anna@example.com"}', JSON.stringify(posted));
+   check('and the membership is read again with it in', content().textContent.indexOf('anna@example.com') >= 0 &&
+      toastText() === 'anna@example.com added to the group', toastText());
+
+   const memberBox = setValue('newMember', 'carla@example.com');
+   memberBox.dispatchEvent(makeEvent('keydown', { key: 'Enter', target: memberBox }));
+   await flush();
+   check('Enter in the box adds one as the button does', content().querySelectorAll('.erow').length === 2 &&
+      content().textContent.indexOf('carla@example.com') >= 0, content().querySelectorAll('.erow').length + ' members');
+
+   before = requests.length;
+   click(act('memberdel', { account: 1 }));
+   await flush();
+   check('removing one deletes by the account\'s id, which is what a membership is made of',
+      called(before, 'DELETE', /\/api\/v1\/groups\/\d+\/members\/1$/).length === 1 && content().textContent.indexOf('anna@example.com') < 0 &&
+      toastText() === 'anna@example.com removed from the group', paths(before));
+
+   before = requests.length;
+   click(act('groups'));
+   await flush();
+   check('the way back re-reads the groups with the new one among them', called(before, 'GET', '/api/v1/groups').length === 1 && rows().length === 3);
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('groupdel', { name: 'Wardens of the second floor' }));
+   await flush();
+   check('deleting asks first, naming the group and what goes with it',
+      called(before, 'DELETE', /groups/).length === 0 && confirmations[confirmations.length - 1].indexOf('Wardens of the second floor') >= 0 &&
+      confirmations[confirmations.length - 1].indexOf('every folder permission that names it') >= 0, confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('groupdel', { name: 'Wardens of the second floor' }));
+   await flush();
+   check('yes deletes it by id and the re-read list is without it',
+      called(before, 'DELETE', /\/api\/v1\/groups\/\d+$/).length === 1 && rows().length === 2 && toastText() === 'Group deleted', paths(before));
+
+   // ---- the keyboard: the page with no pointer at all
+   check('the shortcut list is shut until it is asked for', $('#keysOverlay').hidden === true);
+   press('?');
+   check('? opens it, drawn from the page\'s one table and taking the keyboard with it',
+      $('#keysOverlay').hidden === false && $('#keysList').querySelectorAll('kbd').length === 6 &&
+      $('#keysList').textContent.indexOf('Search this view') >= 0 && document.activeElement === $('#keysClose'), $('#keysList').textContent);
+   press('Tab', $('#keysClose'));
+   check('while it is open the keyboard stays on it and cannot act on what it hides',
+      $('#keysOverlay').hidden === false && document.activeElement === $('#keysClose'));
+   press('?');
+   check('a second ? shuts it again, as the list says it does', $('#keysOverlay').hidden === true);
+   press('?');
+   press('Escape');
+   check('Escape shuts it and hands the keyboard back to the button that opened it',
+      $('#keysOverlay').hidden === true && document.activeElement === $('#keysBtn'));
+   press('/');
+   check('/ puts the keyboard in the search box', document.activeElement === $('#deckSearch'));
+   setValue('deckSearch', 'everyone');
+   $('#deckSearch').dispatchEvent(makeEvent('input', { target: $('#deckSearch') }));
+   check('what is typed hides the rows that do not carry it',
+      rows().filter((r) => !r.hidden).length === 1 && rows().filter((r) => !r.hidden)[0].textContent.indexOf('Everyone') >= 0,
+      rows().map((r) => r.textContent + '=' + r.hidden).join(' | '));
+   press('Escape', $('#deckSearch'));
+   check('Escape empties the box and gives every row back', $('#deckSearch').value === '' && rows().every((r) => !r.hidden));
+   press('ArrowDown');
+   check('the first arrow puts the cursor on the first row', rows()[0].classList.contains('cur') && !rows()[1].classList.contains('cur'));
+   press('ArrowDown');
+   check('and the next moves it down one', rows()[1].classList.contains('cur') && !rows()[0].classList.contains('cur'));
+   press('ArrowUp');
+   check('and up again', rows()[0].classList.contains('cur'));
+   before = requests.length;
+   press('Enter');
+   await flush();
+   check('Enter opens the row the cursor is on, which is what its first button does',
+      called(before, 'GET', /\/api\/v1\/groups\/\d+\/members$/).length === 1 && document.getElementById('group_name') !== null, paths(before));
+   check('and a view drawn afresh starts with no row under the keyboard', rows().length === 0);
+   click(act('groups'));
+   await flush();
+   $('#nav button[data-view="groups"]').focus();
+   press('ArrowDown', $('#nav button[data-view="groups"]'));
+   check('the arrows move between the views while the keyboard is in the navigation column',
+      document.activeElement === $('#nav button[data-view="ipranges"]'),
+      document.activeElement ? JSON.stringify(document.activeElement.attributes) : 'nothing focused');
+   setValue('deckSearch', 'everyone');
+   $('#deckSearch').dispatchEvent(makeEvent('input', { target: $('#deckSearch') }));
+   await goTo('certs');
+   check('a view arrived at shows everything it has: the search belongs to the view it was typed in',
+      $('#deckSearch').value === '' && rows().every((r) => !r.hidden), rows().length + ' rows');
+   before = requests.length;
+   const asked = confirmations.length;
+   press('ArrowDown');
+   press('Enter');
+   await flush();
+   check('and a row whose only button deletes it is a row Enter leaves alone',
+      rows()[0].classList.contains('cur') && called(before, 'DELETE', /certificates/).length === 0 && confirmations.length === asked,
+      paths(before));
+   // ---- the reports
+   before = requests.length;
+   await goTo('reports');
+   check('the reports view reads the index and then one summary, not a request per section',
+      called(before, 'GET', '/api/v1/reports').length === 1 && called(before, 'GET', /^\/api\/v1\/reports\/summary\?/).length === 1 &&
+      called(before, 'GET', /^\/api\/v1\/reports\/traffic/).length === 0, paths(before));
+   check('the window comes from the index rather than from this browser\'s clock',
+      document.getElementById('repFrom').attributes.value === '2026-08-17' && document.getElementById('repTo').attributes.value === '2026-09-15',
+      document.getElementById('repFrom').attributes.value + '..' + document.getElementById('repTo').attributes.value);
+   check('the sources are drawn with their retention and how far back they go',
+      content().textContent.indexOf('2026-09-01 08:00:00') >= 0 && content().textContent.indexOf('Message trace') >= 0, '');
+   check('and what cannot be answered is shown, not hidden',
+      content().textContent.indexOf('Spam and virus counts per domain.') >= 0);
+   check('a section whose source is off says so in the server\'s own words and is marked',
+      content().textContent.indexOf('The metric history is switched off') >= 0 && content().textContent.indexOf('Not recorded') >= 0);
+   const trafficTable = content().querySelectorAll('table')[1];
+   check('the traffic table is drawn from the server\'s own columns',
+      trafficTable && trafficTable.querySelectorAll('th').map((h) => h.textContent).join(',') === 'Day,Domain,Incoming,Outgoing,Failed incoming,Failed outgoing',
+      trafficTable ? trafficTable.querySelectorAll('th').map((h) => h.textContent).join(',') : 'no table');
+   check('and holds a row per day and domain', trafficTable && trafficTable.querySelectorAll('tbody tr').length === 3,
+      trafficTable ? String(trafficTable.querySelectorAll('tbody tr').length) : 'none');
+   check('the chart is drawn in the page, one bar group per day, with no library and nothing fetched',
+      content().querySelectorAll('svg').length === 2 && content().querySelectorAll('rect').length === 6,
+      content().querySelectorAll('svg').length + ' charts, ' + content().querySelectorAll('rect').length + ' bars');
+   check('every table offers its own CSV at the same route with the same window',
+      $('#csv_traffic') && $('#csv_traffic').attributes.href.indexOf('/api/v1/reports/traffic?from=2026-08-17&to=2026-09-15') === 0 &&
+      $('#csv_traffic').attributes.href.indexOf('format=csv') > 0 && 'download' in $('#csv_traffic').attributes,
+      $('#csv_traffic') ? $('#csv_traffic').attributes.href : 'no link');
+   check('the mailboxes section is there too, with its own CSV', !!$('#csv_mailboxes') && !!$('#csv_storage'));
+   before = requests.length;
+   setValue('repFrom', '2026-09-01');
+   setValue('repTo', '2026-09-15');
+   document.getElementById('repDomain').value = 'example.com';
+   setValue('repTop', '5');
+   click(act('repshow'));
+   await flush();
+   check('Show sends the window, the domain and the row count',
+      called(before, 'GET', /reports\/summary\?from=2026-09-01&to=2026-09-15&domain=example\.com&top=5/).length === 1, paths(before));
+   check('and the tables are redrawn for that domain alone',
+      content().querySelectorAll('table')[1].querySelectorAll('tbody tr').length === 2,
+      String(content().querySelectorAll('table')[1].querySelectorAll('tbody tr').length));
+   check('the CSV link follows the window', $('#csv_traffic').attributes.href.indexOf('domain=example.com') > 0);
+   before = requests.length;
+   click(act('repdays', { days: 7 }));
+   await flush();
+   check('Last 7 days counts back whole days from the end of the window, in UTC',
+      called(before, 'GET', /reports\/summary\?from=2026-09-09&to=2026-09-15/).length === 1, paths(before));
+
    // ---- a session that ends under the page
    signedIn = false;
    await goTo('queue');
    check('a 401 on any view returns to the sign-in card and says why', $('#gate').style.display === 'grid' && $('#loginErr').textContent.indexOf('session ended') >= 0, $('#loginErr').textContent);
    check('with the session mark removed', sessionStorage.getItem('hmsSession') === null);
 
-   // ---- the theme, and signing out
+   // ---- the theme: light, dark, or the system's, and the choice remembered
    await signIn();
+   check('with nothing chosen the theme is the system\'s, and the button says which it is on',
+      themeStored() === 'system' && document.body.getAttribute('data-theme') === 'dark' &&
+      $('#themeBtn').getAttribute('aria-label') === 'Theme: the system\'s choice', themeStored());
+   setSystemTheme(false);
+   check('a reader who turns their desktop light turns the page light, no choice having been made',
+      document.body.getAttribute('data-theme') === 'light' && themeStored() === 'system');
+   click($('#themeBtn'));
+   check('the button chooses light, says so, and remembers it',
+      document.body.getAttribute('data-theme') === 'light' && themeStored() === 'light' && $('#themeBtn').getAttribute('aria-label') === 'Theme: light');
+   click($('#themeBtn'));
+   check('the next press chooses dark', document.body.getAttribute('data-theme') === 'dark' && themeStored() === 'dark' &&
+      $('#themeBtn').getAttribute('aria-label') === 'Theme: dark');
+   setSystemTheme(true);
+   setSystemTheme(false);
+   check('and the system no longer overrules a choice that was made', document.body.getAttribute('data-theme') === 'dark');
+   click($('#themeBtn'));
+   check('a third press gives the system back, and the page follows it again', themeStored() === 'system' && document.body.getAttribute('data-theme') === 'light');
+   setSystemTheme(true);
    click($('#themeBtn'));
    check('the theme can be turned over', document.body.getAttribute('data-theme') === 'light');
    check('and is remembered under a name that is not a secret', localStorage.getItem('hmsTheme') === 'light');
@@ -2604,6 +3258,8 @@ async function main() {
    check('the sidebar is walked: the Domains button reads the German', $('#nav button[data-view="domains"]').textContent.indexOf(de['Domains']) >= 0, $('#nav button[data-view="domains"]').textContent);
    check('the top bar title as well', $('#viewTitle').textContent === de['Domains'], $('#viewTitle').textContent);
    check('an attribute is walked: the sign-out button\'s title', $('#logoutBtn').getAttribute('title') === de['Sign out'], $('#logoutBtn').getAttribute('title'));
+   check('the theme button, whose name the script paints rather than the walk, is in the language too',
+      $('#themeBtn').getAttribute('aria-label') === de['Theme: light'], $('#themeBtn').getAttribute('aria-label'));
    check('and a placeholder on the sign-in card', $('#pass').getAttribute('placeholder') === de['Password']);
    check('both switches show the choice', $('#langSel').value === 'de' && $('#langSelGate').value === 'de');
    check('the view is drawn again, in German: the table headings', called(before, 'GET', '/api/v1/domains').length === 1 && content().querySelector('th').textContent === de['Domain'], content().querySelector('th').textContent);
@@ -2661,6 +3317,161 @@ async function main() {
    await choose($('#langSelGate'), 'en');
    check('and back', $('#gate p').textContent.indexOf('Sign in with the hMailServer administrator credential') === 0 && $('#langSel').value === 'en');
 
+   // ---- the tour: teaching a view while somebody uses it
+   // Every check here is a way a tour can be wrong that nobody would notice
+   // until they walked it on a real server: a step that hangs on a control the
+   // view does not have, a tour that moves on before the reader has read it, a
+   // Back that closes it, a finished record written for a walk somebody left,
+   // a tour that only works in English.
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+   // From a view no tour visits, so the button starts the walk at its beginning
+   // rather than at its stop on the view showing - which is what it does from a
+   // view a walk does visit, and is checked further down.
+   await goTo('logs');
+   before = requests.length;
+   click($('#tourBtn'));
+   await flush();
+   check('the header button starts the tour and opens the view its first stop is on',
+      $('#tourCard').hidden === false && $('#nav button[data-view="domains"]').className.indexOf('on') >= 0,
+      'card hidden=' + $('#tourCard').hidden + ' view=' + $('#viewTitle').textContent);
+   check('the card names the tour and says where the reader is',
+      $('#tourName').textContent === 'Show me around' && $('#tourStep').textContent === 'Step 1 of 7',
+      $('#tourName').textContent + ' | ' + $('#tourStep').textContent);
+   check('and carries the step\'s own sentence', $('#tourText').textContent.indexOf('Start with a domain') === 0, $('#tourText').textContent);
+   check('there is nowhere to go back to on the first stop', $('#tourBack').hidden === true);
+   check('the tour asks the server for nothing of its own', called(before, 'GET', /tour/).length === 0, paths(before));
+
+   // The ring goes where the element is, the card beside it; an element with no
+   // rectangle - what a browser reports for something not on the screen - takes
+   // the ring away and leaves the sentence, because the sentence still stands.
+   document.getElementById('newDomain').rect = { left: 120, top: 200, width: 220, height: 32 };
+   click($('#tourBack'));
+   await flush();
+   check('Back on the first stop stands still rather than closing the tour',
+      $('#tourCard').hidden === false && $('#tourStep').textContent === 'Step 1 of 7', $('#tourStep').textContent);
+   check('the ring is drawn over the element the step points at',
+      $('#tourRing').hidden === false && $('#tourRing').style.left === '120px' && $('#tourRing').style.top === '200px' &&
+      $('#tourRing').style.width === '220px' && $('#tourRing').style.height === '32px', JSON.stringify($('#tourRing').style));
+   check('and the card is put under it rather than over it', $('#tourCard').style.top === '244px', $('#tourCard').style.top);
+
+   click($('#tourNext'));
+   await flush();
+   check('Next moves to the next stop', $('#tourStep').textContent === 'Step 2 of 7', $('#tourStep').textContent);
+   check('and Back is offered from the second stop on', $('#tourBack').hidden === false);
+
+   // The third stop points at a control that is only drawn when the view has
+   // something to draw it for. Taken away, the step is skipped rather than
+   // waited on, and the walk carries on to the stop after it - which is on
+   // another view, so the view changes with it.
+   content().querySelectorAll('button[data-act="accounts"]').forEach((b) => b.parentNode.removeChild(b));
+   click($('#tourNext'));
+   await flush();
+   check('a stop whose element is not on the view is skipped rather than hung on',
+      $('#tourCard').hidden === false && $('#tourStep').textContent === 'Step 4 of 7', $('#tourStep').textContent);
+   check('and a stop on another view opens that view',
+      $('#nav button[data-view="ports"]').className.indexOf('on') >= 0 && $('#viewTitle').textContent === 'Ports',
+      $('#viewTitle').textContent);
+
+   // Leaving records where the reader got to, and says so out loud.
+   click($('#tourSkip'));
+   await flush();
+   check('leaving takes the ring and the card off the screen', $('#tourCard').hidden === true && $('#tourRing').hidden === true);
+   check('and says so rather than vanishing in silence', toastText().indexOf('picks up where you left off') > 0, toastText());
+   check('where it was left is remembered, in the form the Control Panel keeps in the registry',
+      localStorage.getItem('hmsTours') === '|firstrun@3v1', localStorage.getItem('hmsTours'));
+   await goTo('logs');
+   click($('#tourBtn'));
+   await flush();
+   check('on a view no tour visits the button picks the walk up where it was left',
+      $('#tourStep').textContent === 'Step 4 of 7' && $('#viewTitle').textContent === 'Ports', $('#tourStep').textContent);
+
+   // Escape belongs to the view unless the keyboard is already inside the card.
+   $('#user').focus();
+   document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+   await flush();
+   check('Escape with the keyboard outside the card leaves the tour alone', $('#tourCard').hidden === false);
+   $('#tourNext').focus();
+   $('#tourNext').dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+   await flush();
+   check('Escape inside the card leaves the tour', $('#tourCard').hidden === true);
+
+   // A condition ends a step when the thing happens - and does not end one that
+   // was already true when the reader arrived, which is what stops the step
+   // about domains vanishing in front of somebody who already has one.
+   await goTo('ports');
+   confirmAnswer = true;
+   before = requests.length;
+   // Every listener goes, so that the step below opens with the thing it waits
+   // for genuinely not yet true. Earlier checks in this file have added
+   // listeners of their own, and a condition that was already satisfied would
+   // prove nothing either way.
+   for (let guard = 0; guard < 20; guard += 1) {
+      const ids = content().querySelectorAll('button[data-act="portdel"]').map((b) => b.attributes['data-id']);
+      if (!ids.length) { break; }
+      click(act('portdel', { id: ids[0] }));
+      await flush();
+   }
+   check('no listener offers TLS now, which is what the step below waits for',
+      content().querySelectorAll('button[data-act="portdel"]').length === 0 && called(before, 'DELETE', /^\/api\/v1\/ports\//).length > 0, paths(before));
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+   click($('#tourBtn'));
+   await flush();
+   check('the button starts the walk at its first stop on the view showing', $('#tourStep').textContent === 'Step 4 of 7', $('#tourStep').textContent);
+   click($('#tourNext'));
+   await flush();
+   check('the stop that waits for a listener with TLS is showing', $('#tourStep').textContent === 'Step 5 of 7', $('#tourStep').textContent);
+   fireIntervals();
+   await flush();
+   check('and it stays there while the thing it waits for has not happened', $('#tourStep').textContent === 'Step 5 of 7', $('#tourStep').textContent);
+   click(act('portnew'));
+   await flush();
+   check('the card stays when the element it points at goes away, because the sentence still stands',
+      $('#tourCard').hidden === false && $('#tourRing').hidden === true);
+   setValue('port_protocol', 'smtp');
+   setValue('port_port', '587');
+   setValue('port_connection_security', 'starttls_required');
+   setValue('port_certificate_id', '2');
+   click(act('portsave'));
+   await flush();
+   fireIntervals();
+   await flush();
+   check('a condition that becomes true while the step is showing moves the tour on by itself',
+      $('#tourStep').textContent === 'Step 6 of 7' && $('#viewTitle').textContent === 'Certificates', $('#tourStep').textContent + ' | ' + $('#viewTitle').textContent);
+   fireIntervals();
+   await flush();
+   check('and a step with no condition is not moved on by anything but the reader', $('#tourStep').textContent === 'Step 6 of 7', $('#tourStep').textContent);
+
+   // Walked to its end: the last stop offers Finish rather than another Next,
+   // the record says finished, and no resume point is left behind.
+   click($('#tourNext'));
+   await flush();
+   check('the last stop is on the dashboard, where the walk was always going',
+      $('#tourStep').textContent === 'Step 7 of 7' && $('#viewTitle').textContent === 'Dashboard', $('#tourStep').textContent);
+   check('and it offers Finish rather than promising another stop', $('#tourNext').textContent === 'Finish', $('#tourNext').textContent);
+   click($('#tourNext'));
+   await flush();
+   check('finishing says so', $('#tourCard').hidden === true && toastText().indexOf('That is the end of') === 0, toastText());
+   check('and is remembered as finished, with no resume point left behind',
+      localStorage.getItem('hmsTours') === 'firstrun=1|', localStorage.getItem('hmsTours'));
+
+   // In the reader's own language, from the catalogues the page already speaks.
+   await choose($('#langSel'), 'de');
+   await goTo('domains');
+   click($('#tourBtn'));
+   await flush();
+   check('the tour is drawn in the reader\'s language: its name', $('#tourName').textContent === de['Show me around'], $('#tourName').textContent);
+   check('its sentence', $('#tourText').textContent === de['Start with a domain: the part after the @ that this server accepts mail for. Add yours here.'], $('#tourText').textContent);
+   check('where the reader is, with its numbers', $('#tourStep').textContent === de['Step {0} of {1}'].replace('{0}', '1').replace('{1}', '7'), $('#tourStep').textContent);
+   check('and the card\'s own buttons, which the markup walk translates',
+      $('#tourNext').textContent === de['Next'] && $('#tourSkip').textContent === de['Skip the tour'],
+      $('#tourNext').textContent + ' | ' + $('#tourSkip').textContent);
+   click($('#tourSkip'));
+   await flush();
+   check('the farewell carries the tour\'s name in that language too',
+      toastText() === de['{0} closed. It picks up where you left off.'].replace('{0}', de['Show me around']), toastText());
+   await choose($('#langSel'), 'en');
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+
    /* ---------------------------------------------------------------- roles */
    await goTo('roles');
    check('the roles view lists every role this server has, with what each may do',
@@ -2715,6 +3526,27 @@ async function main() {
    check('and not the ones it may not: the settings, the logs, the queue and the roles are gone',
       $('#nav button[data-view="settings"]').hidden && $('#nav button[data-view="logs"]').hidden &&
       $('#nav button[data-view="queue"]').hidden && $('#nav button[data-view="roles"]').hidden);
+   check('and so are the groups, the remote domains, the reports and the audit trail, which it holds no permission for',
+      $('#nav button[data-view="groups"]').hidden && $('#nav button[data-view="remotedomains"]').hidden &&
+      $('#nav button[data-view="reports"]').hidden && $('#nav button[data-view="audit"]').hidden);
+
+   // The tour visits the ports, the certificates and the dashboard, none of
+   // which a help desk is shown: its walk stops rather than opening a view the
+   // server would refuse.
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+   before = requests.length;
+   click($('#tourBtn'));
+   await flush();
+   for (let guard = 0; guard < 8 && !$('#tourCard').hidden; guard += 1) {
+      click($('#tourNext'));
+      await flush();
+   }
+   check('the tour never opens a view the role was left out of',
+      called(before, 'GET', /^\/api\/v1\/(ports|certificates|status)/).length === 0 &&
+      ['ports', 'certs', 'dash'].every((v) => $('#nav button[data-view="' + v + '"]').className.indexOf('on') < 0), paths(before));
+   check('and says where it stopped rather than hanging', $('#tourCard').hidden === true, $('#tourStep').textContent);
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+   await goTo('domains');
    check('and the view it lands on is one it may use, not the dashboard it may not',
       $('#viewTitle').textContent === 'Domains', $('#viewTitle').textContent);
 
@@ -2768,6 +3600,29 @@ async function main() {
    check('and not the server-wide ones it holds view_configuration for, which a credential confined to a domain is refused',
       $('#nav button[data-view="settings"]').hidden && $('#nav button[data-view="rules"]').hidden &&
       $('#nav button[data-view="ports"]').hidden && $('#nav button[data-view="certs"]').hidden && $('#nav button[data-view="ipranges"]').hidden);
+   check('nor the groups and the remote domains, which are the server\'s, nor the audit trail, which it holds no view_audit for',
+      $('#nav button[data-view="groups"]').hidden && $('#nav button[data-view="remotedomains"]').hidden &&
+      $('#nav button[data-view="audit"]').hidden);
+   check('but the reports, which are scoped to its domain rather than refused', !$('#nav button[data-view="reports"]').hidden);
+
+   // The arrow keys walk the views that are shown and never stop on one that is not.
+   $('#nav button[data-view="domains"]').focus();
+   $('#nav button[data-view="domains"]').dispatchEvent(makeEvent('keydown', { key: 'ArrowDown' }));
+   await flush();
+   check('ArrowDown in the navigation moves to the next view that is shown, past the ones left out',
+      document.activeElement === $('#nav button[data-view="fetch"]'),
+      document.activeElement && document.activeElement.attributes ? JSON.stringify(document.activeElement.attributes) : String(document.activeElement));
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:audra@example.com', credential: 'account', administrative: true,
+      role: 'auditor', permissions: ['view_configuration', 'view_accounts', 'view_mailbox', 'view_queue', 'view_quarantine',
+         'view_archive', 'view_logs', 'view_message_trace', 'view_audit'],
+      domains: [] };
+   await signIn();
+   check('an auditor reaching every domain is shown the audit trail, the reports and the remote domains',
+      !$('#nav button[data-view="audit"]').hidden && !$('#nav button[data-view="reports"]').hidden &&
+      !$('#nav button[data-view="remotedomains"]').hidden && !$('#nav button[data-view="groups"]').hidden);
 
    click($('#logoutBtn'));
    await flush();

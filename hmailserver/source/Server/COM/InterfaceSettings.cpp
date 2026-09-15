@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "COMError.h"
+#include "../Common/Util/AuditTrail.h"
 
 #include "InterfaceSettings.h"
 #include "InterfaceLogging.h"
@@ -32,6 +33,7 @@
 
 #include "InterfaceSecurityRanges.h"
 #include "InterfaceRoutes.h"
+#include "InterfaceRemoteDomainPolicies.h"
 #include "InterfaceIMAPFolders.h"
 #include "InterfaceScripting.h"
 #include "InterfaceBackupSettings.h"
@@ -117,6 +119,8 @@ STDMETHODIMP InterfaceSettings::put_MaxMessageSize(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -149,6 +153,8 @@ STDMETHODIMP InterfaceSettings::put_MaxSMTPConnections(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -181,6 +187,8 @@ STDMETHODIMP InterfaceSettings::put_MaxIMAPConnections(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -215,6 +223,8 @@ STDMETHODIMP InterfaceSettings::put_MaxPOP3Connections(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -249,6 +259,8 @@ STDMETHODIMP InterfaceSettings::put_MirrorEMailAddress(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -288,6 +300,8 @@ STDMETHODIMP InterfaceSettings::put_AllowSMTPAuthPlain(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -329,6 +343,8 @@ STDMETHODIMP InterfaceSettings::put_DenyMailFromNull(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -368,6 +384,8 @@ STDMETHODIMP InterfaceSettings::put_AllowIncorrectLineEndings(VARIANT_BOOL newVa
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -507,6 +525,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPNoOfTries(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -544,6 +564,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPMinutesBetweenTry(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -581,6 +603,8 @@ STDMETHODIMP InterfaceSettings::put_MaxDeliveryThreads(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -617,6 +641,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPRelayer(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -652,6 +678,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPRelayerPort(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -687,6 +715,8 @@ STDMETHODIMP InterfaceSettings::put_HostName(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -721,6 +751,8 @@ STDMETHODIMP InterfaceSettings::put_WelcomeSMTP(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -755,6 +787,8 @@ STDMETHODIMP InterfaceSettings::put_WelcomePOP3(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -789,6 +823,8 @@ STDMETHODIMP InterfaceSettings::put_WelcomeIMAP(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -826,6 +862,8 @@ STDMETHODIMP InterfaceSettings::put_ServiceSMTP(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -867,6 +905,8 @@ STDMETHODIMP InterfaceSettings::put_ServicePOP3(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -904,6 +944,8 @@ STDMETHODIMP InterfaceSettings::put_ServiceIMAP(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -938,6 +980,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPRelayerRequiresAuthentication(VARIANT_BO
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -973,6 +1017,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPRelayerUsername(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1007,6 +1053,8 @@ STDMETHODIMP InterfaceSettings::put_UserInterfaceLanguage(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1023,6 +1071,8 @@ STDMETHODIMP InterfaceSettings::SetSMTPRelayerPassword(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1039,6 +1089,8 @@ STDMETHODIMP InterfaceSettings::SetAdministratorPassword(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1105,6 +1157,35 @@ STDMETHODIMP InterfaceSettings::DisableAdministratorTOTP()
 
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String()))
          return COMError::GenerateError("The secret could not be removed from hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.");
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// What this server will do for a named remote domain: the TLS it demands of it
+// outbound and inbound, the size and concurrency it will attempt, and whether a
+// recipient is verified with the domain's own server before mail for it is
+// accepted. Server administrators only, like the routes beside it.
+STDMETHODIMP InterfaceSettings::get_RemoteDomainPolicies(IInterfaceRemoteDomainPolicies **pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      CComObject<InterfaceRemoteDomainPolicies>* interfacePolicies = new CComObject<InterfaceRemoteDomainPolicies>();
+      interfacePolicies->SetAuthentication(authentication_);
+      interfacePolicies->LoadSettings();
+
+      interfacePolicies->AddRef();
+      *pVal = interfacePolicies;
 
       return S_OK;
    }
@@ -1338,6 +1419,8 @@ STDMETHODIMP InterfaceSettings::put_RuleLoopLimit(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1370,6 +1453,8 @@ STDMETHODIMP InterfaceSettings::put_DefaultDomain(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1402,6 +1487,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPPublicFolderName(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1434,6 +1521,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPDeliveryBindToIP(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1466,6 +1555,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPSortEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1498,6 +1589,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPQuotaEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1530,6 +1623,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPIdleEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1562,6 +1657,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPACLEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1595,6 +1692,8 @@ STDMETHODIMP InterfaceSettings::put_WorkerThreadPriority(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1628,6 +1727,8 @@ STDMETHODIMP InterfaceSettings::put_TCPIPThreads(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1660,6 +1761,8 @@ STDMETHODIMP InterfaceSettings::put_MaxAsynchronousThreads(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1692,6 +1795,8 @@ STDMETHODIMP InterfaceSettings::put_CrashSimulationMode(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1726,6 +1831,8 @@ STDMETHODIMP InterfaceSettings::put_MaxSMTPRecipientsInBatch(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1760,6 +1867,8 @@ STDMETHODIMP InterfaceSettings::put_DisconnectInvalidClients(VARIANT_BOOL newVal
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1794,6 +1903,8 @@ STDMETHODIMP InterfaceSettings::put_MaxNumberOfInvalidCommands(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1827,6 +1938,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPRelayerUseSSL(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1848,6 +1961,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPRelayerConnectionSecurity(eConnectionSec
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1881,6 +1996,8 @@ STDMETHODIMP InterfaceSettings::put_SMTPConnectionSecurity(eConnectionSecurity n
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1931,6 +2048,8 @@ STDMETHODIMP InterfaceSettings::put_AddDeliveredToHeader(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2098,6 +2217,8 @@ STDMETHODIMP InterfaceSettings::put_AutoBanOnLogonFailure(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2132,6 +2253,8 @@ STDMETHODIMP InterfaceSettings::put_MaxInvalidLogonAttempts(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2166,6 +2289,8 @@ STDMETHODIMP InterfaceSettings::put_MaxInvalidLogonAttemptsWithin(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2200,6 +2325,8 @@ STDMETHODIMP InterfaceSettings::put_AutoBanMinutes(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2253,6 +2380,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPHierarchyDelimiter(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2288,6 +2417,8 @@ STDMETHODIMP InterfaceSettings::put_MaxNumberOfMXHosts(long newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2326,6 +2457,8 @@ STDMETHODIMP InterfaceSettings::put_VerifyRemoteSslCertificate(VARIANT_BOOL newV
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2358,6 +2491,8 @@ STDMETHODIMP InterfaceSettings::put_SslCipherList(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2374,6 +2509,8 @@ STDMETHODIMP InterfaceSettings::put_TlsVersion10Enabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2407,6 +2544,8 @@ STDMETHODIMP InterfaceSettings::put_TlsVersion11Enabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2441,6 +2580,8 @@ STDMETHODIMP InterfaceSettings::put_TlsVersion12Enabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2475,6 +2616,8 @@ STDMETHODIMP InterfaceSettings::put_TlsVersion13Enabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2508,6 +2651,8 @@ STDMETHODIMP InterfaceSettings::put_TlsOptionPreferServerCiphersEnabled(VARIANT_
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2540,6 +2685,8 @@ STDMETHODIMP InterfaceSettings::put_TlsOptionPrioritizeChaChaEnabled(VARIANT_BOO
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2590,6 +2737,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPMasterUser(BSTR newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2607,6 +2756,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPSASLPlainEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2639,6 +2790,8 @@ STDMETHODIMP InterfaceSettings::put_IMAPSASLInitialResponseEnabled(VARIANT_BOOL 
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2689,6 +2842,8 @@ STDMETHODIMP InterfaceSettings::put_IPv6PreferredEnabled(VARIANT_BOOL newVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2723,6 +2878,8 @@ STDMETHODIMP InterfaceSettings::put_RewriteEnvelopeFromWhenForwarding(VARIANT_BO
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2768,6 +2925,8 @@ STDMETHODIMP InterfaceSettings::SetIniSetting(BSTR Name, BSTR Value)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -2781,7 +2940,7 @@ STDMETHODIMP InterfaceSettings::SetIniSetting(BSTR Name, BSTR Value)
          return COMError::GenerateError("The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.");
 
       if (!HM::IniFileSettings::Instance()->WriteSettingsValue(name, value))
-         return COMError::GenerateError("The setting could not be written to hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.");
+         return COMError::GenerateError("The setting could not be stored. Settings are held in the database, so this means the server could not write to it. Nothing has been changed.");
 
       return S_OK;
    }
@@ -2804,7 +2963,7 @@ STDMETHODIMP InterfaceSettings::DeleteIniSetting(BSTR Name)
          return COMError::GenerateError("The setting name is empty, longer than 100 characters, surrounded by whitespace, or contains one of = [ ] or a line break.");
 
       if (!HM::IniFileSettings::Instance()->RemoveSettingsValue(name))
-         return COMError::GenerateError("The setting could not be removed from hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.");
+         return COMError::GenerateError("The setting could not be removed. Settings are held in the database, so this means the server could not write to it. Nothing has been changed.");
 
       return S_OK;
    }
@@ -3145,6 +3304,8 @@ STDMETHODIMP InterfaceSettings::put_CreateDefaultSpecialUseFoldersEnabled(VARIAN
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 

@@ -8,6 +8,14 @@ drop table if exists hm_roleassignments;
 
 drop table if exists hm_roles;
 
+drop table if exists hm_audit;
+
+drop table if exists hm_alertrules;
+
+drop table if exists hm_alertevents;
+
+drop table if exists hm_remotedomainpolicies;
+
 drop table if exists hm_calendarobjects;
 
 drop table if exists hm_calendars;
@@ -176,7 +184,14 @@ create table hm_domains
 	domainvacationmessage text,
 	domainvacationinternalsubject varchar(200) not null default '',
 	domainvacationinternalmessage text,
-	domainvacationexternaloverride int not null default 0
+	domainvacationexternaloverride int not null default 0,
+	domainexternaltagsubject int not null default 0,
+	domainexternaltagheader int not null default 0,
+	domainexternaltagtext varchar(100) not null default '',
+	domainfirstcontacttip int not null default 0,
+	domaindisclaimerenabled int not null default 0,
+	domaindisclaimerplaintext text,
+	domaindisclaimerhtml text
 )  DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
@@ -497,7 +512,7 @@ create table hm_calendars
 	calendardisplayname varchar(255) not null,
 	calendarsynctoken bigint not null,
 	calendarcreated bigint not null
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 CREATE UNIQUE INDEX idx_hm_calendars_account ON hm_calendars (calendaraccountid, calendarname);
 
@@ -518,11 +533,34 @@ create table hm_calendarobjects
 	objectlast bigint not null,
 	objectdeleted tinyint not null,
 	objectmodified bigint not null
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 CREATE UNIQUE INDEX idx_hm_calendarobjects_uri ON hm_calendarobjects (objectcalendarid, objecturi);
 
 CREATE INDEX idx_hm_calendarobjects_sync ON hm_calendarobjects (objectcalendarid, objectsynctoken);
+
+create table hm_remotedomainpolicies
+(
+	policyid int auto_increment not null, primary key(`policyid`), unique(`policyid`),
+	policydomainname varchar(255) not null,
+	policydescription varchar(255) not null,
+	policyactive tinyint not null,
+	policyoutboundtls int not null,
+	policyinboundtls tinyint not null,
+	policymaxmessagesizekb int not null,
+	policymaxconnections int not null,
+	policymaxperminute int not null,
+	policyallowreplies tinyint not null,
+	policyallowforwarding tinyint not null,
+	policycalloutenabled tinyint not null,
+	policycallouthost varchar(255) not null,
+	policycalloutport int not null,
+	policycallouttimeout int not null,
+	policycalloutcacheminutes int not null,
+	policycalloutperminute int not null
+);
+
+CREATE INDEX idx_hm_remotedomainpolicies_domain ON hm_remotedomainpolicies (policydomainname);
 
 create table hm_rules
 (
@@ -1148,6 +1186,8 @@ ALTER TABLE hm_calendars ENGINE=InnoDB;
 
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;
 
+ALTER TABLE hm_remotedomainpolicies ENGINE=InnoDB;
+
 ALTER TABLE hm_rules ENGINE=InnoDB;
 
 ALTER TABLE hm_rule_criterias ENGINE=InnoDB;
@@ -1204,9 +1244,23 @@ ALTER TABLE hm_files ADD CONSTRAINT fk_hm_files_account FOREIGN KEY (fileaccount
 
 ALTER TABLE hm_smimekeys ADD CONSTRAINT fk_hm_smimekeys_account FOREIGN KEY (smimeaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+create table hm_knownsenders
+(
+	ksid bigint auto_increment not null, primary key(`ksid`), unique(`ksid`),
+	ksaccountid int not null,
+	ksaddress varchar(255) character set utf8 collate utf8_bin not null,
+	kscount int not null,
+	ksfirstseen varchar(32) not null,
+	kslastseen varchar(32) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress);
+
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
+
+ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE;
 
@@ -1223,6 +1277,98 @@ ALTER TABLE hm_message_metadata ADD CONSTRAINT fk_hm_message_metadata_message FO
 ALTER TABLE hm_imapexpunged ADD CONSTRAINT fk_hm_imapexpunged_folder FOREIGN KEY (expungedfolderid) REFERENCES hm_imapfolders (folderid) ON DELETE CASCADE;
 
 ALTER TABLE hm_messageindexterms ADD CONSTRAINT fk_hm_messageindexterms_message FOREIGN KEY (mitmessageid) REFERENCES hm_messages (messageid) ON DELETE CASCADE;
+
+create table hm_audit
+(
+	auditid bigint auto_increment not null, primary key(`auditid`), unique(`auditid`),
+	audittime bigint not null,
+	auditactor varchar(255) not null,
+	auditactortype varchar(32) not null,
+	auditinterface varchar(32) not null,
+	auditaddress varchar(64) not null,
+	auditobjecttype varchar(64) not null,
+	auditobjectname varchar(255) not null,
+	auditaction varchar(32) not null,
+	auditdetail mediumtext not null,
+	auditprevhash varchar(64) not null,
+	audithash varchar(64) not null
+);
+
+ALTER TABLE hm_audit ENGINE=InnoDB;
+
+CREATE INDEX idx_hm_audit_time ON hm_audit (audittime);
+
+CREATE INDEX idx_hm_audit_actor ON hm_audit (auditactor);
+
+create table hm_alertrules
+(
+	alertruleid bigint auto_increment not null, primary key(`alertruleid`), unique(`alertruleid`),
+	alertrulecondition varchar(64) not null,
+	alertruleenabled tinyint not null,
+	alertrulethreshold int not null,
+	alertruleactions int not null,
+	alertruleaddress varchar(255) not null,
+	alertrulewebhook varchar(1024) not null,
+	alertrulesecret varchar(255) not null,
+	alertrulecooldown int not null,
+	alertruledigest tinyint not null
+);
+
+ALTER TABLE hm_alertrules ENGINE=InnoDB;
+
+CREATE UNIQUE INDEX idx_hm_alertrules_condition ON hm_alertrules (alertrulecondition);
+
+create table hm_alertevents
+(
+	alerteventid bigint auto_increment not null, primary key(`alerteventid`), unique(`alerteventid`),
+	alerteventcondition varchar(64) not null,
+	alerteventseverity int not null,
+	alerteventstate int not null,
+	alerteventtime bigint not null,
+	alerteventsummary varchar(255) not null,
+	alerteventdetail mediumtext not null,
+	alerteventnotified tinyint not null,
+	alerteventdigested tinyint not null,
+	alerteventhookstate int not null,
+	alerteventhooktries int not null,
+	alerteventhooknext bigint not null
+);
+
+ALTER TABLE hm_alertevents ENGINE=InnoDB;
+
+CREATE INDEX idx_hm_alertevents_time ON hm_alertevents (alerteventtime);
+
+CREATE INDEX idx_hm_alertevents_condition ON hm_alertevents (alerteventcondition, alerteventtime);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('backup.failed', 1, 0, 1, '', '', '', 60, 0);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('certificate.expiring', 1, 7, 1, '', '', '', 1440, 1);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('disk.low', 0, 0, 1, '', '', '', 60, 1);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('queue.stalled', 0, 0, 1, '', '', '', 60, 1);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('autoban.storm', 0, 25, 1, '', '', '', 60, 1);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('minidump.written', 0, 0, 1, '', '', '', 60, 1);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertsEnabled', '', 1);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertRecipient', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertSenderAddress', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertDigestEnabled', '', 1);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertDigestHour', '', 7);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertMaxPerHour', '', 20);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertWebhookMaxAttempts', '', 5);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AuditTrailEnabled', '', 1);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AuditRetentionDays', '', 0);
 
 create table hm_roles
 (

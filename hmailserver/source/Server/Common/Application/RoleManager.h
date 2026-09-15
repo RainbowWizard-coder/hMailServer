@@ -263,6 +263,15 @@ namespace HM
       // so only a grant that reaches every domain may ask it.
       static bool ReachesEveryDomain(const RoleGrant &grant);
 
+      // True for the two grants that are what "administrator" has always meant
+      // on this server: serveradmin and domainadmin, the only grants that hold
+      // AdministerServer or AdministerDomain (a custom role may hold neither).
+      // The audit trail's actor kind is read from this, at both interfaces, so
+      // that an account given a narrower role is recorded as the account it
+      // is and not as an administrator because its AdminLevel column says one.
+      // A LABEL, never a decision: nothing is allowed or refused on it.
+      static bool IsAdministratorGrant(const RoleGrant &grant);
+
       // The name of a permission, and back again. The tokens are what the
       // database, the REST document and the two editors all spell.
       static AnsiString PermissionName(RolePermission permission);

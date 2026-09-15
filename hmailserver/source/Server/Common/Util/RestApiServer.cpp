@@ -7,6 +7,8 @@
 #include "StdAfx.h"
 
 #include "RestApiServer.h"
+
+#include "AuditTrail.h"
 #include "../Application/RoleManager.h"
 #include "HttpServer.h"
 #include "JsonDocument.h"
@@ -1429,10 +1431,12 @@ namespace HM
          if (caller.result == AuthenticationFailed)
             return BuildUnauthorizedResponse_(caller.second_factor_required, IsPageScriptRequest_(request));
 
-         // Who is acting, for the length of this request and no longer. The
-         // audit trail reads it; nothing else may decide from it, which is why
-         // the decision below takes the grant as an argument rather than
-         // reaching for the actor.
+         // Who is acting, for the length of this request and no longer.
+         // Nothing may decide from it, which is why the decision below takes
+         // the grant as an argument rather than reaching for the actor. The
+         // audit trail's own actor is installed from the same caller, and so
+         // from the same grant, once the request has been authorised - see
+         // AuditActorFor_ below the dispatch's AuditScope.
          RoleActor actor;
          actor.identity = caller.identity;
          actor.account_id = caller.account ? caller.account->GetID() : 0;
@@ -1463,8 +1467,12 @@ namespace HM
          }
 
          Route route;
-         ParseRoute_(method, path, route);
+         // The query string is attached BEFORE the path is parsed, because
+         // one route decides what it is from it: a report names the domain it
+         // is about in ?domain=, and that domain has to be in the Route for
+         // Authorize_ to judge it. Everything else ignores it at this stage.
          route.query = query;
+         ParseRoute_(method, path, route);
 
          // The single authorisation choke point. Every route is decided here,
          // by kind, before any handler runs - so a handler cannot be reached by
@@ -1486,6 +1494,17 @@ namespace HM
 
             return BuildForbiddenResponse_(refusalReason);
          }
+
+         // The audit trail's identity chokepoint for REST, and the only one:
+         // every route reaches its handler through the switch below, so an
+         // administrative change made over REST - by the Deck, by hmctl, by an
+         // API key or by a person with curl - is attributed to the credential
+         // that was just authorised and to the address it came from, whichever
+         // handler ends up making it. Nothing is recorded here: the record is
+         // taken where the change lands, in AuditTrail::RecordStatement and
+         // RecordSettingChange, so one change is one row however many routes
+         // could have caused it. See AuditTrail.h.
+         AuditScope auditScope(AuditActorFor_(caller));
 
          switch (route.kind)
          {
@@ -1571,6 +1590,8 @@ namespace HM
             return HandleSrv_(caller.domains);
          case RouteMetricsHistory:
             return HandleMetricsHistory_(route.query);
+         case RouteReport:
+            return HandleReport_(caller.domains, route.name, route.query);
          case RouteUpdateGet:
             return HandleUpdateGet_();
          case RouteUpdateCheck:
@@ -1645,6 +1666,15 @@ namespace HM
          case RouteGroupMemberCreate:
          case RouteGroupMemberDelete:
             return HandleGroups_(route, GetRequestBody_(request));
+         case RouteAuditList:
+         case RouteAuditVerify:
+         case RouteAlertRuleList:
+         case RouteAlertRuleUpdate:
+         case RouteAlertEventList:
+         case RouteAlertTest:
+         case RouteAlertRun:
+            return HandleAudit_(route, GetRequestBody_(request));
+
          case RouteRuleMatch:
             return HandleRuleMatch_(GetRequestBody_(request));
          case RouteCertificateList:
@@ -1761,6 +1791,18 @@ namespace HM
             return HandleUpdateRoute_(route.record_id, GetRequestBody_(request));
          case RouteRouteDelete:
             return HandleDeleteRoute_(route.record_id);
+         case RouteRemoteDomainList:
+            return HandleListRemoteDomains_();
+         case RouteRemoteDomainCreate:
+            return HandleCreateRemoteDomain_(GetRequestBody_(request));
+         case RouteRemoteDomainUpdate:
+            return HandleUpdateRemoteDomain_(route.record_id, GetRequestBody_(request));
+         case RouteRemoteDomainDelete:
+            return HandleDeleteRemoteDomain_(route.record_id);
+         case RouteRemoteDomainEffective:
+            return HandleEffectiveRemoteDomain_(String(QueryParameter_(route.query, "domain")));
+         case RouteRemoteDomainClearCache:
+            return HandleClearRemoteDomainVerificationCache_();
          case RouteAliasCreate:
             return HandleCreateAlias_(String(route.identifier), GetRequestBody_(request));
          case RouteAliasDelete:
@@ -2850,6 +2892,27 @@ namespace HM
          return;
       }
 
+      // The reports. /api/v1/reports is the index - what sections there are,
+      // what each is built from and what this server cannot answer - and
+      // /api/v1/reports/<section> is one of them. The section is put in name
+      // and the domain the query asks about in identifier, both so that
+      // Authorize_ can decide without parsing anything itself: a route is
+      // data by the time it reaches the choke point.
+      const AnsiString reportsPath = "/api/v1/reports";
+
+      if (method == "GET" && (path == reportsPath || path.StartsWith(reportsPath + "/")))
+      {
+         AnsiString section = path == reportsPath ? AnsiString("") : path.Mid(reportsPath.GetLength() + 1);
+
+         if (section.Find("/") < 0)
+         {
+            route.kind = RouteReport;
+            route.name = section;
+            route.identifier = QueryParameter_(route.query, "domain");
+            return;
+         }
+      }
+
       if (method == "GET" && path == "/api/v1/update")
       {
          route.kind = RouteUpdateGet;
@@ -3195,6 +3258,42 @@ namespace HM
          return;
       }
 
+      if (path == "/api/v1/remote-domains" && (method == "GET" || method == "POST"))
+      {
+         route.kind = method == "GET" ? RouteRemoteDomainList : RouteRemoteDomainCreate;
+         return;
+      }
+
+      // Before the {id} tail below, so that neither word is ever read as a
+      // decimal id: "effective" and "verification-cache" are not ids, and
+      // ParseQueueId would refuse them, but the order is stated rather than
+      // relied upon. The query string has already been split off the path.
+      if (method == "GET" && path == "/api/v1/remote-domains/effective")
+      {
+         route.kind = RouteRemoteDomainEffective;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/remote-domains/verification-cache/clear")
+      {
+         route.kind = RouteRemoteDomainClearCache;
+         return;
+      }
+
+      const AnsiString remoteDomainsPrefix = "/api/v1/remote-domains/";
+
+      if ((method == "PUT" || method == "DELETE") && path.StartsWith(remoteDomainsPrefix))
+      {
+         AnsiString idPart = path.Mid(remoteDomainsPrefix.GetLength());
+         __int64 id = 0;
+         if (idPart.Find("/") < 0 && ParseQueueId(idPart, id))
+         {
+            route.kind = method == "PUT" ? RouteRemoteDomainUpdate : RouteRemoteDomainDelete;
+            route.record_id = id;
+            return;
+         }
+      }
+
       const AnsiString routesPrefix = "/api/v1/routes/";
 
       if ((method == "PUT" || method == "DELETE") && path.StartsWith(routesPrefix))
@@ -3488,6 +3587,60 @@ namespace HM
             }
          }
       }
+      if (method == "GET" && path == "/api/v1/audit")
+      {
+         route.kind = RouteAuditList;
+         return;
+      }
+
+      if (method == "GET" && path == "/api/v1/audit/verify")
+      {
+         route.kind = RouteAuditVerify;
+         return;
+      }
+
+      if (method == "GET" && path == "/api/v1/alerts/events")
+      {
+         route.kind = RouteAlertEventList;
+         return;
+      }
+
+      // "I have configured this - does it work?" A condition raised on demand
+      // goes through exactly the path a real one does, so what arrives is what
+      // would arrive; and a pass run on demand saves waiting a minute for the
+      // scheduled one, which is the difference between verifying a webhook and
+      // giving up on it.
+      if (method == "POST" && path == "/api/v1/alerts/test")
+      {
+         route.kind = RouteAlertTest;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/alerts/run")
+      {
+         route.kind = RouteAlertRun;
+         return;
+      }
+
+      const AnsiString alertRulesPath = "/api/v1/alerts/rules";
+      if (method == "GET" && path == alertRulesPath)
+      {
+         route.kind = RouteAlertRuleList;
+         return;
+      }
+      if (method == "PUT" && path.StartsWith(alertRulesPath + "/"))
+      {
+         AnsiString condition = path.Mid(alertRulesPath.GetLength() + 1);
+
+         if (!condition.IsEmpty() && condition.Find("/") < 0)
+         {
+            route.kind = RouteAlertRuleUpdate;
+            route.identifier = condition;
+         }
+
+         return;
+      }
+
       if (method == "GET" && path == "/api/v1/openapi.json")
          route.kind = RouteOpenApi;
    }
@@ -3510,6 +3663,19 @@ namespace HM
       case RouteIniSettingGet:
       case RouteIniSettingPut:
       case RouteIniSettingDelete:
+      // The audit trail names every administrator and every change they made,
+      // and the alert rules hold the webhook secrets. A key that could read the
+      // first could watch for its own footprints; a key that could write the
+      // second could silence the alerting or point it at an endpoint of its own.
+      // Both are the administrator password's, and a key of any scope is
+      // answered 401 rather than 403 so that it learns nothing from asking.
+      case RouteAuditList:
+      case RouteAuditVerify:
+      case RouteAlertRuleList:
+      case RouteAlertRuleUpdate:
+      case RouteAlertEventList:
+      case RouteAlertTest:
+      case RouteAlertRun:
          return true;
 
       default:
@@ -3528,6 +3694,12 @@ namespace HM
       // slip past a read-only key by being spelled harmlessly.
       switch (kind)
       {
+      // Answered here as well as in IsApiKeyRoute_: a kind that writes must say
+      // so whether or not a key can reach it at all, so that the answer does not
+      // depend on the order two guards happen to be asked in.
+      case RouteAlertRuleUpdate:
+      case RouteAlertTest:
+      case RouteAlertRun:
       case RouteMeFileCreate:
       case RouteMeFileContent:
       case RouteMeFileUpdate:
@@ -3634,6 +3806,13 @@ namespace HM
       case RouteRouteCreate:
       case RouteRouteUpdate:
       case RouteRouteDelete:
+      case RouteRemoteDomainCreate:
+      case RouteRemoteDomainUpdate:
+      case RouteRemoteDomainDelete:
+      // Clearing the verification cache changes what the next RCPT TO decides
+      // and makes this server call out again, neither of which a read-only
+      // credential should be able to cause.
+      case RouteRemoteDomainClearCache:
       case RouteAliasCreate:
       case RouteAliasDelete:
       case RouteAccountUpdate:
@@ -3847,7 +4026,35 @@ namespace HM
       case RouteRoleList:
       case RouteRoleGet:
       case RouteRoleAssignmentList:
+      // The remote domain policies: what this server demands of somebody
+      // else's domain. Server-wide configuration, and refused to a confined
+      // credential below.
+      case RouteRemoteDomainList:
+      case RouteRemoteDomainEffective:
+      // The alert rules and what they have raised. A webhook secret is never
+      // in either answer (webhook_secret_set says whether there is one), so
+      // this is configuration like any other; a key of any scope is still
+      // refused both, before this is consulted, by IsApiKeyRoute_.
+      case RouteAlertRuleList:
+      case RouteAlertEventList:
+      // The reports: per-domain counts built from the message trace, the
+      // metric history and the mailbox sizes. The domain administrator's for
+      // their own domains, the auditor's for all of them, and not the help
+      // desk's - it reads one address's trace, not a domain's traffic. The
+      // domain a report names is judged below, and its server-wide sections
+      // are refused to a confined credential there.
+      case RouteReport:
          return RolePermission::ViewConfiguration;
+
+      // The audit trail, and the walk that verifies its chain. The one
+      // permission nothing but the auditor and the server administrator
+      // holds. A key of any scope is refused both before this is consulted
+      // (IsApiKeyRoute_): the record of who changed what is the thing a
+      // stolen key must not be able to read. An account that holds the
+      // auditor role is not a key, and reading it is the whole of that role.
+      case RouteAuditList:
+      case RouteAuditVerify:
+         return RolePermission::ViewAudit;
 
       // The names: which domains there are, and which mailboxes, aliases,
       // lists, groups and fetch accounts are in them. A help desk holds this
@@ -4040,6 +4247,16 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      // A remote domain policy, and the verification cache whose clearing
+      // changes what the next RCPT TO decides.
+      case RouteRemoteDomainCreate:
+      case RouteRemoteDomainUpdate:
+      case RouteRemoteDomainDelete:
+      case RouteRemoteDomainClearCache:
+      // An alert rule - where the alerting goes, and whether it goes at all -
+      // and the condition raised on demand to prove a rule works.
+      case RouteAlertRuleUpdate:
+      case RouteAlertTest:
          return RolePermission::ManageSettings;
 
       // Restarting, backing up, reloading the scripts, clearing the caches and
@@ -4055,6 +4272,9 @@ namespace HM
       case RouteUpdateDownload:
       case RouteUpdateInstall:
       case RouteScheduledRun:
+      // The alert pass run now rather than in a minute, which is the scheduled
+      // sends' shape exactly.
+      case RouteAlertRun:
          return RolePermission::ManageServer;
 
       default:
@@ -4087,6 +4307,10 @@ namespace HM
       case RouteDomainAliasList:
       case RouteDomainAliasCreate:
       case RouteDomainAliasDelete:
+      // A report names the domain it is about in ?domain=, which ParseRoute_
+      // puts in identifier; a report that names none names nothing, and the
+      // handler confines it to the credential's domains.
+      case RouteReport:
          return String(route.identifier);
 
       case RouteListDelete:
@@ -4224,13 +4448,33 @@ namespace HM
          // tell the Control Deck its session had ended and sign it out. The
          // 401 stays for keys, where it keeps "valid but not permitted"
          // indistinguishable from "not a key at all".
-         if (caller.result == AuthenticatedAsAccount)
+         if (caller.result != AuthenticatedAsAccount)
+            return AuthorizationUnauthenticated;
+
+         // The audit trail and the alerts are in that set to keep them from a
+         // KEY - a stolen key must not read the record of what it did, nor
+         // silence the alerting. An account that holds a role is not a key:
+         // the auditor role exists to read the audit trail, and the server
+         // administrator's own mailbox is the server administrator. Those
+         // routes go on to the permission decision below (ViewAudit for the
+         // trail, ViewConfiguration and ManageSettings for the alerts) and to
+         // the server-wide refusal for a confined role. The key store and the
+         // [Settings] section stay the administrator password's alone.
+         switch (route.kind)
          {
+         case RouteAuditList:
+         case RouteAuditVerify:
+         case RouteAlertRuleList:
+         case RouteAlertRuleUpdate:
+         case RouteAlertEventList:
+         case RouteAlertTest:
+         case RouteAlertRun:
+            break;
+
+         default:
             refusalReason = "the api keys and the [Settings] section of hMailServer.ini answer to the administrator password only";
             return AuthorizationForbidden;
          }
-
-         return AuthorizationUnauthenticated;
       }
 
       // THE DECISION, and the only one. Every route of this API is answered
@@ -4280,6 +4524,34 @@ namespace HM
       {
          refusalReason = "this credential is restricted to named domains, and the quarantine is server-wide";
          return AuthorizationForbidden;
+      }
+
+      // The reports. Two of the sections are counted from the server-wide
+      // metric history - the spam and virus totals, the delivered, deferred
+      // and bounced totals, and the size of the message store - and those
+      // counters have no domain in them at all. Narrowing them would mean
+      // inventing an attribution, so they are refused outright, as the queue
+      // is, and for the same reason. The rest are counted from the message
+      // trace and the mailbox sizes, both of which carry an address: a
+      // request that names a domain is judged against the key's list below,
+      // and one that names none is confined to the key's domains by the
+      // handler, as the domain listing is.
+      if (route.kind == RouteReport)
+      {
+         if (IsServerWideReportSection_(route.name))
+         {
+            refusalReason = "this credential is restricted to named domains, and that report section is counted from "
+                            "server-wide metrics that carry no domain";
+            return AuthorizationForbidden;
+         }
+
+         if (!route.identifier.IsEmpty() && !IsDomainAllowed_(caller.domains, String(route.identifier)))
+         {
+            refusalReason = "this credential is not permitted for that domain";
+            return AuthorizationForbidden;
+         }
+
+         return AuthorizationAllowed;
       }
       switch (route.kind)
       {
@@ -4378,6 +4650,28 @@ namespace HM
       case RouteRouteCreate:
       case RouteRouteUpdate:
       case RouteRouteDelete:
+      // A remote domain policy names somebody else's domain, not one hosted
+      // here, so "restricted to these domains" cannot scope it - and what it
+      // decides (whether this server refuses to deliver a domain's mail in the
+      // clear, whether it opens verification sessions to a third party) is the
+      // server's posture rather than any one hosted domain's.
+      case RouteRemoteDomainList:
+      case RouteRemoteDomainCreate:
+      case RouteRemoteDomainUpdate:
+      case RouteRemoteDomainDelete:
+      case RouteRemoteDomainEffective:
+      case RouteRemoteDomainClearCache:
+      // The audit trail records every domain's changes and the alerts watch the
+      // whole server. A key never gets this far with them (IsApiKeyRoute_); a
+      // role confined to named domains - a custom role holding view_audit and
+      // a list of domains - does, and is refused here.
+      case RouteAuditList:
+      case RouteAuditVerify:
+      case RouteAlertRuleList:
+      case RouteAlertRuleUpdate:
+      case RouteAlertEventList:
+      case RouteAlertTest:
+      case RouteAlertRun:
       case RouteServerReinitialize:
       case RouteUpdateGet:
       case RouteUpdateCheck:
@@ -8237,7 +8531,7 @@ namespace HM
       String specialUse = designation != designations.end() ? IMAPSpecialUse::FormatDesignations(designation->second) : String();
 
       AnsiString entry;
-      entry.Format("{\"id\":%I64d,\"account_id\":%I64d,\"name\":\"%hs\",\"path\":\"%hs\",\"parent_id\":%I64d,\"special_use\":\"%hs\",\"subscribed\":%hs,\"writable\":%hs,\"messages\":%ld,\"unseen\":%ld,\"uidvalidity\":%u,\"subfolders\":[",
+      entry.Format("{\"id\":%I64d,\"account_id\":%I64d,\"name\":\"%hs\",\"path\":\"%hs\",\"parent_id\":%I64d,\"special_use\":\"%hs\",\"subscribed\":%hs,\"writable\":%hs,\"messages\":%ld,\"unseen\":%ld,\"uidvalidity\":%u,\"uidnext\":%I64d,\"subfolders\":[",
          folder->GetID(),
          folder->GetAccountID(),
          // Decoded, as InterfaceIMAPFolder::get_Name decodes it for COM. A
@@ -8255,7 +8549,13 @@ namespace HM
          writeAccess ? "true" : "false",
          messageCount,
          messageCount - seen,
-         folder->GetCreationTime().ToInt());
+         // UIDVALIDITY is the folder's creation time, as SELECT and STATUS
+         // report it; UIDNEXT is the UID the next message will be given, which
+         // STATUS reports as the folder's current UID plus one. The two are
+         // different numbers, and the current UID - COM's IMAPFolder.CurrentUID,
+         // which delivery moves on - is only readable from the second.
+         folder->GetCreationTime().ToInt(),
+         (__int64) folder->GetCurrentUID() + 1);
       json += entry;
 
       AppendFolderJson_(account, folder->GetSubFolders(), path, designations, delimiter, json, depth + 1);
@@ -9550,6 +9850,8 @@ namespace HM
       AnsiString listUnsubscribe;
       AnsiString listUnsubscribePost;
       AnsiString receiptRequestedBy;
+      AnsiString externalStamp;
+      AnsiString firstContactStamp;
       if (!header.IsEmpty())
       {
          MimeHeader mimeHeader;
@@ -9563,6 +9865,14 @@ namespace HM
          listUnsubscribePost = value ? value : "";
          value = mimeHeader.GetRawFieldValue("Disposition-Notification-To");
          receiptRequestedBy = value ? value : "";
+         value = mimeHeader.GetRawFieldValue("X-hMailServer-External");
+         externalStamp = value ? value : "";
+         value = mimeHeader.GetRawFieldValue("X-hMailServer-First-Contact");
+         firstContactStamp = value ? value : "";
+         externalStamp.TrimLeft();
+         externalStamp.TrimRight();
+         firstContactStamp.TrimLeft();
+         firstContactStamp.TrimRight();
          listUnsubscribe.TrimLeft();
          listUnsubscribe.TrimRight();
          listUnsubscribePost.ToLower();
@@ -9586,7 +9896,17 @@ namespace HM
       // DMARC check parses it - not from the first @ in the header, which a
       // display name can carry.
       AnsiString senderDomain = DomainOfFrom(Utf8_(DMARC::ExtractAddressFromHeaderValue(String(from))));
-      bool external = !senderDomain.IsEmpty() && senderDomain != accountDomain;
+
+      // The server's own verdict when the recipient's domain asked for it -
+      // ExternalSenderTagger stamped X-hMailServer-External using the rule in
+      // MessageOrigin, which knows about authenticated submissions and trusted
+      // relays and this one does not. Where the domain has not turned the tag
+      // on there is no stamp, and the comparison below stands, which is what
+      // the badge has always done.
+      bool externalStamped = externalStamp.CompareNoCase("YES") == 0;
+      bool external = externalStamped ||
+                      (!senderDomain.IsEmpty() && senderDomain != accountDomain);
+      bool firstContact = firstContactStamp.CompareNoCase("YES") == 0;
 
       String listText;
       Unicode::MultiByteToWide(listUnsubscribe, listText);
@@ -9594,7 +9914,7 @@ namespace HM
       Unicode::MultiByteToWide(receiptRequestedBy, receiptText);
 
       AnsiString json;
-      json.Format("\"headers\":\"%hs\",\"authentication\":{\"spf\":\"%hs\",\"dkim\":\"%hs\",\"dkim_domain\":\"%hs\",\"dmarc\":\"%hs\",\"results\":\"%hs\"},\"external\":%hs,\"list_unsubscribe\":\"%hs\",\"list_unsubscribe_post\":%hs,\"receipt_requested_by\":\"%hs\"",
+      json.Format("\"headers\":\"%hs\",\"authentication\":{\"spf\":\"%hs\",\"dkim\":\"%hs\",\"dkim_domain\":\"%hs\",\"dmarc\":\"%hs\",\"results\":\"%hs\"},\"external\":%hs,\"external_stamped\":%hs,\"first_contact\":%hs,\"list_unsubscribe\":\"%hs\",\"list_unsubscribe_post\":%hs,\"receipt_requested_by\":\"%hs\"",
          JsonEscape_(Utf8_(headerText)).c_str(),
          VerdictOf(results, "spf").c_str(),
          VerdictOf(results, "dkim").c_str(),
@@ -9602,6 +9922,8 @@ namespace HM
          VerdictOf(results, "dmarc").c_str(),
          JsonEscape_(Utf8_(resultsText)).c_str(),
          external ? "true" : "false",
+         externalStamped ? "true" : "false",
+         firstContact ? "true" : "false",
          JsonEscape_(Utf8_(listText)).c_str(),
          listUnsubscribePost.Find("list-unsubscribe=one-click") >= 0 ? "true" : "false",
          JsonEscape_(Utf8_(receiptText)).c_str());
@@ -11289,7 +11611,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
-         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
@@ -11352,6 +11674,7 @@ namespace HM
       openApiJson += OpenApiRulesPaths_();
       openApiJson += OpenApiCertificatesPaths_();
       openApiJson += OpenApiRoutesPaths_();
+      openApiJson += OpenApiRemoteDomainsPaths_();
       openApiJson += OpenApiFetchAccountsPaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
@@ -11359,6 +11682,8 @@ namespace HM
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
+      openApiJson += OpenApiAuditPaths_();
+      openApiJson += OpenApiReportsPaths_();
       openApiJson += OpenApiRolesPaths_();
       openApiJson += openApiTail;
 
@@ -11980,6 +12305,59 @@ namespace HM
       AnsiString utf8;
       Unicode::WideToMultiByte(value, utf8);
       return utf8;
+   }
+
+   /*
+      The credential, as the audit trail names it. "administrator" and "key:<id>"
+      are the identity strings Authenticate_ already produces for the rate
+      accounting and the log, so an audit row and a log line about the same
+      request name the caller the same way.
+
+      The kind and the role are read from caller.grant - the grant Authorize_
+      has just decided this request on - and never from AdminLevel. An account
+      that holds serveradmin or domainadmin is an "administrator", as it is
+      over COM; every other account is an "account", a help desk included, and
+      the role it acted under is recorded with the change. Before roles an
+      account reached nothing here but its own /api/v1/me endpoints, so every
+      account row was self-service; now an account can administer, and a row
+      that did not say with what authority would not say enough.
+   */
+   AuditTrail::Actor
+   RestApiServer::AuditActorFor_(const Caller &caller)
+   {
+      AuditTrail::Actor actor;
+
+      if (caller.result == AuthenticationFailed)
+         return actor;
+
+      actor.present = true;
+      actor.name = String(caller.identity);
+      actor.address = caller.peer.ToString();
+
+      // The Deck is a REST client with a session cookie, and it is worth saying
+      // so: "who changed this, and were they at a browser or holding a key" is
+      // the first question asked of a record like this.
+      actor.interface_name = caller.via_session ? _T("Deck") : _T("REST");
+
+      switch (caller.result)
+      {
+      case AuthenticatedAsAdministrator:
+         actor.kind = _T("administrator");
+         break;
+      case AuthenticatedWithApiKey:
+         actor.kind = _T("apikey");
+         break;
+      default:
+         actor.kind = RoleManager::IsAdministratorGrant(caller.grant) ? _T("administrator") : _T("account");
+         break;
+      }
+
+      // Empty for an ordinary account, for an app password and for a support
+      // session, all of which hold no administrative grant.
+      if (caller.grant.administrative)
+         actor.role = caller.grant.name;
+
+      return actor;
    }
 
    AnsiString

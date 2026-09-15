@@ -67,6 +67,7 @@
 
 #include "HttpServer.h"
 #include "../Application/RoleManager.h"
+#include "AuditTrail.h"
 
 namespace HM
 {
@@ -317,6 +318,18 @@ namespace HM
          RouteRouteCreate,
          RouteRouteUpdate,
          RouteRouteDelete,
+         // What this server will do for a named remote domain: the TLS it
+         // demands, the size and concurrency it will attempt, the backup-MX
+         // recipient callout. Server-wide, like the routes: a policy decides
+         // whether this server refuses to deliver a domain's mail in the clear
+         // and whether it opens verification sessions to a third party, and
+         // neither is one hosted domain administrator's to decide.
+         RouteRemoteDomainList,
+         RouteRemoteDomainCreate,
+         RouteRemoteDomainUpdate,
+         RouteRemoteDomainDelete,
+         RouteRemoteDomainEffective,
+         RouteRemoteDomainClearCache,
          RouteAliasCreate,
          RouteAliasDelete,
          RouteAccountUpdate,
@@ -439,6 +452,30 @@ namespace HM
          RouteMessageTraceRecent,
          RouteMessageTraceAddress,
          RouteMessageTraceQueue,
+         // The audit trail and the alerts (RestApiAudit.cpp). Every one of these
+         // is refused to an API key of any scope - they are in IsApiKeyRoute_ -
+         // because the record of who changed what is the one thing a stolen key
+         // must not be able to read, edit the rules of, or watch for its own
+         // footprints. The administrator password reaches them, and so does an
+         // account whose role holds the permission PermissionFor_ names:
+         // view_audit for the trail, which is what the auditor role is for.
+         RouteAuditList,
+         RouteAuditVerify,
+         RouteAlertRuleList,
+         RouteAlertRuleUpdate,
+         RouteAlertEventList,
+         RouteAlertTest,
+         RouteAlertRun,
+         // The reports (RestApiReports.cpp): what happened on this server,
+         // per domain and per day, aggregated from the message trace, the
+         // metric history and the message store. Read-only. The sections
+         // built from the message trace and from the mailbox sizes carry a
+         // domain and are scoped to it in Authorize_ exactly as the account
+         // routes are; the two built from the server-wide metric history
+         // (volume and storage) are refused for a domain-restricted key, for
+         // the reason the delivery queue is - the counters are the server's
+         // and there is no honest way to narrow them to one domain.
+         RouteReport,
          RouteOpenApi
       };
 
@@ -968,6 +1005,16 @@ namespace HM
       HttpResponse HandleCreateRoute_(const AnsiString &requestBody);
       HttpResponse HandleUpdateRoute_(__int64 routeId, const AnsiString &requestBody);
       HttpResponse HandleDeleteRoute_(__int64 routeId);
+      // The remote domain policies (RestApiRemoteDomains.cpp): what this server
+      // will do when it talks to a named remote domain.
+      HttpResponse HandleListRemoteDomains_();
+      HttpResponse HandleCreateRemoteDomain_(const AnsiString &requestBody);
+      HttpResponse HandleUpdateRemoteDomain_(__int64 policyId, const AnsiString &requestBody);
+      HttpResponse HandleDeleteRemoteDomain_(__int64 policyId);
+      // Which record GOVERNS a domain, which is not the record named by it.
+      HttpResponse HandleEffectiveRemoteDomain_(const String &domainName);
+      HttpResponse HandleClearRemoteDomainVerificationCache_();
+      static AnsiString OpenApiRemoteDomainsPaths_();
       HttpResponse HandleCreateAlias_(const String &domainName, const AnsiString &requestBody);
       HttpResponse HandleDeleteAlias_(const String &address);
       HttpResponse HandleUpdateAccount_(const Caller &caller, const String &address, const AnsiString &requestBody);
@@ -1050,6 +1097,20 @@ namespace HM
       static bool GetJsonBoolValue_(const AnsiString &json, const AnsiString &key, bool defaultValue);
       static std::vector<AnsiString> GetJsonStringArray_(const AnsiString &json, const AnsiString &key);
       static bool IsSafeLogName_(const AnsiString &name);
+
+      // The reports (RestApiReports.cpp). One handler for every section,
+      // because they share a window, a domain filter and a CSV writer and
+      // differ only in what they count. domains is the caller's restriction:
+      // empty means every domain, and a non-empty list confines the per-domain
+      // sections to it the way the domain listing is confined.
+      static HttpResponse HandleReport_(const std::vector<String> &domains, const AnsiString &section, const AnsiString &query);
+
+      // Whether a section is built from the server-wide metric history and so
+      // cannot be narrowed to a domain. Read by Authorize_, which is where
+      // that refusal is made.
+      static bool IsServerWideReportSection_(const AnsiString &section);
+      static AnsiString OpenApiReportsPaths_();
+
       HttpResponse HandleOpenApi_();
 
       // True if the id names a message that is really in the delivery queue.
@@ -1059,6 +1120,17 @@ namespace HM
       static AnsiString GetJsonStringValue_(const AnsiString &json, const AnsiString &key);
       static const JsonValue *FindJsonMember_(const JsonValue &object, const std::string &key);
       static AnsiString JsonEscape_(const AnsiString &value);
+
+      // The audit trail's actor for one authorised request: the credential that
+      // was authenticated, the address it came from, and the role it holds -
+      // its kind read from the grant, not from AdminLevel. Installed once, in
+      // ProcessRequest_, for the length of the dispatch - see AuditTrail.h.
+      static AuditTrail::Actor AuditActorFor_(const Caller &caller);
+
+      // GET /api/v1/audit, /api/v1/audit/verify and the alert rules and events.
+      // In RestApiAudit.cpp.
+      HttpResponse HandleAudit_(const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiAuditPaths_();
 
       std::shared_ptr<HttpServer> server_;
       bool running_;

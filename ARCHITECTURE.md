@@ -78,7 +78,9 @@ The most complex module: reception, relay decisions, the disk-backed delivery qu
 bounces, DKIM signing, and outbound delivery. Outbound transport security lives here
 too — `TlsPolicy` implements MTA-STS discovery/caching and DANE TLSA lookups,
 `ExternalDelivery` applies the per-host requirements, `TlsRptReporterTask` sends the
-daily RFC 8460 reports. The vendored SPF implementation is `SPF/RMSPF.cpp`.
+daily RFC 8460 reports. SPF is `SPF/`, an implementation of RFC 7208 with a README of
+its own; it reaches DNS only through `SPFDnsLookup`, which is what lets the conformance
+suite beside it answer 203 cases without a network.
 
 ### `Server/IMAP/` and `Server/POP3/`
 
@@ -128,13 +130,29 @@ statements, so every statement in a MySQL script is followed by a blank line -
 lines written together left the MySQL create script unable to run from 12 September
 2026's tenth webmail wave until the Linux build's database gate said so the same day.
 
-**Server-wide optional features are INI settings, not database settings.** MTA-STS,
-DANE, ARC, TLS-RPT, ACME, the REST API, web services, metrics and JSON logging are
-all `hMailServer.ini` `[Settings]` keys read by `IniFileSettings`. The pattern for a
-new one: a getter in `IniFileSettings.h`, the default on the member declaration, a
-`ReadIniSetting*_` call in `IniFileSettings.cpp`, and a control in the Control
-Panel's `FeatureSettingsView`. Per-account and per-domain settings go in the database
-instead.
+**The database is the settings store; hMailServer.ini is the bootstrap.** Since
+schema 6042 the 238 keys the `[Settings]` section used to hold are read from
+`hm_inisettings` and written to it, and the section in the file is a CACHE the server
+keeps current - because a handful of readers cannot go to the database, and one of
+them never can: `hMailServer.exe /Register` reads `ServiceAccountName` before there
+is a database to read. A value edited into the file is named in the error log and put
+back at the next start; a key in a `[SettingsOverride]` section IS honoured, over
+everything, and announced at every start, which is the door for a database that is
+unreachable or holds a value the server will not start on. `IniSettingStore` is where
+all of that lives and its header is the reference. The file keeps `[Directories]`,
+`[Database]`, `[Security]` and `[GUILanguages]`: how the database is reached, how an
+administrator is let in without one, and the language list that is read before it is
+open.
+
+**A new server-wide setting goes in `hm_settings`, not in the file.** That is the
+rule from 15 September 2026, written in `.github/CONTRIBUTING.md` and held by
+`build/check-ini-coverage.py` against the committed baseline
+`build/ini-settings-baseline.txt`: a key that appears in `[Settings]` and is not in
+the baseline fails CI. The existing 238 keep the shape they have - a getter in
+`IniFileSettings.h`, the default on the member declaration, a `ReadIniSetting*_` call
+in `IniFileSettings.cpp` and a control in the Control Panel's `FeatureSettingsView` -
+they are simply read from the database now. Per-account and per-domain settings go in
+the database as they always did.
 
 **Two of the optional listeners are now Boost.Asio, two are not.** `RestApiServer` and
 `WebServicesServer` are hosted on `Common/Util/HttpServer` — an HTTP/1.1 server on

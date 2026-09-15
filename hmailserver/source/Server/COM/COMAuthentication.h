@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../Common/Application/RoleManager.h"
+#include "../Common/Util/AuditTrail.h"
 
 namespace HM
 {
@@ -55,9 +56,31 @@ namespace HM
       // for the Control Panel, which hides a page a role may not use.
       const RoleGrant &GetGrant() const { return grant_; }
 
-      // Installs the actor for the life of the COM session, so that a change
-      // made through this API is recorded against the person who made it.
+      // Who is acting, as RoleManager holds it. Installed beside the audit
+      // trail's actor below, at the same moments and from the same grant, so
+      // that the two cannot describe two different people.
       RoleActor GetActor() const;
+
+      // The audit trail's identity chokepoint for COM. GetIsServerAdmin,
+      // GetIsDomainAdmin and the three role questions above are the
+      // authorisation questions every COM write asks before it writes - each
+      // of them installs this actor, and RoleManager's, through InstallActor_ -
+      // and they are asked ON THE THREAD that is about to do the writing -
+      // which matters, because hMailServer's COM server is an out-of-process
+      // MTA and RPC dispatches each call on whichever pool thread is free. An
+      // actor installed when the client authenticated would be on a thread
+      // that never writes anything.
+      //
+      // The COM methods that write without asking - the settings property
+      // setters, which are reachable only once LoadSettings has asked once -
+      // carry an AuditScope of their own built from this; see
+      // COMAuthenticator::GetAuditActor and build/check-audit-choke-point.py.
+      //
+      // Its kind and its role come from the grant, never from AdminLevel alone:
+      // an account whose AdminLevel says domain administrator but which has
+      // been given the help desk role is recorded as the account it is,
+      // holding the role it holds - not as an administrator.
+      AuditTrail::Actor GetAuditActor() const;
 
       __int64 GetAccountID() const;
       __int64 GetDomainID() const;

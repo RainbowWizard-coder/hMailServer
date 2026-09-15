@@ -386,6 +386,7 @@
     <Compile Include="Sieve\SieveNotifyDelivery.cs" />
     <Compile Include="SMTP\OutboundXOAuth2.cs" />
     <Compile Include="SMTP\OutboundSize.cs" />
+    <Compile Include="SMTP\RemoteDomainPolicyEnforcement.cs" />
     <Compile Include="SMTP\OverQuotaRecipientRefusal.cs" />
     <Compile Include="SMTP\PerDomainRelay.cs" />
     <Compile Include="SMTP\QuotaWarning.cs" />
@@ -435,6 +436,7 @@
     <Compile Include="IMAP\TombstoneRetention.cs" />
     <Compile Include="IMAP\SharedMailboxes.cs" />
     <Compile Include="SMTP\ProxyProtocol.cs" />
+    <Compile Include="SMTP\DomainTransforms.cs" />
     <Compile Include="SMTP\OutOfOfficeScope.cs" />
     <Compile Include="SMTP\BinaryMime.cs" />
     <Compile Include="SMTP\DistributionListModeration.cs" />
@@ -491,6 +493,7 @@
   <ItemGroup>
     <Compile Include="API\Unicode.cs" />
     <Compile Include="Infrastructure\BackupRestore.cs" />
+    <Compile Include="Infrastructure\BackupAccountStores.cs" />
     <Compile Include="Shared\TcpServer.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -523,6 +526,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AntiSpam\AuthenticationResultsHeader.cs" />
+    <Compile Include="AntiSpam\SpfEvaluation.cs" />
     <Compile Include="AntiSpam\DmarcOrganizationalDomain.cs" />
     <Compile Include="AntiSpam\FilterHook.cs" />
     <Compile Include="AntiSpam\DmarcNonExistentSubdomainPolicy.cs" />
@@ -553,6 +557,7 @@
     <Compile Include="Infrastructure\ArchiveIndexTests.cs" />
     <Compile Include="Infrastructure\ReferentialIntegrity.cs" />
     <Compile Include="Infrastructure\SchemaProbes.cs" />
+    <Compile Include="Infrastructure\SyslogExport.cs" />
     <Compile Include="Infrastructure\DatabaseRefused.cs" />
     <Compile Include="..\..\source\Tools\DBUpdater\SchemaVerification.cs">
       <Link>Infrastructure\SchemaVerification.cs</Link>
@@ -649,6 +654,7 @@
     <Compile Include="SSL\StartTls\SmtpServerTests.cs" />
     <Compile Include="API\RestApiQueue.cs" />
     <Compile Include="API\RestApiQuarantineAndAliases.cs" />
+    <Compile Include="API\RestApiReports.cs" />
     <Compile Include="API\RestApiSrvRecords.cs" />
     <Compile Include="API\ScriptReload.cs" />
     <Compile Include="API\ScriptObjectPolicy.cs" />
@@ -675,6 +681,7 @@
     <Compile Include="API\RestApiRules.cs" />
     <Compile Include="API\RestApiCertificatesAndPorts.cs" />
     <Compile Include="API\RestApiRoutesAndAliases.cs" />
+    <Compile Include="API\RestApiRemoteDomains.cs" />
     <Compile Include="API\RestApiSelfService.cs" />
     <Compile Include="API\RestApiArchive.cs" />
     <Compile Include="API\RestApiParityGaps.cs" />
@@ -721,6 +728,9 @@
     <Compile Include="API\RestApiFolderPermissions.cs" />
     <Compile Include="API\RestApiAccountMessages.cs" />
     <Compile Include="API\RestApiGroups.cs" />
+    <Compile Include="API\RestApiAuditTrail.cs" />
+    <Compile Include="API\RestApiAlerts.cs" />
+    <Compile Include="Shared\RestRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Messages\MultipartMessageWithNoMainBodyText.txt" />

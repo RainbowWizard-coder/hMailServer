@@ -61,7 +61,9 @@ namespace HM
 
       property_set_ = std::shared_ptr<PropertySet>(new PropertySet());
       property_set_->Refresh();
-      
+
+      EnsureSettingDefaults_();
+
       pop3_configuration_ = std::shared_ptr<POP3Configuration>(new POP3Configuration);
       smtp_configuration_ = std::shared_ptr<SMTPConfiguration>(new SMTPConfiguration);
       imap_configuration_ = std::shared_ptr<IMAPConfiguration>(new IMAPConfiguration);
@@ -89,7 +91,30 @@ namespace HM
       return imap_configuration_->Load();
    }
 
-   void 
+   void
+   Configuration::EnsureSettingDefaults_()
+   {
+      if (!property_set_)
+         return;
+
+      // The syslog sink. Every default is the server as it has always been: off,
+      // with nowhere to send to. The rows exist all the same, because a read of a
+      // missing property reports HM5015 - see PropertySet::EnsureLong.
+      property_set_->EnsureLong(PROPERTY_SYSLOG_ENABLED, 0);
+      property_set_->EnsureString(PROPERTY_SYSLOG_HOST, _T(""));
+      property_set_->EnsureLong(PROPERTY_SYSLOG_PORT, 514);
+      property_set_->EnsureLong(PROPERTY_SYSLOG_TRANSPORT, 0);          // UDP
+      property_set_->EnsureLong(PROPERTY_SYSLOG_FACILITY, 2);           // mail
+      property_set_->EnsureLong(PROPERTY_SYSLOG_SEVERITY, 6);           // informational
+
+      // SMTP, POP3, IMAP and application events, which is what an administrator
+      // watching a mail server wants. TCP/IP and debug are left out: both are
+      // diagnostic chatter, and a collector charged by volume is a real cost.
+      property_set_->EnsureLong(PROPERTY_SYSLOG_LOGTYPES,
+         Logger::LSSMTP | Logger::LSPOP3 | Logger::LSApplication | Logger::LSIMAP);
+   }
+
+   void
    Configuration::OnPropertyChanged(std::shared_ptr<Property> pProperty)
    {
       String sPropertyName = pProperty->GetName();
@@ -450,6 +475,109 @@ namespace HM
       GetSettings()->SetLong(PROPERTY_LOGDEVICE, newVal);
    }
 
+   bool
+   Configuration::GetSyslogEnabled() const
+   {
+      return GetSettings()->GetBool(PROPERTY_SYSLOG_ENABLED);
+   }
+
+   void
+   Configuration::SetSyslogEnabled(bool newVal)
+   {
+      GetSettings()->SetBool(PROPERTY_SYSLOG_ENABLED, newVal);
+   }
+
+   String
+   Configuration::GetSyslogHost() const
+   {
+      return GetSettings()->GetString(PROPERTY_SYSLOG_HOST);
+   }
+
+   void
+   Configuration::SetSyslogHost(const String &newVal)
+   {
+      GetSettings()->SetString(PROPERTY_SYSLOG_HOST, newVal);
+   }
+
+   long
+   Configuration::GetSyslogPort() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SYSLOG_PORT);
+   }
+
+   void
+   Configuration::SetSyslogPort(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_SYSLOG_PORT, newVal);
+   }
+
+   long
+   Configuration::GetSyslogTransport() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SYSLOG_TRANSPORT);
+   }
+
+   void
+   Configuration::SetSyslogTransport(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_SYSLOG_TRANSPORT, newVal);
+   }
+
+   long
+   Configuration::GetSyslogFacility() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SYSLOG_FACILITY);
+   }
+
+   void
+   Configuration::SetSyslogFacility(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_SYSLOG_FACILITY, newVal);
+   }
+
+   long
+   Configuration::GetSyslogMinimumSeverity() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SYSLOG_SEVERITY);
+   }
+
+   void
+   Configuration::SetSyslogMinimumSeverity(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_SYSLOG_SEVERITY, newVal);
+   }
+
+   long
+   Configuration::GetSyslogLogTypes() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SYSLOG_LOGTYPES);
+   }
+
+   void
+   Configuration::SetSyslogLogTypes(long newVal)
+   {
+      GetSettings()->SetLong(PROPERTY_SYSLOG_LOGTYPES, newVal);
+   }
+
+   bool
+   Configuration::GetSyslogLogType(int mask) const
+   {
+      return (GetSettings()->GetLong(PROPERTY_SYSLOG_LOGTYPES) & mask) != 0;
+   }
+
+   void
+   Configuration::SetSyslogLogType(int mask, bool enabled)
+   {
+      long types = GetSettings()->GetLong(PROPERTY_SYSLOG_LOGTYPES);
+
+      if (enabled)
+         types |= mask;
+      else
+         types &= ~mask;
+
+      GetSettings()->SetLong(PROPERTY_SYSLOG_LOGTYPES, types);
+   }
+
    String 
    Configuration::GetBackupDestination() const
    {
@@ -694,6 +822,141 @@ namespace HM
    Configuration::GetCreateDefaultSpecialUseFolders()
    {
       return GetSettings()->GetBool(PROPERTY_CREATE_DEFAULT_SPECIAL_USE_FOLDERS);
+   }
+
+   bool
+   Configuration::GetAuditTrailEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_AUDIT_TRAIL_ENABLED);
+   }
+
+   void
+   Configuration::SetAuditTrailEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_AUDIT_TRAIL_ENABLED, enabled);
+   }
+
+   int
+   Configuration::GetAuditRetentionDays()
+   {
+      return GetSettings()->GetLong(PROPERTY_AUDIT_RETENTION_DAYS);
+   }
+
+   void
+   Configuration::SetAuditRetentionDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_AUDIT_RETENTION_DAYS, days < 0 ? 0 : days);
+   }
+
+   bool
+   Configuration::GetAlertsEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_ALERTS_ENABLED);
+   }
+
+   void
+   Configuration::SetAlertsEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_ALERTS_ENABLED, enabled);
+   }
+
+   String
+   Configuration::GetAlertRecipient()
+   {
+      return GetSettings()->GetString(PROPERTY_ALERT_RECIPIENT);
+   }
+
+   void
+   Configuration::SetAlertRecipient(const String &address)
+   {
+      GetSettings()->SetString(PROPERTY_ALERT_RECIPIENT, address);
+   }
+
+   String
+   Configuration::GetAlertSenderAddress()
+   {
+      return GetSettings()->GetString(PROPERTY_ALERT_SENDER_ADDRESS);
+   }
+
+   void
+   Configuration::SetAlertSenderAddress(const String &address)
+   {
+      GetSettings()->SetString(PROPERTY_ALERT_SENDER_ADDRESS, address);
+   }
+
+   bool
+   Configuration::GetAlertDigestEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_ALERT_DIGEST_ENABLED);
+   }
+
+   void
+   Configuration::SetAlertDigestEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_ALERT_DIGEST_ENABLED, enabled);
+   }
+
+   int
+   Configuration::GetAlertDigestHour()
+   {
+      int hour = GetSettings()->GetLong(PROPERTY_ALERT_DIGEST_HOUR);
+
+      // An hour outside the day would mean a digest that never goes out, which
+      // looks exactly like a digest with nothing in it.
+      if (hour < 0 || hour > 23)
+         return 7;
+
+      return hour;
+   }
+
+   void
+   Configuration::SetAlertDigestHour(int hour)
+   {
+      GetSettings()->SetLong(PROPERTY_ALERT_DIGEST_HOUR, (hour < 0 || hour > 23) ? 7 : hour);
+   }
+
+   int
+   Configuration::GetAlertMaxPerHour()
+   {
+      int maximum = GetSettings()->GetLong(PROPERTY_ALERT_MAX_PER_HOUR);
+
+      // 0 is the value a database that never got the row answers with, and it
+      // would mean "send nothing" - which is a feature switched off by an
+      // upgrade rather than by a person.
+      if (maximum <= 0)
+         return 20;
+
+      return maximum;
+   }
+
+   void
+   Configuration::SetAlertMaxPerHour(int maximum)
+   {
+      GetSettings()->SetLong(PROPERTY_ALERT_MAX_PER_HOUR, maximum <= 0 ? 20 : maximum);
+   }
+
+   int
+   Configuration::GetAlertWebhookMaxAttempts()
+   {
+      int attempts = GetSettings()->GetLong(PROPERTY_ALERT_WEBHOOK_MAX_ATTEMPTS);
+
+      if (attempts <= 0)
+         return 5;
+      if (attempts > 20)
+         return 20;
+
+      return attempts;
+   }
+
+   void
+   Configuration::SetAlertWebhookMaxAttempts(int attempts)
+   {
+      if (attempts <= 0)
+         attempts = 5;
+      if (attempts > 20)
+         attempts = 20;
+
+      GetSettings()->SetLong(PROPERTY_ALERT_WEBHOOK_MAX_ATTEMPTS, attempts);
    }
 
    int

@@ -31,8 +31,12 @@
 #include "../Common/AntiSpam/SpamTestResult.h"
 #include "../Common/Util/Math.h"
 #include "../Common/Util/SignatureAdder.h"
+#include "../Common/Util/DisclaimerAdder.h"
+#include "../Common/Persistence/PersistentKnownSender.h"
 #include "../Common/BO/Routes.h"
 #include "../Common/BO/RouteAddresses.h"
+#include "../Common/BO/RemoteDomainPolicies.h"
+#include "../Common/BO/RemoteDomainPolicy.h"
 #include "../Common/BO/MessageRecipient.h"
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Util/ByteBuffer.h"
@@ -72,6 +76,8 @@
 #include "../Common/Util/DiskSpace.h"
 #include "../Common/Util/RateLimiter.h"
 #include "../Common/SQL/DatabaseUnavailableMarker.h"
+
+#include "RecipientCallout.h"
 
 #include "SMTPConnection.h"
 #include "../Common/Application/ACLManager.h"
@@ -762,6 +768,54 @@ namespace HM
       if (!CheckIfValidSenderAddress(sFromAddress))
          return;
 
+      // The inbound half of a remote domain policy: mail from a named domain
+      // must arrive encrypted.
+      //
+      // The outbound half stops this server sending a partner's mail in the
+      // clear; without this one the partner can still send OURS in the clear,
+      // and a rule that covers one direction of a correspondence is not a rule
+      // about the correspondence. RFC 8689's REQUIRETLS is the sender asking;
+      // this is the administrator saying.
+      //
+      // At MAIL FROM because that is the first moment the sending domain is
+      // known, and before a recipient is validated so that nothing about the
+      // addresses here is revealed over a cleartext session.
+      //
+      // Not applied to an authenticated session: that is one of this server's
+      // own people submitting mail, judged by the port's own connection
+      // security and by the IP range's RequireTLSForAuth, and a policy about a
+      // remote domain has nothing to say about it.
+      //
+      // Nor to a configured incoming relay. The hop from a front-end filter or a
+      // gateway is this organisation's own network, and the hop the policy is
+      // about - the partner's server to the internet-facing machine - happened
+      // before it, where this server cannot see it. Refusing here would stop the
+      // partner's mail at the last internal hop without having secured the first;
+      // that gateway is where inbound TLS has to be required, and the
+      // documentation says so.
+      if (!isAuthenticated_ && !IsSSLConnection() &&
+          !Configuration::Instance()->GetSMTPConfiguration()->GetIncomingRelays()->IsIncomingRelay(GetRemoteEndpointAddress()))
+      {
+         std::shared_ptr<RemoteDomainPolicies> policies =
+            Configuration::Instance()->GetSMTPConfiguration()->GetRemoteDomainPolicies();
+
+         std::shared_ptr<RemoteDomainPolicy> senderPolicy = policies
+            ? policies->GetPolicyForDomain(StringParser::ExtractDomain(sFromAddress).ToLower())
+            : std::shared_ptr<RemoteDomainPolicy>();
+
+         if (senderPolicy && senderPolicy->GetRequireInboundTls())
+         {
+            LOG_SMTP(GetSessionID(), GetIPAddressString(), "MAIL FROM refused: the remote domain policy for " +
+               senderPolicy->GetDomainName() + " requires TLS on inbound mail and this session is not encrypted.");
+
+            // 530 with 5.7.0, which is what this server already answers a
+            // session that must issue STARTTLS first, so a sending server
+            // meets one refusal for one condition however it was reached.
+            SendResponse_(530, _T("5.7.0"), _T("Must issue STARTTLS first. This server requires an encrypted session for mail from this domain."));
+            return;
+         }
+      }
+
       // An authenticated session may only send as an address its account owns or
       // has been granted, when SmtpAuthenticatedSenderCheck is on. Off by default,
       // because until 5 September 2026 nothing constrained this at all and an
@@ -1437,6 +1491,60 @@ namespace HM
                // The sender is greylisted. We don't log to awstats here,
                // since we tell the client to try again later.
                SendErrorResponse_(451, "Please try again later.");
+               return;
+            }
+         }
+      }
+
+      // The backup-MX recipient callout, if a policy for this recipient's domain
+      // asks for one.
+      //
+      // HERE, last of the refusals, for three reasons. The relay and
+      // authentication decisions have been made, so this server never opens a
+      // session to a stranger's server on behalf of a client it was going to
+      // refuse anyway - which is what would make it a reflector. The DNS
+      // blacklists and greylisting have had their say, so a listed sender, or
+      // a first attempt that greylisting is about to answer 451, costs the
+      // primary nothing. And CheckDeliveryPossibility has run, so an address
+      // this server knows the answer to - a local account, an alias, a list -
+      // never reaches a callout at all.
+      //
+      // Never for an authenticated session: that is one of our own people
+      // sending, and asking a third party to vet their recipients would leak the
+      // correspondence and slow every submission down.
+      //
+      // RecipientCallout answers Unknown for everything that is not a clear
+      // permanent refusal from the primary, and Unknown accepts - so a primary
+      // that is unreachable, slow, or answering 4xx leaves this server exactly
+      // where it was before the policy existed. It also refuses to call out for
+      // a domain this server is authoritative for.
+      if (!isAuthenticated_)
+      {
+         std::shared_ptr<RemoteDomainPolicies> policies =
+            Configuration::Instance()->GetSMTPConfiguration()->GetRemoteDomainPolicies();
+
+         std::shared_ptr<RemoteDomainPolicy> recipientPolicy = policies
+            ? policies->GetPolicyForDomain(StringParser::ExtractDomain(sRecipientAddress).ToLower())
+            : std::shared_ptr<RemoteDomainPolicy>();
+
+         if (recipientPolicy && recipientPolicy->GetCalloutEnabled())
+         {
+            String calloutReason;
+
+            if (RecipientCallout::Instance()->Verify(sRecipientAddress, recipientPolicy, calloutReason) ==
+                RecipientCallout::CalloutRejected)
+            {
+               LOG_SMTP(GetSessionID(), GetIPAddressString(), "RCPT TO refused by recipient verification: " + calloutReason);
+
+               AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
+
+               // The remote's own words are deliberately NOT repeated back. This
+               // server is relaying somebody else's answer to a third party, and
+               // a verbatim reply would make it a readable oracle over the other
+               // domain's directory; the exact reply is in this server's log,
+               // where its own administrator can read it.
+               SendResponse_(550, _T("5.1.1"),
+                  _T("Recipient address rejected: the mail server for this domain does not accept it."));
                return;
             }
          }
@@ -2194,7 +2302,26 @@ namespace HM
 
       SetMessageSignature_(pMsgData);
 
-      if (pMsgData && !pMsgData->WriteReported(PersistentMessage::GetFileName(current_message_), "The message signature"))
+      // The sender domain's legal footer, on the same MessageData the signature
+      // was just appended to and committed by the same single write below.
+      // Beside the signature on purpose: this is the one place on this server
+      // where an outgoing message's body is modified, and a second one would be
+      // a second thing to keep correct. It is also before DKIMSigner::Sign,
+      // which runs at delivery, so this server's own signature covers the
+      // footer rather than being broken by it.
+      //
+      // The third argument is this session's answer to "is this message ours":
+      // a message relayed in from outside that merely claims one of our domains
+      // as its envelope sender must not have a customer's legal text attached.
+      DisclaimerAdder::Append(current_message_, sender_domain_,
+                              isAuthenticated_ || sender_account_ != nullptr,
+                              pMsgData);
+
+      // Who this account writes to is somebody it knows, so their reply is not
+      // a first contact.
+      RememberOutgoingRecipients_();
+
+      if (pMsgData && !pMsgData->WriteReported(PersistentMessage::GetFileName(current_message_), "The message signature and the domain disclaimer"))
       {
          // WriteReported has already put the failure itself in the error log; what
          // belongs here is the consequence, because it is what an administrator
@@ -2251,6 +2378,32 @@ namespace HM
       AuthenticationResultsWriter::Write(PersistentMessage::GetFileName(current_message_),
                                          current_message_,
                                          authentication_results_);
+   }
+
+   void
+   SMTPConnection::RememberOutgoingRecipients_()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Records each recipient of this message as somebody the signed-in account
+   // has written to, which is what stops their reply being announced to the
+   // reader as a first contact. Costs nothing unless the sender's domain asks
+   // for the note.
+   //
+   // Only for a session that authenticated. On an unauthenticated one the
+   // envelope sender is a claim rather than a fact, and believing it would let
+   // anybody seed an account's memory with the addresses they meant to write
+   // from, silencing the note in advance - which is the one thing the note is
+   // there to prevent.
+   //---------------------------------------------------------------------------()
+   {
+      if (!isAuthenticated_ || !sender_account_ || !sender_domain_ || !current_message_)
+         return;
+
+      if (!sender_domain_->GetFirstContactTip())
+         return;
+
+      for (auto recipient : current_message_->GetRecipients()->GetVector())
+         PersistentKnownSender::RememberOutgoing(sender_account_->GetID(), recipient->GetAddress());
    }
 
    void

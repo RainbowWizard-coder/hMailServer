@@ -13,6 +13,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/RoleManager.h"
 #include "../Common/Util/Parsing/StringParser.h"
+#include "../Common/Util/AuditTrail.h"
 
 #include "COMError.h"
 
@@ -240,12 +241,22 @@ namespace HM
       // than once when the credential was authenticated - because DCOM does
       // not promise that the thread which authenticated is the thread that
       // later sets a property. Every administrative entry point in COM asks
-      // one of the four authority questions below before it changes anything,
+      // one of the authority questions below before it changes anything,
       // so the actor is in place on the right thread for the write that
       // follows, and is replaced by the next question rather than left to go
       // stale. It is the credential of the object being used, which is what
       // "who did this" means.
+      //
+      // Two actors, installed together from the one grant: RoleManager's, and
+      // the audit trail's, which is what AuditTrail::RecordStatement and
+      // RecordSettingChange read when the write that follows lands. This is
+      // the COM half of the audit trail's identity chokepoint (see
+      // AuditTrail.h and build/check-audit-choke-point.py), and it is reached
+      // from every question - GetIsServerAdmin and GetIsDomainAdmin as before,
+      // and the three a narrow role's entry points ask - so a password a help
+      // desk resets over COM is on the record as the help desk's.
       RoleManager::SetCurrentActor(GetActor());
+      AuditTrail::SetActor(GetAuditActor());
    }
 
    bool
@@ -311,6 +322,45 @@ namespace HM
       actor.account_id = account_->GetID();
       actor.domain_id = account_->GetDomainID();
       actor.grant = grant_;
+
+      return actor;
+   }
+
+   /*
+      Who this COM call is being made by, for the audit trail. Empty (present ==
+      false) for an unauthenticated caller, which cannot write anything anyway.
+
+      The address is deliberately blank: a COM call arrives through DCOM with no
+      peer address this process can see, and inventing one would be worse than
+      saying nothing. What the row does say is the interface - COM - which is the
+      Control Panel, hmconfig.ps1, DBSetup, a script, or anything else holding the
+      administrator password.
+
+      The kind and the role are read from the grant this credential was given
+      when it authenticated, the grant every decision above is made from - not
+      from AdminLevel. Before roles the two were the same thing; now an account
+      whose AdminLevel is DomainAdmin can hold the help desk role, and recording
+      it as an administrator because of the column would describe authority it
+      does not have. "administrator" is the administrator password and the two
+      grants that have always meant administrator (serveradmin, domainadmin);
+      every other account is an "account", and the role it acted under, when it
+      holds one, is recorded beside the change.
+   */
+   AuditTrail::Actor
+   COMAuthentication::GetAuditActor() const
+   {
+      AuditTrail::Actor actor;
+
+      if (!account_)
+         return actor;
+
+      actor.present = true;
+      actor.name = account_->GetAddress();
+      actor.interface_name = _T("COM");
+      actor.kind = RoleManager::IsAdministratorGrant(grant_) ? _T("administrator") : _T("account");
+
+      if (grant_.administrative)
+         actor.role = grant_.name;
 
       return actor;
    }

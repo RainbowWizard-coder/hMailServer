@@ -428,6 +428,13 @@ namespace HM
    }
 
    bool
+   RoleManager::IsAdministratorGrant(const RoleGrant &grant)
+   {
+      return grant.administrative &&
+             (grant.Holds(RolePermission::AdministerServer) || grant.Holds(RolePermission::AdministerDomain));
+   }
+
+   bool
    RoleManager::AssignmentReachesEveryDomain(const String &roleName, const String &domains)
    {
       String list = domains;
