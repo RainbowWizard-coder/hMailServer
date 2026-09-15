@@ -38,6 +38,7 @@
 #include "../Common/Application/Application.h"
 #include "../Common/Application/Version.h"
 #include "../Common/Application/IniFileSettings.h"
+#include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/Utilities.h"
 #include "../Common/Application/Constants.h"
@@ -128,6 +129,16 @@ namespace
          "                    run every upgrade script from the database's version\n"
          "                    to this build's, in order. What DBUpdater does on\n"
          "                    Windows. The installer's post-install step runs it.\n"
+         "  --set-setting NAME=VALUE\n"
+         "                    store one [Settings] value in the database, which is\n"
+         "                    the settings store, write the server's copy of it into\n"
+         "                    the configuration file, and exit. For the settings the\n"
+         "                    server has to have before its REST API can be reached\n"
+         "                    - RestApiPort above all. Editing the file instead sets\n"
+         "                    nothing: the stored value wins at the next start. The\n"
+         "                    name must be one this server reads; the value applies\n"
+         "                    when the server next starts or is reloaded. Run it as\n"
+         "                    root, as --set-admin-password is: the file is root's.\n"
          "  --version         print the version and exit\n"
          "  --help            print this and exit\n"
          "\n"
@@ -402,11 +413,188 @@ namespace
       std::printf("Upgraded in %d step%s; the database is at schema version %d.\n", steps, steps == 1 ? "" : "s", current);
       return 0;
    }
+
+   // --set-setting NAME=VALUE.
+   //
+   // From schema 6042 the database is the settings store and the [Settings]
+   // section of the configuration file is the server's copy of it: a value
+   // edited into the file is named in the error log (HM5804) and put back at the
+   // next start. That closes the one door a Linux administrator had to the
+   // setting they need FIRST - the packaged file ships RestApiPort=0, the first
+   // start adopts it as stored, and hmctl cannot turn the listener on because
+   // it needs the listener. So this is the door: the same write the Control
+   // Panel and PUT /api/v1/settings/ini/{name} make, the row first and the file
+   // second (IniSettingStore::WriteSetting says why that order), with the
+   // database opened the way the server opens it and closed again.
+   //
+   // Refused: a name the store could not hold or a value it could not (the
+   // sentences SetIniSetting uses over COM), and a name this build does not
+   // read, since storing it would change nothing and say it had. The file must
+   // be writable by this user: on the packaged layout it is root's, 0640, and
+   // a row stored without its line would be reported at every start (HM5803)
+   // until somebody could write the line - so the refusal comes first and says
+   // to use sudo, as --set-admin-password does.
+   int SetSetting(const std::string &assignment)
+   {
+      const std::string::size_type equals = assignment.find('=');
+      if (equals == std::string::npos || equals == 0)
+      {
+         std::fprintf(stderr, "--set-setting takes NAME=VALUE, for example --set-setting RestApiPort=8080.\n");
+         return 2;
+      }
+
+      HM::String name(assignment.substr(0, equals).c_str());
+      HM::String value(assignment.substr(equals + 1).c_str());
+      name.Trim();
+      value.Trim();
+
+      if (!HM::IniSettingStore::IsStorableName(name))
+      {
+         std::fprintf(stderr, "'%s' cannot be a setting name: it is empty, longer than 100 characters, or contains one of = [ ] or a line break.\n",
+            HM::AnsiString(name).c_str());
+         return 2;
+      }
+
+      if (!HM::IniSettingStore::IsStorableValue(value))
+      {
+         std::fprintf(stderr, "The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.\n");
+         return 2;
+      }
+
+      HM::String spelling;
+      if (!HM::IniSettingStore::IsSettingTheServerReads(name, spelling))
+      {
+         std::fprintf(stderr, "'%s' is not a [Settings] key this server reads, so storing it would change nothing. "
+            "The keys are the ones README.md lists under Settings. A setting of your own - one an event script reads - "
+            "is stored over the REST API, PUT /api/v1/settings/ini/{name}, which takes any name.\n",
+            HM::AnsiString(name).c_str());
+         return 2;
+      }
+      name = spelling;
+
+      // Reads the file, and refuses the two Windows-only backends by name before
+      // a connection is tried.
+      std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
+      if (!ReadDatabaseSettings(withDatabase, serverOnly))
+         return 2;
+
+      const HM::AnsiString iniFile(HM::IniFileSettings::GetInitializationFile());
+      if (::access(iniFile.c_str(), W_OK) != 0)
+      {
+         std::fprintf(stderr, "%s is not writable by this user, and the server's copy of the setting is written there as well as into the database. "
+            "Run this as root (sudo hmailserver --set-setting %s), as --set-admin-password is run: the file keeps its owner and mode.\n",
+            iniFile.c_str(), assignment.c_str());
+         return 1;
+      }
+
+      // One plain connection first, as --upgrade-database makes it, to say why
+      // the database cannot be reached and what version it is at. The server's
+      // own OpenDatabase below reports a failure through ErrorManager into the
+      // error log - which, with this running as root, would leave today's error
+      // log owned by root and unwritable by the service. A wrong password in
+      // [Database] is the ordinary failure here, and it is answered on standard
+      // error before anything can touch the log directory.
+      {
+         std::shared_ptr<HM::DALConnection> probe = Connect(withDatabase, "the database");
+         if (!probe)
+         {
+            std::fprintf(stderr, "Nothing was changed.\n");
+            return 1;
+         }
+
+         const int version = ReadSchemaVersion(probe);
+         if (version == 0)
+         {
+            std::fprintf(stderr, "The database has no hm_dbversion row, so it is not an hMailServer database or was never created. --create-database makes one; nothing was changed.\n");
+            return 1;
+         }
+         if (version < REQUIRED_DB_VERSION)
+         {
+            std::fprintf(stderr, "The database is at schema version %d and this build needs %d. Run --upgrade-database first; nothing was changed.\n",
+               version, REQUIRED_DB_VERSION);
+            return 1;
+         }
+         if (version > REQUIRED_DB_VERSION)
+         {
+            std::fprintf(stderr, "The database is at schema version %d and this build needs %d: it was created by a NEWER hMailServer, and this build will not write to it. Nothing was changed.\n",
+               version, REQUIRED_DB_VERSION);
+            return 1;
+         }
+      }
+
+      // The store writes through the connection manager the server runs on, so
+      // the database is opened the way the server opens it.
+      HM::String error;
+      if (!HM::Application::Instance()->OpenDatabase(error))
+      {
+         std::fprintf(stderr, "Could not open the database: %s\nNothing was changed.\n", HM::AnsiString(error).c_str());
+         return 1;
+      }
+
+      int result = 1;
+      {
+         // What the store held, for the line printed below. A key kept in the
+         // file only - the password pepper - has no row on purpose and is written
+         // to the file alone; WriteSetting knows which is which.
+         const bool fileOnly = HM::IniSettingStore::IsFileOnlyName(name);
+         std::map<HM::String, std::pair<HM::String, HM::String> > rows;
+         HM::IniSettingStore::ReadAllRows(rows);
+         const bool had = rows.find(name) != rows.end();
+         const HM::String previousValue(had ? rows[name].first : HM::String());
+
+         if (HM::IniFileSettings::Instance()->WriteSettingsValue(name, value))
+         {
+            // A secret is not echoed, and the one it replaced least of all: the
+            // new value was typed on this command line, the old one was not.
+            const bool secret = HM::IniSettingStore::IsSecretName(name);
+            const HM::AnsiString shown(name);
+            const HM::AnsiString stored(secret && !value.IsEmpty() ? HM::String(_T("(set)")) : value);
+            const HM::AnsiString previous(secret && !previousValue.IsEmpty() ? HM::String(_T("(set)")) : previousValue);
+
+            if (fileOnly)
+            {
+               std::printf("%s=%s written to %s. This key is kept in the file only, never in the database - see the note on PasswordPepper in the README - and applies when the server next starts.\n",
+                  shown.c_str(), stored.c_str(), iniFile.c_str());
+            }
+            else if (had)
+            {
+               std::printf("%s=%s stored in the database (hm_inisettings), where it was %s, and written to %s. It applies when the server next starts or is reloaded: systemctl restart hmailserver.\n",
+                  shown.c_str(), stored.c_str(), previous.IsEmpty() ? "empty" : previous.c_str(), iniFile.c_str());
+            }
+            else
+            {
+               std::printf("%s=%s stored in the database (hm_inisettings) as a new row and written to %s. It applies when the server next starts or is reloaded: systemctl restart hmailserver.\n",
+                  shown.c_str(), stored.c_str(), iniFile.c_str());
+            }
+
+            // The one thing that would make the line above untrue, said now
+            // rather than found in the error log at the next start.
+            std::map<HM::String, HM::String> overrides;
+            HM::IniSettingStore::ReadOverrides(overrides);
+            std::map<HM::String, HM::String>::const_iterator forced = overrides.find(name);
+            if (forced != overrides.end())
+            {
+               std::printf("Note: [SettingsOverride] in %s forces %s=%s, which is applied over the stored value at every start (HM5807). Remove it from that section to let the value stored now take effect.\n",
+                  iniFile.c_str(), shown.c_str(), HM::AnsiString(forced->second).c_str());
+            }
+
+            result = 0;
+         }
+         else
+         {
+            std::fprintf(stderr, "The setting could not be stored: the database could not be written. Nothing has been changed.\n");
+         }
+      }
+
+      HM::Application::Instance()->CloseDatabase();
+      return result;
+   }
 }
 
 int main(int argc, char *argv[])
 {
    std::string configuration;
+   std::string set_setting;
    bool check_only = false;
    bool set_password = false;
    bool create_database = false;
@@ -445,6 +633,16 @@ int main(int argc, char *argv[])
       if (argument == "--upgrade-database")
       {
          upgrade_database = true;
+         continue;
+      }
+      if (argument == "--set-setting")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "--set-setting needs NAME=VALUE, for example --set-setting RestApiPort=8080.\n");
+            return 2;
+         }
+         set_setting = argv[++index];
          continue;
       }
       if (argument == "--config")
@@ -531,6 +729,9 @@ int main(int argc, char *argv[])
 
    if (upgrade_database)
       return UpgradeDatabase();
+
+   if (!set_setting.empty())
+      return SetSetting(set_setting);
 
    if (check_only)
    {

@@ -6,6 +6,7 @@
 #include "IniSettingStore.h"
 
 #include "IniFileSettings.h"
+#include "IniSettingsBaseline.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
@@ -589,6 +590,23 @@ namespace HM
          return false;
 
       return true;
+   }
+
+   bool
+   IniSettingStore::IsSettingTheServerReads(const String &name, String &spelling)
+   {
+      spelling.Empty();
+
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsKeyCount; i++)
+      {
+         if (name.CompareNoCase(IniSettingsBaseline::SettingsKeys[i]) == 0)
+         {
+            spelling = IniSettingsBaseline::SettingsKeys[i];
+            return true;
+         }
+      }
+
+      return false;
    }
 
    bool

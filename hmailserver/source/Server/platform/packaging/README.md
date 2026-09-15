@@ -198,11 +198,16 @@ fixes it, if its mode lets any account but its owner read it (HM6411). If it
 cannot be made or read, the secret is not stored and the log says so - the server
 does not fall back to the fixed-key Blowfish scheme on its own.
 
-The configuration is owned by root and only *read* by the service. It carries the
-administrator password and the database password, and nothing in a Linux build
-rewrites it - the code that would is the COM administration API, which is Windows
-only. (`--set-admin-password`, step 4 below, is the one exception, and it runs
-as root for that reason.)
+The configuration is owned by root. It carries the administrator password and
+the database password, which is why. Two commands rewrite it, both run as root
+and both keep its owner and mode: `--set-admin-password` (step 4 below) and
+`--set-setting` (step 7). The service reads it and, since schema 6042, also
+tries to keep the `[Settings]` section in step with the settings store in the
+database; on this layout it cannot write the file, so a setting changed later
+over the REST API or with `hmctl` is stored and in force but its line in the
+file lags, and the error log says so (`HM5806` when it is stored, `HM5803` at
+each start after) until the file is writable by the service. See *What is still
+owed*.
 
 ## Install and get running
 
@@ -303,10 +308,26 @@ Control Deck - a single page the package installs at
 `/usr/share/hmailserver/WebAdmin/index.html` and the server serves at `GET /`,
 with its twenty language catalogues in `WebAdmin/languages` beside it, so the
 page comes up in the browser's language, or the one chosen in its header.
-Turn on the REST API in the configuration (`RestApiPort`, and
-`RestApiBindAddress=127.0.0.1` unless you also set a certificate and key), reload
-with `sudo systemctl reload hmailserver`, and open
-`http://127.0.0.1:<RestApiPort>/` in a browser: it signs in as `Administrator`
+Turn on the REST listener with the server's own command, and restart:
+
+```sh
+sudo hmailserver --set-setting RestApiPort=8080
+sudo systemctl restart hmailserver
+```
+
+Not by editing `RestApiPort` in the file. Since schema 6042 the database is the
+settings store and the `[Settings]` section of `hMailServer.ini` is the server's
+copy of it: the first start against a database adopts every `[Settings]` line
+into the store - which is why the packaged file can ship `RestApiPort=0`, adopted
+as stored and off - and after that an edit to the file is named in the error log
+(`HM5804`) and put back at the next start. `hmctl` cannot help with this one
+setting, because it needs the listener it would be turning on. `--set-setting`
+is the door: it stores the row the way the REST API stores one, writes the
+server's copy into the file, and prints what it stored; it runs as root because
+the file is root's, and the file keeps its owner and mode. `RestApiBindAddress`
+is `127.0.0.1` in the packaged file, and stays so unless you also set a
+certificate and key (`RestApiCertificateFile`, `RestApiPrivateKeyFile`, the same
+way). Then open `http://127.0.0.1:8080/` in a browser: it signs in as `Administrator`
 with the password from step 4 and writes much of what the API can write -
 settings, domains, IP ranges, accounts and the external mailboxes they collect
 from, rules, routes, certificates, listeners and the backup. Not account
@@ -380,6 +401,14 @@ when the packaging changes.
 * **There is no re-keying command.** The stored-secret key file is made once
   and never rotated; replacing it by hand means re-entering every stored
   password, and there is no tool that re-encrypts them under a new key.
+* **The service cannot write its copy of the settings.** The configuration is
+  `root:hmailserver 0640` and the server runs as `hmailserver`, so every
+  `[Settings]` change made over the REST API or with `hmctl` is stored and
+  used but reported (`HM5806`, then `HM5803` at each start) because the line
+  in the file cannot be brought up to date. `--set-setting` sidesteps it by
+  running as root. Making the file group-writable would end the reports and
+  let the service rewrite a file that holds the database password; the choice
+  has not been made.
 * **The service does not reopen its log on a signal**, which is why the
   logrotate rule uses `copytruncate`.
 * **Directory authentication is a simple bind over LDAPS or StartTLS, and only

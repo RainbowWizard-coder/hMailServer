@@ -206,6 +206,22 @@ namespace HM
       static bool IsSecretName(const String &name);
 
       /// <summary>
+      /// Whether a name is a [Settings] key this build reads - one of the keys in
+      /// build/ini-settings-baseline.txt, carried into the binary as
+      /// IniSettingsBaseline.h - and, when it is, the key's own spelling. Matched
+      /// without case, as the file matches keys, and answered in the server's
+      /// spelling because the rows are matched WITH case (see Synchronize): a row
+      /// named restapiport beside the RestApiPort row would be a second setting on
+      /// PostgreSQL and a failed insert on the other three.
+      ///
+      /// For `hmailserver --set-setting`, which refuses any other name: storing a
+      /// key nothing reads would change nothing and report success. The REST API
+      /// and COM store any name on purpose, for a setting a script of the
+      /// administrator's own reads, and are not held to this.
+      /// </summary>
+      static bool IsSettingTheServerReads(const String &name, String &spelling);
+
+      /// <summary>
       /// Every setting name the server holds: the union of the table and the
       /// [Settings] section, which after a start are the same list.
       ///

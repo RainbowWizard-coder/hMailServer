@@ -1014,6 +1014,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\ExceptionHandler.h" />
     <ClInclude Include="..\Common\Application\FolderManager.h" />
     <ClInclude Include="..\Common\Application\IniFileSettings.h" />
+    <ClInclude Include="..\Common\Application\IniSettingsBaseline.h" />
     <ClInclude Include="..\Common\Application\IniSettingStore.h" />
     <ClInclude Include="..\Common\Application\Logger.h" />
     <ClInclude Include="..\Common\Application\NcsaLogFormatter.h" />

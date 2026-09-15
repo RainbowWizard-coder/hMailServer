@@ -261,6 +261,13 @@ What neither client does
   own backup, and that is all.
 * **It sets no administrator password.** `hmailserver --set-admin-password` on
   the server does that, and the Control Panel does it on Windows.
+* **It cannot turn the REST listener on**, since both clients need it. On a
+  Linux server `sudo hmailserver --set-setting RestApiPort=8080` stores the
+  setting - the database is the settings store since schema 6042, so editing
+  `hMailServer.ini` does not - and `sudo systemctl restart hmailserver` starts
+  the listener. The same verb stores any other `[Settings]` key the server
+  reads, for the ones needed before the API can be reached. On Windows the
+  Control Panel does this over COM.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.
