@@ -302,7 +302,9 @@ tunnel, so the certificate is verified against the real host exactly as it is on
 direct connection and the proxy sees the name it was asked for and nothing else. A
 proxy that refuses is reported with its own name and answer, so it is clear which
 hop said no. There is no place for proxy credentials: a proxy that demands them
-refuses, and that refusal is what you see.
+refuses, and that refusal is what you see. An address on this machine (`localhost`,
+`127.0.0.0/8`, `::1`) is reached directly unless the proxy is on this machine too,
+since a proxy anywhere else would reach its own loopback, not this server's.
 
 **Unattended.** `UpdateAutoDownload=1` fetches and verifies the installer as soon as
 the check finds a newer release, and `UpdateWindow` names when it may be applied
@@ -548,6 +550,7 @@ Administration and monitoring:
    HttpProxy=                    ; forward proxy (host:port, or [ipv6]:port) for EVERY web request the server
                                  ; makes as a client: the feed and its downloads, JWKS, token introspection.
                                  ; CONNECT for https, the absolute URL for http. Empty = direct. No credentials.
+                                 ; An address on this machine goes direct unless the proxy is on this machine too.
    UpdateTrustRootsFile=         ; PEM certificates trusted to have issued the release's signing certificate
                                  ; (empty = Sigstore's public Fulcio root and intermediate, embedded)
    UpdateLogPublicKeyFile=       ; the transparency log's public key (empty = Sigstore's public Rekor, embedded)

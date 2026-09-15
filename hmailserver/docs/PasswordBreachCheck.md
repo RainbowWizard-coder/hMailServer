@@ -92,15 +92,17 @@ server at that moment. It does not learn the password, the hash, the suffix, whi
 account it was for, or whether the password was found. Over https, whoever is
 between the two learns only that this server contacted that host. If `HttpProxy`
 is set in `hMailServer.ini`, the request goes through the proxy, which then learns
-the host and the time as well. A plain-http mirror on this machine is asked
-through the proxy too, and there the proxy sees the whole request, prefix
-included, and is asked for its own loopback address rather than this server's;
-leave `HttpProxy` empty when the mirror is local.
+the host and the time as well. A mirror on this machine - `localhost`, an address
+in `127.0.0.0/8`, or `::1` - is asked directly, never through a proxy elsewhere,
+which would otherwise see a plain-http request whole, prefix included, and connect
+to its own loopback address rather than this server's; only a proxy that is itself
+on this machine is still used for it.
 
 **What is never written to any log:** the password, its hash, the prefix, the
-suffix and the request path. A refusal is logged naming the account and nothing
-about the password; an endpoint that could not be used is logged with the reason,
-which names the host at most.
+suffix and the request path. A refusal is logged naming whose password it was - the
+account's address, the account an app password belongs to, or the administrator -
+and nothing about the password; an endpoint that could not be used is logged with
+the reason, which names the host at most.
 
 The default endpoint, `api.pwnedpasswords.com`, is a **third-party service**,
 Have I Been Pwned's Pwned Passwords. Pointing the setting at it is a decision to
@@ -161,13 +163,22 @@ it, which is what a page of your own should translate by.
 When the endpoint cannot be used
 --------------------------------
 
-"Cannot be used" is any of: a host name that does not resolve (resolution is the
-operating system's and takes as long as it takes), no connection within eight
-seconds (the connection itself is bounded as well as the reading), a TLS
-certificate that does not verify for the host, no answer within eight seconds, an
-HTTP status other than 200, an answer larger than 256 KB, or an answer that is not
-a list of suffixes and counts - a captive portal's sign-in page is not a verdict,
-and neither is a JSON error.
+"Cannot be used" is any of: a host name that does not resolve, a TLS certificate
+that does not verify for the host, no complete answer within **eight seconds**, an
+HTTP status other than 200, an answer larger than 256 KB, an answer with no entries
+in it at all, or an answer that is not a list of suffixes and counts - a captive
+portal's sign-in page is not a verdict, and neither is a JSON error or an empty
+page.
+
+The eight seconds are for the whole request, on Windows and on Linux alike: looking
+the name up, connecting, the TLS handshake and reading the answer to its end share
+them. An endpoint that accepts the connection and then says nothing, or sends its
+answer a byte at a time, is given up on at eight seconds exactly like one that never
+answers. That matters because the check runs on the thread that is changing the
+password - one of the REST API's worker threads, or the one a Control Panel is
+waiting on - and a hung mirror must not be able to hold it for longer than that. A
+name lookup the operating system is still working on when the eight seconds are up is
+abandoned rather than waited for.
 
 What happens then is `BreachCheckUnreachableAction`. **Allow** (the default) lets
 the change through without the check. **Refuse** refuses it with the second
@@ -242,6 +253,13 @@ A mirror is any server that answers `GET <endpoint><prefix>` with lines of
 decimal count, lines ended by CRLF or LF - for the corpus you hold. Ideally it also
 honours `Add-Padding: true`; the server does not require it.
 
+It must answer **every** prefix with at least one line. An empty answer is read as
+an endpoint that could not be used - a mirror serving empty files, or a proxy
+answering for an endpoint it could not reach, would otherwise switch the check off
+without a word in any log - so a mirror of a corpus smaller than the public one
+answers a prefix it holds nothing under with a padding entry: any thirty-five
+hexadecimal characters with a count of `0`, which can never match.
+
 The endpoint setting takes one of two forms:
 
 | Form | Example | The request for `5BAA6` |
@@ -252,8 +270,8 @@ The endpoint setting takes one of two forms:
 The server refuses, as the setting's value, anything it could not use safely:
 
 - plain `http` to anything but this machine - `localhost`, an address in
-  `127.0.0.0/8`, or `::1`, each parsed as an address (`127.example.com` is somebody
-  else's machine and is refused);
+  `127.0.0.0/8`, or `::1` (written `http://[::1]:port/`), each parsed as an address
+  (`127.example.com` is somebody else's machine and is refused);
 - a user name or password in the URL, a fragment (`#`), a query string without
   `{prefix}`, `{prefix}` more than once or any other brace, a character outside
   ASCII, a port outside 1 to 65535.
