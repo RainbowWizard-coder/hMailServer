@@ -707,7 +707,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/blocked-attachments/{id}` | BlockedAttachment | `body`, `description`, `field`, `message`, `name`, `read`, `value`, `wildcard` | - |
 | `POST /api/v1/blocked-senders` | BlockedSender | `address`, `description`, `message`, `read`, `score` | yes |
 | `PUT /api/v1/blocked-senders/{id}` | BlockedSender | `address`, `body`, `description`, `field`, `message`, `read`, `score`, `value` | - |
-| `POST /api/v1/bounces/classify` | Settings | `current`, `diagnostic`, `field`, `mailbox_full`, `read`, `status` | - |
+| `POST /api/v1/bounces/classify` | Settings | `current`, `diagnostic`, `field`, `from`, `mailbox_full`, `read`, `status`, `type` | - |
 | `POST /api/v1/bounces/expire` | Settings | `count_retention_days`, `report_window_days`, `suppression_expiry_days` | yes |
 | `POST /api/v1/calendar/expand` | ? | `all_day`, `calendar`, `end`, `first`, `last`, `limit`, `recurrence_id`, `start`, `to` | - |
 | `POST /api/v1/certificates` | SSLCertificate | `certificate_file`, `name`, `private_key_file`, `private_key_password` | yes |
