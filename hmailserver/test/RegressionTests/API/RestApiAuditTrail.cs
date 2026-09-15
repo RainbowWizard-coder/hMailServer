@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -38,7 +40,10 @@ namespace RegressionTests.API
    ///    So one test per shape of hole: a domain alias, an incoming relay, a folder
    ///    permission, and a [Settings] key over COM, over a /api/v1/settings field
    ///    and over /api/v1/settings/ini, with the value before and after and a secret
-   ///    as "(changed)". build/check-audit-choke-point.py keeps the list honest
+   ///    as "(changed)"; then the rest of the renamed and added tables in one test
+   ///    (both white lists, blocked senders, remote domain policies), a syslog
+   ///    setting over the COM setters that opened no audit scope, and a legal hold
+   ///    on an archive entry. build/check-audit-choke-point.py keeps the list honest
    ///    against the create scripts; these keep the recorder honest against the
    ///    server.
    /// </summary>
@@ -512,6 +517,174 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("A white list address, a greylisting white address, a blocked sender and a remote domain policy are each recorded when created and when deleted over COM. The first three were listed under table names that do not exist, remote domain policies were not listed at all, and RemoteDomainPolicies.DeleteByDBID opened no audit scope.")]
+      public void TheWhiteListsBlockedSendersAndRemoteDomainPoliciesAreRecorded()
+      {
+         // Each is created and deleted before anything is asserted, so a failed
+         // assertion leaves no entry behind to whitelist, block or govern mail in a
+         // later fixture.
+         var whiteList = _settings.AntiSpam.WhiteListAddresses;
+         var white = whiteList.Add();
+         white.EmailAddress = "audit-white@example.test";
+         white.LowerIPAddress = "10.77.0.1";
+         white.UpperIPAddress = "10.77.0.2";
+         white.Description = "audit trail";
+         white.Save();
+         int whiteId = white.ID;
+         whiteList.DeleteByDBID(whiteId);
+
+         var greyList = _settings.AntiSpam.GreyListingWhiteAddresses;
+         var grey = greyList.Add();
+         grey.IPAddress = "10.78.0.?";
+         grey.Description = "audit trail";
+         grey.Save();
+         int greyId = grey.ID;
+         greyList.DeleteByDBID(greyId);
+
+         var blockedSenders = _settings.AntiSpam.BlockedSenders;
+         var blocked = blockedSenders.Add();
+         blocked.Address = "audit-blocked@example.test";
+         blocked.Score = 3;
+         blocked.Description = "audit trail";
+         blocked.Save();
+         int blockedId = blocked.ID;
+         blockedSenders.DeleteByDBID(blockedId);
+
+         hMailServer.RemoteDomainPolicies policies = _settings.RemoteDomainPolicies;
+         hMailServer.RemoteDomainPolicy policy = policies.Add();
+         policy.DomainName = "audit-policy.test";
+         policy.Active = true;
+         policy.Save();
+         int policyId = policy.ID;
+         policy.Description = "audit trail, changed";
+         policy.Save();
+         policies.DeleteByDBID(policyId);
+
+         string trail = Read(AuditPath + "?limit=200");
+
+         // Created and updated rows are named by the column a person would recognise
+         // (an address, a domain name); a deletion carries only the id its WHERE
+         // clause names. Both white lists key on whiteid, so the object type is what
+         // tells their deletions apart.
+         RowWith(trail, "\"object_type\":\"white list address\"", "\"object\":\"audit-white@example.test\"", "\"action\":\"created\"");
+         RowWith(trail, "\"object_type\":\"white list address\"", "\"object\":\"whiteid " + whiteId + "\"", "\"action\":\"deleted\"");
+
+         RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"10.78.0.?\"", "\"action\":\"created\"");
+         RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"whiteid " + greyId + "\"", "\"action\":\"deleted\"");
+
+         RowWith(trail, "\"object_type\":\"blocked sender\"", "\"object\":\"audit-blocked@example.test\"", "\"action\":\"created\"");
+         RowWith(trail, "\"object_type\":\"blocked sender\"", "\"object\":\"bsid " + blockedId + "\"", "\"action\":\"deleted\"");
+
+         string created = RowWith(trail, "\"object_type\":\"remote domain policy\"", "\"object\":\"audit-policy.test\"", "\"action\":\"created\"");
+         StringAssert.Contains("\"interface\":\"COM\"", created);
+         RowWith(trail, "\"object_type\":\"remote domain policy\"", "\"object\":\"audit-policy.test\"", "\"action\":\"updated\"");
+         string deleted = RowWith(trail, "\"object_type\":\"remote domain policy\"", "\"object\":\"policyid " + policyId + "\"", "\"action\":\"deleted\"");
+         StringAssert.Contains("\"actor\":\"Administrator\"", deleted, "The deletion names who made it, which needs an actor on the thread that deleted.");
+      }
+
+      [Test]
+      [Description("A syslog setting changed over COM is recorded, over COM, with the value it had and the value it was given. The twelve Logging.Syslog* setters opened no audit scope, so whether a row was written depended on what an earlier call had left on the RPC thread.")]
+      public void ASyslogSettingChangedOverComIsRecorded()
+      {
+         // Late bound, as SyslogExport reaches these: the server answers IDispatch
+         // whatever the interop assembly was generated from.
+         //
+         // What this cannot prove is that the setter's own AuditScope put the actor
+         // there. The Settings.Logging read just before it asks GetIsServerAdmin, and
+         // RPC may run both calls on the same thread, so a setter with no scope could
+         // still find that actor. build/check-audit-choke-point.py is what holds the
+         // scope; this holds the row.
+         object logging = _settings.Logging;
+         string before = Convert.ToString(logging.GetType().InvokeMember("SyslogHost", BindingFlags.GetProperty, null, logging, null));
+         string after = before == "audit-syslog-1.example.test" ? "audit-syslog-2.example.test" : "audit-syslog-1.example.test";
+
+         logging.GetType().InvokeMember("SyslogHost", BindingFlags.SetProperty, null, logging, new object[] { after });
+
+         try
+         {
+            string trail = Read(AuditPath + "?object_type=setting&limit=50");
+
+            string row = RowWith(trail, "\"object\":\"SyslogHost\"");
+            StringAssert.Contains("\"interface\":\"COM\"", row);
+            StringAssert.Contains("\"actor\":\"Administrator\"", row);
+            StringAssert.Contains("\"action\":\"updated\"", row);
+            StringAssert.Contains("SyslogHost: " + before + " -> " + after, row,
+               "A change-control process asks for the value before as well as the value after.");
+         }
+         finally
+         {
+            logging.GetType().InvokeMember("SyslogHost", BindingFlags.SetProperty, null, logging, new object[] { before });
+         }
+      }
+
+      [Test]
+      [Description("A legal hold placed and released over REST is recorded twice, naming the archive entry, while the archive's own write of that entry as the message arrived is not recorded. hm_archiveindex was not an audited table, so the change a compliance reader looks for first left no row.")]
+      public void ALegalHoldPlacedAndReleasedIsRecordedAndTheArchivingItselfIsNot()
+      {
+         const string ArchiveKey = "ArchiveDir";
+
+         (bool present, string value) archiveBefore = StoredIniSetting(ArchiveKey);
+         string archiveRoot = Paths.Combine(Path.GetTempPath(), "hmail-audit-archive-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(archiveRoot);
+
+         try
+         {
+            // The archive directory is latched when the server starts, so the restart
+            // is what switches archiving on; TearDown's restart switches it off again
+            // once the finally below has put the setting back.
+            IniFileSetting.Write(ArchiveKey, archiveRoot);
+            _application.Reinitialize();
+
+            string subject = "Audit hold " + Guid.NewGuid().ToString("N").Substring(0, 8);
+            Account sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audit-sender@" + _domain.Name, "test");
+            Account recipient = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audit-holder@" + _domain.Name, "test");
+            SmtpClientSimulator.StaticSend(sender.Address, recipient.Address, subject, "Body text.");
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+            // The recipient's received copy only: the sender's Sent copy is in the
+            // other mailbox.
+            string found = Read("/api/v1/archive?mailbox=audit-holder&subject=" + Uri.EscapeDataString(subject));
+            List<string> ids = Values(found, "id");
+            Assert.AreEqual(1, ids.Count, "The received copy was archived and indexed. Body: " + found);
+            string id = ids[0];
+
+            (int status, string body) placed = Http("POST", "/api/v1/archive/" + id + "/hold");
+            Assert.AreEqual(200, placed.status, placed.body);
+
+            (int status, string body) released = Http("DELETE", "/api/v1/archive/" + id + "/hold");
+            Assert.AreEqual(200, released.status, released.body);
+
+            string trail = Read(AuditPath + "?object_type=archive+entry&limit=50");
+
+            string holdRow = RowWith(trail, "\"object\":\"archiveid " + id + "\"", "\"action\":\"updated\"", "hold=1");
+            StringAssert.Contains("\"interface\":\"REST\"", holdRow);
+            StringAssert.Contains("\"address\":\"127.0.0.1\"", holdRow);
+
+            RowWith(trail, "\"object\":\"archiveid " + id + "\"", "\"action\":\"updated\"", "hold=0");
+
+            // The negative control. The same table was written when the message came in,
+            // by the SMTP session with nobody behind it; a recorder that recorded that
+            // would fill the trail with every message the server archives.
+            StringAssert.DoesNotContain("\"action\":\"created\"", trail,
+               "Archiving a message is traffic: only an administrator's change to the archive is recorded. Body: " + trail);
+         }
+         finally
+         {
+            RestoreIniSetting(ArchiveKey, archiveBefore);
+
+            try
+            {
+               Directory.Delete(archiveRoot, true);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // Best effort: the server keeps the directory until TearDown's restart,
+               // and a temporary directory left behind changes no later test.
+            }
+         }
+      }
+
       // ---- helpers -----------------------------------------------------------
 
       // Three changes of three different shapes, so that a chain test is not
@@ -580,7 +753,51 @@ namespace RegressionTests.API
          (int status, string body) answer = Http("GET", "/api/v1/settings/ini/" + key);
          Assert.AreEqual(200, answer.status, answer.body);
 
-         return (Extract(answer.body, "present") == "true", Extract(answer.body, "value"));
+         return (Extract(answer.body, "present") == "true", JsonString(answer.body, "value"));
+      }
+
+      // The string value of one key in a flat JSON object, unescaped. Extract stops at
+      // the first comma and leaves escapes as they arrive, which is enough for an id or
+      // a number and wrong for a stored path: "C:\\Temp" put back as it was read would
+      // be stored with its backslashes doubled, and a value with a comma in it cut short.
+      private static string JsonString(string json, string key)
+      {
+         string needle = "\"" + key + "\":\"";
+         int at = json.IndexOf(needle, StringComparison.Ordinal);
+         Assert.IsTrue(at >= 0, "No string '" + key + "' in: " + json);
+
+         var value = new StringBuilder();
+         for (int i = at + needle.Length; i < json.Length; i++)
+         {
+            char character = json[i];
+
+            if (character == '"')
+               return value.ToString();
+
+            if (character == '\\' && i + 1 < json.Length)
+            {
+               char escaped = json[++i];
+               switch (escaped)
+               {
+                  case 'n': value.Append('\n'); break;
+                  case 'r': value.Append('\r'); break;
+                  case 't': value.Append('\t'); break;
+                  case 'u':
+                     Assert.IsTrue(i + 4 < json.Length, "A truncated \\u escape in: " + json);
+                     value.Append((char) Convert.ToInt32(json.Substring(i + 1, 4), 16));
+                     i += 4;
+                     break;
+                  default: value.Append(escaped); break;
+               }
+
+               continue;
+            }
+
+            value.Append(character);
+         }
+
+         Assert.Fail("The string '" + key + "' is not terminated in: " + json);
+         return null;
       }
 
       // Puts a key back as StoredIniSetting found it: the value it had, or no stored
