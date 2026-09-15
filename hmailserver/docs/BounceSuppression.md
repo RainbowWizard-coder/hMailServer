@@ -251,12 +251,15 @@ acceptance **sets the run aside** in the register row it writes, and the count s
   message fails as well;
 * when a message **the register does not hold** - one without a Message-ID, or one
   delivered while `read_delivery_reports` was off - was delivered to the address
-  after the reported message was sent, the report adds nothing.
+  after the reported message was sent, the report adds nothing. That is known only
+  for an address that already had a count row at the time, since a delivery to an
+  address that has never bounced is not written anywhere.
 
 Every case that cannot be decided adds nothing, so the run can come out short -
 reports for two messages that arrive in the reverse of the order the messages were
-sent in count one, not two - and never long: an address a message was delivered to
-between two failures is not listed by the second.
+sent in count one, not two. It comes out long in one case only: an address that had
+never bounced, sent a message the register holds and then one it does not, both
+before the first message's report arrives, or sent that second one within the same second as the first - and then only by that one report.
 
 What the list does
 ------------------

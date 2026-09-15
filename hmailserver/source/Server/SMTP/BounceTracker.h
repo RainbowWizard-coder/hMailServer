@@ -151,7 +151,12 @@ namespace HM
       //     reported is not a delivery either, so what was set aside comes back).
       // Every case that cannot be decided adds nothing: the run can come out short
       // - reports that arrive for two messages in the reverse of the order they
-      // were sent in - and never long, so a live address is not listed early.
+      // were sent in. It can come out long by that one report only when an address
+      // with no count row yet was sent a message the register holds and then one
+      // it does not (no Message-ID) before the first one's report came, since a
+      // delivery to an address that has never bounced is recorded nowhere - or
+      // when that second, unregistered delivery fell in the same second as the
+      // first, since the times compared have one-second resolution.
       static int ReportRunIncrease(int increment, int setAside, int laterKey, const String &lastDelivered, const String &sent);
 
       // The failed recipients of a report that are looked up, as indexes into
