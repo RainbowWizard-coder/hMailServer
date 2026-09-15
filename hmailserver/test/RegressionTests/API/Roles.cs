@@ -39,8 +39,11 @@ namespace RegressionTests.API
    ///      * a help desk allowed a password reset and refused a settings change,
    ///        and refused the password of anybody who holds more than it does;
    ///      * the two historical levels exactly as they were, with no row written;
-   ///      * and the COM path that let any account reach another account's full
-   ///        object through a permission on a folder of its own, closed.
+   ///      * the COM path that let any account reach another account's full
+   ///        object through a permission on a folder of its own, closed;
+   ///      * and the audit trail, which records a change made under a role with
+   ///        the kind the role gives it and the role's name, over REST and over
+   ///        COM, and which the auditor reads and no API key does.
    /// </summary>
    [TestFixture]
    public class Roles : TestFixtureBase
@@ -691,7 +694,137 @@ namespace RegressionTests.API
          Assert.AreEqual("", AccountOverCom("helen@example.test").RolePermissions);
       }
 
+      // ------------------------------------------------------- the audit trail
+
+      [Test]
+      [Description("A change made under a role is on the audit trail with the role's name and the kind the role gives it: a help desk whose admin level says domain administrator is an account, over REST and over COM, and a domain administrator by assignment is an administrator")]
+      public void AChangeMadeUnderARoleIsRecordedWithTheRoleAndTheKindItGives()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+
+         _application.Database.ExecuteSQL("delete from hm_audit");
+
+         // The admin level says domain administrator; the role says help desk. The
+         // record must follow the role - the authority every decision was made on.
+         Account helen = AccountOverCom("helen@example.test");
+         helen.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         helen.Save();
+         Assign("helen@example.test", "helpdesk", "");
+         Assign("dora@example.test", "domainadmin", "");
+
+         (int status, string body) reset = AsAccount("helen@example.test", "POST", "/api/v1/accounts/user@example.test/password",
+            "{\"password\":\"Reset-on-the-record-31\"}");
+         Assert.AreEqual(200, reset.status, reset.body);
+
+         var desk = new Application();
+         Assert.IsNotNull(desk.Authenticate("helen@example.test", AccountPassword));
+         desk.ResetPassword("user@example.test", "Reset-on-the-record-over-com-32");
+
+         (int status, string body) update = AsAccount("dora@example.test", "PUT", "/api/v1/accounts/user@example.test", "{\"max_size_mb\":7}");
+         Assert.AreEqual(200, update.status, update.body);
+
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?object_type=account&limit=100");
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         JsonElement overRest = AuditRow(trail.body, "account:helen@example.test", "REST");
+         Assert.AreEqual("account", overRest.GetProperty("actor_type").GetString(),
+            "A help desk is recorded as an administrator because its admin level says domain administrator. Row: " + overRest);
+         StringAssert.Contains("[role: helpdesk]", overRest.GetProperty("detail").GetString());
+         Assert.AreEqual("user@example.test", overRest.GetProperty("object").GetString());
+
+         JsonElement overCom = AuditRow(trail.body, "helen@example.test", "COM");
+         Assert.AreEqual("account", overCom.GetProperty("actor_type").GetString(), "Row: " + overCom);
+         StringAssert.Contains("[role: helpdesk]", overCom.GetProperty("detail").GetString(),
+            "A password a help desk resets over COM - Application.ResetPassword asks only the role question - is not on the record as the help desk's. Row: " + overCom);
+
+         JsonElement domainAdministrator = AuditRow(trail.body, "account:dora@example.test", "REST");
+         Assert.AreEqual("administrator", domainAdministrator.GetProperty("actor_type").GetString(), "Row: " + domainAdministrator);
+         StringAssert.Contains("[role: domainadmin]", domainAdministrator.GetProperty("detail").GetString());
+
+         // And the assignments themselves are on the record, made by the
+         // administrator password - whose role, too, is written down.
+         (int status, string body) everything = Admin("GET", "/api/v1/audit?limit=200");
+         Assert.AreEqual(200, everything.status, everything.body);
+
+         using (JsonDocument document = JsonDocument.Parse(everything.body))
+         {
+            List<JsonElement> given = document.RootElement.GetProperty("entries").EnumerateArray()
+               .Where(e => e.GetProperty("object_type").GetString() == "role assignment").Select(e => e.Clone()).ToList();
+
+            Assert.AreEqual(2, given.Count, "Two roles were given, so two role assignments are on the record. Trail: " + everything.body);
+            Assert.IsTrue(given.All(e => e.GetProperty("actor").GetString() == "administrator" &&
+                                         e.GetProperty("actor_type").GetString() == "administrator" &&
+                                         e.GetProperty("action").GetString() == "created" &&
+                                         e.GetProperty("detail").GetString().Contains("[role: serveradmin]")),
+               "Trail: " + everything.body);
+         }
+
+         (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");
+         Assert.AreEqual(200, verified.status, verified.body);
+         StringAssert.Contains("\"intact\":true", verified.body, "The role in the detail is part of the hashed row.");
+      }
+
+      [Test]
+      [Description("The audit trail is the auditor's to read, and the server administrator's; a domain administrator, a confined auditor and every API key are refused it, the keys with a 401")]
+      public void TheAuditorReadsTheAuditTrailAndNoKeyDoes()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audrey@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "narrow@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         Assign("audrey@example.test", "auditor", "");
+         Assign("narrow@example.test", "auditor", "example.test");
+         Assign("dora@example.test", "domainadmin", "");
+
+         foreach (string path in new[] { "/api/v1/audit", "/api/v1/audit/verify", "/api/v1/alerts/rules", "/api/v1/alerts/events" })
+         {
+            (int status, string body) read = AsAccount("audrey@example.test", "GET", path);
+            Assert.AreEqual(200, read.status, "An auditor reaching every domain must be able to read " + path + ". Body: " + read.body);
+         }
+
+         (int status, string body) run = AsAccount("audrey@example.test", "POST", "/api/v1/alerts/run", "{}");
+         Assert.AreEqual(403, run.status, "An auditor does not run the alerting. Body: " + run.body);
+
+         (int status, string body) domainAdmin = AsAccount("dora@example.test", "GET", "/api/v1/audit");
+         Assert.AreEqual(403, domainAdmin.status, domainAdmin.body);
+         StringAssert.Contains("view_audit", domainAdmin.body);
+
+         (int status, string body) confined = AsAccount("narrow@example.test", "GET", "/api/v1/audit");
+         Assert.AreEqual(403, confined.status, "The trail records every domain's changes. Body: " + confined.body);
+         StringAssert.Contains("server-wide", confined.body);
+
+         (int status, string body) auditorKey = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest audit\",\"role\":\"auditor\"}");
+         Assert.AreEqual(201, auditorKey.status, auditorKey.body);
+         (int status, string body) byKey = Bearer(JsonValue(auditorKey.body, "key"), "GET", "/api/v1/audit");
+         Assert.AreEqual(401, byKey.status, "A key of any role or scope is refused the audit trail, as a 401. Body: " + byKey.body);
+
+         (int status, string body) readOnlyKey = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest audit readonly\",\"scope\":\"readonly\"}");
+         Assert.AreEqual(201, readOnlyKey.status, readOnlyKey.body);
+         (int status, string body) byReadOnlyKey = Bearer(JsonValue(readOnlyKey.body, "key"), "GET", "/api/v1/alerts/rules");
+         Assert.AreEqual(401, byReadOnlyKey.status, byReadOnlyKey.body);
+
+         (int status, string body) administrator = Admin("GET", "/api/v1/audit");
+         Assert.AreEqual(200, administrator.status, administrator.body);
+      }
+
       // --------------------------------------------------------------- helpers
+
+      // The newest audit row made by this actor over this interface.
+      private static JsonElement AuditRow(string trail, string actor, string interfaceName)
+      {
+         using (JsonDocument document = JsonDocument.Parse(trail))
+         {
+            foreach (JsonElement entry in document.RootElement.GetProperty("entries").EnumerateArray())
+            {
+               if (entry.GetProperty("actor").GetString() == actor && entry.GetProperty("interface").GetString() == interfaceName)
+                  return entry.Clone();
+            }
+         }
+
+         Assert.Fail("No audit row by " + actor + " over " + interfaceName + ". Trail: " + trail);
+         return default(JsonElement);
+      }
 
       private static string[] Permissions(JsonElement role)
       {
