@@ -932,6 +932,13 @@ def run_powershell_import_cases(url, tmp):
     check(completed.returncode == 0, "Export-HmAccount: exit %d - %s" % (completed.returncode, completed.stderr.strip()[:400]))
     rows = check_export("Export-HmAccount", out)
 
+    # On the pipeline active stays a boolean: the word "false" is a string
+    # PowerShell counts as true, and Where-Object active would keep every row.
+    completed, requests = run("Export-HmAccount -Domain example.org | Where-Object active | ForEach-Object { 'ACTIVE ' + $_.address }")
+    active = [line.strip() for line in completed.stdout.splitlines() if line.startswith("ACTIVE ")]
+    check(active == ["ACTIVE yan@example.org"],
+          "Export-HmAccount to the pipeline must keep active a boolean, Where-Object active kept %r" % active)
+
     if rows:
         completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null"
                                   % quoted(round_trip_file(tmp, "powershell", rows)))

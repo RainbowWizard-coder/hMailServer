@@ -1107,14 +1107,18 @@ function Export-HmAccount {
         [Parameter(Position = 1)] [string] $Path
     )
 
-    # The JSON words for active, so the file reads the same whichever client wrote it.
     $accounts = Get-HmAccount -Domain $Domain |
-        Select-Object address, first_name, last_name,
-            @{ Name = 'active'; Expression = { if ($null -eq $_.active) { '' } elseif ($_.active) { 'true' } else { 'false' } } },
-            max_size_mb, admin_level
+        Select-Object address, first_name, last_name, active, max_size_mb, admin_level
 
     if ($Path) {
-        $accounts | Export-Csv -Path $Path -NoTypeInformation -Encoding utf8
+        # In the file, active is the JSON word, so the file reads the same
+        # whichever client wrote it; on the pipeline it stays a boolean, which
+        # Where-Object active can filter on.
+        $accounts |
+            Select-Object address, first_name, last_name,
+                @{ Name = 'active'; Expression = { if ($null -eq $_.active) { '' } elseif ($_.active) { 'true' } else { 'false' } } },
+                max_size_mb, admin_level |
+            Export-Csv -Path $Path -NoTypeInformation -Encoding utf8
     }
     else {
         $accounts
