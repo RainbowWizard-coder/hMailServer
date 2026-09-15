@@ -26,6 +26,7 @@ namespace HM
 {
    thread_local bool AuditTrail::writing_ = false;
    thread_local AuditTrail::Actor AuditTrail::actor_;
+   thread_local const AuditDescription *AuditTrail::description_ = nullptr;
 
    namespace
    {
@@ -162,6 +163,21 @@ namespace HM
    AuditScope::~AuditScope()
    {
       AuditTrail::SetActor(previous_);
+   }
+
+   AuditDescription::AuditDescription(const String &table, const String &objectName, const String &detail) :
+      table_(table),
+      object_name_(objectName),
+      detail_(detail),
+      previous_(AuditTrail::description_)
+   {
+      table_.MakeLower();
+      AuditTrail::description_ = this;
+   }
+
+   AuditDescription::~AuditDescription()
+   {
+      AuditTrail::description_ = previous_;
    }
 
    bool
@@ -398,6 +414,18 @@ namespace HM
       String objectType = Describe_(command, table, action, objectName);
       if (objectType.IsEmpty())
          return;
+
+      // Words the writer supplied for this table, when a row of it is nothing
+      // but ids - see AuditDescription. The innermost scope for the table wins.
+      for (const AuditDescription *described = description_; described; described = described->previous_)
+      {
+         if (described->table_ != table)
+            continue;
+
+         Write_(objectType, Truncate(OneLine(described->object_name_), MaxValueLength), action,
+                Truncate(OneLine(described->detail_), MaxDetailLength));
+         return;
+      }
 
       // The columns the statement carried, with every secret withheld. A DELETE
       // has none, and says so by saying nothing.

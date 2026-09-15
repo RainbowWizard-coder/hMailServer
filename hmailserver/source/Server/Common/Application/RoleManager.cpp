@@ -23,6 +23,7 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
+#include "../Util/AuditTrail.h"
 #include "../Util/Encoding/Base64.h"
 #include "../Util/Parsing/StringParser.h"
 #include "../Util/Unicode.h"
@@ -250,6 +251,45 @@ namespace HM
          String value;
          Unicode::MultiByteToWide(bytes, value);
          return value;
+      }
+
+      // THE AUDIT TRAIL'S WORDS for a change to the two role tables. A row of
+      // hm_roleassignments is an account id, a role id and a list; recorded as
+      // its columns it reads "raaccountid=12, raroleid=3", which says nothing
+      // anybody can use, and what it held before an update or a delete is gone
+      // by the time the statement has run. So each write below says, through an
+      // AuditDescription, the account's address and the role's name as they were
+      // and as they are.
+
+      // The account an assignment is for, by the address a person knows it by.
+      String AccountAddress(__int64 accountId)
+      {
+         SQLCommand command("select accountaddress from hm_accounts where accountid = @ACCOUNTID");
+         command.AddParameter("@ACCOUNTID", accountId);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+
+         if (!recordset || recordset->IsEOF())
+            return String(_T("account id ")) + StringParser::IntToString(accountId);
+
+         return recordset->GetStringValue("accountaddress");
+      }
+
+      // What an assignment reaches, in the words the listings use.
+      String DescribeReach(const String &roleName, const String &domains)
+      {
+         if (RoleManager::AssignmentReachesEveryDomain(roleName, domains))
+            return _T("every domain");
+
+         if (domains.IsEmpty())
+            return _T("the account's own domain");
+
+         return domains;
+      }
+
+      String DescribeText(const String &text)
+      {
+         return text.IsEmpty() ? String(_T("(none)")) : String(_T("'")) + text + String(_T("'"));
       }
    }
 
@@ -923,6 +963,15 @@ namespace HM
 
       refused = false;
 
+      // The role by its name, and its permissions and description as they were
+      // and as they now are. An update's statement names the row by its id.
+      const String detail = update
+         ? String(_T("permissions: ")) + existing.permissions + _T(" -> ") + normalised +
+           _T("; description: ") + DescribeText(existing.description) + _T(" -> ") + DescribeText(description)
+         : String(_T("permissions: ")) + normalised + _T("; description: ") + DescribeText(description);
+
+      AuditDescription described(_T("hm_roles"), wanted, detail);
+
       if (!Application::Instance()->GetDBManager()->Execute(statement))
       {
          error = _T("the role could not be saved");
@@ -951,20 +1000,44 @@ namespace HM
          return false;
       }
 
-      SQLCommand removeAssignments("delete from hm_roleassignments where raroleid = @ID");
-      removeAssignments.AddParameter("@ID", record.id);
-      if (!Application::Instance()->GetDBManager()->Execute(removeAssignments))
+      // Who held it, read before the delete takes the rows away, so that the
+      // record of the assignments going says whose they were.
+      String holders;
+      for (const RoleAssignment &assignment : ListAssignments())
       {
-         error = _T("the role's assignments could not be removed");
-         return false;
+         if (assignment.role_id != record.id)
+            continue;
+
+         if (!holders.IsEmpty())
+            holders += _T(", ");
+
+         holders += AccountAddress(assignment.account_id);
       }
 
-      SQLCommand remove("delete from hm_roles where roleid = @ID");
-      remove.AddParameter("@ID", record.id);
-      if (!Application::Instance()->GetDBManager()->Execute(remove))
       {
-         error = _T("the role could not be deleted");
-         return false;
+         AuditDescription described(_T("hm_roleassignments"), holders.IsEmpty() ? String(_T("(nobody held it)")) : holders,
+            String(_T("role: ")) + record.name + _T(" -> (none), because the role was deleted"));
+
+         SQLCommand removeAssignments("delete from hm_roleassignments where raroleid = @ID");
+         removeAssignments.AddParameter("@ID", record.id);
+         if (!Application::Instance()->GetDBManager()->Execute(removeAssignments))
+         {
+            error = _T("the role's assignments could not be removed");
+            return false;
+         }
+      }
+
+      {
+         AuditDescription described(_T("hm_roles"), record.name,
+            String(_T("permissions: ")) + record.permissions + _T("; description: ") + DescribeText(record.description));
+
+         SQLCommand remove("delete from hm_roles where roleid = @ID");
+         remove.AddParameter("@ID", record.id);
+         if (!Application::Instance()->GetDBManager()->Execute(remove))
+         {
+            error = _T("the role could not be deleted");
+            return false;
+         }
       }
 
       Reload();
@@ -1048,6 +1121,15 @@ namespace HM
       statement.AddColumnInt64("raroleid", record.id);
       statement.AddColumn("radomains", normalisedDomains);
 
+      // The account by its address and the role by its name, as they were and
+      // as they now are: the statement itself carries two ids and a list.
+      const String detail = update
+         ? String(_T("role: ")) + existing.role_name + _T(" -> ") + record.name +
+           _T("; domains: ") + DescribeReach(existing.role_name, existing.domains) + _T(" -> ") + DescribeReach(record.name, normalisedDomains)
+         : String(_T("role: ")) + record.name + _T("; domains: ") + DescribeReach(record.name, normalisedDomains);
+
+      AuditDescription described(_T("hm_roleassignments"), AccountAddress(accountId), detail);
+
       if (!Application::Instance()->GetDBManager()->Execute(statement))
       {
          error = _T("the assignment could not be saved");
@@ -1062,6 +1144,13 @@ namespace HM
    RoleManager::Unassign(__int64 accountId, String &error)
    {
       error = _T("");
+
+      RoleAssignment existing;
+      const String detail = AssignmentForAccount(accountId, existing)
+         ? String(_T("role: ")) + existing.role_name + _T(" -> (none); domains: ") + DescribeReach(existing.role_name, existing.domains) + _T(" -> (none)")
+         : String(_T("role: (none) -> (none)"));
+
+      AuditDescription described(_T("hm_roleassignments"), AccountAddress(accountId), detail);
 
       SQLCommand remove("delete from hm_roleassignments where raaccountid = @ID");
       remove.AddParameter("@ID", accountId);

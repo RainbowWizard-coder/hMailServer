@@ -244,7 +244,11 @@ account). Roles are data, not settings: nothing is added to `hm_settings` or to
 `hMailServer.ini`.
 
 Both tables are audited: a role created, changed or deleted, and a role given or taken
-away, is a row in the audit trail with the credential that did it.
+away, is a row in the audit trail with the credential that did it - in words, not ids. A
+role assignment's row names the account by its address and says the role and the domains
+it reaches before and after (`role: helpdesk -> auditor; domains: the account's own domain
+-> every domain`); a role's row names the role and says its permissions and description
+before and after; and deleting a custom role records whose assignments went with it.
 
 A backup carries each account's assignment with the account (`AccountStores`), with the
 role written by its name rather than its id, so that a restore onto another server

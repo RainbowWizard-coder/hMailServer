@@ -73,6 +73,7 @@
 namespace HM
 {
    class SQLCommand;
+   class AuditDescription;
 
    class AuditTrail : public Singleton<AuditTrail>
    {
@@ -179,6 +180,50 @@ namespace HM
       static thread_local bool writing_;
 
       static thread_local Actor actor_;
+
+      // The words the writer of the statement on this thread supplied, or
+      // nothing. See AuditDescription.
+      friend class AuditDescription;
+      static thread_local const AuditDescription *description_;
+   };
+
+   // The words for a change whose statement carries only numbers.
+   //
+   // RecordStatement names an object by a column ending in "name" or "address"
+   // and details it by the columns the statement carried, which reads well for
+   // a domain or an account and not at all for a row that is nothing but ids:
+   // "raaccountid=12, raroleid=3" is a role given to somebody, and nobody
+   // reading the trail can say who or which. Worse, what the row said BEFORE an
+   // update or a delete is gone by the time the statement has run, so the
+   // recorder could not look it up even if it tried.
+   //
+   // The code that makes such a change knows both, so it says them: for the
+   // length of this scope, a statement against this table that is recorded on
+   // this thread is recorded with this object name and this detail in place of
+   // the ones read from its parameters. It changes the words and nothing else -
+   // whether a row is written at all is still the actor's and the chokepoint's
+   // decision, so a change made with no actor installed is still not recorded,
+   // and a statement against another table is described as it always was.
+   // Scopes nest, and the innermost for the table wins.
+   //
+   // build/check-audit-choke-point.py names the files that may supply words:
+   // words that are wrong are a record that lies.
+   class AuditDescription
+   {
+   public:
+      AuditDescription(const String &table, const String &objectName, const String &detail);
+      ~AuditDescription();
+
+   private:
+      AuditDescription(const AuditDescription &);
+      AuditDescription &operator=(const AuditDescription &);
+
+      friend class AuditTrail;
+
+      String table_;
+      String object_name_;
+      String detail_;
+      const AuditDescription *previous_;
    };
 
    // Installs an actor on the calling thread for the length of a scope, and

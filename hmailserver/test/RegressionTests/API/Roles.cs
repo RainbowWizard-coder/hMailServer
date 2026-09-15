@@ -807,6 +807,16 @@ namespace RegressionTests.API
                                          e.GetProperty("action").GetString() == "created" &&
                                          e.GetProperty("detail").GetString().Contains("[role: serveradmin]")),
                "Trail: " + everything.body);
+
+            // In words: the account by its address and the role by its name, never
+            // the ids the row is made of.
+            JsonElement helensRole = given.Single(e => e.GetProperty("object").GetString() == "helen@example.test");
+            StringAssert.StartsWith("role: helpdesk; domains: the account's own domain", helensRole.GetProperty("detail").GetString());
+            JsonElement dorasRole = given.Single(e => e.GetProperty("object").GetString() == "dora@example.test");
+            StringAssert.StartsWith("role: domainadmin; domains: the account's own domain", dorasRole.GetProperty("detail").GetString());
+            Assert.IsFalse(given.Any(e => e.GetProperty("detail").GetString().Contains("raaccountid") ||
+                                          e.GetProperty("detail").GetString().Contains("raroleid")),
+               "A role assignment is on the record as its ids. Trail: " + everything.body);
          }
 
          (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");
@@ -883,6 +893,72 @@ namespace RegressionTests.API
 
          (int status, string body) administrator = Admin("GET", "/api/v1/audit");
          Assert.AreEqual(200, administrator.status, administrator.body);
+      }
+
+      [Test]
+      [Description("A role given, changed and taken away, and a custom role made, changed and deleted, are on the audit trail in words - the account's address and the role's name, before and after - and never as the ids their rows are made of")]
+      public void RoleChangesAreOnTheRecordInWordsBeforeAndAfter()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "olga@example.test", AccountPassword);
+
+         _application.Database.ExecuteSQL("delete from hm_audit");
+
+         Assign("helen@example.test", "helpdesk", "");
+         Assign("helen@example.test", "auditor", "*");
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/helen@example.test").status);
+
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-words\",\"description\":\"reads logs\",\"permissions\":\"view_logs\"}").status);
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/roles/rolestest-words",
+            "{\"description\":\"reads logs and the queue\",\"permissions\":\"view_logs,view_queue\"}").status);
+         Assign("olga@example.test", "rolestest-words", "");
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-words").status);
+
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?limit=200");
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         {
+            List<JsonElement> rows = document.RootElement.GetProperty("entries").EnumerateArray()
+               .Where(e => e.GetProperty("object_type").GetString() == "role assignment" || e.GetProperty("object_type").GetString() == "role")
+               .Select(e => e.Clone()).ToList();
+
+            Func<string, string, string, JsonElement> row = (objectType, action, objectName) =>
+            {
+               List<JsonElement> found = rows.Where(e => e.GetProperty("object_type").GetString() == objectType &&
+                                                         e.GetProperty("action").GetString() == action &&
+                                                         e.GetProperty("object").GetString() == objectName).ToList();
+               Assert.AreEqual(1, found.Count, "Expected one " + objectType + " " + action + " for " + objectName + ". Trail: " + trail.body);
+               return found[0];
+            };
+
+            StringAssert.StartsWith("role: helpdesk; domains: the account's own domain",
+               row("role assignment", "created", "helen@example.test").GetProperty("detail").GetString());
+            StringAssert.StartsWith("role: helpdesk -> auditor; domains: the account's own domain -> every domain",
+               row("role assignment", "updated", "helen@example.test").GetProperty("detail").GetString());
+            StringAssert.StartsWith("role: auditor -> (none); domains: every domain -> (none)",
+               row("role assignment", "deleted", "helen@example.test").GetProperty("detail").GetString());
+
+            StringAssert.StartsWith("permissions: view_logs; description: 'reads logs'",
+               row("role", "created", "rolestest-words").GetProperty("detail").GetString());
+            StringAssert.StartsWith("permissions: view_logs -> view_queue,view_logs; description: 'reads logs' -> 'reads logs and the queue'",
+               row("role", "updated", "rolestest-words").GetProperty("detail").GetString());
+            StringAssert.StartsWith("role: rolestest-words -> (none), because the role was deleted",
+               row("role assignment", "deleted", "olga@example.test").GetProperty("detail").GetString());
+            StringAssert.StartsWith("permissions: view_queue,view_logs; description: 'reads logs and the queue'",
+               row("role", "deleted", "rolestest-words").GetProperty("detail").GetString());
+
+            Assert.IsFalse(rows.Any(e => e.GetProperty("detail").GetString().Contains("raaccountid") ||
+                                         e.GetProperty("detail").GetString().Contains("raroleid") ||
+                                         e.GetProperty("object").GetString().StartsWith("roleid") ||
+                                         e.GetProperty("object").GetString().StartsWith("raid")),
+               "A role change is on the record as the ids its row is made of. Trail: " + trail.body);
+         }
+
+         (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");
+         Assert.AreEqual(200, verified.status, verified.body);
+         StringAssert.Contains("\"intact\":true", verified.body);
       }
 
       // --------------------------------------------------------------- helpers

@@ -33,9 +33,9 @@ deleted, and every server setting written. One row per change, in `hm_audit`:
 | `auditinterface` | `COM`, `REST` or `Deck`. |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
 | `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on. |
-| `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. |
+| `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. |
 | `auditaction` | `created`, `updated` or `deleted`. |
-| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. |
+| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 ### What is never recorded

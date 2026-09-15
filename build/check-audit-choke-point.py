@@ -12,7 +12,7 @@ setter, or a new REST route, written by somebody who had no reason to know this
 class existed. So it fails here, with the file and the line, rather than being
 discovered by a regulator.
 
-Five rules, in the shape of build/check-authz-choke-point.py:
+Six rules, in the shape of build/check-authz-choke-point.py:
 
   recorded    AuditTrail::RecordStatement and ::RecordSettingChange are called
               from ONE file each - the statement chokepoint in the DAL and the
@@ -44,6 +44,11 @@ Five rules, in the shape of build/check-authz-choke-point.py:
   table       hm_audit is written by AuditTrail and by nothing else. The row a
               caller writes for itself is the row that says whatever it likes.
 
+  words       An AuditDescription - the account's address and the role's name in
+              place of "raaccountid=12, raroleid=3" - is supplied only by
+              RoleManager, which writes the two role tables. It changes what a
+              row says and never whether it is written.
+
 Run from the repository root: python3 build/check-audit-choke-point.py
 """
 import os
@@ -73,6 +78,14 @@ ALLOWED = {
    },
    "AuditTrail::ClearActor(": {
       "Common/Util/AuditTrail.cpp",
+   },
+   # The words a row is recorded with, in place of the ones read from its
+   # statement. Only for a table whose rows are nothing but ids, and only from
+   # the code that writes that table: words that are wrong are a record that lies.
+   "AuditDescription ": {
+      "Common/Util/AuditTrail.cpp",
+      "Common/Util/AuditTrail.h",
+      "Common/Application/RoleManager.cpp",         # hm_roles and hm_roleassignments
    },
 }
 
