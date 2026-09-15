@@ -251,6 +251,20 @@ role written by its name rather than its id, so that a restore onto another serv
 finds that server's role of the same name. That matters in both directions: without
 it a restore would leave a help desk whose admin level is a normal user holding
 nothing, and would hand an account whose admin level is server administrator, but
-which had been narrowed to the help desk, the whole server back. A role the restoring
-server does not have is not guessed at: that assignment is left out and the backup log
-names the account and the role.
+which had been narrowed to the help desk, the whole server back.
+
+The **custom roles** travel too. Whenever a backup carries the domains or the settings,
+the rows of `hm_roles` that are not built in are written into the archive as a
+server-wide `<Roles>` store beside the settings, and a restore puts them back **first**,
+before any domain is removed and so before any assignment is written. An archive
+restored onto a fresh server therefore keeps every assignment, custom roles included. A
+role of the same name on the restoring server is updated to the archive's permissions;
+a custom role the server has and the archive does not is left alone; a restored role is
+judged as one made over REST, so a permission no custom role may hold is dropped.
+
+A role that neither the archive nor the restoring server has - a hand-edited archive,
+or one taken before custom roles were carried - is not guessed at, and the account is
+not left to fall back on its admin level either: the assignment is dropped, the
+account's admin level is lowered to an ordinary account's if it was higher, and the
+backup log names the account and the missing role. An administrator gives the
+authority back deliberately.

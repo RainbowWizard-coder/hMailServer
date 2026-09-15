@@ -159,8 +159,12 @@ namespace HM
          // be restored onto a server that numbered its custom roles differently -
          // where the same number would be somebody else's role, and the foreign
          // key would refuse a number that is nobody's. Resolved by name on the way
-         // back in; a name the server has no role for is dropped, counted and
-         // named in the backup log rather than guessed at.
+         // back in - the archive's custom roles having been restored first, by
+         // RoleManager::XMLLoad. A name the server still has no role for is not
+         // guessed at: the row is dropped and counted, and the account's admin
+         // level is lowered to an ordinary account's and named in the backup log
+         // (RoleManager::RevokeUnrestoredRole), because without the row that
+         // level is what the account's authority would be read from.
          RoleAdministrativeRole
       };
 

@@ -19,10 +19,13 @@
 
 #include "Application.h"
 #include "../BO/Account.h"
+#include "../Cache/Cache.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
+#include "../Util/Encoding/Base64.h"
 #include "../Util/Parsing/StringParser.h"
+#include "../Util/Unicode.h"
 
 #include <algorithm>
 
@@ -173,6 +176,81 @@ namespace HM
       // listeners run on long-lived pooled threads, so this is one object per
       // thread for the life of the process and never a per-request allocation.
       thread_local RoleActor current_actor;
+
+      // The custom roles in a backup archive. Named once so that the writer and
+      // the reader cannot disagree.
+      //
+      //   <Roles>
+      //     <Role Name="mailops" Description="Runs the queue" Permissions="view_queue,manage_queue"/>
+      //   </Roles>
+      const wchar_t *const RolesElement = L"Roles";
+      const wchar_t *const RoleElement = L"Role";
+      const wchar_t *const RoleNameAttribute = L"Name";
+      const wchar_t *const RoleDescriptionAttribute = L"Description";
+      const wchar_t *const RolePermissionsAttribute = L"Permissions";
+
+      // A description is whatever an administrator typed, and XML 1.0 has no
+      // representation at all for most control characters: one of them in an
+      // attribute makes the whole archive index unreadable, and every account
+      // after it with it. Such a value crosses as base64 of its UTF-8 under the
+      // attribute's name with ".base64" appended, which is the convention
+      // AccountStores uses for the per-account rows; the reader takes either.
+      const wchar_t *const EncodedSuffix = L".base64";
+
+      bool NeedsEncoding(const String &value)
+      {
+         for (int index = 0; index < value.GetLength(); index++)
+         {
+            const wchar_t character = value.GetAt(index);
+
+            if (character < 0x20 || character == 0x7f)
+               return true;
+         }
+
+         return false;
+      }
+
+      void WriteRoleAttribute(XNode *node, const String &attribute, const String &value)
+      {
+         if (!NeedsEncoding(value))
+         {
+            node->AppendAttr(attribute.c_str(), value.c_str());
+            return;
+         }
+
+         AnsiString utf8;
+         Unicode::WideToMultiByte(value, utf8);
+
+         const String encoded = Base64::Encode(utf8.c_str(), (int) utf8.GetLength());
+         const String name = attribute + EncodedSuffix;
+
+         node->AppendAttr(name.c_str(), encoded.c_str());
+      }
+
+      String ReadRoleAttribute(XNode *node, const String &attribute)
+      {
+         LPXAttr plain = node->GetAttr(attribute.c_str());
+
+         if (plain)
+            return plain->value;
+
+         const String name = attribute + EncodedSuffix;
+         LPXAttr encoded = node->GetAttr(name.c_str());
+
+         if (!encoded)
+            return String();
+
+         // Base64 is ASCII, so narrowing it is exact.
+         AnsiString ascii;
+         for (int index = 0; index < encoded->value.GetLength(); index++)
+            ascii += (char) encoded->value.GetAt(index);
+
+         const AnsiString bytes = Base64::Decode(ascii.c_str(), (int) ascii.GetLength());
+
+         String value;
+         Unicode::MultiByteToWide(bytes, value);
+         return value;
+      }
    }
 
    bool
@@ -761,7 +839,17 @@ namespace HM
    bool
    RoleManager::SaveCustomRole(const String &name, const String &description, const String &permissions, String &error)
    {
+      bool refused = false;
+      return SaveCustomRole_(name, description, permissions, error, refused);
+   }
+
+   bool
+   RoleManager::SaveCustomRole_(const String &name, const String &description, const String &permissions, String &error, bool &refused)
+   {
       error = _T("");
+
+      // Every return below until the write is a refusal of the role itself.
+      refused = true;
 
       String wanted = name;
       wanted.Trim();
@@ -832,6 +920,8 @@ namespace HM
 
       statement.AddColumn("roledescription", description);
       statement.AddColumn("rolepermissions", normalised);
+
+      refused = false;
 
       if (!Application::Instance()->GetDBManager()->Execute(statement))
       {
@@ -983,6 +1073,148 @@ namespace HM
       }
 
       Reload();
+      return true;
+   }
+
+   bool
+   RoleManager::XMLStore(XNode *backupNode)
+   {
+      // The table, not the copy RoleManager decides from: a role whose
+      // permission column holds a token this build does not know must still
+      // cross the archive as it is, and the restore judges it again.
+      SQLCommand selectRoles("select rolename, roledescription, rolebuiltin, rolepermissions from hm_roles");
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(selectRoles);
+
+      if (!recordset)
+      {
+         Logger::Instance()->LogBackup("The custom roles could not be read from hm_roles, so they cannot be carried in this backup.");
+         return false;
+      }
+
+      XNode *rolesNode = backupNode->AppendChild(RolesElement);
+
+      while (!recordset->IsEOF())
+      {
+         const String roleName = recordset->GetStringValue("rolename");
+
+         // A built-in role is on every server, with its permissions in the code
+         // rather than in this row. A custom row that has a built-in name - which
+         // only a hand edit makes - is not carried either: no restore could put
+         // it back.
+         bool namedLikeBuiltIn = false;
+         BuiltInPermissions_(roleName, namedLikeBuiltIn);
+
+         if (recordset->GetLongValue("rolebuiltin") == 0 && !namedLikeBuiltIn && !roleName.IsEmpty())
+         {
+            XNode *roleNode = rolesNode->AppendChild(RoleElement);
+            WriteRoleAttribute(roleNode, RoleNameAttribute, roleName);
+            WriteRoleAttribute(roleNode, RoleDescriptionAttribute, recordset->GetStringValue("roledescription"));
+            WriteRoleAttribute(roleNode, RolePermissionsAttribute, recordset->GetStringValue("rolepermissions"));
+         }
+
+         recordset->MoveNext();
+      }
+
+      // A server with no custom role writes the archive it wrote before this
+      // existed, which keeps two backups of it comparable across the change.
+      if (rolesNode->GetChildCount() == 0)
+         backupNode->RemoveChild(rolesNode);
+
+      return true;
+   }
+
+   bool
+   RoleManager::XMLLoad(XNode *backupNode)
+   {
+      XNode *rolesNode = backupNode->GetChild(RolesElement);
+
+      // An archive taken before custom roles were carried, or from a server that
+      // had none. Nothing to put back - and nothing to take away: a custom role
+      // this server has is not evidence the archive's server lacked it.
+      if (!rolesNode)
+         return true;
+
+      unsigned int restored = 0;
+
+      for (int index = 0; index < rolesNode->GetChildCount(); index++)
+      {
+         XNode *roleNode = rolesNode->GetChild((unsigned int) index);
+
+         if (roleNode->name != RoleElement)
+            continue;
+
+         const String roleName = ReadRoleAttribute(roleNode, RoleNameAttribute);
+
+         String error;
+         bool refused = false;
+
+         // Through the one writer a role has, so that a restored role is judged
+         // exactly as a role made over REST is: no built-in name, no permission
+         // that hands out authority, none this build does not know.
+         if (SaveCustomRole_(roleName, ReadRoleAttribute(roleNode, RoleDescriptionAttribute),
+                             ReadRoleAttribute(roleNode, RolePermissionsAttribute), error, refused))
+         {
+            restored++;
+            continue;
+         }
+
+         if (!refused)
+         {
+            Logger::Instance()->LogBackup(Formatter::Format(
+               "The custom role {0} could not be written to hm_roles: {1}. The restore has been stopped before any domain was removed.",
+               roleName, error));
+            return false;
+         }
+
+         Logger::Instance()->LogBackup(Formatter::Format(
+            "The backup carries the custom role {0}, which has not been restored: {1}. An account the backup gives this role is restored without it.",
+            roleName, error));
+      }
+
+      Logger::Instance()->LogBackup(Formatter::Format("Restored {0} custom role(s).", restored));
+
+      return true;
+   }
+
+   bool
+   RoleManager::RevokeUnrestoredRole(Account &account, const String &roleName)
+   {
+      const String missing = roleName.IsEmpty() ? String(_T("(no role named)")) : roleName;
+      const Account::AdminLevel level = account.GetAdminLevel();
+
+      if (level == Account::NormalUser)
+      {
+         Logger::Instance()->LogBackup(Formatter::Format(
+            "The backup gives {0} the role {1}, which neither the backup nor this server has. The assignment has not been restored: {0} is an ordinary account until an administrator gives it a role.",
+            account.GetAddress(), missing));
+
+         return true;
+      }
+
+      // The row first and the object after, so that a level that could not be
+      // written is not reported as lowered.
+      SQLCommand lower("update hm_accounts set accountadminlevel = @LEVEL where accountid = @ACCOUNTID");
+      lower.AddParameter("@LEVEL", (int) Account::NormalUser);
+      lower.AddParameter("@ACCOUNTID", account.GetID());
+
+      if (!Application::Instance()->GetDBManager()->Execute(lower))
+      {
+         Logger::Instance()->LogBackup(Formatter::Format(
+            "The backup gives {0} the role {1}, which neither the backup nor this server has, and its admin level could not be lowered in the assignment's place. The restore has been stopped rather than leave {0} holding the authority of its admin level.",
+            account.GetAddress(), missing));
+
+         return false;
+      }
+
+      account.SetAdminLevel(Account::NormalUser);
+      Cache<Account>::Instance()->RemoveObject(account.GetAddress());
+
+      const String levelName = level == Account::ServerAdmin ? String(_T("server administrator")) : String(_T("domain administrator"));
+
+      Logger::Instance()->LogBackup(Formatter::Format(
+         "The backup gives {0} the role {1}, which neither the backup nor this server has. The assignment has not been restored, and because the account's admin level ({2}) would otherwise have given it authority the role had narrowed away, its admin level is now that of an ordinary account. Give {0} a role or an admin level to restore its authority.",
+         account.GetAddress(), missing, levelName));
+
       return true;
    }
 

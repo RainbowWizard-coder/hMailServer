@@ -977,25 +977,27 @@ namespace HM
                   {
                      XNode *reference = FindReference_(rowNode, name);
                      String roleName;
+                     __int64 roleId = 0;
 
-                     if (!reference || !ReadValue_(reference, NameAttribute, roleName) || roleName.IsEmpty())
-                     {
-                        complete = false;
-                        break;
-                     }
-
-                     __int64 roleId = RoleWithName_(roleName);
+                     if (reference && ReadValue_(reference, NameAttribute, roleName) && !roleName.IsEmpty())
+                        roleId = RoleWithName_(roleName);
 
                      if (roleId <= 0)
                      {
-                        // A custom role this server does not have - an archive from
-                        // another server, or a role deleted since the backup. Said by
-                        // name, because what the account can do now is what its
-                        // AdminLevel gives it, and that may be more or less than the
-                        // role it had.
-                        Logger::Instance()->LogBackup(Formatter::Format(
-                           "The backup gives {0} the role {1}, which this server does not have. The assignment has not been restored: until an administrator gives it a role, the account holds the authority its admin level gives it.",
-                           account.GetAddress(), roleName));
+                        // A role neither the archive nor this server has. The
+                        // custom roles the archive carries were restored before any
+                        // account (RoleManager::XMLLoad), so this is a role deleted
+                        // before a backup that predates carrying them, or an archive
+                        // somebody edited. The row cannot be written - the foreign
+                        // key would refuse a number that is nobody's role - and
+                        // dropping it alone is not enough: with no row the account's
+                        // authority is read from its AdminLevel, which came back from
+                        // the archive and may be far wider than the role it had been
+                        // narrowed to. RevokeUnrestoredRole takes the level down to an
+                        // ordinary account's and says so by name; when it cannot, the
+                        // restore stops rather than leave that authority standing.
+                        if (!RoleManager::RevokeUnrestoredRole(account, roleName))
+                           return false;
 
                         complete = false;
                         break;

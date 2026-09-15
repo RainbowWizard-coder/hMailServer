@@ -3,9 +3,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -448,6 +452,114 @@ namespace RegressionTests.Infrastructure
             listed.Body, "The restored assignment is not listed with the role and the domains it was given.");
       }
 
+      [Test]
+      [Description("hm_roles: a custom role, and the account given it, survive a backup and a restore onto a server "
+                   + "that no longer has the role - the role comes back first, with its permissions and its "
+                   + "description, so the assignment that names it is restored rather than dropped")]
+      public void ACustomRoleComesBackBeforeTheAssignmentThatNamesIt()
+      {
+         const string role = "storestest-mailops";
+         // A line break, so that the description takes the base64 path across the
+         // archive and has to come back byte for byte.
+         const string description = "Runs the delivery queue\r\nat night";
+
+         try
+         {
+            Response created = Rest("POST", "/api/v1/roles", BasicAuth("Administrator", AdminPassword),
+               "{\"name\":\"" + role + "\",\"description\":\"Runs the delivery queue\\r\\nat night\",\"permissions\":\"view_queue,manage_queue\"}");
+            Assert.AreEqual(201, created.Status, "Body: " + created.Body);
+
+            Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+               BasicAuth("Administrator", AdminPassword), "{\"role\":\"" + role + "\",\"domains\":\"*\"}");
+            Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+            RunBackup();
+
+            // A fresh server, as far as the role is concerned: it is gone, and its
+            // assignment with it, before the restore begins.
+            Response deleted = Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, deleted.Status, "Body: " + deleted.Body);
+            Assert.AreEqual(404, Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword)).Status,
+               "The role is still on the server, so the restore would not be proving anything.");
+
+            DeleteAndRestore();
+
+            Response restored = Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, restored.Status,
+               "The custom role did not come back: the archive carries no <Roles>, or the restore did not read it. Body: " + restored.Body);
+
+            using (JsonDocument document = JsonDocument.Parse(restored.Body))
+            {
+               Assert.AreEqual("view_queue,manage_queue", document.RootElement.GetProperty("permissions").GetString());
+               Assert.AreEqual(description, document.RootElement.GetProperty("description").GetString(),
+                  "The description did not come back byte for byte.");
+               Assert.IsFalse(document.RootElement.GetProperty("builtin").GetBoolean());
+            }
+
+            Response session = Rest("GET", "/api/v1/session", User());
+            Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+            StringAssert.Contains("\"role\":\"" + role + "\"", session.Body,
+               "The restored account does not hold the custom role, so its assignment was dropped - which is what a "
+               + "restore did when the role had to be on the server already. Body: " + session.Body);
+
+            Response listed = Rest("GET", "/api/v1/role-assignments", BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+            StringAssert.Contains("{\"address\":\"" + _address + "\",\"role\":\"" + role + "\",\"domains\":\"*\"", listed.Body);
+
+            string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            Assert.IsTrue(Regex.IsMatch(log, @"Restored [1-9][0-9]* custom role\(s\)\."), "The restore did not say it restored the custom roles. Log: " + log);
+         }
+         finally
+         {
+            Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+         }
+      }
+
+      [Test]
+      [Description("hm_roleassignments: an assignment naming a role that neither the archive nor the server has is "
+                   + "dropped, and the account's admin level goes with it - an account whose level says server "
+                   + "administrator but which had been narrowed to a help desk comes back an ordinary account, "
+                   + "and the backup log names the account and the missing role")]
+      public void AnAssignmentNobodyCanPlaceTakesTheWiderAdminLevelWithIt()
+      {
+         hMailServer.Account account = _domain.Accounts.get_ItemByAddress(_address);
+         account.AdminLevel = hMailServer.eAdminLevel.hAdminLevelServerAdmin;
+         account.Save();
+
+         Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+            BasicAuth("Administrator", AdminPassword), "{\"role\":\"helpdesk\",\"domains\":\"\"}");
+         Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+         RunBackup();
+
+         // The archive, edited the way a person would: the assignment now names a
+         // role no server has.
+         RenameTheArchivedRole("helpdesk", "no-such-role");
+
+         DeleteAndRestore();
+
+         Response session = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+         StringAssert.Contains("\"administrative\":false", session.Body,
+            "The account came back with administrative authority. With its assignment dropped and its admin level "
+            + "left at server administrator, it holds the whole server the help desk role had narrowed it away from. "
+            + "Body: " + session.Body);
+         StringAssert.DoesNotContain("administer_server", session.Body);
+
+         string domainName = _address.Substring(_address.IndexOf('@') + 1);
+         hMailServer.Account restored = _application.Domains.get_ItemByName(domainName).Accounts.get_ItemByAddress(_address);
+         Assert.AreEqual(hMailServer.eAdminLevel.hAdminLevelNormal, restored.AdminLevel,
+            "The account's admin level was not lowered in place of the assignment that could not be restored.");
+
+         Response listed = Rest("GET", "/api/v1/role-assignments", BasicAuth("Administrator", AdminPassword));
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.DoesNotContain(_address, listed.Body, "An assignment naming a role nobody has was written.");
+
+         string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+         StringAssert.Contains("The backup gives " + _address + " the role no-such-role", log, "Log: " + log);
+         StringAssert.Contains("its admin level is now that of an ordinary account", log, "Log: " + log);
+      }
+
       // --------------------------------------------------- a message's labels
 
       [Test]
@@ -538,6 +650,85 @@ namespace RegressionTests.Infrastructure
          backup.StartRestore();
 
          WaitForRestore(startTime);
+      }
+
+      /// <summary>
+      ///    Edits the one archive in the backup directory: the role an archived
+      ///    assignment names is renamed, in the index, and the index is put back into
+      ///    the archive in place of the one the backup wrote. What a person would do
+      ///    with 7-Zip and a text editor, and the only way to have an archive name a
+      ///    role that is in neither the archive nor the server.
+      /// </summary>
+      private void RenameTheArchivedRole(string from, string to)
+      {
+         FileInfo[] archives = new DirectoryInfo(_backupDirectory).GetFiles("*.7z");
+         Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + _backupDirectory);
+
+         string staging = Paths.Combine(_backupDirectory, "edited");
+         Directory.CreateDirectory(staging);
+
+         Run7Za("e \"" + archives[0].FullName + "\" hMailServerBackup.xml -o\"" + staging + "\" -y", staging);
+
+         string index = Paths.Combine(staging, "hMailServerBackup.xml");
+         Assert.IsTrue(File.Exists(index), "7za.exe did not extract the backup's index.");
+
+         // settings-store-exempt: reads and rewrites the backup archive's index, not hMailServer.ini.
+         string xml = File.ReadAllText(index);
+
+         var reference = new Regex("(Column=[\"']raroleid[\"']\\s+Name=[\"'])" + Regex.Escape(from) + "([\"'])");
+         Assert.AreEqual(1, reference.Matches(xml).Count,
+            "Expected exactly one archived assignment naming " + from + " in the index.");
+
+         xml = reference.Replace(xml, "${1}" + to + "${2}");
+
+         // UTF-16 with a byte-order mark, which is what the server writes the index in
+         // and what its reader detects.
+         // settings-store-exempt: writes the backup archive's index, not hMailServer.ini.
+         File.WriteAllText(index, xml, Encoding.Unicode);
+         File.SetLastWriteTimeUtc(index, DateTime.UtcNow.AddMinutes(1));
+
+         // A bare file name from the staging directory, so that the entry replaces
+         // the archive's own "hMailServerBackup.xml" rather than being added beside
+         // it under a path.
+         Run7Za("u \"" + archives[0].FullName + "\" hMailServerBackup.xml", staging);
+
+         Directory.Delete(staging, true);
+      }
+
+      private void Run7Za(string arguments, string workingDirectory)
+      {
+         string programDirectory = _application.Settings.Directories.ProgramDirectory;
+
+         // A registered install resolves to {InstallLocation}\Bin, while a developer
+         // build that is not registered runs from the directory it was built into -
+         // the same two candidates BackupRestoreSafety looks in.
+         string[] candidates =
+         {
+            Paths.Combine(programDirectory, "7za.exe"),
+            Paths.Combine(programDirectory, "Bin", "7za.exe"),
+         };
+
+         string sevenZip = candidates.FirstOrDefault(File.Exists);
+         if (sevenZip == null)
+            Assert.Fail("Could not find 7za.exe next to the server. Looked in " + string.Join(" and ", candidates) + ".");
+
+         var startInfo = new ProcessStartInfo(sevenZip, arguments)
+         {
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+         };
+
+         using (var process = Process.Start(startInfo))
+         {
+            Assert.IsNotNull(process, "7za.exe could not be started.");
+
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            Assert.AreEqual(0, process.ExitCode, "7za.exe " + arguments + " failed: " + output);
+         }
       }
 
       /// <summary>

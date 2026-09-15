@@ -303,7 +303,57 @@ namespace HM
       // query. Called again by every write below.
       static void Reload();
 
+      // THE BACKUP.
+      //
+      // An assignment is carried with its account (AccountStores), naming its
+      // role by name, so that a restore onto another server finds that server's
+      // role of the same name. A built-in role is on every server. A custom role
+      // is not - it is a row of this server's hm_roles - so an archive restored
+      // onto a fresh server used to find no role of that name and drop every
+      // assignment of it.
+      //
+      // XMLStore writes the custom roles into the archive as a server-wide
+      // store of their own, <Roles>, beside the settings and the [Settings]
+      // section, whenever the archive carries the accounts or the settings: the
+      // accounts are what name the roles, and a role is configuration. Read from
+      // the table, not from the copy above, so that a role this build does not
+      // recognise a permission of still survives the archive; the restore judges
+      // the permissions again. False when the table could not be read, which
+      // fails the backup rather than writing an archive that says there are no
+      // custom roles.
+      //
+      // XMLLoad puts them back, and BackupExecuter::StartRestore calls it BEFORE
+      // the domains - and so before the assignments - are restored. A role of
+      // the same name is updated to the archive's permissions and description;
+      // a custom role this server has and the archive does not is left alone,
+      // as the settings store leaves a setting alone. An archive with no <Roles>
+      // is one taken before this existed, and restores nothing here. A role the
+      // restore refuses - a built-in name, a name no role may have, no
+      // permission this server knows - is named in the backup log and skipped,
+      // and the assignments that name it are then dropped as below. False only
+      // when a role could not be written.
+      static bool XMLStore(XNode *backupNode);
+      static bool XMLLoad(XNode *backupNode);
+
+      // An assignment a restore could not put back: its role is in neither the
+      // archive nor this server. Without a row the account's grant is DERIVED
+      // from AdminLevel (see GrantForAccount), and the archive carries
+      // AdminLevel - so an account whose level says server administrator and
+      // which had been narrowed to a help desk would come back as the server
+      // administrator, with nothing said. So the level goes too: when it is
+      // higher than an ordinary account's it is set to one, and the backup log
+      // names the account and the role that was missing, so that an
+      // administrator gives the authority back deliberately. False when the
+      // account's level could not be written, which fails the restore rather
+      // than leaving the wider authority in place.
+      static bool RevokeUnrestoredRole(Account &account, const String &roleName);
+
    private:
+
+      // SaveCustomRole, saying which of the two ways it failed: refused is true
+      // when the role itself was refused (its name, its permissions) and false
+      // when the database could not be written.
+      static bool SaveCustomRole_(const String &name, const String &description, const String &permissions, String &error, bool &refused);
 
       static unsigned __int64 BuiltInPermissions_(const String &roleName, bool &found);
       static AnsiString DescribeGrantFromSet_(unsigned __int64 set);
