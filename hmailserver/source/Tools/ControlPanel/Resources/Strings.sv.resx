@@ -515,6 +515,9 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Ett svar för hela domänen - ett stängt kontor, en avvecklad avdelning. Det svarar bara för konton som INTE har något eget frånvaromeddelande: ett kontos eget meddelande vinner alltid, och högst ett svar besvarar ett meddelande.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>En roll är en namngiven uppsättning behörigheter, och en tilldelning ger den till ett konto i namngivna domäner. De fyra inbyggda rollerna går inte att redigera: deras behörigheter finns i serverns kod, så att en ändring i databasen inte kan ge någon befogenhet. Ett konto utan roll här har det som dess administratörsnivå alltid har gett det.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>En rotation är redan förberedd. Om DNS-posten är publicerad, tryck på "Kontrollera DNS"; befordran låses upp när kontrollen godkänns i den här sessionen.</value>
   </data>
@@ -950,6 +953,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Administrator password" xml:space="preserve">
     <value>Administratörslösenord</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Administratörsroller</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Avancerat</value>
   </data>
@@ -1048,6 +1054,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>En SPF-post är i drift på {0} och det är inte den föreslagna. Det kan mycket väl vara avsiktligt - förslaget kan inte känna till dina andra avsändare. Publicerat: {1} — bekräfta bara att allt som verkligen skickar post som {0} täcks.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>En kontoadress krävs.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Ett konto kan stängas av utan att tas bort, vilket behåller posten och avvisar nya inloggningar.</value>
@@ -1452,6 +1461,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Bygger ett sökindex så att IMAP SEARCH och webbklienten blir snabbare.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Inbyggd</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Inbyggd (SQL Server Compact)</value>
   </data>
@@ -1666,6 +1678,12 @@ Den förberedda selektorn "{0}" tas bort från serverkonfigurationen; signeringe
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Välj en förinställning…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Välj en roll att tilldela.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Välj en tilldelning i listan, eller skriv kontoadressen.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Välj ett utgångsdatum minst en dag bort. En nyckel som går ut i dag skulle sluta fungera mitt under dagen den skapades.</value>
@@ -2769,6 +2787,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domäner, konton, alias och distributionslistor, och varje kontos lösenord, vidarebefordran och mappar.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domäner, kommaseparerade</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Klart</value>
@@ -4722,6 +4743,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ingen virusskanner kan köras. Bilageblockering tar fortfarande bort filnamnsmönstren på sin egen sida, men inget tittar inuti ett meddelande eller inuti ett arkiv.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Ingen har fått en roll ännu. Ett konto utan roll har de rättigheter som dess administratörsnivå ger, precis som innan rollerna fanns.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Ingen</value>
   </data>
@@ -6044,6 +6068,9 @@ Fortsätt?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Skriv om kuvertavsändaren vid vidarebefordran (den enkla reserven, ingen hemlighet behövs)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Roll</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotera sessionsbiljettnyckeln var N:e sekund (0 = OpenSSL:s enda icke-roterande nyckel)</value>
@@ -8461,6 +8488,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Vad som måste finnas utanför den här servern</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>Vad den är till för</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Vad den får göra</value>
   </data>
@@ -8598,6 +8628,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Vitlista avsändaren eller dess IP-intervall så att meddelandet går förbi skräppostskyddet.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Vem som får administrera vad: de namngivna rollerna på den här servern och kontona som har dem.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Vem som får ansluta, vem som får autentisera, och vad som händer när någon fortsätter försöka.</value>
@@ -8869,6 +8902,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Generera starkt lösenord</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Tilldela rollen</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML-signatur</value>
   </data>
@@ -9063,6 +9099,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>Ser_ver</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>Ta _bort rollen</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Målvärd för SMTP</value>
@@ -9708,6 +9747,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>kontot är utestängt</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>kontots egen domän</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>adressen är en av de {0} på gråstlistningens vitlista</value>

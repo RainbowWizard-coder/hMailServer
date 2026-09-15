@@ -515,6 +515,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Een antwoord voor het hele domein - een gesloten kantoor, een opgeheven afdeling. Het antwoordt alleen voor accounts die GEEN eigen afwezigheidsbericht hebben: het eigen bericht van een account wint altijd, en hooguit één antwoord beantwoordt een bericht.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Een rol is een benoemde verzameling rechten, en een toewijzing geeft die aan een account binnen genoemde domeinen. De vier ingebouwde rollen zijn niet te bewerken: hun rechten staan in de code van de server, zodat een wijziging in de database niemand bevoegdheid kan geven. Een account zonder rol hier heeft wat zijn beheerdersniveau het altijd heeft gegeven.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>Er is al een rotatie klaargezet. Als het DNS-record is gepubliceerd, druk op "DNS controleren"; promoveren wordt ontgrendeld zodra de controle in deze sessie slaagt.</value>
   </data>
@@ -950,6 +953,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Administrator password" xml:space="preserve">
     <value>Beheerderswachtwoord</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Beheerdersrollen</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Geavanceerd</value>
   </data>
@@ -1048,6 +1054,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>Een SPF-record staat live op {0} en het is niet het voorgestelde. Dat kan heel goed bewust zijn - de suggestie kan uw andere afzenders niet kennen. Gepubliceerd: {1} — bevestig alleen dat alles wat echt mail als {0} verstuurt gedekt is.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>Een accountadres is vereist.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Een account kan worden uitgeschakeld zonder het te verwijderen, wat de mail bewaart en nieuwe aanmeldingen weigert.</value>
@@ -1452,6 +1461,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Bouwt een zoekindex zodat IMAP SEARCH en de webclient sneller zijn.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Ingebouwd</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Ingebouwd (SQL Server Compact)</value>
   </data>
@@ -1666,6 +1678,12 @@ De klaargezette selector "{0}" wordt uit de serverconfiguratie verwijderd; het o
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Kies een voorinstelling…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Kies een rol om toe te wijzen.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Kies een toewijzing in de lijst, of typ het accountadres.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Kies een vervaldatum die minstens een dag in de toekomst ligt. Een sleutel die vandaag verloopt, zou halverwege de dag waarop hij is gemaakt stoppen met werken.</value>
@@ -2769,6 +2787,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domeinen, accounts, aliassen en distributielijsten, en van elk account de wachtwoorden, het doorsturen en de mappen.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domeinen, gescheiden door komma's</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Klaar</value>
@@ -4722,6 +4743,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Geen enkele virusscanner kan draaien. Bijlageblokkering verwijdert nog steeds de bestandsnaampatronen op zijn eigen pagina, maar niets kijkt in een bericht of in een archief.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Niemand heeft nog een rol. Een account zonder rol heeft de rechten die zijn beheerdersniveau geeft, precies als voordat er rollen waren.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Geen</value>
   </data>
@@ -6044,6 +6068,9 @@ Doorgaan?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>De envelopafzender herschrijven bij het doorsturen (de eenvoudige terugval, geen geheim nodig)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rol</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>De sessieticketsleutel elke N seconden roteren (0 = de enkele, niet-roterende sleutel van OpenSSL)</value>
@@ -8461,6 +8488,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Wat er buiten deze server moet bestaan</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>Waarvoor het is</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Wat het mag doen</value>
   </data>
@@ -8598,6 +8628,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Zet de afzender of zijn IP-bereik op de witte lijst zodat het bericht de spambescherming overslaat.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Wie wat mag beheren: de benoemde rollen van deze server en de accounts die ze hebben.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Wie verbinding mag maken, wie zich mag authenticeren, en wat er gebeurt wanneer iemand het blijft proberen.</value>
@@ -8869,6 +8902,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Sterk wachtwoord genereren</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>Rol _toewijzen</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>HTML-h_andtekening</value>
   </data>
@@ -9063,6 +9099,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>Rol _verwijderen</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Doel-SMTP-host</value>
@@ -9708,6 +9747,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>het account is vergrendeld</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>het eigen domein van het account</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>het adres is een van de {0} op de witte lijst voor greylisting</value>

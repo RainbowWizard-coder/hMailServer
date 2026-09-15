@@ -17,6 +17,9 @@
 #include "InterfaceGlobalObjects.h"
 #include "InterfaceLinks.h"
 
+#include "../Common/Persistence/PersistentAccount.h"
+#include "../Common/BO/Account.h"
+#include "../Common/Application/RoleManager.h"
 #include "COMError.h"
 
 #include "../Common/Application/IniFileSettings.h"
@@ -590,3 +593,159 @@ STDMETHODIMP InterfaceApplication::get_Diagnostics(IInterfaceDiagnostics **pVal)
    }
 }
 
+STDMETHODIMP InterfaceApplication::get_Roles(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ViewConfiguration))
+         return authentication_->GetAccessDenied();
+
+      // One line per role: name, built-in, description, permissions, tab
+      // separated. A string and not a collection deliberately - a new COM
+      // interface needs an elevated registration on every machine that runs
+      // the suite, and a listing does not earn that.
+      HM::String result;
+
+      for (const HM::RoleRecord &record : HM::RoleManager::ListRoles())
+      {
+         HM::String line;
+         line.Format(_T("%s\t%d\t%s\t%s\r\n"),
+                     record.name.c_str(), record.builtin ? 1 : 0,
+                     record.description.c_str(), record.permissions.c_str());
+         result += line;
+      }
+
+      *pVal = result.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::get_CurrentRole(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      *pVal = HM::String(authentication_->GetGrant().name).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::get_CurrentPermissions(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      // What the signed-in credential may do, so that a Control Panel can
+      // leave out a page rather than show one every button of which refuses.
+      *pVal = HM::String(HM::RoleManager::DescribeGrant(authentication_->GetGrant())).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::get_RoleAssignments(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ViewConfiguration))
+         return authentication_->GetAccessDenied();
+
+      HM::String result;
+
+      for (const HM::RoleAssignment &assignment : HM::RoleManager::ListAssignments())
+      {
+         std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+         // An assignment whose account has gone is not listed; the row follows
+         // the account through the foreign key, and this is the moment between
+         // the delete and the reload.
+         if (!HM::PersistentAccount::ReadObject(account, assignment.account_id) || account->GetID() == 0)
+            continue;
+
+         HM::String line;
+         line.Format(_T("%s\t%s\t%s\r\n"),
+                     account->GetAddress().c_str(),
+                     assignment.role_name.c_str(),
+                     assignment.domains.c_str());
+         result += line;
+      }
+
+      *pVal = result.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::AssignRole(BSTR Address, BSTR Role, BSTR Domains)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ManageRoles))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+      // The same answer for an address that does not exist and for one this
+      // credential may not see, because ManageRoles is only ever held with
+      // AdministerServer today - and when it is delegated, the day it is, this
+      // must already read the same either way.
+      if (!HM::PersistentAccount::ReadObject(account, HM::String(Address)) || account->GetID() == 0)
+         return COMError::GenerateError("No such account.");
+
+      const HM::String wanted = Role;
+      HM::String error;
+
+      if (wanted.IsEmpty())
+      {
+         if (!HM::RoleManager::Unassign(account->GetID(), error))
+            return COMError::GenerateError(error);
+
+         return S_OK;
+      }
+
+      // A credential may not hand out authority it has not got.
+      const HM::RoleGrant wouldBe = HM::RoleManager::GrantForRole(wanted, std::vector<HM::String>());
+
+      if (!authentication_->GetIsServerAdmin() &&
+          (wouldBe.permissions & ~authentication_->GetGrant().permissions) != 0)
+      {
+         return COMError::GenerateError("That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
+      }
+
+      if (!HM::RoleManager::Assign(account->GetID(), wanted, HM::String(Domains), error))
+         return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

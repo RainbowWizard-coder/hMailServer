@@ -515,6 +515,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Odpowiedź dla całej domeny - zamknięte biuro, zlikwidowany dział. Odpowiada wyłącznie za konta, które NIE mają własnej wiadomości o nieobecności: własna wiadomość konta zawsze wygrywa, a na dowolną wiadomość odpowiada co najwyżej jedna odpowiedź.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Rola to nazwany zestaw uprawnień, a przypisanie nadaje ją kontu we wskazanych domenach. Czterech wbudowanych ról nie da się edytować: ich uprawnienia są w kodzie serwera, aby zmiana w bazie danych nie mogła nikomu nadać władzy. Konto bez roli ma tutaj to, co zawsze dawał mu jego poziom administratora.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>Rotacja jest już przygotowana. Jeśli rekord DNS został opublikowany, należy nacisnąć „Sprawdź DNS”; promowanie odblokowuje się, gdy kontrola przejdzie pomyślnie w tej sesji.</value>
   </data>
@@ -950,6 +953,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Administrator password" xml:space="preserve">
     <value>Hasło administratora</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Role administratorów</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Zaawansowane</value>
   </data>
@@ -1048,6 +1054,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>Pod adresem {0} działa rekord SPF i nie jest to rekord sugerowany. Może to być całkowicie zamierzone - sugestia nie zna innych nadawców tej domeny. Opublikowano: {1} — wystarczy potwierdzić, że objęte jest wszystko, co naprawdę wysyła pocztę jako {0}.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>Adres konta jest wymagany.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Konto można wyłączyć bez usuwania go, co zachowuje pocztę i odrzuca nowe logowania.</value>
@@ -1452,6 +1461,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Buduje indeks wyszukiwania, dzięki czemu IMAP SEARCH i klient webowy działają szybciej.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Wbudowana</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Wbudowana (SQL Server Compact)</value>
   </data>
@@ -1666,6 +1678,12 @@ Przygotowany selektor „{0}” zostaje usunięty z konfiguracji serwera; podpis
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Wybierz gotowe ustawienie…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Wybierz rolę do nadania.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Wybierz przypisanie z listy albo wpisz adres konta.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Należy wybrać datę wygaśnięcia oddaloną co najmniej o dzień. Klucz wygasający dzisiaj przestałby działać w połowie dnia, w którym powstał.</value>
@@ -2769,6 +2787,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domeny, konta, aliasy i listy dystrybucyjne oraz hasła, przekazywanie i foldery każdego konta.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domeny oddzielone przecinkami</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Gotowe</value>
@@ -4722,6 +4743,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Żaden skaner antywirusowy nie może zostać uruchomiony. Blokowanie załączników nadal usuwa pliki pasujące do wzorców nazw z własnej strony, ale nic nie zagląda do wnętrza wiadomości ani do wnętrza archiwum.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Nikt nie ma jeszcze roli. Konto bez roli ma uprawnienia wynikające z jego poziomu administratora, dokładnie jak przed wprowadzeniem ról.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Brak</value>
   </data>
@@ -6044,6 +6068,9 @@ Kontynuować?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Przepisuj nadawcę koperty przy przekazywaniu (proste rozwiązanie zastępcze, bez potrzeby sekretu)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rola</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Zmieniaj klucz biletów sesji co N sekund (0 = pojedynczy, nierotowany klucz OpenSSL)</value>
@@ -8461,6 +8488,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Co musi istnieć poza tym serwerem</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>Do czego służy</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Co może robić</value>
   </data>
@@ -8598,6 +8628,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Dodaj nadawcę lub jego zakres adresów IP do białej listy, aby wiadomość omijała ochronę antyspamową.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Kto czym administruje: nazwane role tego serwera i konta, które je mają.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kto może się łączyć, kto może się uwierzytelniać i co dzieje się, gdy ktoś wciąż próbuje.</value>
@@ -8869,6 +8902,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Generuj silne hasło</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Przypisz rolę</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>Podpis _HTML</value>
   </data>
@@ -9063,6 +9099,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Serwer</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>_Odbierz rolę</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Docelowy host SMTP</value>
@@ -9708,6 +9747,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>konto jest zablokowane</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>własna domena konta</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>adres jest jednym z {0} na białej liście greylistingu</value>

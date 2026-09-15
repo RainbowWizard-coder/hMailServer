@@ -19,7 +19,8 @@ namespace hMailServer.ControlPanel.Services
    public sealed class NavNode
    {
       internal NavNode(string key, string title, string purpose, IReadOnlyList<string> aliases,
-         IReadOnlyList<string> seeAlso, IReadOnlyList<NavNode> children, string icon = null)
+         IReadOnlyList<string> seeAlso, IReadOnlyList<NavNode> children, string icon = null,
+         string needs = null)
       {
          Key = key;
          Title = title;
@@ -28,7 +29,17 @@ namespace hMailServer.ControlPanel.Services
          SeeAlso = seeAlso;
          Children = children;
          Icon = icon;
+         Needs = needs;
       }
+
+      /// <summary>
+      /// The permission a role must hold for this page to be shown, or null for
+      /// a page every signed-in credential may open. It decides what is DRAWN
+      /// and never what is ALLOWED: the server refuses the COM call whatever
+      /// the shell shows, and a credential the server did not describe sees
+      /// every page, as it did before roles existed.
+      /// </summary>
+      public string Needs { get; }
 
       /// <summary>The navigation key of the page, or null for a group heading.</summary>
       public string Key { get; }
@@ -140,6 +151,62 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>Every group heading, in display order.</summary>
       public static IReadOnlyList<NavNode> Groups => groups_;
+
+      /// <summary>
+      /// The tree as one credential should see it: the same nodes, with the
+      /// pages whose permission it does not hold left out, and a group left out
+      /// once every page under it has gone. Pages and Groups above stay the
+      /// WHOLE map on purpose - the breadcrumb, the legacy paths and the
+      /// page-registration test all resolve against it, and a page that is not
+      /// drawn is still a page that exists.
+      /// </summary>
+      public static IReadOnlyList<NavNode> VisibleRoots(Func<string, bool> mayUse)
+      {
+         if (mayUse == null)
+            return roots_;
+
+         var visible = new List<NavNode>();
+
+         foreach (NavNode root in roots_)
+         {
+            NavNode kept = Filter_(root, mayUse);
+            if (kept != null)
+               visible.Add(kept);
+         }
+
+         return visible;
+      }
+
+      /// <summary>Every page this credential may open, in display order.</summary>
+      public static IReadOnlyList<NavNode> VisiblePages(Func<string, bool> mayUse)
+         => mayUse == null ? pages_ : pages_.Where(p => mayUse(p.Needs)).ToList();
+
+      private static NavNode Filter_(NavNode node, Func<string, bool> mayUse)
+      {
+         if (node.IsPage)
+            return mayUse(node.Needs) ? node : null;
+
+         var children = new List<NavNode>();
+
+         foreach (NavNode child in node.Children)
+         {
+            NavNode kept = Filter_(child, mayUse);
+            if (kept != null)
+               children.Add(kept);
+         }
+
+         if (children.Count == 0)
+            return null;
+
+         // A copy, so that the map itself is never narrowed: two windows on one
+         // machine could hold two credentials, and a static list filtered in
+         // place would show the second one the first one's tree.
+         var copy = new NavNode(null, node.Title, node.Purpose, node.Aliases, node.SeeAlso, children, node.Icon);
+         foreach (NavNode child in children)
+            child.Parent = copy;
+
+         return copy;
+      }
 
       /// <summary>The page with this navigation key, or null.</summary>
       public static NavNode Find(string key)
@@ -323,8 +390,9 @@ namespace hMailServer.ControlPanel.Services
       /// table is that a maintainer can read the alias list and judge whether it
       /// covers how people talk.
       /// </summary>
-      private static NavNode Page(string key, string title, string purpose, string aliases = "", string seeAlso = "")
-         => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>());
+      private static NavNode Page(string key, string title, string purpose, string aliases = "", string seeAlso = "",
+         string needs = null)
+         => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>(), null, needs);
 
       private static NavNode Group(string title, string purpose, string aliases, params NavNode[] children)
          => new NavNode(null, title, purpose, Split(aliases), Array.Empty<string>(), children);
@@ -455,8 +523,14 @@ namespace hMailServer.ControlPanel.Services
 
                Page("groups", N("Groups"),
                   N("Security groups, so shared-folder permissions can be granted to several accounts at once."),
-                  aliases: "Security groups|Roles|Membership|Permission groups",
-                  seeAlso: "publicfolders|domains")),
+                  aliases: "Security groups|Membership|Permission groups",
+                  seeAlso: "publicfolders|domains"),
+
+               Page("roles", N("Administrator roles"),
+                  N("Who may administer what: the named roles this server has, and the accounts that hold them."),
+                  aliases: "Roles|Permissions|Help desk|Auditor|Domain administrator|Delegation|Least privilege|Who can do what",
+                  seeAlso: "groups|domains",
+                  needs: "view_configuration")),
 
             Group("MailArrowForward20", N("Mail flow & delivery"),
                N("How mail gets in, where it goes next, and what happens to it on the way."),

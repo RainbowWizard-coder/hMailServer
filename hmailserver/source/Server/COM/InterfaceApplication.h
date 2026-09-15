@@ -52,6 +52,11 @@ public:
    STDMETHOD(Authenticate)(BSTR sUsername, BSTR sPassword, IInterfaceAccount **pVal);
    STDMETHOD(AuthenticateWithCode)(BSTR sUsername, BSTR sPassword, BSTR sCode, IInterfaceAccount **pVal);
    STDMETHOD(get_AdministratorTOTPEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(get_Roles)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_CurrentRole)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_CurrentPermissions)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_RoleAssignments)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(AssignRole)(/*[in]*/ BSTR Address, /*[in]*/ BSTR Role, /*[in]*/ BSTR Domains);
    STDMETHOD(SubmitEMail)();
    STDMETHOD(Stop)();
    STDMETHOD(Start)();

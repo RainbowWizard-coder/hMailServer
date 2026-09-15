@@ -182,21 +182,22 @@ pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padd
       <div><b>hMailServer</b><small>Control Deck</small></div>
     </div>
     <nav class="nav" id="nav">
-      <button data-view="dash" class="on"><span class="ico">◈</span>Dashboard</button>
-      <button data-view="domains"><span class="ico">⌂</span>Domains</button>
-      <button data-view="ipranges"><span class="ico">⌗</span>IP ranges</button>
-      <button data-view="fetch"><span class="ico">⇓</span>Fetch accounts</button>
-      <button data-view="lists"><span class="ico">≣</span>Lists</button>
-      <button data-view="queue"><span class="ico">⇶</span>Delivery queue</button>
-      <button data-view="tlsa"><span class="ico">⛨</span>DANE / TLSA</button>
-      <button data-view="settings"><span class="ico">⚙</span>Settings</button>
-      <button data-view="backup"><span class="ico">⛃</span>Backup</button>
-      <button data-view="messages"><span class="ico">✎</span>Server messages</button>
-      <button data-view="rules"><span class="ico">⚖</span>Rules</button>
-      <button data-view="routes"><span class="ico">⇥</span>Routes</button>
-      <button data-view="certs"><span class="ico">⚿</span>Certificates</button>
-      <button data-view="ports"><span class="ico">⊞</span>Ports</button>
-      <button data-view="logs"><span class="ico">≡</span>Logs</button>
+      <button data-view="dash" data-needs="view_configuration" class="on"><span class="ico">◈</span>Dashboard</button>
+      <button data-view="domains" data-needs="view_accounts"><span class="ico">⌂</span>Domains</button>
+      <button data-view="ipranges" data-needs="view_configuration"><span class="ico">⌗</span>IP ranges</button>
+      <button data-view="fetch" data-needs="view_accounts"><span class="ico">⇓</span>Fetch accounts</button>
+      <button data-view="lists" data-needs="view_accounts"><span class="ico">≣</span>Lists</button>
+      <button data-view="queue" data-needs="view_queue"><span class="ico">⇶</span>Delivery queue</button>
+      <button data-view="tlsa" data-needs="view_configuration"><span class="ico">⛨</span>DANE / TLSA</button>
+      <button data-view="settings" data-needs="view_configuration"><span class="ico">⚙</span>Settings</button>
+      <button data-view="backup" data-needs="view_configuration"><span class="ico">⛃</span>Backup</button>
+      <button data-view="messages" data-needs="view_configuration"><span class="ico">✎</span>Server messages</button>
+      <button data-view="rules" data-needs="view_configuration"><span class="ico">⚖</span>Rules</button>
+      <button data-view="routes" data-needs="view_configuration"><span class="ico">⇥</span>Routes</button>
+      <button data-view="certs" data-needs="view_configuration"><span class="ico">⚿</span>Certificates</button>
+      <button data-view="ports" data-needs="view_configuration"><span class="ico">⊞</span>Ports</button>
+      <button data-view="roles" data-needs="view_configuration"><span class="ico">⚑</span>Roles</button>
+      <button data-view="logs" data-needs="view_logs"><span class="ico">≡</span>Logs</button>
     </nav>
     <div class="foot">
       <div class="pill"><span class="dot"></span><span id="connState">Connected</span></div>
@@ -453,10 +454,44 @@ function signedOut(message){
   $("#loginErr").textContent=message||"";
   $("#pass").focus();
 }
+/* What the signed-in credential may do. Read once, at sign-in, from the server's
+   own answer - never inferred here - and used for one thing: leaving out a page
+   this role may not use, rather than showing one whose every button answers 403.
+   It is not a security boundary and is not treated as one; the server refuses
+   the request whatever this page shows, which is why a whoami that cannot be
+   read leaves every view in place rather than hiding the Deck from somebody
+   whose credential is perfectly good. */
+let permissions=null;
+function may(permission){return !permissions||!permission||permissions.indexOf(permission)>=0;}
+function applyPermissions(){
+  const buttons=Array.from(document.querySelectorAll("#nav button[data-view]"));
+  let visible=null;
+  buttons.forEach(b=>{
+    const allowed=may(b.dataset.needs);
+    b.hidden=!allowed;
+    if(allowed&&!visible)visible=b.dataset.view;
+  });
+  if(!visible){view=null;return;}
+  if(!buttons.some(b=>b.dataset.view===view&&!b.hidden)){
+    view=visible;
+    buttons.forEach(b=>b.classList.toggle("on",b.dataset.view===view));
+  }
+}
+async function readSession(){
+  permissions=null;
+  try{
+    const who=await api("/api/v1/session");
+    if(who&&Array.isArray(who.permissions))permissions=who.permissions;
+  }catch(_){/* an older server, or a request that did not arrive: show everything */}
+  applyPermissions();
+}
 function enter(status){
   $("#gate").style.display="none";$("#app").style.display="flex";
   $("#ver").textContent=status.version||"?";
-  render();
+  readSession().then(()=>{
+    if(!view){$("#viewTitle").textContent="";$("#content").innerHTML='<div class="empty">'+t("This role reaches none of the pages of the Deck. Ask an administrator for one that does.")+'</div>';return;}
+    render();
+  });
   if(!pollTimer)pollTimer=setInterval(()=>{if(view==="dash")render(true);},3000);
 }
 
@@ -467,7 +502,7 @@ $("#nav").addEventListener("click",e=>{
   view=b.dataset.view;editing=null;render();
 });
 const titles={dash:K("Dashboard"),domains:K("Domains"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),
-  settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),certs:K("Certificates"),ports:K("Ports"),logs:K("Logs")};
+  settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -486,6 +521,7 @@ async function render(silent){
     else if(view==="routes")await renderRoutes();
     else if(view==="certs")await renderCerts();
     else if(view==="ports")await renderPorts();
+    else if(view==="roles")await renderRoles();
     else if(view==="logs")await renderLogs();
     $("#connState").textContent=t("Connected");
   }catch(err){
@@ -563,6 +599,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="routeedit")openRoute(Number(d.id));
   else if(d.act==="routedel")deleteRoute(Number(d.id),d.name);
   else if(d.act==="routesave")saveRoute();
+  else if(d.act==="assign")assignRole();
+  else if(d.act==="unassign")unassignRole(d.address);
   else if(d.act==="cancel"){editing=null;render();}
 });
 /* A criterion's field or an action's type decides which further controls the
@@ -2277,6 +2315,52 @@ async function saveMessage(name,i){
 }
 
 /* ---------- Logs ---------- */
+/* ---------- Roles ---------- */
+async function renderRoles(){
+  const catalogue=await api("/api/v1/roles");
+  const held=await api("/api/v1/role-assignments");
+  const roles=catalogue.roles||[];
+  const roleRows=roles.map(r=>`
+    <tr><td><code class="ro">${escHtml(r.name)}</code></td>
+        <td>${escHtml(r.description||"")}</td>
+        <td>${r.builtin?'<span class="badge info">'+t("Built in")+'</span>':""}</td>
+        <td style="word-break:break-word">${escHtml((r.permissions||"").split(",").join(", "))}</td></tr>`).join("");
+  const options=roles.map(r=>`<option value="${escHtml(r.name)}">${escHtml(r.name)}</option>`).join("");
+  const heldRows=(held.assignments||[]).map(a=>`
+    <tr><td>${escHtml(a.address)}</td><td><code class="ro">${escHtml(a.role)}</code></td>
+        <td>${escHtml(a.domains||t("the account's own domain"))}</td>
+        <td style="text-align:right"><button class="btn danger sm" data-act="unassign" data-address="${escHtml(a.address)}">${t("Remove")}</button></td></tr>`).join("");
+  $("#content").innerHTML=`<div class="card view">
+    <div class="tablewrap"><table><thead><tr><th>${t("Role")}</th><th>${t("What it is for")}</th><th></th><th>${t("Permissions")}</th></tr></thead>
+    <tbody>${roleRows}</tbody></table></div></div>
+    <div class="card view" style="margin-top:14px">
+    <div class="tablewrap"><table><thead><tr><th>${t("Account")}</th><th>${t("Role")}</th><th>${t("Domains")}</th><th></th></tr></thead>
+    <tbody>${heldRows||'<tr><td colspan="4" class="empty">'+t("Nobody has been given a role yet. An account without one holds the authority its admin level gives it. ✦")+'</td></tr>'}</tbody></table></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <input id="roleAddress" placeholder="${t("Account address")}" style="flex:1 1 220px">
+      <select id="roleName" style="flex:0 1 180px">${options}</select>
+      <input id="roleDomains" placeholder="${t("Domains, comma separated")}" style="flex:1 1 200px">
+      <button class="btn" data-act="assign">${t("Give the role")}</button>
+    </div>
+    <div class="err" id="err_roles" style="margin-top:10px"></div></div>`;
+}
+async function assignRole(){
+  setErr("err_roles","");
+  const address=($("#roleAddress").value||"").trim();
+  if(!address){setErr("err_roles",t("An account address is required."));return;}
+  try{
+    await api("/api/v1/role-assignments/"+encodeURIComponent(address),{method:"PUT",body:JSON.stringify({role:$("#roleName").value,domains:($("#roleDomains").value||"").trim()})});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+async function unassignRole(address){
+  setErr("err_roles","");
+  try{
+    await api("/api/v1/role-assignments/"+encodeURIComponent(address),{method:"DELETE"});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+
 async function renderLogs(){
   const files=asList(await api("/api/v1/logs"),"files");
   const rows=files.map(f=>`

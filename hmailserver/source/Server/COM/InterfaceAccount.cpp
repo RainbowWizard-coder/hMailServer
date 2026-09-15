@@ -36,6 +36,8 @@
 
 #include "COMAuthentication.h"
 
+#include "../Common/Application/RoleManager.h"
+#include "../Common/Util/AccountLockout.h"
 #include "COMError.h"
 
 #ifdef _DEBUG
@@ -618,6 +620,20 @@ STDMETHODIMP InterfaceAccount::Save()
          }
       }
 
+      // Saving an account is ManageAccounts, and the exception that predates
+      // roles is the account saving ITSELF - the portal, the webmail, a script
+      // running as the mailbox holder, all of which set a vacation message or
+      // a signature through this. The two historical levels both hold
+      // ManageAccounts, so a server administrator and a domain administrator
+      // save exactly what they saved before; a help desk and an auditor do not
+      // hold it and cannot, which is what makes them narrow. A help desk
+      // resets a password through SetPassword below, which saves for itself.
+      if (!authentication_->Allows(HM::RolePermission::ManageAccounts) &&
+          authentication_->GetAccountID() != object_->GetID())
+      {
+         return authentication_->GetAccessDenied();
+      }
+
 
       String sErrorMessage;
       if (PersistentAccount::SaveObject(object_, sErrorMessage, true, HM::PersistenceModeNormal))
@@ -643,8 +659,23 @@ STDMETHODIMP InterfaceAccount::UnlockMailbox()
       if (!object_)
          return GetAccessDenied();
 
+      // Unlocking somebody is UnlockAccount - which the two historical levels
+      // both hold, so nothing an administrator could do before changes - or
+      // the account doing it to itself, which is how a mail client that lost
+      // its POP3 session has always recovered. An auditor holds neither and is
+      // refused, because a lock cleared is a change.
+      if (!authentication_->Allows(HM::RolePermission::UnlockAccount) &&
+          authentication_->GetAccountID() != object_->GetID())
+      {
+         return authentication_->GetAccessDenied();
+      }
+
       __int64 iAccountID = object_->GetID();
       POP3Sessions::Instance()->Unlock(iAccountID);
+
+      // Both locks, as the REST route clears both: somebody who cannot get to
+      // their mail does not know which one they are behind.
+      HM::AccountLockout::Instance()->RecordSuccess(object_->GetAddress());
    
       return S_OK;
    }
@@ -1825,3 +1856,194 @@ STDMETHODIMP InterfaceAccount::put_SpamDeleteThreshold(long newVal)
    }
 }
 
+STDMETHODIMP InterfaceAccount::get_RoleName(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The assignment row, and nothing derived: an account with no row reads
+      // as empty, which is how an administrator can tell "holds the domainadmin
+      // role" from "is a domain administrator because AdminLevel says so".
+      HM::RoleAssignment assignment;
+
+      if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), assignment))
+         *pVal = HM::String().AllocSysString();
+      return S_OK;
+
+      *pVal = assignment.role_name.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_RoleName(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ManageRoles))
+         return authentication_->GetAccessDenied();
+
+      const HM::String wanted = newVal;
+
+      // A credential may not hand out authority it has not got. Only the
+      // server administrator holds ManageRoles today, so this cannot fire yet;
+      // it is written now because the day a delegate holds it is the day the
+      // check has to already be here.
+      if (!wanted.IsEmpty())
+      {
+         const HM::RoleGrant wouldBe = HM::RoleManager::GrantForRole(wanted, std::vector<HM::String>());
+
+         if (!authentication_->GetGrant().Holds(HM::RolePermission::AdministerServer) &&
+             (wouldBe.permissions & ~authentication_->GetGrant().permissions) != 0)
+         {
+            return COMError::GenerateError("That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
+         }
+      }
+
+      HM::RoleAssignment existing;
+      HM::RoleManager::AssignmentForAccount(object_->GetID(), existing);
+
+      HM::String error;
+
+      if (wanted.IsEmpty())
+      {
+         if (!HM::RoleManager::Unassign(object_->GetID(), error))
+            return COMError::GenerateError(error);
+
+         return S_OK;
+      }
+
+      if (!HM::RoleManager::Assign(object_->GetID(), wanted, existing.domains, error))
+         return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RoleDomains(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::RoleAssignment assignment;
+
+      if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), assignment))
+         *pVal = HM::String().AllocSysString();
+      return S_OK;
+
+      *pVal = assignment.domains.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_RoleDomains(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ManageRoles))
+         return authentication_->GetAccessDenied();
+
+      HM::RoleAssignment existing;
+
+      if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), existing))
+         return COMError::GenerateError("This account holds no role, so there are no domains to confine it to. Set RoleName first.");
+
+      HM::String error;
+
+      if (!HM::RoleManager::Assign(object_->GetID(), existing.role_name, HM::String(newVal), error))
+         return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RolePermissions(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      const HM::RoleGrant grant = HM::RoleManager::GrantForAccount(object_);
+
+      *pVal = HM::String(HM::RoleManager::DescribeGrant(grant)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::SetPassword(BSTR Password)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The one thing a help-desk role may do to somebody else's account, and
+      // therefore a method of its own: put_Password followed by Save() would
+      // need ManageAccounts, which is every other field of the account too.
+      if (!authentication_->Allows(HM::RolePermission::ResetPassword))
+         return authentication_->GetAccessDenied();
+
+      // A server administrator's password is not a narrow role's to reset. The
+      // account it belongs to administers every domain, so resetting it is a
+      // way to become the server administrator from a role that reaches one -
+      // which is the rule Save() above applies, said again because this route
+      // is narrower and would otherwise be the way round it.
+      if (object_->GetAdminLevel() == HM::Account::ServerAdmin &&
+          !authentication_->GetIsServerAdmin())
+      {
+         return COMError::GenerateError("A server administrator's password can only be reset by a server administrator.");
+      }
+
+      HRESULT setResult = put_Password(Password);
+
+      if (setResult != S_OK)
+         return setResult;
+
+      HM::String errorMessage;
+
+      if (!HM::PersistentAccount::SaveObject(object_, errorMessage, true, HM::PersistenceModeNormal))
+         return COMError::GenerateError("Failed to save object. " + errorMessage);
+
+      AddToParentCollection();
+
+      // The lockout goes with it: somebody whose password has just been reset
+      // because they could not get in must be able to get in.
+      HM::AccountLockout::Instance()->RecordSuccess(object_->GetAddress());
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

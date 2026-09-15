@@ -117,6 +117,12 @@ public:
    STDMETHOD(put_VacationMessageExpiresDate)(/*[in]*/ BSTR newVal);
    STDMETHOD(get_VacationMessageBeginDate)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_VacationMessageBeginDate)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_RoleName)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_RoleName)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_RoleDomains)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_RoleDomains)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_RolePermissions)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(SetPassword)(/*[in]*/ BSTR Password);
    STDMETHOD(get_VacationMessageAbortSpamFlagged)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_VacationMessageAbortSpamFlagged)(/*[in]*/ VARIANT_BOOL newVal);
 

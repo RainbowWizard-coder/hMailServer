@@ -190,7 +190,25 @@ namespace hMailServer.ControlPanel
          pageFactories_["directorysync"] = () => new DirectorySyncView();
          pageFactories_["externalsetup"] = () => new ExternalSetupView();
          pageFactories_["dnsrecords"] = () => new DnsRecordsView();
+         pageFactories_["roles"] = () => new RolesView();
          pageFactories_["about"] = () => new AboutView();
+      }
+
+      /// <summary>
+      /// The tree as the signed-in credential should see it. A page a role may
+      /// not use is left out rather than shown and refused; a credential the
+      /// server did not describe - an older server, a property that threw -
+      /// sees the whole tree, exactly as before roles existed. This decides
+      /// what is DRAWN and never what is ALLOWED, which stays the server's.
+      /// </summary>
+      private static IReadOnlyList<NavNode> VisibleRoots_()
+      {
+         ServerSession session = ServerSession.Current;
+
+         if (session == null || session.Permissions == null)
+            return NavigationMap.Roots;
+
+         return NavigationMap.VisibleRoots(session.May);
       }
 
       /// <summary>
@@ -213,7 +231,7 @@ namespace hMailServer.ControlPanel
       {
          NavTree.Items.Clear();
 
-         foreach (NavNode node in NavigationMap.Roots)
+         foreach (NavNode node in VisibleRoots_())
             NavTree.Items.Add(BuildNavItem(node));
       }
 
@@ -344,7 +362,7 @@ namespace hMailServer.ControlPanel
          NavRail.Children.Clear();
          railItems_.Clear();
 
-         foreach (NavNode node in NavigationMap.Roots)
+         foreach (NavNode node in VisibleRoots_())
          {
             object glyph = null;
             if (!string.IsNullOrEmpty(node.Icon) && System.Enum.TryParse(node.Icon, out Wpf.Ui.Controls.SymbolRegular symbol))

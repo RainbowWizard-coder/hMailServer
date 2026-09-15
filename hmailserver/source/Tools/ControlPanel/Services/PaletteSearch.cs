@@ -96,6 +96,23 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public static class PaletteSearch
    {
+      /// <summary>
+      /// The pages the signed-in credential may open. Ctrl+K offers a page a
+      /// role may not use no more than the sidebar shows it; a credential the
+      /// server did not describe sees every page, as it did before roles
+      /// existed. This decides what is OFFERED and never what is ALLOWED,
+      /// which stays the server's.
+      /// </summary>
+      private static IReadOnlyList<NavNode> VisiblePages_()
+      {
+         ServerSession session = ServerSession.Current;
+
+         if (session == null || session.Permissions == null)
+            return NavigationMap.Pages;
+
+         return NavigationMap.VisiblePages(session.May);
+      }
+
       public static readonly string RecentSection = N("Recently visited");
       public static readonly string MostUsedSection = N("Most used");
       public static readonly string TaskSection = N("Tasks");
@@ -219,7 +236,7 @@ namespace hMailServer.ControlPanel.Services
          }
 
          var pageRows = new List<PaletteRow>();
-         foreach (NavNode page in NavigationMap.Pages)
+         foreach (NavNode page in VisiblePages_())
             pageRows.Add(PageRow(PageSection, page, 0));
 
          Emit(rows, PageSection, pageRows);
@@ -318,7 +335,7 @@ namespace hMailServer.ControlPanel.Services
       {
          var scores = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-         foreach (NavNode page in NavigationMap.Pages)
+         foreach (NavNode page in VisiblePages_())
          {
             // Only the title gets the character-subsequence fallback. People do
             // type initials for a page they know ("dq" for the delivery queue),

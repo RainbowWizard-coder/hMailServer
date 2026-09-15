@@ -515,6 +515,9 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>ドメイン全体に対する応答です。閉鎖したオフィスや廃止した部署などに使います。応答するのは、独自の不在メッセージを持たないアカウント宛てのメールだけです。アカウント自身のメッセージが常に優先され、1 通のメッセージに対する応答は多くても 1 通です。</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>ロールは名前の付いた権限の集まりで、割り当てによって指定したドメインの範囲でアカウントに与えられます。組み込みの四つのロールは編集できません。その権限はサーバーのコードにあり、データベースを書き換えても誰にも権限を与えられないようにするためです。ここでロールを持たないアカウントは、その管理者レベルが常に与えてきたものを持ちます。</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>ローテーションはすでに準備されています。DNS レコードを公開済みであれば「DNS を確認」を押してください。このセッション中にチェックが成功すると、昇格が行えるようになります。</value>
   </data>
@@ -950,6 +953,9 @@
   <data name="Administrator password" xml:space="preserve">
     <value>管理者パスワード</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>管理者ロール</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>詳細設定</value>
   </data>
@@ -1048,6 +1054,9 @@
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>SPF レコードが {0} に公開されていますが、提案されたものとは異なります。これは意図的なものかもしれません。提案はほかの送信元まで知り得ないからです。公開されている値: {1} — {0} として実際にメールを送るものがすべて含まれているか、確認してください。</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>アカウントのアドレスが必要です。</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>アカウントは削除せずに無効にできます。メールはそのまま残り、新しいログオンは拒否されます。</value>
@@ -1452,6 +1461,9 @@
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>検索インデックスを構築し、IMAP SEARCH と Web クライアントを高速にします。</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>組み込み</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>組み込み (SQL Server Compact)</value>
   </data>
@@ -1666,6 +1678,12 @@
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>プリセットを選択…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>割り当てるロールを選んでください。</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>一覧から割り当てを選ぶか、アカウントのアドレスを入力してください。</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>少なくとも 1 日先の有効期限を選択してください。今日期限が切れる鍵は、作成した当日の途中で動作しなくなります。</value>
@@ -2769,6 +2787,9 @@
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>ドメイン、アカウント、エイリアス、配布リスト、および各アカウントのパスワード、転送、フォルダー。</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>ドメイン（コンマ区切り）</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>完了</value>
@@ -4722,6 +4743,9 @@
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>実行できるウイルス スキャナーがありません。添付ファイルのブロックは、そのページのファイル名パターンを引き続き取り除きますが、メッセージの中やアーカイブの中を見るものは何もありません。</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>まだ誰にもロールが割り当てられていません。ロールのないアカウントは、ロールが存在しなかったときとまったく同じく、その管理者レベルが与える権限を持ちます。</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>なし</value>
   </data>
@@ -6044,6 +6068,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>転送時にエンベロープ送信者を書き換える (単純なフォールバック。シークレットは不要)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>ロール</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>セッション チケットの鍵を N 秒ごとにローテーションする (0 = OpenSSL のローテーションしない単一の鍵)</value>
@@ -8461,6 +8488,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>このサーバーの外に存在しなければならないもの</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>用途</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>できること</value>
   </data>
@@ -8598,6 +8628,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>送信者またはその IP 範囲をホワイト リストに登録して、メッセージがスパム対策をバイパスするようにします。</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>誰が何を管理できるか。このサーバーの名前付きロールと、それを持つアカウント。</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>誰が接続でき、誰が認証でき、誰かが試行し続けたときに何が起きるか。</value>
@@ -8869,6 +8902,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Generate strong password" xml:space="preserve">
     <value>強力なパスワードを生成(_G)</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>ロールを割り当てる(_G)</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>HTML 署名(_H)</value>
   </data>
@@ -9063,6 +9099,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Server" xml:space="preserve">
     <value>サーバー(_S)</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>ロールを取り消す(_T)</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>宛先 SMTP ホスト(_T)</value>
@@ -9708,6 +9747,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>アカウントがロックアウトされています</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>そのアカウント自身のドメイン</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>このアドレスは、グレイリスティングのホワイト リストにある {0} 件のうちの 1 つです</value>

@@ -11,6 +11,8 @@
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/Crypt.h"
 #include "../Common/Application/IniFileSettings.h"
+#include "../Common/Application/RoleManager.h"
+#include "../Common/Util/Parsing/StringParser.h"
 
 #include "COMError.h"
 
@@ -57,6 +59,8 @@ namespace HM
          account_ = HM::PasswordValidator::ValidatePassword(sUsername, sPassword);
       }
 
+      ResolveGrant_();
+
       return account_;
    }
 
@@ -67,6 +71,7 @@ namespace HM
       {
          account_.reset();
          AuthenticateAdministrator_(sPassword, sCode, true);
+         ResolveGrant_();
          return account_;
       }
 
@@ -80,6 +85,7 @@ namespace HM
          // the ordinary path rather than returning early, so that an unknown name and
          // a wrong password remain indistinguishable from out here.
          account_ = HM::PasswordValidator::ValidatePassword(sUsername, sPassword);
+         ResolveGrant_();
          return account_;
       }
 
@@ -89,6 +95,8 @@ namespace HM
 
       if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, secondFactorSatisfied))
          account_ = pAccount;
+
+      ResolveGrant_();
 
       return account_;
    }
@@ -176,6 +184,8 @@ namespace HM
 
          account_ = std::shared_ptr<Account> (new Account("Administrator", Account::ServerAdmin));
       }
+
+      ResolveGrant_();
    }
 
    bool 
@@ -187,6 +197,12 @@ namespace HM
    __int64 
    COMAuthentication::GetAccountID() const
    {
+      // Nothing authenticated is not an account, and answering 0 is what every
+      // caller of this already treats as "not that account" - where throwing
+      // through a COM boundary would be a crash with no message.
+      if (!account_)
+         return 0;
+
       return account_->GetID();
    }
 
@@ -196,20 +212,99 @@ namespace HM
       return account_->GetDomainID();
    }
 
-   bool 
-   COMAuthentication::GetIsDomainAdmin() const
+   void
+   COMAuthentication::ResolveGrant_()
    {
-      if (GetIsServerAdmin())
-         return true;
+      grant_ = RoleGrant();
 
-      return account_ && 
-             account_->GetAdminLevel() == Account::DomainAdmin;
+      if (!account_)
+         return;
+
+      // The administrator credential has no account row behind it - the object
+      // above is a stand-in with the name "Administrator" and no id - so it is
+      // recognised here rather than looked up, and is the server
+      // administrator, as it always has been.
+      if (account_->GetID() == 0 && account_->GetAdminLevel() == Account::ServerAdmin)
+      {
+         grant_ = RoleManager::ServerAdministrator();
+         return;
+      }
+
+      grant_ = RoleManager::GrantForAccount(account_);
    }
 
-   bool 
+   void
+   COMAuthentication::InstallActor_() const
+   {
+      // Installed here, on whichever thread is answering this call, rather
+      // than once when the credential was authenticated - because DCOM does
+      // not promise that the thread which authenticated is the thread that
+      // later sets a property. Every administrative entry point in COM asks
+      // one of the four authority questions below before it changes anything,
+      // so the actor is in place on the right thread for the write that
+      // follows, and is replaced by the next question rather than left to go
+      // stale. It is the credential of the object being used, which is what
+      // "who did this" means.
+      RoleManager::SetCurrentActor(GetActor());
+   }
+
+   bool
+   COMAuthentication::GetIsDomainAdmin() const
+   {
+      InstallActor_();
+
+      // Reads exactly as it did: serveradmin holds every permission, so
+      // AdministerDomain is among them, and an account with AdminLevel =
+      // DomainAdmin and no assignment resolves to the domainadmin grant, which
+      // holds it. A help desk and an auditor hold neither, which is what
+      // refuses them every COM write without one of the ~200 call sites that
+      // ask this question being touched.
+      return RoleManager::Allows(grant_, RolePermission::AdministerDomain);
+   }
+
+   bool
    COMAuthentication::GetIsServerAdmin() const
    {
-      return (account_ && account_->GetAdminLevel() == Account::ServerAdmin);
+      InstallActor_();
+
+      return RoleManager::Allows(grant_, RolePermission::AdministerServer);
+   }
+
+   bool
+   COMAuthentication::Allows(RolePermission permission) const
+   {
+      InstallActor_();
+
+      return RoleManager::Allows(grant_, permission);
+   }
+
+   bool
+   COMAuthentication::AllowsForDomain(RolePermission permission, const String &domainName) const
+   {
+      InstallActor_();
+
+      String reason;
+      return RoleManager::Allows(grant_, permission, domainName, reason);
+   }
+
+   RoleActor
+   COMAuthentication::GetActor() const
+   {
+      RoleActor actor;
+
+      if (!account_)
+         return actor;
+
+      if (account_->GetID() == 0)
+         actor.identity = "administrator";
+      else
+         actor.identity = AnsiString("account:") + AnsiString(account_->GetAddress());
+
+      actor.account_id = account_->GetID();
+      actor.domain_id = account_->GetDomainID();
+      actor.grant = grant_;
+
+      return actor;
    }
 
    int 

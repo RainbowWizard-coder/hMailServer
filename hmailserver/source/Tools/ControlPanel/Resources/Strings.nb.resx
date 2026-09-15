@@ -515,6 +515,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Et svar for hele domenet - et stengt kontor, en nedlagt avdeling. Det svarer bare for kontoer som IKKE har en egen fraværsmelding: kontoens egen melding vinner alltid, og høyst ett svar besvarer en melding.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>En rolle er et navngitt sett med tillatelser, og en tildeling gir den til en konto i navngitte domener. De fire innebygde rollene kan ikke redigeres: tillatelsene deres ligger i serverens kode, slik at en endring i databasen ikke kan gi noen myndighet. En konto uten rolle her har det administratornivået alltid har gitt den.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>En rotasjon er allerede klargjort. Er DNS-oppføringen publisert, trykk «Kontroller DNS»; forfremmelsen låses opp når kontrollen går gjennom i denne økten.</value>
   </data>
@@ -950,6 +953,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Administrator password" xml:space="preserve">
     <value>Administratorpassord</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Administratorroller</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Avansert</value>
   </data>
@@ -1048,6 +1054,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>En SPF-oppføring er aktiv på {0}, og den er ikke den foreslåtte. Det kan godt være med vilje - forslaget kan ikke kjenne til de andre avsenderne dine. Publisert: {1} — bare bekreft at alt som faktisk sender e-post som {0} er dekket.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>En kontoadresse er påkrevd.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>En konto kan slås av uten å slettes, noe som beholder e-posten og avviser nye innlogginger.</value>
@@ -1452,6 +1461,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Bygger en søkeindeks slik at IMAP SEARCH og webklienten blir raskere.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Innebygd</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Innebygd (SQL Server Compact)</value>
   </data>
@@ -1666,6 +1678,12 @@ Den klargjorte selektoren "{0}" fjernes fra serverkonfigurasjonen; signering for
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Velg en forhåndsinnstilling…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Velg en rolle å tildele.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Velg en tildeling i listen, eller skriv kontoadressen.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Velg en utløpsdato minst én dag fram i tid. En nøkkel som utløper i dag, ville sluttet å virke midt på dagen den ble laget.</value>
@@ -2769,6 +2787,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domener, kontoer, aliaser og distribusjonslister, og hver kontos passord, videresending og mapper.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domener, atskilt med komma</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Ferdig</value>
@@ -4722,6 +4743,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ingen virusskanner kan kjøre. Vedleggsblokkering fjerner fortsatt filnavnmønstrene på sin egen side, men ingenting ser inn i en melding eller inn i et arkiv.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Ingen har fått en rolle ennå. En konto uten rolle har rettighetene administratornivået gir den, akkurat som før rollene fantes.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Ingen</value>
   </data>
@@ -6044,6 +6068,9 @@ Fortsette?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Omskriv konvoluttavsenderen ved videresending (det enkle tilbakefallet, ingen hemmelighet nødvendig)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rolle</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Roter øktbillettnøkkelen hvert N. sekund (0 = OpenSSLs ene, ikke-roterende nøkkel)</value>
@@ -8461,6 +8488,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Hva som må finnes utenfor denne serveren</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>Hva den er til</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Hva den kan gjøre</value>
   </data>
@@ -8598,6 +8628,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Hvitelist avsenderen eller IP-området deres slik at meldingen går utenom spambeskyttelsen.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Hvem som får administrere hva: de navngitte rollene denne serveren har, og kontoene som har dem.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Hvem som kan koble til, hvem som kan autentisere, og hva som skjer når noen fortsetter å prøve.</value>
@@ -8869,6 +8902,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Generer sterkt passord</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Tildel rollen</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML-signatur</value>
   </data>
@@ -9063,6 +9099,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>Ser_ver</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>_Fjern rollen</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Mål-SMTP-vert</value>
@@ -9708,6 +9747,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>kontoen er utestengt</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>kontoens eget domene</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>adressen er en av de {0} på hvitelisten for grålisting</value>

@@ -507,7 +507,25 @@ namespace DBUpdater
          new SchemaProbe(6041, "hm_calendarobjects.objectdeleted",
                          "update hm_calendarobjects set objectdeleted = objectdeleted where 1 = 0"),
          new SchemaProbe(6041, "hm_calendarobjects.objectmodified",
-                         "update hm_calendarobjects set objectmodified = objectmodified where 1 = 0")
+                         "update hm_calendarobjects set objectmodified = objectmodified where 1 = 0"),
+         // Upgrade6047to6048* - the named roles (hm_roles) and who holds them
+         // (hm_roleassignments). One probe per column, because Compact Edition
+         // commits each statement of a step on its own and a half-applied step
+         // is what this list exists to find.
+         new SchemaProbe(6048, "hm_roles.rolename",
+                         "update hm_roles set rolename = rolename where 1 = 0"),
+         new SchemaProbe(6048, "hm_roles.roledescription",
+                         "update hm_roles set roledescription = roledescription where 1 = 0"),
+         new SchemaProbe(6048, "hm_roles.rolebuiltin",
+                         "update hm_roles set rolebuiltin = rolebuiltin where 1 = 0"),
+         new SchemaProbe(6048, "hm_roles.rolepermissions",
+                         "update hm_roles set rolepermissions = rolepermissions where 1 = 0"),
+         new SchemaProbe(6048, "hm_roleassignments.raaccountid",
+                         "update hm_roleassignments set raaccountid = raaccountid where 1 = 0"),
+         new SchemaProbe(6048, "hm_roleassignments.raroleid",
+                         "update hm_roleassignments set raroleid = raroleid where 1 = 0"),
+         new SchemaProbe(6048, "hm_roleassignments.radomains",
+                         "update hm_roleassignments set radomains = radomains where 1 = 0")
       };
 
       /// <summary>
