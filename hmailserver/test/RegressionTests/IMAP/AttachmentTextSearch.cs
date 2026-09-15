@@ -81,18 +81,24 @@ namespace RegressionTests.IMAP
             MessageWithAttachment("sender@example.test", account.Address, "Minutes", "Please find the minutes attached.",
                "text/plain", "minutes.txt", "base64",
                Base64Lines("Action items\r\nThe quarterly figure is BorealisNeedleOne and it is final.\r\n")));
+         // Delivered before the next is sent: SEARCH answers with sequence numbers, and
+         // delivery threads may otherwise put the four messages in the mailbox in any
+         // order - which is how "BorealisNeedleTwo" came back as message 4 in a full run.
+         Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 1);
 
          // 2: a 7bit text/csv attachment carrying a different needle.
          SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address,
             MessageWithAttachment("sender@example.test", account.Address, "Export", "The export is attached.",
                "text/csv", "export.csv", "7bit",
                "id,name,note\r\n1,Widget,BorealisNeedleTwo\r\n"));
+         Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 2);
 
          // 3: a base64 text/html attachment; the needle sits inside markup.
          SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address,
             MessageWithAttachment("sender@example.test", account.Address, "Report", "The report is attached.",
                "text/html", "report.html", "base64",
                Base64Lines("<html><body><p>Total: <b>BorealisNeedleThree</b></p></body></html>")));
+         Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 3);
 
          // 4: a binary attachment (application/octet-stream) whose bytes contain the
          // fourth needle. Not text, so not searched.

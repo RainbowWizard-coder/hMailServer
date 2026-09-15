@@ -27,11 +27,34 @@ namespace RegressionTests.Security
    public class SecretProtection : TestFixtureBase
    {
 
+      private const string ProtectionKey = "ProtectStoredSecretsWithDPAPI";
+
+      // The value the run started with, put back after each test rather than a
+      // "1" that is only the Windows default: the Linux job starts its server with
+      // 0, and a fixture that left 1 behind decided what every later test saw.
+      private string _protectionAtStart;
+
+      [SetUp]
+      public void RememberSecretProtection()
+      {
+         _protectionAtStart = _settings.GetIniSetting(ProtectionKey);
+      }
+
       private void SetSecretProtection(bool dpapiEnabled)
       {
          // Through the settings store, not hMailServer.ini: from schema 6042 a value
          // edited into the file is put back at the next start and reported as HM5804.
-         IniFileSetting.Write("ProtectStoredSecretsWithDPAPI", dpapiEnabled ? "1" : "0");
+         IniFileSetting.Write(ProtectionKey, dpapiEnabled ? "1" : "0");
+         _application.Reinitialize();
+      }
+
+      private void RestoreSecretProtection()
+      {
+         if (string.IsNullOrEmpty(_protectionAtStart))
+            IniFileSetting.Delete(ProtectionKey);
+         else
+            IniFileSetting.Write(ProtectionKey, _protectionAtStart);
+
          _application.Reinitialize();
       }
 
@@ -85,7 +108,7 @@ namespace RegressionTests.Security
          }
          finally
          {
-            SetSecretProtection(true);
+            RestoreSecretProtection();
          }
       }
 
@@ -102,7 +125,7 @@ namespace RegressionTests.Security
          }
          finally
          {
-            SetSecretProtection(true);
+            RestoreSecretProtection();
          }
       }
 
@@ -120,8 +143,8 @@ namespace RegressionTests.Security
          }
          finally
          {
-            // Restore the secure default for subsequent tests.
-            SetSecretProtection(true);
+            // Back to what the run started with, for the tests after this one.
+            RestoreSecretProtection();
          }
       }
 
@@ -152,7 +175,7 @@ namespace RegressionTests.Security
          }
          finally
          {
-            SetSecretProtection(true);
+            RestoreSecretProtection();
          }
       }
    }
