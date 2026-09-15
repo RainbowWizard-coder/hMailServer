@@ -709,6 +709,18 @@ namespace HM
             return Refuse(500, sentence);
          }
 
+         const String path = TakenFileName(directory, String(selector) + _T("._domainkey.") + LowerName(*domain));
+
+         // The domain's key file columns are 255 characters wide, and every backend
+         // refuses a longer value rather than cutting it. Said before a key is made,
+         // in words, rather than after it as a failed update.
+         if (path.GetLength() > 255)
+         {
+            const String sentence = Formatter::Format(_T("The key file {0} would be longer than the 255 characters the domain's key file setting holds. Use a shorter selector, or a data directory with a shorter path."), path);
+            RememberError(state, sentence, now);
+            return Refuse(500, sentence);
+         }
+
          AnsiString pem;
          String error;
          if (!DkimKeyPair::Generate(policy.key_bits, pem, error))
@@ -717,8 +729,6 @@ namespace HM
             RememberError(state, error, now);
             return Refuse(500, error);
          }
-
-         const String path = TakenFileName(directory, String(selector) + _T("._domainkey.") + LowerName(*domain));
 
          if (!ProtectedFile::Write(path, pem, error))
          {
