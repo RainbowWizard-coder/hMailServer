@@ -731,7 +731,9 @@ function Test-HmBreachCheckEndpoint {
 function Get-HmIniSetting {
     <#
     .SYNOPSIS
-        The hMailServer.ini keys the server exposes, or one of them.
+        The server settings that were the [Settings] section of hMailServer.ini,
+        each as name, value and secret, or one of them by name. A secret's value
+        is listed as "(set)"; asked for by name, it is the value.
     #>
     [CmdletBinding()]
     param([Parameter(Position = 0)] [string] $Name)
@@ -746,8 +748,10 @@ function Get-HmIniSetting {
 function Set-HmIniSetting {
     <#
     .SYNOPSIS
-        Writes an hMailServer.ini key. Some take effect only on a restart; the
-        server's OpenAPI document says which.
+        Stores one server setting - a key of the [Settings] section of
+        hMailServer.ini before schema 6042 - in the database, which is the
+        settings store, and the server writes the file's copy. Most apply when
+        the service next starts.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
@@ -1577,7 +1581,9 @@ function Export-HmConfiguration {
         bytes - which is what makes a document usable in a repository.
 
         No passwords: the server does not give them out. No certificates and no
-        directories: files and paths of one machine.
+        directories: files and paths of one machine. No secret among the ini
+        keys: the server lists those as "(set)", and they are left out rather
+        than carried as a placeholder an import would write.
     .EXAMPLE
         Export-HmConfiguration -Path .\server.json
     #>
@@ -1599,7 +1605,12 @@ function Export-HmConfiguration {
     $ini = [ordered] @{}
     try {
         foreach ($row in (Get-HmIniSetting | Sort-Object name)) {
-            if ($row.PSObject.Properties.Name -contains 'name') { $ini[[string] $row.name] = $row.value }
+            if ($row.PSObject.Properties.Name -notcontains 'name') { continue }
+            if ($row.PSObject.Properties.Name -notcontains 'value') { continue }
+            # A secret is listed as "(set)", never as its value, and stays out of
+            # the document: applied, the placeholder would overwrite the secret.
+            if ($row.PSObject.Properties.Name -contains 'secret' -and $row.secret) { continue }
+            $ini[[string] $row.name] = $row.value
         }
     }
     catch { }

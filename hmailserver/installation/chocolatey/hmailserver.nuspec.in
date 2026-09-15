@@ -55,7 +55,7 @@ the setup tools, and configures the embedded database.
 
 An unattended install leaves the administrator password unset, because the wizard page that asks
 for one is skipped. Set one before the server is reachable from anywhere but the machine itself:
-open the Control Panel, or run `"C:\Program Files\hMailServer\Bin\hMailServer.exe" --set-admin-password`.
+open the Control Panel from the Start menu.
 
 Uninstalling runs the installer's own uninstaller. It does not delete the message store or the
 database: that is deliberate, and removing them is the administrator's decision to make by hand.

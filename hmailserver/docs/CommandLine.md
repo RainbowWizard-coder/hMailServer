@@ -79,7 +79,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `queue` | list, retry, delete | |
 | `quarantine` | list, release, delete | |
 | `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `directories`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
-| `ini` | list, get, set, delete | The `hMailServer.ini` keys the server exposes. |
+| `ini` | list, get, set, delete | The server settings that were the `[Settings]` section of `hMailServer.ini` - stored in the database since schema 6042, under the names they have always had. `list` shows a secret as `(set)`; `get` reads it. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
 | `dkim` | status, rotate, check, switch, retire, cancel, run | A domain's DKIM key rotation and the records it needs published. The schedule is five keys of the domain: `domain update`. |
@@ -306,6 +306,13 @@ What it does not carry, and why:
   document. An account in the document that does not exist on the server is
   refused with that reason rather than created with a password nobody chose;
   add a `password` field for the accounts you mean to create.
+* **The secrets among the ini keys.** `GET /api/v1/settings/ini` lists a key
+  whose name says its value is a secret - `OAuth2HmacSecret`, `BATVSecret`,
+  `ServiceAccountPassword`, `MetricsServerAuthToken`, `PasswordPepper` and the
+  like - as `(set)` or empty, never as its value, and both clients leave such
+  a key out of the document rather than carry a placeholder that `apply` would
+  write over the real secret. `hmctl ini get <name>` reads one by name when it
+  is wanted. A key *file* is a path, not a secret, and stays in.
 * **Certificates and the directories.** A certificate is files on the server's
   own disk, and the directories are that machine's paths; copying either between
   machines would describe a server that does not exist.
@@ -382,6 +389,20 @@ What neither client does
   own backup, and that is all.
 * **It sets no administrator password.** `hmailserver --set-admin-password` on
   the server does that, and the Control Panel does it on Windows.
+* **It cannot turn the REST listener on**, since both clients need it. On a
+  Linux server `sudo hmailserver --set-setting RestApiPort=8080` stores the
+  setting - the database is the settings store since schema 6042, so editing
+  `hMailServer.ini` does not - and `sudo systemctl restart hmailserver` starts
+  the listener. The same verb stores any other key the server's settings
+  loader reads (`build/ini-settings-baseline.txt`), for the ones needed before
+  the API can be reached; the webmail's branding and file-link keys, read by
+  name where they are used, are stored over the API. A key whose value is a
+  secret is refused with its value on the command line, where the shell's
+  history, the process list and sudo's log would keep it: give the name alone,
+  `sudo hmailserver --set-setting SRSSecret`, and the value on standard input,
+  typed at a prompt that does not echo it or piped in. A port must be a number
+  from 0 to 65535 and `RestApiBindAddress` an IP address or `localhost`. On
+  Windows the Control Panel does this over COM.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.

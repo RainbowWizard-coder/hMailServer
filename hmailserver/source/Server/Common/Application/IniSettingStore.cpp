@@ -6,11 +6,12 @@
 #include "IniSettingStore.h"
 
 #include "IniFileSettings.h"
-#include "../Util/AuditTrail.h"
+#include "IniSettingsBaseline.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
 #include "../Util/XMLite.h"
+#include "../Util/AuditTrail.h"
 
 // The Win32 profile API - GetPrivateProfileString and the three calls beside
 // it - lives in kernel32 and has no POSIX equivalent, so the POSIX build
@@ -314,7 +315,7 @@ namespace HM
       static const String kReadMe =
          _T("The [Settings] section below is a CACHE of the hm_inisettings table, which is the settings store from schema 6042. ")
          _T("Editing a value here does not change it: the stored value is used, the edit is named in hMailServer_ERROR.log and the line is put back at the next start. ")
-         _T("Settings are changed in the Control Panel, over the REST API at /api/v1/settings/ini, with hmctl, or from the Control Deck. ")
+         _T("Settings are changed in the Control Panel, over the REST API at /api/v1/settings/ini, with hmctl, or - for a setting needed before the REST listener is on, such as RestApiPort on Linux - with hmailserver --set-setting NAME=VALUE. ")
          _T("To force a value from this file - when the database is unreachable or wrong - put it in a [SettingsOverride] section, which is applied over the store and announced in the error log at every start. ")
          _T("[Directories], [Database] and [Security] are NOT settings: they are how the database is reached and how an administrator is let in without one, and they stay here.");
 
@@ -617,6 +618,65 @@ namespace HM
    IniSettingStore::IsFileOnlyName(const String &name)
    {
       return name.CompareNoCase(_T("PasswordPepper")) == 0;
+   }
+
+   bool
+   IniSettingStore::IsSecretName(const String &name)
+   {
+      if (!AuditTrail::IsSecretName(name))
+         return false;
+
+      // The fragments matched; these are the shapes in which they match a name
+      // whose value is no secret. Each is a shape rather than a key so that the
+      // next key of the same shape is right without anybody remembering this.
+      String lower = name;
+      lower.MakeLower();
+
+      // A path to a key or a certificate is where the secret is, not the secret:
+      // RestApiPrivateKeyFile, OAuth2PublicKeyFile, UpdateLogPublicKeyFile.
+      if (lower.EndsWith(_T("file")))
+         return false;
+
+      // An address: OutboundOAuth2TokenUrl.
+      if (lower.EndsWith(_T("url")))
+         return false;
+
+      // The password policy is about passwords and holds none.
+      if (lower.StartsWith(_T("passwordpolicy")))
+         return false;
+
+      // The choice of a hash algorithm; the full-text indexer's settings, whose
+      // tokens are the words of a message - IndexerFullTextMaxTokensPerMessage and
+      // IndexerFullTextMinTokenLength both carry the fragment, and an exact name
+      // for the first let the second be masked and dropped from every export;
+      // and the switch that says whether stored secrets are protected. The audit
+      // trail now names all four of those exactly, so they never reach this far;
+      // the shapes stand so that the next key of each kind is right by itself.
+      if (lower.Find(_T("hashalgorithm")) >= 0)
+         return false;
+      if (lower.StartsWith(_T("indexerfulltext")))
+         return false;
+      if (lower.Compare(_T("protectstoredsecretswithdpapi")) == 0)
+         return false;
+
+      return true;
+   }
+
+   bool
+   IniSettingStore::IsSettingTheServerReads(const String &name, String &spelling)
+   {
+      spelling.Empty();
+
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsKeyCount; i++)
+      {
+         if (name.CompareNoCase(IniSettingsBaseline::SettingsKeys[i]) == 0)
+         {
+            spelling = IniSettingsBaseline::SettingsKeys[i];
+            return true;
+         }
+      }
+
+      return false;
    }
 
    bool

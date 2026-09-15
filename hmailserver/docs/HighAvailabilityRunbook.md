@@ -61,7 +61,7 @@ message-store directory.
   `DataDirectory`; that is the name of the accessor in the code). Both nodes must see
   the **same** directory on shared storage (SAN/NAS/clustered file system, or a cloud
   file share). Note that this key lives in the per-node ini file, not in the shared
-  database, so it is one of the values the "keep the INI in sync" step below is for.
+  database, so it is one of the per-node values section 4 leaves you to keep in step.
   The database row for each message references its on-disk path; the database and the
   message store must therefore stay consistent with each other, so keep them on the
   same failover boundary.
@@ -83,7 +83,8 @@ message-store directory.
 
 hMailServer exposes Kubernetes-style probes on the metrics listener. Enable it on
 **both** nodes. These are stored settings: set them in the Control Panel, over
-`/api/v1/settings/ini`, or with `hmctl`, and restart the service. They are shown
+`/api/v1/settings/ini`, with `hmctl`, or on a Linux node whose REST listener is
+not yet on with `hmailserver --set-setting NAME=VALUE`, and restart the service. They are shown
 below in the `[Settings]` shape they have always been written in, and that section of
 each node's `hMailServer.ini` still holds a copy — but since schema 6042 it is a copy
 the server maintains, not the place to change them.
@@ -147,12 +148,29 @@ cleanly.
 
 * **Active node (A):** hMailServer service set to *Automatic* and **running**.
 * **Passive node (B):** hMailServer service set to *Manual* (or *Disabled*) and
-  **stopped**. Keep the binaries and `hMailServer.INI` in sync with A (same
-  version, same settings, same database + data directory).
-* Apply configuration changes on the active node; because configuration lives in
-  the shared database, B picks them up automatically when it becomes active. Keep
-  the `hMailServer.INI` (which holds the database connection + local settings) in
-  sync manually or via your configuration-management tooling.
+  **stopped**. Keep the binaries in sync with A (same version - the schema pin
+  refuses a mismatch in both directions) and point it at the same database and
+  data directory.
+* Apply configuration changes on the active node. The configuration lives in the
+  shared database - since schema 6042 that includes the server settings that
+  were the `[Settings]` section of `hMailServer.INI`, which are rows of
+  `hm_inisettings` - and B reads it when it starts. The `[Settings]` section of
+  B's own INI is only the server's copy: B brings it up to date at that start,
+  naming each setting changed since as `HM5804` in its error log, which is the
+  copy catching up rather than a fault (a setting added since is written in with
+  an application-log note). Do not edit `[Settings]` on B to make
+  it match; the edit would be undone, and a line B has for a setting A has
+  deleted is adopted back into the shared store when B starts.
+* What *is* per node, and is yours to keep in step by hand or with your
+  configuration-management tooling: `[Directories]`, `[Database]` and
+  `[Security]` in each node's INI (the paths, the connection, the administrator
+  password and its second factor); `PasswordPepper`, the one `[Settings]` key
+  that lives in the file only and must be identical on both nodes or no
+  account whose password is an Argon2id or scrypt hash signs in on B; and the
+  certificate and DKIM key files at the paths the database names. Do not copy
+  A's INI over B's wholesale - on Windows `[Database] Password` is normally
+  sealed with the machine's own DPAPI key, and a `[SettingsOverride]` section, if
+  A has one, is per node on purpose.
 
 ---
 
@@ -203,6 +221,8 @@ Reverse the steps to fail back.
       failover still work, so this fails quietly as *missing dashboards*, not as an
       outage.
 * [ ] `ShutdownDrainSeconds` is set so planned failovers drain gracefully.
+* [ ] `PasswordPepper` is identical in both nodes' `hMailServer.INI` (or absent
+      from both), and neither node has a `[SettingsOverride]` section.
 * [ ] Passive node's service is stopped and set to Manual/Disabled.
 * [ ] A documented fencing step exists for unplanned failover.
 * [ ] A test message sent through the VIP is delivered after a planned failover in

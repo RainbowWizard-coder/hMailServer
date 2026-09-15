@@ -180,7 +180,7 @@ it behaves.
 How it is administered: the Control Panel and COM are Windows, so a Linux
 server is administered through its configuration file, its own command line
 (`--set-admin-password`, `--create-database`, `--upgrade-database`,
-`--check-config`), the REST API and the **Control Deck** at `/`, the browser
+`--set-setting`, `--check-config`), the REST API and the **Control Deck** at `/`, the browser
 front end for that API, which the packages install. Since 6.3.3 the API writes
 a domain whole - its limits, its signature, its relay host, its DKIM signing
 (selector, key file, canonicalisation, the secondary key) and its aliases -
@@ -466,7 +466,7 @@ Alternatively, build from Visual Studio (started with _Run as Administrator_) or
 Configuration reference
 =======================
 
-Most of the settings above are stored in the database, in `hm_inisettings`, and are changed in the Control Panel under **Settings**, over the REST API at `/api/v1/settings/ini`, with `hmctl`, or from the Control Deck — each of which offers to restart the service, because a change applies at the next start. They are listed below under the names they have always had, and the `[Settings]` section of `Bin\hMailServer.INI` still holds a copy of every one of them, because `hMailServer.exe /Register` and a few other readers go to the file directly. **That copy is a cache, not the store**: since schema 6042 a value edited into it is named in `hMailServer_ERROR.log` and put back at the next start. To force a value from the file — when the database is unreachable, or holds one the server will not start on — put the key in a `[SettingsOverride]` section, which is applied over the store and announced in the error log at every start. All settings below show their default values.
+Most of the settings above are stored in the database, in `hm_inisettings`, and are changed in the Control Panel under **Settings**, over the REST API at `/api/v1/settings/ini`, with `hmctl`, or — on a Linux server, for a setting needed before the REST listener is on, `RestApiPort` itself — with `hmailserver --set-setting NAME=VALUE`; a change applies at the next start. The Control Deck edits the few of them its pages carry. They are listed below under the names they have always had, and the `[Settings]` section of `Bin\hMailServer.INI` still holds a copy of every one of them, because `hMailServer.exe /Register` and a few other readers go to the file directly. **That copy is a cache, not the store**: since schema 6042 a value edited into it is named in `hMailServer_ERROR.log` and put back at the next start. To force a value from the file — when the database is unreachable, or holds one the server will not start on — put the key in a `[SettingsOverride]` section, which is applied over the store and announced in the error log at every start. All settings below show their default values.
 
 This block lists the keys an operator is most likely to need and is not the whole file: about ninety further keys - the timeout family, the quarantine, message-trace, filter-hook, password-policy, account-lockout and OAuth2 groups, and the classic keys carried over from 6.2.10 - are documented one row each, with their defaults, bounds and the code that reads them, on the wiki's [Settings Reference](https://github.com/Progressiverobot/hmailserver/wiki/Settings-Reference). The Control Panel's search box finds every key on either list.
 

@@ -24,9 +24,10 @@ namespace HM
    // Two of the names are not ServerStatus counters: store_bytes and
    // store_messages are an aggregate over hm_messages, added on 15 September
    // 2026 because storage growth cannot be answered from anything else this
-   // server keeps. Reports::CachedStoreTotals runs that aggregate at most once
-   // an hour and the exporter serves the same cached figure, so neither a
-   // sample nor a scrape puts a full table aggregate on the clock.
+   // server keeps. Reports::CachedStoreTotals keeps the figure for an hour and
+   // the first caller after that - a sample or a scrape - runs the aggregate
+   // again and pays for it; nothing refreshes it on a schedule. The exporter
+   // serves the same cached figure, so one aggregate an hour serves both.
    class MetricsHistoryTask : public ScheduledTask
    {
    public:

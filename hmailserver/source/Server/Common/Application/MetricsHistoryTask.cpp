@@ -47,13 +47,16 @@ namespace HM
          "messagestore_missing_files",
          // Added 15 September 2026 for the reports. These two are not
          // ServerStatus counters like everything above: they are an aggregate
-         // over hm_messages, which is why Reports::CachedStoreTotals computes
-         // them at most once an hour and hands out the cached figure in
-         // between. Sampled every minute like everything else so that a
+         // over hm_messages. Reports::CachedStoreTotals keeps the last figure
+         // for an hour and runs the aggregate again for the first caller
+         // after that - this sampler, on the minute it lands, or a Prometheus
+         // scrape, whichever comes first; nothing runs it on a schedule of
+         // its own. Sampled every minute like everything else so that a
          // reader of the history sees one series of the same shape as the
-         // rest; the value simply steps once an hour. They exist because
-         // "storage growth" cannot be answered from anything else this
-         // server keeps - a mailbox's size is known only as it is now.
+         // rest; the value steps once an hour, and while the history is on
+         // the sampler is the caller that pays for the step. They exist
+         // because "storage growth" cannot be answered from anything else
+         // this server keeps - a mailbox's size is known only as it is now.
          "store_bytes",
          "store_messages"
       };

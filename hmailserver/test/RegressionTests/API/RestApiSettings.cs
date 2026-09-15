@@ -748,6 +748,14 @@ namespace RegressionTests.API
          StringAssert.Contains("\"" + IniProbeKey + "\"", listBody);
          StringAssert.StartsWith("{\"names\":[", listBody);
 
+         // Both shapes: names is what the Linux test shim's IniSettingNames reads;
+         // settings is what hmctl and the PowerShell module read - and read before
+         // the route sent it, so that `config export` wrote an empty ini section
+         // against every real server until 15 September 2026.
+         StringAssert.Contains("\"settings\":[", listBody);
+         StringAssert.Contains("{\"name\":\"" + IniProbeKey + "\",\"value\":\"one two\",\"secret\":false}", listBody,
+            "The list carries each setting's value, as the clients read it.");
+
          // The refusals are SetIniSetting's, and a refused write changes nothing.
          (int typeStatus, string typeBody) = Http("PUT", path, "{\"value\":5}");
          Assert.AreEqual(400, typeStatus, typeBody);
@@ -785,6 +793,53 @@ namespace RegressionTests.API
 
          (int againStatus, string againBody) = Http("DELETE", path);
          Assert.AreEqual(200, againStatus, "Removing a key that is not there is not an error: " + againBody);
+      }
+
+      [Test]
+      [Description("The list masks a setting whose name says its value is a secret as (set): the list is what a configuration export is built from, and an export goes into a repository. Read by name, the value is the value, as GetIniSetting answers over COM; a key FILE is a path and is not masked.")]
+      public void IniSettingListMasksASecretAndNotAPath()
+      {
+         // Probe keys no shipped setting uses: one the rule takes for a secret, and
+         // two it must not - the path to a private key file is not the key, and the
+         // full-text indexer's "tokens" are words (IndexerFullTextMinTokenLength was
+         // masked, and dropped from every export, until the rule took the shape).
+         const string secretKey = "RestApiIniProbeSecret";
+         const string pathKey = "RestApiIniProbePrivateKeyFile";
+         const string indexerKey = "IndexerFullTextIniProbeTokenLength";
+
+         try
+         {
+            Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + secretKey, "{\"value\":\"hunter2\"}").status);
+            Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + pathKey, "{\"value\":\"/etc/hmailserver/rest.key\"}").status);
+            Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + indexerKey, "{\"value\":\"3\"}").status);
+
+            (int listStatus, string listBody) = Http("GET", "/api/v1/settings/ini");
+            Assert.AreEqual(200, listStatus, listBody);
+            StringAssert.Contains("{\"name\":\"" + secretKey + "\",\"value\":\"(set)\",\"secret\":true}", listBody,
+               "A secret is listed as (set).");
+            StringAssert.DoesNotContain("hunter2", listBody, "The list never carries a secret's value.");
+            StringAssert.Contains("{\"name\":\"" + pathKey + "\",\"value\":\"/etc/hmailserver/rest.key\",\"secret\":false}", listBody,
+               "A path is not a secret, though its name carries PrivateKeyFile: an export must keep it.");
+            StringAssert.Contains("{\"name\":\"" + indexerKey + "\",\"value\":\"3\",\"secret\":false}", listBody,
+               "A full-text indexer setting is not a secret, though its name carries Token: an export must keep it.");
+            StringAssert.Contains("\"" + secretKey + "\"", listBody.Substring(0, listBody.IndexOf("\"settings\":[")),
+               "The names list still holds every key, masked or not.");
+
+            (int oneStatus, string oneBody) = Http("GET", "/api/v1/settings/ini/" + secretKey);
+            Assert.AreEqual(200, oneStatus, oneBody);
+            StringAssert.Contains("\"value\":\"hunter2\"", oneBody, "One key, asked for by name, is read whole.");
+
+            // An empty secret is empty, not (set): "is one configured" is the question
+            // an export or a page asks, and the answer must not be yes for nothing.
+            Assert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + secretKey, "{\"value\":\"\"}").status);
+            StringAssert.Contains("{\"name\":\"" + secretKey + "\",\"value\":\"\",\"secret\":true}", Http("GET", "/api/v1/settings/ini").body);
+         }
+         finally
+         {
+            Http("DELETE", "/api/v1/settings/ini/" + secretKey);
+            Http("DELETE", "/api/v1/settings/ini/" + pathKey);
+            Http("DELETE", "/api/v1/settings/ini/" + indexerKey);
+         }
       }
 
       [Test]

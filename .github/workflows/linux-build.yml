@@ -441,7 +441,12 @@ jobs:
 
       # The packaged configuration is EDITED, not replaced, so what starts below is
       # the file the package installs with three sections filled in - which is what an
-      # administrator does, and what the README tells them to do.
+      # administrator does, and what the README tells them to do. The [Settings] lines
+      # edited here (ProtectStoredSecretsWithDPAPI, WindowsEventLogEnabled and the
+      # key-exchange groups) take effect because the settings store has no row for any
+      # of them before the first start, which adopts them. RestApiPort is NOT edited:
+      # from schema 6042 an edit is undone once the store holds the setting, so the
+      # README's step 7 stores it with --set-setting, and so does the next step.
       - name: Configure the packaged INI against the PostgreSQL service
         run: |
           set -euo pipefail
@@ -454,7 +459,6 @@ jobs:
             -e 's|^Password=.*|Password=hmtest|' \
             -e 's|^Port=.*|Port=5432|' \
             -e 's|^ProtectStoredSecretsWithDPAPI=.*|ProtectStoredSecretsWithDPAPI=0|' \
-            -e "s|^RestApiPort=.*|RestApiPort=${REST_PORT}|" \
             -e 's|^WindowsEventLogEnabled=.*|WindowsEventLogEnabled=0|' \
             "$INI"
           # The runner's OpenSSL is older than the ML-KEM hybrids the tree prefers by
@@ -500,6 +504,69 @@ jobs:
             echo "::error::--set-admin-password left /etc/hmailserver/hMailServer.ini as '${owner}', not 'root:hmailserver 640'. The service runs as hmailserver and reads its configuration through the group; it can no longer open it."
             exit 1
           fi
+
+          # The REST listener, turned on the way packaging/README.md step 7 turns it
+          # on: stored with the server's own verb, as root, and not edited into the
+          # file, which from schema 6042 is the store's copy. The next step waits for
+          # REST_PORT under systemd, so a verb that stored nothing, or stored it where
+          # the server does not read it, fails the job there as well as here.
+          rc=0
+          out=$(sudo /usr/bin/hmailserver --set-setting "RestApiPort=${REST_PORT}" 2>&1) || rc=$?
+          echo "${out}"
+          if [ "${rc}" != 0 ] || ! grep -qF 'stored in the database' <<<"${out}"; then
+            echo "::error::--set-setting RestApiPort=${REST_PORT} exited ${rc} and did not say it stored the setting."
+            exit 1
+          fi
+          stored=$(psql -h 127.0.0.1 -U hmailserver -d hmpackage -Atc "select inisettingvalue from hm_inisettings where inisettingname = 'RestApiPort'")
+          if [ "${stored}" != "${REST_PORT}" ]; then
+            echo "::error::hm_inisettings holds RestApiPort='${stored}' after --set-setting, not ${REST_PORT}."
+            exit 1
+          fi
+          if ! sudo grep -qx "RestApiPort=${REST_PORT}" /etc/hmailserver/hMailServer.ini; then
+            echo "::error::--set-setting stored RestApiPort but did not write RestApiPort=${REST_PORT} into the file's copy."
+            exit 1
+          fi
+          owner=$(sudo stat -c '%U:%G %a' /etc/hmailserver/hMailServer.ini)
+          echo "the configuration after --set-setting: ${owner}"
+          if [ "${owner}" != "root:hmailserver 640" ]; then
+            echo "::error::--set-setting left /etc/hmailserver/hMailServer.ini as '${owner}', not 'root:hmailserver 640'."
+            exit 1
+          fi
+          # Run as root, the verb opens the database the way the server does; it must
+          # leave nothing in the log directory that the service could not write to.
+          rootowned=$(sudo find /var/log/hmailserver -user root -type f)
+          if [ -n "${rootowned}" ]; then
+            echo "::error::files in /var/log/hmailserver are owned by root after --set-admin-password and --set-setting, so the service cannot write them: ${rootowned}"
+            exit 1
+          fi
+
+          # Refused before anything is opened, with exit status 2: a name the loader
+          # does not read, a port that is not one, and an address the listener could
+          # not bind.
+          for bad in NoSuchKey=1 RestApiPort=99999 RestApiBindAddress=not-an-address; do
+            rc=0
+            out=$(sudo /usr/bin/hmailserver --set-setting "${bad}" 2>&1) || rc=$?
+            echo "--set-setting ${bad}: exit ${rc}: ${out}"
+            if [ "${rc}" != 2 ]; then
+              echo "::error::--set-setting ${bad} exited ${rc}, not 2."
+              exit 1
+            fi
+          done
+          # A secret's value on the command line is refused, and not repeated back.
+          rc=0
+          out=$(sudo /usr/bin/hmailserver --set-setting SRSSecret=ci-argv-secret 2>&1) || rc=$?
+          if [ "${rc}" != 2 ] || grep -qF 'ci-argv-secret' <<<"${out}"; then
+            echo "::error::--set-setting SRSSecret=<value> exited ${rc} (not 2), or printed the value it was given."
+            exit 1
+          fi
+          # The name alone takes the value from standard input and prints (set).
+          rc=0
+          out=$(printf 'ci-stdin-secret\n' | sudo /usr/bin/hmailserver --set-setting SRSSecret 2>&1) || rc=$?
+          if [ "${rc}" != 0 ] || grep -qF 'ci-stdin-secret' <<<"${out}" || ! grep -qF 'SRSSecret=(set) stored in the database' <<<"${out}"; then
+            echo "::error::--set-setting SRSSecret with the value on standard input exited ${rc}, printed the value, or did not say it stored it."
+            exit 1
+          fi
+          echo "--set-setting SRSSecret from standard input: stored, and printed as (set)"
 
       - name: Start it under the packaged unit
         run: |
@@ -1099,6 +1166,27 @@ jobs:
             -H 'Content-Type: application/json' -d '{"name":"smoke.example"}' https://127.0.0.1:8045/api/v1/domains)
           echo "domain: HTTP ${code} $(head -c 200 domain.json)"
           [ "$code" = 201 ] || { echo "::error::POST /api/v1/domains answered ${code}, not 201."; exit 1; }
+          # The second start, which is every start after the first. The entrypoint
+          # runs --create-database and --upgrade-database again under `set -e`, and
+          # stores the REST settings with --set-setting after them. Until 15 September
+          # 2026 --create-database exited 1 on a database that existed, so a restarted
+          # container stopped in its entrypoint. It must come back healthy, say the
+          # schema was already there, store the port again and answer the API.
+          docker restart hm-smoke >/dev/null
+          state=starting
+          for i in $(seq 1 45); do
+            state=$(docker inspect --format '{{.State.Health.Status}}' hm-smoke 2>/dev/null || echo starting)
+            [ "$state" = healthy ] && break
+            [ "$(docker inspect --format '{{.State.Running}}' hm-smoke 2>/dev/null)" = false ] && break
+            sleep 2
+          done
+          logs=$(docker logs hm-smoke 2>&1)
+          tail -20 <<<"${logs}"
+          [ "$state" = healthy ] || { echo "::error::the restarted container did not become healthy (state: ${state})"; exit 1; }
+          grep -qF 'already exists and is an hMailServer database' <<<"${logs}" || { echo "::error::the restarted container's entrypoint did not report the existing schema."; exit 1; }
+          grep -qF 'RestApiPort=8045 stored in the database (hm_inisettings), where it was 8045' <<<"${logs}" || { echo "::error::the restarted container did not store RestApiPort with --set-setting."; exit 1; }
+          code=$(curl -sk -o /dev/null -w '%{http_code}' -u Administrator:smoke-secret https://127.0.0.1:8045/api/v1/status)
+          [ "$code" = 200 ] || { echo "::error::after a restart GET /api/v1/status answered ${code}, not 200."; exit 1; }
           # The password is in the file as a hash, not as itself.
           if docker exec hm-smoke grep -q 'smoke-secret' /etc/hmailserver/hMailServer.ini; then
             echo "::error::the administrator password is in hMailServer.ini in clear."; exit 1

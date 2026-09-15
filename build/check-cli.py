@@ -161,7 +161,6 @@ ANSWERS = {
     ("GET", "/api/v1/settings/antispam"): {"use_spf": True, "spam_mark_threshold": 5},
     ("PUT", "/api/v1/settings/antispam"): {"use_spf": False},
     ("POST", "/api/v1/settings/breach-check/test"): {"reachable": True, "status": 200, "entries": 812, "padded": True, "milliseconds": 41},
-    ("GET", "/api/v1/settings/ini"): {"settings": [{"name": "DisableAUTHList", "value": "0"}]},
     ("GET", "/api/v1/settings/bounces"): {"processing_enabled": False, "hard_bounce_threshold": 1,
                                           "suppression_action": "refuse"},
     ("PUT", "/api/v1/settings/bounces"): {"processing_enabled": True, "hard_bounce_threshold": 1,
@@ -183,7 +182,17 @@ ANSWERS = {
                    "last_bounce": "2026-09-14 10:00:00", "last_delivered": "", "suppressed": True}]},
     ("POST", "/api/v1/bounces/classify"): {"category": "other", "suppresses": False, "trusted": False, "status": "5.1.1"},
     ("POST", "/api/v1/bounces/expire"): {"suppressions_expired": 2, "counts_pruned": 5, "report_keys_pruned": 40},
-    ("PUT", "/api/v1/settings/ini/DisableAUTHList"): {"name": "DisableAUTHList", "value": "1"},
+    # The shape RestApiSettings.cpp's IniList answers, both halves: names for
+    # the Linux test shim, settings for these two clients. Until 15 September
+    # 2026 this fake answered a settings array the real route did not send,
+    # and both clients exported an empty ini section against every real server
+    # while this check passed. check_ini_route_shape() below reads the route's
+    # source so that the fake cannot drift from it again.
+    ("GET", "/api/v1/settings/ini"): {
+        "names": ["DisableAUTHList", "OAuth2HmacSecret"],
+        "settings": [{"name": "DisableAUTHList", "value": "0", "secret": False},
+                     {"name": "OAuth2HmacSecret", "value": "(set)", "secret": True}]},
+    ("PUT", "/api/v1/settings/ini/DisableAUTHList"): {"name": "DisableAUTHList", "value": "1", "present": True},
     ("GET", "/api/v1/logs"): {"logs": [{"name": "hmailserver_2026-09-15.log", "size": 91234}]},
     ("GET", "/api/v1/logs/hmailserver_2026-09-15.log"): {"lines": ["\"SMTPD\" 1 \"04:00:00.001\" \"127.0.0.1\" \"EHLO\""]},
     ("GET", "/api/v1/backup"): {"state": "idle", "last_backup": "2026-09-14T02:00:00Z"},
@@ -410,7 +419,8 @@ CASES = [
      "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812 entries", "padded"]),
     ("settings breach-test, configured endpoint", ["settings", "breach-test"],
      "POST", "/api/v1/settings/breach-check/test", {}, ["reachable"]),
-    ("ini list", ["ini", "list"], "GET", "/api/v1/settings/ini", None, ["DisableAUTHList"]),
+    ("ini list", ["ini", "list"], "GET", "/api/v1/settings/ini", None, ["DisableAUTHList", "OAuth2HmacSecret", "(set)"]),
+    ("ini list --json", ["ini", "list", "--json"], "GET", "/api/v1/settings/ini", None, ['"name": "DisableAUTHList"', '"value": "0"']),
     ("ini set", ["ini", "set", "DisableAUTHList", "1"],
      "PUT", "/api/v1/settings/ini/DisableAUTHList", {"value": "1"}, []),
     ("log list", ["log", "list"], "GET", "/api/v1/logs", None, ["hmailserver_2026-09-15.log"]),
@@ -600,6 +610,8 @@ POWERSHELL_CASES = [
      "PUT", "/api/v1/accounts/ann@example.com", {"active": False}, []),
     ("Get-HmSetting", "Get-HmSetting | Select-Object -ExpandProperty max_message_size_kb",
      "GET", "/api/v1/settings", None, ["20480"]),
+    ("Get-HmIniSetting", "Get-HmIniSetting | ForEach-Object { $_.name + '=' + $_.value }",
+     "GET", "/api/v1/settings/ini", None, ["DisableAUTHList=0", "OAuth2HmacSecret=(set)"]),
     ("Set-HmSetting", "Set-HmSetting -Property @{max_message_size_kb=51200} | Out-String",
      "PUT", "/api/v1/settings", {"max_message_size_kb": 51200}, []),
     ("Set-HmSetting -Group", "Set-HmSetting -Group antispam -Property @{use_spf=$false} | Out-String",
@@ -688,6 +700,11 @@ def run_powershell_config_cases(url, tmp, verbose):
         if row.get("name") == "example.com":
             check(row.get("dkim_rotation_enabled") is True and "dkim_selector" not in row,
                   "the module's document carries the selector the rotation owns: %s" % row)
+    ini = written.get("sections", {}).get("ini")
+    check(isinstance(ini, dict) and ini.get("DisableAUTHList") == "0",
+          "the module's document holds no ini keys: %r" % (ini,))
+    check(isinstance(ini, dict) and "OAuth2HmacSecret" not in ini,
+          "the module's document carries a secret the server had masked: %r" % (ini,))
 
     # The same document, read by the other client: one vocabulary, one file.
     completed = subprocess.run(
@@ -882,6 +899,16 @@ def run_config_cases(url, tmp):
           % first[:1200])
     check("mx.partner.test" in first, "the document holds no route")
 
+    # The ini section, which was empty against every real server until the
+    # recorded server answered the real shape: the value is there, and the
+    # secret the server lists as "(set)" is not - neither the name nor the
+    # placeholder, which applied would overwrite the secret.
+    ini = json.loads(first).get("sections", {}).get("ini")
+    check(isinstance(ini, dict) and ini.get("DisableAUTHList") == "0",
+          "the document's ini section does not hold DisableAUTHList=0: %r" % (ini,))
+    check("OAuth2HmacSecret" not in first and "(set)" not in first,
+          "the document carries a secret the server had masked")
+
     second_path = os.path.join(tmp, "config-again.json")
     run(["config", "export", second_path])
     if os.path.exists(second_path):
@@ -896,6 +923,7 @@ def run_config_cases(url, tmp):
 
     changed = json.loads(first)
     changed["sections"]["settings"]["settings"]["max_message_size_kb"] = 51200
+    changed["sections"]["ini"]["DisableAUTHList"] = "1"
     for row in changed["sections"]["domains"]:
         if row.get("name") == "example.net":
             row["active"] = True
@@ -907,6 +935,8 @@ def run_config_cases(url, tmp):
     check(completed.returncode == 1, "a document that differs must exit 1, exited %d" % completed.returncode)
     check("max_message_size_kb" in completed.stdout,
           "the plan does not name the changed setting:\n%s" % completed.stdout)
+    check("DisableAUTHList" in completed.stdout,
+          "the plan does not name the changed ini key:\n%s" % completed.stdout)
     check("example.net" in completed.stdout, "the plan does not name the changed domain:\n%s" % completed.stdout)
 
     with Recorder.lock:
@@ -927,6 +957,10 @@ def run_config_cases(url, tmp):
     writes = [(r["method"], r["path"], r["body"]) for r in applying if r["method"] != "GET"]
     check(("PUT", "/api/v1/settings", {"max_message_size_kb": 51200}) in writes,
           "the setting was not written: %s" % writes)
+    check(("PUT", "/api/v1/settings/ini/DisableAUTHList", {"value": "1"}) in writes,
+          "the ini key was not written: %s" % writes)
+    check(not any(path.endswith("/OAuth2HmacSecret") for _, path, _ in writes),
+          "apply wrote the masked secret: %s" % writes)
     check(any(method == "PUT" and path == "/api/v1/domains/example.net" for method, path, _ in writes),
           "the domain was not written: %s" % writes)
 
@@ -1402,6 +1436,35 @@ def run_report_cases(url, tmp):
           % (completed.stdout, completed.stderr))
 
 
+ROUTE_SOURCE = os.path.join(ROOT, "hmailserver", "source", "Server", "Common", "Util", "RestApiSettings.cpp")
+
+
+def check_ini_route_shape():
+    """The recorded server's answer for GET /api/v1/settings/ini must be the
+    shape the real route writes. A recorded server is only as honest as its
+    recording: for a fortnight this one answered a settings array the route
+    did not send, both clients read that array, and the check passed while
+    every real export was empty. So the route's own source is read here, and
+    every key the fake answers must appear in the function that answers it."""
+    if not os.path.exists(ROUTE_SOURCE):
+        return          # a partial copy; the clients are still checked against the fake
+    with open(ROUTE_SOURCE, encoding="utf-8", errors="replace") as handle:
+        source = handle.read()
+    start = source.find("HttpResponse IniList(")
+    end = source.find("HttpResponse IniGet(", start)
+    if not check(start >= 0 and end > start, "RestApiSettings.cpp no longer has IniList before IniGet; "
+                                               "the ini fake in this file can no longer be held to the route"):
+        return
+    body = source[start:end]
+    answer = ANSWERS[("GET", "/api/v1/settings/ini")]
+    for key in answer:
+        check('\\"%s\\":[' % key in body,
+              "the fake's GET /api/v1/settings/ini answers %r, which IniList in RestApiSettings.cpp does not write" % key)
+    for key in answer["settings"][0]:
+        check('\\"%s\\":' % key in body,
+              "the fake's ini rows carry %r, which IniList in RestApiSettings.cpp does not write" % key)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--python", action="store_true", help="hmctl only")
@@ -1432,6 +1495,7 @@ def main():
 
     powershell_ran = False
     try:
+        check_ini_route_shape()
         if not arguments.powershell:
             print("hmctl against a recorded server")
             run_python_cases(url, arguments.verbose)

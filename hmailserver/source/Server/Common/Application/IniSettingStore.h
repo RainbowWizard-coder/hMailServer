@@ -187,6 +187,57 @@ namespace HM
       static bool IsFileOnlyName(const String &name);
 
       /// <summary>
+      /// Whether a setting's VALUE is a secret, by its name: a password, a shared
+      /// secret, a token, a pepper. What GET /api/v1/settings/ini masks in its
+      /// list, because that list is what a configuration export is built from and
+      /// an export goes into a repository.
+      ///
+      /// The audit trail's rule (AuditTrail::IsSecretName: fragments matched
+      /// anywhere in the name, less an exact list of names that carry a fragment
+      /// and hold no secret), narrowed. That rule errs towards masking,
+      /// which is right for a trail that records a change and wrong for a list
+      /// that feeds an export: a key masked here is a key the export drops. So the
+      /// fragments stand, and the shapes that match one without being a secret are
+      /// let through - a path (RestApiPrivateKeyFile is where the key is, not the
+      /// key), an address, a policy about passwords rather than one, the choice of
+      /// a hash algorithm. A key this build does not know that matches a fragment
+      /// is masked: that way costs a value in an export, the other way costs a
+      /// secret in a repository.
+      ///
+      /// Over the 238 [Settings] keys this server reads the two rules answer the
+      /// same for every name but three - MetricsServerPrivateKeyFile,
+      /// RestApiPrivateKeyFile and WebServicesPrivateKeyFile, which the trail
+      /// masks and this list shows - and nothing this list masks is shown by the
+      /// trail, since a name the trail lets through never reaches the shapes
+      /// below. Those three are the shape rule against the trail's exact one, and
+      /// the difference is meant: the trail names its exceptions one at a time (it
+      /// names the two public key FILES), so a key file added later is withheld
+      /// there until somebody decides it is not a secret, which costs a reader one
+      /// detail; here it is let through by its shape, because a path dropped from
+      /// an export describes a listener that cannot start.
+      /// </summary>
+      static bool IsSecretName(const String &name);
+
+      /// <summary>
+      /// Whether a name is a [Settings] key this build reads - one of the keys in
+      /// build/ini-settings-baseline.txt, carried into the binary as
+      /// IniSettingsBaseline.h - and, when it is, the key's own spelling. Matched
+      /// without case, as the file matches keys, and answered in the server's
+      /// spelling because the rows are matched WITH case (see Synchronize): a row
+      /// named restapiport beside the RestApiPort row would be a second setting on
+      /// PostgreSQL and a failed insert on the other three.
+      ///
+      /// For `hmailserver --set-setting`, which refuses any other name: storing a
+      /// key nothing reads would change nothing and report success. The REST API
+      /// and COM store any name on purpose, for a setting a script of the
+      /// administrator's own reads, and are not held to this. Nor is the handful
+      /// of keys read by name where they are used rather than by the loader - the
+      /// webmail's branding and file-link policy, with their ".<domain>" twins -
+      /// which the baseline does not list and which have REST pages of their own.
+      /// </summary>
+      static bool IsSettingTheServerReads(const String &name, String &spelling);
+
+      /// <summary>
       /// Every setting name the server holds: the union of the table and the
       /// [Settings] section, which after a start are the same list.
       ///

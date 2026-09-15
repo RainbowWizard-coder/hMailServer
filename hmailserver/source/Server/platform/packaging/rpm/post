@@ -102,6 +102,14 @@ and, when it reads back what you meant:
 
     sudo systemctl start hmailserver
 
+To administer it - the Control Deck in a browser, the REST API, hmctl - turn
+the REST listener on. Not by editing RestApiPort in the file: since schema 6042
+the database is the settings store and the file is the server's copy of it, so
+an edit there is undone at the next start. The command stores it:
+
+    sudo hmailserver --set-setting RestApiPort=8080
+    sudo systemctl restart hmailserver
+
 MESSAGE
 else
    # An upgrade. The server runs its own schema upgrade first - every upgrade
