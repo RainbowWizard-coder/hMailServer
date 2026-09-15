@@ -693,9 +693,6 @@ namespace HM
       dmarcRptTask->SetMinutesBetweenRun(60);
       scheduler_->ScheduleTask(dmarcRptTask);
 
-      // Log retention: prune date-stamped log files older than LogDeleteDays.
-      // The task itself no-ops when LogDeleteDays <= 0 (retention disabled).
-      // Run once promptly at startup, then periodically thereafter.
       // The suppression list's sweeps: expired entries, old counts, old report
       // keys. Once at start and then hourly, whether or not bounce processing is on,
       // so switching it off does not strand what it wrote; on a server that never
@@ -709,6 +706,9 @@ namespace HM
       bounceMaintenanceTask->SetMinutesBetweenRun(60);
       scheduler_->ScheduleTask(bounceMaintenanceTask);
 
+      // Log retention: prune date-stamped log files older than LogDeleteDays.
+      // The task itself no-ops when LogDeleteDays <= 0 (retention disabled).
+      // Run once promptly at startup, then periodically thereafter.
       std::shared_ptr<LogRetentionTask> logRetentionStartupTask = std::shared_ptr<LogRetentionTask>(new LogRetentionTask);
       logRetentionStartupTask->SetReoccurance(ScheduledTask::RunOnce);
       scheduler_->ScheduleTask(logRetentionStartupTask);

@@ -64,9 +64,23 @@ namespace HM
       // no remote server answered.
       static Verdict ClassifyRefusal(const String &statusCode, const String &remoteReply);
 
-      // A per-recipient group of an RFC 3464 report: its Status field and the
-      // text of its Diagnostic-Code after the type ("smtp; ").
-      static Verdict ClassifyReport(const String &status, const String &diagnostic);
+      // A per-recipient group of an RFC 3464 report: its Status field, the text
+      // of its Diagnostic-Code after the type, and that type ("smtp"). With the
+      // type empty, a "type;" at the front of diagnostic is read as the type.
+      //
+      // The trust rule holds here too. An smtp diagnostic is the remote's reply
+      // verbatim, and the Status beside it may have been worked out from its
+      // three digits alone - this server's own report writes "Status: 5.1.1"
+      // beside "Diagnostic-Code: smtp; 550 <address>" - so a group whose
+      // diagnostic is an SMTP reply is judged by ClassifyRefusal, exactly as the
+      // same reply met while delivering would be. Only a group with no SMTP reply
+      // to re-read is taken at its Status.
+      static Verdict ClassifyReport(const String &status, const String &diagnostic, const String &diagnosticType = String());
+
+      // "smtp; 550 5.1.1 text" -> type "smtp", text "550 5.1.1 text". A field
+      // with no type in front - nothing but letters, digits, '-', '_' and '.'
+      // before the first ';' - comes back whole with an empty type.
+      static void SplitDiagnostic(const String &field, String &type, String &text);
 
       // The code table on its own: the category a code names, with nothing
       // about where it came from.

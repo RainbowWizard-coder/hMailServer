@@ -51,6 +51,16 @@ namespace HM
       String last_delivered;
    };
 
+   // One row of the register a delivery report is matched against.
+   struct BounceReportKeyRow
+   {
+      __int64 id = 0;
+      __int64 domain_id = 0;
+      String sent;
+      String address_key;     // PersistentBounce::AddressKey of the recipient
+      int run = 0;            // the run of hard bounces this acceptance set aside
+   };
+
    class PersistentBounce
    {
    public:
@@ -96,11 +106,19 @@ namespace HM
 
       static int FindCount(__int64 domainID, const String &address, BounceCountRow &row);
       static bool InsertCount(const BounceCountRow &row);
-      static bool UpdateCount(const BounceCountRow &row);
 
-      // A delivery: the run of hard bounces is over. Touches no row for an address
-      // that has never bounced.
-      static bool RecordDelivered(__int64 domainID, const String &address);
+      // One bounce added to a row that exists, in the database's own arithmetic
+      // (bchard = bchard + 1), so two nodes counting the same address at once
+      // cannot overwrite each other's count. addToRun is added to
+      // bcconsecutivehard; it is a number this server computed, never text from
+      // outside, and is written into the statement as a literal because SQL
+      // Server Compact cannot type a parameter used in arithmetic.
+      static bool AddToCount(__int64 id, int category, int addToRun, const String &lastStatus, const String &lastBounce);
+
+      // A delivery: the run of hard bounces is over, or set aside until a report
+      // says otherwise (the caller keeps what it set aside in the register). Touches
+      // no row for an address that has never bounced.
+      static bool RecordDelivered(__int64 domainID, const String &address, const String &deliveredAt);
 
       // An administrator removed the entry by hand: the run starts again.
       static bool ResetConsecutiveHard(__int64 domainID, const String &address);
@@ -110,12 +128,33 @@ namespace HM
 
       // -------------------------------------------------------- the register
 
-      static bool InsertReportKey(__int64 domainID, const String &key);
+      // SHA-256 hex of the canonical address: how the register names a recipient
+      // without holding the address itself. Anybody who can guess an address can
+      // reproduce it, which is the point - it is what an erasure finds rows by.
+      static String AddressKey(const String &address);
+
+      // run is the run of hard bounces this acceptance set aside; sent is the
+      // same timestamp RecordDelivered wrote for it.
+      static bool InsertReportKey(__int64 domainID, const String &key, const String &addressKey, int run, const String &sent);
 
       // Finds one row with this key and deletes it, so the same report cannot be
-      // counted twice. Returns 1 and the row's domain when one was consumed, 0
-      // when there was none, -1 when the database failed.
-      static int ConsumeReportKey(const String &key, __int64 &domainID);
+      // counted twice. Returns 1 and the row when one was consumed, 0 when there
+      // was none, -1 when the database failed.
+      static int ConsumeReportKey(const String &key, BounceReportKeyRow &row);
+
+      // The next row for the same recipient of the same domain, written after
+      // afterID: a later message to the address that a remote also accepted, and
+      // whose report has not come. 1 and its id, 0 for none, -1 on failure.
+      static int FindLaterReportKey(__int64 domainID, const String &addressKey, __int64 afterID, __int64 &laterID);
+
+      // Carries a run of hard bounces forward onto a later row. amount is computed
+      // here, never text from outside, and is written as a literal for Compact.
+      static bool AddToReportKeyRun(__int64 id, int amount);
+
+      // An entry removed by hand: what the address's pending acceptances set aside
+      // is forgotten with the run, so a report still on its way adds one, not the
+      // run as it was before the removal.
+      static bool ClearReportKeyRuns(__int64 domainID, const String &addressKey);
 
       // -------------------------------------------------------- maintenance
 
@@ -124,7 +163,8 @@ namespace HM
       static int PruneCounts(int retentionDays);
       static int PruneReportKeys(int windowDays);
 
-      // The counts and entries of one address in every domain, for an erasure.
+      // The counts, entries and register rows of one address in every domain, for
+      // an erasure.
       static int EraseAddress(const String &address);
    };
 }

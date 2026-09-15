@@ -651,7 +651,11 @@ namespace DBUpdater
          new SchemaProbe(6051, "hm_bouncereportkeys.brkkey",
                          "update hm_bouncereportkeys set brkkey = brkkey where 1 = 0"),
          new SchemaProbe(6051, "hm_bouncereportkeys.brksent",
-                         "update hm_bouncereportkeys set brksent = brksent where 1 = 0")
+                         "update hm_bouncereportkeys set brksent = brksent where 1 = 0"),
+         new SchemaProbe(6051, "hm_bouncereportkeys.brkaddress",
+                         "update hm_bouncereportkeys set brkaddress = brkaddress where 1 = 0"),
+         new SchemaProbe(6051, "hm_bouncereportkeys.brkrun",
+                         "update hm_bouncereportkeys set brkrun = brkrun where 1 = 0")
       };
 
       /// <summary>

@@ -86,6 +86,32 @@ namespace HM
          result.ToLower();
          return result;
       }
+
+      // Where this server's own "by <name> with esmtp" clause ends in the topmost
+      // Received field (lower-cased into received), or -1. The last occurrence:
+      // everything the client can put in that field comes before the clause.
+      int OwnByClauseEnd(const AnsiString &header, const String &thisServerName, AnsiString &received)
+      {
+         received = AnsiString();
+
+         if (thisServerName.IsEmpty())
+            return -1;
+
+         received = ToLowerCopy(MessageOrigin::FirstFieldValue(header, "Received"));
+         if (received.IsEmpty())
+            return -1;
+
+         const AnsiString marker = "by " + ToLowerCopy(AnsiString(thisServerName)) + " with esmtp";
+
+         int markerPosition = -1;
+         for (int position = received.Find(marker); position >= 0; position = received.Find(marker, position + 1))
+            markerPosition = position;
+
+         if (markerPosition < 0)
+            return -1;
+
+         return markerPosition + marker.GetLength();
+      }
    }
 
    AnsiString
@@ -141,27 +167,27 @@ namespace HM
    }
 
    bool
+   MessageOrigin::ReceivedByThisServer(const AnsiString &header, const String &thisServerName)
+   {
+      AnsiString received;
+      return OwnByClauseEnd(header, thisServerName, received) >= 0;
+   }
+
+   bool
    MessageOrigin::ReceivedSaysAuthenticated(const AnsiString &header, const String &thisServerName)
    {
-      if (thisServerName.IsEmpty())
-         return false;
-
-      AnsiString received = ToLowerCopy(FirstFieldValue(header, "Received"));
-      if (received.IsEmpty())
-         return false;
-
       // "by <this server> with ESMTP<flags>". Both halves are required. The
       // "by" clause is what makes the line ours rather than a sender's, and
       // without it any relayed message carrying an ESMTPA hop of its own -
       // which is every message somebody submitted anywhere - would read as
-      // authenticated here.
-      AnsiString marker = "by " + ToLowerCopy(AnsiString(thisServerName)) + " with esmtp";
-
-      int markerPosition = received.Find(marker);
-      if (markerPosition < 0)
+      // authenticated here. And it is the last such clause in the field, since
+      // the HELO argument in front of it is the client's own text.
+      AnsiString received;
+      const int flagsStart = OwnByClauseEnd(header, thisServerName, received);
+      if (flagsStart < 0)
          return false;
 
-      for (int i = markerPosition + marker.GetLength(); i < received.GetLength(); i++)
+      for (int i = flagsStart; i < received.GetLength(); i++)
       {
          char c = received.GetAt(i);
 
@@ -390,6 +416,34 @@ namespace HM
 
       if (MessageOrigin::ReceivedSaysAuthenticated(authenticated, _T("")))
          throw std::logic_error("With no server name to compare against, the answer must be no.");
+
+      // The HELO argument is the client's, spaces and all, and it sits in front of
+      // this server's own clause. Neither direction may be claimed through it.
+      AnsiString heloClaimsAuthentication =
+         "Received: from x by MAILBOX with ESMTPA y (client [192.0.2.9])\r\n"
+         "\tby MAILBOX with ESMTP id 41\r\n"
+         "\t; Mon, 15 Sep 2026 09:00:00 +0000\r\n";
+
+      if (MessageOrigin::ReceivedSaysAuthenticated(heloClaimsAuthentication, _T("MAILBOX")))
+         throw std::logic_error("An unauthenticated client's HELO text claiming ESMTPA was believed.");
+
+      AnsiString heloHidesAuthentication =
+         "Received: from x by MAILBOX with ESMTP y (client [192.0.2.9])\r\n"
+         "\tby MAILBOX with ESMTPSA id 41\r\n"
+         "\t; Mon, 15 Sep 2026 09:00:00 +0000\r\n";
+
+      if (!MessageOrigin::ReceivedSaysAuthenticated(heloHidesAuthentication, _T("MAILBOX")))
+         throw std::logic_error("An authenticated client's HELO text naming plain ESMTP hid its authentication.");
+
+      if (!MessageOrigin::ReceivedByThisServer(plain, _T("MAILBOX")))
+         throw std::logic_error("A Received header this server wrote was not read as this server's.");
+
+      AnsiString elsewhere = "Received: from client (client [192.0.2.9])\r\n\tby OTHERHOST with ESMTP id 9\r\n";
+      if (MessageOrigin::ReceivedByThisServer(elsewhere, _T("MAILBOX")))
+         throw std::logic_error("A Received header another server wrote was read as this server's.");
+
+      if (MessageOrigin::ReceivedByThisServer("Subject: no Received at all\r\n", _T("MAILBOX")))
+         throw std::logic_error("A message with no Received field was read as having arrived here.");
    }
 
    void

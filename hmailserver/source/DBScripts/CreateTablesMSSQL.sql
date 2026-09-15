@@ -1525,7 +1525,9 @@ create table hm_bouncereportkeys
 	brkid bigint identity(1,1) not null,
 	brkdomainid int not null,
 	brkkey nvarchar(64) not null,
-	brksent nvarchar(32) not null
+	brksent nvarchar(32) not null,
+	brkaddress nvarchar(64) not null,
+	brkrun int not null
 )
 
 ALTER TABLE hm_bouncereportkeys ADD CONSTRAINT hm_bouncereportkeys_pk PRIMARY KEY (brkid)
@@ -1533,6 +1535,8 @@ ALTER TABLE hm_bouncereportkeys ADD CONSTRAINT hm_bouncereportkeys_pk PRIMARY KE
 CREATE INDEX idx_hm_bouncereportkeys_key ON hm_bouncereportkeys (brkkey)
 
 CREATE INDEX idx_hm_bouncereportkeys_sent ON hm_bouncereportkeys (brksent)
+
+CREATE INDEX idx_hm_bouncereportkeys_address ON hm_bouncereportkeys (brkaddress)
 
 ALTER TABLE hm_bouncesuppressions ADD CONSTRAINT fk_hm_bouncesuppressions_domain FOREIGN KEY (bsdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 

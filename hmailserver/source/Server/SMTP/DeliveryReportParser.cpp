@@ -300,6 +300,7 @@ namespace HM
       String diagnostic;
       SplitTyped(FieldValue_(group, L"diagnostic-code", present), diagnosticType, diagnostic);
       recipient.diagnostic = diagnostic.Left(1000);
+      recipient.diagnostic_type = diagnosticType.Left(32);
 
       String mtaType;
       String remoteMta;
@@ -395,9 +396,8 @@ namespace HM
          if (ReadRecipientGroup_(group, recipient))
             report.recipients.push_back(recipient);
 
-         // A report naming thousands of recipients is not one this server sent a
-         // message to; a bound keeps the work per report fixed.
-         if (report.recipients.size() >= 1000)
+         // A bound keeps the work per report fixed, whatever a sender puts in it.
+         if (report.recipients.size() >= MaxRecipientGroups)
             break;
       }
 
@@ -490,6 +490,7 @@ namespace HM
       Expect(report.recipients[0].status == _T("5.1.1"), "Status was not read.");
       Expect(report.recipients[0].remote_mta == _T("inbound.remote.test"), "Remote-MTA was not read.");
       Expect(report.recipients[0].diagnostic.Find(_T("User unknown in local recipient table")) > 0, "A folded Diagnostic-Code was not unfolded.");
+      Expect(report.recipients[0].diagnostic_type == _T("smtp"), "The Diagnostic-Code's type was not kept.");
       Expect(report.original_message_id == _T("original.1@sender.example.test"), "The original Message-ID was not read from text/rfc822-headers.");
       Expect(report.reporting_mta == _T("mx.remote.test"), "Reporting-MTA was not read.");
 

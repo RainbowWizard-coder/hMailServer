@@ -23,6 +23,7 @@ namespace HM
       String action;              // failed, delayed, delivered, relayed, expanded - lower-cased
       String status;              // class.subject.detail, or empty when absent or malformed
       String diagnostic;          // the Diagnostic-Code text after its type
+      String diagnostic_type;     // the Diagnostic-Code type, lower-cased ("smtp")
       String remote_mta;          // the Remote-MTA name after its type
    };
 
@@ -40,6 +41,13 @@ namespace HM
       // the returned original message is what can make one large, and only its
       // headers are ever looked at.
       static const size_t MaxReportBytes = 2 * 1024 * 1024;
+
+      // Per-recipient groups read from one report; the rest are not. A genuine
+      // report names the failed recipients of one message, and a report naming
+      // more than this is either a very large list - whose remaining dead
+      // addresses the next report names - or somebody making each report cost
+      // this server work. BounceTracker bounds the lookups more tightly still.
+      static const size_t MaxRecipientGroups = 100;
 
       // True when raw is a multipart/report; report-type=delivery-status holding a
       // message/delivery-status or message/global-delivery-status part with at

@@ -27,12 +27,17 @@
 //      hm_bouncereportkeys, and a report that does not reproduce one of those
 //      keys is ignored. The key is consumed when it matches, so the same report
 //      twice counts once. The report itself is always delivered, unchanged.
+//      Because the report for a message follows its acceptance, the acceptance
+//      does not end the address's run of hard bounces: it sets the run aside in
+//      the same register row, and the report gives it back (ReportRunIncrease),
+//      so a threshold above one is reachable through reports as well.
 //
 // FORGED BACKSCATTER must not suppress an address. A report is considered only
-// when its envelope sender is null, it was not classified as spam, it arrived
-// over an unauthenticated SMTP session this server recorded in its own topmost
-// Received field (which excludes this server's own non-delivery reports, which
-// carry none, and anything a local user submitted), the Authentication-Results
+// when its envelope sender is null, it is addressed to one of this server's
+// addresses and no more, it was not classified as spam, it arrived over an
+// unauthenticated SMTP session this server recorded in its own topmost Received
+// field (which excludes this server's own non-delivery reports, which carry none,
+// and anything a local user submitted), the Authentication-Results
 // this server wrote - where it writes them - do not say SPF or DMARC failed, and,
 // when BATV is on, it was addressed to a prvs return path that verifies. What
 // that does not stop is stated in docs/BounceSuppression.md: a co-recipient who
@@ -56,6 +61,8 @@ namespace HM
 {
    class Message;
    struct BounceSuppressionEntry;
+   struct BounceReportKeyRow;
+   struct DeliveryReport;
 
    // The facts a report is judged on, gathered once and judged as values so that
    // the judgement is testable without a delivery (BounceReportGateTester).
@@ -101,9 +108,11 @@ namespace HM
 
       // SMTP RCPT TO on a submission, and the webmail's send route. True when the
       // recipient is listed for the sender's domain and the action is refuse; code
-      // and text are then the reply to give. False on any database failure, which
-      // sends the mail as if the address were not listed.
+      // and text are then the reply to give, and source the entry's (bounce,
+      // report or manual). False on any database failure, which sends the mail as
+      // if the address were not listed.
       static bool RefuseAtSubmission(const String &sender, const String &recipient, String &enhancedCode, String &text);
+      static bool RefuseAtSubmission(const String &sender, const String &recipient, String &enhancedCode, String &text, String &source);
 
       // -------------------------------------------------------- the pure parts
 
@@ -114,9 +123,47 @@ namespace HM
       static String ReportKey(const String &messageId, const String &recipient, const String &sender);
 
       // The session-level guard. A refusal repeated word for word for more than one
-      // recipient of one message, by the same host, is the session being refused
-      // and not those mailboxes: it is never counted as a dead address.
+      // recipient of one message, by the same host, is treated as the session being
+      // refused and not those mailboxes: it is never counted as a dead address.
+      // Without the stage the reply was given at, which SMTPClientConnection does
+      // not record, it also demotes per-recipient refusals that happen to be worded
+      // identically - Microsoft 365 answers every unknown recipient with the same
+      // address-free line - so two dead recipients at one such host in one message
+      // are counted as other. That errs towards not listing, which is the safe way.
       static BounceClassifier::Verdict ApplySessionGuard(const BounceClassifier::Verdict &verdict, int identicalRefusals);
+
+      // THE RUN, when bounces come back as reports. A remote accepting a message is
+      // not yet a delivery: the report that it failed may still come. So an
+      // acceptance takes the address's run of hard bounces off the count row and
+      // keeps it in the register row it writes, and a report that matches that row
+      // gives it back. What a report adds to the run now:
+      //   * a later acceptance of the same address is still in the register
+      //     (laterKey 1): nothing now - what this report would add, setAside plus
+      //     increment, is carried forward onto that later row, and is given back
+      //     only if the later message fails as well;
+      //   * whether there is one could not be read (laterKey -1): nothing;
+      //   * an acceptance the register does not hold - a message without a
+      //     Message-ID, or one delivered while reading reports was off - was
+      //     recorded after this message was sent (lastDelivered later than sent):
+      //     nothing, because that message was delivered after this one;
+      //   * otherwise setAside plus increment, increment being 1 for a bounce that
+      //     counts towards the list and 0 for one that does not (a policy refusal
+      //     reported is not a delivery either, so what was set aside comes back).
+      // Every case that cannot be decided adds nothing: the run can come out short
+      // - reports that arrive for two messages in the reverse of the order they
+      // were sent in - and never long, so a live address is not listed early.
+      static int ReportRunIncrease(int increment, int setAside, int laterKey, const String &lastDelivered, const String &sent);
+
+      // The failed recipients of a report that are looked up, as indexes into
+      // report.recipients: Action failed, each address once, at most limit of
+      // them. truncated says whether any were left out.
+      static std::vector<size_t> ReportedFailures(const DeliveryReport &report, size_t limit, bool &truncated);
+
+      // Register lookups for one report message. A genuine report names the failed
+      // recipients of one message; a report naming more is either a very large
+      // list, whose remaining dead addresses the next report will name, or a
+      // message built to make this server work.
+      static const size_t MaxReportLookups = 50;
 
       // -------------------------------------------------------- administration
 
@@ -151,7 +198,10 @@ namespace HM
       static bool Enabled_();
       static __int64 SenderDomainID_(const String &sender);
       static void Count_(__int64 domainID, const String &address, const BounceClassifier::Verdict &verdict,
-                         int source, const String &diagnostic, const String &remoteMta);
+                         int source, const String &diagnostic, const String &remoteMta,
+                         const BounceReportKeyRow *reportKey);
+      static void RecordAcceptance_(__int64 domainID, std::shared_ptr<Message> message, const String &address,
+                                    const String &reportKey);
       static void ReportListUnreadable_(const String &detail);
       static String DescribeEntry_(const BounceSuppressionEntry &entry, const String &domainName, String &enhancedCode);
    };

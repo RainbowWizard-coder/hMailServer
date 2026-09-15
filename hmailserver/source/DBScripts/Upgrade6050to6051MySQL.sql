@@ -38,12 +38,16 @@ create table hm_bouncereportkeys
 	brkid bigint auto_increment not null, primary key(`brkid`), unique(`brkid`),
 	brkdomainid int not null,
 	brkkey varchar(64) not null,
-	brksent varchar(32) not null
+	brksent varchar(32) not null,
+	brkaddress varchar(64) not null,
+	brkrun int not null
 );
 
 CREATE INDEX idx_hm_bouncereportkeys_key ON hm_bouncereportkeys (brkkey);
 
 CREATE INDEX idx_hm_bouncereportkeys_sent ON hm_bouncereportkeys (brksent);
+
+CREATE INDEX idx_hm_bouncereportkeys_address ON hm_bouncereportkeys (brkaddress);
 
 ALTER TABLE hm_bouncesuppressions ENGINE=InnoDB;
 

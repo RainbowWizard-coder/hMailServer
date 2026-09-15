@@ -14,6 +14,9 @@
 #include "../SQL/DatabaseSettings.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
+#include "../Util/Hashing/HashCreator.h"
+#include "../Util/Unicode.h"
+#include "../../SMTP/BounceClassifier.h"
 
 #include <ctime>
 
@@ -380,30 +383,43 @@ namespace HM
    }
 
    bool
-   PersistentBounce::UpdateCount(const BounceCountRow &row)
+   PersistentBounce::AddToCount(__int64 id, int category, int addToRun, const String &lastStatus, const String &lastBounce)
    {
-      SQLCommand command(_T("update hm_bouncecounts set bchard = @HARD, bcsoft = @SOFT, bcmailboxfull = @FULL, bcpolicy = @POLICY, ")
-                         _T("bcother = @OTHER, bcconsecutivehard = @CONSECUTIVE, bclaststatus = @STATUS, bclastcategory = @CATEGORY, ")
-                         _T("bclastbounce = @LASTBOUNCE where bcid = @ID"));
-      command.AddParameter("@HARD", row.hard);
-      command.AddParameter("@SOFT", row.soft);
-      command.AddParameter("@FULL", row.mailbox_full);
-      command.AddParameter("@POLICY", row.policy);
-      command.AddParameter("@OTHER", row.other);
-      command.AddParameter("@CONSECUTIVE", row.consecutive_hard);
-      command.AddParameter("@STATUS", row.last_status.Left(16));
-      command.AddParameter("@CATEGORY", row.last_category);
-      command.AddParameter("@LASTBOUNCE", row.last_bounce);
-      command.AddParameter("@ID", row.id);
+      const wchar_t *counter = L"bcother";
+
+      switch ((BounceCategory) category)
+      {
+      case BounceHard:        counter = L"bchard"; break;
+      case BounceSoft:        counter = L"bcsoft"; break;
+      case BounceMailboxFull: counter = L"bcmailboxfull"; break;
+      case BouncePolicy:      counter = L"bcpolicy"; break;
+      default:                counter = L"bcother"; break;
+      }
+
+      if (addToRun < 0)
+         addToRun = 0;
+
+      // The column name comes from the switch above and the run is an int, so
+      // nothing in the statement's text came from outside.
+      String sql;
+      sql.Format(_T("update hm_bouncecounts set %s = %s + 1, bcconsecutivehard = bcconsecutivehard + %d, ")
+                 _T("bclaststatus = @STATUS, bclastcategory = @CATEGORY, bclastbounce = @LASTBOUNCE where bcid = @ID"),
+                 counter, counter, addToRun);
+
+      SQLCommand command(sql);
+      command.AddParameter("@STATUS", lastStatus.Left(16));
+      command.AddParameter("@CATEGORY", category);
+      command.AddParameter("@LASTBOUNCE", lastBounce);
+      command.AddParameter("@ID", id);
 
       return Db()->Execute(command);
    }
 
    bool
-   PersistentBounce::RecordDelivered(__int64 domainID, const String &address)
+   PersistentBounce::RecordDelivered(__int64 domainID, const String &address, const String &deliveredAt)
    {
       SQLCommand command(_T("update hm_bouncecounts set bcconsecutivehard = 0, bclastdelivered = @DELIVERED where bcdomainid = @DOMAINID and bcaddress = @ADDRESS"));
-      command.AddParameter("@DELIVERED", DateTimeFromNow(0));
+      command.AddParameter("@DELIVERED", deliveredAt.IsEmpty() ? DateTimeFromNow(0) : deliveredAt);
       command.AddParameter("@DOMAINID", domainID);
       command.AddParameter("@ADDRESS", Canonical(address));
 
@@ -499,14 +515,26 @@ namespace HM
       return true;
    }
 
+   String
+   PersistentBounce::AddressKey(const String &address)
+   {
+      AnsiString utf8;
+      Unicode::WideToMultiByte(Canonical(address), utf8);
+
+      HashCreator hasher(HashCreator::SHA256);
+      return String(hasher.GenerateHashNoSalt(utf8, HashCreator::hex));
+   }
+
    bool
-   PersistentBounce::InsertReportKey(__int64 domainID, const String &key)
+   PersistentBounce::InsertReportKey(__int64 domainID, const String &key, const String &addressKey, int run, const String &sent)
    {
       SQLStatement statement;
       statement.SetTable("hm_bouncereportkeys");
       statement.AddColumnInt64("brkdomainid", domainID);
       statement.AddColumn("brkkey", key.Left(64));
-      statement.AddColumn("brksent", DateTimeFromNow(0));
+      statement.AddColumn("brksent", sent.IsEmpty() ? DateTimeFromNow(0) : sent);
+      statement.AddColumn("brkaddress", addressKey.Left(64));
+      statement.AddColumn("brkrun", (long) (run < 0 ? 0 : run));
       statement.SetStatementType(SQLStatement::STInsert);
       statement.SetIdentityColumn("brkid");
 
@@ -514,14 +542,14 @@ namespace HM
    }
 
    int
-   PersistentBounce::ConsumeReportKey(const String &key, __int64 &domainID)
+   PersistentBounce::ConsumeReportKey(const String &key, BounceReportKeyRow &row)
    {
-      domainID = 0;
+      row = BounceReportKeyRow();
 
       // Two statements, and deliberately not "delete ... where brkid = (select
       // min(brkid) ...)": SQL Server Compact refuses a scalar subquery compared
       // with =, and that exact shape has voided a regression gate before.
-      SQLCommand command(SelectWithLimit(_T("brkid, brkdomainid"), _T("hm_bouncereportkeys"), _T("brkkey = @KEY"), _T("brkid"), 1));
+      SQLCommand command(SelectWithLimit(_T("brkid, brkdomainid, brksent, brkaddress, brkrun"), _T("hm_bouncereportkeys"), _T("brkkey = @KEY"), _T("brkid"), 1));
       command.AddParameter("@KEY", key.Left(64));
 
       std::shared_ptr<DALRecordset> recordset = Db()->OpenRecordset(command);
@@ -531,17 +559,68 @@ namespace HM
       if (recordset->IsEOF())
          return 0;
 
-      const __int64 rowID = recordset->GetInt64Value("brkid");
-      const __int64 rowDomain = recordset->GetInt64Value("brkdomainid");
+      BounceReportKeyRow found;
+      found.id = recordset->GetInt64Value("brkid");
+      found.domain_id = recordset->GetInt64Value("brkdomainid");
+      found.sent = recordset->GetStringValue("brksent");
+      found.address_key = recordset->GetStringValue("brkaddress");
+      found.run = (int) recordset->GetLongValue("brkrun");
 
       SQLCommand remove(_T("delete from hm_bouncereportkeys where brkid = @ID"));
-      remove.AddParameter("@ID", rowID);
+      remove.AddParameter("@ID", found.id);
 
       if (!Db()->Execute(remove))
          return -1;
 
-      domainID = rowDomain;
+      row = found;
       return 1;
+   }
+
+   int
+   PersistentBounce::FindLaterReportKey(__int64 domainID, const String &addressKey, __int64 afterID, __int64 &laterID)
+   {
+      laterID = 0;
+
+      SQLCommand command(SelectWithLimit(_T("brkid"), _T("hm_bouncereportkeys"),
+         _T("brkdomainid = @DOMAINID and brkaddress = @ADDRESSKEY and brkid > @AFTERID"), _T("brkid"), 1));
+      command.AddParameter("@DOMAINID", domainID);
+      command.AddParameter("@ADDRESSKEY", addressKey.Left(64));
+      command.AddParameter("@AFTERID", afterID);
+
+      std::shared_ptr<DALRecordset> recordset = Db()->OpenRecordset(command);
+      if (!recordset)
+         return -1;
+
+      if (recordset->IsEOF())
+         return 0;
+
+      laterID = recordset->GetInt64Value("brkid");
+      return 1;
+   }
+
+   bool
+   PersistentBounce::AddToReportKeyRun(__int64 id, int amount)
+   {
+      if (amount <= 0)
+         return true;
+
+      String sql;
+      sql.Format(_T("update hm_bouncereportkeys set brkrun = brkrun + %d where brkid = @ID"), amount);
+
+      SQLCommand command(sql);
+      command.AddParameter("@ID", id);
+
+      return Db()->Execute(command);
+   }
+
+   bool
+   PersistentBounce::ClearReportKeyRuns(__int64 domainID, const String &addressKey)
+   {
+      SQLCommand command(_T("update hm_bouncereportkeys set brkrun = 0 where brkdomainid = @DOMAINID and brkaddress = @ADDRESSKEY"));
+      command.AddParameter("@DOMAINID", domainID);
+      command.AddParameter("@ADDRESSKEY", addressKey.Left(64));
+
+      return Db()->Execute(command);
    }
 
    int
@@ -654,6 +733,15 @@ namespace HM
       if (entries < 0)
          return -1;
 
-      return counts + entries;
+      // The register names the address only by its hash, and that is enough to
+      // find what it holds about it.
+      SQLCommand keyParameters;
+      keyParameters.AddParameter("@ADDRESSKEY", AddressKey(address).Left(64));
+
+      const int keys = DeleteWhere(_T("hm_bouncereportkeys"), _T("brkaddress = @ADDRESSKEY"), keyParameters);
+      if (keys < 0)
+         return -1;
+
+      return counts + entries + keys;
    }
 }

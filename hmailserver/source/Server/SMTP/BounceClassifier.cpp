@@ -342,8 +342,43 @@ namespace HM
       return verdict;
    }
 
+   void
+   BounceClassifier::SplitDiagnostic(const String &field, String &type, String &text)
+   {
+      type = String();
+      text = field;
+
+      const int semicolon = field.Find(_T(";"));
+      if (semicolon <= 0)
+      {
+         text.Trim();
+         return;
+      }
+
+      // RFC 3464 2.3.6: diagnostic-type ";" *text, and the type is an atom. A
+      // reply that happens to hold a semicolon ("550 5.1.10 RESOLVER.ADR.
+      // RecipientNotFound; Recipient not found") has spaces before it and is
+      // not split.
+      for (int i = 0; i < semicolon; i++)
+      {
+         const wchar_t c = field.GetAt(i);
+         const bool atom = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+                           c == '-' || c == '_' || c == '.';
+         if (!atom)
+         {
+            text.Trim();
+            return;
+         }
+      }
+
+      type = field.Mid(0, semicolon);
+      type.ToLower();
+      text = field.Mid(semicolon + 1);
+      text.Trim();
+   }
+
    BounceClassifier::Verdict
-   BounceClassifier::ClassifyReport(const String &status, const String &diagnostic)
+   BounceClassifier::ClassifyReport(const String &status, const String &diagnostic, const String &diagnosticType)
    {
       Verdict verdict;
 
@@ -359,18 +394,37 @@ namespace HM
          return verdict;
       }
 
-      // The Status field is the reporting MTA's verdict in RFC 3464's own words,
-      // so it is trusted as a remote's enhanced code is.
-      verdict.trusted = true;
-      verdict.status = statusField;
-
       const wchar_t classDigit = statusField.GetAt(0);
 
       if (classDigit == '2')
       {
+         verdict.trusted = true;
+         verdict.status = statusField;
          verdict.category = BounceNone;
          return verdict;
       }
+
+      String type = diagnosticType;
+      String text = diagnostic;
+      text.Trim();
+
+      if (type.IsEmpty())
+         SplitDiagnostic(diagnostic, type, text);
+      else
+         type.ToLower();
+
+      // The remote's own reply is there to be re-read, so the Status is not taken
+      // on trust: a reporting server that derives its Status from a bare 550 - as
+      // this server's own report does - would otherwise turn a policy refusal at
+      // the destination into a dead mailbox here. The reply is judged as the same
+      // reply met while delivering is: its own enhanced code, or its words.
+      if ((type.IsEmpty() || type == _T("smtp")) && ReplyCode(text) >= 400)
+         return ClassifyRefusal(statusField, text);
+
+      // No SMTP reply to re-read: the Status field is the reporting MTA's verdict
+      // in RFC 3464's own words, and is taken as a remote's enhanced code is.
+      verdict.trusted = true;
+      verdict.status = statusField;
 
       if (!IsUndefinedDetail(statusField))
       {
@@ -380,7 +434,7 @@ namespace HM
 
       // X.0.0 says nothing, so the diagnostic is asked: first its own enhanced
       // code, when it has one of the same class, then its words.
-      const String diagnosticCode = ExtractEnhancedCode(diagnostic);
+      const String diagnosticCode = ExtractEnhancedCode(text);
 
       if (!diagnosticCode.IsEmpty() && diagnosticCode.GetAt(0) == classDigit && !IsUndefinedDetail(diagnosticCode))
       {
@@ -389,7 +443,7 @@ namespace HM
          return verdict;
       }
 
-      const BounceCategory fromWords = FromKeywords(diagnostic, classDigit);
+      const BounceCategory fromWords = FromKeywords(text, classDigit);
 
       if (fromWords != BounceNone)
          verdict.category = fromWords;
@@ -530,6 +584,40 @@ namespace HM
 
       v = C::ClassifyReport(_T("5.0.0"), _T("550 Message rejected as spam"));
       Expect(v.category == BouncePolicy, "A 5.0.0 report saying spam was not classified as policy.");
+
+      // THE NEGATIVE CONTROL FOR REPORTS. This server's own report, and any MTA
+      // that derives its Status the same way, writes 5.1.1 beside a bare 550. The
+      // Status must not be believed over the reply it was derived from.
+      v = C::ClassifyReport(_T("5.1.1"), _T("550 <gone@example.test>"));
+      Expect(v.category == BounceOther && !v.trusted, "A report's Status 5.1.1 derived from a bare 550 was trusted as a dead mailbox.");
+      Expect(!C::Suppresses(v.category, true), "A report derived from a bare 550 was allowed to suppress an address.");
+
+      v = C::ClassifyReport(_T("5.1.1"), _T("550 <gone@example.test>"), _T("smtp"));
+      Expect(v.category == BounceOther, "A report's bare 550 was trusted when the parser handed over the type separately.");
+
+      v = C::ClassifyReport(_T("5.1.1"), _T("smtp; 550 <gone@example.test>"));
+      Expect(v.category == BounceOther, "A report's bare 550 was trusted when the diagnostic still carried its type.");
+
+      v = C::ClassifyReport(_T("5.1.1"), _T("550 5.7.1 Message refused: sender blocked"));
+      Expect(v.category == BouncePolicy, "A report whose remote reply said 5.7.1 was taken at its Status of 5.1.1.");
+
+      v = C::ClassifyReport(_T("5.1.1"), _T("smtp; 550 5.1.1 <gone@example.test>: Recipient address rejected: User unknown"));
+      Expect(v.category == BounceHard && v.trusted, "A report whose remote reply carried its own 5.1.1 was not classified hard.");
+
+      v = C::ClassifyReport(_T("5.4.7"), _T("451 4.7.1 Greylisted, try again later"));
+      Expect(v.category == BounceSoft, "A report that gave up on a greylisting deferral was not classified soft.");
+
+      // A diagnostic that is not an SMTP reply leaves the Status to decide.
+      v = C::ClassifyReport(_T("5.1.1"), _T("unknown user: \"gone\""), _T("x-postfix"));
+      Expect(v.category == BounceHard && v.trusted, "A report with a non-SMTP diagnostic was not taken at its Status.");
+
+      String type;
+      String text;
+      C::SplitDiagnostic(_T("smtp;550 5.1.10 RESOLVER.ADR.RecipientNotFound; Recipient not found"), type, text);
+      Expect(type == _T("smtp") && text.Find(_T("550 5.1.10")) == 0, "A typed diagnostic was not split at its type.");
+
+      C::SplitDiagnostic(_T("550 5.1.10 RESOLVER.ADR.RecipientNotFound; Recipient not found"), type, text);
+      Expect(type.IsEmpty() && text.Find(_T("550 5.1.10")) == 0, "A reply holding a semicolon was split as if it had a type.");
 
       Expect(C::FromName(_T("mailbox_full")) == BounceMailboxFull, "mailbox_full did not name BounceMailboxFull.");
       Expect(String(C::Name(BouncePolicy)) == _T("policy"), "BouncePolicy is not named policy.");
