@@ -497,6 +497,19 @@ namespace HM
       Write_(_T("setting"), name, _T("updated"), Truncate(detail, MaxDetailLength));
    }
 
+   void
+   AuditTrail::RecordEvent(const String &objectType, const String &objectName, const String &action, const String &detail)
+   {
+      // The filter the two chokepoints apply, for the same reasons: a change
+      // nobody made is not an administrative change, and the trail's own insert
+      // does not record itself.
+      if (!actor_.present || writing_)
+         return;
+
+      Write_(Truncate(OneLine(objectType), MaxValueLength), Truncate(OneLine(objectName), MaxValueLength),
+             Truncate(OneLine(action), MaxValueLength), Truncate(OneLine(detail), MaxDetailLength));
+   }
+
    String
    AuditTrail::HashRow_(const String &previousHash, __int64 time, const String &actor, const String &actorKind,
                         const String &interfaceName, const String &address, const String &objectType,

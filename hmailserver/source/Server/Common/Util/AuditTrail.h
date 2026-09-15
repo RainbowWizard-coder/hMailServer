@@ -4,9 +4,9 @@
 
 // The append-only, hash-chained record of every administrative change.
 //
-// WHERE IT IS WRITTEN FROM, AND WHY THERE ARE EXACTLY TWO PLACES
+// WHERE IT IS WRITTEN FROM, AND WHY THERE ARE SO FEW PLACES
 //
-// An administrative change is, in the end, one of two things: a row in a
+// An administrative change is, nearly always, one of two things: a row in a
 // configuration table, or a value in hm_settings. Every interface - COM (and so
 // the Control Panel), REST (and so the Deck and hmctl) - reaches those through
 // the same code, so the record is taken BELOW the interfaces rather than in
@@ -23,8 +23,14 @@
 //             audited table, so a setting is recorded once, with its old value
 //             and its new one, and not twice.
 //
+//   events    RecordEvent, for the administrative change that is neither: an
+//             account let back in clears an in-memory lockout and a POP3
+//             mailbox lock, and writes no row and no setting at all. Called
+//             where that change is made, at the two places it can be made -
+//             POST /api/v1/accounts/{address}/unlock and Application.UnlockAccount.
+//
 // Nothing else may call Record*: build/check-audit-choke-point.py fails the
-// build if it does, and fails it if either of those two call sites goes away.
+// build if it does, and fails it if any of those call sites goes away.
 //
 // WHO IT SAYS DID IT
 //
@@ -113,7 +119,7 @@ namespace HM
          String address;
          String object_type;
          String object_name;
-         String action;     // created | updated | deleted
+         String action;     // created | updated | deleted | unlocked
          String detail;
          String previous_hash;
          String hash;
@@ -136,6 +142,17 @@ namespace HM
       // header comment and build/check-audit-choke-point.py.
       void RecordStatement(const SQLCommand &command, bool succeeded);
       void RecordSettingChange(const String &name, const String &oldValue, const String &newValue);
+
+      // An administrative change that lands in no table and no setting, and so
+      // passes neither chokepoint: an account unlocked. Recorded exactly as the
+      // other two record - only with an actor installed on the calling thread,
+      // only while recording is on (or being switched), one line per field, and
+      // with the role the credential acted under at the end of the detail. The
+      // caller says what it did in the trail's own terms: objectType as
+      // AuditedTable spells it ("account"), objectName the name a person knows
+      // the object by, action a past-tense verb ("unlocked"). Named only at the
+      // call sites build/check-audit-choke-point.py lists.
+      void RecordEvent(const String &objectType, const String &objectName, const String &action, const String &detail);
 
       bool Query(const Filter &filter, std::vector<Entry> &entries, int &total);
 

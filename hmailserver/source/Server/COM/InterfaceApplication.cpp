@@ -895,6 +895,12 @@ STDMETHODIMP InterfaceApplication::UnlockAccount(BSTR Address)
       HM::AccountLockout::Instance()->RecordSuccess(account->GetAddress());
       HM::POP3Sessions::Instance()->Unlock(account->GetID());
 
+      // Neither lock is a row or a setting, so neither audit chokepoint sees
+      // this change; it is recorded here, under the actor the Allows question
+      // above installed on this thread. The REST route records the same.
+      HM::AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),
+         _T("the failed-authentication lockout and the POP3 mailbox lock were cleared"));
+
       HM::String logged;
       logged.Format(_T("COM: %s was unlocked by %s."),
                     account->GetAddress().c_str(), HM::String(authentication_->GetActor().identity).c_str());

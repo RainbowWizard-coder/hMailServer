@@ -18,7 +18,10 @@ Six rules, in the shape of build/check-authz-choke-point.py:
               from ONE file each - the statement chokepoint in the DAL and the
               settings chokepoint in PropertySet. A third caller means one
               change recorded twice, or recorded in a place that does not know
-              what the change was.
+              what the change was. ::RecordEvent, for a change that is neither a
+              row nor a setting, is called only where such a change is made - an
+              account unlocked, over REST and over COM - and both calls must be
+              there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -72,6 +75,13 @@ ALLOWED = {
       "Common/Util/AuditTrail.h",
       "Common/Application/PropertySet.cpp",         # the one settings chokepoint
    },
+   # A change that writes no row and no setting. Each file here makes one.
+   "RecordEvent(": {
+      "Common/Util/AuditTrail.cpp",
+      "Common/Util/AuditTrail.h",
+      "Common/Util/RestApiRoles.cpp",               # POST /api/v1/accounts/{address}/unlock
+      "COM/InterfaceApplication.cpp",               # Application.UnlockAccount
+   },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
       "COM/COMAuthentication.cpp",                  # the COM identity chokepoint
@@ -97,6 +107,12 @@ REQUIRED = [
    ("Common/Application/PropertySet.cpp",
     "AuditTrail::Instance()->RecordSettingChange(sPropertyName,",
     "the settings chokepoint no longer records anything"),
+   ("Common/Util/RestApiRoles.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),',
+    "an account unlocked over REST is no longer recorded - the lockout is in memory, so no chokepoint sees it"),
+   ("COM/InterfaceApplication.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),',
+    "an account unlocked over COM is no longer recorded - the lockout is in memory, so no chokepoint sees it"),
    ("Common/Util/RestApiServer.cpp",
     "AuditScope auditScope(AuditActorFor_(caller));",
     "REST no longer says who is making a change"),

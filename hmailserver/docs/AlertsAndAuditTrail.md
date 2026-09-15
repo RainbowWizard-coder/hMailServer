@@ -23,7 +23,9 @@ The audit trail
 ### What is recorded
 
 Every **administrative change**: a configuration row created, changed or
-deleted, and every server setting written. One row per change, in `hm_audit`:
+deleted, every server setting written, and an account unlocked - which clears a
+lockout held in memory and changes no row and no setting, and so is recorded
+where it is made. One row per change, in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
@@ -34,7 +36,7 @@ deleted, and every server setting written. One row per change, in `hm_audit`:
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
 | `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. |
-| `auditaction` | `created`, `updated` or `deleted`. |
+| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in. |
 | `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
@@ -78,6 +80,13 @@ way:
 Both sit BELOW the interfaces, so COM and REST are covered by construction
 rather than by two parallel implementations that can drift.
 
+One change passes neither: **an account unlocked** (`POST /api/v1/accounts/{address}/unlock`,
+`Application.UnlockAccount`) clears the failed-authentication lockout and the POP3
+mailbox lock, both held in memory. It is recorded explicitly, through
+`AuditTrail::RecordEvent`, at those two call sites - object type `account`, the
+account's address, action `unlocked` - under the same actor and with the same
+`[role: ...]` as any other row.
+
 Who made the change is a thread-local actor, installed at one place per
 interface:
 
@@ -96,8 +105,9 @@ interface:
   `AuditScope` of their own.
 
 `build/check-audit-choke-point.py` fails the build if a third caller appears, if
-either chokepoint goes away, if a COM method that persists something does
-neither of those two things, or if anything but `AuditTrail` writes `hm_audit`.
+either chokepoint goes away, if `RecordEvent` is called anywhere but the two unlock
+call sites or either of those goes away, if a COM method that persists something
+does neither of those two things, or if anything but `AuditTrail` writes `hm_audit`.
 
 ### Verifying the chain
 

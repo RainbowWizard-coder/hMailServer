@@ -455,6 +455,12 @@ namespace HM
       AccountLockout::Instance()->RecordSuccess(account->GetAddress());
       POP3Sessions::Instance()->Unlock(account->GetID());
 
+      // Neither lock is a row or a setting, so neither audit chokepoint sees
+      // this change; it is recorded here, under the actor the dispatch
+      // installed for this request. Application.UnlockAccount records the same.
+      AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),
+         _T("the failed-authentication lockout and the POP3 mailbox lock were cleared"));
+
       LOG_APPLICATION("RestApi: " + account->GetAddress() + " was unlocked by " + String(caller.identity) + ".");
 
       return BuildResponse_(200, "{\"unlocked\":true}");

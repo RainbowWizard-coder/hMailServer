@@ -961,6 +961,48 @@ namespace RegressionTests.API
          StringAssert.Contains("\"intact\":true", verified.body);
       }
 
+      [Test]
+      [Description("An unlock changes no row and no setting and is on the audit trail all the same: a help desk's unlock over REST and over COM is a row naming the account, the action unlocked and the role, under the help desk's own name")]
+      public void AnUnlockIsOnTheAuditTrail()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+         Assign("helen@example.test", "helpdesk", "");
+
+         _application.Database.ExecuteSQL("delete from hm_audit");
+
+         (int status, string body) overRest = AsAccount("helen@example.test", "POST", "/api/v1/accounts/user@example.test/unlock");
+         Assert.AreEqual(200, overRest.status, overRest.body);
+
+         var desk = new Application();
+         Assert.IsNotNull(desk.Authenticate("helen@example.test", AccountPassword));
+         desk.UnlockAccount("user@example.test");
+
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?action=unlocked&limit=100");
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         {
+            List<JsonElement> unlocks = document.RootElement.GetProperty("entries").EnumerateArray().Select(e => e.Clone()).ToList();
+
+            Assert.AreEqual(2, unlocks.Count,
+               "One unlock over REST and one over COM, so two unlocked rows - an unlock writes no row and no setting, so without an explicit record there are none. Trail: " + trail.body);
+            Assert.IsTrue(unlocks.All(e => e.GetProperty("object_type").GetString() == "account" &&
+                                           e.GetProperty("object").GetString() == "user@example.test" &&
+                                           e.GetProperty("detail").GetString().Contains("[role: helpdesk]")),
+               "Trail: " + trail.body);
+         }
+
+         JsonElement restRow = AuditRow(trail.body, "account:helen@example.test", "REST");
+         Assert.AreEqual("account", restRow.GetProperty("actor_type").GetString());
+         JsonElement comRow = AuditRow(trail.body, "helen@example.test", "COM");
+         Assert.AreEqual("account", comRow.GetProperty("actor_type").GetString());
+
+         (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");
+         Assert.AreEqual(200, verified.status, verified.body);
+         StringAssert.Contains("\"intact\":true", verified.body);
+      }
+
       // --------------------------------------------------------------- helpers
 
       // The newest audit row made by this actor over this interface.

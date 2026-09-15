@@ -50,7 +50,7 @@ domains is refused them whatever it holds.
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
-| `unlock_account` | `POST /api/v1/accounts/{address}/unlock`, `Application.UnlockAccount`, clearing the logon-failure list | ✅ | ✅ | ✅ | |
+| `unlock_account` | `POST /api/v1/accounts/{address}/unlock`, `Application.UnlockAccount` (each on the audit trail as `unlocked`), clearing the logon-failure list | ✅ | ✅ | ✅ | |
 | `manage_mailbox` | Another account's folders, messages and folder rights, and a support session | ✅ | ✅ | | |
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
