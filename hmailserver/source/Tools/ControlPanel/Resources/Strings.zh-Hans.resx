@@ -536,6 +536,9 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>面向整个域的回复 - 例如关闭的办公室、撤销的部门。它只为没有自己的休假回复的账户作答：账户自己的回复始终优先，而且对任何一封邮件最多只有一条回复。</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>角色是一组有名字的权限，分配把它授予指定域中的某个账户。四个内置角色无法编辑：它们的权限写在服务器代码中，这样改动数据库也无法给谁增加权限。在这里没有角色的账户，拥有其管理员级别一直赋予它的权限。</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>已经暂存了一次轮换。如果 DNS 记录已发布，请按“检查 DNS”；只有在本次会话中检查通过之后，提升操作才会解锁。</value>
   </data>
@@ -989,6 +992,9 @@
   <data name="Administrator password" xml:space="preserve">
     <value>管理员密码</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>管理员角色</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>高级</value>
   </data>
@@ -1090,6 +1096,9 @@
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>{0} 上有一条 SPF 记录处于生效状态，而且它不是建议的那一条。这很可能是有意为之 - 建议值无从知晓您的其他发件源。发布时间：{1} — 只需确认真正以 {0} 名义发信的一切都已被涵盖。</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>需要账户地址。</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>账户可以在不删除的情况下关闭，这样既保留邮件，又拒绝新的登录。</value>
@@ -1512,6 +1521,9 @@
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>建立搜索索引，让 IMAP SEARCH 和 Web 客户端更快。</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>内置</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>内置（SQL Server Compact）</value>
   </data>
@@ -1732,6 +1744,12 @@
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>选择预设…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>请选择要授予的角色。</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>请在列表中选择一项分配，或输入账户地址。</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>请选择至少一天之后的到期日期。今天就到期的密钥会在制作当天进行到一半时停止工作。</value>
@@ -2859,6 +2877,9 @@
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>域、账户、别名和分发列表，以及每个账户的密码、转发和文件夹。</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>域名，以逗号分隔</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
@@ -4884,6 +4905,9 @@
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>没有任何病毒扫描器可以运行。附件拦截仍会剥除其自身页面上的文件名模式，但没有任何东西查看邮件内部或存档内部。</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>尚未向任何人授予角色。没有角色的账户拥有其管理员级别所赋予的权限，与角色出现之前完全一样。</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>无</value>
   </data>
@@ -6251,6 +6275,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>转发时改写信封发件人（简单的后备方案，无需机密）</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>角色</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>每 N 秒轮换一次会话票据密钥（0 = OpenSSL 那把不轮换的单一密钥）</value>
@@ -8779,6 +8806,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>本服务器之外必须存在的东西</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>用途</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>它可以做什么</value>
   </data>
@@ -8925,6 +8955,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>把发件人或其 IP 范围加入白名单，使邮件绕过垃圾邮件防护。</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>谁可以管理什么：本服务器的命名角色，以及持有这些角色的账户。</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>谁可以连接、谁可以进行身份验证，以及有人不断尝试时会发生什么。</value>
@@ -9202,6 +9235,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Generate strong password" xml:space="preserve">
     <value>生成强密码(_G)</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>授予角色(_G)</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>HTML 签名(_H)</value>
   </data>
@@ -9405,6 +9441,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>标记来自外部的邮件主题(_T)</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>收回角色(_T)</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>目标 SMTP 主机(_T)</value>
@@ -10062,6 +10101,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>该账户已被锁定</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>该账户自己的域</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>该地址是灰名单白名单上的 {0} 之一</value>

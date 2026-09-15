@@ -536,6 +536,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Odpověď za celou doménu – zavřená kancelář, zrušené oddělení. Odpovídá pouze za účty, které NEMAJÍ vlastní zprávu o nepřítomnosti: vlastní zpráva účtu vždy vyhrává a na jednu zprávu odpoví nejvýše jedna odpověď.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Role je pojmenovaná sada oprávnění a přidělení dává roli účtu v pojmenovaných doménách. Čtyři vestavěné role nelze upravit: jejich oprávnění jsou v kódu serveru, aby změna v databázi nikomu nemohla přidat pravomoc. Účet, který zde roli nemá, má to, co mu vždy dávala jeho úroveň správce.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>Rotace je již připravena. Pokud je DNS záznam publikován, stiskněte „Zkontrolovat DNS“; povýšení se odemkne, jakmile kontrola v této relaci projde.</value>
   </data>
@@ -989,6 +992,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Administrator password" xml:space="preserve">
     <value>Heslo správce</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Role správců</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Pokročilé</value>
   </data>
@@ -1090,6 +1096,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>SPF záznam je publikován na {0} a není to ten navržený. To může být zcela záměrné – návrh nemůže znát vaše ostatní odesílatele. Publikováno: {1} — jen ověřte, že je pokryto vše, co skutečně odesílá poštu jako {0}.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>Je vyžadována adresa účtu.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Účet lze vypnout, aniž byste jej smazali, čímž se zachová pošta a nová přihlášení se odmítají.</value>
@@ -1512,6 +1521,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Vytváří vyhledávací index, aby bylo IMAP SEARCH a webový klient rychlejší.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Vestavěná</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Vestavěná (SQL Server Compact)</value>
   </data>
@@ -1732,6 +1744,12 @@ Připravený selektor „{0}“ se odebere z konfigurace serveru; podepisování
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Zvolte předvolbu…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Vyberte roli, kterou chcete přidělit.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Vyberte přidělení v seznamu nebo zadejte adresu účtu.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Zvolte datum vypršení platnosti alespoň o den vzdálené. Klíč, kterému platnost vyprší dnes, by přestal fungovat uprostřed dne, kdy vznikl.</value>
@@ -2859,6 +2877,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domény, účty, aliasy a distribuční seznamy a hesla, přeposílání a složky každého účtu.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domény oddělené čárkou</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Hotovo</value>
@@ -4884,6 +4905,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nemůže běžet žádný antivirový skener. Blokování příloh stále odstraňuje vzory názvů souborů na své vlastní stránce, ale dovnitř zprávy ani dovnitř archivu se nikdo nedívá.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Zatím nikdo nemá přidělenou roli. Účet bez role má oprávnění dané svou úrovní správce, přesně jako před zavedením rolí.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Žádné</value>
   </data>
@@ -6251,6 +6275,9 @@ Pokračovat?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Přepisovat odesílatele obálky při přeposílání (jednoduchá záložní varianta, nepotřebuje tajný klíč)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Role</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotovat klíč pro session tickety každých N sekund (0 = jediný nerotující klíč OpenSSL)</value>
@@ -8779,6 +8806,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Co musí existovat mimo tento server</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>K čemu slouží</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Co smí dělat</value>
   </data>
@@ -8925,6 +8955,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Přidejte odesílatele nebo jeho rozsah IP na seznam povolených, aby zpráva obešla antispamovou ochranu.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Kdo co spravuje: pojmenované role tohoto serveru a účty, které je mají.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kdo se smí připojit, kdo se smí ověřit a co se stane, když to někdo zkouší pořád dál.</value>
@@ -9202,6 +9235,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Generovat silné heslo</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Přidělit roli</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML podpis</value>
   </data>
@@ -9405,6 +9441,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>Označit předmět pošty _zvenčí</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>_Odebrat roli</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Cílový SMTP hostitel</value>
@@ -10062,6 +10101,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>účet je uzamčen</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>vlastní doména účtu</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>adresa je jednou z {0} na bílém seznamu greylistingu</value>

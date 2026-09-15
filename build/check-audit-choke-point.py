@@ -12,21 +12,29 @@ setter, or a new REST route, written by somebody who had no reason to know this
 class existed. So it fails here, with the file and the line, rather than being
 discovered by a regulator.
 
-Seven rules, in the shape of build/check-authz-choke-point.py:
+Nine rules, in the shape of build/check-authz-choke-point.py:
 
   recorded    AuditTrail::RecordStatement is called from ONE file - the
               statement chokepoint in the DAL - and ::RecordSettingChange from
               the two settings chokepoints, PropertySet for hm_settings and
               IniSettingStore for hm_inisettings. Another caller means one
               change recorded twice, or recorded in a place that does not know
-              what the change was.
+              what the change was. ::RecordEvent, for a change that is neither a
+              row nor a setting, is called only where such a change is made -
+              the five ways a lockout is lifted: an account unlocked over REST
+              and over COM, a POP3 mailbox lock cleared over COM, and the
+              logon-failure list cleared over REST and over COM - and every one
+              of those calls must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
-              Deck, COMAuthentication's two authorisation questions for COM and
-              so for the Control Panel. AuditTrail::SetActor is named nowhere
-              else, because an actor set anywhere else is a change attributed to
-              whoever happened to be there before.
+              Deck, COMAuthentication::InstallActor_ for COM and so for the
+              Control Panel - reached from every authorisation question COM
+              asks: GetIsServerAdmin, GetIsDomainAdmin, and the Allows and
+              AllowsForDomain questions a narrow role's entry points ask.
+              AuditTrail::SetActor is named nowhere else, because an actor set
+              anywhere else is a change attributed to whoever happened to be
+              there before.
 
   com         Every COM method that writes either asks one of those
               authorisation questions - which installs the actor on the thread
@@ -65,6 +73,18 @@ Seven rules, in the shape of build/check-authz-choke-point.py:
               be listed, because their chokepoints already record every change
               with the value it had, and a listing would record it twice.
 
+  words       An AuditDescription - the account's address and the role's name in
+              place of "raaccountid=12, raroleid=3" - is supplied only by
+              RoleManager, which writes the two role tables. It changes what a
+              row says and never whether it is written.
+
+  scripts     Every script engine ScriptServer starts runs inside a
+              ScriptActorBoundary. A script runs in process on the server thread
+              that fired its event, and a COM object it authenticates installs
+              that credential on the thread as every COM authority question
+              does; without the boundary it stays there, and the server's next
+              change on that thread is recorded as the script's credential's.
+
 Run from the repository root: python3 build/check-audit-choke-point.py
 """
 import os
@@ -90,12 +110,31 @@ ALLOWED = {
       "Common/Application/PropertySet.cpp",         # the hm_settings chokepoint
       "Common/Application/IniSettingStore.cpp",     # the hm_inisettings chokepoint
    },
+   # A change that writes no audited row and no setting: a lockout lifted, in
+   # each of the ways one can be. Each file here makes one.
+   "RecordEvent(": {
+      "Common/Util/AuditTrail.cpp",
+      "Common/Util/AuditTrail.h",
+      "Common/Util/RestApiRoles.cpp",               # POST /api/v1/accounts/{address}/unlock
+      "COM/InterfaceApplication.cpp",               # Application.UnlockAccount
+      "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox
+      "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
+      "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
+   },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
       "COM/COMAuthentication.cpp",                  # the COM identity chokepoint
    },
    "AuditTrail::ClearActor(": {
       "Common/Util/AuditTrail.cpp",
+   },
+   # The words a row is recorded with, in place of the ones read from its
+   # statement. Only for a table whose rows are nothing but ids, and only from
+   # the code that writes that table: words that are wrong are a record that lies.
+   "AuditDescription ": {
+      "Common/Util/AuditTrail.cpp",
+      "Common/Util/AuditTrail.h",
+      "Common/Application/RoleManager.cpp",         # hm_roles and hm_roleassignments
    },
 }
 
@@ -110,6 +149,24 @@ REQUIRED = [
    ("Common/Application/IniSettingStore.cpp",
     "AuditTrail::Instance()->RecordSettingChange(name,",
     "the [Settings] store no longer records anything, so none of the keys that left hMailServer.INI is audited"),
+   ("Common/Util/RestApiRoles.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),',
+    "an account unlocked over REST is no longer recorded - the lockout is in memory, so no chokepoint sees it"),
+   ("COM/InterfaceApplication.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),',
+    "an account unlocked over COM is no longer recorded - the lockout is in memory, so no chokepoint sees it"),
+   ("COM/InterfaceAccount.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("unlocked"),',
+    "a POP3 mailbox lock cleared through Account.UnlockMailbox is no longer recorded - the lock is in memory, so no chokepoint sees it"),
+   ("COM/InterfaceAccount.cpp",
+    "authentication_->AllowsForDomain(HM::RolePermission::UnlockAccount, HM::StringParser::ExtractDomain(object_->GetAddress()))",
+    "Account.UnlockMailbox no longer asks the permission an unlock needs, so anybody holding an account object clears its lock and installs no actor"),
+   ("Common/Util/RestApiSettings.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("logon failures"), _T("every recorded failure"), _T("cleared"),',
+    "the logon-failure list cleared over REST is no longer recorded - hm_logon_failures is traffic, so the statement chokepoint does not record the delete"),
+   ("COM/InterfaceSettings.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("logon failures"), _T("every recorded failure"), _T("cleared"),',
+    "the logon-failure list cleared over COM is no longer recorded - hm_logon_failures is traffic, so the statement chokepoint does not record the delete"),
    ("Common/Util/RestApiServer.cpp",
     "AuditScope auditScope(AuditActorFor_(caller));",
     "REST no longer says who is making a change"),
@@ -144,8 +201,13 @@ COM_METHOD = re.compile(r"^STDMETHODIMP\s+(\w+)::(\w+)\s*\(", re.M)
 HARD_MARKERS = ("SaveObject(", "DeleteObject(", "DeleteItem", "DeleteAll", "DeleteByDBID",
                 "ini_file_settings_->Set", "antiVirusConfiguration_.", "AntiSpamConfiguration().Set")
 
-# What installs the actor on the calling thread, one way or the other.
-INSTALLS = ("GetIsServerAdmin(", "GetIsDomainAdmin(", "AuditScope ")
+# What installs the actor on the calling thread, one way or the other. The two
+# role questions are here because COMAuthentication asks RoleManager through
+# InstallActor_, which installs the audit trail's actor too: a help desk's
+# password reset (InterfaceApplication::ResetPassword) asks
+# authentication_->Allows(ResetPassword) and nothing else, and is recorded.
+INSTALLS = ("GetIsServerAdmin(", "GetIsDomainAdmin(", "AuditScope ",
+            "authentication_->Allows(", "authentication_->AllowsForDomain(")
 
 
 # The settings interfaces reach the configuration through a cached pointer, and
@@ -386,6 +448,21 @@ def check_rest(problems):
                       % text.count("AuditScope auditScope("))
 
 
+def check_scripts(problems):
+   rel = "Common/Scripting/ScriptServer.cpp"
+   text = read(os.path.join(SERVER, "Common", "Scripting", "ScriptServer.cpp"))
+
+   engines = text.count("pBasic->Initiate(")
+   boundaries = text.count("ScriptActorBoundary actors;")
+
+   if engines == 0:
+      problems.append("%s: no script engine is started here any more - the scripts rule guards nothing" % rel)
+   elif boundaries != engines:
+      problems.append("%s: %d script engine(s) are started and %d ScriptActorBoundary scope(s) opened - a script run "
+                      "outside one leaves the credential it signed in to COM with on the server thread it ran on"
+                      % (rel, engines, boundaries))
+
+
 def check_table(problems):
    for path in sources():
       rel = relative(path)
@@ -497,6 +574,7 @@ def main():
    check_ini_store(problems)
    check_com(problems)
    check_rest(problems)
+   check_scripts(problems)
    check_table(problems)
    check_tables(problems)
 

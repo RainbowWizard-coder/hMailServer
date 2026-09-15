@@ -2363,7 +2363,15 @@ STDMETHODIMP InterfaceSettings::ClearLogonFailureList()
       if (!GetIsServerAdmin())
          return GetAccessDenied();
    
-      config_->ClearOldLogonFailures();
+      // hm_logon_failures is traffic, so the statement chokepoint does not
+      // record the delete; clearing it is an unlock all the same, and is
+      // recorded here under the actor GetIsServerAdmin installed, as the REST
+      // route records it.
+      if (config_->ClearOldLogonFailures())
+      {
+         HM::AuditTrail::Instance()->RecordEvent(_T("logon failures"), _T("every recorded failure"), _T("cleared"),
+            _T("the failures the auto-ban counts were deleted, so every address starts again at none"));
+      }
    
       return S_OK;
    }

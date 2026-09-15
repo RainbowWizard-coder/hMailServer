@@ -107,6 +107,32 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public static class PaletteSearch
    {
+      /// <summary>
+      /// Whether the signed-in credential holds a permission, handed in by
+      /// ServerSession.SetCurrent; null when nobody is signed in. A delegate and
+      /// not ServerSession itself, because this class is compiled into
+      /// ControlPanel.Core for the tests, which must not acquire COM and
+      /// System.ServiceProcess to rank a page - the route IniFeatureStore takes.
+      /// </summary>
+      public static Func<string, bool> MayUse { get; set; }
+
+      /// <summary>
+      /// The pages the signed-in credential may open. Ctrl+K offers a page a
+      /// role may not use no more than the sidebar shows it; a credential the
+      /// server did not describe sees every page, as it did before roles
+      /// existed. This decides what is OFFERED and never what is ALLOWED,
+      /// which stays the server's.
+      /// </summary>
+      private static IReadOnlyList<NavNode> VisiblePages_()
+      {
+         Func<string, bool> mayUse = MayUse;
+
+         if (mayUse == null)
+            return NavigationMap.Pages;
+
+         return NavigationMap.VisiblePages(mayUse);
+      }
+
       public static readonly string RecentSection = N("Recently visited");
       public static readonly string MostUsedSection = N("Most used");
       public static readonly string TaskSection = N("Tasks");
@@ -242,7 +268,7 @@ namespace hMailServer.ControlPanel.Services
          Emit(rows, TourSection, TourRows(null));
 
          var pageRows = new List<PaletteRow>();
-         foreach (NavNode page in NavigationMap.Pages)
+         foreach (NavNode page in VisiblePages_())
             pageRows.Add(PageRow(PageSection, page, 0));
 
          Emit(rows, PageSection, pageRows);
@@ -370,7 +396,7 @@ namespace hMailServer.ControlPanel.Services
       {
          var scores = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-         foreach (NavNode page in NavigationMap.Pages)
+         foreach (NavNode page in VisiblePages_())
          {
             // Only the title gets the character-subsequence fallback. People do
             // type initials for a page they know ("dq" for the delivery queue),

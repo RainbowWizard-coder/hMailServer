@@ -136,6 +136,14 @@ jobs:
           python3 build/check-password-choice-sites.py
           python3 build/check-password-choice-sites.py --self-test
 
+      # "May this credential do this, here" is answered by RoleManager and nowhere
+      # else: every REST route classified, every COM gate asking it, and an
+      # auditor that reads everything and changes nothing by construction.
+      - name: Every administrative decision is RoleManager's
+        run: |
+          python3 build/check-role-choke-point.py
+          python3 build/check-role-choke-point.py --self-test
+
       # The portal's page and its script are C++ string literals, and what stood
       # behind them was a test asserting that certain substrings appeared - which
       # proves a name is spelled somewhere and nothing about what the page does.

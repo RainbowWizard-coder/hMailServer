@@ -904,7 +904,23 @@ const spec = {
 
 const HOSTILE = 'evil<img src=x onerror=alert(1)>.test';
 
+/* What GET /api/v1/session answers. The page reads it once at sign-in and uses
+   it for one thing: leaving out a view this role may not use. Narrowed by the
+   run below, to prove that a page a role may not use is not shown. */
+let whoami = null;
+
+const ROLE_CATALOGUE = [
+   { name: 'serveradmin', description: 'Every permission, in every domain.', builtin: true,
+     permissions: 'administer_server,view_configuration,view_accounts,view_logs,manage_roles' },
+   { name: 'helpdesk', description: 'Resets a password, unlocks an account and reads a message trace.', builtin: true,
+     permissions: 'view_accounts,view_message_trace,reset_password,unlock_account' },
+   { name: 'auditor', description: 'Reads everything and changes nothing, the audit trail included.', builtin: true,
+     permissions: 'view_configuration,view_accounts,view_logs,view_audit' },
+   { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
+];
+
 const state = {
+   assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
    domains: [
       domainRecord('example.com', true, 'postmaster@example.com'),
@@ -1482,6 +1498,48 @@ function answer(method, path, headers, raw) {
             group.values[key] = parsed[key];
          }
          return json(200, group.values);
+      }
+   }
+
+   if (path === '/api/v1/session' && method === 'GET') {
+      return json(200, whoami || { identity: 'administrator', credential: 'administrator', administrative: true,
+         role: 'serveradmin', permissions: ['administer_server', 'view_configuration', 'view_accounts', 'view_queue', 'view_logs', 'manage_roles'], domains: [] });
+   }
+   if (path === '/api/v1/roles' && method === 'GET') {
+      return json(200, { count: ROLE_CATALOGUE.length, roles: ROLE_CATALOGUE, permissions: ['view_configuration', 'view_accounts'] });
+   }
+   if (path === '/api/v1/role-assignments' && method === 'GET') {
+      return json(200, { count: state.assignments.length, assignments: state.assignments });
+   }
+   if (path.indexOf('/api/v1/roles/') === 0 && method === 'DELETE') {
+      const name = decodeURIComponent(path.slice('/api/v1/roles/'.length));
+      const at = ROLE_CATALOGUE.findIndex((r) => r.name === name);
+      if (at < 0) { return json(404, { error: 'no such role' }); }
+      if (ROLE_CATALOGUE[at].builtin) { return json(400, { error: 'a built-in role cannot be deleted' }); }
+      const holders = state.assignments.filter((a) => a.role === name).length;
+      if (holders > 0) {
+         return json(409, { error: 'The role ' + name + ' is held by ' + holders + (holders === 1 ? ' account' : ' accounts') +
+            ', which must be given another role or have this one taken away before the role can be deleted.' });
+      }
+      ROLE_CATALOGUE.splice(at, 1);
+      return json(200, { deleted: true });
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/password$/.test(path) && method === 'POST') {
+      if (!parsed.password) { return json(400, { error: 'password must not be empty' }); }
+      return json(200, { reset: true });
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/unlock$/.test(path) && method === 'POST') { return json(200, { unlocked: true }); }
+   if (path.indexOf('/api/v1/role-assignments/') === 0) {
+      const address = decodeURIComponent(path.slice('/api/v1/role-assignments/'.length));
+      if (method === 'PUT') {
+         state.assignments = state.assignments.filter((a) => a.address !== address);
+         state.assignments.push({ address: address, role: parsed.role, domains: parsed.domains || '' });
+         return json(200, state.assignments[state.assignments.length - 1]);
+      }
+      if (method === 'DELETE') {
+         if (!state.assignments.some((a) => a.address === address)) { return json(404, { error: 'that account holds no role' }); }
+         state.assignments = state.assignments.filter((a) => a.address !== address);
+         return json(200, { removed: true });
       }
    }
 
@@ -3565,6 +3623,234 @@ async function main() {
    await flush();
    await choose($('#langSel'), 'en');
    try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+
+   /* ---------------------------------------------------------------- roles */
+   await goTo('roles');
+   check('the roles view lists every role this server has, with what each may do',
+      rows().length >= 3 && content().textContent.indexOf('helpdesk') >= 0 &&
+      content().textContent.indexOf('reset_password') >= 0, content().textContent.slice(0, 200));
+   check('and says which roles are built in', content().textContent.indexOf('Built in') >= 0);
+   check('and lists who holds one, with the domains it reaches',
+      content().textContent.indexOf('anna@example.com') >= 0 &&
+      content().textContent.indexOf("the account's own domain") >= 0, content().textContent.slice(-400));
+
+   before = requests.length;
+   setValue('roleAddress', 'bob@example.com');
+   setValue('roleName', 'auditor');
+   setValue('roleDomains', 'example.com');
+   click(act('assign'));
+   await flush();
+   put = lastBody(before, 'PUT', /^\/api\/v1\/role-assignments\//);
+   check('giving a role names the account in the path and the role in the body',
+      called(before, 'PUT', '/api/v1/role-assignments/bob%40example.com').length === 1 &&
+      put && put.role === 'auditor' && put.domains === 'example.com', paths(before) + ' ' + JSON.stringify(put));
+   check('and the listing shows it afterwards', content().textContent.indexOf('bob@example.com') >= 0);
+
+   before = requests.length;
+   setValue('roleAddress', '   ');
+   click(act('assign'));
+   await flush();
+   check('an assignment with no address is refused here and never reaches the server',
+      called(before, 'PUT', /role-assignments/).length === 0 &&
+      $('#err_roles').textContent.indexOf('account address') >= 0, $('#err_roles').textContent);
+
+   before = requests.length;
+   click(act('unassign', { address: 'bob@example.com' }));
+   await flush();
+   check('taking a role away names the account and nothing else',
+      called(before, 'DELETE', '/api/v1/role-assignments/bob%40example.com').length === 1, paths(before));
+   check('and the account is gone from the listing', content().textContent.indexOf('bob@example.com') < 0);
+
+   /* A custom role is deleted from its row, and a built-in one has no button to
+      try. A role somebody holds is refused by the server with how many accounts
+      hold it - deleting it would hand each of them what its admin level gives -
+      and the page shows that sentence, not a code. */
+   check('a custom role has a delete button and no built-in role has one',
+      content().querySelectorAll('button[data-act="roledel"]').length === 1 && act('roledel', { name: 'logreader' }) !== null,
+      JSON.stringify(content().querySelectorAll('button[data-act="roledel"]').map((b) => b.attributes)));
+
+   setValue('roleAddress', 'dora@example.com');
+   setValue('roleName', 'logreader');
+   setValue('roleDomains', '');
+   click(act('assign'));
+   await flush();
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('roledel', { name: 'logreader' }));
+   await flush();
+   check('deleting a role asks first, naming it, and no means nothing is sent',
+      called(before, 'DELETE', /^\/api\/v1\/roles\//).length === 0 && confirmations[confirmations.length - 1].indexOf('logreader') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+
+   before = requests.length;
+   click(act('roledel', { name: 'logreader' }));
+   await flush();
+   check('a role somebody holds is refused, and the refusal is the server\'s sentence beside who holds what',
+      called(before, 'DELETE', '/api/v1/roles/logreader').length === 1 &&
+      $('#err_roles').textContent === 'The role logreader is held by 1 account, which must be given another role or have this one taken away before the role can be deleted.',
+      $('#err_roles').textContent);
+   check('and the role and its holder are both still listed',
+      content().textContent.indexOf('Reads the logs.') >= 0 && content().textContent.indexOf('dora@example.com') >= 0);
+
+   before = requests.length;
+   click(act('unassign', { address: 'dora@example.com' }));
+   await flush();
+   click(act('roledel', { name: 'logreader' }));
+   await flush();
+   check('once nobody holds it the role is deleted, gone from the listing, with no refusal left showing',
+      called(before, 'DELETE', '/api/v1/roles/logreader').length === 1 && content().textContent.indexOf('Reads the logs.') < 0 &&
+      $('#err_roles').textContent === '', paths(before) + ' ' + $('#err_roles').textContent);
+
+   /* A page a role may not use is not shown. The Deck is not the boundary - the
+      server refuses the request whatever this page draws - but showing a view
+      whose every button answers 403 is the thing this replaces. */
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:helen@example.com', credential: 'account', administrative: true,
+      role: 'helpdesk', permissions: ['view_accounts', 'view_message_trace', 'reset_password', 'unlock_account'],
+      domains: ['example.com'] };
+   before = requests.length;
+   await signIn();
+   check('a help desk signs in without asking for the status it may not read',
+      called(before, 'GET', '/api/v1/session').length === 1 && called(before, 'GET', '/api/v1/status').length === 0, paths(before));
+   check('a help desk is shown the pages it may use',
+      !$('#nav button[data-view="domains"]').hidden && !$('#nav button[data-view="lists"]').hidden);
+   check('and not the ones it may not: the settings, the logs, the queue and the roles are gone',
+      $('#nav button[data-view="settings"]').hidden && $('#nav button[data-view="logs"]').hidden &&
+      $('#nav button[data-view="queue"]').hidden && $('#nav button[data-view="roles"]').hidden);
+   check('and so are the groups, the remote domains, the reports and the audit trail, which it holds no permission for',
+      $('#nav button[data-view="groups"]').hidden && $('#nav button[data-view="remotedomains"]').hidden &&
+      $('#nav button[data-view="reports"]').hidden && $('#nav button[data-view="audit"]').hidden);
+
+   // The tour visits the ports, the certificates and the dashboard, none of
+   // which a help desk is shown: its walk stops rather than opening a view the
+   // server would refuse.
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+   before = requests.length;
+   click($('#tourBtn'));
+   await flush();
+   for (let guard = 0; guard < 8 && !$('#tourCard').hidden; guard += 1) {
+      click($('#tourNext'));
+      await flush();
+   }
+   check('the tour never opens a view the role was left out of',
+      called(before, 'GET', /^\/api\/v1\/(ports|certificates|status)/).length === 0 &&
+      ['ports', 'certs', 'dash'].every((v) => $('#nav button[data-view="' + v + '"]').className.indexOf('on') < 0), paths(before));
+   check('and says where it stopped rather than hanging', $('#tourCard').hidden === true, $('#tourStep').textContent);
+   try { localStorage.removeItem('hmsTours'); } catch (e) { /* no storage */ }
+   await goTo('domains');
+   check('and the view it lands on is one it may use, not the dashboard it may not',
+      $('#viewTitle').textContent === 'Domains', $('#viewTitle').textContent);
+
+   // The run renamed example.com earlier; its accounts went with it.
+   const helpDomain = Object.keys(state.accounts).filter((d) => state.accounts[d].length > 0 && d.indexOf('<') < 0)[0];
+   const helpAddresses = state.accounts[helpDomain].map((a) => a.address);
+   click(act('accounts', { domain: helpDomain }));
+   await flush();
+   check('its accounts list offers a password reset and an unlock on every row',
+      helpAddresses.length > 0 &&
+      content().querySelectorAll('button[data-act="resetpick"]').length === helpAddresses.length &&
+      content().querySelectorAll('button[data-act="unlock"]').length === helpAddresses.length, helpDomain + ' ' + JSON.stringify(helpAddresses));
+   check('and neither a delete nor a new-account form, which it may not use',
+      content().querySelectorAll('button[data-act="del"]').length === 0 && !document.getElementById('newAddr'));
+
+   click(act('resetpick', { address: helpAddresses[0] }));
+   await flush();
+   check('choosing a row puts its address in the reset form', document.getElementById('helpAddr').value === helpAddresses[0]);
+
+   before = requests.length;
+   setValue('helpPass', '');
+   click(act('resetpass', { domain: helpDomain }));
+   await flush();
+   check('a reset with no password is refused here and never sent',
+      called(before, 'POST', /\/password$/).length === 0 && $('#err_help').textContent.indexOf('new password') >= 0, $('#err_help').textContent);
+
+   before = requests.length;
+   setValue('helpPass', 'a-new-password');
+   click(act('resetpass', { domain: helpDomain }));
+   await flush();
+   put = lastBody(before, 'POST', /\/password$/);
+   check('the reset posts the password to the account\'s own password route and nowhere else',
+      called(before, 'POST', '/api/v1/accounts/' + encodeURIComponent(helpAddresses[0]) + '/password').length === 1 && put && put.password === 'a-new-password' &&
+      called(before, 'PUT', /^\/api\/v1\/accounts\//).length === 0, paths(before));
+   check('and clears the password from the page once it is sent', document.getElementById('helpPass').value === '');
+
+   before = requests.length;
+   click(act('unlock', { address: helpAddresses[0] }));
+   await flush();
+   check('unlock posts to the account\'s unlock route', called(before, 'POST', '/api/v1/accounts/' + encodeURIComponent(helpAddresses[0]) + '/unlock').length === 1, paths(before));
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:dora@example.com', credential: 'account', administrative: true,
+      role: 'domainadmin', permissions: ['administer_domain', 'view_configuration', 'view_accounts', 'view_mailbox', 'view_quarantine',
+         'view_message_trace', 'manage_accounts', 'reset_password', 'unlock_account', 'manage_mailbox', 'manage_quarantine'],
+      domains: ['example.com'] };
+   await signIn();
+   check('a domain administrator is shown its domain\'s views and the dashboard',
+      !$('#nav button[data-view="domains"]').hidden && !$('#nav button[data-view="dash"]').hidden && !$('#nav button[data-view="roles"]').hidden);
+   check('and not the server-wide ones it holds view_configuration for, which a credential confined to a domain is refused',
+      $('#nav button[data-view="settings"]').hidden && $('#nav button[data-view="rules"]').hidden &&
+      $('#nav button[data-view="ports"]').hidden && $('#nav button[data-view="certs"]').hidden && $('#nav button[data-view="ipranges"]').hidden);
+   check('nor the groups and the remote domains, which are the server\'s, nor the audit trail, which it holds no view_audit for',
+      $('#nav button[data-view="groups"]').hidden && $('#nav button[data-view="remotedomains"]').hidden &&
+      $('#nav button[data-view="audit"]').hidden);
+   check('but the reports, which are scoped to its domain rather than refused', !$('#nav button[data-view="reports"]').hidden);
+
+   // The arrow keys walk the views that are shown and never stop on one that is not.
+   $('#nav button[data-view="domains"]').focus();
+   $('#nav button[data-view="domains"]').dispatchEvent(makeEvent('keydown', { key: 'ArrowDown' }));
+   await flush();
+   check('ArrowDown in the navigation moves to the next view that is shown, past the ones left out',
+      document.activeElement === $('#nav button[data-view="fetch"]'),
+      document.activeElement && document.activeElement.attributes ? JSON.stringify(document.activeElement.attributes) : String(document.activeElement));
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:audra@example.com', credential: 'account', administrative: true,
+      role: 'auditor', permissions: ['view_configuration', 'view_accounts', 'view_mailbox', 'view_queue', 'view_quarantine',
+         'view_archive', 'view_logs', 'view_message_trace', 'view_audit'],
+      domains: [] };
+   await signIn();
+   check('an auditor reaching every domain is shown the audit trail, the reports and the remote domains',
+      !$('#nav button[data-view="audit"]').hidden && !$('#nav button[data-view="reports"]').hidden &&
+      !$('#nav button[data-view="remotedomains"]').hidden && !$('#nav button[data-view="groups"]').hidden);
+
+   // The reports need two permissions, because their senders and recipients are
+   // who mails whom: a custom role that reads the configuration and not the
+   // message trace is shown the settings and not the reports, and given the
+   // trace as well it is shown both.
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:rita@example.com', credential: 'account', administrative: true,
+      role: 'config-reader', permissions: ['view_configuration'], domains: [] };
+   await signIn();
+   check('a role holding view_configuration and not view_message_trace is not shown the reports, which name who mails whom',
+      $('#nav button[data-view="reports"]').hidden && !$('#nav button[data-view="settings"]').hidden);
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:rita@example.com', credential: 'account', administrative: true,
+      role: 'config-and-trace-reader', permissions: ['view_configuration', 'view_message_trace'], domains: [] };
+   await signIn();
+   check('and holding both it is shown them', !$('#nav button[data-view="reports"]').hidden);
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:nobody@example.com', credential: 'account', administrative: false,
+      role: '', permissions: [], domains: [] };
+   await signIn();
+   check('a credential that reaches no page is told so rather than shown an empty Deck',
+      content().textContent.indexOf('reaches none of the pages') >= 0, content().textContent.slice(0, 200));
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = null;
+   await signIn();
+   check('and the administrator is shown everything again',
+      !$('#nav button[data-view="settings"]').hidden && !$('#nav button[data-view="roles"]').hidden);
 
    if (failures.length) {
       out.error('\ndeck script: ' + failures.length + ' of ' + checks + ' checks failed\n');

@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading;
@@ -60,6 +62,32 @@ namespace hMailServer.ControlPanel.Services
 
       public string Host { get; private set; }
       public string UserName { get; private set; }
+
+      /// <summary>
+      /// What the signed-in credential may do: the permission tokens of the
+      /// role it holds, read once at sign-in from Application.CurrentPermissions.
+      ///
+      /// Null means "this server did not say" - an older server with no roles,
+      /// or a property that threw - and every caller treats null as "show
+      /// everything". That is deliberate and is not a hole: this list decides
+      /// what the shell DRAWS, never what the server ALLOWS. The server refuses
+      /// the COM call whatever is on screen, so failing open here hides nothing
+      /// from an administrator whose credential is perfectly good, while
+      /// failing closed would show somebody an empty program because one
+      /// property was missing.
+      /// </summary>
+      public IReadOnlyCollection<string> Permissions { get; private set; }
+
+      /// <summary>The name of the role the signed-in credential holds, or "".</summary>
+      public string RoleName { get; private set; }
+
+      /// <summary>
+      /// True when the credential holds this permission, or when the server did
+      /// not say what it holds. See the note on <see cref="Permissions"/>.
+      /// </summary>
+      public bool May(string permission)
+         => Permissions == null || string.IsNullOrEmpty(permission) ||
+            Permissions.Contains("administer_server") || Permissions.Contains(permission);
       public bool IsConnected => app_ != null;
 
       /// <summary>Raised after the session has healed itself, so the shell can
@@ -82,6 +110,12 @@ namespace hMailServer.ControlPanel.Services
       public static void SetCurrent(ServerSession session)
       {
          Current = session;
+
+         // The command palette's view of the same permissions the sidebar reads.
+         // May answers true for every permission while the server has not said
+         // what the credential holds, so a palette handed it offers every page,
+         // as the sidebar shows every page, until it has.
+         PaletteSearch.MayUse = session == null ? null : session.May;
 
          // Hand IniFeatureStore the COM route to the [Settings] section, so a
          // Control Panel connected to another machine can administer settings that
@@ -128,6 +162,39 @@ namespace hMailServer.ControlPanel.Services
          return Connect(host, userName, password, null, out error);
       }
 
+      /// <summary>
+      /// What this credential holds, asked of the server once. An older server
+      /// has neither property and throws; that leaves Permissions null, which
+      /// every caller reads as "show everything" - see the note on the
+      /// property. Never fatal: a shell that would not open because it could
+      /// not read an optional property is worse than one that shows a page
+      /// whose buttons the server refuses.
+      /// </summary>
+      private void ReadAuthority_()
+      {
+         Permissions = null;
+         RoleName = "";
+
+         try
+         {
+            dynamic instance = app_;
+            if (instance == null)
+               return;
+
+            RoleName = (string)instance.CurrentRole ?? "";
+
+            string list = (string)instance.CurrentPermissions ?? "";
+            Permissions = new HashSet<string>(
+               list.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()),
+               StringComparer.Ordinal);
+         }
+         catch (Exception why) when (!ExceptionPolicy.IsFatal(why))
+         {
+            // An older server has no such property; treat it as "did not say".
+            Permissions = null;
+         }
+      }
+
       public bool Connect(string host, string userName, string password, string code, out string error)
       {
          string normalizedHost = string.IsNullOrWhiteSpace(host) ? "localhost" : host;
@@ -154,6 +221,8 @@ namespace hMailServer.ControlPanel.Services
             linkBroken_ = false;
             lastVerifiedUtc_ = DateTime.UtcNow;
          }
+
+         ReadAuthority_();
 
          RaiseLinkState(LinkState.Connected);
          return true;

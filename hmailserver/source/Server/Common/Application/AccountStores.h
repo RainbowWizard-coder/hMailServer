@@ -17,7 +17,8 @@ namespace HM
    // 6.3 it is also an address book, the webmail's remembered choices, the messages
    // it has put off sending, the large files it has sent as links, its S/MIME
    // certificates and keys, its calendar, the history that stops it reusing a
-   // password and the memory of who has written to it before. Each of those arrived
+   // password, the memory of who has written to it before and the administrative
+   // role it has been given. Each of those arrived
    // as a table of its own beside the subsystem that wanted it, and none of them
    // arrived in the backup - because the backup writes what the business objects'
    // XMLStore methods know how to write, and these have no business object.
@@ -151,7 +152,22 @@ namespace HM
          RoleMessage,
 
          // A folder id. Carried as the folder's path, for the same reason.
-         RoleFolder
+         RoleFolder,
+
+         // A role id (hm_roleassignments.raroleid). Carried as the role's name,
+         // because an id is this server's numbering of hm_roles and an archive can
+         // be restored onto a server that numbered its custom roles differently -
+         // where the same number would be somebody else's role, and the foreign
+         // key would refuse a number that is nobody's. Resolved by name on the way
+         // back in - the archive's custom roles having been restored first, by
+         // RoleManager::XMLLoad. A name the server still has no role for is not
+         // guessed at: the row is dropped and counted, and the admin level the
+         // archive carries for the account - withheld by Account::XMLLoad while
+         // the row was not yet back - stays withheld, and the backup log and the
+         // error log name the account and the missing role
+         // (RoleManager::RevokeUnrestoredRole), because without the row that
+         // level is what the account's authority would be read from.
+         RoleAdministrativeRole
       };
 
       struct Column
@@ -184,10 +200,35 @@ namespace HM
       // archive that quietly says the account has nothing.
       static bool XMLStore(Account &account, XNode *accountNode);
 
-      // Puts them back. The account must already have its id, and its folders must
+      // Puts them back - all but the role assignment, which XMLLoadAssignment put
+      // back first. The account must already have its id, and its folders must
       // already have been restored if the archive carries anything that references
       // one. False when a row could not be written.
       static bool XMLLoad(Account &account, XNode *accountNode);
+
+      // WHEN THE ASSIGNMENT GOES BACK, AND WHY THE LEVEL WAITS FOR IT.
+      //
+      // An account with no assignment row holds the authority its AdminLevel
+      // gives it (RoleManager::GrantForAccount), and the archive carries the
+      // level as well as the assignment. The row is saved first, with the level
+      // in it; the assignment can only follow, because it names the row's id.
+      // Between the two the account is whatever its level says - and a restore
+      // that stopped between them, over a folder that would not load or a row
+      // that would not write, left it that way for good: an account narrowed
+      // from server administrator to help desk came back the server
+      // administrator, with no row to say otherwise and no line to say so.
+      //
+      // So Account::XMLLoad asks CarriesAnAssignment and saves such an account as
+      // an ordinary one, and XMLLoadAssignment runs first thing after the row is
+      // saved - before the fetch accounts, the rules, the folders and every
+      // other store - puts the assignment back, and only then gives the archived
+      // level back behind it (RoleManager::RestoreArchivedAdminLevel). A role the
+      // restore cannot find leaves the level withheld and says so
+      // (RoleManager::RevokeUnrestoredRole). Whatever fails afterwards, the
+      // account holds at most what its role gives it. False when the row could
+      // not be written.
+      static bool CarriesAnAssignment(XNode *accountNode);
+      static bool XMLLoadAssignment(Account &account, XNode *accountNode);
 
       // Every <Row> the tree holds, per store table. Used by the verified restore to
       // hold the archive it has just read back to what this run wrote into it.

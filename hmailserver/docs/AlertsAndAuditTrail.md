@@ -24,22 +24,24 @@ The audit trail
 
 Every **administrative change** made over COM, REST or the Deck, with the
 exceptions listed under *What this does not do* at the end of this page: a
-configuration row created, changed or deleted, and every server setting written
+configuration row created, changed or deleted; every server setting written
 — both kinds, the settings in `hm_settings` and the `[Settings]` keys that moved
-from `hMailServer.ini` into `hm_inisettings` at schema 6042. One row per change,
-in `hm_audit`:
+from `hMailServer.ini` into `hm_inisettings` at schema 6042; and a lockout lifted
+in any of its forms - an account unlocked, a POP3 mailbox lock cleared, the
+logon-failure list cleared - which change no audited row and no setting, and so
+are recorded where they are made. One row per change, in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
 | `audittime` | When, in seconds since the epoch, UTC. |
-| `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. |
-| `auditactortype` | `administrator`, `account` or `apikey`. |
+| `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. An account signed in with its own password — a domain administrator, a help desk, an auditor — is its address over COM and `account:<address>` over REST and the Deck. |
+| `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
 | `auditinterface` | `COM`, `REST` or `Deck`. |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
-| `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on. |
-| `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. |
-| `auditaction` | `created`, `updated` or `deleted`. |
-| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. |
+| `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared. |
+| `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. |
+| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list. |
+| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 The configuration tables recorded, and the object type each is recorded as:
@@ -60,6 +62,8 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_blocked_attachments`, `hm_blocked_senders` | `blocked attachment`, `blocked sender` |
 | `hm_servermessages`, `hm_fetchaccounts`, `hm_alertrules` | `server message`, `fetch account`, `alert rule` |
 | `hm_archiveindex` | `archive entry` |
+| `hm_senderlist` | `sender list entry` |
+| `hm_roles`, `hm_roleassignments` | `role`, `role assignment` |
 
 The archive index is mostly traffic, and is listed for the two writes of it
 that only an administrator makes: placing or releasing a legal hold
@@ -157,25 +161,54 @@ way:
 Both sit BELOW the interfaces, so COM and REST are covered by construction
 rather than by two parallel implementations that can drift.
 
+One kind of change passes neither: **a lockout lifted**. `POST
+/api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` clear the
+failed-authentication lockout and the POP3 mailbox lock, both held in memory;
+`Account.UnlockMailbox` clears the POP3 lock alone (and, since 15 September 2026,
+asks `unlock_account` for anybody's mailbox but the caller's own - an account clearing
+its own lock is not an administrative change, asks no question, installs no actor and is
+deliberately not recorded, since a COM pool thread still carries the last caller's); and `POST
+/api/v1/settings/logon-failures/clear` and `Settings.ClearLogonFailureList` delete the
+rows of `hm_logon_failures`, which is traffic and not an audited table. Each is recorded
+explicitly, through `AuditTrail::RecordEvent`, at the call site that makes it - object
+type `account`, the address, action `unlocked`; or object type `logon failures`, action
+`cleared` - under the same actor and with the same `[role: ...]` as any other row.
+
 Who made the change is a thread-local actor, installed at one place per
 interface:
 
 * **REST and the Deck** — `RestApiServer::ProcessRequest_`, once, for the length
   of one authorised request.
-* **COM and the Control Panel** — `COMAuthentication::GetIsServerAdmin` and
-  `::GetIsDomainAdmin`, the authorisation questions a COM write asks before it
-  writes. They run on the thread that is about to do the writing, which matters:
+* **COM and the Control Panel** — `COMAuthentication::InstallActor_`, which every
+  authorisation question a COM write asks before it writes goes through:
+  `GetIsServerAdmin`, `GetIsDomainAdmin`, and the `Allows` questions a narrow
+  role's entry points ask (a help desk's `Application.ResetPassword`). It installs
+  the audit trail's actor and RoleManager's together, from the one grant. The
+  questions run on the thread that is about to do the writing, which matters:
   hMailServer's COM server is an out-of-process MTA and RPC dispatches each call
   on whichever pool thread is free, so an actor installed when the client
   authenticated would be sitting on a thread that never writes anything. The COM
   methods that write without asking — the settings property setters — carry an
   `AuditScope` of their own.
 
+**An event script** runs in process, on the server thread that fired its event - an
+SMTP, IMAP or POP3 worker, a delivery thread. A script that creates
+`hMailServer.Application`, authenticates and asks it anything installs that credential
+on that thread, as every COM authority question does. So every script runs inside a
+boundary (`ScriptActorBoundary` in `ScriptServer.cpp`) that takes both actors off the
+thread before the script starts and puts back exactly what was there when it has
+finished: what the script changes through COM as an administrator is recorded as that
+administrator, and what the server does on the thread afterwards - an auto-ban range
+written after a failed logon the script refused, say - is recorded as nobody's, which
+means it is not recorded.
+
 `build/check-audit-choke-point.py` runs in the *Coding style* workflow and fails
 it if a caller outside those three appears, if any of the chokepoints goes away,
-if a COM method that persists something neither asks the authorisation question
-nor opens an `AuditScope`, if anything but `AuditTrail` writes `hm_audit`, if the
-list of tables names one the create scripts do not define (or names
+if `RecordEvent` is called anywhere but the five call sites where a lockout is
+lifted or any of those goes away, if a COM method that persists something neither
+asks the authorisation question nor opens an `AuditScope`, if a script engine is
+started outside the boundary, if anything but `AuditTrail` writes `hm_audit`, if
+the list of tables names one the create scripts do not define (or names
 `hm_settings` or `hm_inisettings`, which would record every change twice), or if
 a table the create scripts define is neither listed nor named in the checker
 with the reason it is not recorded. That last rule is what makes a new
@@ -225,9 +258,13 @@ with `total` for the whole filtered set.
 The Deck has an **Audit trail** page that reads it, with the filter, paging and
 a *Verify the chain* button.
 
-**Administrator credential only.** An API key of any scope is refused, and
-refused with a 401 rather than a 403 so that it learns nothing from asking. A
-key that could read who changed what could watch for its own footprints.
+**Refused to every API key.** An API key of any scope is refused, and refused
+with a 401 rather than a 403 so that it learns nothing from asking. A key that
+could read who changed what could watch for its own footprints. The
+administrator password reads it, and so does an account whose role holds
+`view_audit` — reading it is what the `auditor` role is for — unless that role is
+confined to named domains: the trail records every domain's changes, and a
+confined role is refused it.
 
 Switching recording off (`audit_trail_enabled`) is itself recorded, while
 recording is off. Otherwise the way to change something unobserved would be to
@@ -379,8 +416,12 @@ to every outbound request in this server.
 | `POST /api/v1/alerts/test` | Raise a condition on request, through exactly the path a real one takes. `{"condition":"disk.low","summary":"...","occurrence":false}`. |
 | `POST /api/v1/alerts/run` | Run one alerting pass now, instead of waiting for the scheduled one. |
 
-All five are administrator-only, for the reason the audit routes are: the rules
-hold the webhook secrets.
+All five are refused to every API key, for the reason the audit routes are: the
+rules decide where the alerting goes and whether it goes at all. The
+administrator password reaches them, and so does an account whose role holds the
+permission each needs — `view_configuration` to read the rules and the events,
+`manage_settings` to change a rule or raise a test alert, `manage_server` to run
+a pass — and reaches every domain.
 
 ### The settings
 

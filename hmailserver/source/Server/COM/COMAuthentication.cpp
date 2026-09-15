@@ -11,6 +11,8 @@
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/Crypt.h"
 #include "../Common/Application/IniFileSettings.h"
+#include "../Common/Application/RoleManager.h"
+#include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Util/AuditTrail.h"
 
 #include "COMError.h"
@@ -58,6 +60,8 @@ namespace HM
          account_ = HM::PasswordValidator::ValidatePassword(sUsername, sPassword);
       }
 
+      ResolveGrant_();
+
       return account_;
    }
 
@@ -68,6 +72,7 @@ namespace HM
       {
          account_.reset();
          AuthenticateAdministrator_(sPassword, sCode, true);
+         ResolveGrant_();
          return account_;
       }
 
@@ -81,6 +86,7 @@ namespace HM
          // the ordinary path rather than returning early, so that an unknown name and
          // a wrong password remain indistinguishable from out here.
          account_ = HM::PasswordValidator::ValidatePassword(sUsername, sPassword);
+         ResolveGrant_();
          return account_;
       }
 
@@ -90,6 +96,8 @@ namespace HM
 
       if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, secondFactorSatisfied))
          account_ = pAccount;
+
+      ResolveGrant_();
 
       return account_;
    }
@@ -177,6 +185,8 @@ namespace HM
 
          account_ = std::shared_ptr<Account> (new Account("Administrator", Account::ServerAdmin));
       }
+
+      ResolveGrant_();
    }
 
    bool 
@@ -188,6 +198,12 @@ namespace HM
    __int64 
    COMAuthentication::GetAccountID() const
    {
+      // Nothing authenticated is not an account, and answering 0 is what every
+      // caller of this already treats as "not that account" - where throwing
+      // through a COM boundary would be a crash with no message.
+      if (!account_)
+         return 0;
+
       return account_->GetID();
    }
 
@@ -197,16 +213,117 @@ namespace HM
       return account_->GetDomainID();
    }
 
-   bool 
+   void
+   COMAuthentication::ResolveGrant_()
+   {
+      grant_ = RoleGrant();
+
+      if (!account_)
+         return;
+
+      // The administrator credential has no account row behind it - the object
+      // above is a stand-in with the name "Administrator" and no id - so it is
+      // recognised here rather than looked up, and is the server
+      // administrator, as it always has been.
+      if (account_->GetID() == 0 && account_->GetAdminLevel() == Account::ServerAdmin)
+      {
+         grant_ = RoleManager::ServerAdministrator();
+         return;
+      }
+
+      grant_ = RoleManager::GrantForAccount(account_);
+   }
+
+   void
+   COMAuthentication::InstallActor_() const
+   {
+      // Installed here, on whichever thread is answering this call, rather
+      // than once when the credential was authenticated - because DCOM does
+      // not promise that the thread which authenticated is the thread that
+      // later sets a property. Every administrative entry point in COM asks
+      // one of the authority questions below before it changes anything,
+      // so the actor is in place on the right thread for the write that
+      // follows, and is replaced by the next question rather than left to go
+      // stale. It is the credential of the object being used, which is what
+      // "who did this" means.
+      //
+      // Two actors, installed together from the one grant: RoleManager's, and
+      // the audit trail's, which is what AuditTrail::RecordStatement and
+      // RecordSettingChange read when the write that follows lands. This is
+      // the COM half of the audit trail's identity chokepoint (see
+      // AuditTrail.h and build/check-audit-choke-point.py), and it is reached
+      // from every question - GetIsServerAdmin and GetIsDomainAdmin as before,
+      // and the three a narrow role's entry points ask - so a password a help
+      // desk resets over COM is on the record as the help desk's.
+      RoleManager::SetCurrentActor(GetActor());
+      AuditTrail::SetActor(GetAuditActor());
+   }
+
+   bool
    COMAuthentication::GetIsDomainAdmin() const
    {
-      AuditTrail::SetActor(GetAuditActor());
+      InstallActor_();
 
-      if (GetIsServerAdmin())
-         return true;
+      // Reads exactly as it did: serveradmin holds every permission, so
+      // AdministerDomain is among them, and an account with AdminLevel =
+      // DomainAdmin and no assignment resolves to the domainadmin grant, which
+      // holds it. A help desk and an auditor hold neither, which is what
+      // refuses them every COM write without one of the ~200 call sites that
+      // ask this question being touched.
+      return RoleManager::Allows(grant_, RolePermission::AdministerDomain);
+   }
 
-      return account_ && 
-             account_->GetAdminLevel() == Account::DomainAdmin;
+   bool
+   COMAuthentication::GetIsServerAdmin() const
+   {
+      InstallActor_();
+
+      return RoleManager::Allows(grant_, RolePermission::AdministerServer);
+   }
+
+   bool
+   COMAuthentication::Allows(RolePermission permission) const
+   {
+      InstallActor_();
+
+      return RoleManager::Allows(grant_, permission);
+   }
+
+   bool
+   COMAuthentication::AllowsForDomain(RolePermission permission, const String &domainName) const
+   {
+      InstallActor_();
+
+      String reason;
+      return RoleManager::Allows(grant_, permission, domainName, reason);
+   }
+
+   bool
+   COMAuthentication::ReachesEveryDomain() const
+   {
+      InstallActor_();
+
+      return RoleManager::ReachesEveryDomain(grant_);
+   }
+
+   RoleActor
+   COMAuthentication::GetActor() const
+   {
+      RoleActor actor;
+
+      if (!account_)
+         return actor;
+
+      if (account_->GetID() == 0)
+         actor.identity = "administrator";
+      else
+         actor.identity = AnsiString("account:") + AnsiString(account_->GetAddress());
+
+      actor.account_id = account_->GetID();
+      actor.domain_id = account_->GetDomainID();
+      actor.grant = grant_;
+
+      return actor;
    }
 
    /*
@@ -218,6 +335,16 @@ namespace HM
       saying nothing. What the row does say is the interface - COM - which is the
       Control Panel, hmconfig.ps1, DBSetup, a script, or anything else holding the
       administrator password.
+
+      The kind and the role are read from the grant this credential was given
+      when it authenticated, the grant every decision above is made from - not
+      from AdminLevel. Before roles the two were the same thing; now an account
+      whose AdminLevel is DomainAdmin can hold the help desk role, and recording
+      it as an administrator because of the column would describe authority it
+      does not have. "administrator" is the administrator password and the two
+      grants that have always meant administrator (serveradmin, domainadmin);
+      every other account is an "account", and the role it acted under, when it
+      holds one, is recorded beside the change.
    */
    AuditTrail::Actor
    COMAuthentication::GetAuditActor() const
@@ -230,24 +357,12 @@ namespace HM
       actor.present = true;
       actor.name = account_->GetAddress();
       actor.interface_name = _T("COM");
+      actor.kind = RoleManager::IsAdministratorGrant(grant_) ? _T("administrator") : _T("account");
 
-      if (account_->GetAdminLevel() == Account::ServerAdmin || account_->GetAdminLevel() == Account::DomainAdmin)
-         actor.kind = _T("administrator");
-      else
-         actor.kind = _T("account");
+      if (grant_.administrative)
+         actor.role = grant_.name;
 
       return actor;
-   }
-
-   bool 
-   COMAuthentication::GetIsServerAdmin() const
-   {
-      // See GetAuditActor: this is one of the two places COM installs the audit
-      // trail's actor, and it is here rather than at authentication because the
-      // thread that asks the question is the thread that then writes.
-      AuditTrail::SetActor(GetAuditActor());
-
-      return (account_ && account_->GetAdminLevel() == Account::ServerAdmin);
    }
 
    int 

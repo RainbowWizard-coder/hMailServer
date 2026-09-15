@@ -37,6 +37,7 @@
 
 #include "COMAuthentication.h"
 
+#include "../Common/Application/RoleManager.h"
 #include "COMError.h"
 
 #ifdef _DEBUG
@@ -629,6 +630,25 @@ STDMETHODIMP InterfaceAccount::Save()
          }
       }
 
+      // The rule above, for every role: an account whose STORED authority this
+      // credential does not take in is not this credential's to save, because
+      // saving it can set its password. The stored account and not object_,
+      // for the reason put_AdminLevel gives - the in-memory level is whatever
+      // the caller has just assigned. An unauthenticated holder of an account
+      // object is left exactly as it was: that is the script host, whose
+      // OnClientValidatePassword hands a script the account being logged on and
+      // has always let it save it.
+      if (authentication_->GetIsAuthenticated() && object_->GetID() > 0)
+      {
+         std::shared_ptr<HM::Account> stored = std::shared_ptr<HM::Account>(new HM::Account());
+
+         if (HM::PersistentAccount::ReadObject(stored, object_->GetID()) &&
+             !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(stored)))
+         {
+            return COMError::GenerateError("You do not have access to save the user account. It holds administrative authority that this credential does not.");
+         }
+      }
+
 
       String sErrorMessage;
       if (PersistentAccount::SaveObject(object_, sErrorMessage, true, HM::PersistenceModeNormal))
@@ -654,8 +674,29 @@ STDMETHODIMP InterfaceAccount::UnlockMailbox()
       if (!object_)
          return GetAccessDenied();
 
-      __int64 iAccountID = object_->GetID();
-      POP3Sessions::Instance()->Unlock(iAccountID);
+      // The account's own lock is its own to clear - a POP3 session it dropped
+      // is not an administrative matter - and anybody else's needs what an
+      // unlock needs, in the account's domain, exactly as Application.UnlockAccount
+      // and POST /api/v1/accounts/{address}/unlock ask it. Until 15 September
+      // 2026 this asked nothing at all.
+      const bool own = authentication_->GetAccountID() == object_->GetID();
+
+      if (!own && !authentication_->AllowsForDomain(HM::RolePermission::UnlockAccount, HM::StringParser::ExtractDomain(object_->GetAddress())))
+         return authentication_->GetAccessDenied();
+
+      POP3Sessions::Instance()->Unlock(object_->GetID());
+
+      // The lock is held in memory, so neither audit chokepoint sees this; it is
+      // recorded here, under the actor the question above installed. The
+      // account's own unlock asked no question and so installed none, and a
+      // COM pool thread keeps the last caller's actor - so it is not recorded
+      // at all, rather than recorded under whoever used the thread last. It is
+      // not an administrative change, which is the same answer.
+      if (!own)
+      {
+         HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("unlocked"),
+            _T("the POP3 mailbox lock was cleared"));
+      }
    
       return S_OK;
    }
@@ -1836,3 +1877,146 @@ STDMETHODIMP InterfaceAccount::put_SpamDeleteThreshold(long newVal)
    }
 }
 
+STDMETHODIMP InterfaceAccount::get_RoleName(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The assignment row, and nothing derived: an account with no row reads
+      // as empty, which is how an administrator can tell "holds the domainadmin
+      // role" from "is a domain administrator because AdminLevel says so".
+      HM::RoleAssignment assignment;
+
+      if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), assignment))
+      {
+         *pVal = HM::String().AllocSysString();
+         return S_OK;
+      }
+
+      *pVal = assignment.role_name.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_RoleName(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ManageRoles))
+         return authentication_->GetAccessDenied();
+
+      const HM::String wanted = newVal;
+
+      HM::RoleAssignment existing;
+      HM::RoleManager::AssignmentForAccount(object_->GetID(), existing);
+
+      // A credential may not hand out authority it has not got, nor take away
+      // authority it has not got. Only the server administrator holds
+      // ManageRoles today, so this cannot fire yet; it is written now because
+      // the day a delegate holds it is the day the check has to already be here.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(object_)) ||
+          (!wanted.IsEmpty() &&
+           !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAssignment(object_, wanted, existing.domains))))
+      {
+         return COMError::GenerateError("That role holds authority this credential does not, and a credential may not hand out authority it has not got.");
+      }
+
+      HM::String error;
+
+      if (wanted.IsEmpty())
+      {
+         if (!HM::RoleManager::Unassign(object_->GetID(), error))
+            return COMError::GenerateError(error);
+
+         return S_OK;
+      }
+
+      if (!HM::RoleManager::Assign(object_->GetID(), wanted, existing.domains, error))
+         return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RoleDomains(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::RoleAssignment assignment;
+
+      if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), assignment))
+      {
+         *pVal = HM::String().AllocSysString();
+         return S_OK;
+      }
+
+      *pVal = assignment.domains.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_RoleDomains(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ManageRoles))
+         return authentication_->GetAccessDenied();
+
+      HM::RoleAssignment existing;
+
+      if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), existing))
+         return COMError::GenerateError("This account holds no role, so there are no domains to confine it to. Set RoleName first.");
+
+      HM::String error;
+
+      if (!HM::RoleManager::Assign(object_->GetID(), existing.role_name, HM::String(newVal), error))
+         return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RolePermissions(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      const HM::RoleGrant grant = HM::RoleManager::GrantForAccount(object_);
+
+      *pVal = HM::String(HM::RoleManager::DescribeGrant(grant)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

@@ -3,9 +3,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -23,8 +27,9 @@ namespace RegressionTests.Infrastructure
    ///    (hm_smimekeys), the history that stops it reusing a password
    ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects), the
    ///    memory of who has written to it before (hm_knownsenders), whether it asked
-   ///    for the quarantine digest to stop (hm_digeststate) and its own safe and
-   ///    blocked senders (hm_senderlist) - and, on each message, the keywords the
+   ///    for the quarantine digest to stop (hm_digeststate), its own safe and
+   ///    blocked senders (hm_senderlist) and the administrative role it has been
+   ///    given (hm_roleassignments) - and, on each message, the keywords the
    ///    webmail calls labels.
    ///
    ///    Until 15 September 2026 not one of those was in the archive, and because
@@ -40,6 +45,12 @@ namespace RegressionTests.Infrastructure
    ///    DAV listeners, and for the first-contact memory a delivery - rather than by
    ///    writing rows, so what is proved is what an account actually has rather than
    ///    what a test put in a table.
+   ///
+   ///    The role tests go further than "it comes back", because a role is authority:
+   ///    an assignment names a role the server lacks, the archive is edited so that
+   ///    the restore fails between the account's row and its assignment, and the
+   ///    server holds a role narrower than the archive's - and in each case the
+   ///    account must come back holding no more than its role gives it.
    /// </summary>
    [TestFixture]
    public class BackupAccountStores : TestFixtureBase
@@ -508,6 +519,261 @@ namespace RegressionTests.Infrastructure
             domainListed.Body, "The domain's allow and block list did not come back. Body: " + domainListed.Body);
       }
 
+      // --------------------------------------------------- hm_roleassignments
+
+      [Test]
+      [Description("hm_roleassignments: the role an account was given, and the domains it reaches, survive a backup "
+                   + "and a restore - so a restore neither demotes a help desk nor promotes an account whose "
+                   + "AdminLevel is wider than the role it was narrowed to")]
+      public void TheRoleAssignmentComesBack()
+      {
+         // The account's AdminLevel says server administrator, which is what it
+         // resolves to without an assignment - and the archive carries AdminLevel.
+         // Narrowed to the help desk, it is the case where losing the assignment in
+         // a restore is not a demotion but a promotion to the whole server.
+         hMailServer.Account account = _domain.Accounts.get_ItemByAddress(_address);
+         account.AdminLevel = hMailServer.eAdminLevel.hAdminLevelServerAdmin;
+         account.Save();
+
+         string domain = _domain.Name.ToLowerInvariant();
+         Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+            BasicAuth("Administrator", AdminPassword), "{\"role\":\"helpdesk\",\"domains\":\"" + domain + "\"}");
+         Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+         Response before = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, before.Status, "Body: " + before.Body);
+         StringAssert.Contains("\"role\":\"helpdesk\"", before.Body, "The assignment did not take before the backup.");
+
+         BackupDeleteAndRestore();
+
+         // Through the credential itself: what the restored account may do now is
+         // what the server resolves for it, which is the whole point.
+         Response after = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, after.Status, "Body: " + after.Body);
+         StringAssert.Contains("\"role\":\"helpdesk\"", after.Body,
+            "The restored account does not hold the help desk role. On a build whose archive has no "
+            + "hm_roleassignments it answers serveradmin: its AdminLevel came back and its assignment did not. Body: " + after.Body);
+         StringAssert.DoesNotContain("administer_server", after.Body,
+            "The restored account holds the server administrator's authority it had been narrowed away from. Body: " + after.Body);
+
+         // And the row itself, with the domains it was given.
+         Response listed = Rest("GET", "/api/v1/role-assignments", BasicAuth("Administrator", AdminPassword));
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.Contains("{\"address\":\"" + _address + "\",\"role\":\"helpdesk\",\"domains\":\"" + domain + "\"",
+            listed.Body, "The restored assignment is not listed with the role and the domains it was given.");
+      }
+
+      [Test]
+      [Description("hm_roles: a custom role, and the account given it, survive a backup and a restore onto a server "
+                   + "that no longer has the role - the role comes back first, with its permissions and its "
+                   + "description, so the assignment that names it is restored rather than dropped")]
+      public void ACustomRoleComesBackBeforeTheAssignmentThatNamesIt()
+      {
+         const string role = "storestest-mailops";
+         // A line break, so that the description takes the base64 path across the
+         // archive and has to come back byte for byte.
+         const string description = "Runs the delivery queue\r\nat night";
+
+         try
+         {
+            Response created = Rest("POST", "/api/v1/roles", BasicAuth("Administrator", AdminPassword),
+               "{\"name\":\"" + role + "\",\"description\":\"Runs the delivery queue\\r\\nat night\",\"permissions\":\"view_queue,manage_queue\"}");
+            Assert.AreEqual(201, created.Status, "Body: " + created.Body);
+
+            Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+               BasicAuth("Administrator", AdminPassword), "{\"role\":\"" + role + "\",\"domains\":\"*\"}");
+            Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+            RunBackup();
+
+            // A fresh server, as far as the role is concerned: it is gone, and its
+            // assignment with it, before the restore begins.
+            Response deleted = Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, deleted.Status, "Body: " + deleted.Body);
+            Assert.AreEqual(404, Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword)).Status,
+               "The role is still on the server, so the restore would not be proving anything.");
+
+            DeleteAndRestore();
+
+            Response restored = Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, restored.Status,
+               "The custom role did not come back: the archive carries no <Roles>, or the restore did not read it. Body: " + restored.Body);
+
+            using (JsonDocument document = JsonDocument.Parse(restored.Body))
+            {
+               Assert.AreEqual("view_queue,manage_queue", document.RootElement.GetProperty("permissions").GetString());
+               Assert.AreEqual(description, document.RootElement.GetProperty("description").GetString(),
+                  "The description did not come back byte for byte.");
+               Assert.IsFalse(document.RootElement.GetProperty("builtin").GetBoolean());
+            }
+
+            Response session = Rest("GET", "/api/v1/session", User());
+            Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+            StringAssert.Contains("\"role\":\"" + role + "\"", session.Body,
+               "The restored account does not hold the custom role, so its assignment was dropped - which is what a "
+               + "restore did when the role had to be on the server already. Body: " + session.Body);
+
+            Response listed = Rest("GET", "/api/v1/role-assignments", BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+            StringAssert.Contains("{\"address\":\"" + _address + "\",\"role\":\"" + role + "\",\"domains\":\"*\"", listed.Body);
+
+            string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            Assert.IsTrue(Regex.IsMatch(log, @"Restored [1-9][0-9]* custom role\(s\)\."), "The restore did not say it restored the custom roles. Log: " + log);
+         }
+         finally
+         {
+            Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+         }
+      }
+
+      [Test]
+      [Description("hm_roleassignments: an assignment naming a role that neither the archive nor the server has is "
+                   + "dropped, and the account's admin level goes with it - an account whose level says server "
+                   + "administrator but which had been narrowed to a help desk comes back an ordinary account, "
+                   + "and the backup log names the account and the missing role")]
+      public void AnAssignmentNobodyCanPlaceTakesTheWiderAdminLevelWithIt()
+      {
+         hMailServer.Account account = _domain.Accounts.get_ItemByAddress(_address);
+         account.AdminLevel = hMailServer.eAdminLevel.hAdminLevelServerAdmin;
+         account.Save();
+
+         Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+            BasicAuth("Administrator", AdminPassword), "{\"role\":\"helpdesk\",\"domains\":\"\"}");
+         Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+         RunBackup();
+
+         // The archive, edited the way a person would: the assignment now names a
+         // role no server has.
+         RenameTheArchivedRole("helpdesk", "no-such-role");
+
+         DeleteAndRestore();
+
+         Response session = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+         StringAssert.Contains("\"administrative\":false", session.Body,
+            "The account came back with administrative authority. With its assignment dropped and its admin level "
+            + "left at server administrator, it holds the whole server the help desk role had narrowed it away from. "
+            + "Body: " + session.Body);
+         StringAssert.DoesNotContain("administer_server", session.Body);
+
+         string domainName = _address.Substring(_address.IndexOf('@') + 1);
+         hMailServer.Account restored = _application.Domains.get_ItemByName(domainName).Accounts.get_ItemByAddress(_address);
+         Assert.AreEqual(hMailServer.eAdminLevel.hAdminLevelNormal, restored.AdminLevel,
+            "The account's admin level was not lowered in place of the assignment that could not be restored.");
+
+         Response listed = Rest("GET", "/api/v1/role-assignments", BasicAuth("Administrator", AdminPassword));
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.DoesNotContain(_address, listed.Body, "An assignment naming a role nobody has was written.");
+
+         string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+         StringAssert.Contains("The backup gives " + _address + " the role no-such-role", log, "Log: " + log);
+         StringAssert.Contains("its admin level is now that of an ordinary account", log, "Log: " + log);
+         StringAssert.Contains("(server administrator)", log, "The level that was not given back is named. Log: " + log);
+
+         // And in the error log, where an administrator watching a restore that
+         // ends "completed successfully" is told that an account lost its
+         // authority; consumed here, since the next fixture asserts the log empty.
+         CustomAsserts.AssertReportedError("HM6129", _address, "no-such-role");
+      }
+
+      [Test]
+      [Description("hm_roleassignments: a restore that fails after the account's row is saved leaves the account no wider "
+                   + "than its role - the admin level the archive carries is withheld until the assignment is back, so an "
+                   + "account narrowed from server administrator to help desk does not come back the server administrator "
+                   + "when the restore stops between the two")]
+      public void AFailedRestoreLeavesTheAccountNoWiderThanItsRole()
+      {
+         hMailServer.Account account = _domain.Accounts.get_ItemByAddress(_address);
+         account.AdminLevel = hMailServer.eAdminLevel.hAdminLevelServerAdmin;
+         account.Save();
+
+         Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+            BasicAuth("Administrator", AdminPassword), "{\"role\":\"helpdesk\",\"domains\":\"\"}");
+         Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+         RunBackup();
+
+         // The archive, edited so that the restore fails exactly where it matters:
+         // after the account's row is saved and before its assignment is written.
+         // A second copy of the assignment row is refused by the unique index on
+         // the account, and the restore stops there - with the account's row in
+         // place and, until 15 September 2026, its archived admin level in it.
+         DuplicateTheArchivedAssignment();
+
+         string log = DeleteAndRestoreExpectingFailure();
+         StringAssert.Contains("Restore of domains failed", log, "Log: " + log);
+
+         string domainName = _address.Substring(_address.IndexOf('@') + 1);
+         hMailServer.Account restored = _application.Domains.get_ItemByName(domainName).Accounts.get_ItemByAddress(_address);
+         Assert.AreEqual(hMailServer.eAdminLevel.hAdminLevelNormal, restored.AdminLevel,
+            "The account's row was saved with the archive's admin level before the restore failed, so it is the server "
+            + "administrator with nothing to say otherwise. The level must be withheld until the assignment is back.");
+
+         Response session = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+         StringAssert.DoesNotContain("administer_server", session.Body,
+            "The account holds the server administrator's authority after a failed restore. Body: " + session.Body);
+
+         // The refused row's report and the failed restore's, both consumed here.
+         CustomAsserts.AssertReportedError("HM6128", "HM5014");
+      }
+
+      [Test]
+      [Description("hm_roles: a custom role the restoring server already has is kept as it is here rather than overwritten "
+                   + "with the archive's wider definition - every credential holding it keeps what this server gives it, "
+                   + "the backup log names the difference, and the assignment that names the role is restored")]
+      public void AServerRoleOfTheSameNameIsKeptAndNotWidened()
+      {
+         const string role = "storestest-narrowed";
+
+         try
+         {
+            Response created = Rest("POST", "/api/v1/roles", BasicAuth("Administrator", AdminPassword),
+               "{\"name\":\"" + role + "\",\"description\":\"Runs the queue\",\"permissions\":\"view_queue,manage_queue\"}");
+            Assert.AreEqual(201, created.Status, "Body: " + created.Body);
+
+            Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+               BasicAuth("Administrator", AdminPassword), "{\"role\":\"" + role + "\",\"domains\":\"*\"}");
+            Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+            RunBackup();
+
+            // Narrowed here after the backup was taken: what the archive carries is
+            // wider than what this server's administrator decided.
+            Response narrowed = Rest("PUT", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword),
+               "{\"description\":\"Reads the queue\",\"permissions\":\"view_queue\"}");
+            Assert.AreEqual(200, narrowed.Status, "Body: " + narrowed.Body);
+
+            DeleteAndRestore();
+
+            Response kept = Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, kept.Status, "Body: " + kept.Body);
+
+            using (JsonDocument document = JsonDocument.Parse(kept.Body))
+            {
+               Assert.AreEqual("view_queue", document.RootElement.GetProperty("permissions").GetString(),
+                  "The restore overwrote this server's role with the archive's wider definition. Body: " + kept.Body);
+               Assert.AreEqual("Reads the queue", document.RootElement.GetProperty("description").GetString());
+            }
+
+            Response session = Rest("GET", "/api/v1/session", User());
+            Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+            StringAssert.Contains("\"role\":\"" + role + "\"", session.Body, "The assignment naming the kept role was not restored. Body: " + session.Body);
+            StringAssert.DoesNotContain("manage_queue", session.Body, "The account holds a permission the archive's role had and this server's does not. Body: " + session.Body);
+
+            string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            StringAssert.Contains("The backup carries the custom role " + role + ", which this server already has. This server's definition has been kept", log, "Log: " + log);
+            StringAssert.Contains("permissions 'view_queue' here and 'view_queue,manage_queue' in the backup", log, "Log: " + log);
+            StringAssert.Contains("description 'Reads the queue' here and 'Runs the queue' in the backup", log, "Log: " + log);
+            Assert.IsTrue(Regex.IsMatch(log, @"Restored 0 custom role\(s\)\. 1 role\(s\) the backup carries were already on this server"), "Log: " + log);
+         }
+         finally
+         {
+            Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+         }
+      }
+
       // --------------------------------------------------- a message's labels
 
       [Test]
@@ -598,6 +864,156 @@ namespace RegressionTests.Infrastructure
          backup.StartRestore();
 
          WaitForRestore(startTime);
+      }
+
+      /// <summary>
+      ///    The same disaster and the same restore, from an archive edited so that
+      ///    the restore cannot finish. A failed restore reinitialises nothing, so it is
+      ///    awaited through the backup log rather than through a restart, and the log
+      ///    is returned for the test to read what stopped it.
+      /// </summary>
+      private string DeleteAndRestoreExpectingFailure()
+      {
+         while (_application.Domains.Count > 0)
+            _application.Domains[0].Delete();
+
+         FileInfo[] archives = new DirectoryInfo(_backupDirectory).GetFiles("*.7z");
+         Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + _backupDirectory);
+
+         CustomAsserts.AssertDeleteFile(_application.Settings.Backup.LogFile);
+
+         var backup = _application.BackupManager.LoadBackup(archives[0].FullName);
+         backup.RestoreDomains = true;
+         backup.RestoreMessages = true;
+         backup.RestoreSettings = false;
+         backup.StartRestore();
+
+         for (int attempt = 0; attempt < 480; attempt++)
+         {
+            string log = "";
+
+            try
+            {
+               log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            }
+            catch (Exception sharing) when (!ExceptionPolicy.IsFatal(sharing))
+            {
+               // The server is writing the file; read it again in a moment.
+            }
+
+            if (log.Contains("BACKUP ERROR:"))
+               return log;
+
+            if (log.Contains("Restore completed successfully"))
+               Assert.Fail("The restore was expected to fail and completed instead, so the edited archive did not do what it was meant to. Log: " + log);
+
+            Thread.Sleep(250);
+         }
+
+         Assert.Fail("The restore neither failed nor completed within two minutes.");
+         return "";
+      }
+
+      /// <summary>
+      ///    Edits the one archive in the backup directory: the role an archived
+      ///    assignment names is renamed, in the index, and the index is put back into
+      ///    the archive in place of the one the backup wrote. What a person would do
+      ///    with 7-Zip and a text editor, and the only way to have an archive name a
+      ///    role that is in neither the archive nor the server.
+      /// </summary>
+      private void RenameTheArchivedRole(string from, string to)
+      {
+         EditTheArchivedIndex(xml =>
+         {
+            var reference = new Regex("(Column=[\"']raroleid[\"']\\s+Name=[\"'])" + Regex.Escape(from) + "([\"'])");
+            Assert.AreEqual(1, reference.Matches(xml).Count,
+               "Expected exactly one archived assignment naming " + from + " in the index.");
+
+            return reference.Replace(xml, "${1}" + to + "${2}");
+         });
+      }
+
+      /// <summary>
+      ///    Edits the archive so that the account's assignment appears twice. The
+      ///    second row is refused by the unique index on the account, which is the one
+      ///    way to make a restore fail exactly between the account's row and its
+      ///    assignment, on every database this server runs on.
+      /// </summary>
+      private void DuplicateTheArchivedAssignment()
+      {
+         EditTheArchivedIndex(xml =>
+         {
+            var store = new Regex("(<Store Name=[\"']hm_roleassignments[\"']>)(\\s*<Row\\b.*?</Row>)(\\s*</Store>)", RegexOptions.Singleline);
+            Assert.AreEqual(1, store.Matches(xml).Count, "Expected exactly one archived assignment store in the index.");
+
+            return store.Replace(xml, "${1}${2}${2}${3}");
+         });
+      }
+
+      private void EditTheArchivedIndex(Func<string, string> edit)
+      {
+         FileInfo[] archives = new DirectoryInfo(_backupDirectory).GetFiles("*.7z");
+         Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + _backupDirectory);
+
+         string staging = Paths.Combine(_backupDirectory, "edited");
+         Directory.CreateDirectory(staging);
+
+         Run7Za("e \"" + archives[0].FullName + "\" hMailServerBackup.xml -o\"" + staging + "\" -y", staging);
+
+         string index = Paths.Combine(staging, "hMailServerBackup.xml");
+         Assert.IsTrue(File.Exists(index), "7za.exe did not extract the backup's index.");
+
+         // settings-store-exempt: reads and rewrites the backup archive's index, not hMailServer.ini.
+         string xml = edit(File.ReadAllText(index));
+
+         // UTF-16 with a byte-order mark, which is what the server writes the index in
+         // and what its reader detects.
+         // settings-store-exempt: writes the backup archive's index, not hMailServer.ini.
+         File.WriteAllText(index, xml, Encoding.Unicode);
+         File.SetLastWriteTimeUtc(index, DateTime.UtcNow.AddMinutes(1));
+
+         // A bare file name from the staging directory, so that the entry replaces
+         // the archive's own "hMailServerBackup.xml" rather than being added beside
+         // it under a path.
+         Run7Za("u \"" + archives[0].FullName + "\" hMailServerBackup.xml", staging);
+
+         Directory.Delete(staging, true);
+      }
+
+      private void Run7Za(string arguments, string workingDirectory)
+      {
+         string programDirectory = _application.Settings.Directories.ProgramDirectory;
+
+         // A registered install resolves to {InstallLocation}\Bin, while a developer
+         // build that is not registered runs from the directory it was built into -
+         // the same two candidates BackupRestoreSafety looks in.
+         string[] candidates =
+         {
+            Paths.Combine(programDirectory, "7za.exe"),
+            Paths.Combine(programDirectory, "Bin", "7za.exe"),
+         };
+
+         string sevenZip = candidates.FirstOrDefault(File.Exists);
+         if (sevenZip == null)
+            Assert.Fail("Could not find 7za.exe next to the server. Looked in " + string.Join(" and ", candidates) + ".");
+
+         var startInfo = new ProcessStartInfo(sevenZip, arguments)
+         {
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+         };
+
+         using (var process = Process.Start(startInfo))
+         {
+            Assert.IsNotNull(process, "7za.exe could not be started.");
+
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            Assert.AreEqual(0, process.ExitCode, "7za.exe " + arguments + " failed: " + output);
+         }
       }
 
       /// <summary>

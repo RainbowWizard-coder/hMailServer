@@ -300,25 +300,26 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
   <div class="shell">
     <aside class="side">
       <nav class="nav" id="nav">
-        <button data-view="dash" class="on" title="Dashboard"><span class="ico">◈</span><span>Dashboard</span></button>
-        <button data-view="domains" title="Domains"><span class="ico">⌂</span><span>Domains</span></button>
-        <button data-view="groups" title="Groups"><span class="ico">⚇</span><span>Groups</span></button>
-        <button data-view="ipranges" title="IP ranges"><span class="ico">⌗</span><span>IP ranges</span></button>
-        <button data-view="fetch" title="Fetch accounts"><span class="ico">⇓</span><span>Fetch accounts</span></button>
-        <button data-view="lists" title="Lists"><span class="ico">≣</span><span>Lists</span></button>
-        <button data-view="queue" title="Delivery queue"><span class="ico">⇶</span><span>Delivery queue</span></button>
-        <button data-view="tlsa" title="DANE / TLSA"><span class="ico">⛨</span><span>DANE / TLSA</span></button>
-        <button data-view="settings" title="Settings"><span class="ico">⚙</span><span>Settings</span></button>
-        <button data-view="backup" title="Backup"><span class="ico">⛃</span><span>Backup</span></button>
-        <button data-view="messages" title="Server messages"><span class="ico">✎</span><span>Server messages</span></button>
-        <button data-view="rules" title="Rules"><span class="ico">⚖</span><span>Rules</span></button>
-        <button data-view="routes" title="Routes"><span class="ico">⇥</span><span>Routes</span></button>
-        <button data-view="remotedomains" title="Remote domains"><span class="ico">⇄</span><span>Remote domains</span></button>
-        <button data-view="certs" title="Certificates"><span class="ico">⚿</span><span>Certificates</span></button>
-        <button data-view="ports" title="Ports"><span class="ico">⊞</span><span>Ports</span></button>
-        <button data-view="logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
-        <button data-view="reports" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
-        <button data-view="audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
+        <button data-view="dash" data-needs="view_configuration" class="on" title="Dashboard"><span class="ico">◈</span><span>Dashboard</span></button>
+        <button data-view="domains" data-needs="view_accounts" title="Domains"><span class="ico">⌂</span><span>Domains</span></button>
+        <button data-view="groups" data-serverwide="1" data-needs="view_accounts" title="Groups"><span class="ico">⚇</span><span>Groups</span></button>
+        <button data-view="ipranges" data-serverwide="1" data-needs="view_configuration" title="IP ranges"><span class="ico">⌗</span><span>IP ranges</span></button>
+        <button data-view="fetch" data-needs="view_accounts" title="Fetch accounts"><span class="ico">⇓</span><span>Fetch accounts</span></button>
+        <button data-view="lists" data-needs="view_accounts" title="Lists"><span class="ico">≣</span><span>Lists</span></button>
+        <button data-view="queue" data-serverwide="1" data-needs="view_queue" title="Delivery queue"><span class="ico">⇶</span><span>Delivery queue</span></button>
+        <button data-view="tlsa" data-needs="view_configuration" title="DANE / TLSA"><span class="ico">⛨</span><span>DANE / TLSA</span></button>
+        <button data-view="settings" data-serverwide="1" data-needs="view_configuration" title="Settings"><span class="ico">⚙</span><span>Settings</span></button>
+        <button data-view="backup" data-serverwide="1" data-needs="view_configuration" title="Backup"><span class="ico">⛃</span><span>Backup</span></button>
+        <button data-view="messages" data-serverwide="1" data-needs="view_configuration" title="Server messages"><span class="ico">✎</span><span>Server messages</span></button>
+        <button data-view="rules" data-serverwide="1" data-needs="view_configuration" title="Rules"><span class="ico">⚖</span><span>Rules</span></button>
+        <button data-view="routes" data-serverwide="1" data-needs="view_configuration" title="Routes"><span class="ico">⇥</span><span>Routes</span></button>
+        <button data-view="remotedomains" data-serverwide="1" data-needs="view_configuration" title="Remote domains"><span class="ico">⇄</span><span>Remote domains</span></button>
+        <button data-view="certs" data-serverwide="1" data-needs="view_configuration" title="Certificates"><span class="ico">⚿</span><span>Certificates</span></button>
+        <button data-view="ports" data-serverwide="1" data-needs="view_configuration" title="Ports"><span class="ico">⊞</span><span>Ports</span></button>
+        <button data-view="roles" data-needs="view_configuration" title="Roles"><span class="ico">⚑</span><span>Roles</span></button>
+        <button data-view="logs" data-serverwide="1" data-needs="view_logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
+        <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
+        <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
       </nav>
       <div class="foot">v<span id="ver">—</span></div>
     </aside>
@@ -633,7 +634,7 @@ $("#loginForm").onsubmit=async e=>{
     // nothing, and so never makes a request the server answers 401 - which is
     // what would put the browser's own password box on the screen.
     try{sessionStorage.setItem("hmsSession","1");}catch(_){}
-    try{enter(await api("/api/v1/status"));}
+    try{await startDeck();}
     catch(err){$("#loginErr").textContent=tf("Signed in, but the server did not answer: {0}",err.message);}
     return;
   }
@@ -657,9 +658,68 @@ function signedOut(message){
   $("#loginErr").textContent=message||"";
   $("#pass").focus();
 }
+/* What the signed-in credential may do. Read once, at sign-in, from the server's
+   own answer - never inferred here - and used for one thing: leaving out a page
+   this role may not use, rather than showing one whose every button answers 403.
+   It is not a security boundary and is not treated as one; the server refuses
+   the request whatever this page shows, which is why a whoami that cannot be
+   read leaves every view in place rather than hiding the Deck from somebody
+   whose credential is perfectly good. */
+let permissions=null;
+/* True when the credential is confined to named domains. A view whose data is
+   the whole server's - the settings, the queue, the logs - is refused to such a
+   credential whatever permission it holds, so it is left out for it too. */
+let confined=false;
+/* administer_server is the whole of it, as it is in RoleManager::Allows. */
+function may(permission){return !permissions||!permission||permissions.indexOf("administer_server")>=0||permissions.indexOf(permission)>=0;}
+/* A view that needs more than one permission names them all in data-needs,
+   separated by spaces, and is shown only when every one is held - the reports
+   need view_configuration and view_message_trace, as the server decides in
+   RestApiServer::SecondPermissionFor_, because their senders and recipients
+   are who mails whom. */
+function mayAll(needs){return String(needs||"").split(" ").filter(Boolean).every(may);}
+/* Whether a view is in the navigation for this credential. The tour and the
+   keyboard ask this rather than walking into a view applyPermissions left out. */
+function viewShown(name){
+  const b=Array.from(document.querySelectorAll("#nav button[data-view]")).filter(x=>x.dataset.view===name)[0];
+  return !!b&&!b.hidden;
+}
+function applyPermissions(){
+  const buttons=Array.from(document.querySelectorAll("#nav button[data-view]"));
+  let visible=null;
+  buttons.forEach(b=>{
+    const allowed=mayAll(b.dataset.needs)&&!(confined&&b.dataset.serverwide);
+    b.hidden=!allowed;
+    if(allowed&&!visible)visible=b.dataset.view;
+  });
+  if(!visible){view=null;return;}
+  if(!buttons.some(b=>b.dataset.view===view&&!b.hidden)){
+    view=visible;
+    buttons.forEach(b=>b.classList.toggle("on",b.dataset.view===view));
+  }
+}
+async function readSession(){
+  permissions=null;confined=false;
+  try{
+    const who=await api("/api/v1/session");
+    if(who&&Array.isArray(who.permissions))permissions=who.permissions;
+    confined=!!(who&&Array.isArray(who.domains)&&who.domains.length>0);
+  }catch(_){/* an older server, or a request that did not arrive: show everything */}
+  applyPermissions();
+}
+/* What happens after a session exists: the credential's permissions first,
+   then the status for the version in the footer - but only for a role that may
+   read it. A help desk may not, and asking would answer 403 and leave it
+   standing at the sign-in card with a working session. */
+async function startDeck(){
+  await readSession();
+  const status=may("view_configuration")?await api("/api/v1/status"):{};
+  enter(status);
+}
 function enter(status){
   $("#gate").style.display="none";$("#app").style.display="flex";
   $("#ver").textContent=status.version||"?";
+  if(!view){$("#viewTitle").textContent="";$("#content").innerHTML='<div class="empty">'+t("This role reaches none of the pages of the Deck. Ask an administrator for one that does.")+'</div>';return;}
   render();
   if(!pollTimer)pollTimer=setInterval(()=>{if(view==="dash")render(true);},3000);
 }
@@ -673,7 +733,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),logs:K("Logs"),audit:K("Audit trail")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -694,6 +754,7 @@ async function render(silent){
     else if(view==="remotedomains")await renderRemoteDomains();
     else if(view==="certs")await renderCerts();
     else if(view==="ports")await renderPorts();
+    else if(view==="roles")await renderRoles();
     else if(view==="reports")await renderReports();
     else if(view==="logs")await renderLogs();
     else if(view==="audit")await renderAudit();
@@ -808,6 +869,7 @@ function tourCondition(step){
 /* The element a step points at, with the view it is on opened first: a control
    on a view nobody has drawn is in no document to be found in. */
 async function tourElement(step){
+  if(step.view&&!viewShown(step.view))return null;
   if(step.view&&step.view!==view){
     view=step.view;editing=null;
     document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===view));
@@ -1011,6 +1073,12 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="routeedit")openRoute(Number(d.id));
   else if(d.act==="routedel")deleteRoute(Number(d.id),d.name);
   else if(d.act==="routesave")saveRoute();
+  else if(d.act==="resetpick")pickReset(d.address);
+  else if(d.act==="resetpass")resetPassword(d.domain);
+  else if(d.act==="unlock")unlockAccount(d.address);
+  else if(d.act==="assign")assignRole();
+  else if(d.act==="unassign")unassignRole(d.address);
+  else if(d.act==="roledel")deleteRole(d.name);
   else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
   else if(d.act==="auditverify")verifyAuditChain();
   else if(d.act==="rdnew")openRemoteDomain(0);
@@ -1140,7 +1208,7 @@ document.addEventListener("keydown",e=>{
   const inNav=e.target&&e.target.closest?e.target.closest("#nav"):null;
   if(inNav){
     if(e.key!=="ArrowDown"&&e.key!=="ArrowUp")return;
-    const buttons=Array.from(document.querySelectorAll("#nav button"));
+    const buttons=Array.from(document.querySelectorAll("#nav button")).filter(b=>!b.hidden);
     const at=buttons.indexOf(e.target.closest("button"));
     const next=buttons[(at+(e.key==="ArrowDown"?1:buttons.length-1))%buttons.length];
     if(next){e.preventDefault();next.focus();}
@@ -1603,8 +1671,10 @@ async function showAccounts(domain){
     <tr><td><b>${escHtml(x.address)}</b></td>
         <td>${x.active?'<span class="badge good">'+t("Active")+'</span>':'<span class="badge warn">'+t("Disabled")+'</span>'}</td>
         <td style="text-align:right;white-space:nowrap">
-          <button class="btn ghost sm" data-act="accountedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>
-          <button class="btn danger sm" data-act="del" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button></td></tr>`).join("");
+          ${may("reset_password")?`<button class="btn ghost sm" data-act="resetpick" data-address="${escHtml(x.address)}">${t("Reset password")}</button>`:""}
+          ${may("unlock_account")?`<button class="btn ghost sm" data-act="unlock" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Unlock")}</button>`:""}
+          ${may("view_accounts")?`<button class="btn ghost sm" data-act="accountedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>`:""}
+          ${may("manage_accounts")?`<button class="btn danger sm" data-act="del" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`
   <div class="view">
     <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
@@ -1612,15 +1682,50 @@ async function showAccounts(domain){
       <div class="card"><div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Status")}</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="3" class="empty">'+t("No accounts.")+'</td></tr>'}</tbody></table></div></div>
     </div>
-    <div class="sect"><h2>${t("New account")}</h2>
+    ${may("reset_password")?`<div class="sect"><h2>${t("Reset a password")}</h2>
+      <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center" data-enter="resetpass">
+        <input id="helpAddr" placeholder="user@${escHtml(domain)}" aria-label="${t("Address")}" style="flex:1;min-width:220px">
+        <input id="helpPass" type="password" placeholder="${t("New password")}" aria-label="${t("New password")}" style="flex:1;min-width:160px">
+        <button class="btn" data-act="resetpass" data-domain="${escHtml(domain)}">${t("Reset password")}</button>
+        <div class="err" id="err_help"></div>
+      </div>
+    </div>`:""}
+    ${may("manage_accounts")?`<div class="sect"><h2>${t("New account")}</h2>
       <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center" data-enter="add">
         <input id="newAddr" placeholder="user@${escHtml(domain)}" aria-label="${t("Address")}" style="flex:1;min-width:220px">
         <input id="newPass" type="password" placeholder="${t("Password")}" aria-label="${t("Password")}" style="flex:1;min-width:160px">
         <button class="btn" data-act="add" data-domain="${escHtml(domain)}">${t("Create account")}</button>
         <div class="err" id="err_account"></div>
       </div>
-    </div>
+    </div>`:""}
+    <div class="err" id="err_accountrow"></div>
   </div>`;
+}
+
+/* A help desk's two actions, each its own route so that a role can be allowed
+   exactly these and nothing else. The password goes in the body of a POST and
+   is cleared from the page the moment it has been sent. */
+function pickReset(address){
+  const box=$("#helpAddr");if(!box)return;
+  box.value=address;
+  const pass=$("#helpPass");if(pass)pass.focus();
+}
+async function resetPassword(domain){
+  setErr("err_help","");
+  const address=($("#helpAddr").value||"").trim(),password=$("#helpPass").value;
+  if(!address||!password){setErr("err_help",t("An address and a new password are required."));return;}
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/password",{method:"POST",body:JSON.stringify({password:password})});
+    $("#helpPass").value="";
+    toast(tf("Password reset: {0}",address));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_help",refusalText(e));}
+}
+async function unlockAccount(address){
+  setErr("err_accountrow","");
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/unlock",{method:"POST"});
+    toast(tf("Unlocked: {0}",address));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountrow",e.message);}
 }
 
 async function addAccount(domain){
@@ -3315,6 +3420,64 @@ function reportLastDays(days){
 }
 
 /* ---------- Logs ---------- */
+/* ---------- Roles ---------- */
+async function renderRoles(){
+  const catalogue=await api("/api/v1/roles");
+  const held=await api("/api/v1/role-assignments");
+  const roles=catalogue.roles||[];
+  const roleRows=roles.map(r=>`
+    <tr><td><code class="ro">${escHtml(r.name)}</code></td>
+        <td>${escHtml(r.description||"")}</td>
+        <td>${r.builtin?'<span class="badge info">'+t("Built in")+'</span>':""}</td>
+        <td style="word-break:break-word">${escHtml((r.permissions||"").split(",").join(", "))}</td>
+        <td style="text-align:right">${may("manage_roles")&&!r.builtin?`<button class="btn danger sm" data-act="roledel" data-name="${escHtml(r.name)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
+  const options=roles.map(r=>`<option value="${escHtml(r.name)}">${escHtml(r.name)}</option>`).join("");
+  const heldRows=(held.assignments||[]).map(a=>`
+    <tr><td>${escHtml(a.address)}</td><td><code class="ro">${escHtml(a.role)}</code></td>
+        <td>${escHtml(a.every_domain?t("every domain"):(a.domains||t("the account's own domain")))}</td>
+        <td style="text-align:right">${may("manage_roles")?`<button class="btn danger sm" data-act="unassign" data-address="${escHtml(a.address)}">${t("Remove")}</button>`:""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="card view">
+    <div class="tablewrap"><table><thead><tr><th>${t("Role")}</th><th>${t("What it is for")}</th><th></th><th>${t("Permissions")}</th><th></th></tr></thead>
+    <tbody>${roleRows}</tbody></table></div></div>
+    <div class="card view" style="margin-top:14px">
+    <div class="tablewrap"><table><thead><tr><th>${t("Account")}</th><th>${t("Role")}</th><th>${t("Domains")}</th><th></th></tr></thead>
+    <tbody>${heldRows||'<tr><td colspan="4" class="empty">'+t("Nobody has been given a role yet. An account without one holds the authority its admin level gives it. ✦")+'</td></tr>'}</tbody></table></div>
+    ${may("manage_roles")?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <input id="roleAddress" placeholder="${t("Account address")}" style="flex:1 1 220px">
+      <select id="roleName" style="flex:0 1 180px">${options}</select>
+      <input id="roleDomains" placeholder="${t("Domains, comma separated")}" style="flex:1 1 200px">
+      <button class="btn" data-act="assign">${t("Give the role")}</button>
+    </div>`:""}
+    <div class="err" id="err_roles" style="margin-top:10px"></div></div>`;
+}
+async function assignRole(){
+  setErr("err_roles","");
+  const address=($("#roleAddress").value||"").trim();
+  if(!address){setErr("err_roles",t("An account address is required."));return;}
+  try{
+    await api("/api/v1/role-assignments/"+encodeURIComponent(address),{method:"PUT",body:JSON.stringify({role:$("#roleName").value,domains:($("#roleDomains").value||"").trim()})});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+async function unassignRole(address){
+  setErr("err_roles","");
+  try{
+    await api("/api/v1/role-assignments/"+encodeURIComponent(address),{method:"DELETE"});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+/* A custom role nobody holds is deleted. One somebody holds is refused by the
+   server - deleting it would hand each holder what its admin level gives - with
+   a sentence saying how many accounts hold it, shown here beside who holds what. */
+async function deleteRole(name){
+  setErr("err_roles","");
+  if(!confirm(tf("Delete the role {0}?",name)))return;
+  try{
+    await api("/api/v1/roles/"+encodeURIComponent(name),{method:"DELETE"});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+
 async function renderLogs(){
   const files=asList(await api("/api/v1/logs"),"files");
   const rows=files.map(f=>`
@@ -3397,7 +3560,7 @@ async function showLog(name,lines){
    of the page's. */
 let resumed=false;
 try{resumed=sessionStorage.getItem("hmsSession")==="1";}catch(_){}
-if(resumed)api("/api/v1/status").then(enter).catch(()=>{signedOut(t("The session ended. Sign in again."));});
+if(resumed)startDeck().catch(()=>{signedOut(t("The session ended. Sign in again."));});
 /* The language: the one this browser remembers, else the browser's own. English
    is the page as it stands and asks the server for nothing. */
 let rememberedLanguage=null;

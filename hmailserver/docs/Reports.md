@@ -117,9 +117,21 @@ did with it: it carried the message both ways.
 
 ## Authorisation
 
-The administrator password reads everything. An API key:
+The administrator password reads everything. Every other credential needs **two** permissions for
+every section, the index and the summary included: `view_configuration` and `view_message_trace`.
+Most of a report is counts per domain and per day, but `senders` and `recipients` list which
+addresses sent and received the most — who mails whom — and that is traffic metadata read out of
+the message trace, not configuration. A role that may read the settings is not thereby a role that
+may read that. The built-in roles are where they were: `domainadmin` and `auditor` hold both, and
+`helpdesk` holds only the trace and is refused. A custom role holding `view_configuration` alone is
+refused, with `the role '<name>' does not hold the permission 'view_message_trace'`. See
+[Roles.md](Roles.md).
 
-* may be **read-only** — every section is a read, so a monitoring credential needs nothing more;
+An API key:
+
+* may be **read-only** — every section is a read, and a read-only key is the `auditor`, which holds
+  both permissions, so a monitoring credential needs nothing more; a key given a role needs both, as an
+  account does;
 * if **restricted to named domains**, sees those domains and no others. A request that names a
   domain it may not see is refused 403 by name; a request that names none is *filtered* to its
   own domains rather than refused, which is the treatment `GET /api/v1/domains` already gives
@@ -129,8 +141,9 @@ The administrator password reads everything. An API key:
   quarantine are refused to such a key for the same reason. In a `summary`, they appear in the
   `omitted` list with the reason, rather than the document being quietly smaller.
 
-The decision is made in `RestApiServer::Authorize_` and nowhere else, from the section name
-and the `domain` parameter that `ParseRoute_` puts into the route.
+The decision is made in `RestApiServer::Authorize_` and nowhere else, from the two permissions
+(`PermissionFor_` and `SecondPermissionFor_`), the section name and the `domain` parameter that
+`ParseRoute_` puts into the route.
 
 ---
 

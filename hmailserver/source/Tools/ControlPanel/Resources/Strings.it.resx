@@ -536,6 +536,9 @@ Salvare comunque questa password debole?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Una risposta per l'intero dominio - un ufficio chiuso, un reparto dismesso. Risponde solo per gli account che NON hanno un messaggio di assenza proprio: il messaggio proprio di un account vince sempre, e al massimo una risposta risponde a un messaggio.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Un ruolo è un insieme di permessi con un nome, e un'assegnazione lo dà a un account in domini indicati. I quattro ruoli integrati non si possono modificare: i loro permessi sono nel codice del server, così una modifica al database non può dare autorità a nessuno. Un account senza ruolo qui ha quello che il suo livello di amministrazione gli ha sempre dato.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>Una rotazione è già predisposta. Se il record DNS è pubblicato, premi "Verifica DNS"; la promozione si sblocca una volta che il controllo passa in questa sessione.</value>
   </data>
@@ -989,6 +992,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Administrator password" xml:space="preserve">
     <value>Password di amministratore</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Ruoli di amministrazione</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Avanzate</value>
   </data>
@@ -1090,6 +1096,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>Un record SPF è attivo su {0} e non è quello suggerito. Potrebbe benissimo essere voluto - il suggerimento non può conoscere i tuoi altri mittenti. Pubblicato: {1} — verifica solo che tutto ciò che invia davvero posta come {0} sia coperto.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>È necessario un indirizzo dell'account.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Un account può essere disattivato senza eliminarlo, il che conserva la posta e rifiuta nuovi accessi.</value>
@@ -1512,6 +1521,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Costruisce un indice di ricerca perché IMAP SEARCH e il client web siano più veloci.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Integrato</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Integrato (SQL Server Compact)</value>
   </data>
@@ -1732,6 +1744,12 @@ Il selettore predisposto "{0}" viene rimosso dalla configurazione del server; la
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Scegli una preimpostazione…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Scegli un ruolo da assegnare.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Scegli un'assegnazione nell'elenco, oppure digita l'indirizzo dell'account.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Scegli una data di scadenza almeno a un giorno di distanza. Una chiave che scade oggi smetterebbe di funzionare a metà del giorno in cui è stata creata.</value>
@@ -2859,6 +2877,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domini, account, alias e liste di distribuzione, e per ogni account le password, gli inoltri e le cartelle.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domini separati da virgole</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Fatto</value>
@@ -4884,6 +4905,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nessuno scanner antivirus può essere eseguito. Il blocco degli allegati continua a rimuovere gli schemi di nomi di file indicati nella sua pagina, ma nulla guarda dentro un messaggio o dentro un archivio.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Nessuno ha ancora un ruolo. Un account senza ruolo ha i permessi che gli dà il suo livello di amministrazione, esattamente come prima che i ruoli esistessero.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Nessuno</value>
   </data>
@@ -6251,6 +6275,9 @@ Continuare?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Riscrivi il mittente della busta quando inoltri (il ripiego semplice, non serve alcun segreto)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Ruolo</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Ruota la chiave dei ticket di sessione ogni N secondi (0 = l'unica chiave non ruotante di OpenSSL)</value>
@@ -8779,6 +8806,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Che cosa deve esistere al di fuori di questo server</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>A cosa serve</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Che cosa può fare</value>
   </data>
@@ -8925,6 +8955,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Aggiungi alla whitelist il mittente o il suo intervallo IP così che il messaggio salti la protezione antispam.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Chi amministra che cosa: i ruoli con nome di questo server e gli account che li hanno.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Chi può connettersi, chi può autenticarsi e che cosa accade quando qualcuno continua a provare.</value>
@@ -9202,6 +9235,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Genera una password forte</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Assegna il ruolo</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>Firma _HTML</value>
   </data>
@@ -9405,6 +9441,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>_Etichetta l'oggetto della posta dall'esterno</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>_Togli il ruolo</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Host SMTP di destinazione</value>
@@ -10062,6 +10101,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>l'account è bloccato</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>il dominio dell'account stesso</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>l'indirizzo è uno dei {0} presenti nella whitelist del greylisting</value>

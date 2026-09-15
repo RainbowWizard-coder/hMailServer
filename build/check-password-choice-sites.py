@@ -51,6 +51,8 @@ NAMED = [
     ("Common/Util/RestApiRoutes.cpp", "RestApiServer::HandleUpdateAccount_"),
     ("Common/Util/RestApiServer.cpp", "RestApiServer::HandleMePassword_"),
     ("Common/Util/RestApiAccountResources.cpp", "CreateAppPassword"),
+    ("Common/Util/RestApiRoles.cpp", "RestApiServer::HandleAccountPasswordReset_"),
+    ("COM/InterfaceApplication.cpp", "InterfaceApplication::ResetPassword"),
 ]
 
 # The files that define the symbols rather than call them.

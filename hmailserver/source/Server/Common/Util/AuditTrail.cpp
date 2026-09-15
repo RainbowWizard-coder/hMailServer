@@ -26,6 +26,7 @@ namespace HM
 {
    thread_local bool AuditTrail::writing_ = false;
    thread_local AuditTrail::Actor AuditTrail::actor_;
+   thread_local const AuditDescription *AuditTrail::description_ = nullptr;
 
    namespace
    {
@@ -102,6 +103,12 @@ namespace HM
          { L"hm_acl",                         L"folder permission" },
          { L"hm_remotedomainpolicies",        L"remote domain policy" },
          { L"hm_archiveindex",                L"archive entry" },
+         // Who may administer what. A role given to an account is the most
+         // consequential administrative change there is, and a custom role's
+         // permissions changing is the same change made to every account that
+         // holds it.
+         { L"hm_roles",                       L"role" },
+         { L"hm_roleassignments",             L"role assignment" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a
@@ -201,6 +208,21 @@ namespace HM
    AuditScope::~AuditScope()
    {
       AuditTrail::SetActor(previous_);
+   }
+
+   AuditDescription::AuditDescription(const String &table, const String &objectName, const String &detail) :
+      table_(table),
+      object_name_(objectName),
+      detail_(detail),
+      previous_(AuditTrail::description_)
+   {
+      table_.MakeLower();
+      AuditTrail::description_ = this;
+   }
+
+   AuditDescription::~AuditDescription()
+   {
+      AuditTrail::description_ = previous_;
    }
 
    bool
@@ -445,6 +467,18 @@ namespace HM
       if (objectType.IsEmpty())
          return;
 
+      // Words the writer supplied for this table, when a row of it is nothing
+      // but ids - see AuditDescription. The innermost scope for the table wins.
+      for (const AuditDescription *described = description_; described; described = described->previous_)
+      {
+         if (described->table_ != table)
+            continue;
+
+         Write_(objectType, Truncate(OneLine(described->object_name_), MaxValueLength), action,
+                Truncate(OneLine(described->detail_), MaxDetailLength));
+         return;
+      }
+
       // The columns the statement carried, with every secret withheld. A DELETE
       // has none, and says so by saying nothing.
       String detail;
@@ -513,6 +547,19 @@ namespace HM
       }
 
       Write_(_T("setting"), name, action, Truncate(detail, MaxDetailLength));
+   }
+
+   void
+   AuditTrail::RecordEvent(const String &objectType, const String &objectName, const String &action, const String &detail)
+   {
+      // The filter the two chokepoints apply, for the same reasons: a change
+      // nobody made is not an administrative change, and the trail's own insert
+      // does not record itself.
+      if (!actor_.present || writing_)
+         return;
+
+      Write_(Truncate(OneLine(objectType), MaxValueLength), Truncate(OneLine(objectName), MaxValueLength),
+             Truncate(OneLine(action), MaxValueLength), Truncate(OneLine(detail), MaxDetailLength));
    }
 
    String
@@ -615,6 +662,19 @@ namespace HM
          String safeObjectType = OneLine(objectType);
          String safeObjectName = OneLine(objectName);
          String safeDetail = OneLine(detail);
+
+         // The role the change was made under, at the end of the detail: the
+         // row has no column for it, and "who" without "with what authority" is
+         // half the answer once an account can be a help desk or an auditor
+         // rather than only an administrator or not. Inside the hashed detail,
+         // so a role edited afterwards breaks the chain like any other field.
+         if (!actor.role.IsEmpty())
+         {
+            if (!safeDetail.IsEmpty())
+               safeDetail += _T(" ");
+
+            safeDetail += _T("[role: ") + OneLine(actor.role) + _T("]");
+         }
 
          String hash = HashRow_(previousHash, now, safeActor, actor.kind, actor.interface_name, actor.address,
                                 safeObjectType, safeObjectName, action, safeDetail);

@@ -17,6 +17,18 @@
 #include "InterfaceGlobalObjects.h"
 #include "InterfaceLinks.h"
 
+#include "../Common/Persistence/PersistentAccount.h"
+#include "../Common/BO/Account.h"
+#include "../Common/Application/RoleManager.h"
+#include "../Common/Application/IniFileSettings.h"
+#include "../Common/Util/AccountLockout.h"
+#include "../Common/Util/Crypt.h"
+#include "../Common/Util/PasswordHistory.h"
+#include "../Common/Util/PasswordBreachCheck.h"
+#include "../Common/Util/PasswordPolicy.h"
+#include "../Common/Util/Time.h"
+#include "../Common/Util/Parsing/StringParser.h"
+#include "../POP3/POP3Sessions.h"
 #include "COMError.h"
 
 #include "../Common/Application/IniFileSettings.h"
@@ -590,3 +602,324 @@ STDMETHODIMP InterfaceApplication::get_Diagnostics(IInterfaceDiagnostics **pVal)
    }
 }
 
+STDMETHODIMP InterfaceApplication::get_Roles(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ViewConfiguration))
+         return authentication_->GetAccessDenied();
+
+      // One line per role: name, built-in, description, permissions, tab
+      // separated. A string and not a collection deliberately - a new COM
+      // interface needs an elevated registration on every machine that runs
+      // the suite, and a listing does not earn that.
+      HM::String result;
+
+      for (const HM::RoleRecord &record : HM::RoleManager::ListRoles())
+      {
+         HM::String line;
+         line.Format(_T("%s\t%d\t%s\t%s\r\n"),
+                     record.name.c_str(), record.builtin ? 1 : 0,
+                     record.description.c_str(), record.permissions.c_str());
+         result += line;
+      }
+
+      *pVal = result.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::get_CurrentRole(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      *pVal = HM::String(authentication_->GetGrant().name).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::get_CurrentPermissions(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      // What the signed-in credential may do, so that a Control Panel can
+      // leave out a page rather than show one every button of which refuses.
+      *pVal = HM::String(HM::RoleManager::DescribeGrant(authentication_->GetGrant())).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::get_RoleAssignments(BSTR *pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ViewConfiguration))
+         return authentication_->GetAccessDenied();
+
+      HM::String result;
+
+      for (const HM::RoleAssignment &assignment : HM::RoleManager::ListAssignments())
+      {
+         std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+         // An assignment whose account has gone is not listed; the row follows
+         // the account through the foreign key, and this is the moment between
+         // the delete and the reload.
+         if (!HM::PersistentAccount::ReadObject(account, assignment.account_id) || account->GetID() == 0)
+            continue;
+
+         // Narrowed to the domains a confined credential reaches, as the REST
+         // listing is, so that a domain administrator learns nothing about who
+         // administers any other domain.
+         if (!authentication_->ReachesEveryDomain() &&
+             !authentication_->AllowsForDomain(HM::RolePermission::ViewConfiguration, HM::StringParser::ExtractDomain(account->GetAddress())))
+         {
+            continue;
+         }
+
+         // A fourth field says whether an empty list means every domain, so that
+         // the Control Panel shows what the assignment reaches without knowing
+         // the rule itself.
+         const bool everyDomain = HM::RoleManager::AssignmentReachesEveryDomain(assignment.role_name, assignment.domains);
+
+         HM::String line;
+         line.Format(_T("%s\t%s\t%s\t%d\r\n"),
+                     account->GetAddress().c_str(),
+                     assignment.role_name.c_str(),
+                     assignment.domains.c_str(),
+                     everyDomain ? 1 : 0);
+         result += line;
+      }
+
+      *pVal = result.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::AssignRole(BSTR Address, BSTR Role, BSTR Domains)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::ManageRoles))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+      // The same answer for an address that does not exist and for one this
+      // credential may not see, because ManageRoles is only ever held with
+      // AdministerServer today - and when it is delegated, the day it is, this
+      // must already read the same either way.
+      if (!HM::PersistentAccount::ReadObject(account, HM::String(Address)) || account->GetID() == 0)
+         return COMError::GenerateError("No such account.");
+
+      const HM::String wanted = Role;
+      HM::String error;
+
+      if (wanted.IsEmpty())
+      {
+         if (!HM::RoleManager::Unassign(account->GetID(), error))
+            return COMError::GenerateError(error);
+
+         return S_OK;
+      }
+
+      // A credential may not hand out authority it has not got, nor take away
+      // authority it has not got.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAssignment(account, wanted, HM::String(Domains))) ||
+          !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(account)))
+      {
+         return COMError::GenerateError("That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
+      }
+
+      if (!HM::RoleManager::Assign(account->GetID(), wanted, HM::String(Domains), error))
+         return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+namespace
+{
+   // This unit sits outside namespace HM, where the logging macros do not
+   // resolve; the two role actions log through here.
+   void LogRoleAction_(const HM::String &message)
+   {
+      using namespace HM;
+      LOG_APPLICATION(message);
+   }
+
+   // The account an address names, if this credential may act on it with this
+   // permission - or nothing, with ONE answer for both "there is no such
+   // account" and "there is, and it is not yours". The domain is judged from
+   // the address alone, before the database is asked, so that the time the
+   // answer takes does not tell the two apart either.
+   std::shared_ptr<HM::Account> ReachableAccount_(std::shared_ptr<HM::COMAuthentication> authentication,
+                                                  HM::RolePermission permission, const HM::String &address)
+   {
+      const HM::String domainName = HM::StringParser::ExtractDomain(address);
+
+      if (domainName.IsEmpty() || !authentication->AllowsForDomain(permission, domainName))
+         return std::shared_ptr<HM::Account>();
+
+      std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+      if (!HM::PersistentAccount::ReadObject(account, address) || account->GetID() == 0)
+         return std::shared_ptr<HM::Account>();
+
+      return account;
+   }
+}
+
+STDMETHODIMP InterfaceApplication::ResetPassword(BSTR Address, BSTR Password)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      // The permission first, with no account named: a credential that holds
+      // no reset_password anywhere is refused as every COM refusal is, and
+      // learns nothing about any address.
+      if (!authentication_->Allows(HM::RolePermission::ResetPassword))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = ReachableAccount_(authentication_, HM::RolePermission::ResetPassword, HM::String(Address));
+
+      if (!account)
+         return COMError::GenerateError("No such account.");
+
+      // Resetting a password is taking the account over: refused for an account
+      // whose authority this credential does not take in, which is how a help
+      // desk is kept from resetting a domain administrator's password in its
+      // domain and signing in as them.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(account)))
+         return COMError::GenerateError("That account holds authority this credential does not, so its password is not this credential's to reset.");
+
+      if (account->GetIsAD())
+         return COMError::GenerateError("This account authenticates against the directory; its password is not this server's to set.");
+
+      const HM::String password = Password;
+
+      // The policy, the reuse history, the breach check, the old hash recorded
+      // before the new one replaces it, the configured hash and the age clock:
+      // exactly what InterfaceAccount::put_Password does, because a password
+      // set by a help desk must be no weaker than one set anywhere else.
+      HM::String policyFailure;
+
+      if (!HM::PasswordPolicy::IsAcceptable(account->GetAddress(), password, policyFailure))
+         return COMError::GenerateError(policyFailure);
+
+      if (HM::PasswordHistory::IsReuse(account, password))
+         return COMError::GenerateError("This password has been used recently on this account. Choose one that has not.");
+
+      // The published breach corpus, after the local rules and before the
+      // history is recorded, where put_Password asks it. Off by default.
+      HM::String breachRefusal;
+      HM::AnsiString breachReason;
+      int breachStatus = 0;
+
+      if (!HM::PasswordBreachCheck::IsAcceptable(account->GetAddress(), password, breachRefusal, breachReason, breachStatus))
+         return COMError::GenerateError(breachRefusal);
+
+      HM::PasswordHistory::Record(account);
+
+      const int preferredHashAlgorithm = HM::IniFileSettings::Instance()->GetPreferredHashAlgorithm();
+      account->SetPassword(HM::Crypt::Instance()->EnCrypt(password, (HM::Crypt::EncryptionType) preferredHashAlgorithm));
+      account->SetPasswordEncryption(preferredHashAlgorithm);
+      account->SetPasswordChanged(HM::Time::GetCurrentDateTime());
+
+      HM::String errorMessage;
+
+      if (!HM::PersistentAccount::SaveObject(account, errorMessage, false, HM::PersistenceModeNormal))
+         return COMError::GenerateError("Failed to save object. " + errorMessage);
+
+      // Somebody whose password has just been reset because they could not get
+      // in must be able to get in.
+      HM::AccountLockout::Instance()->RecordSuccess(account->GetAddress());
+
+      HM::String logged;
+      logged.Format(_T("COM: the password of %s was reset by %s."),
+                    account->GetAddress().c_str(), HM::String(authentication_->GetActor().identity).c_str());
+      LogRoleAction_(logged);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::UnlockAccount(BSTR Address)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::UnlockAccount))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = ReachableAccount_(authentication_, HM::RolePermission::UnlockAccount, HM::String(Address));
+
+      if (!account)
+         return COMError::GenerateError("No such account.");
+
+      // Both locks, as the REST route clears both: somebody who cannot get to
+      // their mail does not know which one they are behind.
+      HM::AccountLockout::Instance()->RecordSuccess(account->GetAddress());
+      HM::POP3Sessions::Instance()->Unlock(account->GetID());
+
+      // Neither lock is a row or a setting, so neither audit chokepoint sees
+      // this change; it is recorded here, under the actor the Allows question
+      // above installed on this thread. The REST route records the same.
+      HM::AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),
+         _T("the failed-authentication lockout and the POP3 mailbox lock were cleared"));
+
+      HM::String logged;
+      logged.Format(_T("COM: %s was unlocked by %s."),
+                    account->GetAddress().c_str(), HM::String(authentication_->GetActor().identity).c_str());
+      LogRoleAction_(logged);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

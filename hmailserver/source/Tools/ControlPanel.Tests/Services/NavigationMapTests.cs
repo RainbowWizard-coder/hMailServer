@@ -360,6 +360,72 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// A page a role may not use is left out of the tree rather than shown
+      /// and refused. What is checked is the map's half of that: the filter
+      /// drops exactly the pages whose permission the credential lacks, drops a
+      /// group once nothing under it is left, and never narrows the map itself
+      /// - the breadcrumb, the legacy paths and the page-registration test all
+      /// read the whole of it.
+      /// </summary>
+      [Fact]
+      public void VisibleRoots_LeaveOutEveryPageTheCredentialMayNotUse()
+      {
+         var held = new HashSet<string> { "administer_domain", "view_configuration" };
+         bool May(string permission) => string.IsNullOrEmpty(permission) || held.Contains(permission);
+
+         var keys = new List<string>();
+         void Walk(NavNode node)
+         {
+            if (node.IsPage)
+               keys.Add(node.Key);
+            foreach (NavNode child in node.Children)
+               Walk(child);
+         }
+
+         NavNode parentBefore = NavigationMap.Find("roles").Parent;
+         IReadOnlyList<NavNode> visible = NavigationMap.VisibleRoots(May);
+         Assert.Same(parentBefore, NavigationMap.Find("roles").Parent);
+         foreach (NavNode root in visible)
+            Walk(root);
+
+         Assert.Contains("welcome", keys);
+         Assert.Contains("about", keys);
+         Assert.Contains("domains", keys);
+         Assert.Contains("roles", keys);
+         Assert.DoesNotContain("dashboard", keys);
+         Assert.DoesNotContain("messagetrace", keys);
+         Assert.DoesNotContain("apikeys", keys);
+
+         foreach (string key in keys)
+            Assert.True(May(NavigationMap.Find(key).Needs), key + " is shown to a credential that may not use it");
+
+         foreach (NavNode root in visible)
+            Assert.True(root.IsPage || root.Children.Count > 0, "a group with nothing left in it is still drawn: " + root.Title);
+
+         Assert.Equal(NavigationMap.Pages.Count, NavigationMap.VisiblePages(null).Count);
+         Assert.Contains(NavigationMap.Pages, p => p.Key == "dashboard");
+      }
+
+      /// <summary>
+      /// A credential the server did not describe - an older server, a property
+      /// that threw - sees the whole tree, exactly as before roles existed; and
+      /// a page's row must say what it needs, never leave it to chance. The
+      /// server administrator's permission is the default, so a new page starts
+      /// hidden from the narrow roles.
+      /// </summary>
+      [Fact]
+      public void VisibleRoots_WithNothingToGoOn_IsTheWholeMap()
+      {
+         Assert.Same(NavigationMap.Roots, NavigationMap.VisibleRoots(null));
+
+         foreach (NavNode page in NavigationMap.Pages)
+            Assert.NotNull(page.Needs);
+
+         Assert.Equal("administer_server", NavigationMap.Find("dashboard").Needs);
+         Assert.Equal("", NavigationMap.Find("welcome").Needs);
+      }
+
+      /// <summary>
       /// MainWindow must build the tree from the map rather than writing it out
       /// again. Two sources of truth is how the palette and the sidebar came to
       /// disagree in the first place - the palette read page names back out of

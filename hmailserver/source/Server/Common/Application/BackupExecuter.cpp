@@ -29,6 +29,7 @@
 #endif
 
 #include "AccountStores.h"
+#include "RoleManager.h"
 #include "BackupManager.h"
 #include "BackupRetention.h"
 #include "BackupRestorer.h"
@@ -555,6 +556,24 @@ namespace HM
       pBackupInfoNode->AppendAttr(_T("Mode"), StringParser::IntToString(backup_mode_));
       pBackupInfoNode->AppendAttr(_T("Version"), Application::Instance()->GetVersionNumber());
 
+      // The custom roles, a server-wide store beside the settings, written
+      // whenever the archive carries the accounts or the settings. The accounts
+      // carry their role assignments by the role's name (AccountStores), and a
+      // custom role is a row of this server's hm_roles that a fresh server does
+      // not have - so without this an archive restored onto one dropped every
+      // assignment of a custom role. The restore puts these back before the
+      // domains; see StartRestore and RoleManager.h.
+      if (backup_mode_ & (Backup::BODomains | Backup::BOSettings))
+      {
+         Logger::Instance()->LogBackup("Backing up custom roles...");
+
+         if (!RoleManager::XMLStore(pBackupNode))
+         {
+            Application::Instance()->GetBackupManager()->OnBackupFailed("The custom roles could not be read, so they could not be written to the backup. No archive has been created.");
+            return false;
+         }
+      }
+
       // Backup business objects
       if (backup_mode_ & Backup::BODomains)
       {
@@ -989,7 +1008,7 @@ namespace HM
       if (!writtenRows.empty())
       {
          Logger::Instance()->LogBackup(Formatter::Format(
-            "Verified restore: {0} row(s) across {1} per-account store(s) - address books, webmail settings, scheduled mail, file links, S/MIME keys, password history and calendars - read back from the archive exactly as they were written.",
+            "Verified restore: {0} row(s) across {1} per-account store(s) - address books, webmail settings, scheduled mail, file links, S/MIME keys, password history, calendars, first-contact memory and role assignments - read back from the archive exactly as they were written.",
             totalWritten, (unsigned int) writtenRows.size()));
       }
 
@@ -1094,6 +1113,26 @@ namespace HM
       // part-way through a restore, which is why nothing that could have been
       // checked is checked below.
       Logger::Instance()->LogBackup("Backup archive accepted. Starting the restore...");
+
+      // The custom roles FIRST: before the domains, and so before the accounts and
+      // the role assignments they carry, which name a role by its name and can be
+      // written only once that role exists here. Before anything is deleted, too,
+      // so that a role that cannot be written stops a restore before any domain
+      // has been removed; the roles created before the failure stay, and the log
+      // names them. A role this server already has is kept as it is here. An
+      // archive with no roles in it restores none.
+      if (iRestoreOptions & (Backup::BODomains | Backup::BOSettings))
+      {
+         Logger::Instance()->LogBackup("Restoring custom roles...");
+
+         if (!RoleManager::XMLLoad(pBackupNode))
+         {
+            String sErrorMessage = "Restore of custom roles failed. No domain has been removed; the custom roles created before the failure are named in the log above, and nothing else has been restored. Please check hMailServer log.";
+            Logger::Instance()->LogBackup(sErrorMessage);
+            Application::Instance()->GetBackupManager()->OnBackupFailed(sErrorMessage);
+            return false;
+         }
+      }
 
       if (iRestoreOptions & Backup::BODomains)
       {

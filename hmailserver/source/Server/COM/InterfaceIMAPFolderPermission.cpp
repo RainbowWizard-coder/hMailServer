@@ -275,14 +275,29 @@ InterfaceIMAPFolderPermission::get_Account(IInterfaceAccount **pVal)
       if (!object_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAccount>* pInterfaceAccount = new CComObject<InterfaceAccount>();
-      pInterfaceAccount->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Account> pAccount = std::shared_ptr<HM::Account>(new HM::Account);
    
       if (!HM::PersistentAccount::ReadObject(pAccount, (__int64) object_->GetPermissionAccountID()))
          return DISP_E_BADINDEX;
    
+      // The account a permission names is handed out only to somebody who could
+      // reach it anyway: the server administrator, a domain administrator of
+      // its domain, or the account itself - the rule Links.Account applies.
+      // Without this, any account that could sign in over COM reached another
+      // account's full object through the permission list of a folder of its
+      // own (a row it can write with IMAP SETACL), and could set that account's
+      // password and save it. That made "an auditor changes nothing" false
+      // through one property, and made every mailbox holder a password reset
+      // away from any other mailbox that was not a server administrator's.
+      const bool itself = authentication_->GetAccountID() == pAccount->GetID();
+      const bool domainAdministrator = authentication_->GetIsDomainAdmin() && authentication_->GetDomainID() == pAccount->GetDomainID();
+
+      if (!authentication_->GetIsServerAdmin() && !domainAdministrator && !itself)
+         return authentication_->GetAccessDenied();
+
+      CComObject<InterfaceAccount>* pInterfaceAccount = new CComObject<InterfaceAccount>();
+      pInterfaceAccount->SetAuthentication(authentication_);
+
       pInterfaceAccount->AttachItem(pAccount);
       pInterfaceAccount->AddRef();
       *pVal = pInterfaceAccount;

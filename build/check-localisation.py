@@ -78,6 +78,7 @@ LOCALISED = {
    "Views/LogsView.xaml.cs",
    "Views/QueueView.xaml",
    "Views/QueueView.xaml.cs",
+   "Views/RolesView.cs",
    "Views/RoutesView.xaml",
    "Views/RoutesView.xaml.cs",
    "Views/RulesView.xaml",

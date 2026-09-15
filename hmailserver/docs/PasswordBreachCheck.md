@@ -121,6 +121,7 @@ The check runs at every place a password is **chosen**:
 | `PUT /api/v1/accounts/{address}` - the Deck's account editor, `hmctl account update`, `Set-HmAccount` | `400` with `"reason": "breached"`, or `503` with `"reason": "breach_check_unavailable"` |
 | `POST /api/v1/domains/{domain}/accounts` - the Deck's new account, `hmctl account create`, `hmctl accounts import` and `Import-HmAccount`, `hmctl config apply` | The same |
 | `POST /api/v1/me/password` - the webmail's password form | The same, shown translated in the webmail |
+| A password reset for somebody else - a help desk's or an administrator's: `POST /api/v1/accounts/{address}/password` (the Deck's *Help desk* page) and COM `Application.ResetPassword` | Over REST the same, shown translated in the Deck; over COM a COM error carrying the sentence |
 | A chosen app password: COM `AppPassword.SetPassword`, `POST /api/v1/accounts/{address}/app-passwords` with a `password` | The same |
 | The administrator password: COM `Settings.SetAdministratorPassword`, the Control Panel's *Administrator password* card | A COM error carrying the sentence |
 

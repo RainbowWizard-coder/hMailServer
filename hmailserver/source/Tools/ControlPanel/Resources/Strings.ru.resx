@@ -536,6 +536,9 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Ответ для всего домена — закрытый офис, расформированный отдел. Он отвечает только за те учётные записи, у которых НЕТ собственного сообщения об отсутствии: собственное сообщение учётной записи всегда важнее, и на любое письмо отправляется не более одного ответа.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Роль — это именованный набор прав, а назначение даёт её учётной записи в указанных доменах. Четыре встроенные роли изменить нельзя: их права находятся в коде сервера, чтобы изменение в базе данных не могло никому дать полномочий. Учётная запись без роли здесь имеет то, что ей всегда давал её уровень администратора.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>Ротация уже подготовлена. Если запись DNS опубликована, нажмите «Проверить DNS»; повышение станет доступно после того, как проверка успешно пройдёт в этом сеансе.</value>
   </data>
@@ -989,6 +992,9 @@ Control Panel может читать файлы сообщений только
   <data name="Administrator password" xml:space="preserve">
     <value>Пароль администратора</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Роли администраторов</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Дополнительно</value>
   </data>
@@ -1090,6 +1096,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>По адресу {0} опубликована запись SPF, и она не совпадает с предложенной. Вполне возможно, что так и задумано, — предложение не знает о ваших других отправителях. Опубликовано: {1} — просто убедитесь, что охвачено всё, что действительно отправляет почту от имени {0}.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>Требуется адрес учётной записи.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Учётную запись можно отключить, не удаляя её: почта сохраняется, а новые входы отклоняются.</value>
@@ -1512,6 +1521,9 @@ Control Panel может читать файлы сообщений только
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Строит поисковый индекс, чтобы IMAP SEARCH и веб-клиент работали быстрее.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Встроенная</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Встроенная (SQL Server Compact)</value>
   </data>
@@ -1732,6 +1744,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Выберите готовый набор…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Выберите роль для назначения.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Выберите назначение в списке или введите адрес учётной записи.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Выберите дату окончания срока действия не раньше чем через день. Ключ, срок действия которого истекает сегодня, перестал бы работать в тот же день, когда был создан.</value>
@@ -2859,6 +2877,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Домены, учётные записи, псевдонимы и списки рассылки, а также пароли, пересылка и папки каждой учётной записи.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Домены через запятую</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Готово</value>
@@ -4884,6 +4905,9 @@ Control Panel может читать файлы сообщений только
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ни один антивирусный сканер работать не может. Блокировка вложений всё ещё удаляет файлы по шаблонам имён на своей странице, но внутрь сообщения и внутрь архива не заглядывает ничто.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Роль пока никому не назначена. Учётная запись без роли имеет права, которые даёт её уровень администратора, ровно как и до появления ролей.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Нет</value>
   </data>
@@ -6251,6 +6275,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Переписывать отправителя конверта при пересылке (простой запасной вариант, секрет не нужен)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Роль</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Менять ключ сеансовых билетов каждые N секунд (0 — единственный несменяемый ключ OpenSSL)</value>
@@ -8779,6 +8806,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Что должно существовать вне этого сервера</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>Для чего она</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>Что ему разрешено</value>
   </data>
@@ -8925,6 +8955,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Внесите отправителя или его диапазон IP в белый список, чтобы сообщение обходило защиту от спама.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Кто чем управляет: именованные роли этого сервера и учётные записи, которые их имеют.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Кто может подключаться, кто может аутентифицироваться и что происходит, когда кто-то не оставляет попыток.</value>
@@ -9202,6 +9235,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Сгенерировать надёжный пароль</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Назначить роль</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>Подпись _HTML</value>
   </data>
@@ -9405,6 +9441,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>Помечать _тему почты извне</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>_Снять роль</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>Целевой узел _SMTP</value>
@@ -10062,6 +10101,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>учётная запись заблокирована</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>собственный домен учётной записи</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>адрес — один из {0} в белом списке серых списков</value>

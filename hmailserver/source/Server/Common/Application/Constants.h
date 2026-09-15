@@ -235,4 +235,8 @@
 //      hm_domains.domainquarantinedigest and .domainquarantinedigesthour, and seeds
 //      hm_settings rows QuarantineDigestBaseUrl ('') and QuarantineDigestLinkHours
 //      (72). The digest is off in every domain until an administrator turns it on.
-#define REQUIRED_DB_VERSION            6046
+// 6047 adds hm_roles (the named administrator roles, with serveradmin, domainadmin,
+//      helpdesk and auditor seeded as built-in) and hm_roleassignments (which
+//      account holds which role, and in which domains). An account with no
+//      assignment keeps the authority its AdminLevel has always given it.
+#define REQUIRED_DB_VERSION            6047

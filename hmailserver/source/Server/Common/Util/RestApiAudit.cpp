@@ -13,9 +13,17 @@
 //   PUT /api/v1/alerts/rules/<name>  change one, or create one for a condition
 //                                    nothing has shipped.
 //   GET /api/v1/alerts/events        what has fired, newest first.
+//   POST /api/v1/alerts/test         raise a condition on request.
+//   POST /api/v1/alerts/run          run one alerting pass now.
 //
-// Every one is administrator-only: see IsApiKeyRoute_ in RestApiServer.cpp for
-// why an API key of any scope is refused, and refused with a 401.
+// No API key reaches any of them, whatever its scope or role: see
+// IsApiKeyRoute_ in RestApiServer.cpp for why a key is refused, and refused
+// with a 401. They are not the administrator password's alone, though. An
+// account that holds a role goes on to the permission decision like any other
+// route - view_audit for the trail, which is what the auditor role is for;
+// view_configuration to read the alert rules and events; manage_settings to
+// change a rule or raise a test; manage_server to run a pass - and a role
+// confined to named domains is refused all seven as server-wide.
 //
 // A webhook secret is never returned. It can be set and it can be cleared, and
 // the answer says whether one is configured - which is what an administrator
@@ -357,34 +365,34 @@ namespace HM
    {
       static const char *paths =
          ",\"/api/v1/audit\":{\"get\":{\"summary\":\"The audit trail\","
-         "\"description\":\"Every administrative change, newest first, with the administrator or key that made it, the interface it came over, the address it came from, and the hash chain each row carries. Administrator credential only.\","
+         "\"description\":\"Every administrative change, newest first, with the administrator or key that made it, the interface it came over, the address it came from, and the hash chain each row carries. Refused to every API key. The administrator password, or an account whose role holds view_audit and reaches every domain.\","
          "\"parameters\":["
          "{\"name\":\"actor\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"Substring of the actor, so key: finds every API key.\"},"
          "{\"name\":\"object_type\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"domain, account, setting, rule and so on.\"},"
-         "{\"name\":\"action\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"created, updated or deleted.\"},"
+         "{\"name\":\"action\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"created, updated or deleted; unlocked for an account let back in; cleared for the logon-failure list.\"},"
          "{\"name\":\"since\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Seconds since the epoch, inclusive.\"},"
          "{\"name\":\"until\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Seconds since the epoch, inclusive.\"},"
          "{\"name\":\"limit\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Rows to return, 1 to 1000. Default 100.\"},"
          "{\"name\":\"offset\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Rows to skip.\"}"
          "],\"responses\":{\"200\":{\"description\":\"The page of entries and the total that match.\"}}}}"
          ",\"/api/v1/audit/verify\":{\"get\":{\"summary\":\"Verify the audit chain\","
-         "\"description\":\"Walks the hash chain from the first row and reports the first row whose stored hash is not the hash its contents produce, or which does not carry the hash of the row before it. Administrator credential only.\","
+         "\"description\":\"Walks the hash chain from the first row and reports the first row whose stored hash is not the hash its contents produce, or which does not carry the hash of the row before it. Refused to every API key. The administrator password, or an account whose role holds view_audit and reaches every domain.\","
          "\"responses\":{\"200\":{\"description\":\"intact, rows_checked, first_broken_id and the reason.\"}}}}"
          ",\"/api/v1/alerts/rules\":{\"get\":{\"summary\":\"The alert rules\","
-         "\"description\":\"One row per condition: whether it is on, its threshold, whether it mails (1), calls a webhook (2) or both (3), its cool-down and whether it waits for the daily digest. A webhook secret is never returned; webhook_secret_set says whether one is configured. Administrator credential only.\","
+         "\"description\":\"One row per condition: whether it is on, its threshold, whether it mails (1), calls a webhook (2) or both (3), its cool-down and whether it waits for the daily digest. A webhook secret is never returned; webhook_secret_set says whether one is configured. Refused to every API key. The administrator password, or an account whose role holds view_configuration and reaches every domain.\","
          "\"responses\":{\"200\":{\"description\":\"The rules.\"}}}}"
          ",\"/api/v1/alerts/rules/{condition}\":{\"put\":{\"summary\":\"Change or create an alert rule\","
-         "\"description\":\"Fields left out keep the value they have. webhook_secret is write-only; an empty string clears it. A condition that does not exist yet is created, which is how a condition raised by an event script or a future check is configured without a schema change. Administrator credential only.\","
+         "\"description\":\"Fields left out keep the value they have. webhook_secret is write-only; an empty string clears it. A condition that does not exist yet is created, which is how a condition raised by an event script or a future check is configured without a schema change. Refused to every API key. The administrator password, or an account whose role holds manage_settings and reaches every domain.\","
          "\"parameters\":[{\"name\":\"condition\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
          "\"responses\":{\"200\":{\"description\":\"The rule as it now stands.\"},\"201\":{\"description\":\"The rule was created.\"},\"400\":{\"description\":\"The rule was refused, with the reason.\"}}}}"
          ",\"/api/v1/alerts/test\":{\"post\":{\"summary\":\"Raise a condition on request\","
-         "\"description\":\"Raises the named condition through exactly the path a real one takes - the same rule, the same cool-down, the same ceiling - so that what arrives is what would arrive. Answers raised:false when the condition has no rule, its rule is off, or the condition is already raised. Administrator credential only.\","
+         "\"description\":\"Raises the named condition through exactly the path a real one takes - the same rule, the same cool-down, the same ceiling - so that what arrives is what would arrive. Answers raised:false when the condition has no rule, its rule is off, or the condition is already raised. Refused to every API key. The administrator password, or an account whose role holds manage_settings and reaches every domain.\","
          "\"responses\":{\"200\":{\"description\":\"Whether an event was recorded.\"},\"400\":{\"description\":\"No condition was named.\"}}}}"
          ",\"/api/v1/alerts/run\":{\"post\":{\"summary\":\"Run one alerting pass now\","
-         "\"description\":\"Evaluates the scheduled conditions, sends what is waiting, attempts the webhooks that are due and sends the digest if this is its hour - the same pass the scheduled task makes every minute. Administrator credential only.\","
+         "\"description\":\"Evaluates the scheduled conditions, sends what is waiting, attempts the webhooks that are due and sends the digest if this is its hour - the same pass the scheduled task makes every minute. Refused to every API key. The administrator password, or an account whose role holds manage_server and reaches every domain.\","
          "\"responses\":{\"200\":{\"description\":\"What the pass did.\"}}}}"
          ",\"/api/v1/alerts/events\":{\"get\":{\"summary\":\"What has fired\","
-         "\"description\":\"Alert events, newest first: the condition, whether it was raised or cleared, whether it has been notified or is held for the digest, and how the webhook delivery went. Administrator credential only.\","
+         "\"description\":\"Alert events, newest first: the condition, whether it was raised or cleared, whether it has been notified or is held for the digest, and how the webhook delivery went. Refused to every API key. The administrator password, or an account whose role holds view_configuration and reaches every domain.\","
          "\"parameters\":[{\"name\":\"limit\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Events to return, 1 to 500. Default 100.\"}],"
          "\"responses\":{\"200\":{\"description\":\"The events.\"}}}}";
 

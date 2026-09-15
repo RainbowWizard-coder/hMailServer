@@ -66,6 +66,7 @@
 #include <atomic>
 
 #include "HttpServer.h"
+#include "../Application/RoleManager.h"
 #include "AuditTrail.h"
 
 namespace HM
@@ -443,10 +444,47 @@ namespace HM
          // Utilities.CriteriaMatch over COM. Nothing is read or written;
          // server-wide as the Sieve evaluation is.
          RouteRuleMatch,
+         // Who may administer what (RestApiRoles.cpp). The reads are
+         // ViewConfiguration - an auditor's whole job is to be able to see who
+         // holds which role - and the writes are ManageRoles, which no custom
+         // role can be given, because a role that can hand out roles is the
+         // server administrator with a different name.
+         RouteRoleList,
+         RouteRoleGet,
+         RouteRoleCreate,
+         RouteRoleUpdate,
+         RouteRoleDelete,
+         RouteRoleAssignmentList,
+         RouteRoleAssign,
+         RouteRoleUnassign,
+         // What the credential this request came in on may do, so that the
+         // Control Deck can leave out a view its role may not use rather than
+         // showing one that answers 403 to every button on it.
+         RouteSessionGet,
+         // A password reset and an unlock as routes of their own, rather than
+         // as fields of the account update. The help-desk role exists to do
+         // exactly these two things and nothing else, and a permission can
+         // only be that narrow when the route is.
+         RouteAccountPasswordReset,
+         RouteAccountUnlock,
+         // The message trace (RestApiRoles.cpp): Application.GlobalObjects.
+         // MessageTrace over COM. The recent events and one queued message's
+         // story are server-wide; one address's events are scoped to its domain,
+         // which is how a help desk reads the trace of a person it was rung up
+         // about and nobody else's.
+         RouteMessageTraceRecent,
+         RouteMessageTraceAddress,
+         RouteMessageTraceQueue,
          // The audit trail and the alerts (RestApiAudit.cpp). Every one of these
-         // is administrator-only - they are in IsApiKeyRoute_ - because the
-         // record of who changed what is the one thing a stolen key must not be
-         // able to read, edit the rules of, or watch for its own footprints.
+         // is refused to an API key of any scope - they are in IsApiKeyRoute_ -
+         // because the record of who changed what is the one thing a stolen key
+         // must not be able to read, edit the rules of, or watch for its own
+         // footprints. The administrator password reaches them, and so does an
+         // account whose role holds the permission PermissionFor_ names and
+         // reaches every domain: view_audit for the trail, which is what the
+         // auditor role is for; view_configuration for the alert rules and
+         // events; manage_settings to change a rule or raise a test;
+         // manage_server to run a pass.
          RouteAuditList,
          RouteAuditVerify,
          RouteAlertRuleList,
@@ -499,6 +537,13 @@ namespace HM
          String allowed_from;   // empty = any source; else address, range or CIDR
          bool read_only;        // Scope: false only for the literal "full"
          std::vector<String> domains;   // empty = every domain
+
+         // Role: the name of a role in hm_roles. Empty - which is what every
+         // key written before September 2026 has - means the Scope above
+         // decides, exactly as it always did. A name this server does not have
+         // leaves the key holding nothing, rather than falling back to the
+         // scope: a key whose role was deleted must stop working.
+         String role;
       };
 
       // The authority a request carries, and the one thing an authorisation
@@ -520,6 +565,13 @@ namespace HM
 
          bool read_only;
          std::vector<String> domains;
+
+         // The role this credential holds and what it reaches: the whole of
+         // the authority decision, resolved once when the credential was
+         // authenticated and carried with the request from there. read_only
+         // and domains above are the same authority in the two older spellings
+         // the handlers already filter by, and are set FROM this.
+         RoleGrant grant;
 
          // Set when result is AuthenticatedAsAccount.
          std::shared_ptr<const Account> account;
@@ -569,12 +621,44 @@ namespace HM
       // and nothing else decides access.
       static AuthorizationResult Authorize_(const Caller &caller, const Route &route, AnsiString &refusalReason);
 
+      // The permission each administrative route needs. Every RouteKind is
+      // named here or in IsSelfServiceRoute_ or in IsSessionRoute_, and
+      // build/check-role-choke-point.py fails the build when one is not: a
+      // route nobody classified is a route that decides for itself.
+      static RolePermission PermissionFor_(RouteKind kind);
+
+      // The second permission a route needs, for the few that need two, and
+      // false for every other. Asked in Authorize_ beside PermissionFor_, in the
+      // same domain, and both must be held: a second permission only ever
+      // narrows who reaches a route. build/check-role-choke-point.py holds a
+      // route named here to being classified in PermissionFor_ as well, and
+      // holds both of its permissions to the auditor rule.
+      static bool SecondPermissionFor_(RouteKind kind, RolePermission &permission);
+
+      // The three routes that are about the credential rather than about the
+      // server: starting a browser session, ending it, and asking what it is.
+      // Decided before the permissions, because a caller has to be able to ask
+      // what it may do without already being allowed to do it.
+      static bool IsSessionRoute_(RouteKind kind);
+
+      // The role an account holds, written into the caller. Called at each of
+      // the two places an account authenticates - a password, and a session
+      // cookie - so that both read the same store and neither decides.
+      static void ApplyAccountGrant_(Caller &caller);
+
       // True when the request carries the server administrator's whole
-      // authority: the administrator password, or a key issued for every
-      // domain. The account update and the account create ask this, and
-      // nothing else, before a server administrator's account is changed or
-      // one is made, so the two cannot come to answer differently.
+      // authority: AdministerServer, with no list of domains narrowing it. The
+      // handlers that decide what may be done to a server administrator's own
+      // account, or to a domain's limits, ask this rather than reading the
+      // domain list alone - which is what they did when a key's only narrowing
+      // was a list of domains, and which would let a key issued with Role=
+      // domainadmin and no Domains line promote somebody to server
+      // administrator.
       static bool HoldsServerAuthority_(const Caller &caller);
+
+      // The domain a route acts inside, or nothing when it acts on the server.
+      // One reading of the path for both decisions made about it.
+      static String DomainNamedByRoute_(const Route &route);
 
       static bool IsMutatingRoute_(RouteKind kind);
       static bool IsApiKeyRoute_(RouteKind kind);
@@ -1046,6 +1130,21 @@ namespace HM
       // group and its member_account_id the member.
       HttpResponse HandleGroups_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiGroupsPaths_();
+
+      // Roles: who may administer what (RestApiRoles.cpp).
+      HttpResponse HandleRoleList_();
+      HttpResponse HandleRoleGet_(const AnsiString &name);
+      HttpResponse HandleRoleSave_(const AnsiString &name, const AnsiString &requestBody, bool creating);
+      HttpResponse HandleRoleDelete_(const AnsiString &name);
+      HttpResponse HandleRoleAssignmentList_(const Caller &caller);
+      HttpResponse HandleRoleAssign_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
+      HttpResponse HandleRoleUnassign_(const Caller &caller, const AnsiString &address);
+      HttpResponse HandleSessionGet_(const Caller &caller);
+      HttpResponse HandleAccountPasswordReset_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
+      HttpResponse HandleAccountUnlock_(const Caller &caller, const AnsiString &address);
+      HttpResponse HandleMessageTrace_(const Caller &caller, RouteKind kind, const AnsiString &identifier);
+      static AnsiString RoleJson_(const RoleRecord &record);
+      static AnsiString OpenApiRolesPaths_();
       // A rule criterion tried against a value (RestApiRules.cpp): what
       // Utilities.CriteriaMatch answers over COM.
       HttpResponse HandleRuleMatch_(const AnsiString &requestBody);
@@ -1081,7 +1180,8 @@ namespace HM
       static AnsiString JsonEscape_(const AnsiString &value);
 
       // The audit trail's actor for one authorised request: the credential that
-      // was authenticated and the address it came from. Installed once, in
+      // was authenticated, the address it came from, and the role it holds -
+      // its kind read from the grant, not from AdminLevel. Installed once, in
       // ProcessRequest_, for the length of the dispatch - see AuditTrail.h.
       static AuditTrail::Actor AuditActorFor_(const Caller &caller);
 

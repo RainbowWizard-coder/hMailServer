@@ -32,6 +32,7 @@ In the archive
 | Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, the server's allow and block list, blocked attachments, greylisting white list |
 | Public folders, and the permissions on them | |
 | The `[Settings]` section of `hMailServer.ini` | Mirrored into the database since schema 6011 and carried with the settings |
+| Custom administrator roles | The rows of `hm_roles` that are not built in, with their permissions and descriptions, whenever **Back up domains** or **Back up settings** is on. Restored first, before any domain is removed, so that the assignments the accounts carry find their role on a server that has never seen it. A role the restoring server already has is kept as it is there, never overwritten with the archive's, and the difference is named in the backup log. See [Roles.md](Roles.md) |
 
 ### Everything an account has
 
@@ -51,6 +52,7 @@ In the archive
 | Calendars and their events and tasks | `hm_calendars`, `hm_calendarobjects` | Tombstones included, so a CalDAV client's next sync is answered correctly rather than being told nothing was ever deleted |
 | Safe senders and blocked senders | `hm_senderlist`, the account's own entries | With their reasons and expiries. The table also holds each domain's list and the server's, which travel with the domain and with the settings; see [SenderListsAndDigests.md](SenderListsAndDigests.md) |
 | Whether the quarantine digest was stopped | `hm_digeststate` | A person who asked for the digest to stop is still opted out after a restore. The digest's position is carried too, and an entry held after the last digest went is still new if a restore onto a fresh database starts the quarantine's numbering again |
+| The administrator role it was given, and the domains it reaches | `hm_roleassignments` | The role by its name, found again on the restoring server. Put back first thing after the account's row, before its folders, and the account's admin level - which the archive also carries, and which alone would give back authority the role had narrowed away - is withheld until the assignment is written and given back only behind it, so a restore that stops part-way leaves no account wider than its role. An assignment naming a role that neither the archive nor that server has is dropped, the level stays withheld, and the backup log and the error log (`HM6129`) name the account and the missing role |
 
 The per-account stores are carried as rows under their account, in the archive's
 own XML. A value is written as an attribute where every character of it is safe

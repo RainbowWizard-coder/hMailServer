@@ -536,6 +536,9 @@ Save this weak password anyway?</value>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message.</value>
   </data>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it.</value>
+  </data>
   <data name="A rotation is already staged. If the DNS record is published, press &quot;Check DNS&quot;; promoting unlocks once the check passes in this session." xml:space="preserve">
     <value>A rotation is already staged. If the DNS record is published, press "Check DNS"; promoting unlocks once the check passes in this session.</value>
   </data>
@@ -989,6 +992,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Administrator password" xml:space="preserve">
     <value>Administrator password</value>
   </data>
+  <data name="Administrator roles" xml:space="preserve">
+    <value>Administrator roles</value>
+  </data>
   <data name="Advanced" xml:space="preserve">
     <value>Advanced</value>
   </data>
@@ -1090,6 +1096,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered.</value>
+  </data>
+  <data name="An account address is required." xml:space="preserve">
+    <value>An account address is required.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>An account can be switched off without deleting it, which keeps the mail and refuses new logons.</value>
@@ -1512,6 +1521,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Builds a search index so IMAP SEARCH and the web client are faster.</value>
   </data>
+  <data name="Built in" xml:space="preserve">
+    <value>Built in</value>
+  </data>
   <data name="Built-in (SQL Server Compact)" xml:space="preserve">
     <value>Built-in (SQL Server Compact)</value>
   </data>
@@ -1732,6 +1744,12 @@ The staged selector "{0}" is removed from the server configuration; signing cont
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Choose a preset…</value>
+  </data>
+  <data name="Choose a role to give." xml:space="preserve">
+    <value>Choose a role to give.</value>
+  </data>
+  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
+    <value>Choose an assignment in the list, or type the account address.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made.</value>
@@ -2859,6 +2877,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders.</value>
+  </data>
+  <data name="Domains, comma separated" xml:space="preserve">
+    <value>Domains, comma separated</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Done</value>
@@ -4884,6 +4905,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive.</value>
   </data>
+  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
+    <value>Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed.</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>None</value>
   </data>
@@ -6251,6 +6275,9 @@ Continue?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Role</value>
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)</value>
@@ -8779,6 +8806,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>What has to exist outside this server</value>
   </data>
+  <data name="What it is for" xml:space="preserve">
+    <value>What it is for</value>
+  </data>
   <data name="What it may do" xml:space="preserve">
     <value>What it may do</value>
   </data>
@@ -8925,6 +8955,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>White-list the sender or their IP range so the message bypasses spam protection.</value>
+  </data>
+  <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Who may administer what: the named roles this server has, and the accounts that hold them.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Who may connect, who may authenticate, and what happens when someone keeps trying.</value>
@@ -9202,6 +9235,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Generate strong password" xml:space="preserve">
     <value>_Generate strong password</value>
   </data>
+  <data name="_Give the role" xml:space="preserve">
+    <value>_Give the role</value>
+  </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML signature</value>
   </data>
@@ -9405,6 +9441,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>_Tag the subject of mail from outside</value>
+  </data>
+  <data name="_Take the role away" xml:space="preserve">
+    <value>_Take the role away</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
     <value>_Target SMTP host</value>
@@ -10062,6 +10101,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="the account is locked out" xml:space="preserve">
     <value>the account is locked out</value>
+  </data>
+  <data name="the account's own domain" xml:space="preserve">
+    <value>the account's own domain</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>the address is one of the {0} on the greylisting white list</value>

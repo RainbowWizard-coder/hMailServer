@@ -12,14 +12,14 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 |---|---|
 | COM properties the desktop program writes | 376 |
 | of them writable over REST | 374 |
-| of them reachable from a Deck view | 368 |
+| of them reachable from a Deck view | 369 |
 | missing over REST | 2 |
-| over REST but not reached by any Deck view | 6 |
+| over REST but not reached by any Deck view | 5 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
-| desktop pages read | 58 |
-| REST routes (path and method) | 257, 118 of them writes |
-| Deck views | 19 |
+| desktop pages read | 59 |
+| REST routes (path and method) | 271, 123 of them writes |
+| Deck views | 20 |
 
 ## Missing over REST, by interface
 
@@ -32,7 +32,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | Interface | Count | Properties |
 |---|---|---|
 | IMAPFolderPermission | 4 | `PermissionAccountID`, `PermissionGroupID`, `PermissionType`, `Value` |
-| AppPassword | 2 | `Active`, `Name` |
+| AppPassword | 1 | `Active` |
 
 ## Left out of the count
 
@@ -75,7 +75,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `AllowSMTPAuthPlain` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `AutoBanMinutes` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `AutoBanOnLogonFailure` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
-| `BreachCheckEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `BreachCheckEnabled` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`PUT /api/v1/settings` (setter) | backup, domains, settings |
 | `BreachCheckMinimumCount` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `BreachCheckUnreachableAction` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `BreachCheckUrl` | ServerSettingsView | `POST /api/v1/settings/breach-check/test` (name)<br>`PUT /api/v1/settings` (setter) | backup, lists, settings |
@@ -170,7 +170,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `MaxNumberOfDistributionListsEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `MaxSize` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `MessageRetentionDays` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
-| `Name` | DomainDialog, DomainsView | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `Name` | DomainDialog, DomainsView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains, roles |
 | `PlusAddressingCharacter` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `PlusAddressingEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `Postmaster` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
@@ -200,7 +200,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `ADDomain` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ADUsername` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `Active` | AccountDialog, DomainsView | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
-| `Address` | AccountDialog, DomainsView | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
+| `Address` | AccountDialog, DomainsView | `PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains, roles |
 | `AdminLevel` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `AntiSpamEnabled` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ForwardAbortSpamFlagged` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
@@ -210,7 +210,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `IsAD` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `MaxSize` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `MessageRetentionDays` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
-| `Password` | AccountDialog, DomainsView | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
+| `Password` | AccountDialog, DomainsView | `POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `PersonFirstName` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `PersonLastName` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `SieveScript` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
@@ -232,7 +232,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | DomainsView | `POST /api/v1/domains/{domain}/aliases` (setter) | domains |
-| `Name` | DomainsView | `POST /api/v1/domains/{domain}/aliases` (setter) | domains |
+| `Name` | DomainsView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/domains/{domain}/aliases` (setter) | domains, roles |
 | `Value` | DomainsView | `POST /api/v1/domains/{domain}/aliases` (setter) | domains |
 
 ### Logging
@@ -268,7 +268,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | DistributionListDialog, DomainsView | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
-| `Address` | DistributionListDialog, DomainsView | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
+| `Address` | DistributionListDialog, DomainsView | `PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains, roles |
 | `BounceAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `Mode` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `ModeratorAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
@@ -296,8 +296,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `EnableSpamProtection` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
 | `Expires` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
 | `ExpiresTime` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `LowerIP` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose) | ipranges |
-| `Name` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
+| `LowerIP` | IPRangeDialog, IPRangesView | `POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose) | ipranges |
+| `Name` | IPRangeDialog, IPRangesView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges, roles |
 | `Priority` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
 | `RequireSMTPAuthExternalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
 | `RequireSMTPAuthExternalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
@@ -331,7 +331,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 |---|---|---|---|
 | `AllAddresses` | RouteDialog | `POST /api/v1/routes` (name)<br>`PUT /api/v1/routes/{id}` (name) | routes |
 | `ConnectionSecurity` | RouteDialog | `POST /api/v1/routes` (setter)<br>`PUT /api/v1/routes/{id}` (setter) | routes |
-| `Description` | RouteDialog | `POST /api/v1/routes` (setter)<br>`PUT /api/v1/routes/{id}` (setter) | routes |
+| `Description` | RouteDialog | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`POST /api/v1/routes` (setter)<br>`PUT /api/v1/routes/{id}` (setter) | routes |
 | `DomainName` | RoutesView | `POST /api/v1/routes` (name)<br>`PUT /api/v1/routes/{id}` (name) | routes |
 | `MinutesBetweenTry` | RouteDialog, RoutesView | `POST /api/v1/routes` (name)<br>`PUT /api/v1/routes/{id}` (name) | routes |
 | `NumberOfTries` | RouteDialog, RoutesView | `POST /api/v1/routes` (name)<br>`PUT /api/v1/routes/{id}` (name) | routes |
@@ -365,8 +365,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `CalloutMaxPerMinute` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `CalloutPort` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `CalloutTimeoutSeconds` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
-| `Description` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
-| `DomainName` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
+| `Description` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown) | remotedomains |
+| `DomainName` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown) | remotedomains, roles |
 | `MaxConnections` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `MaxMessageSizeKB` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `MaxMessagesPerMinute` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
@@ -377,7 +377,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | RouteDialog | `POST /api/v1/routes` (words)<br>`PUT /api/v1/routes/{id}` (words) | routes |
+| `Address` | RouteDialog | `PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/routes` (words)<br>`PUT /api/v1/routes/{id}` (words) | domains, roles, routes |
 
 ### FetchAccount
 
@@ -388,8 +388,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `Enabled` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `MinutesBetweenFetch` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `MirrorFolders` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
-| `Name` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
-| `Password` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
+| `Name` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown) | fetch, roles |
+| `Password` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/accounts/{address}/password` (setter, scope unknown) | domains, fetch |
 | `Port` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `ServerAddress` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `ServerType` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
@@ -402,7 +402,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | AppPasswordsPanel | `POST /api/v1/accounts/{address}/app-passwords` (setter)<br>`PUT /api/v1/accounts/{address}/app-passwords/{id}` (setter) | - |
-| `Name` | AppPasswordsPanel | `POST /api/v1/accounts/{address}/app-passwords` (setter)<br>`PUT /api/v1/accounts/{address}/app-passwords/{id}` (setter) | - |
+| `Name` | AppPasswordsPanel | `POST /api/v1/accounts/{address}/app-passwords` (setter)<br>`PUT /api/v1/accounts/{address}/app-passwords/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown) | roles |
 
 ### Scripting
 
@@ -415,14 +415,14 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `AliasName` | CollectionSpecs | `POST /api/v1/domains/{domain}/domain-aliases` (words, loose) | domains |
+| `AliasName` | CollectionSpecs | `POST /api/v1/domains/{domain}/domain-aliases` (words, loose)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown) | domains, roles |
 
 ### Rule
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | CollectionSpecs, RulesView | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter) | rules |
-| `Name` | CollectionSpecs, RulesView | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter) | rules |
+| `Name` | CollectionSpecs, RulesView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter) | roles, rules |
 | `UseAND` | RulesView | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter) | rules |
 
 ### RuleCriteria
@@ -448,7 +448,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `RouteID` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 | `ScriptFunction` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 | `Subject` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `To` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/calendar/expand` (name, scope unknown) | rules |
+| `To` | RuleActionDialog | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/calendar/expand` (name, scope unknown) | domains, roles, rules |
 | `Type` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 | `Value` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 
@@ -470,7 +470,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `BackupDomains` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
+| `BackupDomains` | BackupView | `PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, roles, settings |
 | `BackupMessages` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
 | `BackupSettings` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
 | `CompressDestinationFiles` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
@@ -529,28 +529,28 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Description` | CollectionSpecs | `POST /api/v1/blocked-attachments` (setter)<br>`PUT /api/v1/blocked-attachments/{id}` (setter) | lists, settings |
+| `Description` | CollectionSpecs | `POST /api/v1/blocked-attachments` (setter)<br>`PUT /api/v1/blocked-attachments/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown) | lists, settings |
 | `Wildcard` | CollectionSpecs | `POST /api/v1/blocked-attachments` (setter)<br>`PUT /api/v1/blocked-attachments/{id}` (setter) | lists, settings |
 
 ### ServerMessage
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Name` | CollectionSpecs | `PUT /api/v1/settings/messages/{name}` (path) | messages |
+| `Name` | CollectionSpecs | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`PUT /api/v1/settings/messages/{name}` (path) | messages, roles |
 | `Text` | CollectionSpecs | `PUT /api/v1/settings/messages/{name}` (setter) | messages |
 
 ### GreyListingWhiteAddress
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Description` | CollectionSpecs | `POST /api/v1/greylisting-white-addresses` (setter)<br>`PUT /api/v1/greylisting-white-addresses/{id}` (setter) | lists, settings |
+| `Description` | CollectionSpecs | `POST /api/v1/greylisting-white-addresses` (setter)<br>`PUT /api/v1/greylisting-white-addresses/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown) | lists, settings |
 | `IPAddress` | CollectionSpecs | `POST /api/v1/greylisting-white-addresses` (setter)<br>`PUT /api/v1/greylisting-white-addresses/{id}` (setter) | lists, settings |
 
 ### TCPIPPort
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
+| `Address` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown) | domains, ports, roles |
 | `ClientCertificateCAFile` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `ClientCertificatePolicy` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `ConnectionSecurity` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
@@ -562,17 +562,17 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Description` | CollectionSpecs | `POST /api/v1/whitelist-addresses` (setter)<br>`PUT /api/v1/whitelist-addresses/{id}` (setter) | lists, settings |
+| `Description` | CollectionSpecs | `POST /api/v1/whitelist-addresses` (setter)<br>`PUT /api/v1/whitelist-addresses/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown) | lists, settings |
 | `EmailAddress` | CollectionSpecs | `POST /api/v1/whitelist-addresses` (setter)<br>`PUT /api/v1/whitelist-addresses/{id}` (setter) | lists, settings |
-| `LowerIPAddress` | CollectionSpecs | `POST /api/v1/whitelist-addresses` (setter)<br>`PUT /api/v1/whitelist-addresses/{id}` (setter) | lists, settings |
+| `LowerIPAddress` | CollectionSpecs | `POST /api/v1/whitelist-addresses` (setter)<br>`PUT /api/v1/whitelist-addresses/{id}` (setter)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown) | lists, settings |
 | `UpperIPAddress` | CollectionSpecs | `POST /api/v1/whitelist-addresses` (setter)<br>`PUT /api/v1/whitelist-addresses/{id}` (setter) | lists, settings |
 
 ### BlockedSender
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter) | lists, settings |
-| `Description` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter) | lists, settings |
+| `Address` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown) | domains, lists, roles, settings |
+| `Description` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown) | lists, settings |
 | `Score` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter) | lists, settings |
 
 ### SenderListEntry
@@ -580,7 +580,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Blocked` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
-| `Reason` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter)<br>`POST /api/v1/calendar/expand` (name, scope unknown) | lists, settings |
+| `Reason` | CollectionSpecs | `POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter)<br>`POST /api/v1/calendar/expand` (name, scope unknown) | domains, lists, settings |
 | `Value` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
 
 ### SSLCertificate
@@ -588,7 +588,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `CertificateFile` | SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
-| `Name` | SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
+| `Name` | SslCertificatesView | `POST /api/v1/certificates` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown) | certs, roles |
 | `PrivateKeyFile` | SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
 | `PrivateKeyPassword` | SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
 
@@ -596,7 +596,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Name` | CollectionSpecs | `POST /api/v1/groups` (name)<br>`PUT /api/v1/groups/{id}` (name) | groups |
+| `Name` | CollectionSpecs | `POST /api/v1/groups` (name)<br>`PUT /api/v1/groups/{id}` (name)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown) | groups, roles |
 
 ### GroupMember
 
@@ -617,8 +617,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `LowerIP` | UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name) | lists, settings |
-| `Name` | UtilityViews | `POST /api/v1/incoming-relays` (setter)<br>`PUT /api/v1/incoming-relays/{id}` (setter) | lists, settings |
+| `LowerIP` | UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown) | lists, settings |
+| `Name` | UtilityViews | `POST /api/v1/incoming-relays` (setter)<br>`PUT /api/v1/incoming-relays/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown) | lists, roles, settings |
 | `UpperIP` | UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name) | lists, settings |
 
 ### MessageIndexing
@@ -641,15 +641,15 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `DisableAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `EnrolAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `PreviewDirectorySync` | DirectorySyncView | - |
-| Settings | `SetAdministratorPassword` | ServerSettingsView | - |
-| Settings | `SetSMTPRelayerPassword` | ServerSettingsView | - |
+| Settings | `SetAdministratorPassword` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
+| Settings | `SetSMTPRelayerPassword` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
 | Settings | `TestBreachCheckEndpoint` | ServerSettingsView | `POST /api/v1/alerts/test`<br>`POST /api/v1/update/check`<br>`POST /api/v1/settings/breach-check/test` |
 | Domain | `DKIMPromoteSecondary` | DomainDialog | - |
 | Accounts | `Add` | DomainsView | - |
 | Account | `DeleteMessages` | AccountDialog | - |
 | Account | `DisableTOTP` | AccountTwoFactorPanel | - |
 | Account | `EnrolTOTP` | AccountTwoFactorPanel | - |
-| Account | `UnlockMailbox` | AccountDialog | - |
+| Account | `UnlockMailbox` | AccountDialog | `POST /api/v1/accounts/{address}/unlock` |
 | Aliases | `Add` | DomainsView | - |
 | Utilities | `EmailAllAccounts` | UtilityViews | - |
 | Utilities | `GetMetricHistory` | DashboardView | - |
@@ -661,7 +661,8 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | SecurityRanges | `SetDefault` | IPRangesView | - |
 | AntiVirus | `TestClamAVScanner` | ServerSettingsView | `POST /api/v1/alerts/test` |
 | AntiVirus | `TestClamWinScanner` | ServerSettingsView | `POST /api/v1/alerts/test` |
-| Route | `SetRelayerAuthPassword` | RouteDialog | - |
+| Route | `SetRelayerAuthPassword` | RouteDialog | `POST /api/v1/accounts/{address}/password` |
+| Application | `AssignRole` | RolesView | - |
 | Domains | `Add` | DomainsView | - |
 | Domains | `DeleteByDBID` | DomainsView | - |
 | Routes | `Add` | RoutesView | - |
@@ -724,10 +725,12 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` | IMAPFolderPermission | `account`, `account_id`, `administer`, `body`, `create`, `delete_mailbox`, `expunge`, `field`, `folder`, `group`, `group_id`, `insert`, `lookup`, `name`, `new`, `post`, `read`, `rights`, `to`, `type`, `value`, `write_deleted`, `write_others`, `write_seen` | - |
 | `PUT /api/v1/accounts/{address}/messages/{id}` | ServerMessage | `answered`, `deleted`, `draft`, `flagged`, `folder`, `seen`, `value` | - |
 | `POST /api/v1/accounts/{address}/messages/{id}/copy` | ServerMessage | `account`, `destination`, `folder`, `folder_id`, `to` | - |
+| `POST /api/v1/accounts/{address}/password` | ? | `account`, `breach_check_enabled`, `breach_check_unavailable`, `directory`, `password`, `reason`, `reset_password`, `role`, `to` | yes |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
-| `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `webhook_secret` | - |
-| `POST /api/v1/alerts/run` | ? | - | - |
-| `POST /api/v1/alerts/test` | ? | - | - |
+| `POST /api/v1/accounts/{address}/unlock` | ? | `unlock_account` | yes |
+| `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |
+| `POST /api/v1/alerts/run` | ? | `manage_server` | - |
+| `POST /api/v1/alerts/test` | ? | `manage_settings` | - |
 | `POST /api/v1/apikeys` | - | - | - |
 | `POST /api/v1/archive/{id}/hold` | - | - | - |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
@@ -750,7 +753,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/greylisting-white-addresses` | GreyListingWhiteAddress | `address`, `description`, `ip_address`, `read` | yes |
 | `PUT /api/v1/greylisting-white-addresses/{id}` | GreyListingWhiteAddress | `address`, `body`, `description`, `field`, `ip_address`, `read`, `value` | - |
 | `POST /api/v1/groups` | Group | `group`, `name`, `read`, `to` | yes |
-| `PUT /api/v1/groups/{id}` | Group | `group`, `name`, `read`, `to` | yes |
+| `PUT /api/v1/groups/{id}` | Group | `group`, `name`, `permissions`, `read`, `to` | yes |
 | `POST /api/v1/groups/{id}/members` | DistributionListRecipient, GroupMember | `account`, `account_id`, `address`, `name`, `read` | yes |
 | `POST /api/v1/incoming-relays` | IncomingRelay | `lower_ip`, `name`, `read`, `upper_ip` | yes |
 | `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `field`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
@@ -771,7 +774,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/folders/{id}/empty` | ? | `older_than_days` | - |
 | `POST /api/v1/me/folders/{id}/messages` | ServerMessage | - | - |
 | `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `data`, `folder`, `from`, `html`, `in_reply_to`, `message`, `name`, `post`, `read`, `references`, `subject`, `text`, `to`, `type`, `value` | - |
-| `PUT /api/v1/me/messages/{id}/flags` | ? | `answered`, `deleted`, `draft`, `flagged`, `folder`, `rights`, `seen` | - |
+| `PUT /api/v1/me/messages/{id}/flags` | ? | `answered`, `deleted`, `draft`, `flagged`, `folder`, `permissions`, `rights`, `seen` | - |
 | `POST /api/v1/me/messages/{id}/move` | ? | `account`, `destination`, `folder`, `folder_id`, `name`, `new`, `to` | - |
 | `POST /api/v1/me/messages/{id}/receipt` | ? | - | - |
 | `POST /api/v1/me/messages/{id}/snooze` | ? | `account`, `folder`, `message`, `to`, `until` | - |
@@ -796,6 +799,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/remote-domains` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain_name`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `require_inbound_tls`, `wildcard` | yes |
 | `POST /api/v1/remote-domains/verification-cache/clear` | ? | `callout_cache_minutes` | yes |
 | `PUT /api/v1/remote-domains/{id}` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain_name`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `require_inbound_tls`, `wildcard` | yes |
+| `PUT /api/v1/role-assignments/{address}` | ? | `account`, `domains`, `from`, `manage_roles`, `name`, `role`, `to` | yes |
+| `POST /api/v1/roles` | ? | `administer_domain`, `administer_server`, `description`, `from`, `lower`, `manage_roles`, `name`, `permissions`, `role`, `to` | - |
+| `PUT /api/v1/roles/{name}` | ? | `administer_domain`, `administer_server`, `create`, `database`, `description`, `from`, `lower`, `manage_roles`, `name`, `permissions`, `role`, `to` | - |
 | `POST /api/v1/routes` | Route, RouteAddress | `addresses`, `all_addresses`, `connection_security`, `description`, `domain_name`, `message`, `minutes_between_try`, `number_of_tries`, `relayer_auth_password`, `relayer_auth_username`, `relayer_requires_authentication`, `target_smtp_host`, `target_smtp_port`, `to`, `treat_recipient_as_local_domain`, `treat_security_as_local_domain`, `treat_sender_as_local_domain` | yes |
 | `PUT /api/v1/routes/{id}` | Route, RouteAddress | `addresses`, `all_addresses`, `connection_security`, `description`, `domain_name`, `message`, `minutes_between_try`, `number_of_tries`, `relayer_auth_password`, `relayer_auth_username`, `relayer_requires_authentication`, `target_smtp_host`, `target_smtp_port`, `to`, `treat_recipient_as_local_domain`, `treat_security_as_local_domain`, `treat_sender_as_local_domain` | yes |
 | `POST /api/v1/rules` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `action`, `actions`, `active`, `all_criteria`, `bind_to_address`, `body`, `cc`, `criteria`, `delivery_attempts`, `field`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `recipient_list`, `route_id`, `script_function`, `send_using_route`, `set_header`, `subject`, `to`, `type`, `value`, `wildcard` | yes |
@@ -837,7 +843,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | View | Routes called |
 |---|---|
 | `dash` | `GET /api/v1/status` |
-| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json` |
+| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `POST /api/v1/accounts/{}/password`, `POST /api/v1/accounts/{}/unlock`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |
 | `fetch` | `GET /api/v1/accounts/{}/fetch-accounts`, `POST /api/v1/accounts/{}/fetch-accounts`, `DELETE /api/v1/accounts/{}/fetch-accounts/{}`, `PUT /api/v1/accounts/{}/fetch-accounts/{}`, `POST /api/v1/accounts/{}/fetch-accounts/{}/download`, `GET /api/v1/domains`, `GET /api/v1/domains/{}/accounts`, `GET /api/v1/openapi.json` |
@@ -852,7 +858,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `remotedomains` | `GET /api/v1/openapi.json`, `GET /api/v1/remote-domains`, `POST /api/v1/remote-domains`, `POST /api/v1/remote-domains/verification-cache/clear`, `DELETE /api/v1/remote-domains/{}`, `PUT /api/v1/remote-domains/{}` |
 | `certs` | `GET /api/v1/certificates`, `POST /api/v1/certificates`, `DELETE /api/v1/certificates/{}`, `GET /api/v1/openapi.json` |
 | `ports` | `GET /api/v1/certificates`, `GET /api/v1/openapi.json`, `GET /api/v1/ports`, `POST /api/v1/ports`, `DELETE /api/v1/ports/{}`, `PUT /api/v1/ports/{}`, `POST /api/v1/server/reinitialize` |
-| `logs` | `GET /api/v1/logs`, `GET /api/v1/logs/{}?lines={}`, `GET /api/v1/status` |
+| `roles` | `GET /api/v1/role-assignments`, `DELETE /api/v1/role-assignments/{}`, `PUT /api/v1/role-assignments/{}`, `GET /api/v1/roles`, `DELETE /api/v1/roles/{}` |
+| `logs` | `GET /api/v1/logs`, `GET /api/v1/logs/{}?lines={}`, `GET /api/v1/session`, `GET /api/v1/status` |
 | `reports` | `GET /api/v1/domains`, `GET /api/v1/reports`, `GET /api/v1/reports/summary?{}` |
 | `audit` | `GET /api/v1/audit/verify`, `GET /api/v1/audit{}` |
 

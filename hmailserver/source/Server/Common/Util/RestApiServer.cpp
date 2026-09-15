@@ -9,6 +9,7 @@
 #include "RestApiServer.h"
 
 #include "AuditTrail.h"
+#include "../Application/RoleManager.h"
 #include "HttpServer.h"
 #include "JsonDocument.h"
 #include "Encoding/ModifiedUTF7.h"
@@ -918,6 +919,7 @@ namespace HM
             caller.result = AuthenticatedAsAdministrator;
             caller.read_only = false;
             caller.identity = "administrator";
+            caller.grant = RoleManager::ServerAdministrator();
 
             return caller;
          }
@@ -1070,6 +1072,12 @@ namespace HM
       caller.identity = AnsiString("key:") + AnsiString(matched->id);
       caller.read_only = matched->read_only;
       caller.domains = matched->domains;
+
+      // The key's role: its Role= line when it has one, and otherwise the
+      // Scope it has carried since August 2026 - full is the server
+      // administrator, read-only is the auditor. A key with neither is a key
+      // that holds nothing, and fails closed exactly as it did.
+      caller.grant = RoleManager::GrantForApiKey(matched->role, matched->read_only, matched->domains);
 
       return true;
    }
@@ -1435,6 +1443,19 @@ namespace HM
          if (caller.result == AuthenticationFailed)
             return BuildUnauthorizedResponse_(caller.second_factor_required, IsPageScriptRequest_(request));
 
+         // Who is acting, for the length of this request and no longer.
+         // Nothing may decide from it, which is why the decision below takes
+         // the grant as an argument rather than reaching for the actor. The
+         // audit trail's own actor is installed from the same caller, and so
+         // from the same grant, once the request has been authorised - see
+         // AuditActorFor_ below the dispatch's AuditScope.
+         RoleActor actor;
+         actor.identity = caller.identity;
+         actor.account_id = caller.account ? caller.account->GetID() : 0;
+         actor.domain_id = caller.account ? caller.account->GetDomainID() : 0;
+         actor.grant = caller.grant;
+         RoleManager::ActorScope actorScope(actor);
+
          // After authentication, so the budget belongs to the credential rather
          // than to a source address, and before routing, so that being over it
          // costs nothing but this comparison.
@@ -1510,6 +1531,39 @@ namespace HM
 
          case RouteStatus:
             return HandleStatus_();
+
+         case RouteSessionGet:
+            return HandleSessionGet_(caller);
+
+         case RouteRoleList:
+            return HandleRoleList_();
+
+         case RouteRoleGet:
+            return HandleRoleGet_(route.identifier);
+
+         case RouteRoleCreate:
+            return HandleRoleSave_(AnsiString(), GetRequestBody_(request), true);
+
+         case RouteRoleUpdate:
+            return HandleRoleSave_(route.identifier, GetRequestBody_(request), false);
+
+         case RouteRoleDelete:
+            return HandleRoleDelete_(route.identifier);
+
+         case RouteRoleAssignmentList:
+            return HandleRoleAssignmentList_(caller);
+
+         case RouteRoleAssign:
+            return HandleRoleAssign_(caller, route.identifier, GetRequestBody_(request));
+
+         case RouteRoleUnassign:
+            return HandleRoleUnassign_(caller, route.identifier);
+
+         case RouteAccountPasswordReset:
+            return HandleAccountPasswordReset_(caller, route.identifier, GetRequestBody_(request));
+
+         case RouteAccountUnlock:
+            return HandleAccountUnlock_(caller, route.identifier);
 
          case RouteDomainList:
             return HandleListDomains_(caller.domains);
@@ -1656,6 +1710,10 @@ namespace HM
             return HandleListRules_();
          case RouteLogList:
             return HandleListLogs_();
+         case RouteMessageTraceRecent:
+         case RouteMessageTraceAddress:
+         case RouteMessageTraceQueue:
+            return HandleMessageTrace_(caller, route.kind, route.identifier);
          case RouteLogTail:
             return HandleLogTail_(route.identifier, route.query);
          case RouteBackupStart:
@@ -2586,6 +2644,63 @@ namespace HM
          return;
       }
 
+      // What the credential this request came in on is, and what it may do.
+      if (path == "/api/v1/session" && method == "GET")
+      {
+         route.kind = RouteSessionGet;
+         return;
+      }
+
+      // The roles, and who holds them (RestApiRoles.cpp).
+      if (path == "/api/v1/roles")
+      {
+         if (method == "GET")
+            route.kind = RouteRoleList;
+         else if (method == "POST")
+            route.kind = RouteRoleCreate;
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/roles/"))
+      {
+         AnsiString name = path.Mid(AnsiString("/api/v1/roles/").GetLength());
+         if (!name.IsEmpty() && name.Find("/") < 0)
+         {
+            if (method == "GET")
+               route.kind = RouteRoleGet;
+            else if (method == "PUT")
+               route.kind = RouteRoleUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteRoleDelete;
+
+            if (route.kind != RouteUnknown)
+               route.identifier = name;
+         }
+         return;
+      }
+
+      if (method == "GET" && path == "/api/v1/role-assignments")
+      {
+         route.kind = RouteRoleAssignmentList;
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/role-assignments/"))
+      {
+         AnsiString address = path.Mid(AnsiString("/api/v1/role-assignments/").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            if (method == "PUT")
+               route.kind = RouteRoleAssign;
+            else if (method == "DELETE")
+               route.kind = RouteRoleUnassign;
+
+            if (route.kind != RouteUnknown)
+               route.identifier = address;
+         }
+         return;
+      }
+
       if (method == "GET" && path == "/api/v1/status")
       {
          route.kind = RouteStatus;
@@ -2665,6 +2780,33 @@ namespace HM
       }
 
       const AnsiString accountsPrefix = "/api/v1/accounts/";
+
+      // A password reset and an unlock, each its own route so that the
+      // help-desk role can be allowed exactly these two and nothing else. They
+      // do what PUT /api/v1/accounts/<address> with a password field and the
+      // Control Panel's Unlock button have always done; what is new is that a
+      // permission can now name them without naming the account update.
+      if (method == "POST" && path.StartsWith(accountsPrefix) && path.EndsWith("/password"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/password").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteAccountPasswordReset;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      if (method == "POST" && path.StartsWith(accountsPrefix) && path.EndsWith("/unlock"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/unlock").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteAccountUnlock;
+            route.identifier = address;
+            return;
+         }
+      }
 
       // An administrator opens a mailbox as its user, for support.
       if (method == "POST" && path.StartsWith(accountsPrefix) && path.EndsWith("/support-session"))
@@ -3328,6 +3470,35 @@ namespace HM
          route.kind = RouteLogList;
          return;
       }
+
+      if (method == "GET" && path == "/api/v1/message-trace")
+      {
+         route.kind = RouteMessageTraceRecent;
+         return;
+      }
+
+      if (method == "GET" && path.StartsWith("/api/v1/message-trace/address/"))
+      {
+         AnsiString address = path.Mid(AnsiString("/api/v1/message-trace/address/").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteMessageTraceAddress;
+            route.identifier = address;
+         }
+         return;
+      }
+
+      if (method == "GET" && path.StartsWith("/api/v1/message-trace/queue/"))
+      {
+         AnsiString idPart = path.Mid(AnsiString("/api/v1/message-trace/queue/").GetLength());
+         __int64 queueId = 0;
+         if (idPart.Find("/") < 0 && ParseQueueId(idPart, queueId))
+         {
+            route.kind = RouteMessageTraceQueue;
+            route.identifier = idPart;
+         }
+         return;
+      }
       const AnsiString logsPrefix = "/api/v1/logs/";
       if (method == "GET" && path.StartsWith(logsPrefix))
       {
@@ -3627,8 +3798,15 @@ namespace HM
       // and the alert rules hold the webhook secrets. A key that could read the
       // first could watch for its own footprints; a key that could write the
       // second could silence the alerting or point it at an endpoint of its own.
-      // Both are the administrator password's, and a key of any scope is
-      // answered 401 rather than 403 so that it learns nothing from asking.
+      // A key of any scope is answered 401 rather than 403 so that it learns
+      // nothing from asking. These seven - and only these - are not the
+      // administrator password's alone: an account that holds a role goes on
+      // from Authorize_ to the permission decision for them (view_audit for the
+      // trail, which is what the auditor role is for; view_configuration to
+      // read the alert rules and events, manage_settings to change a rule or
+      // raise a test, manage_server to run a pass), and to the server-wide
+      // refusal when its role is confined to named domains. No key reaches
+      // them, whatever its scope or role.
       case RouteAuditList:
       case RouteAuditVerify:
       case RouteAlertRuleList:
@@ -3823,6 +4001,17 @@ namespace HM
       case RouteAccountMessageFlags:
       case RouteAccountMessageDelete:
       case RouteAccountAppPasswordUpdate:
+      // The roles themselves, and the two the help-desk role exists for. Each
+      // changes something, which is what keeps them out of an auditor's reach
+      // and out of a read-only key's - see build/check-role-choke-point.py,
+      // which proves that this list and PermissionFor_ agree.
+      case RouteRoleCreate:
+      case RouteRoleUpdate:
+      case RouteRoleDelete:
+      case RouteRoleAssign:
+      case RouteRoleUnassign:
+      case RouteAccountPasswordReset:
+      case RouteAccountUnlock:
          return true;
 
       default:
@@ -3855,13 +4044,545 @@ namespace HM
    bool
    RestApiServer::HoldsServerAuthority_(const Caller &caller)
    {
-      // An empty domain list is the administrator password or a key issued for
-      // every domain. A key restricted to named domains carries a domain
-      // administrator's authority, which InterfaceAccount::put_AdminLevel and
-      // Save refuse a server administrator's account. One definition, asked by
-      // the update and by the create alike: when the credential grows another
-      // narrowing, this is the one place that learns it.
-      return caller.domains.empty();
+      return caller.domains.empty() &&
+             RoleManager::Allows(caller.grant, RolePermission::AdministerServer);
+   }
+
+   void
+   RestApiServer::ApplyAccountGrant_(Caller &caller)
+   {
+      if (!caller.account)
+         return;
+
+      caller.grant = RoleManager::GrantForAccount(caller.account);
+
+      // The two older spellings of the same authority, so that the handlers
+      // that already narrow their output to a list of domains - the domain
+      // listing, the SRV records, the archive - narrow it for a role exactly
+      // as they do for a key, with no second implementation.
+      caller.domains = caller.grant.domains;
+
+      // An app password is a credential for a program that reads and sends
+      // mail. It has never administered anything and it does not start now:
+      // whatever role the account holds, a request that came in on one is an
+      // ordinary account's request.
+      if (caller.via_app_password)
+      {
+         caller.grant = RoleGrant();
+         caller.domains.clear();
+      }
+   }
+
+   bool
+   RestApiServer::IsSessionRoute_(RouteKind kind)
+   {
+      // The three routes that are about the credential and not about the
+      // server. Starting a browser session and ending it have always been
+      // decided before anything else in Authorize_; asking what the credential
+      // may do joins them, because a caller has to be able to learn what it is
+      // allowed to do without already being allowed to do it - which is what
+      // lets the Control Deck leave a view out rather than show one whose
+      // every button answers 403.
+      switch (kind)
+      {
+      case RouteSessionCreate:
+      case RouteSessionDelete:
+      case RouteSessionGet:
+         return true;
+
+      default:
+         break;
+      }
+
+      return false;
+   }
+
+   RolePermission
+   RestApiServer::PermissionFor_(RouteKind kind)
+   {
+      // Every route this server is administered with, and the permission it
+      // needs - the first of two, for the few routes SecondPermissionFor_
+      // names. Written out rather than derived from the HTTP method, for
+      // the reason IsMutatingRoute_ gives: the method is what a client
+      // asserts, and the kind is what this server decided the request does.
+      //
+      // build/check-role-choke-point.py holds three things true of this
+      // function: every RouteKind appears here or in IsSelfServiceRoute_ or in
+      // IsSessionRoute_; every route IsMutatingRoute_ calls mutating needs a
+      // permission the auditor does not hold; and every other route needs one
+      // it does. The last two are what make "an auditor reads everything" and
+      // "an auditor changes nothing" properties of the code rather than
+      // claims about it.
+      switch (kind)
+      {
+      // The API keys and the roles themselves. Both are the credential
+      // store: a role that could edit either could give itself every other
+      // permission, so this one is serveradmin's alone and no custom role may
+      // name it. The key routes are refused to everything but the
+      // administrator password before this is consulted at all.
+      case RouteApiKeyUnsupported:
+      case RouteApiKeyList:
+      case RouteApiKeyCreate:
+      case RouteApiKeyRevoke:
+      case RouteRoleCreate:
+      case RouteRoleUpdate:
+      case RouteRoleDelete:
+      case RouteRoleAssign:
+      case RouteRoleUnassign:
+         return RolePermission::ManageRoles;
+
+      // Reading the server's shape: its state, its settings, its listeners,
+      // its certificates and its rules, the roles that exist and who holds
+      // them - and not one secret among them. RouteUnknown is here so that a
+      // path this server does not have answers 404 as it always has, rather
+      // than telling an unauthorised caller which paths exist.
+      case RouteUnknown:
+      case RouteStatus:
+      case RouteTlsa:
+      case RouteSrv:
+      case RouteMetricsHistory:
+      case RouteUpdateGet:
+      case RouteDkimGet:
+      case RouteCertificateList:
+      case RouteRuleList:
+      case RouteSettingsGet:
+      case RouteSettingsAntiSpamGet:
+      case RouteSettingsAntiVirusGet:
+      case RouteSettingsLoggingGet:
+      case RouteSettingsDirectoriesGet:
+      case RouteIniSettingList:
+      case RouteIniSettingGet:
+      case RouteSettingsScriptingGet:
+      case RouteScriptingCheck:
+      case RouteSettingsBackupGet:
+      case RouteBackupStatus:
+      case RouteSettingsCacheGet:
+      case RouteSettingsIndexingGet:
+      case RouteServerMessageList:
+      case RouteSieveEvaluate:
+      case RouteCalendarExpand:
+      case RoutePortList:
+      case RouteRouteList:
+      case RouteIpRangeList:
+      case RouteDnsBlackListList:
+      case RouteSurblServerList:
+      case RouteWhiteListAddressList:
+      case RouteBlockedSenderList:
+      case RouteIncomingRelayList:
+      case RouteBlockedAttachmentList:
+      case RouteGreyListingWhiteAddressList:
+      case RoutePortalFilesPolicy:
+      case RouteDomainAliasList:
+      case RouteRuleMatch:
+      case RouteRoleList:
+      case RouteRoleGet:
+      case RouteRoleAssignmentList:
+      // The remote domain policies: what this server demands of somebody
+      // else's domain. Server-wide configuration, and refused to a confined
+      // credential below.
+      case RouteRemoteDomainList:
+      case RouteRemoteDomainEffective:
+      // The allow and block lists: the server's, refused to a confined
+      // credential below, and one domain's, scoped to that domain. Anti-spam
+      // configuration like the lists above, and never a secret.
+      case RouteSenderListList:
+      case RouteSenderListDomainList:
+      // The alert rules and what they have raised. A webhook secret is never
+      // in either answer (webhook_secret_set says whether there is one), so
+      // this is configuration like any other; a key of any scope is still
+      // refused both, before this is consulted, by IsApiKeyRoute_.
+      case RouteAlertRuleList:
+      case RouteAlertEventList:
+      // The reports: per-domain counts built from the message trace, the
+      // metric history and the mailbox sizes. The domain administrator's for
+      // their own domains, the auditor's for all of them, and not the help
+      // desk's - it reads one address's trace, not a domain's traffic. The
+      // domain a report names is judged below, and its server-wide sections
+      // are refused to a confined credential there. The senders and
+      // recipients sections are who mails whom, which is the message trace's
+      // and not the configuration's: SecondPermissionFor_ asks for
+      // view_message_trace as well.
+      case RouteReport:
+         return RolePermission::ViewConfiguration;
+
+      // The audit trail, and the walk that verifies its chain. The one
+      // permission nothing but the auditor and the server administrator
+      // holds. A key of any scope is refused both before this is consulted
+      // (IsApiKeyRoute_): the record of who changed what is the thing a
+      // stolen key must not be able to read. An account that holds the
+      // auditor role is not a key, and reading it is the whole of that role.
+      case RouteAuditList:
+      case RouteAuditVerify:
+         return RolePermission::ViewAudit;
+
+      // The names: which domains there are, and which mailboxes, aliases,
+      // lists, groups and fetch accounts are in them. A help desk holds this
+      // and nothing else that reads, because it cannot answer the telephone
+      // without being able to find the account it was rung up about.
+      case RouteDomainList:
+      case RouteAccountList:
+      case RouteAccountGet:
+      case RouteAliasList:
+      case RouteListList:
+      case RouteFetchAccountList:
+      case RouteFetchAccountGet:
+      case RouteAccountAppPasswordList:
+      case RouteGroupList:
+      case RouteGroupGet:
+      case RouteGroupMemberList:
+      // The OpenAPI document is the map every Control Deck form is drawn from,
+      // not the server's state, and it holds nothing a caller could not learn
+      // by reading the source. It sits with the lowest read every built-in
+      // administrative role holds, so that a help desk's account editor has
+      // the document it is built from.
+      case RouteOpenApi:
+         return RolePermission::ViewAccounts;
+
+      // Another person's folders and the messages in them. Deliberately not
+      // a help desk's: a role that can open the mail of the account whose
+      // password it is resetting has not been narrowed at all.
+      case RouteAccountFolderList:
+      case RouteAccountFolderPermissionList:
+      case RouteAccountMessageList:
+      case RouteAccountFolderMessageList:
+      case RouteAccountMessageGet:
+      case RouteAccountMessageSource:
+         return RolePermission::ViewMailbox;
+
+      // Writing in another person's mailbox, and the support session, which
+      // opens the portal as them and is therefore the strongest of these.
+      case RouteAccountFolderPermissionCreate:
+      case RouteAccountFolderPermissionUpdate:
+      case RouteAccountFolderPermissionDelete:
+      case RouteAccountMessagesDelete:
+      case RouteAccountFolderMessageCreate:
+      case RouteAccountMessageFlags:
+      case RouteAccountMessageDelete:
+      case RouteAccountMessageCopy:
+      case RouteAccountSupportSession:
+         return RolePermission::ManageMailbox;
+
+      // The delivery queue, which names senders and recipients in every domain.
+      case RouteQueueList:
+         return RolePermission::ViewQueue;
+
+      // Retrying a queued message, or dropping it.
+      case RouteQueueRetry:
+      case RouteQueueDelete:
+         return RolePermission::ManageQueue;
+
+      // What was held back, and why.
+      case RouteQuarantineList:
+         return RolePermission::ViewQuarantine;
+
+      // Releasing held mail, which delivers it, or throwing it away.
+      case RouteQuarantineRelease:
+      case RouteQuarantineDelete:
+         return RolePermission::ManageQuarantine;
+
+      // The archive index, and one archived message.
+      case RouteArchiveSearch:
+      case RouteArchiveGet:
+         return RolePermission::ViewArchive;
+
+      // Holding an archived message against deletion, and letting it go.
+      case RouteArchiveHold:
+      case RouteArchiveRelease:
+         return RolePermission::ManageArchive;
+
+      // The logs, which carry every domain's traffic and are therefore never
+      // a domain-confined role's.
+      case RouteLogList:
+      case RouteLogTail:
+         return RolePermission::ViewLogs;
+
+      // Where a message went. The recent events and one message's story are
+      // server-wide and refused to a confined credential below; one address's
+      // events are scoped to that address's domain.
+      case RouteMessageTraceRecent:
+      case RouteMessageTraceAddress:
+      case RouteMessageTraceQueue:
+         return RolePermission::ViewMessageTrace;
+
+      // Which domains exist. Deliberately not ManageAccounts: a domain
+      // administrator administers what is inside a domain and does not decide
+      // which domains the server hosts, and deleting one takes every mailbox
+      // in it.
+      case RouteDomainCreate:
+      case RouteDomainDelete:
+         return RolePermission::ManageDomains;
+
+      // The mailboxes, aliases, lists, groups, fetch accounts and domain
+      // properties inside a domain. An app password is a mailbox credential
+      // and is here rather than under ResetPassword, because minting one for
+      // somebody else's account is quieter than resetting their password and
+      // reaches further.
+      case RouteDomainUpdate:
+      case RouteAccountCreate:
+      case RouteAccountDelete:
+      case RouteAccountUpdate:
+      case RouteAliasCreate:
+      case RouteAliasDelete:
+      case RouteListCreate:
+      case RouteListUpdate:
+      case RouteListDelete:
+      case RouteDomainAliasCreate:
+      case RouteDomainAliasDelete:
+      case RouteFetchAccountCreate:
+      case RouteFetchAccountUpdate:
+      case RouteFetchAccountDelete:
+      case RouteFetchAccountDownload:
+      case RouteGroupCreate:
+      case RouteGroupUpdate:
+      case RouteGroupDelete:
+      case RouteGroupMemberCreate:
+      case RouteGroupMemberDelete:
+      case RouteAccountAppPasswordCreate:
+      case RouteAccountAppPasswordUpdate:
+      case RouteAccountAppPasswordDelete:
+      // A domain's own allow and block list is a property of the domain, as
+      // its limits and its aliases are, and COM's Domain.SenderList answers a
+      // domain administrator; the server's list is ManageSettings's, below.
+      case RouteSenderListDomainCreate:
+      case RouteSenderListDomainUpdate:
+      case RouteSenderListDomainDelete:
+         return RolePermission::ManageAccounts;
+
+      // Setting somebody's password, as a route of its own rather than as a
+      // field of the account update: a help-desk role can only be this narrow
+      // if the one thing it is allowed to do is a route of its own.
+      case RouteAccountPasswordReset:
+         return RolePermission::ResetPassword;
+
+      // Letting somebody back in after the lockout, and clearing the
+      // logon-failure count that feeds the auto-ban.
+      case RouteAccountUnlock:
+      case RouteLogonFailuresClear:
+         return RolePermission::UnlockAccount;
+
+      // Every setting, listener, certificate, route, rule and anti-spam list.
+      // One permission and not twenty: an administrator who may change the TLS
+      // certificate may also change the port it is bound to, and pretending
+      // otherwise would be a menu rather than a boundary.
+      case RouteSettingsPut:
+      case RouteSettingsAntiSpamPut:
+      case RouteSettingsAntiVirusPut:
+      case RouteSettingsLoggingPut:
+      case RouteIniSettingPut:
+      case RouteIniSettingDelete:
+      case RouteSettingsScriptingPut:
+      case RouteSettingsBackupPut:
+      case RouteSettingsCachePut:
+      case RouteSettingsIndexingPut:
+      case RouteServerMessagePut:
+      case RoutePortalBrandingPut:
+      case RoutePortalFilesPolicyPut:
+      case RouteIpRangeCreate:
+      case RouteIpRangeUpdate:
+      case RouteIpRangeDelete:
+      case RouteRuleCreate:
+      case RouteRuleUpdate:
+      case RouteRuleDelete:
+      case RouteCertificateCreate:
+      case RouteCertificateDelete:
+      case RoutePortCreate:
+      case RoutePortUpdate:
+      case RoutePortDelete:
+      case RouteRouteCreate:
+      case RouteRouteUpdate:
+      case RouteRouteDelete:
+      case RouteDnsBlackListCreate:
+      case RouteDnsBlackListUpdate:
+      case RouteDnsBlackListDelete:
+      case RouteSurblServerCreate:
+      case RouteSurblServerUpdate:
+      case RouteSurblServerDelete:
+      case RouteWhiteListAddressCreate:
+      case RouteWhiteListAddressUpdate:
+      case RouteWhiteListAddressDelete:
+      case RouteBlockedSenderCreate:
+      case RouteBlockedSenderUpdate:
+      case RouteBlockedSenderDelete:
+      case RouteIncomingRelayCreate:
+      case RouteIncomingRelayUpdate:
+      case RouteIncomingRelayDelete:
+      case RouteBlockedAttachmentCreate:
+      case RouteBlockedAttachmentUpdate:
+      case RouteBlockedAttachmentDelete:
+      case RouteGreyListingWhiteAddressCreate:
+      case RouteGreyListingWhiteAddressUpdate:
+      case RouteGreyListingWhiteAddressDelete:
+      // A remote domain policy, and the verification cache whose clearing
+      // changes what the next RCPT TO decides.
+      case RouteRemoteDomainCreate:
+      case RouteRemoteDomainUpdate:
+      case RouteRemoteDomainDelete:
+      case RouteRemoteDomainClearCache:
+      // An alert rule - where the alerting goes, and whether it goes at all -
+      // and the condition raised on demand to prove a rule works.
+      case RouteAlertRuleUpdate:
+      case RouteAlertTest:
+      // The server's allow and block list, which applies to every recipient
+      // of every domain.
+      case RouteSenderListCreate:
+      case RouteSenderListUpdate:
+      case RouteSenderListDelete:
+      // The breach check's endpoint test, which makes this server send a
+      // request to a URL the caller chooses: acting as the server, not
+      // reading it, and so never an auditor's.
+      case RouteBreachCheckTest:
+         return RolePermission::ManageSettings;
+
+      // Restarting, backing up, reloading the scripts, clearing the caches and
+      // the index, running the scheduled sends, and installing an update: the
+      // things that act on the whole process.
+      case RouteServerReinitialize:
+      case RouteBackupStart:
+      case RouteScriptingReload:
+      case RouteCacheClear:
+      case RouteIndexingIndex:
+      case RouteIndexingClear:
+      case RouteUpdateCheck:
+      case RouteUpdateDownload:
+      case RouteUpdateInstall:
+      case RouteScheduledRun:
+      // The alert pass run now rather than in a minute, which is the scheduled
+      // sends' shape exactly.
+      case RouteAlertRun:
+         return RolePermission::ManageServer;
+
+      default:
+         break;
+      }
+
+      // Unreachable while the check above passes, and the safest answer when
+      // it somehow does not: a route nobody classified needs the one
+      // permission only the server administrator holds.
+      return RolePermission::AdministerServer;
+   }
+
+   bool
+   RestApiServer::SecondPermissionFor_(RouteKind kind, RolePermission &permission)
+   {
+      // The routes whose answer is two kinds of thing at once, and so needs the
+      // permission for each. A second permission can only take a route away
+      // from somebody: Authorize_ asks for both, in the one domain the route
+      // names, and refuses when either is missing.
+      //
+      // build/check-role-choke-point.py reads this switch in the shape
+      // PermissionFor_ has - case labels, then one "permission = " line - holds
+      // every route here to being classified there too, and holds both
+      // permissions of a route to the auditor rule: a read needs two the
+      // auditor holds.
+      switch (kind)
+      {
+      // The reports. Most of a report is configuration-shaped - counts per
+      // domain and per day - but GET /api/v1/reports/senders and /recipients,
+      // and the summary that carries both, list which addresses sent and
+      // received the most: who mails whom, which is traffic metadata read out
+      // of the message trace. A role that may read the configuration is not
+      // thereby a role that may read that. The built-in outcomes do not move -
+      // domainadmin and auditor hold both, the help desk holds only the trace
+      // and was never let in - but a custom role holding view_configuration
+      // alone no longer sees who corresponds with whom.
+      case RouteReport:
+         permission = RolePermission::ViewMessageTrace;
+         return true;
+
+      default:
+         break;
+      }
+
+      return false;
+   }
+
+   String
+   RestApiServer::DomainNamedByRoute_(const Route &route)
+   {
+      // The domain a route acts inside, or nothing when it acts on the server.
+      // Split out of Authorize_ so that the two decisions made about a domain -
+      // may this ROLE reach it, and is this KEY permitted it - are made about
+      // the same name rather than about two readings of the path.
+      switch (route.kind)
+      {
+      case RouteAccountList:
+      case RouteAccountCreate:
+      case RouteDomainUpdate:
+      case RouteAliasList:
+      case RouteAliasCreate:
+      case RouteListList:
+      case RouteListCreate:
+      case RouteDkimGet:
+      case RouteDomainAliasList:
+      case RouteDomainAliasCreate:
+      case RouteDomainAliasDelete:
+      case RouteSenderListDomainList:
+      case RouteSenderListDomainCreate:
+      case RouteSenderListDomainUpdate:
+      case RouteSenderListDomainDelete:
+      // A report names the domain it is about in ?domain=, which ParseRoute_
+      // puts in identifier; a report that names none names nothing, and the
+      // handler confines it to the credential's domains.
+      case RouteReport:
+         return String(route.identifier);
+
+      case RouteListDelete:
+      case RouteListUpdate:
+      case RouteAliasDelete:
+      case RouteAccountUpdate:
+      case RouteAccountGet:
+      case RouteFetchAccountList:
+      case RouteFetchAccountCreate:
+      case RouteFetchAccountGet:
+      case RouteFetchAccountUpdate:
+      case RouteFetchAccountDelete:
+      case RouteFetchAccountDownload:
+      case RouteAccountAppPasswordList:
+      case RouteAccountAppPasswordCreate:
+      case RouteAccountAppPasswordDelete:
+      case RouteAccountFolderList:
+      case RouteAccountFolderPermissionList:
+      case RouteAccountFolderPermissionCreate:
+      case RouteAccountFolderPermissionUpdate:
+      case RouteAccountFolderPermissionDelete:
+      case RouteAccountMessageList:
+      case RouteAccountMessagesDelete:
+      case RouteAccountFolderMessageList:
+      case RouteAccountFolderMessageCreate:
+      case RouteAccountMessageGet:
+      case RouteAccountMessageFlags:
+      case RouteAccountMessageDelete:
+      case RouteAccountMessageSource:
+      case RouteAccountAppPasswordUpdate:
+      case RouteAccountMessageCopy:
+      case RouteAccountSupportSession:
+      // The reset and the unlock name an address in the path exactly as the
+      // account routes do, and are the two a help-desk role reaches: without
+      // this, a role issued for one domain could reset a password in another
+      // by editing one path segment.
+      case RouteAccountPasswordReset:
+      case RouteAccountUnlock:
+      // One address's trace, scoped to that address's domain.
+      case RouteMessageTraceAddress:
+      // An assignment names the account it is for, and giving somebody a role
+      // in a domain is administering that domain.
+      case RouteRoleAssign:
+      case RouteRoleUnassign:
+         return StringParser::ExtractDomain(String(route.identifier));
+
+      case RouteAccountDelete:
+         // The reason the whole mechanism exists. The account to delete is named
+         // by an address in the path and nothing else, so without this a key
+         // issued for one domain could delete a mailbox in another by editing
+         // one path segment - the classic identifier-in-the-path authorisation
+         // bypass, against a route that destroys mail.
+         return StringParser::ExtractDomain(String(route.identifier));
+
+      default:
+         break;
+      }
+
+      return String();
    }
 
    RestApiServer::AuthorizationResult
@@ -3875,8 +4596,17 @@ namespace HM
       // refused: a key is already the credential a script keeps, and a cookie
       // minted from one would be a second credential with none of the key's
       // restrictions written on it.
-      if (route.kind == RouteSessionCreate || route.kind == RouteSessionDelete)
+      if (IsSessionRoute_(route.kind))
       {
+         if (route.kind == RouteSessionGet)
+         {
+            // What am I, and what may I do. Answered to every credential that
+            // authenticated, API keys included: a caller cannot be asked to
+            // discover its own authority by trying things and reading the
+            // 403s, and the answer holds nothing it did not already present.
+            return AuthorizationAllowed;
+         }
+
          if (caller.result == AuthenticatedAsAccount || caller.result == AuthenticatedAsAdministrator)
             return AuthorizationAllowed;
 
@@ -3899,8 +4629,14 @@ namespace HM
          return AuthorizationForbidden;
       }
 
-      if (caller.result == AuthenticatedAsAccount)
+      if (caller.result == AuthenticatedAsAccount && !caller.grant.administrative)
       {
+         // An ordinary account, exactly as before: its credentials reach its
+         // own mailbox and nothing else. What is new is the account that holds
+         // an administrative role - the domain administrator who signs in to
+         // the Control Deck for their domain, the help desk, the auditor - and
+         // it falls through to the permission check below rather than being
+         // refused here.
          refusalReason = "an account's credentials reach only the account's own endpoints under /api/v1/me";
          return AuthorizationForbidden;
       }
@@ -3919,12 +4655,76 @@ namespace HM
       // credential problem - including for a verb that does not exist, which is
       // why RouteApiKeyUnsupported is in this set.
       if (IsApiKeyRoute_(route.kind))
-         return AuthorizationUnauthenticated;
-
-      if (caller.read_only && IsMutatingRoute_(route.kind))
       {
-         refusalReason = "this api key is read-only";
-         return AuthorizationForbidden;
+         // An account that holds a role has already proved its credential and
+         // is refused as a matter of permission, with the reason - a 401 would
+         // tell the Control Deck its session had ended and sign it out. The
+         // 401 stays for keys, where it keeps "valid but not permitted"
+         // indistinguishable from "not a key at all".
+         if (caller.result != AuthenticatedAsAccount)
+            return AuthorizationUnauthenticated;
+
+         // The audit trail and the alerts are in that set to keep them from a
+         // KEY - a stolen key must not read the record of what it did, nor
+         // silence the alerting. An account that holds a role is not a key:
+         // the auditor role exists to read the audit trail, and the server
+         // administrator's own mailbox is the server administrator. Those
+         // routes go on to the permission decision below (ViewAudit for the
+         // trail; ViewConfiguration, ManageSettings and ManageServer for the
+         // alerts) and to the server-wide refusal for a confined role. The key
+         // store and the [Settings] section stay the administrator password's
+         // alone.
+         switch (route.kind)
+         {
+         case RouteAuditList:
+         case RouteAuditVerify:
+         case RouteAlertRuleList:
+         case RouteAlertRuleUpdate:
+         case RouteAlertEventList:
+         case RouteAlertTest:
+         case RouteAlertRun:
+            break;
+
+         default:
+            refusalReason = "the api keys and the [Settings] section of hMailServer.ini answer to the administrator password only";
+            return AuthorizationForbidden;
+         }
+      }
+
+      // THE DECISION, and the only one. Every route of this API is answered
+      // by this one call: the permission the route needs (PermissionFor_, and
+      // SecondPermissionFor_ for the few that need two), the
+      // authority the credential carries (caller.grant, resolved once when it
+      // was authenticated), and the domain the route names. A read-only key is
+      // the auditor role and a full key is the server administrator, so the
+      // scopes that existed before roles did are decided here too rather than
+      // beside this - which is what stops the two from drifting apart.
+      {
+         String roleRefusal;
+         const String routeDomain = DomainNamedByRoute_(route);
+
+         // The few routes that need two permissions ask for the second in
+         // the same domain, and only once the first has been granted, so that
+         // the refusal names the first permission the credential lacks.
+         RolePermission secondPermission = RolePermission::Count;
+         const bool permitted =
+            RoleManager::Allows(caller.grant, PermissionFor_(route.kind), routeDomain, roleRefusal) &&
+            (!SecondPermissionFor_(route.kind, secondPermission) ||
+             RoleManager::Allows(caller.grant, secondPermission, routeDomain, roleRefusal));
+
+         if (!permitted)
+         {
+            // A read-only key hears the sentence it has heard since August
+            // 2026, because that is the restriction it was issued with and the
+            // one its holder will look for; every other refusal names the role
+            // and the permission.
+            refusalReason = (caller.result == AuthenticatedWithApiKey && caller.read_only &&
+                             caller.grant.name == _T("auditor") && IsMutatingRoute_(route.kind))
+               ? AnsiString("this api key is read-only")
+               : AnsiString(roleRefusal);
+
+            return AuthorizationForbidden;
+         }
       }
 
       if (caller.domains.empty())
@@ -3937,7 +4737,7 @@ namespace HM
       // rather than narrowed wrongly.
       if (route.kind == RouteQueueList || route.kind == RouteQueueRetry || route.kind == RouteQueueDelete)
       {
-         refusalReason = "this api key is restricted to named domains, and the delivery queue is server-wide";
+         refusalReason = "this credential is restricted to named domains, and the delivery queue is server-wide";
          return AuthorizationForbidden;
       }
 
@@ -3946,7 +4746,7 @@ namespace HM
       // mail. The same reasoning gives the same answer.
       if (route.kind == RouteQuarantineList || route.kind == RouteQuarantineRelease || route.kind == RouteQuarantineDelete)
       {
-         refusalReason = "this api key is restricted to named domains, and the quarantine is server-wide";
+         refusalReason = "this credential is restricted to named domains, and the quarantine is server-wide";
          return AuthorizationForbidden;
       }
 
@@ -3964,14 +4764,14 @@ namespace HM
       {
          if (IsServerWideReportSection_(route.name))
          {
-            refusalReason = "this api key is restricted to named domains, and that report section is counted from "
+            refusalReason = "this credential is restricted to named domains, and that report section is counted from "
                             "server-wide metrics that carry no domain";
             return AuthorizationForbidden;
          }
 
          if (!route.identifier.IsEmpty() && !IsDomainAllowed_(caller.domains, String(route.identifier)))
          {
-            refusalReason = "this api key is not permitted for that domain";
+            refusalReason = "this credential is not permitted for that domain";
             return AuthorizationForbidden;
          }
 
@@ -4026,6 +4826,10 @@ namespace HM
       case RouteRuleList:
       case RouteLogList:
       case RouteLogTail:
+      // A search that matches any address, and one queued message whose
+      // recipients are in any number of domains, have no domain to confine to.
+      case RouteMessageTraceRecent:
+      case RouteMessageTraceQueue:
       case RouteBackupStart:
       case RouteBackupStatus:
       case RouteSettingsGet:
@@ -4086,6 +4890,17 @@ namespace HM
       case RouteRemoteDomainDelete:
       case RouteRemoteDomainEffective:
       case RouteRemoteDomainClearCache:
+      // The audit trail records every domain's changes and the alerts watch the
+      // whole server. A key never gets this far with them (IsApiKeyRoute_); a
+      // role confined to named domains - a custom role holding view_audit and
+      // a list of domains - does, and is refused here.
+      case RouteAuditList:
+      case RouteAuditVerify:
+      case RouteAlertRuleList:
+      case RouteAlertRuleUpdate:
+      case RouteAlertEventList:
+      case RouteAlertTest:
+      case RouteAlertRun:
       case RouteServerReinitialize:
       case RouteUpdateGet:
       case RouteUpdateCheck:
@@ -4106,87 +4921,28 @@ namespace HM
          // server settings and the update check are all server-wide: none of
          // them belongs to a domain, and the logs in particular carry every
          // domain's traffic.
-         refusalReason = "this api key is restricted to named domains, and that resource is server-wide";
+         refusalReason = "this credential is restricted to named domains, and that resource is server-wide";
          return AuthorizationForbidden;
       default:
          break;
       }
 
-      String targetDomain;
+      // Which domain this route names, if any. Empty means the route is
+      // server-wide and read-only - /status, /tlsa, /srv and the domain
+      // listing. The latter two filter their per-domain output to the
+      // credential's domains in their handlers rather than being refused here
+      // (a listing that answered 403 would be useless to exactly the
+      // credential the restriction exists for, and /srv names every local
+      // domain in its records - which a key issued for one customer must not
+      // be handed).
+      const String targetDomain = DomainNamedByRoute_(route);
 
-      switch (route.kind)
-      {
-      case RouteAccountList:
-      case RouteAccountCreate:
-      case RouteDomainUpdate:
-      case RouteAliasList:
-      case RouteAliasCreate:
-      case RouteListList:
-      case RouteListCreate:
-      case RouteDkimGet:
-      case RouteDomainAliasList:
-      case RouteDomainAliasCreate:
-      case RouteDomainAliasDelete:
-      case RouteSenderListDomainList:
-      case RouteSenderListDomainCreate:
-      case RouteSenderListDomainUpdate:
-      case RouteSenderListDomainDelete:
-         targetDomain = String(route.identifier);
-         break;
-      case RouteListDelete:
-      case RouteListUpdate:
-      case RouteAliasDelete:
-      case RouteAccountUpdate:
-      case RouteAccountGet:
-      case RouteFetchAccountList:
-      case RouteFetchAccountCreate:
-      case RouteFetchAccountGet:
-      case RouteFetchAccountUpdate:
-      case RouteFetchAccountDelete:
-      case RouteFetchAccountDownload:
-      case RouteAccountAppPasswordList:
-      case RouteAccountAppPasswordCreate:
-      case RouteAccountAppPasswordDelete:
-      case RouteAccountFolderList:
-      case RouteAccountFolderPermissionList:
-      case RouteAccountFolderPermissionCreate:
-      case RouteAccountFolderPermissionUpdate:
-      case RouteAccountFolderPermissionDelete:
-      case RouteAccountMessageList:
-      case RouteAccountMessagesDelete:
-      case RouteAccountFolderMessageList:
-      case RouteAccountFolderMessageCreate:
-      case RouteAccountMessageGet:
-      case RouteAccountMessageFlags:
-      case RouteAccountMessageDelete:
-      case RouteAccountMessageSource:
-      case RouteAccountAppPasswordUpdate:
-      case RouteAccountMessageCopy:
-         targetDomain = StringParser::ExtractDomain(String(route.identifier));
-         break;
-
-      case RouteAccountDelete:
-         // The reason the whole mechanism exists. The account to delete is named
-         // by an address in the path and nothing else, so without this a key
-         // issued for one domain could delete a mailbox in another by editing
-         // one path segment - the classic identifier-in-the-path authorisation
-         // bypass, against a route that destroys mail.
-         targetDomain = StringParser::ExtractDomain(String(route.identifier));
-         break;
-
-      default:
-         // Server-wide and read-only: /status, /tlsa, /srv and the domain
-         // listing. The latter two filter their per-domain output to the key's
-         // domains in their handlers rather than being refused here (a listing
-         // that answered 403 would be useless to exactly the credential the
-         // restriction exists for, and /srv names every local domain in its
-         // records - which a key issued for one customer must not be handed).
+      if (targetDomain.IsEmpty())
          return AuthorizationAllowed;
-      }
 
       if (!IsDomainAllowed_(caller.domains, targetDomain))
       {
-         refusalReason = "this api key is not permitted for that domain";
+         refusalReason = "this credential is not permitted for that domain";
          return AuthorizationForbidden;
       }
 
@@ -4481,6 +5237,14 @@ namespace HM
             current.expires = value;
          else if (name.CompareNoCase(_T("AllowedFrom")) == 0)
             current.allowed_from = value;
+         else if (name.CompareNoCase(_T("Role")) == 0)
+         {
+            // A named role, which is the whole of the key's authority when it
+            // is present. Lower-cased here so that the store and the database
+            // compare equal whatever an administrator typed.
+            current.role = value;
+            current.role.MakeLower();
+         }
          else if (name.CompareNoCase(_T("Scope")) == 0)
          {
             // Only the literal "full" widens a key. Every other value - a
@@ -4587,11 +5351,12 @@ namespace HM
          // issuing a narrow key is being able to confirm afterwards that it is
          // narrow.
          AnsiString item;
-         item.Format("{\"id\":\"%hs\",\"label\":\"%hs\",\"scope\":\"%hs\",\"domains\":\"%hs\","
+         item.Format("{\"id\":\"%hs\",\"label\":\"%hs\",\"scope\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\","
                      "\"expires\":\"%hs\",\"allowed_from\":\"%hs\",\"expired\":%hs}",
             JsonEscape_(Utf8_(key.id)).c_str(),
             JsonEscape_(Utf8_(key.label)).c_str(),
             key.read_only ? ApiKeyScopeReadOnlyNarrow : ApiKeyScopeFullNarrow,
+            JsonEscape_(Utf8_(key.role)).c_str(),
             JsonEscape_(Utf8_(StringParser::JoinVector(key.domains, _T(",")))).c_str(),
             JsonEscape_(Utf8_(key.expires)).c_str(),
             JsonEscape_(Utf8_(key.allowed_from)).c_str(),
@@ -4618,12 +5383,15 @@ namespace HM
       AnsiString allowedFrom = GetJsonStringValue_(requestBody, "allowed_from");
       AnsiString scope = GetJsonStringValue_(requestBody, "scope");
       AnsiString domains = GetJsonStringValue_(requestBody, "domains");
+      AnsiString role = GetJsonStringValue_(requestBody, "role");
 
       label.Trim();
       expires.Trim();
       allowedFrom.Trim();
       scope.Trim();
       domains.Trim();
+      role.Trim();
+      role.MakeLower();
 
       if (label.IsEmpty())
          return BuildResponse_(400, "{\"error\":\"label is required\"}");
@@ -4654,6 +5422,18 @@ namespace HM
             readOnly = false;
          else if (scope.CompareNoCase(ApiKeyScopeReadOnlyNarrow) != 0)
             return BuildResponse_(400, "{\"error\":\"scope must be 'readonly' or 'full'\"}");
+      }
+
+      // A named role instead of a scope, which is how a key is issued for a
+      // help desk or an auditor rather than for "everything" or "reads". The
+      // role has to exist now, because a key that names a role the server does
+      // not have holds nothing, and finding that out at the first request is
+      // finding it out too late.
+      if (!role.IsEmpty())
+      {
+         RoleRecord record;
+         if (!RoleManager::FindRole(String(role), record))
+            return BuildResponse_(400, "{\"error\":\"no such role\"}");
       }
 
       // The domain restriction is normalised here and stored in that form, so
@@ -4821,6 +5601,7 @@ namespace HM
          WritePrivateProfileString(section, _T("AllowedFrom"), String(allowedFrom), storeFile) != FALSE &&
          WritePrivateProfileString(section, _T("Scope"), readOnly ? ApiKeyScopeReadOnly : ApiKeyScopeFull, storeFile) != FALSE &&
          WritePrivateProfileString(section, _T("Domains"), normalizedDomains, storeFile) != FALSE &&
+         WritePrivateProfileString(section, _T("Role"), String(role), storeFile) != FALSE &&
          WritePrivateProfileString(section, _T("Hash"), String(hash), storeFile) != FALSE;
 
       // Flush the profile cache so the very next request sees the new key.
@@ -4841,20 +5622,22 @@ namespace HM
       // full-authority is the thing an administrator will want to answer months
       // later from the log alone.
       String created;
-      created.Format(_T("RestApi: API key '%s' (%s) created. Scope: %s. Domains: %s."),
+      created.Format(_T("RestApi: API key '%s' (%s) created. Scope: %s. Role: %s. Domains: %s."),
          String(label).c_str(), id.c_str(),
          readOnly ? ApiKeyScopeReadOnly : ApiKeyScopeFull,
+         role.IsEmpty() ? _T("(from the scope)") : String(role).c_str(),
          normalizedDomains.IsEmpty() ? _T("(all)") : normalizedDomains.c_str());
       LOG_APPLICATION(created);
 
       // The clear-text token is returned exactly once, here. It is not stored
       // and cannot be recovered afterwards.
       AnsiString body;
-      body.Format("{\"id\":\"%hs\",\"label\":\"%hs\",\"scope\":\"%hs\",\"domains\":\"%hs\","
+      body.Format("{\"id\":\"%hs\",\"label\":\"%hs\",\"scope\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\","
                   "\"expires\":\"%hs\",\"allowed_from\":\"%hs\",\"key\":\"%hs\"}",
          JsonEscape_(Utf8_(id)).c_str(),
          JsonEscape_(label).c_str(),
          readOnly ? ApiKeyScopeReadOnlyNarrow : ApiKeyScopeFullNarrow,
+         JsonEscape_(role).c_str(),
          JsonEscape_(Utf8_(normalizedDomains)).c_str(),
          JsonEscape_(expires).c_str(),
          JsonEscape_(allowedFrom).c_str(),
@@ -6375,6 +7158,7 @@ namespace HM
       caller.identity = AnsiString("account:") + AnsiString(account->GetAddress());
       caller.account = account;
       caller.via_app_password = viaAppPassword;
+      ApplyAccountGrant_(caller);
 
       return true;
    }
@@ -6761,6 +7545,7 @@ namespace HM
          caller.identity = "administrator";
          caller.via_session = true;
          caller.session_hash = presentedHash;
+         caller.grant = RoleManager::ServerAdministrator();
 
          return true;
       }
@@ -6785,9 +7570,18 @@ namespace HM
       caller.via_session = true;
       caller.session_hash = presentedHash;
       caller.via_app_password = viaAppPassword;
+      ApplyAccountGrant_(caller);
 
       if (!supportBy.IsEmpty())
       {
+         // A support session opens the portal as the account, for the person
+         // who asked for help. It is not that account's administration: an
+         // administrator who opens one into a mailbox that happens to hold a
+         // role must not find the session reaching the administration API as
+         // well, so the grant goes.
+         caller.grant = RoleGrant();
+         caller.domains.clear();
+
          // Every request of a support session is on the record: who, as whom,
          // from where, what.
          caller.support_by = supportBy;
@@ -11014,14 +11808,14 @@ namespace HM
          "{"
          "\"openapi\":\"3.0.3\","
          "\"info\":{\"title\":\"hMailServer REST API\",\"version\":\"1\","
-         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them.\"},"
+         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds.\"},"
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, argon2id, post_quantum_key_exchange\"}}}},"
          "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now. Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"Reinitialising; the listeners restart in a moment\"}}}},"
          "\"/api/v1/me\":{\"get\":{\"summary\":\"The signed-in account's own state\",\"description\":\"HTTP Basic with the account's address and password - the same credential and the same checks as an IMAP logon, including a per-name lockout and the auto-ban. Refused for the administrator password and for API keys.\",\"responses\":{\"200\":{\"description\":\"address, domain, active, quota (limit_mb, used_bytes), vacation (enabled, active, subject, message, expires, expires_date), password_changed, second_factor, directory_linked\"},\"401\":{\"description\":\"Not an account's credentials\"},\"403\":{\"description\":\"The administrator password or an API key was presented\"}}}},"
          "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"
-         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}}},"
+         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
          "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default). Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
          "\"/api/v1/me/contacts/{id}\":{\"put\":{\"summary\":\"Change a contact's name or address\",\"description\":\"Body: name and/or address. Another account's contact is 404.\",\"responses\":{\"200\":{\"description\":\"The contact\"},\"404\":{\"description\":\"No such contact\"},\"409\":{\"description\":\"The new address is already a contact\"}}},\"delete\":{\"summary\":\"Remove a contact\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such contact\"}}}},"
          "\"/api/v1/me/identities\":{\"get\":{\"summary\":\"The addresses the signed-in account may write as\",\"description\":\"The account's own address (kind account), every active alias that resolves to it (alias), and every account whose INBOX grants this one the post right (granted) - the rule SMTP submission applies to MAIL FROM. Each carries the From header the page would send. A send or a draft names one in its from field; anything else is refused with 403.\",\"responses\":{\"200\":{\"description\":\"identities (address, name, kind, header)\"}}}},"
@@ -11150,6 +11944,7 @@ namespace HM
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiReportsPaths_();
+      openApiJson += OpenApiRolesPaths_();
       openApiJson += openApiTail;
 
       return BuildResponse_(200, openApiJson);
@@ -11777,6 +12572,15 @@ namespace HM
       are the identity strings Authenticate_ already produces for the rate
       accounting and the log, so an audit row and a log line about the same
       request name the caller the same way.
+
+      The kind and the role are read from caller.grant - the grant Authorize_
+      has just decided this request on - and never from AdminLevel. An account
+      that holds serveradmin or domainadmin is an "administrator", as it is
+      over COM; every other account is an "account", a help desk included, and
+      the role it acted under is recorded with the change. Before roles an
+      account reached nothing here but its own /api/v1/me endpoints, so every
+      account row was self-service; now an account can administer, and a row
+      that did not say with what authority would not say enough.
    */
    AuditTrail::Actor
    RestApiServer::AuditActorFor_(const Caller &caller)
@@ -11804,9 +12608,14 @@ namespace HM
          actor.kind = _T("apikey");
          break;
       default:
-         actor.kind = _T("account");
+         actor.kind = RoleManager::IsAdministratorGrant(caller.grant) ? _T("administrator") : _T("account");
          break;
       }
+
+      // Empty for an ordinary account, for an app password and for a support
+      // session, all of which hold no administrative grant.
+      if (caller.grant.administrative)
+         actor.role = caller.grant.name;
 
       return actor;
    }

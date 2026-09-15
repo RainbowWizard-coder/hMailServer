@@ -1869,7 +1869,7 @@ namespace
       "\"get\":{\"summary\":\"One [Settings] key of hMailServer.ini\",\"description\":\"name, value and present. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a key that is not in the file is a setting at its default, not an error. A name the file could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case as the file is read. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present}\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
       "\"put\":{\"summary\":\"Write one [Settings] key of hMailServer.ini\",\"description\":\"Body: value (a string of at most 4000 characters with no line break). Written to the file as Settings.SetIniSetting writes it, and read by the server when it next starts or is reinitialised (POST /api/v1/server/reinitialize), except for the settings the server reads from the file each time it needs them. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"500\":{\"description\":\"The file could not be written; nothing changed\"}}},"
       "\"delete\":{\"summary\":\"Remove one [Settings] key from hMailServer.ini\",\"description\":\"The key's line is removed, which returns the setting to its default at the next start or reinitialise - not the same as writing an empty value. Removing a key that is not there is a 200. Answers as GET does, with present false. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{name, value: empty, present: false}\"},\"400\":{\"description\":\"The name cannot be a key\"},\"500\":{\"description\":\"The file could not be written; nothing changed\"}}}},"
-      "\"/api/v1/settings/logon-failures/clear\":{\"post\":{\"summary\":\"Forget every recorded logon failure\",\"description\":\"What Settings.ClearLogonFailureList does over COM: the failures the auto-ban counts are deleted, so that an address that was one failure from a ban starts again at none. It does not lift a ban already placed; that is an IP range, deleted through /api/v1/ipranges. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"},\"500\":{\"description\":\"The list could not be cleared\"}}}}";
+      "\"/api/v1/settings/logon-failures/clear\":{\"post\":{\"summary\":\"Forget every recorded logon failure\",\"description\":\"What Settings.ClearLogonFailureList does over COM: the failures the auto-ban counts are deleted, so that an address that was one failure from a ban starts again at none. It does not lift a ban already placed; that is an IP range, deleted through /api/v1/ipranges. Server-wide; refused for domain-restricted and read-only keys. On the audit trail as object type logon failures, action cleared.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"},\"500\":{\"description\":\"The list could not be cleared\"}}}}";
 }
 
 namespace HM
@@ -2195,6 +2195,14 @@ namespace HM
       // deleted, whatever its age.
       if (!Config()->ClearOldLogonFailures())
          return BuildResponse_(500, "{\"error\":\"the logon-failure list could not be cleared\"}");
+
+      // hm_logon_failures is traffic, not configuration, so the statement
+      // chokepoint does not record the delete; clearing it is an unlock all
+      // the same - an address one failure from a ban starts again at none -
+      // and is recorded here, under the actor the dispatch installed, as
+      // Settings.ClearLogonFailureList records it over COM.
+      AuditTrail::Instance()->RecordEvent(_T("logon failures"), _T("every recorded failure"), _T("cleared"),
+         _T("the failures the auto-ban counts were deleted, so every address starts again at none"));
 
       LOG_APPLICATION("RestApi: the logon-failure list was cleared.");
 

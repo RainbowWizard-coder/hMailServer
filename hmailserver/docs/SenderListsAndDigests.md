@@ -169,7 +169,11 @@ one domain, an unknown field, or an expiry without its time is a `400` naming th
 problem; nothing is stored. A list holds at most a thousand entries.
 
 A read-only API key cannot write any list. A key restricted to named domains
-can read and write those domains' lists and cannot reach the server's.
+can read and write those domains' lists and cannot reach the server's. An
+account holding a role reads a list with `view_configuration`, writes a domain's
+with `manage_accounts` in that domain and writes the server's with
+`manage_settings`: a domain administrator keeps its own domains' lists, and an
+auditor reads every list and writes none. See [Roles.md](Roles.md).
 
 The quarantine digest
 ---------------------

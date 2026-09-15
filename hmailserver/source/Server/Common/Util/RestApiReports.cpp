@@ -1038,7 +1038,9 @@ namespace HM
          ",\"/api/v1/reports\":{\"get\":{\"summary\":\"What this server can report, and what it cannot\","
          "\"description\":\"The sections, what each is counted from, and the state of the three sources - the message trace (off by default), "
          "the metric history and the message store - with how far back each can see. Read it before reading a section: a report drawn while its "
-         "source was switched off is empty, which is not the same as nothing having happened.\",\"responses\":{\"200\":{\"description\":\"The index\"}}}}"
+         "source was switched off is empty, which is not the same as nothing having happened. Needs view_configuration and view_message_trace, both: "
+         "the senders and recipients sections name who mails whom, which is the message trace's to show and not the configuration's.\",\"responses\":{\"200\":{\"description\":\"The index\"},"
+         "\"403\":{\"description\":\"A role that does not hold both view_configuration and view_message_trace\"}}}}"
 
          ",\"/api/v1/reports/{section}\":{\"get\":{\"summary\":\"One report section\","
          "\"description\":\"section is traffic, failures, senders, recipients, mailboxes, volume, storage or summary. "
@@ -1050,9 +1052,10 @@ namespace HM
          "only deliveries and failures - there is no spam or virus event in it. mailboxes is the size of every mailbox as it is NOW, not over the "
          "window. volume and storage are counted from the server-wide metric history and carry no domain at all, which is why spam and virus counts "
          "and storage growth cannot be given per domain; both are refused for a domain-restricted key. Every per-domain section counts only domains "
-         "this server hosts, and a domain-restricted key sees its own domains and no others.\","
+         "this server hosts, and a domain-restricted key sees its own domains and no others. Every section needs view_configuration and view_message_trace, both: "
+         "senders and recipients list who mails whom, and a role that may read the configuration is not thereby a role that may read that.\","
          "\"responses\":{\"200\":{\"description\":\"The section\"},\"400\":{\"description\":\"A date, a window, a top or a format the route does not take\"},"
-         "\"403\":{\"description\":\"A domain-restricted key asked for a server-wide section, or for another domain\"},"
+         "\"403\":{\"description\":\"A role that does not hold both view_configuration and view_message_trace, a domain-restricted credential that asked for a server-wide section, or one that asked for another domain\"},"
          "\"404\":{\"description\":\"No such section, or no such domain on this server\"}}}}");
    }
 
