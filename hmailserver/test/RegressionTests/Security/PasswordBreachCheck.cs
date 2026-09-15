@@ -3,10 +3,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using hMailServer;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -48,16 +55,24 @@ namespace RegressionTests.Security
 
       private string _proxyBefore;
 
+      // Whether SetUp got as far as changing anything. NUnit runs a TearDown whose
+      // SetUp threw - Assert.Ignore included - and one that skipped has nothing to put back.
+      private bool _changed;
+
       [SetUp]
       public void BreachCheckSetUp()
       {
+         _changed = false;
+
          // The fake is on this machine's loopback address. A server on another host,
          // which the Linux suite can be pointed at, would be asking its own.
          if (TestPorts.Host != "127.0.0.1" && !string.Equals(TestPorts.Host, "localhost", StringComparison.OrdinalIgnoreCase))
             Assert.Ignore("The fake breach corpus listens on this machine's loopback address, and the server under test is on " + TestPorts.Host + ".");
 
-         // HttpProxy applies to loopback targets too, so a bench with one left set
-         // would send the fake's traffic to the proxy.
+         _changed = true;
+
+         // A proxy on this machine is still asked for loopback targets, so a bench with
+         // one left set would send the fake's traffic to the proxy.
          _proxyBefore = ServerIniFile.GetSetting("HttpProxy");
          if (!string.IsNullOrEmpty(_proxyBefore))
          {
@@ -71,19 +86,46 @@ namespace RegressionTests.Security
       [TearDown]
       public void BreachCheckTearDown()
       {
-         RestoreDefaults();
+         if (!_changed)
+            return;
 
-         foreach (string key in new[] { "PasswordPolicyMinimumLength", "PasswordPolicyHistoryCount" })
-            ServerIniFile.SetSetting(key, null);
-
-         if (!string.IsNullOrEmpty(_proxyBefore))
-            ServerIniFile.SetSetting("HttpProxy", _proxyBefore);
-
-         _application.Reinitialize();
+         // Each restore runs whether or not the one before it threw, so a settings
+         // write that fails cannot leave the ini keys or the proxy behind.
+         RunEach(
+            RestoreDefaults,
+            () => ServerIniFile.SetSetting("PasswordPolicyMinimumLength", null),
+            () => ServerIniFile.SetSetting("PasswordPolicyHistoryCount", null),
+            () =>
+            {
+               if (!string.IsNullOrEmpty(_proxyBefore))
+                  ServerIniFile.SetSetting("HttpProxy", _proxyBefore);
+            },
+            () => _application.Reinitialize());
 
          // No clearing of the error log here: every test that provokes HM6600 or
          // HM6601 reads and clears the log it expects, so an error log still present
          // is one nobody expected - which the next SetUp is right to fail on.
+      }
+
+      /// <summary>Runs every step, and then throws the first exception any of them threw.</summary>
+      private static void RunEach(params Action[] steps)
+      {
+         Exception first = null;
+         foreach (Action step in steps)
+         {
+            try
+            {
+               step();
+            }
+            catch (Exception ex)
+            {
+               if (first == null)
+                  first = ex;
+            }
+         }
+
+         if (first != null)
+            ExceptionDispatchInfo.Capture(first).Throw();
       }
 
       private void RestoreDefaults()
@@ -231,6 +273,7 @@ namespace RegressionTests.Security
             string request = corpus.Requests[0];
             StringAssert.StartsWith("GET /range/" + PasswordPrefix + " HTTP/1.0\r\n", request, "The request line carries the five-character prefix: " + request);
             StringAssert.Contains("\r\nAdd-Padding: true\r\n", request, "The request must ask for padding: " + request);
+            StringAssert.Contains("\r\nHost: 127.0.0.1:" + FakeBreachCorpus.Port + "\r\n", request, "The Host header names the endpoint's port, which is not 80: " + request);
 
             StringAssert.DoesNotContain("password", request, "The password left the server: " + request);
             StringAssert.DoesNotContain(PasswordHash, request, "The whole hash left the server: " + request);
@@ -390,7 +433,7 @@ namespace RegressionTests.Security
       }
 
       [Test]
-      [Description("A 200 page that is not a range answer, and a 503, are an endpoint that could not be used - under either action")]
+      [Description("A 200 page that is not a range answer, an empty 200, and a 503, are an endpoint that could not be used - under either action")]
       public void AnAnswerThatIsNotARangeIsNotAnAnswer()
       {
          var account = NewAccount("breachgarbage", "Original-Password-9551");
@@ -404,6 +447,16 @@ namespace RegressionTests.Security
             ClassicAssert.IsNull(Refusal(account, "password"),
                "Under allow, a captive portal's page is not a verdict - the change goes through, reported.");
             ErrorLogWhenItSays("HM6600");
+
+            // An empty 200 - a mirror serving empty files, a proxy answering for an
+            // endpoint it could not reach - is not "found nowhere" either. Read as a
+            // verdict it would let every change through with nothing in any log, which
+            // is what the error-log wait below would then time out on.
+            corpus.BreakEveryRoute(200, "", "text/plain");
+            ClassicAssert.IsNull(Refusal(account, "empty-answer-allowed-9551"),
+               "Under allow, an empty answer lets the change through...");
+            string emptyLog = ErrorLogWhenItSays("HM6600");
+            StringAssert.Contains("no entries", emptyLog, "...and says why.");
 
             corpus.BreakEveryRoute(503, "try later", "text/plain");
             Enable(FakeBreachCorpus.Url, 1, 1);
@@ -485,6 +538,12 @@ namespace RegressionTests.Security
             var ex = Assert.Throws<COMException>(() => chosen.SetPassword(leaked), "A chosen app password in the corpus must be refused.");
             StringAssert.Contains(BreachedSentence, ex.Message);
             ClassicAssert.AreEqual(1, corpus.Requests.Count);
+
+            // The refusal is logged naming the account the app password belongs to, as
+            // the REST route's is, and nothing about the password.
+            string expectedLine = "a new password for an app password for " + account.Address + " was refused";
+            RetryHelper.TryAction(TimeSpan.FromSeconds(10), () => RetryableAssert.StringContains(expectedLine, LogHandler.ReadCurrentDefaultLog()));
+            StringAssert.DoesNotContain(leaked, LogHandler.ReadCurrentDefaultLog(), "The app password is in the log.");
 
             // Negative control: a chosen secret the corpus does not hold.
             chosen.SetPassword("an app password nobody has 9551");
@@ -629,6 +688,157 @@ namespace RegressionTests.Security
          StringAssert.Contains("127.0.0.1", unreachable.Message, "The reason names the host that could not be reached. Got: " + unreachable.Message);
 
          Assert.Throws<COMException>(() => TestEndpoint("http://example.com/range/"), "An endpoint the check would not accept is not asked.");
+      }
+
+      [Test]
+      [Description("An endpoint on the IPv6 loopback address is reached, asked with the address bracketed in its Host header, and its answer is a verdict")]
+      public void AnIpv6LoopbackEndpointIsAskedWithABracketedHost()
+      {
+         FakeBreachCorpus corpus;
+         try
+         {
+            corpus = new FakeBreachCorpus(IPAddress.IPv6Loopback);
+         }
+         catch (SocketException ex)
+         {
+            Assert.Ignore("This machine cannot listen on ::1, so the IPv6 endpoint the check accepts cannot be served here: " + ex.Message);
+            return;
+         }
+
+         using (corpus)
+         {
+            corpus.Add("password", 10434004);
+            var account = NewAccount("breachipv6", "Original-Password-9551");
+            Enable(FakeBreachCorpus.Ipv6Url);
+
+            string refusal = Refusal(account, "password");
+            ClassicAssert.IsNotNull(refusal, "\"password\" is in the corpus on [::1] and must be refused; accepted means the endpoint was never asked.");
+            StringAssert.Contains(BreachedSentence, refusal, "Got: " + refusal);
+            ClassicAssert.AreEqual(1, corpus.Requests.Count);
+            StringAssert.Contains("\r\nHost: [::1]:" + FakeBreachCorpus.Port + "\r\n", corpus.Requests[0],
+               "An IPv6 literal goes in the Host header in brackets, with its port; a bare ::1 is not a valid Host and a strict server answers it with 400: " + corpus.Requests[0]);
+
+            // Negative control: the same endpoint accepts a password it does not hold.
+            ClassicAssert.IsNull(Refusal(account, "a password nobody has leaked over ipv6 9551"), "A password the IPv6 corpus does not hold must be accepted.");
+            ClassicAssert.AreEqual(2, corpus.Requests.Count);
+         }
+      }
+
+      [Test]
+      [Description("An endpoint that accepts and then trickles its answer is given up on at the check's eight-second deadline, and the change goes through under allow")]
+      public void AStalledEndpointIsGivenUpOnAtTheDeadline()
+      {
+         var account = NewAccount("breachstalled", "Original-Password-9551");
+         const string password = "stalled-endpoint-allowed-9551";
+
+         using (var endpoint = new TricklingEndpoint())
+         {
+            Enable(FakeBreachCorpus.Url, 1, 0);
+
+            var clock = Stopwatch.StartNew();
+            string refusal = Refusal(account, password);
+            clock.Stop();
+
+            ClassicAssert.IsNull(refusal, "Under allow, an endpoint that never finishes its answer lets the change through.");
+            ClassicAssert.AreEqual(1, endpoint.Accepted, "The endpoint must have been connected to, or this test says nothing about reading from it.");
+
+            // A byte a second arrives on the connection for two minutes, so no read
+            // ever waits long enough to time out on its own: only a deadline on the
+            // whole request ends it. Eight seconds, with room for a loaded bench.
+            ClassicAssert.GreaterOrEqual(clock.Elapsed.TotalSeconds, 6.0,
+               "The change came back before the deadline, so the endpoint was not waited on at all.");
+            ClassicAssert.Less(clock.Elapsed.TotalSeconds, 25.0,
+               "The check waited on a trickling endpoint far past its eight-second deadline, holding the thread that asked.");
+
+            string log = ErrorLogWhenItSays("HM6600");
+            StringAssert.Contains("in the time allowed", log, "The error log says the endpoint ran out of time.");
+            StringAssert.DoesNotContain(password, log, "The password is in the error log.");
+         }
+
+         AssertLogsOn(account.Address, password, "The change that went through must be in force.");
+      }
+
+      /// <summary>
+      ///    An endpoint on 127.0.0.1:9551 that accepts, sends the head of a 200, and then
+      ///    one hexadecimal character a second for two minutes - a hung mirror, or a
+      ///    middlebox that never lets an answer finish. A read timeout never fires on it;
+      ///    only a deadline on the whole request does.
+      /// </summary>
+      private sealed class TricklingEndpoint : IDisposable
+      {
+         private readonly TcpListener _listener;
+         private readonly List<TcpClient> _clients = new List<TcpClient>();
+         private volatile bool _stopping;
+         private int _accepted;
+
+         public TricklingEndpoint()
+         {
+            _listener = new TcpListener(IPAddress.Loopback, FakeBreachCorpus.Port);
+            // An earlier fixture's connections may still be in TIME_WAIT on this port.
+            _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _listener.Start();
+            new Thread(Serve) { IsBackground = true, Name = "TricklingEndpoint" }.Start();
+         }
+
+         public int Accepted
+         {
+            get { return Interlocked.CompareExchange(ref _accepted, 0, 0); }
+         }
+
+         public void Dispose()
+         {
+            _stopping = true;
+            _listener.Stop();
+            lock (_clients)
+            {
+               foreach (TcpClient client in _clients)
+                  client.Close();
+            }
+         }
+
+         private void Serve()
+         {
+            while (!_stopping)
+            {
+               TcpClient client;
+               try
+               {
+                  client = _listener.AcceptTcpClient();
+               }
+               catch (Exception ex) when (ex is SocketException || ex is ObjectDisposedException || ex is InvalidOperationException)
+               {
+                  return;
+               }
+
+               Interlocked.Increment(ref _accepted);
+               lock (_clients)
+                  _clients.Add(client);
+               new Thread(() => Trickle(client)) { IsBackground = true, Name = "TricklingEndpoint.Trickle" }.Start();
+            }
+         }
+
+         private void Trickle(TcpClient client)
+         {
+            try
+            {
+               NetworkStream stream = client.GetStream();
+               byte[] head = Encoding.ASCII.GetBytes("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+               stream.Write(head, 0, head.Length);
+               for (int second = 0; second < 120 && !_stopping; second++)
+               {
+                  Thread.Sleep(1000);
+                  stream.WriteByte((byte) 'A');
+               }
+            }
+            catch (Exception ex) when (ex is IOException || ex is SocketException || ex is ObjectDisposedException || ex is InvalidOperationException)
+            {
+               // The server gave up and closed the connection, which is the point.
+            }
+            finally
+            {
+               client.Close();
+            }
+         }
       }
    }
 }

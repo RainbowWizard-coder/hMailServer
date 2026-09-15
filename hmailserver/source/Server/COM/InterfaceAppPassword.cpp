@@ -6,6 +6,8 @@
 #include "InterfaceAppPassword.h"
 
 #include "../Common/BO/AppPasswords.h"
+#include "../Common/BO/Account.h"
+#include "../Common/Cache/CacheContainer.h"
 #include "../Common/Persistence/PersistentAppPassword.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/PasswordPolicy.h"
@@ -210,11 +212,24 @@ STDMETHODIMP InterfaceAppPassword::SetPassword(BSTR Password)
 
       // A chosen secret is checked against the breach corpus as an account password
       // is; a generated one (Generate) is not, since it is random and nobody's.
+      //
+      // The log names the account the app password belongs to, as the REST route's
+      // does. The address is looked up only while the check is on - when it is about
+      // to make a request to the endpoint anyway - so the lookup the policy call above
+      // avoids is not added to a path that does not otherwise need it.
+      HM::String breachWho = _T("an app password");
+      if (HM::PasswordBreachCheck::GetConfiguredCheck().enabled)
+      {
+         std::shared_ptr<const HM::Account> owner = HM::CacheContainer::Instance()->GetAccount(object_->GetAccountID());
+         if (owner)
+            breachWho = _T("an app password for ") + owner->GetAddress();
+      }
+
       HM::String breachRefusal;
       HM::AnsiString breachReason;
       int breachStatus = 0;
 
-      if (!HM::PasswordBreachCheck::IsAcceptable(_T("an app password"), clearText, breachRefusal, breachReason, breachStatus))
+      if (!HM::PasswordBreachCheck::IsAcceptable(breachWho, clearText, breachRefusal, breachReason, breachStatus))
          return COMError::GenerateError(breachRefusal);
 
       object_->SetPassword(clearText);

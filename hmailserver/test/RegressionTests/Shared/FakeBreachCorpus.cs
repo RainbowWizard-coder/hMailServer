@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -34,15 +35,29 @@ namespace RegressionTests.Shared
       private readonly FakeHttpEndpoint _endpoint;
       private readonly Dictionary<string, List<string>> _lines = new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
-      public FakeBreachCorpus()
+      public FakeBreachCorpus() : this(IPAddress.Loopback)
       {
-         _endpoint = new FakeHttpEndpoint(Port, 200, PaddingOnly(), "text/plain");
+      }
+
+      /// <summary>
+      ///    The corpus on another loopback address - IPAddress.IPv6Loopback, for Ipv6Url -
+      ///    on the same port. Throws SocketException where the machine cannot listen there.
+      /// </summary>
+      public FakeBreachCorpus(IPAddress address)
+      {
+         _endpoint = new FakeHttpEndpoint(address, Port, 200, PaddingOnly(), "text/plain");
       }
 
       /// <summary>The endpoint as BreachCheckUrl takes it: the prefix is appended.</summary>
       public static string Url
       {
          get { return "http://127.0.0.1:" + Port + "/range/"; }
+      }
+
+      /// <summary>The same endpoint on the IPv6 loopback address, bracketed as a URL writes it.</summary>
+      public static string Ipv6Url
+      {
+         get { return "http://[::1]:" + Port + "/range/"; }
       }
 
       public static string Sha1Hex(byte[] bytes)

@@ -389,6 +389,14 @@ namespace RegressionTests.Shared
          ("/api/v1/settings", "welcome_smtp", "\"\""),
          ("/api/v1/settings", "welcome_pop3", "\"\""),
          ("/api/v1/settings", "welcome_imap", "\"\""),
+         // The password breach check sends a request for every password set while it is
+         // on, and the suite sets one for every account it makes: a run interrupted inside
+         // its fixtures would leave it on, pointed at a fake corpus nobody serves, in the
+         // state the next run takes as its baseline.
+         ("/api/v1/settings", "breach_check_enabled", "false"),
+         ("/api/v1/settings", "breach_check_url", "\"https://api.pwnedpasswords.com/range/\""),
+         ("/api/v1/settings", "breach_check_minimum_count", "1"),
+         ("/api/v1/settings", "breach_check_unreachable_action", "\"allow\""),
          ("/api/v1/settings/logging", "enabled", "true"),
          ("/api/v1/settings/logging", "log_application", "true"),
          ("/api/v1/settings/logging", "log_smtp", "true"),

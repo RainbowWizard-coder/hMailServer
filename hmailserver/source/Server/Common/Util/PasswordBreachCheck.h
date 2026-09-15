@@ -136,6 +136,9 @@ namespace HM
 
    private:
       static bool IsLoopbackHost_(const AnsiString &host);
+
+      // Why an answer with no entries in it is not a verdict, for the error log.
+      static String EmptyAnswerReason_();
    };
 
    class PasswordBreachCheckTester

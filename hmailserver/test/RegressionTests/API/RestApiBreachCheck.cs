@@ -4,6 +4,7 @@
 
 using System;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using hMailServer;
@@ -38,6 +39,11 @@ namespace RegressionTests.API
 
       private Account _account;
 
+      // Whether SetUp got as far as changing anything. NUnit runs a TearDown whose
+      // SetUp threw - Assert.Ignore included - and one that skipped before this was set
+      // has nothing to put back, and no listener to put it back through.
+      private bool _changed;
+
       private string Address
       {
          get { return "breachself@" + _domain.Name; }
@@ -46,11 +52,15 @@ namespace RegressionTests.API
       [SetUp]
       public void StartRestApi()
       {
+         _changed = false;
+
          if (TestPorts.Host != "127.0.0.1" && !string.Equals(TestPorts.Host, "localhost", StringComparison.OrdinalIgnoreCase))
             Assert.Ignore("The fake breach corpus listens on this machine's loopback address, and the server under test is on " + TestPorts.Host + ".");
 
          ClassicAssert.IsTrue(string.IsNullOrEmpty(ServerIniFile.GetSetting("HttpProxy")),
-            "HttpProxy is set on this bench, so the server would ask the proxy for the fake corpus on loopback. Clear it and run again.");
+            "HttpProxy is set on this bench, and a proxy on this machine would be asked for the fake corpus on loopback. Clear it and run again.");
+
+         _changed = true;
 
          _settings.SetAdministratorPassword(AdminPassword);
 
@@ -68,10 +78,59 @@ namespace RegressionTests.API
       [TearDown]
       public void StopRestApi()
       {
-         RestoreDefaults();
-         ServerIniFile.SetSetting("PasswordPolicyMinimumLength", null);
-         RestListener.Stop();
-         _application.Reinitialize();
+         if (!_changed)
+            return;
+
+         // Over COM rather than through the listener, which may be the thing that did
+         // not come up; and each restore runs whether or not the one before it threw.
+         RunEach(
+            RestoreDefaultsOverCom,
+            () => ServerIniFile.SetSetting("PasswordPolicyMinimumLength", null),
+            RestListener.Stop,
+            () => _application.Reinitialize());
+      }
+
+      /// <summary>Runs every step, and then throws the first exception any of them threw.</summary>
+      private static void RunEach(params Action[] steps)
+      {
+         Exception first = null;
+         foreach (Action step in steps)
+         {
+            try
+            {
+               step();
+            }
+            catch (Exception ex)
+            {
+               if (first == null)
+                  first = ex;
+            }
+         }
+
+         if (first != null)
+            ExceptionDispatchInfo.Capture(first).Throw();
+      }
+
+      /// <summary>The four settings at their defaults, by late binding on the COM Settings object.</summary>
+      private void RestoreDefaultsOverCom()
+      {
+         SetOverCom("BreachCheckEnabled", false);
+         SetOverCom("BreachCheckUrl", "https://api.pwnedpasswords.com/range/");
+         SetOverCom("BreachCheckMinimumCount", 1);
+         SetOverCom("BreachCheckUnreachableAction", 0);
+      }
+
+      private void SetOverCom(string property, object value)
+      {
+         object settings = _settings;
+         try
+         {
+            settings.GetType().InvokeMember(property, BindingFlags.SetProperty, null, settings, new[] { value });
+         }
+         catch (TargetInvocationException ex) when (ex.InnerException != null)
+         {
+            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+         }
       }
 
       private void RestoreDefaults()

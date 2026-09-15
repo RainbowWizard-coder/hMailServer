@@ -63,11 +63,20 @@ namespace RegressionTests.Shared
       ///    confused by an int where a status was meant.
       /// </summary>
       public FakeHttpEndpoint(int port, int statusCode, string body, string contentType)
+         : this(IPAddress.Loopback, port, statusCode, body, contentType)
+      {
+      }
+
+      /// <summary>
+      ///    The same on a loopback address the test names - IPAddress.IPv6Loopback, for an
+      ///    endpoint the server must reach as http://[::1]:port/.
+      /// </summary>
+      public FakeHttpEndpoint(IPAddress address, int port, int statusCode, string body, string contentType)
       {
          _statusCode = statusCode;
          _body = body;
          _contentType = contentType;
-         _listener = new TcpListener(IPAddress.Loopback, port);
+         _listener = new TcpListener(address, port);
          // A previous listener's connections may still be in TIME_WAIT on this port.
          _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
          _listener.Start();

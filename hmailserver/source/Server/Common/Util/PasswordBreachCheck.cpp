@@ -83,6 +83,12 @@ namespace HM
       return true;
    }
 
+   String
+   PasswordBreachCheck::EmptyAnswerReason_()
+   {
+      return _T("the endpoint answered with no entries at all, which no range of the corpus is (a mirror answers a prefix it holds nothing under with padding entries)");
+   }
+
    bool
    PasswordBreachCheck::IsLoopbackHost_(const AnsiString &host)
    {
@@ -365,6 +371,18 @@ namespace HM
          return Unavailable;
       }
 
+      // An answer with nothing in it is not "not found". Every prefix of the public
+      // corpus has hundreds of suffixes, and padding was asked for besides, so an empty
+      // 200 is a mirror serving empty files or a proxy answering for an endpoint it
+      // could not reach - which, read as a verdict, would switch the check off without
+      // a word in any log. A mirror of a smaller corpus answers a prefix it holds
+      // nothing under with padding entries, which count.
+      if (entries == 0)
+      {
+         out_error = EmptyAnswerReason_();
+         return Unavailable;
+      }
+
       const long minimum = config.minimum_count < 1 ? 1 : config.minimum_count;
       return count >= minimum ? Breached : Acceptable;
    }
@@ -519,6 +537,13 @@ namespace HM
       if (!ParseRange(body, "00000000000000000000000000000000000", count, out_padded, out_entries))
       {
          out_error = _T("the endpoint's answer was not a list of hash suffixes and counts");
+         return false;
+      }
+
+      // As Evaluate reads it: an empty answer is an endpoint the check could not use.
+      if (out_entries == 0)
+      {
+         out_error = EmptyAnswerReason_();
          return false;
       }
 
@@ -722,6 +747,20 @@ namespace HM
       answer = "<html>captive portal</html>";
       if (PasswordBreachCheck::Evaluate(config, _T("password"), fake, error, code) != PasswordBreachCheck::Unavailable || error.IsEmpty())
          throw std::logic_error("PasswordBreachCheck::Evaluate read a page that is not a range answer as a verdict.");
+
+      // An empty 200 is not "not found" either: an endpoint serving empty files, or a
+      // proxy answering for one it could not reach, would otherwise switch the check
+      // off without a word in any log.
+      answer = "";
+      if (PasswordBreachCheck::Evaluate(config, _T("password"), fake, error, code) != PasswordBreachCheck::Unavailable || error.IsEmpty() || code != 0)
+         throw std::logic_error("PasswordBreachCheck::Evaluate read an empty answer as a verdict.");
+      if (error.Find(_T("password")) >= 0 || error.Find(_T("5BAA6")) >= 0)
+         throw std::logic_error("PasswordBreachCheck::Evaluate put the password or its hash in the empty-answer error.");
+
+      // ...while an answer holding nothing but padding is an answer, and a good one.
+      answer = "0018A45C4D1DEF81644B54AB7F969B88D65:0\r\n";
+      if (PasswordBreachCheck::Evaluate(config, _T("password"), fake, error, code) != PasswordBreachCheck::Acceptable)
+         throw std::logic_error("PasswordBreachCheck::Evaluate did not take an answer of padding alone as a verdict.");
 
       answer = "";
       answerStatus = 503;
