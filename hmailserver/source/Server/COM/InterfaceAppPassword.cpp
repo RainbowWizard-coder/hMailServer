@@ -9,6 +9,7 @@
 #include "../Common/Persistence/PersistentAppPassword.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/PasswordPolicy.h"
+#include "../Common/Util/PasswordBreachCheck.h"
 
 #include "COMError.h"
 
@@ -206,6 +207,15 @@ STDMETHODIMP InterfaceAppPassword::SetPassword(BSTR Password)
 
       if (!HM::PasswordPolicy::IsAcceptable(_T(""), clearText, policyFailure))
          return COMError::GenerateError(policyFailure);
+
+      // A chosen secret is checked against the breach corpus as an account password
+      // is; a generated one (Generate) is not, since it is random and nobody's.
+      HM::String breachRefusal;
+      HM::AnsiString breachReason;
+      int breachStatus = 0;
+
+      if (!HM::PasswordBreachCheck::IsAcceptable(_T("an app password"), clearText, breachRefusal, breachReason, breachStatus))
+         return COMError::GenerateError(breachRefusal);
 
       object_->SetPassword(clearText);
 

@@ -14,6 +14,7 @@
 #include "../Common/BO/Accounts.h"
 #include "../Common/Util/Math.h"
 #include "../Common/Util/PasswordPolicy.h"
+#include "../Common/Util/PasswordBreachCheck.h"
 #include "../Common/Util/PasswordHistory.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Totp.h"
@@ -551,6 +552,16 @@ STDMETHODIMP InterfaceAccount::put_Password(BSTR newVal)
       // they are standing there able to pick something different.
       if (HM::PasswordHistory::IsReuse(object_, newVal))
          return COMError::GenerateError("This password has been used recently on this account. Choose one that has not.");
+
+      // The published breach corpus, after the local rules so that a password they
+      // refuse costs no request, and before the history is recorded so that a
+      // refused change leaves no row behind. Off by default.
+      HM::String breachRefusal;
+      HM::AnsiString breachReason;
+      int breachStatus = 0;
+
+      if (!HM::PasswordBreachCheck::IsAcceptable(object_->GetAddress(), newVal, breachRefusal, breachReason, breachStatus))
+         return COMError::GenerateError(breachRefusal);
 
       // Recorded BEFORE the new hash replaces the old one, because the thing being
       // recorded IS the old one.

@@ -45,6 +45,7 @@
 #include "JsonDocument.h"
 #include "Crypt.h"
 #include "PasswordPolicy.h"
+#include "PasswordBreachCheck.h"
 #include "PasswordHistory.h"
 #include "Time.h"
 #include "Unicode.h"
@@ -340,6 +341,15 @@ namespace HM
       {
          AnsiString body;
          body.Format("{\"error\":\"%hs\"}", quote(sentence).c_str());
+         return body;
+      }
+
+      // A refusal a page translates: the sentence, and beside it the reason word the
+      // Deck and the webmail look up ("breached", "breach_check_unavailable").
+      AnsiString ErrorBodyWithReason(const Quote &quote, const String &sentence, const AnsiString &reason)
+      {
+         AnsiString body;
+         body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", quote(sentence).c_str(), reason.c_str());
          return body;
       }
 
@@ -1242,6 +1252,13 @@ namespace HM
 
          if (PasswordHistory::IsReuse(account, password))
             return BuildResponse_(409, "{\"error\":\"This password has been used recently on this account. Choose one that has not.\"}");
+
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+
+         if (!PasswordBreachCheck::IsAcceptable(account->GetAddress(), password, breachRefusal, breachReason, breachStatus))
+            return BuildResponse_(breachStatus, ErrorBodyWithReason(quote, breachRefusal, breachReason));
 
          PasswordHistory::Record(account);
 

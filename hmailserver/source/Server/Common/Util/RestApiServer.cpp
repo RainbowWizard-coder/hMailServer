@@ -23,6 +23,7 @@
 #include "Totp.h"
 #include "AccountLogon.h"
 #include "PasswordPolicy.h"
+#include "PasswordBreachCheck.h"
 #include "PasswordHistory.h"
 #include "../Cache/AccountSizeCache.h"
 #include "AcmeClient.h"
@@ -4997,7 +4998,11 @@ namespace HM
    RestApiServer::HandleCreateAccount_(const String &domainName, const AnsiString &requestBody)
    {
       AnsiString address = GetJsonStringValue_(requestBody, "address");
-      AnsiString password = GetJsonStringValue_(requestBody, "password");
+
+      // UTF-8, as every other password route reads one. String(AnsiString) is the
+      // ANSI code page, so a password with a character outside ASCII used to be
+      // stored as the hash of other characters than the ones that were sent.
+      const String password = JsonUtf8Value_(requestBody, "password");
 
       if (address.IsEmpty() || password.IsEmpty())
          return BuildResponse_(400, "{\"error\":\"address and password are required\"}");
@@ -5018,8 +5023,33 @@ namespace HM
       if (PersistentAccount::ReadObject(existingAccount, String(address)) && existingAccount->GetID() > 0)
          return BuildResponse_(409, "{\"error\":\"account already exists\"}");
 
+      // A password chosen at creation is a password chosen: the policy and the
+      // breach check apply here as they do to Account.Password, which the Control
+      // Panel's new-account box goes through. This route applied neither until the
+      // breach check arrived, so an administrator's policy could be walked round by
+      // creating the account over REST rather than changing its password.
+      {
+         String policyFailure;
+         if (!PasswordPolicy::IsAcceptable(String(address), password, policyFailure))
+         {
+            AnsiString body;
+            body.Format("{\"error\":\"%hs\"}", JsonEscape_(Utf8_(policyFailure)).c_str());
+            return BuildResponse_(400, body);
+         }
+
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+         if (!PasswordBreachCheck::IsAcceptable(String(address), password, breachRefusal, breachReason, breachStatus))
+         {
+            AnsiString body;
+            body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", JsonEscape_(Utf8_(breachRefusal)).c_str(), breachReason.c_str());
+            return BuildResponse_(breachStatus, body);
+         }
+      }
+
       int preferredHashAlgorithm = IniFileSettings::Instance()->GetPreferredHashAlgorithm();
-      String hashedPassword = Crypt::Instance()->EnCrypt(String(password), (Crypt::EncryptionType) preferredHashAlgorithm);
+      String hashedPassword = Crypt::Instance()->EnCrypt(password, (Crypt::EncryptionType) preferredHashAlgorithm);
 
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
       account->SetDomainID(domain->GetID());
@@ -6349,6 +6379,21 @@ namespace HM
 
       if (PasswordHistory::IsReuse(account, newPassword))
          return BuildResponse_(409, "{\"error\":\"this password has been used recently on this account; choose one that has not\"}");
+
+      // The breach corpus last, so that the rules decided here cost no request, and
+      // before anything is recorded. The reason word is what the webmail translates.
+      {
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+
+         if (!PasswordBreachCheck::IsAcceptable(account->GetAddress(), newPassword, breachRefusal, breachReason, breachStatus))
+         {
+            AnsiString body;
+            body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", JsonEscape_(Utf8_(breachRefusal)).c_str(), breachReason.c_str());
+            return BuildResponse_(breachStatus, body);
+         }
+      }
 
       std::shared_ptr<Account> mutableAccount = std::shared_ptr<Account>(new Account());
       if (!PersistentAccount::ReadObject(mutableAccount, account->GetID()) || mutableAccount->GetID() == 0)

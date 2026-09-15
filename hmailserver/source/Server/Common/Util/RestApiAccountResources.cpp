@@ -95,6 +95,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "PasswordPolicy.h"
+#include "PasswordBreachCheck.h"
 #include "FileUtilities.h"
 #include "MessageUtilities.h"
 #include "../Application/Logger.h"
@@ -170,6 +171,12 @@ namespace
    HttpResponse Refusal(const Bridge &bridge, int status, const String &sentence)
    {
       return bridge.respond(status, "{\"error\":\"" + bridge.escape(Utf8(sentence)) + "\"}", "");
+   }
+
+   // A refusal with the reason word a page translates beside the sentence.
+   HttpResponse RefusalWithReason(const Bridge &bridge, int status, const String &sentence, const AnsiString &reason)
+   {
+      return bridge.respond(status, "{\"error\":\"" + bridge.escape(Utf8(sentence)) + "\",\"reason\":\"" + reason + "\"}", "");
    }
 
    bool ParseObjectBody(const AnsiString &requestBody, JsonValue &body)
@@ -358,6 +365,13 @@ namespace
          String policyFailure;
          if (!PasswordPolicy::IsAcceptable(_T(""), chosen, policyFailure))
             return Refusal(bridge, 400, policyFailure);
+
+         // ...and InterfaceAppPassword::SetPassword's third, the breach corpus.
+         String breachRefusal;
+         AnsiString breachReason;
+         int breachStatus = 0;
+         if (!PasswordBreachCheck::IsAcceptable(_T("an app password for ") + account->GetAddress(), chosen, breachRefusal, breachReason, breachStatus))
+            return RefusalWithReason(bridge, breachStatus, breachRefusal, breachReason);
 
          clearText = chosen;
       }

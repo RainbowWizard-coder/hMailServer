@@ -1098,6 +1098,18 @@ STDMETHODIMP InterfaceSettings::SetAdministratorPassword(BSTR newVal)
          return GetAccessDenied();
       
    
+      // The administrator credential is held to the breach check as a mailbox
+      // password is (the mailbox policy has never applied to it). What cannot be
+      // reached from here is hmailserver --set-admin-password, which runs with no
+      // database open and so no settings to read; that is the way back in when the
+      // check is set to refuse and its endpoint is down.
+      HM::String breachRefusal;
+      HM::AnsiString breachReason;
+      int breachStatus = 0;
+
+      if (!HM::PasswordBreachCheck::IsAcceptable(_T("the administrator"), HM::String(newVal), breachRefusal, breachReason, breachStatus))
+         return COMError::GenerateError(breachRefusal);
+
       ini_file_settings_->SetAdministratorPassword(newVal);
 
       return S_OK;
