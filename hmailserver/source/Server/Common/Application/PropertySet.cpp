@@ -6,6 +6,7 @@
 #include "PropertySet.h"
 #include "Property.h"
 #include "../Util/Crypt.h"
+#include "../Util/AuditTrail.h"
 
 
 #ifdef _DEBUG
@@ -117,40 +118,111 @@ namespace HM
       return GetProperty_(sPropertyName)->GetStringValue();
    }
 
+   /*
+      The audit trail's one chokepoint for settings. Every server setting, from
+      every interface, is written through the three functions below, and this is
+      the only place where the value the setting HAD is still readable - which is
+      why hm_settings is not one of the tables AuditTrail records from the
+      statement chokepoint. A setting whose value is a secret is recorded as
+      changed and never as a value; AuditTrail::IsSecretName decides, by name.
+
+      Recorded only when the value really changed, which is the same condition
+      OnPropertyChanged_ already uses: the Control Panel's settings pages write
+      every field on the page when one of them is edited, and an audit trail that
+      recorded forty unchanged settings per save would bury the one that moved.
+   */
    void 
    PropertySet::SetLong(const String &sPropertyName, long lValue)
    {
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
-      bool bChanged = lValue != pProperty->GetLongValue();
+      long previousValue = pProperty->GetLongValue();
+      bool bChanged = lValue != previousValue;
       pProperty->SetLongValue(lValue);
 
       if (bChanged)
+      {
+         AuditTrail::Instance()->RecordSettingChange(sPropertyName,
+            StringParser::IntToString((int) previousValue), StringParser::IntToString((int) lValue));
+
          OnPropertyChanged_(pProperty);
+      }
    }
 
    void 
    PropertySet::SetBool(const String &sPropertyName, bool bValue)
    {
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
-      bool bChanged = bValue != pProperty->GetBoolValue();
+      bool previousValue = pProperty->GetBoolValue();
+      bool bChanged = bValue != previousValue;
       pProperty->SetBoolValue(bValue);
 
       if (bChanged)
+      {
+         AuditTrail::Instance()->RecordSettingChange(sPropertyName,
+            previousValue ? _T("true") : _T("false"), bValue ? _T("true") : _T("false"));
+
          OnPropertyChanged_(pProperty);
+      }
    }
 
    void 
    PropertySet::SetString(const String &sPropertyName, const String &sValue)
    {
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
-      bool bChanged = sValue != pProperty->GetStringValue();
+      String previousValue = pProperty->GetStringValue();
+      bool bChanged = sValue != previousValue;
       pProperty->SetStringValue(sValue);
 
       if (bChanged)
+      {
+         AuditTrail::Instance()->RecordSettingChange(sPropertyName, previousValue, sValue);
+
          OnPropertyChanged_(pProperty);
+      }
    }
 
-   void 
+   bool
+   PropertySet::Contains(const String &sPropertyName) const
+   {
+      return items_.find(sPropertyName) != items_.end();
+   }
+
+   void
+   PropertySet::EnsureLong(const String &sPropertyName, long lValue)
+   {
+      if (Contains(sPropertyName))
+         return;
+
+      std::shared_ptr<Property> oProperty = std::shared_ptr<Property>(new Property(sPropertyName, lValue, ""));
+
+      // Writes the row. Property inserts when the row is missing, which it is -
+      // that is the whole reason this function was reached.
+      oProperty->SetLongValue(lValue);
+
+      items_[sPropertyName] = oProperty;
+
+      // No change event: the value that has just been stored is the default, so
+      // nothing about the server's behaviour has changed and nothing needs to be
+      // told. Refresh() raises one for every property that WAS in the database.
+   }
+
+   void
+   PropertySet::EnsureString(const String &sPropertyName, const String &sValue)
+   {
+      if (Contains(sPropertyName))
+         return;
+
+      std::shared_ptr<Property> oProperty = std::shared_ptr<Property>(new Property(sPropertyName, 0, sValue));
+
+      if (IsCryptedProperty_(sPropertyName))
+         oProperty->SetIsCrypted();
+
+      oProperty->SetStringValue(sValue);
+
+      items_[sPropertyName] = oProperty;
+   }
+
+   void
    PropertySet::OnPropertyChanged_(std::shared_ptr<Property> pProperty)
    {
       // Notify configuration that a setting has changed.

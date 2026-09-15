@@ -1,4 +1,4 @@
-// https://www.progressiverobot.com
+﻿// https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -249,6 +249,10 @@ namespace DBUpdater
          _upgradeScripts.Add(new UpgradeScript(6038, 6039));
          _upgradeScripts.Add(new UpgradeScript(6039, 6040));
          _upgradeScripts.Add(new UpgradeScript(6040, 6041));
+         _upgradeScripts.Add(new UpgradeScript(6041, 6042));
+         _upgradeScripts.Add(new UpgradeScript(6042, 6043));
+         _upgradeScripts.Add(new UpgradeScript(6043, 6044));
+         _upgradeScripts.Add(new UpgradeScript(6044, 6045));
          _upgradeScripts.Add(new UpgradeScript(6045, 6046));
       }
 
@@ -447,6 +451,14 @@ namespace DBUpdater
                return "hMailServer 6.3 (6040)";
             case 6041:
                return "hMailServer 6.3 (6041)";
+            case 6042:
+               return "hMailServer 6.3 (6042)";
+            case 6043:
+               return "hMailServer 6.3 (6043)";
+            case 6044:
+               return "hMailServer 6.3 (6044)";
+            case 6045:
+               return "hMailServer 6.3 (6045)";
             case 6046:
                return "hMailServer 6.3 (6046)";
             default:

@@ -5,162 +5,270 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hMailServer — Control Deck</title>
 <style>
+/* ======================================================================
+   The Deck's look is the webmail's. Every colour, every step of the
+   spacing scale, every radius and every size of the type ramp is a custom
+   property declared once here and nowhere else in the page: the palette is
+   the one hmailserver/source/Server/Common/Util/Portal.html declares, value
+   for value, so that the two pages a person meets on this server are one
+   design and not two, and the scale, the radii and the ramp are the desktop
+   console's (hmailserver/docs/ControlPanelDesign.md), so that the
+   administrator who uses both meets one vocabulary: a command bar, a
+   navigation column, a content area, cards, a grid, a form row, an empty
+   state, a notice and a status pill.
+
+   The theme is the body's data-theme attribute. Light is the page as it
+   stands; [data-theme="dark"] redeclares the tokens the webmail's dark
+   theme redeclares and nothing else. The choice is this browser's - light,
+   dark, or the system's, which is prefers-color-scheme asked through
+   matchMedia and followed as it changes - and it is remembered in
+   localStorage under a name that is not a secret.
+
+   The rule the harness holds this file to: no literal colour outside the
+   two blocks below. A page whose fifth card paints its own grey is a page
+   that has two themes, one of which nobody maintains.
+   ====================================================================== */
 :root{
-  --bg:#070b12; --bg2:#0b1018; --surface:rgba(255,255,255,.045); --surface2:rgba(255,255,255,.08);
-  --border:rgba(255,255,255,.09); --text:#e6edf3; --muted:#8b949e;
-  --accent:#36c2ff; --accent2:#7c5cff; --good:#3fb950; --warn:#d29922; --bad:#f85149;
-  --glow:0 0 24px rgba(54,194,255,.25);
-  --radius:14px; --font:'Segoe UI Variable','Segoe UI',system-ui,sans-serif;
-  --mono:'Cascadia Mono',Consolas,'SFMono-Regular',monospace;
+  --bg:#f6f8fc; --surface:#fff; --surface-2:#f1f3f4; --surface-3:#e8eaed; --line:#e0e3e8; --line-2:#c9ced6;
+  --text:#1f1f1f; --text-2:#444746; --muted:#5f6368;
+  --accent:#1a73e8; --accent-2:#174ea6; --accent-soft:#e8f0fe; --accent-text:#0b57d0; --on-accent:#fff; --on-danger:#fff;
+  --cursor:#e8f0fe; --selected:#c2dbff;
+  --danger:#d93025; --danger-soft:#fce8e6; --good:#188038; --good-soft:#e6f4ea; --warn:#b06000; --warn-soft:#fef7e0;
+  --shadow:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
+  --shadow-2:0 4px 8px 3px rgba(60,64,67,.15),0 1px 3px rgba(60,64,67,.3);
+  --scrim:rgba(32,33,36,.55);
+  /* The console's six steps. A margin, a padding or a gap is one of them. */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  /* Its three radii: a control, a card, a capsule. */
+  --radius-control:4px; --radius:8px; --pill:999px;
+  /* Its type ramp: caption, body, subtitle, title. */
+  --fs-caption:12px; --fs-body:14px; --fs-subtitle:20px; --fs-title:28px;
+  /* Its frame: the command bar, the navigation column and its rail, a row. */
+  --cmdbar:48px; --nav:256px; --rail:56px; --row:34px; --form:760px;
+  --font:system-ui,'Segoe UI Variable','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:'Cascadia Mono',Consolas,'SFMono-Regular',Menlo,monospace;
 }
-[data-theme="light"]{
-  --bg:#eef2f7; --bg2:#f7fafc; --surface:rgba(255,255,255,.75); --surface2:rgba(255,255,255,.95);
-  --border:rgba(15,30,50,.12); --text:#1c2530; --muted:#5a6877;
-  --accent:#0969da; --accent2:#6f42c1; --glow:0 4px 18px rgba(9,105,218,.18);
+[data-theme="dark"]{
+  --bg:#111418; --surface:#1b1f24; --surface-2:#262b31; --surface-3:#30363d; --line:#2e343b; --line-2:#3f464e;
+  --text:#e8eaed; --text-2:#c4c7c5; --muted:#9aa0a6;
+  --accent:#8ab4f8; --accent-2:#aecbfa; --accent-soft:#283142; --accent-text:#8ab4f8; --on-accent:#062e6f; --on-danger:#111418;
+  --cursor:#283142; --selected:#33456b;
+  --danger:#f28b82; --danger-soft:#3c2422; --good:#81c995; --good-soft:#1e3325; --warn:#fdd663; --warn-soft:#3a3120;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 3px 1px rgba(0,0,0,.3);
+  --shadow-2:0 4px 8px 3px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.5);
+  --scrim:rgba(0,0,0,.65);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden}
-
-/* Animated aurora backdrop */
-.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;filter:blur(90px)}
-.aurora::before,.aurora::after{content:"";position:absolute;width:55vw;height:55vw;border-radius:50%;
-  background:radial-gradient(circle,var(--accent) 0%,transparent 60%);animation:drift 26s ease-in-out infinite}
-.aurora::after{background:radial-gradient(circle,var(--accent2) 0%,transparent 60%);
-  right:-10vw;bottom:-18vw;animation-delay:-13s}
-.aurora::before{left:-12vw;top:-18vw}
-@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(7vw,5vh) scale(1.15)}}
-
-.app{position:relative;z-index:1;display:flex;height:100%}
-
-/* ---------- Sidebar ---------- */
-.side{width:232px;display:flex;flex-direction:column;padding:20px 14px;gap:4px;
-  background:linear-gradient(180deg,var(--surface),transparent);border-right:1px solid var(--border);backdrop-filter:blur(18px)}
-.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 22px}
-.brand .logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--glow)}
-.brand b{font-size:15px;letter-spacing:.4px}
-.brand small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase}
-.nav{display:flex;flex-direction:column;gap:2px;overflow:auto}
-.nav button{all:unset;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;
-  color:var(--muted);font-size:13.5px;cursor:pointer;transition:all .18s}
-.nav button:hover{background:var(--surface2);color:var(--text)}
-.nav button.on{background:linear-gradient(90deg,rgba(54,194,255,.16),transparent);color:var(--text);
-  box-shadow:inset 2.5px 0 0 var(--accent)}
-.nav .ico{width:17px;text-align:center;opacity:.9}
-.side .foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:10px}
-.pill{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);animation:pulse 2s infinite}
-@keyframes pulse{50%{opacity:.45}}
-
-/* ---------- Main ---------- */
-.main{flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border)}
-.topbar h1{font-size:18px;font-weight:600;letter-spacing:.3px}
-.topbar .sp{flex:1}
-.iconbtn{all:unset;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;border-radius:10px;
-  border:1px solid var(--border);background:var(--surface);transition:all .18s;font-size:15px}
-.iconbtn:hover{border-color:var(--accent);box-shadow:var(--glow)}
-.topbar select,.login select{padding:7px 10px;font-size:12.5px;border-radius:10px}
-.login .langrow{display:flex;justify-content:flex-end;margin-top:14px}
-.content{flex:1;overflow:auto;padding:26px 28px}
-
-/* ---------- Cards / grids ---------- */
-.grid{display:grid;gap:16px}
-.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;backdrop-filter:blur(14px);transition:transform .2s,box-shadow .2s,border-color .2s}
-.card:hover{transform:translateY(-2px);border-color:rgba(54,194,255,.4);box-shadow:var(--glow)}
-.card.flat:hover{transform:none;border-color:var(--border);box-shadow:none}
-.kpi .v{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;
-  background:linear-gradient(90deg,var(--text),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.kpi .l{color:var(--muted);font-size:12px;margin-top:6px;letter-spacing:.6px;text-transform:uppercase}
-.kpi .bar{height:3px;border-radius:2px;margin-top:14px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.7}
-
-.sect{margin-top:26px}
-.sect h2{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:12px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.sect h2 code{text-transform:none;letter-spacing:0}
+body{font-family:var(--font);font-size:var(--fs-body);line-height:1.45;background:var(--bg);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+::selection{background:var(--selected)}
+/* The ring the keyboard leaves behind it, on everything that takes focus. */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--radius-control)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:var(--s2);z-index:70;background:var(--surface);color:var(--accent-text);
+  padding:var(--s2) var(--s3);border-radius:var(--radius);box-shadow:var(--shadow-2);text-decoration:none}
+.skip:focus{left:var(--s2)}
+a{color:var(--accent-text)}
+button{font:inherit;color:inherit}
+code{font-family:var(--mono);font-size:var(--fs-caption)}
 .muted{color:var(--muted)}
-code{font-family:var(--mono);font-size:12px}
 
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{color:var(--muted);text-align:left;font-weight:500;font-size:11.5px;text-transform:uppercase;
-  letter-spacing:1px;padding:10px 14px;border-bottom:1px solid var(--border)}
-td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top}
-tr{transition:background .15s}
-tbody tr:hover{background:var(--surface2)}
+.app{display:flex;flex-direction:column;height:100%}
+.shell{flex:1;display:flex;min-height:0}
+
+/* ---------- The command bar ---------- */
+.cmdbar{height:var(--cmdbar);flex:none;display:flex;align-items:center;gap:var(--s2);
+  padding:0 var(--s4);background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:var(--s2);min-width:0}
+.brand .logo{width:28px;height:28px;border-radius:var(--radius-control);display:grid;place-items:center;
+  font-weight:600;font-size:var(--fs-caption);background:var(--accent);color:var(--on-accent);flex:none}
+.brand b{font-size:var(--fs-body);font-weight:600;white-space:nowrap}
+.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
+.cmdbar h1{font-size:var(--fs-body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding-inline-start:var(--s3);margin-inline-start:var(--s2);border-inline-start:1px solid var(--line)}
+.cmdbar .sp{flex:1}
+.cmdbar select{padding:4px var(--s2);font-size:var(--fs-caption);border-radius:var(--radius-control)}
+.search{position:relative;display:flex;align-items:center;flex:0 1 300px;min-width:120px}
+.search input{width:100%;height:32px;padding:0 var(--s6) 0 var(--s3);border-radius:var(--pill);
+  background:var(--surface-2);border:1px solid transparent;font-size:var(--fs-body)}
+.search input:focus{background:var(--surface);border-color:var(--accent)}
+.search kbd{position:absolute;right:var(--s2);pointer-events:none}
+kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface-2);border:1px solid var(--line-2);
+  border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--text-2);white-space:nowrap}
+
+/* ---------- The status pill ---------- */
+.pill{display:inline-flex;align-items:center;gap:var(--s1);padding:2px 10px;border-radius:var(--pill);
+  font-size:var(--fs-caption);background:var(--surface-3);color:var(--text-2);white-space:nowrap}
+.pill .mark{font-size:10px;line-height:1}
+.pill[data-level="good"]{background:var(--good-soft);color:var(--good)}
+.pill[data-level="warn"]{background:var(--warn-soft);color:var(--warn)}
+.pill[data-level="bad"]{background:var(--danger-soft);color:var(--danger)}
+.pill[data-level="info"]{background:var(--accent-soft);color:var(--accent-text)}
+
+/* ---------- The navigation column, and its rail ---------- */
+.side{width:var(--nav);flex:none;display:flex;flex-direction:column;padding:var(--s2);gap:var(--s1);
+  background:var(--surface);border-inline-end:1px solid var(--line);overflow:auto}
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--s3);height:var(--row);
+  padding:0 var(--s3);border-radius:var(--radius-control);color:var(--text-2);font-size:var(--fs-body);cursor:pointer}
+.nav button:hover{background:var(--surface-2);color:var(--text)}
+.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.nav button.on{background:var(--accent-soft);color:var(--accent-text);font-weight:600}
+.nav .ico{width:18px;text-align:center;flex:none}
+.side .foot{margin-top:auto;padding:var(--s3) var(--s3) var(--s2);color:var(--muted);font-size:var(--fs-caption)}
+@media (max-width:900px){
+  .side{width:var(--rail);padding:var(--s2) var(--s1)}
+  .nav button{justify-content:center;padding:0}
+  .nav button span:not(.ico),.side .foot,.brand div{display:none}
+}
+
+/* ---------- The content area ---------- */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.content{flex:1;overflow:auto;padding:var(--s5) var(--s5) var(--s5)}
+.view{animation:rise .2s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- Cards, sections, grids ---------- */
+.grid{display:grid;gap:var(--s3)}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:var(--s4) var(--s5)}
+.card.flat{background:var(--surface)}
+.kpi{padding:var(--s4) var(--s5) var(--s5)}
+.kpi .v{font-size:var(--fs-title);font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.kpi .l{color:var(--muted);font-size:var(--fs-caption);margin-top:var(--s1)}
+.kpi .bar{height:3px;border-radius:2px;margin-top:var(--s3);background:var(--accent-soft)}
+h2{font-size:var(--fs-subtitle);font-weight:600}
+.sect{margin-top:var(--s5)}
+.sect h2{font-size:var(--fs-body);font-weight:600;color:var(--text);margin-bottom:var(--s3);
+  display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+.sect h2 code{color:var(--muted);font-weight:400}
+
+table{width:100%;border-collapse:collapse;font-size:var(--fs-body)}
+th{color:var(--muted);text-align:start;font-weight:600;font-size:var(--fs-caption);
+  padding:var(--s2) var(--s3);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:var(--s2) var(--s3);border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+/* The row the keyboard is on. Arrows move it, Enter opens it. */
+tbody tr.cur{background:var(--cursor);box-shadow:inset 2px 0 0 var(--accent)}
 .tablewrap{overflow-x:auto}
 
-.btn{all:unset;cursor:pointer;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;transition:all .18s;letter-spacing:.3px}
-.btn:hover{box-shadow:var(--glow);transform:translateY(-1px)}
-.btn.ghost{background:var(--surface);border:1px solid var(--border);color:var(--text)}
-.btn.ghost:hover{border-color:var(--accent)}
-.btn.danger{background:linear-gradient(135deg,#f85149,#c93c54)}
-.btn.sm{padding:5px 11px;font-size:12px}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);
+  height:32px;padding:0 var(--s4);border-radius:var(--radius-control);font-size:var(--fs-body);font-weight:600;
+  background:var(--accent);color:var(--on-accent);white-space:nowrap}
+.btn:hover{box-shadow:var(--shadow)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.ghost{background:var(--surface);border:1px solid var(--line-2);color:var(--accent-text);font-weight:500}
+.btn.ghost:hover{background:var(--accent-soft);box-shadow:none}
+.btn.danger{background:var(--danger);color:var(--on-danger)}
+.btn.sm{height:26px;padding:0 var(--s3);font-size:var(--fs-caption)}
+.iconbtn{all:unset;box-sizing:border-box;cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;
+  justify-content:center;border-radius:50%;color:var(--text-2);flex:none;font-size:15px}
+.iconbtn:hover{background:var(--surface-2)}
+.iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
-input,select,textarea{background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);
-  padding:9px 13px;font-size:13.5px;font-family:var(--font);outline:none;transition:all .18s;max-width:100%}
-textarea{font-family:var(--mono);font-size:12.5px;line-height:1.6;resize:vertical;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:var(--glow)}
-input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);padding:0}
-option{background:var(--bg2);color:var(--text)}
+input,select,textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius-control);
+  color:var(--text);padding:6px var(--s3);font-size:var(--fs-body);font-family:var(--font);outline:none;max-width:100%}
+textarea{font-family:var(--mono);font-size:13px;line-height:1.6;resize:vertical;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0;cursor:pointer}
+option{background:var(--surface);color:var(--text)}
 
-.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.4px}
-.badge.good{background:rgba(63,185,80,.15);color:var(--good)}
-.badge.warn{background:rgba(210,153,34,.15);color:var(--warn)}
-.badge.info{background:rgba(54,194,255,.15);color:var(--accent)}
+.badge{display:inline-flex;align-items:center;gap:var(--s1);padding:1px 8px;border-radius:var(--pill);
+  font-size:11.5px;font-weight:600;background:var(--surface-3);color:var(--text-2)}
+.badge.good{background:var(--good-soft);color:var(--good)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.bad{background:var(--danger-soft);color:var(--danger)}
+.badge.info{background:var(--accent-soft);color:var(--accent-text)}
 
-.empty{color:var(--muted);padding:34px;text-align:center;font-size:13.5px}
-pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;
-  overflow:auto;line-height:1.7;color:var(--text)}
-.toast{position:fixed;bottom:26px;right:26px;background:var(--surface2);border:1px solid var(--accent);
-  border-radius:12px;padding:13px 20px;font-size:13.5px;backdrop-filter:blur(16px);box-shadow:var(--glow);
-  opacity:0;transform:translateY(12px);transition:all .3s;z-index:60;pointer-events:none}
+/* ---------- The empty state and the notice ---------- */
+.empty{color:var(--muted);padding:var(--s6);text-align:center;font-size:var(--fs-body)}
+.notice{display:flex;align-items:flex-start;gap:var(--s2);padding:var(--s3) var(--s4);margin-bottom:var(--s3);
+  border:1px solid var(--line-2);border-radius:var(--radius-control);font-size:var(--fs-body);line-height:1.55;
+  background:var(--surface-2);color:var(--text)}
+.notice .mark{flex:none;font-size:var(--fs-caption);line-height:1.6}
+.notice b{font-weight:600;margin-inline-end:var(--s1)}
+.notice[data-level="info"]{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}
+.notice[data-level="info"] .mark,.notice[data-level="info"] b{color:var(--accent-text)}
+.notice[data-level="warn"]{background:var(--warn-soft);border-color:var(--warn)}
+.notice[data-level="warn"] .mark,.notice[data-level="warn"] b{color:var(--warn)}
+.notice[data-level="bad"]{background:var(--danger-soft);border-color:var(--danger)}
+.notice[data-level="bad"] .mark,.notice[data-level="bad"] b{color:var(--danger)}
+
+pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-control);padding:var(--s4);
+  font-size:var(--fs-caption);overflow:auto;line-height:1.7;color:var(--text)}
+.toast{position:fixed;bottom:var(--s5);inset-inline-end:var(--s5);background:var(--surface);border:1px solid var(--line-2);
+  border-radius:var(--radius);padding:var(--s3) var(--s4);font-size:var(--fs-body);box-shadow:var(--shadow-2);
+  opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;z-index:60;pointer-events:none}
 .toast.show{opacity:1;transform:none}
 
-/* ---------- Forms built from the OpenAPI document ---------- */
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.form{display:flex;flex-direction:column}
-.fr{display:grid;grid-template-columns:minmax(210px,1fr) minmax(210px,1.1fr);gap:8px 20px;
-  padding:11px 0;border-bottom:1px solid var(--border);align-items:start}
+/* ---------- The form row ---------- */
+.row{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.form{display:flex;flex-direction:column;max-width:var(--form)}
+.fr{display:grid;grid-template-columns:minmax(210px,1fr) minmax(210px,1.1fr);gap:var(--s1) var(--s5);
+  padding:var(--s3) 0;border-bottom:1px solid var(--line);align-items:start}
 .fr:last-child{border-bottom:none}
-.fr .lab b{font-size:13.5px;font-weight:600;display:inline-block;margin-right:8px}
+.fr .lab b{font-size:var(--fs-body);font-weight:600;display:inline-block;margin-inline-end:var(--s2)}
 .fr .lab code{color:var(--muted)}
-.hint{color:var(--muted);font-size:11.5px;line-height:1.5}
-.fr .hint{margin-top:4px}
+.hint{color:var(--muted);font-size:var(--fs-caption);line-height:1.5}
+.fr .hint{margin-top:var(--s1)}
 .fr .ctl input[type=text],.fr .ctl input[type=password],.fr .ctl input[type=number],.fr .ctl select{width:100%}
-.fr .ctl .ro{display:inline-block;padding:8px 0;word-break:break-all}
-.erow{padding:9px 0;border-bottom:1px dashed var(--border);align-items:flex-start}
+.fr .ctl .ro{display:inline-block;padding:6px 0;word-break:break-all}
+.erow{padding:var(--s2) 0;border-bottom:1px dashed var(--line);align-items:flex-start}
 .erow:last-of-type{border-bottom:none}
-.err{color:var(--bad);font-size:12.5px;line-height:1.5}
+.err{color:var(--danger);font-size:var(--fs-caption);line-height:1.5}
 .err:empty{display:none}
-.note{color:var(--muted);font-size:12.5px;line-height:1.6;margin-bottom:14px}
+.note{color:var(--muted);font-size:var(--fs-caption);line-height:1.6;margin-bottom:var(--s3)}
 
-/* ---------- Login ---------- */
-.gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg)}
-.gate .aurora{opacity:.6}
-.login{position:relative;width:380px;background:var(--surface);border:1px solid var(--border);
-  border-radius:18px;padding:38px;backdrop-filter:blur(20px);box-shadow:0 24px 80px rgba(0,0,0,.45)}
-.login .logo{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-weight:700;font-size:21px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--glow);margin-bottom:18px}
-.login h1{font-size:20px;margin-bottom:4px}
-.login p{color:var(--muted);font-size:13px;margin-bottom:24px}
-.login input{width:100%;margin-bottom:12px}
-.login .btn{width:100%;text-align:center;padding:11px;margin-top:6px;box-sizing:border-box}
-.login .err{color:var(--bad);font-size:12.5px;min-height:18px;margin-top:10px}
-.view{animation:fadein .25s ease}
-@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-[hidden]{display:none!important}
+/* ---------- The sign-in gate ---------- */
+.gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg);padding:var(--s4);overflow:auto}
+.login{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);
+  border-radius:16px;padding:var(--s6);box-shadow:var(--shadow)}
+.login .logo{width:48px;height:48px;border-radius:var(--radius);display:grid;place-items:center;font-weight:600;
+  font-size:var(--fs-subtitle);background:var(--accent);color:var(--on-accent);margin:0 auto var(--s4)}
+.login h1{font-size:var(--fs-subtitle);font-weight:600;text-align:center;margin-bottom:var(--s1)}
+.login p{color:var(--muted);font-size:13px;margin-bottom:var(--s5);text-align:center}
+.login input{width:100%;margin-bottom:var(--s3);padding:var(--s2) var(--s3)}
+.login .btn{width:100%;margin-top:var(--s1)}
+.login .err{min-height:18px;margin-top:var(--s3)}
+.login select{padding:5px var(--s2);font-size:var(--fs-caption);border-radius:var(--radius-control)}
+.login .langrow{display:flex;justify-content:flex-end;margin-top:var(--s3)}
+
+/* ---------- The shortcut list ---------- */
+.overlay{position:fixed;inset:0;z-index:65;display:grid;place-items:center;background:var(--scrim);padding:var(--s4)}
+.sheet{width:100%;max-width:520px;max-height:80vh;overflow:auto;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:var(--s5);box-shadow:var(--shadow-2)}
+.sheet h2{margin-bottom:var(--s4)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:var(--s2) var(--s4);align-items:baseline;margin-bottom:var(--s5)}
+.keys dt{white-space:nowrap}
+.keys dd{color:var(--text-2);font-size:13px}
+/* ---------- The tour ----------
+   A ring round the thing being talked about and a card beside it. Neither is
+   a dialog: the ring takes no pointer events at all and the card is the only
+   thing on this layer that does, so every control under it - including the one
+   being pointed at - stays usable while a tour runs. The ring is an outline in
+   the accent AND a dashed inset, because a highlight that is only a colour is
+   no highlight in greyscale, in high contrast, or to a reader who does not see
+   this blue. */
+.tourring{position:fixed;z-index:70;pointer-events:none;border-radius:var(--radius);
+  outline:2px solid var(--accent);outline-offset:2px}
+.tourring::after{content:"";position:absolute;inset:3px;border:1px dashed var(--text);
+  border-radius:var(--radius-control);opacity:.75}
+.tourcard{position:fixed;z-index:71;width:330px;max-width:calc(100vw - var(--s6));background:var(--surface);
+  border:1px solid var(--accent);border-radius:var(--radius);padding:var(--s4) var(--s5);box-shadow:var(--shadow-2)}
+.tourcard .head{display:flex;justify-content:space-between;gap:var(--s2);color:var(--muted);
+  font-size:var(--fs-caption);letter-spacing:.4px;text-transform:uppercase}
+.tourcard p{font-size:var(--fs-body);line-height:1.6;margin:var(--s3) 0 var(--s4)}
+.tourcard .row{gap:var(--s2)}
 </style>
 </head>
-<body data-theme="dark">
-<div class="aurora"></div>
+<body>
+<a class="skip" href="#content">Skip to the content</a>
 
-<!-- Login gate -->
+<!-- The sign-in gate -->
 <div class="gate" id="gate">
-  <div class="aurora"></div>
   <form class="login" id="loginForm">
     <div class="logo">hM</div>
     <h1>Control Deck</h1>
@@ -174,45 +282,73 @@ pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padd
   </form>
 </div>
 
-<!-- App shell -->
+<!-- The shell: a command bar across the top, then the navigation column
+     beside the content area, which is the frame the desktop console has. -->
 <div class="app" id="app" style="display:none">
-  <aside class="side">
-    <div class="brand">
-      <div class="logo">hM</div>
-      <div><b>hMailServer</b><small>Control Deck</small></div>
-    </div>
-    <nav class="nav" id="nav">
-      <button data-view="dash" class="on"><span class="ico">◈</span>Dashboard</button>
-      <button data-view="domains"><span class="ico">⌂</span>Domains</button>
-      <button data-view="ipranges"><span class="ico">⌗</span>IP ranges</button>
-      <button data-view="fetch"><span class="ico">⇓</span>Fetch accounts</button>
-      <button data-view="lists"><span class="ico">≣</span>Lists</button>
-      <button data-view="queue"><span class="ico">⇶</span>Delivery queue</button>
-      <button data-view="tlsa"><span class="ico">⛨</span>DANE / TLSA</button>
-      <button data-view="settings"><span class="ico">⚙</span>Settings</button>
-      <button data-view="backup"><span class="ico">⛃</span>Backup</button>
-      <button data-view="messages"><span class="ico">✎</span>Server messages</button>
-      <button data-view="rules"><span class="ico">⚖</span>Rules</button>
-      <button data-view="routes"><span class="ico">⇥</span>Routes</button>
-      <button data-view="certs"><span class="ico">⚿</span>Certificates</button>
-      <button data-view="ports"><span class="ico">⊞</span>Ports</button>
-      <button data-view="logs"><span class="ico">≡</span>Logs</button>
-    </nav>
-    <div class="foot">
-      <div class="pill"><span class="dot"></span><span id="connState">Connected</span></div>
-      <div class="pill" style="opacity:.7">v<span id="ver">—</span></div>
-    </div>
-  </aside>
+  <header class="cmdbar">
+    <div class="brand"><div class="logo">hM</div><div><b>hMailServer</b><small>Control Deck</small></div></div>
+    <h1 id="viewTitle">Dashboard</h1>
+    <div class="sp"></div>
+    <div class="search"><input id="deckSearch" type="search" placeholder="Search this view" aria-label="Search this view"><kbd>/</kbd></div>
+    <span class="pill" id="connPill" data-level="good"><span class="mark" id="connMark" aria-hidden="true">■</span><span id="connState">Connected</span></span>
+    <select data-lang id="langSel" aria-label="Language" title="Language"></select>
+    <button class="iconbtn" id="themeBtn" data-nowalk>◐</button>
+    <button class="iconbtn" id="tourBtn" title="Show me around" aria-label="Show me around">◎</button>
+    <button class="iconbtn" id="keysBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
+    <button class="iconbtn" id="logoutBtn" title="Sign out" aria-label="Sign out">⏻</button>
+  </header>
+  <div class="shell">
+    <aside class="side">
+      <nav class="nav" id="nav">
+        <button data-view="dash" class="on" title="Dashboard"><span class="ico">◈</span><span>Dashboard</span></button>
+        <button data-view="domains" title="Domains"><span class="ico">⌂</span><span>Domains</span></button>
+        <button data-view="groups" title="Groups"><span class="ico">⚇</span><span>Groups</span></button>
+        <button data-view="ipranges" title="IP ranges"><span class="ico">⌗</span><span>IP ranges</span></button>
+        <button data-view="fetch" title="Fetch accounts"><span class="ico">⇓</span><span>Fetch accounts</span></button>
+        <button data-view="lists" title="Lists"><span class="ico">≣</span><span>Lists</span></button>
+        <button data-view="queue" title="Delivery queue"><span class="ico">⇶</span><span>Delivery queue</span></button>
+        <button data-view="tlsa" title="DANE / TLSA"><span class="ico">⛨</span><span>DANE / TLSA</span></button>
+        <button data-view="settings" title="Settings"><span class="ico">⚙</span><span>Settings</span></button>
+        <button data-view="backup" title="Backup"><span class="ico">⛃</span><span>Backup</span></button>
+        <button data-view="messages" title="Server messages"><span class="ico">✎</span><span>Server messages</span></button>
+        <button data-view="rules" title="Rules"><span class="ico">⚖</span><span>Rules</span></button>
+        <button data-view="routes" title="Routes"><span class="ico">⇥</span><span>Routes</span></button>
+        <button data-view="remotedomains" title="Remote domains"><span class="ico">⇄</span><span>Remote domains</span></button>
+        <button data-view="certs" title="Certificates"><span class="ico">⚿</span><span>Certificates</span></button>
+        <button data-view="ports" title="Ports"><span class="ico">⊞</span><span>Ports</span></button>
+        <button data-view="logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
+        <button data-view="reports" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
+        <button data-view="audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
+      </nav>
+      <div class="foot">v<span id="ver">—</span></div>
+    </aside>
+    <main class="main"><div class="content" id="content" tabindex="-1"></div></main>
+  </div>
+</div>
 
-  <div class="main">
-    <div class="topbar">
-      <h1 id="viewTitle">Dashboard</h1>
-      <div class="sp"></div>
-      <select data-lang id="langSel" aria-label="Language" title="Language"></select>
-      <button class="iconbtn" id="themeBtn" title="Toggle theme">◐</button>
-      <button class="iconbtn" id="logoutBtn" title="Sign out">⏻</button>
-    </div>
-    <div class="content" id="content"></div>
+<!-- The shortcut list, which ? opens and Escape closes. Its rows are drawn
+     by the script from one table, so the key names stay as they are printed
+     on the keyboard and only what each one does is translated. -->
+<div class="overlay" id="keysOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="keysTitle">
+    <h2 id="keysTitle">Keyboard shortcuts</h2>
+    <dl class="keys" id="keysList" data-nowalk></dl>
+    <button class="btn" id="keysClose">Close</button>
+  </div>
+</div>
+
+<!-- The tour. Outside the app shell so that the ring can sit over any part of
+     it, hidden until a tour runs, and polite rather than assertive: a step
+     that interrupted whatever a screen reader was saying would be exactly the
+     interruption a tour promises not to be. -->
+<div class="tourring" id="tourRing" hidden></div>
+<div class="tourcard" id="tourCard" hidden role="group" aria-live="polite" aria-label="Tour">
+  <div class="head"><span id="tourName"></span><span id="tourStep"></span></div>
+  <p id="tourText"></p>
+  <div class="row">
+    <button class="btn ghost sm" id="tourBack">Back</button>
+    <button class="btn sm" id="tourNext">Next</button>
+    <button class="btn ghost sm" id="tourSkip">Skip the tour</button>
   </div>
 </div>
 
@@ -251,7 +387,10 @@ const LOCALISED_ATTRIBUTES=["placeholder","aria-label","title","alt"];
 /* The static markup, translated in place and back again: a text node or an
    attribute that is a key keeps its English on the node. The content area is
    skipped - its views are drawn from t() and hold the server's own values,
-   and a domain that happened to be named like a key must not be translated. */
+   and a domain that happened to be named like a key must not be translated -
+   and so is anything marked data-nowalk, which is the markup the script draws
+   and repaints itself: the shortcut list and the theme button's name. Walking
+   those would set them from an English that was already replaced. */
 function localiseTree(root){
   Array.from(root.childNodes).forEach(n=>{
     if(n.nodeType===3){
@@ -262,7 +401,7 @@ function localiseTree(root){
         n.nodeValue=original.replace(trimmed,()=>t(trimmed));
       }
     }else if(n.nodeType===1){
-      if(n.tagName==="SCRIPT"||n.tagName==="STYLE"||n.id==="content")return;
+      if(n.tagName==="SCRIPT"||n.tagName==="STYLE"||n.id==="content"||n.hasAttribute("data-nowalk"))return;
       LOCALISED_ATTRIBUTES.forEach(name=>{
         if(!n.hasAttribute(name))return;
         const key="__en_"+name;
@@ -301,6 +440,7 @@ function applyCatalogue(code,data){
   try{if(code==="en")localStorage.removeItem("hmsLang");else localStorage.setItem("hmsLang",code);}catch(_){}
   document.documentElement.setAttribute("lang",code);
   localiseTree(document.body);
+  paintTheme();
   languageSelects().forEach(s=>{s.value=code;});
   if($("#app").style.display!=="none")render();
 }
@@ -333,7 +473,7 @@ let spec=null;
 /* The last listing each view read, so that an editor can be opened on a row
    without asking again. Never written to instead of re-reading: every write is
    followed by a fresh GET. */
-const cache={certificates:[],ports:[],routes:[],rules:[],domains:[],ranges:[],lists:[],collections:{},messages:[],
+const cache={certificates:[],ports:[],routes:[],rules:[],domains:[],groups:[],ranges:[],lists:[],collections:{},messages:[],remotedomains:[],
   /* The fetch view's chosen domain and account, kept across its re-reads. */
   fetch:{domain:"",address:"",accounts:[],items:[]}};
 
@@ -392,13 +532,63 @@ function escHtml(v){
 function setErr(id,message){const e=document.getElementById(id);if(e)e.textContent=message||"";}
 function asList(x,key){return Array.isArray(x)?x:((x&&x[key])||[]);}
 
-/* ---------- Theme ---------- */
-const savedTheme=localStorage.getItem("hmsTheme")||"dark";
-document.body.dataset.theme=savedTheme;
+/* ---------- The theme ----------
+   The webmail's, which is three choices and not two: light, dark, and the
+   system's, which is prefers-color-scheme asked through matchMedia and
+   followed as the reader changes it in their desktop. A reader who says
+   light or dark overrules the system until they say otherwise. The choice
+   is what this browser remembers, under a name that is not a secret, and a
+   browser that keeps nothing is still a browser. One button cycles the
+   three and carries the name of the one it is on, in the reader's language,
+   which is why it is marked data-nowalk and painted from here. */
+const THEMES=[["system",K("Theme: the system's choice"),"◐"],["light",K("Theme: light"),"☀"],["dark",K("Theme: dark"),"☾"]];
+const systemDark=typeof matchMedia==="function"?matchMedia("(prefers-color-scheme: dark)"):null;
+let themeChoice="system";
+function storedTheme(){
+  try{const kept=localStorage.getItem("hmsTheme");return kept==="light"||kept==="dark"?kept:"system";}catch(_){return "system";}
+}
+function paintTheme(){
+  const entry=THEMES.filter(x=>x[0]===themeChoice)[0]||THEMES[0];
+  const button=$("#themeBtn");
+  if(!button)return;
+  button.textContent=entry[2];
+  button.setAttribute("title",t(entry[1]));
+  button.setAttribute("aria-label",t(entry[1]));
+}
+function applyTheme(choice){
+  themeChoice=choice==="light"||choice==="dark"?choice:"system";
+  document.body.dataset.theme=themeChoice==="system"?((systemDark&&!systemDark.matches)?"light":"dark"):themeChoice;
+  try{localStorage.setItem("hmsTheme",themeChoice);}catch(_){}
+  paintTheme();
+}
+if(systemDark&&systemDark.addEventListener)systemDark.addEventListener("change",()=>{if(themeChoice==="system")applyTheme("system");});
 $("#themeBtn").onclick=()=>{
-  const next=document.body.dataset.theme==="dark"?"light":"dark";
-  document.body.dataset.theme=next;localStorage.setItem("hmsTheme",next);
+  const order=THEMES.map(x=>x[0]);
+  applyTheme(order[(order.indexOf(themeChoice)+1)%order.length]);
 };
+applyTheme(storedTheme());
+
+/* ---------- The status pill ----------
+   The state of the link to the server, as the desktop console shows it: a
+   colour, a mark and a word, never a colour alone. */
+function connection(level,key){
+  const pill=$("#connPill"),mark=$("#connMark"),word=$("#connState");
+  if(pill)pill.setAttribute("data-level",level);
+  if(mark)mark.textContent=level==="good"?"■":"▲";
+  if(word)word.textContent=t(key);
+}
+
+/* ---------- The notice ----------
+   A statement in the flow of a page at one of the desktop console's levels:
+   the mark, the severity word and the sentence. The word is there because a
+   status carried by colour alone is a status half the readers cannot see. */
+const NOTICE_WORDS={info:K("Information"),warn:K("Warning"),bad:K("Error")};
+const NOTICE_MARKS={info:"◆",warn:"▲",bad:"✕"};
+function noticeHtml(level,text){
+  if(!text)return "";
+  return '<div class="notice" data-level="'+level+'"><span class="mark" aria-hidden="true">'+NOTICE_MARKS[level]+'</span>'+
+         '<div><b>'+escHtml(t(NOTICE_WORDS[level]))+'</b>'+escHtml(text)+'</div></div>';
+}
 
 /* ---------- Sign in, sign out ----------
    The password is presented once, to POST /api/v1/session, and the server
@@ -464,16 +654,19 @@ function enter(status){
 $("#nav").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+  // The search belongs to the view it was typed in, as the console's toolbar
+  // search belongs to its page; a view arrived at shows everything it has.
+  $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),
-  settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),certs:K("Certificates"),ports:K("Ports"),logs:K("Logs")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),logs:K("Logs"),audit:K("Audit trail")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
   try{
     if(view==="dash")await renderDash(silent);
     else if(view==="domains")await renderDomains();
+    else if(view==="groups")await renderGroups();
     else if(view==="ipranges")await renderIpRanges();
     else if(view==="fetch")await renderFetch();
     else if(view==="lists")await renderLists();
@@ -484,16 +677,246 @@ async function render(silent){
     else if(view==="messages")await renderMessages();
     else if(view==="rules")await renderRules();
     else if(view==="routes")await renderRoutes();
+    else if(view==="remotedomains")await renderRemoteDomains();
     else if(view==="certs")await renderCerts();
     else if(view==="ports")await renderPorts();
+    else if(view==="reports")await renderReports();
     else if(view==="logs")await renderLogs();
+    else if(view==="audit")await renderAudit();
     $("#connState").textContent=t("Connected");
+    connection("good",K("Connected"));
   }catch(err){
     if(err.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
-    $("#connState").textContent=t("Connection problem");
+    connection("warn",K("Connection problem"));
     if(!silent)$("#content").innerHTML='<div class="empty">'+tf("Could not reach the server: {0}",escHtml(err.message))+'</div>';
   }
+  // A view drawn afresh has no row under the keyboard, and comes up with
+  // whatever the search box already holds applied to it.
+  rowCursor=-1;
+  filterRows();
 }
+
+/* ---------- Tours ----------
+   Teaching a view while somebody uses it. One mechanism, the same shape as the
+   desktop Control Panel's and the webmail's: a step is an element (by id or by
+   a stable selector), one sentence, an optional condition that ends the step
+   when the thing has happened, and what to do when the element is not there -
+   skip it, or end the tour saying so. A tour is an ordered list of those with a
+   name and a version.
+
+   Four properties of it are the feature rather than decoration, and each is
+   checked by build/deck-script-test.js:
+
+     * it is never modal - the ring takes no pointer events and the card is the
+       only thing on its layer that does, so every control underneath, the one
+       being pointed at included, stays usable;
+     * it never takes the keyboard - nothing is focused when a step opens, and
+       the card's three buttons are ordinary tab stops;
+     * a step whose element is not on the view is skipped rather than waited on,
+       because a view draws what the server has and a server without a domain
+       has no domain row to point at;
+     * where it got to is remembered, so leaving a tour is not losing it.
+
+   Every sentence goes through the catalogues like every other text on this
+   page: K() marks it here and t() looks it up when it is drawn. */
+const TOURS=[{
+  id:"firstrun",
+  name:K("Show me around"),
+  version:1,
+  steps:[
+    {view:"domains",sel:"#newDomain",until:"domain-exists",
+     text:K("Start with a domain: the part after the @ that this server accepts mail for. Add yours here.")},
+    {view:"domains",sel:"#content .tablewrap",
+     text:K("Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists.")},
+    {view:"domains",sel:'#content button[data-act="accounts"]',
+     text:K("Now a mailbox. An account is an address somebody signs in to and receives mail at.")},
+    {view:"ports",sel:"#content .tablewrap",missing:"end",
+     text:K("These are the ports the server listens on. The submission port, 587, is the one your own people send through.")},
+    {view:"ports",sel:'#content button[data-act="portnew"]',until:"tls-listener",
+     text:K("A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear.")},
+    {view:"certs",sel:"#content .tablewrap",
+     text:K("Certificates a listener can present are kept here, and ACME can renew them for you.")},
+    {view:"dash",sel:"#kpiState",
+     text:K("And this is the server's own verdict on what you have built. It is the page to come back to.")}
+  ]}];
+/* What a step can wait for. Answered from what the view has just read rather
+   than from the words on the screen: a table cell says "Starttls optional" in
+   English only, and a condition that stopped working in German would be a
+   defect nobody here would ever see. */
+const TOUR_CONDITIONS={
+  "domain-exists":()=>cache.domains.length>0,
+  "tls-listener":()=>cache.ports.some(p=>String(p.connection_security||"none")!=="none")
+};
+function tourFind(id){return TOURS.filter(x=>x.id===id)[0]||null;}
+/* Which tours this browser has finished, and where it stopped in one it left.
+   One line, finished then resume points - "firstrun=1|firstrun@3v1" - which is
+   the form the Control Panel keeps in the registry, so the two surfaces can be
+   read with one explanation. Every kind of damage is survivable and silent:
+   the worst it can cost is being offered a tour twice. */
+function tourProgress(){
+  const out={finished:{},stopped:{}};
+  let raw="";
+  try{raw=localStorage.getItem("hmsTours")||"";}catch(_){raw="";}
+  const halves=String(raw).split("|");
+  halves[0].split(",").forEach(pair=>{
+    const at=pair.indexOf("=");if(at<=0)return;
+    const version=parseInt(pair.slice(at+1),10);
+    if(version>0)out.finished[pair.slice(0,at).trim()]=version;
+  });
+  (halves[1]||"").split(",").forEach(pair=>{
+    const at=pair.indexOf("@");if(at<=0)return;
+    const rest=pair.slice(at+1),mark=rest.indexOf("v");if(mark<=0)return;
+    const step=parseInt(rest.slice(0,mark),10),version=parseInt(rest.slice(mark+1),10);
+    if(step>0&&version>0)out.stopped[pair.slice(0,at).trim()]={step:step,version:version};
+  });
+  return out;
+}
+function tourSaveProgress(p){
+  const finished=Object.keys(p.finished).sort().map(id=>id+"="+p.finished[id]).join(",");
+  const stopped=Object.keys(p.stopped).sort().map(id=>id+"@"+p.stopped[id].step+"v"+p.stopped[id].version).join(",");
+  try{localStorage.setItem("hmsTours",finished+"|"+stopped);}catch(_){}
+}
+function tourFinished(t0){const p=tourProgress();return !!t0&&(p.finished[t0.id]||0)>=t0.version;}
+function tourResumeAt(t0){
+  const stop=tourProgress().stopped[t0.id];
+  return stop&&stop.version===t0.version&&stop.step<t0.steps.length?stop.step:0;
+}
+/* The tour running now: the tour, the step it is on, and what its condition
+   said when the step opened. That last one is why a step does not vanish in
+   front of somebody who already has a domain - it is the CHANGE that ends a
+   step, not the state. */
+let tourNow=null;
+let tourTimer=null;
+function tourCondition(step){
+  const test=step&&step.until?TOUR_CONDITIONS[step.until]:null;
+  try{return !!test&&!!test();}catch(_){return false;}
+}
+/* The element a step points at, with the view it is on opened first: a control
+   on a view nobody has drawn is in no document to be found in. */
+async function tourElement(step){
+  if(step.view&&step.view!==view){
+    view=step.view;editing=null;
+    document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===view));
+    await render();
+  }
+  return $(step.sel);
+}
+/* From this step onwards, the first one that can be shown. A step whose element
+   is missing is skipped; a step marked missing:"end" stops the tour instead,
+   which is for the one whose absence makes the rest meaningless. */
+async function tourSettle(from){
+  for(let at=from;at<tourNow.tour.steps.length;at++){
+    const step=tourNow.tour.steps[at];
+    if(await tourElement(step)){tourNow.at=at;tourNow.entry=tourCondition(step);return true;}
+    if(step.missing==="end"){tourNow.at=at;tourEnd("missing");return false;}
+  }
+  tourEnd("finished");
+  return false;
+}
+async function tourStart(id,at){
+  const t0=tourFind(id);
+  if(!t0||$("#app").style.display==="none")return;
+  tourNow={tour:t0,at:0,entry:false};
+  const from=typeof at==="number"&&at>=0?Math.min(at,t0.steps.length-1):tourResumeAt(t0);
+  if(!await tourSettle(from))return;
+  tourDraw();
+  if(!tourTimer)tourTimer=setInterval(tourTick,400);
+}
+function tourDraw(){
+  const step=tourNow.tour.steps[tourNow.at];
+  $("#tourName").textContent=t(tourNow.tour.name);
+  $("#tourStep").textContent=tf("Step {0} of {1}",tourNow.at+1,tourNow.tour.steps.length);
+  $("#tourText").textContent=t(step.text);
+  $("#tourBack").hidden=tourNow.at===0;
+  $("#tourNext").textContent=tourNow.at===tourNow.tour.steps.length-1?t("Finish"):t("Next");
+  $("#tourCard").hidden=false;
+  tourPlace();
+}
+/* The ring put back where the element is. The view under a tour goes on living
+   - it scrolls, it redraws itself every three seconds on the dashboard - and a
+   ring left where the element used to be is worse than no ring. An element that
+   has gone takes the ring with it and leaves the card, because the sentence is
+   still the sentence. */
+function tourPlace(){
+  if(!tourNow)return;
+  const step=tourNow.tour.steps[tourNow.at];
+  const el=$(step.sel);
+  const ring=$("#tourRing"),card=$("#tourCard");
+  if(!el||!el.getBoundingClientRect){ring.hidden=true;return;}
+  const at=el.getBoundingClientRect();
+  if(!at.width&&!at.height){ring.hidden=true;return;}
+  ring.hidden=false;
+  ring.style.left=at.left+"px";ring.style.top=at.top+"px";
+  ring.style.width=at.width+"px";ring.style.height=at.height+"px";
+  const height=card.offsetHeight||190;
+  const room=typeof innerHeight==="number"?innerHeight:900;
+  const wide=typeof innerWidth==="number"?innerWidth:1280;
+  let top=at.bottom+12;
+  if(top+height>room)top=Math.max(8,at.top-12-height);
+  card.style.top=Math.max(8,Math.min(top,Math.max(8,room-height-8)))+"px";
+  card.style.left=Math.max(8,Math.min(at.left,Math.max(8,wide-346)))+"px";
+}
+function tourTick(){
+  if(!tourNow){if(tourTimer){clearInterval(tourTimer);tourTimer=null;}return;}
+  tourPlace();
+  const step=tourNow.tour.steps[tourNow.at];
+  if(step.until&&!tourNow.entry&&tourCondition(step))tourNext();
+}
+async function tourNext(){
+  if(!tourNow)return;
+  if(tourNow.at+1>=tourNow.tour.steps.length){tourEnd("finished");return;}
+  if(await tourSettle(tourNow.at+1))tourDraw();
+}
+async function tourBack(){
+  if(!tourNow)return;
+  for(let at=tourNow.at-1;at>=0;at--){
+    if(await tourElement(tourNow.tour.steps[at])){
+      tourNow.at=at;tourNow.entry=tourCondition(tourNow.tour.steps[at]);tourDraw();return;
+    }
+  }
+  // Nowhere to go back to is standing still, never closing the tour: Back is
+  // how somebody re-reads a sentence, and a Back that ended it would be a trap.
+  tourDraw();
+}
+/* Every ending says something. Silence after a tour that stopped on its own is
+   how somebody decides the feature is broken. */
+function tourEnd(why){
+  if(!tourNow)return;
+  const walk=tourNow.tour,at=tourNow.at;
+  const progress=tourProgress();
+  if(why==="finished"){progress.finished[walk.id]=Math.max(progress.finished[walk.id]||0,walk.version);delete progress.stopped[walk.id];}
+  else if(why==="left"&&at>0)progress.stopped[walk.id]={step:at,version:walk.version};
+  else delete progress.stopped[walk.id];
+  tourSaveProgress(progress);
+  tourNow=null;
+  if(tourTimer){clearInterval(tourTimer);tourTimer=null;}
+  $("#tourCard").hidden=true;$("#tourRing").hidden=true;
+  if(why==="finished")toast(tf("That is the end of {0}. You can start it again whenever you like.",t(walk.name)));
+  else if(why==="missing")toast(tf("{0} stops here: the next thing it points at is not on this screen.",t(walk.name)));
+  else toast(tf("{0} closed. It picks up where you left off.",t(walk.name)));
+}
+/* The header's entry point. It starts the tour that visits the view showing, at
+   its first stop there, so the button teaches THIS view; on a view no tour
+   visits it starts at the beginning. */
+$("#tourBtn").onclick=()=>{
+  if(tourNow){tourEnd("left");return;}
+  for(const walk of TOURS){
+    for(let at=0;at<walk.steps.length;at++)
+      if(walk.steps[at].view===view)return tourStart(walk.id,at);
+  }
+  if(TOURS.length)tourStart(TOURS[0].id,-1);
+};
+$("#tourNext").onclick=()=>tourNext();
+$("#tourBack").onclick=()=>tourBack();
+$("#tourSkip").onclick=()=>tourEnd("left");
+/* Escape leaves the tour only when the keyboard is already inside its card.
+   Everywhere else Escape still belongs to the page, and a tour that ate it
+   would be exactly the "in the way of the keyboard" this promises not to be. */
+document.addEventListener("keydown",e=>{
+  if(!tourNow||e.key!=="Escape")return;
+  const active=document.activeElement;
+  if(active&&active.closest&&active.closest("#tourCard"))tourEnd("left");
+});
 
 /* Buttons inside a rendered view carry their arguments as data attributes and are
    handled here, so no server-provided value is ever placed inside inline JavaScript,
@@ -503,6 +926,13 @@ $("#content").addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b)return;
   const d=b.dataset;
   if(d.act==="accounts")showAccounts(d.domain);
+  else if(d.act==="groups"){editing=null;render();}
+  else if(d.act==="groupnew")createGroup();
+  else if(d.act==="groupedit")openGroup(Number(d.id));
+  else if(d.act==="groupsave")saveGroup();
+  else if(d.act==="groupdel")deleteGroup(Number(d.id),d.name);
+  else if(d.act==="memberadd")addGroupMember();
+  else if(d.act==="memberdel")deleteGroupMember(Number(d.account),d.address);
   else if(d.act==="accountedit")openAccount(d.address,d.domain);
   else if(d.act==="accountsave")saveAccount();
   else if(d.act==="aliases")showAliases(d.domain);
@@ -543,6 +973,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="retry")retryMsg(d.id);
   else if(d.act==="delmsg")delMsg(d.id);
   else if(d.act==="log")showLog(d.name,d.lines);
+  else if(d.act==="repshow")reportShow();
+  else if(d.act==="repdays")reportLastDays(d.days);
   else if(d.act==="copy")navigator.clipboard.writeText($("#tlsaPre").textContent).then(()=>toast(t("Copied to clipboard")));
   else if(d.act==="setsave")saveSettings(d.group);
   else if(d.act==="setpost")settingsPost(d.group,d.path,d.label);
@@ -565,6 +997,13 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="routeedit")openRoute(Number(d.id));
   else if(d.act==="routedel")deleteRoute(Number(d.id),d.name);
   else if(d.act==="routesave")saveRoute();
+  else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
+  else if(d.act==="auditverify")verifyAuditChain();
+  else if(d.act==="rdnew")openRemoteDomain(0);
+  else if(d.act==="rdedit")openRemoteDomain(Number(d.id));
+  else if(d.act==="rddel")deleteRemoteDomain(Number(d.id),d.name);
+  else if(d.act==="rdsave")saveRemoteDomain();
+  else if(d.act==="rdclearcache")clearVerificationCache();
   else if(d.act==="cancel"){editing=null;render();}
 });
 /* A criterion's field or an action's type decides which further controls the
@@ -583,6 +1022,119 @@ $("#content").addEventListener("keydown",e=>{
   const box=e.target.closest("[data-enter]");if(!box)return;
   const b=box.querySelector('button[data-act="'+box.dataset.enter+'"]');
   if(b){e.preventDefault();b.click();}
+});
+
+/* ---------- The keyboard ----------
+   The webmail's, as far as an administration page has the same things to do:
+   / puts the keyboard in the search box, ? opens the list of the shortcuts
+   themselves, Escape closes what is open or leaves the search box, the arrows
+   move a cursor down the rows of whatever table the view has drawn and Enter
+   opens the row it is on, and the arrows move between the views while the
+   keyboard is in the navigation column. Every control the page draws is a
+   button, a field or a link, reached with Tab and ringed while it holds the
+   keyboard, which is what the rest of this rests on: the page is usable with
+   no pointer at all.
+
+   The key names are literals rather than texts, because Esc and Tab are what
+   is printed on the keyboard in front of the reader; what each one does is a
+   text, and the list is drawn afresh every time it is opened so that it is
+   drawn in the language the page is in. */
+const SHORTCUTS=[
+  ["/",K("Search this view")],
+  ["?",K("Show or hide this list")],
+  ["Esc",K("Close this list, or leave the search box")],
+  ["↑ ↓",K("Move through the rows of a table, or the views while the keyboard is in the navigation column")],
+  ["Enter",K("Open the row the cursor is on")],
+  ["Tab",K("Move to the next control; the one holding the keyboard is ringed")]
+];
+function keysOpen(){return $("#keysOverlay").hidden===false;}
+function openKeys(){
+  $("#keysList").innerHTML=SHORTCUTS.map(pair=>'<dt><kbd>'+escHtml(pair[0])+'</kbd></dt><dd>'+escHtml(t(pair[1]))+'</dd>').join("");
+  $("#keysOverlay").hidden=false;
+  $("#keysClose").focus();
+}
+function closeKeys(){$("#keysOverlay").hidden=true;$("#keysBtn").focus();}
+$("#keysBtn").onclick=()=>{if(keysOpen())closeKeys();else openKeys();};
+$("#keysClose").onclick=closeKeys;
+$("#keysOverlay").onclick=e=>{if(e.target===$("#keysOverlay"))closeKeys();};
+
+/* The row the keyboard is on: an index into the rows the drawn view has, the
+   ones the search has hidden left out. A view drawn afresh has none. */
+let rowCursor=-1;
+function cursorRows(){
+  return Array.from(document.querySelectorAll("#content tbody tr")).filter(r=>!r.hidden&&!r.querySelector("td.empty"));
+}
+function markRow(at){
+  const rows=cursorRows();
+  if(!rows.length){rowCursor=-1;return;}
+  rowCursor=Math.max(0,Math.min(rows.length-1,at));
+  rows.forEach((r,i)=>r.classList.toggle("cur",i===rowCursor));
+  rows[rowCursor].scrollIntoView();
+}
+/* Enter presses the row's first button that is not a destructive one, which
+   is the one that opens it: Accounts on a domain, Edit on a rule, Last 200
+   on a log file. A row whose only button deletes it - a certificate's - is a
+   row Enter leaves alone, because a keyboard that deletes what an arrow key
+   landed on is a keyboard nobody uses twice. */
+function openRow(){
+  const rows=cursorRows();
+  if(rowCursor<0||!rows[rowCursor])return;
+  const button=Array.from(rows[rowCursor].querySelectorAll("button[data-act]")).filter(b=>!b.classList.contains("danger"))[0];
+  if(button)button.click();
+}
+
+/* One search for every view. It hides the rows of a table and the rows of a
+   form that do not carry what was typed, which is what the desktop console's
+   toolbar does to a grid. Two views have a filter of their own - the settings
+   page and the server messages - and both are read here, so a row has to
+   answer to both boxes rather than to whichever was typed in last. */
+function filterRows(){
+  const box=$("#deckSearch");
+  const wide=box?String(box.value||"").trim().toLowerCase():"";
+  const own=document.getElementById("setFilter")||document.getElementById("msgFilter");
+  const narrow=own?String(own.value||"").trim().toLowerCase():"";
+  const keeps=text=>(!wide||text.indexOf(wide)>=0)&&(!narrow||text.indexOf(narrow)>=0);
+  document.querySelectorAll("#content tbody tr").forEach(r=>{
+    if(r.querySelector("td.empty"))return;
+    r.hidden=!keeps(r.textContent.toLowerCase());
+  });
+  document.querySelectorAll("#content .fr").forEach(r=>{
+    r.hidden=!keeps(r.dataset.k||r.textContent.toLowerCase());
+  });
+  if(rowCursor>=0)markRow(rowCursor);
+}
+$("#deckSearch").oninput=filterRows;
+
+document.addEventListener("keydown",e=>{
+  // The sign-in card owns the keyboard until there is a session.
+  if($("#app").style.display==="none")return;
+  const tag=(e.target&&e.target.tagName)||"";
+  if(e.key==="Escape"){
+    if(keysOpen()){e.preventDefault();closeKeys();return;}
+    if(e.target===$("#deckSearch")){
+      e.preventDefault();
+      $("#deckSearch").value="";filterRows();$("#deckSearch").blur();$("#content").focus();
+    }
+    return;
+  }
+  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==="?"){e.preventDefault();if(keysOpen())closeKeys();else openKeys();return;}
+  // The shortcut list has one control, so keeping Tab on it is the whole trap:
+  // the keyboard cannot wander behind an open sheet and act on what it hides.
+  if(keysOpen()){if(e.key==="Tab"){e.preventDefault();$("#keysClose").focus();}return;}
+  if(e.key==="/"){e.preventDefault();$("#deckSearch").focus();$("#deckSearch").select();return;}
+  const inNav=e.target&&e.target.closest?e.target.closest("#nav"):null;
+  if(inNav){
+    if(e.key!=="ArrowDown"&&e.key!=="ArrowUp")return;
+    const buttons=Array.from(document.querySelectorAll("#nav button"));
+    const at=buttons.indexOf(e.target.closest("button"));
+    const next=buttons[(at+(e.key==="ArrowDown"?1:buttons.length-1))%buttons.length];
+    if(next){e.preventDefault();next.focus();}
+    return;
+  }
+  if(e.key==="ArrowDown"){e.preventDefault();markRow(rowCursor<0?0:rowCursor+1);return;}
+  if(e.key==="ArrowUp"){e.preventDefault();markRow(rowCursor<0?0:rowCursor-1);return;}
+  if(e.key==="Enter"&&rowCursor>=0){e.preventDefault();openRow();}
 });
 
 /* ---------- The OpenAPI document ---------- */
@@ -818,6 +1370,14 @@ const DOMAIN_GROUPS=[
     vacation_enabled:{type:"boolean",description:K("Send a domain-wide out-of-office reply. It answers only for accounts that have no vacation message of their own, and at most one reply answers any message.")},
     vacation_subject:{type:"string",description:K("The reply's subject.")},
     vacation_message:{type:"string",format:"multiline",description:K("The reply's text.")}}},
+  {title:K("What this domain does to a message"),props:{
+    external_tag_subject:{type:"boolean",description:K("Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.")},
+    external_tag_header:{type:"boolean",description:K("Stamp X-hMailServer-External on mail this domain receives from outside, which the webmail shows as a banner beside the sender.")},
+    external_tag_text:{type:"string",description:K("The text put at the front of the subject. Empty is the shipped [EXTERNAL]. At most 100 characters, so a domain whose readers do not read English can say it in the language they do.")},
+    first_contact_tip:{type:"boolean",description:K("Tell the reader when an outside sender has not written to this account before. It costs one database lookup for each message delivered here.")},
+    disclaimer_enabled:{type:"boolean",description:K("Append the legal footer below to mail this domain sends outside the organisation. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never twice on a reply chain.")},
+    disclaimer_plain_text:{type:"string",format:"multiline",description:K("The footer, as plain text.")},
+    disclaimer_html:{type:"string",format:"multiline",description:K("The footer, as HTML. Empty means the plain text is used, with its line breaks turned into line breaks in HTML.")}}},
   {title:K("Quarantine digest"),props:{
     quarantine_digest:{type:"boolean",description:K("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default, and nothing is sent until the server's QuarantineDigestBaseUrl names the address those links point at.")},
     quarantine_digest_hour:{type:"integer",description:K("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")}}},
@@ -1339,6 +1899,139 @@ async function deleteList(address,domain){
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr(where,e.message);}
 }
 
+/* ---------- Groups ----------
+   A group is a named set of accounts that a folder permission can name as one
+   principal - Settings.Groups, Group and Group.Members over COM, the desktop
+   Control Panel's Groups page - and it was the last thing the parity census
+   counted as writable over REST and reachable from no view here.
+
+   The shape is the domains view's, because the resource has the same shape: a
+   table with a create under it, and an editor holding the name as a form row
+   built from the create's own schema and the accounts in the group as a small
+   list of their own, since a membership is a pair and not a property of
+   either side. A member is named by the address, which is what an
+   administrator has in front of them; the route takes account_id or account
+   and refuses an address that is no account by name, so a typo is the
+   server's sentence beside the box rather than a guess made here. */
+const GROUP_HINTS={name:K("The group's name, as a folder permission names it. At most 255 characters, and no two groups share one.")};
+function groupProps(){
+  const props=properties("/api/v1/groups","post"),out={};
+  Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&GROUP_HINTS[k])out[k].description=GROUP_HINTS[k];});
+  return out;
+}
+async function renderGroups(){
+  await loadSpec();
+  cache.groups=asList(await api("/api/v1/groups"),"groups");
+  if(editing&&editing.kind==="group"){await openGroup(editing.id);return;}
+  const rows=cache.groups.map(g=>`
+    <tr><td><b>${escHtml(g.name)}</b><div class="hint muted">${tf("id {0}",escHtml(g.id))}</div></td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn ghost sm" data-act="groupedit" data-id="${escHtml(g.id)}">${t("Edit")}</button>
+          <button class="btn danger sm" data-act="groupdel" data-id="${escHtml(g.id)}" data-name="${escHtml(g.name)}">${t("Delete")}</button>
+          <div class="err" id="err_group_${escHtml(g.id)}"></div></td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/groups","get").description||"")}</p>
+      ${noticeHtml("info",operation("/api/v1/groups/{id}","delete").description||"")}
+      <div class="tablewrap"><table><thead><tr><th>${t("Group")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="2" class="empty">'+t("No groups. A group is a named set of accounts that a folder permission can name as one principal.")+'</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="sect"><h2>${t("New group")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/groups","post").description||"")}</p>
+        <div class="row" data-enter="groupnew">
+          <input id="newGroup" placeholder="${t("Group name")}" aria-label="${t("Group name")}" style="flex:1;min-width:220px">
+          <button class="btn" data-act="groupnew">${t("Create group")}</button>
+          <div class="err" id="err_groupnew"></div>
+        </div>
+      </div></div></div>`;
+}
+async function createGroup(){
+  setErr("err_groupnew","");
+  const name=$("#newGroup").value.trim();
+  if(!name){setErr("err_groupnew",t("A group name is required."));return;}
+  try{
+    await api("/api/v1/groups",{method:"POST",body:JSON.stringify({name:name})});
+    toast(tf("Group created: {0}",name));
+    // Read back, and then into the editor of the group as the server holds
+    // it, which is where its accounts are put in.
+    cache.groups=asList(await api("/api/v1/groups"),"groups");
+    const made=cache.groups.filter(g=>g.name===name)[0];
+    if(made)await openGroup(made.id);else await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_groupnew",e.message);}
+}
+async function openGroup(id){
+  const existing=cache.groups.filter(g=>Number(g.id)===Number(id))[0];
+  if(!existing){editing=null;await render();return;}
+  editing={kind:"group",id:Number(existing.id),values:JSON.parse(JSON.stringify(existing)),members:[],memberError:""};
+  try{editing.members=asList(await api("/api/v1/groups/"+editing.id+"/members"),"members");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.memberError=e.message;}
+  renderGroupEditor();
+}
+function groupMembersHtml(){
+  const list=editing.members.map(m=>`
+    <div class="row erow"><code style="flex:1">${escHtml(m.account||tf("id {0}",m.account_id))}</code>
+      <button class="btn ghost sm" data-act="memberdel" data-account="${escHtml(m.account_id)}" data-address="${escHtml(m.account||m.account_id)}">${t("Remove")}</button>
+      <div class="err" id="err_member_${escHtml(m.account_id)}"></div></div>`).join("")
+    ||'<div class="note">'+t("No accounts in this group.")+'</div>';
+  return `<p class="note">${escHtml(operation("/api/v1/groups/{id}/members","get").description||"")}</p>
+    ${list}
+    <div class="row" style="margin-top:14px" data-enter="memberadd">
+      <input id="newMember" placeholder="${t("The address of an account to add")}" aria-label="${t("The address of an account to add")}" style="flex:1;min-width:220px">
+      <button class="btn ghost sm" data-act="memberadd">${t("Add account")}</button>
+      <div class="err" id="err_member">${escHtml(editing.memberError||"")}</div>
+    </div>`;
+}
+function renderGroupEditor(){
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="groups">${t("‹ All groups")}</button>
+    <div class="sect"><h2>${tf("Group {0}",escHtml(editing.values.name))}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/groups/{id}","put").description||"")}</p>
+        <div class="form">${formHtml("group",groupProps(),editing.values,{required:requiredOf("/api/v1/groups","post")})}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" data-act="groupsave">${t("Save group")}</button>
+          <button class="btn ghost" data-act="cancel">${t("Cancel")}</button>
+          <div class="err" id="err_groupedit"></div>
+        </div>
+      </div></div>
+    <div class="sect"><h2>${t("Members")}</h2>
+      <div class="card flat">${groupMembersHtml()}</div></div></div>`;
+}
+async function saveGroup(){
+  setErr("err_groupedit","");
+  let body;
+  try{body=readForm("group",groupProps(),{});}catch(e){setErr("err_groupedit",e.message);return;}
+  try{
+    await api("/api/v1/groups/"+editing.id,{method:"PUT",body:JSON.stringify(body)});
+    toast(t("Group saved"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_groupedit",e.message);}
+}
+async function deleteGroup(id,name){
+  if(!confirm(tf("Delete the group {0}? The accounts stay; the group, the rows that put accounts in it and every folder permission that names it go together.",name)))return;
+  setErr("err_group_"+id,"");
+  try{
+    await api("/api/v1/groups/"+id,{method:"DELETE"});
+    editing=null;toast(t("Group deleted"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_group_"+id,e.message);}
+}
+async function addGroupMember(){
+  setErr("err_member","");
+  const address=$("#newMember").value.trim();
+  if(!address){setErr("err_member",t("An account address is required."));return;}
+  try{
+    await api("/api/v1/groups/"+editing.id+"/members",{method:"POST",body:JSON.stringify({account:address})});
+    toast(tf("{0} added to the group",address));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_member",e.message);}
+}
+async function deleteGroupMember(accountId,address){
+  setErr("err_member_"+accountId,"");
+  try{
+    await api("/api/v1/groups/"+editing.id+"/members/"+accountId,{method:"DELETE"});
+    toast(tf("{0} removed from the group",address));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_member_"+accountId,e.message);}
+}
+
 /* ---------- Delivery queue ---------- */
 async function renderQueue(){
   const q=await api("/api/v1/queue");
@@ -1425,10 +2118,7 @@ async function renderSettings(){
       <input id="setFilter" placeholder="${t("Filter settings by name or description")}" style="width:100%">
     </div>
     ${cards}</div>`;
-  $("#setFilter").oninput=e=>{
-    const q=e.target.value.trim().toLowerCase();
-    document.querySelectorAll("#content .fr").forEach(r=>{r.hidden=!!q&&r.dataset.k.indexOf(q)<0;});
-  };
+  $("#setFilter").oninput=filterRows;
 }
 async function saveSettings(groupId){
   const st=settingsState[groupId];
@@ -1738,7 +2428,7 @@ async function renderPorts(){
   $("#content").innerHTML=`<div class="view">
     <div class="card flat">
       <p class="note">${escHtml(operation("/api/v1/ports","get").description||"")}</p>
-      <p class="note"><span class="badge warn">${t("restart")}</span> ${escHtml(restartWording)}</p>
+      ${noticeHtml("warn",restartWording)}
       <div class="tablewrap"><table><thead><tr><th>${t("Protocol")}</th><th>${t("Listens on")}</th><th>${t("Security")}</th><th>${t("Certificate")}</th><th>${t("Client certificate")}</th><th></th></tr></thead>
       <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No listeners are configured.")+'</td></tr>'}</tbody></table></div>
       <div class="row" style="margin-top:16px">
@@ -1891,6 +2581,99 @@ async function deleteRoute(id,name){
   setErr("err_route_"+id,"");
   try{await api("/api/v1/routes/"+id,{method:"DELETE"});toast(t("Route deleted"));await render();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_route_"+id,e.message);}
+}
+
+/* ---------- Remote domains ----------
+   What this server will do when it talks to a named remote domain: the TLS it
+   demands of it outbound and inbound, the size and concurrency it will attempt,
+   and whether a recipient is verified with the domain's own server before mail
+   for it is accepted.
+
+   Beside the routes and deliberately not part of them: a route says WHERE mail
+   for a domain goes, a policy says what this server will and will not do when
+   it gets there, and a domain may have both. The form is built from the schema
+   of POST /api/v1/remote-domains, as the routes' is, so a field the record
+   gains appears here without a change to this page. */
+function remoteDomainFormOptions(){
+  return {required:requiredOf("/api/v1/remote-domains","post")};
+}
+async function renderRemoteDomains(){
+  await loadSpec();
+  cache.remotedomains=asList(await api("/api/v1/remote-domains"),"remote-domains");
+  if(editing&&editing.kind==="remotedomain"){renderRemoteDomainEditor();return;}
+  const limits=p=>{
+    const parts=[];
+    if(p.max_message_size_kb)parts.push(tf("{0} KB",p.max_message_size_kb));
+    if(p.max_connections)parts.push(tf("{0} connections",p.max_connections));
+    if(p.max_messages_per_minute)parts.push(tf("{0}/minute",p.max_messages_per_minute));
+    return parts.length?parts.join(", "):t("none");
+  };
+  const rows=cache.remotedomains.map(p=>`
+    <tr><td><b>${escHtml(p.domain_name)}</b>${p.description?'<div class="hint muted">'+escHtml(p.description)+'</div>':""}<div class="hint muted">${tf("id {0}",escHtml(p.id))}${p.active?"":" · "+t("Off")}</div></td>
+        <td>${escHtml(humanise(p.outbound_tls))}</td>
+        <td>${p.require_inbound_tls?t("required"):'<span class="muted">'+t("none")+'</span>'}</td>
+        <td>${escHtml(limits(p))}</td>
+        <td>${p.callout_enabled?t("On"):'<span class="muted">'+t("Off")+'</span>'}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn ghost sm" data-act="rdedit" data-id="${escHtml(p.id)}">${t("Edit")}</button>
+          <button class="btn danger sm" data-act="rddel" data-id="${escHtml(p.id)}" data-name="${escHtml(p.domain_name)}">${t("Delete")}</button>
+          <div class="err" id="err_rd_${escHtml(p.id)}"></div></td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/remote-domains","get").description||"")}</p>
+      <div class="tablewrap"><table><thead><tr><th>${t("Domain")}</th><th>${t("Outbound TLS")}</th><th>${t("Inbound TLS")}</th><th>${t("Limits")}</th><th>${t("Verification")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No remote domain policies are configured; mail to every domain is sent as this server's own settings decide.")+'</td></tr>'}</tbody></table></div>
+      <div class="row" style="margin-top:16px"><button class="btn" data-act="rdnew">${t("Add a policy")}</button>
+        <button class="btn ghost" data-act="rdclearcache">${t("Forget the remembered verdicts")}</button>
+        <div class="err" id="err_rdcache"></div></div>
+    </div></div>`;
+}
+function openRemoteDomain(id){
+  const existing=cache.remotedomains.filter(p=>Number(p.id)===Number(id))[0];
+  const values=existing
+    ? JSON.parse(JSON.stringify(existing))
+    : documentedDefaults("/api/v1/remote-domains","post",properties("/api/v1/remote-domains","post"));
+  editing={kind:"remotedomain",id:Number(id)||0,values:values};
+  renderRemoteDomainEditor();
+}
+function renderRemoteDomainEditor(){
+  const props=properties("/api/v1/remote-domains","post");
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="cancel">${t("‹ All remote domains")}</button>
+    <div class="sect"><h2>${editing.id?tf("Edit policy {0}",escHtml(editing.id)):t("New policy")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation(editing.id?"/api/v1/remote-domains/{id}":"/api/v1/remote-domains",editing.id?"put":"post").description||"")}</p>
+        <div class="form">${formHtml("rd",props,editing.values,remoteDomainFormOptions())}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" data-act="rdsave">${t("Save policy")}</button>
+          <button class="btn ghost" data-act="cancel">${t("Cancel")}</button>
+          <div class="err" id="err_rdedit"></div>
+        </div>
+      </div></div></div>`;
+}
+async function saveRemoteDomain(){
+  setErr("err_rdedit","");
+  const props=properties("/api/v1/remote-domains","post");
+  let body;
+  try{body=readForm("rd",props,remoteDomainFormOptions());}catch(e){setErr("err_rdedit",e.message);return;}
+  try{
+    if(editing.id)await api("/api/v1/remote-domains/"+editing.id,{method:"PUT",body:JSON.stringify(body)});
+    else await api("/api/v1/remote-domains",{method:"POST",body:JSON.stringify(body)});
+    editing=null;toast(t("Policy saved"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_rdedit",e.message);}
+}
+async function deleteRemoteDomain(id,name){
+  if(!confirm(tf("Delete the remote domain policy for {0}?",name)))return;
+  setErr("err_rd_"+id,"");
+  try{await api("/api/v1/remote-domains/"+id,{method:"DELETE"});toast(t("Policy deleted"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_rd_"+id,e.message);}
+}
+async function clearVerificationCache(){
+  setErr("err_rdcache","");
+  try{
+    const answer=await api("/api/v1/remote-domains/verification-cache/clear",{method:"POST",body:"{}"});
+    toast(tf("{0} verdict(s) forgotten",(answer&&answer.cleared)||0));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_rdcache",e.message);}
 }
 
 /* ---------- IP ranges ----------
@@ -2315,10 +3098,7 @@ async function renderMessages(){
       <input id="msgFilter" placeholder="${t("Filter messages by name or text")}" style="width:100%">
     </div>
     <div class="sect"><div class="card flat"><div class="form">${rows||'<div class="empty">'+t("No server messages.")+'</div>'}</div></div></div></div>`;
-  $("#msgFilter").oninput=e=>{
-    const q=e.target.value.trim().toLowerCase();
-    document.querySelectorAll("#content .fr").forEach(r=>{r.hidden=!!q&&r.dataset.k.indexOf(q)<0;});
-  };
+  $("#msgFilter").oninput=filterRows;
 }
 async function saveMessage(name,i){
   setErr("err_msg_"+i,"");
@@ -2329,6 +3109,187 @@ async function saveMessage(name,i){
     await api("/api/v1/settings/messages/"+encodeURIComponent(name),{method:"PUT",body:JSON.stringify({text:el.value})});
     toast(tf("Message saved: {0}",name));await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_msg_"+i,e.message);}
+}
+
+/* ---------- Reports ----------
+   What happened on this server, per domain and per day. One request draws the
+   whole page - GET /api/v1/reports/summary - because seven requests for seven
+   tables of the same window is seven chances for them to disagree about what
+   the window was.
+
+   Every table is drawn from the server's own columns and rows rather than from
+   a shape written here: the route answers a list of column names and a list of
+   row objects, so a section that gains a column gains it in this page without
+   an edit. The headings are looked up in REPORT_COLUMNS and shown in the
+   server's own word when the table has no translation for one, which is the
+   same rule the rest of this page follows for a value it did not write.
+
+   The notes are the server's sentences, shown as they come. They are the part
+   of a report that keeps it honest - "the message trace is switched off, so
+   this section is empty" is not the same statement as an empty table, and a
+   page that quietly drew the empty table would be lying by omission.
+
+   The CSV is a link and not a button: it is the same route with format=csv, a
+   same-origin navigation that carries the session cookie, so the file an
+   administrator opens in a spreadsheet is written by the server from the very
+   rows this page drew rather than by this page from what it happens to hold. */
+const REPORT_SECTIONS=[
+  {id:"traffic",title:K("Traffic"),chart:true},
+  {id:"failures",title:K("Delivery failures")},
+  {id:"senders",title:K("Top senders")},
+  {id:"recipients",title:K("Top recipients")},
+  {id:"mailboxes",title:K("Largest mailboxes")},
+  {id:"volume",title:K("Volume")},
+  {id:"storage",title:K("Storage"),chart:true}
+];
+const REPORT_COLUMNS={day:K("Day"),domain:K("Domain"),incoming:K("Incoming"),outgoing:K("Outgoing"),
+  failed_incoming:K("Failed incoming"),failed_outgoing:K("Failed outgoing"),status:K("Status"),reason:K("Reason"),
+  total:K("Total"),sender:K("Sender"),recipient:K("Recipient"),messages:K("Messages"),failed:K("Failed"),
+  address:K("Address"),bytes:K("Bytes"),megabytes:K("Megabytes"),processed:K("Processed"),delivered:K("Delivered"),
+  deferred:K("Deferred"),bounced:K("Bounced"),spam:K("Spam"),viruses:K("Viruses"),mailboxes:K("Mailboxes")};
+let report={from:"",to:"",domain:"",top:10};
+function reportQuery(extra){
+  const parts=[];
+  if(report.from)parts.push("from="+encodeURIComponent(report.from));
+  if(report.to)parts.push("to="+encodeURIComponent(report.to));
+  if(report.domain)parts.push("domain="+encodeURIComponent(report.domain));
+  parts.push("top="+encodeURIComponent(report.top));
+  if(extra)parts.push(extra);
+  return parts.join("&");
+}
+/* A day string moved by whole days, in UTC, so that a browser in a zone with
+   a daylight-saving change cannot turn "seven days back" into six or eight. */
+function reportShiftDay(day,by){
+  const parts=String(day||"").split("-");
+  if(parts.length!==3)return day;
+  const at=Date.UTC(Number(parts[0]),Number(parts[1])-1,Number(parts[2]));
+  const moved=new Date(at+by*86400000);
+  const pad=n=>(n<10?"0":"")+n;
+  return moved.getUTCFullYear()+"-"+pad(moved.getUTCMonth()+1)+"-"+pad(moved.getUTCDate());
+}
+function reportColumnName(key){
+  return REPORT_COLUMNS[key]?t(REPORT_COLUMNS[key]):key;
+}
+/* Grouped bars, drawn as SVG in the page itself: no library, nothing fetched,
+   and a value under the pointer. A chart is here because a month of daily
+   counts is the one thing in this report that a table genuinely does not
+   show - the shape of it - and not because a chart is decorative. */
+function reportChartHtml(labels,series){
+  if(!labels.length)return "";
+  const W=880,H=190,L=54,R=10,T=12,B=30;
+  let max=0;
+  series.forEach(s=>s.values.forEach(v=>{if(v>max)max=v;}));
+  if(max<=0)max=1;
+  const plotW=W-L-R,plotH=H-T-B;
+  const group=plotW/labels.length,bw=Math.max(1.5,(group-4)/series.length);
+  let bars="";
+  labels.forEach((label,i)=>{
+    series.forEach((s,j)=>{
+      const value=Number(s.values[i])||0;
+      const h=Math.max(value>0?1:0,Math.round(value/max*plotH));
+      const x=L+i*group+2+j*bw,y=T+plotH-h;
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+h+'" fill="'+s.colour+'">'+
+            '<title>'+escHtml(label+" "+t(s.label)+": "+value)+'</title></rect>';
+    });
+  });
+  let ticks="";
+  [0,Math.round(labels.length/2)-1,labels.length-1].forEach(i=>{
+    if(i<0||i>=labels.length)return;
+    ticks+='<text x="'+(L+i*group+group/2).toFixed(1)+'" y="'+(H-10)+'" font-size="10" fill="#8b949e" text-anchor="middle">'+escHtml(labels[i])+'</text>';
+  });
+  const legend=series.map(s=>'<span class="muted" style="margin-right:14px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+s.colour+';margin-right:6px"></span>'+escHtml(t(s.label))+'</span>').join("");
+  return '<div class="tablewrap"><svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" role="img" aria-label="'+escHtml(t("Messages per day"))+'">'+
+    '<line x1="'+L+'" y1="'+(T+plotH)+'" x2="'+(W-R)+'" y2="'+(T+plotH)+'" stroke="#8b949e" stroke-width="0.5"></line>'+
+    '<text x="'+(L-8)+'" y="'+(T+8)+'" font-size="10" fill="#8b949e" text-anchor="end">'+escHtml(String(max))+'</text>'+
+    '<text x="'+(L-8)+'" y="'+(T+plotH)+'" font-size="10" fill="#8b949e" text-anchor="end">0</text>'+
+    bars+ticks+'</svg></div><div class="row" style="margin-top:8px">'+legend+'</div>';
+}
+function reportSectionChart(id,answer){
+  const rows=answer.rows||[];
+  if(!rows.length)return "";
+  if(id==="traffic"){
+    /* One bar per day, so a domain picked apart across several rows of the same
+       day is added up first - the chart is of the window, not of the rows. */
+    const byDay={},order=[];
+    rows.forEach(r=>{
+      if(!byDay[r.day]){byDay[r.day]={i:0,o:0};order.push(r.day);}
+      byDay[r.day].i+=Number(r.incoming)||0;
+      byDay[r.day].o+=Number(r.outgoing)||0;
+    });
+    return reportChartHtml(order,[
+      {label:K("Incoming"),colour:"#36c2ff",values:order.map(d=>byDay[d].i)},
+      {label:K("Outgoing"),colour:"#7c5cff",values:order.map(d=>byDay[d].o)}
+    ]);
+  }
+  return reportChartHtml(rows.map(r=>r.day),[
+    {label:K("Megabytes"),colour:"#3fb950",values:rows.map(r=>Number(r.megabytes)||0)}
+  ]);
+}
+function reportSectionHtml(section,answer){
+  if(!answer)return "";
+  const columns=answer.columns||[],rows=answer.rows||[];
+  const head=columns.map(c=>"<th>"+escHtml(reportColumnName(c))+"</th>").join("");
+  const body=rows.map(r=>"<tr>"+columns.map(c=>"<td>"+escHtml(r[c]===undefined||r[c]===null?"—":r[c])+"</td>").join("")+"</tr>").join("");
+  const badge=answer.enabled?"":'<span class="badge warn">'+t("Not recorded")+"</span>";
+  const truncated=answer.truncated?'<span class="badge warn">'+t("Partial")+"</span>":"";
+  const csv="/api/v1/reports/"+encodeURIComponent(section.id)+"?"+reportQuery("format=csv");
+  return '<div class="sect"><h2>'+escHtml(t(section.title))+' <code class="muted">GET /api/v1/reports/'+escHtml(section.id)+"</code> "+badge+truncated+
+    '<span class="sp"></span><a class="btn ghost sm" id="csv_'+escHtml(section.id)+'" href="'+escHtml(csv)+'" download>'+t("CSV")+"</a></h2>"+
+    '<div class="card flat"><p class="note">'+escHtml(answer.note||"")+"</p>"+
+    (section.chart?reportSectionChart(section.id,answer):"")+
+    '<div class="tablewrap"><table><thead><tr>'+head+"</tr></thead><tbody>"+
+    (body||'<tr><td colspan="'+Math.max(1,columns.length)+'" class="empty">'+t("Nothing in this range.")+"</td></tr>")+
+    "</tbody></table></div></div></div>";
+}
+async function renderReports(){
+  const index=await api("/api/v1/reports");
+  if(!report.to){report.from=index.from;report.to=index.to;}
+  cache.domains=asList(await api("/api/v1/domains"),"domains");
+  const answer=await api("/api/v1/reports/summary?"+reportQuery());
+  const sections=answer.sections||{};
+  const omitted=(answer.omitted||[]).map(o=>"<li>"+escHtml(o.section+" — "+o.reason)+"</li>").join("");
+  const notAnswerable=(index.not_answerable||[]).map(s=>"<li>"+escHtml(s)+"</li>").join("");
+  const sources=index.sources||{};
+  const sourceRow=(name,key)=>{
+    const s=sources[key]||{};
+    return "<tr><td>"+escHtml(name)+"</td><td>"+(s.enabled?'<span class="badge good">'+t("Active")+"</span>":'<span class="badge warn">'+t("Not recorded")+"</span>")+
+      "</td><td>"+escHtml(s.retention_days?String(s.retention_days):"—")+"</td><td>"+escHtml(s.oldest||"—")+"</td></tr>";
+  };
+  const domainOptions='<option value="">'+t("All domains")+"</option>"+
+    cache.domains.map(d=>'<option value="'+escHtml(d.name)+'"'+(d.name===report.domain?" selected":"")+">"+escHtml(d.name)+"</option>").join("");
+  $("#content").innerHTML='<div class="view">'+
+    '<div class="card flat"><div class="row">'+
+      "<label>"+t("From")+' <input id="repFrom" type="date" value="'+escHtml(report.from||"")+'"></label>'+
+      "<label>"+t("To")+' <input id="repTo" type="date" value="'+escHtml(report.to||"")+'"></label>'+
+      "<label>"+t("Domain")+' <select id="repDomain">'+domainOptions+"</select></label>"+
+      "<label>"+t("Rows")+' <input id="repTop" type="number" min="1" max="200" value="'+escHtml(String(report.top))+'"></label>'+
+      '<button class="btn" data-act="repshow">'+t("Show")+"</button>"+
+      '<button class="btn ghost sm" data-act="repdays" data-days="7">'+t("Last 7 days")+"</button>"+
+      '<button class="btn ghost sm" data-act="repdays" data-days="30">'+t("Last 30 days")+"</button>"+
+      '<button class="btn ghost sm" data-act="repdays" data-days="90">'+t("Last 90 days")+"</button>"+
+      '<div class="err" id="err_reports"></div></div></div>'+
+    '<div class="sect"><h2>'+t("What this server keeps")+' <code class="muted">GET /api/v1/reports</code></h2>'+
+      '<div class="card flat"><div class="tablewrap"><table><thead><tr><th>'+t("Source")+"</th><th>"+t("Status")+"</th><th>"+
+      t("Retention")+"</th><th>"+t("Oldest")+"</th></tr></thead><tbody>"+
+      sourceRow(t("Message trace"),"message_trace")+sourceRow(t("Metric history"),"metric_history")+sourceRow(t("Message store"),"message_store")+
+      "</tbody></table></div>"+
+      '<p class="note" style="margin-top:14px"><b>'+t("What cannot be answered")+"</b></p><ul class=\"note\">"+notAnswerable+omitted+"</ul></div></div>"+
+    REPORT_SECTIONS.map(s=>reportSectionHtml(s,sections[s.id])).join("")+
+    "</div>";
+}
+function reportShow(){
+  const from=document.getElementById("repFrom"),to=document.getElementById("repTo");
+  const domain=document.getElementById("repDomain"),top=document.getElementById("repTop");
+  if(from)report.from=from.value;
+  if(to)report.to=to.value;
+  if(domain)report.domain=domain.value;
+  if(top){const n=Number(top.value);report.top=n>=1&&n<=200?Math.round(n):10;}
+  render();
+}
+function reportLastDays(days){
+  report.to=report.to||"";
+  report.from=reportShiftDay(report.to,-(Number(days)-1));
+  render();
 }
 
 /* ---------- Logs ---------- */
@@ -2345,6 +3306,55 @@ async function renderLogs(){
     <pre id="logPre" style="margin-top:14px;max-height:60vh;overflow:auto;white-space:pre-wrap" hidden></pre></div>`;
 }
 function fmtBytes(n){n=Number(n)||0;if(n>=1048576)return (n/1048576).toFixed(1)+" MB";if(n>=1024)return (n/1024).toFixed(1)+" KB";return n+" B";}
+/* ---------- Audit trail ----------
+   Who changed what, when, from where, and over which interface. The rows are
+   written below the interfaces (see AuditTrail.h in the server), so a change
+   made over COM by the Control Panel and the same change made here appear side
+   by side with only the interface column telling them apart.
+
+   The page reads and never writes: the record is append-only, and a page that
+   could edit it would be the first thing to use. */
+let auditOffset=0;
+const AUDIT_PAGE=50;
+function auditWhen(seconds){
+  const value=Number(seconds)||0;
+  if(!value)return "—";
+  return new Date(value*1000).toISOString().replace("T"," ").replace(/\.\d+Z$/,"Z");
+}
+async function renderAudit(){
+  const filter=(auditFilter||"").trim();
+  const query="?limit="+AUDIT_PAGE+"&offset="+auditOffset+(filter?"&actor="+encodeURIComponent(filter):"");
+  const answer=await api("/api/v1/audit"+query);
+  const entries=answer.entries||[];
+  const total=Number(answer.total)||0;
+  const rows=entries.map(e=>`
+    <tr><td>${escHtml(auditWhen(e.time))}</td><td>${escHtml(e.actor||"—")}</td><td>${escHtml(e.interface||"—")}</td>
+        <td>${escHtml(e.address||"—")}</td><td>${escHtml(e.object_type||"—")}</td><td>${escHtml(e.object||"—")}</td>
+        <td>${escHtml(e.action||"—")}</td><td>${escHtml(e.detail||"")}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="card view">
+    <div class="row" style="gap:10px;align-items:center;margin-bottom:12px">
+      <input id="auditFilter" placeholder="${t("Filter by administrator or API key")}" value="${escHtml(filter)}" style="flex:1">
+      <button class="btn ghost sm" data-act="auditverify">${t("Verify the chain")}</button>
+      <button class="btn ghost sm" data-act="auditpage" data-by="-${AUDIT_PAGE}">${t("Newer")}</button>
+      <button class="btn ghost sm" data-act="auditpage" data-by="${AUDIT_PAGE}">${t("Older")}</button>
+    </div>
+    <div class="err" id="err_audit"></div>
+    <div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Who")}</th><th>${t("Interface")}</th><th>${t("From")}</th>
+      <th>${t("Object")}</th><th>${t("Name")}</th><th>${t("Action")}</th><th>${t("Detail")}</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" class="empty">'+t("Nothing has been recorded yet. Every administrative change appears here.")+'</td></tr>'}</tbody></table></div>
+    <p class="note" style="margin-top:12px">${tf("{0} to {1} of {2}",total?auditOffset+1:0,auditOffset+entries.length,total)}</p></div>`;
+  const box=$("#auditFilter");
+  if(box)box.onchange=e=>{auditFilter=e.target.value;auditOffset=0;render();};
+}
+let auditFilter="";
+async function verifyAuditChain(){
+  setErr("err_audit","");
+  try{
+    const answer=await api("/api/v1/audit/verify");
+    if(answer.intact)toast(tf("The chain is intact. {0} row(s) checked.",Number(answer.rows_checked)||0));
+    else setErr("err_audit",tf("The chain is broken at row {0}. {1}",Number(answer.first_broken_id)||0,answer.reason||""));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_audit",e.message);}
+}
 async function showLog(name,lines){
   setErr("err_log","");
   try{

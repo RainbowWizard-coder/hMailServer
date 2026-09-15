@@ -253,6 +253,18 @@ namespace
       { nullptr, 0 }
    };
 
+   // SyslogSink::Transport. "journal" is deliberately absent: it is not a value
+   // of the setting but what "enabled, on Linux under systemd, with no collector
+   // host" resolves to, and offering it as a transport would let it be chosen on
+   // a machine that has no journal to write to.
+   const Word SyslogTransportWords[] =
+   {
+      { "udp", 0 },
+      { "tcp", 1 },
+      { "tls", 2 },
+      { nullptr, 0 }
+   };
+
    // InterfaceAntiVirus::put_Action's two values - eAntivirusAction over COM,
    // hDeleteEmail and hDeleteAttachments - in the order the Control Panel
    // lists them. Anything else is refused there rather than stored, and here.
@@ -536,6 +548,38 @@ namespace
       { "user_interface_language", KindString, ReadWrite, EffectStored, nullptr,
         "The language name third-party administration tools read over COM (Settings.UserInterfaceLanguage, UseLanguage in hMailServer.ini); the server translates nothing with it.",
         ROW_TEXT(Ini()->GetUserInterfaceLanguage()), ROW_SET(Ini()->SetUserInterfaceLanguage(v.text)), ROW_NO_CHECK },
+
+      // The audit trail and the alerts. In hm_settings, reached through
+      // Configuration like every other row here - none of them is an
+      // hMailServer.ini key, and the rules themselves are rows in
+      // hm_alertrules reached at /api/v1/alerts/rules rather than settings.
+      { "audit_trail_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether every administrative change is recorded in the hash-chained audit trail, readable at /api/v1/audit.",
+        ROW_FLAG(Config()->GetAuditTrailEnabled()), ROW_SET(Config()->SetAuditTrailEnabled(v.flag)), ROW_NO_CHECK },
+      { "audit_retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Days of audit trail to keep; 0 keeps everything, which is the default. Deleting the oldest rows re-anchors the chain at the oldest that remains.",
+        ROW_NUMBER(Config()->GetAuditRetentionDays()), ROW_SET(Config()->SetAuditRetentionDays((int) v.number)), ROW_NO_CHECK },
+      { "alerts_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "The master switch for alerting. With it on, the rules at /api/v1/alerts/rules decide which conditions are watched.",
+        ROW_FLAG(Config()->GetAlertsEnabled()), ROW_SET(Config()->SetAlertsEnabled(v.flag)), ROW_NO_CHECK },
+      { "alert_recipient", KindString, ReadWrite, EffectNow, nullptr,
+        "The address alerts and the daily digest are sent to. Empty means nothing is mailed, which is the default.",
+        ROW_TEXT(Config()->GetAlertRecipient()), ROW_SET(Config()->SetAlertRecipient(v.text)), ROW_NO_CHECK },
+      { "alert_sender_address", KindString, ReadWrite, EffectNow, nullptr,
+        "The address alerts are sent FROM. Empty means nothing is mailed, which is the default.",
+        ROW_TEXT(Config()->GetAlertSenderAddress()), ROW_SET(Config()->SetAlertSenderAddress(v.text)), ROW_NO_CHECK },
+      { "alert_digest_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether conditions marked for the digest wait for one daily message rather than sending one message each.",
+        ROW_FLAG(Config()->GetAlertDigestEnabled()), ROW_SET(Config()->SetAlertDigestEnabled(v.flag)), ROW_NO_CHECK },
+      { "alert_digest_hour", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The hour of the day, UTC, at which the digest is sent. 0 to 23.",
+        ROW_NUMBER(Config()->GetAlertDigestHour()), ROW_SET(Config()->SetAlertDigestHour((int) v.number)), ROW_NO_CHECK },
+      { "alert_max_per_hour", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most alerts that will be sent one at a time in an hour. Past it everything goes into the digest instead.",
+        ROW_NUMBER(Config()->GetAlertMaxPerHour()), ROW_SET(Config()->SetAlertMaxPerHour((int) v.number)), ROW_NO_CHECK },
+      { "alert_webhook_max_attempts", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many times a webhook is attempted before the event is dead-lettered. 1 to 20.",
+        ROW_NUMBER(Config()->GetAlertWebhookMaxAttempts()), ROW_SET(Config()->SetAlertWebhookMaxAttempts((int) v.number)), ROW_NO_CHECK },
    };
 
    const Row AntiSpamRows[] =
@@ -746,6 +790,48 @@ namespace
       { "log_format", KindEnum, ReadWrite, EffectNow, LogFormatWords,
         "How each line is rendered: the default, or the CSA format.",
         ROW_NUMBER(Config()->GetLogFormat()), ROW_SET(Config()->SetLogFormat(v.number)), ROW_NO_CHECK },
+
+      // The syslog sink (RFC 5424). Every one of these is EffectRestart: the sink
+      // reads its settings when it starts, which is at the next service start or
+      // Reinitialize. These routes are not a convenience - on Linux there is no
+      // Control Panel, so they and the Deck are the only way to turn syslog on,
+      // which is the one thing a Linux administrator asks for first.
+      { "syslog_enabled", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether a copy of each log entry is sent as RFC 5424 to a syslog collector, or - on Linux under systemd with no collector host - to the journal.",
+        ROW_FLAG(Config()->GetSyslogEnabled()), ROW_SET(Config()->SetSyslogEnabled(v.flag)), ROW_NO_CHECK },
+      { "syslog_host", KindString, ReadWrite, EffectRestart, nullptr,
+        "The collector's host name or address. Empty selects the systemd journal on Linux, and means nothing is sent on Windows.",
+        ROW_TEXT(Config()->GetSyslogHost()), [] (const Value &v) { String host = v.text; Config()->SetSyslogHost(host); return Applied(); }, ROW_NO_CHECK },
+      { "syslog_port", KindInteger, ReadWrite, EffectRestart, nullptr,
+        "The collector's port: 514 for UDP and TCP, 6514 for TLS.",
+        ROW_NUMBER(Config()->GetSyslogPort()), ROW_SET(Config()->SetSyslogPort((long) v.number)), ROW_NO_CHECK },
+      { "syslog_transport", KindEnum, ReadWrite, EffectRestart, SyslogTransportWords,
+        "How entries reach the collector: udp (truncated at 1024 bytes), tcp, or tls (RFC 5425, certificate verified).",
+        ROW_NUMBER(Config()->GetSyslogTransport()), ROW_SET(Config()->SetSyslogTransport((long) v.number)), ROW_NO_CHECK },
+      { "syslog_facility", KindInteger, ReadWrite, EffectRestart, nullptr,
+        "The RFC 5424 facility, 0 to 23. 2 is mail; 16 to 23 are local0 to local7.",
+        ROW_NUMBER(Config()->GetSyslogFacility()), ROW_SET(Config()->SetSyslogFacility((long) v.number)), ROW_NO_CHECK },
+      { "syslog_minimum_severity", KindInteger, ReadWrite, EffectRestart, nullptr,
+        "The least severe entry that is sent, 0 emergency to 7 debug. Numerically lower is more severe.",
+        ROW_NUMBER(Config()->GetSyslogMinimumSeverity()), ROW_SET(Config()->SetSyslogMinimumSeverity((long) v.number)), ROW_NO_CHECK },
+      { "syslog_log_smtp", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether SMTP conversations are sent to syslog. Errors are sent whatever these six say.",
+        ROW_FLAG(Config()->GetSyslogLogType(Logger::LSSMTP)), ROW_SET(Config()->SetSyslogLogType(Logger::LSSMTP, v.flag)), ROW_NO_CHECK },
+      { "syslog_log_pop3", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether POP3 conversations are sent to syslog.",
+        ROW_FLAG(Config()->GetSyslogLogType(Logger::LSPOP3)), ROW_SET(Config()->SetSyslogLogType(Logger::LSPOP3, v.flag)), ROW_NO_CHECK },
+      { "syslog_log_imap", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether IMAP conversations are sent to syslog.",
+        ROW_FLAG(Config()->GetSyslogLogType(Logger::LSIMAP)), ROW_SET(Config()->SetSyslogLogType(Logger::LSIMAP, v.flag)), ROW_NO_CHECK },
+      { "syslog_log_application", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether the server's own events are sent to syslog.",
+        ROW_FLAG(Config()->GetSyslogLogType(Logger::LSApplication)), ROW_SET(Config()->SetSyslogLogType(Logger::LSApplication, v.flag)), ROW_NO_CHECK },
+      { "syslog_log_tcpip", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether connections and disconnections are sent to syslog.",
+        ROW_FLAG(Config()->GetSyslogLogType(Logger::LSTCPIP)), ROW_SET(Config()->SetSyslogLogType(Logger::LSTCPIP, v.flag)), ROW_NO_CHECK },
+      { "syslog_log_debug", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether debugging detail is sent to syslog.",
+        ROW_FLAG(Config()->GetSyslogLogType(Logger::LSDebug)), ROW_SET(Config()->SetSyslogLogType(Logger::LSDebug, v.flag)), ROW_NO_CHECK },
 
       // Facts about the log, from the same COM object, for a client that
       // wants to know where to look. Not settings, so not writable.
@@ -1417,9 +1503,9 @@ namespace
    const char *IniValueRefusal =
       "The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.";
    const char *IniWriteRefusal =
-      "The setting could not be written to hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.";
+      "The setting could not be stored. Settings are held in the database, so this means the server could not write to it. Nothing has been changed.";
    const char *IniRemoveRefusal =
-      "The setting could not be removed from hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.";
+      "The setting could not be removed. Settings are held in the database, so this means the server could not write to it. Nothing has been changed.";
 
    // The name from the path as the store sees it, or the refusal. Not valid
    // UTF-8 is refused with the name sentence too: whatever the bytes were,

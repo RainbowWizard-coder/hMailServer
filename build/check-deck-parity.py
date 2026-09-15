@@ -89,6 +89,9 @@ PATH_SCOPE = {
     'recipients': ['DistributionListRecipient'],
     'rules': ['Rule', 'RuleCriteria', 'RuleAction'],
     'routes': ['Route', 'RouteAddress'],
+    # What this server will do for a named remote domain; the effective query and
+    # the verification-cache clear hang off the same collection.
+    'remote-domains': ['RemoteDomainPolicy', 'RemoteDomainPolicies'],
     'certificates': ['SSLCertificate'],
     'ports': ['TCPIPPort'],
     'ipranges': ['SecurityRange'],
@@ -1281,6 +1284,21 @@ def write_markdown(interfaces, desktop, routes, views, view_calls, rows, method_
       'they are the self-service surface, not administration. An assignment that is not a '
       'setting - the input of a diagnostic run, the link from a child row to its parent - is '
       'left out of the count and listed with its reason.')
+    a('')
+    a('The page itself is the webmail\'s design: one `:root` block declares the palette '
+      '`Portal.html` declares, value for value, with `[data-theme="dark"]` beside it carrying '
+      'the webmail\'s dark theme, and the spacing scale, the radii and the type ramp of the '
+      'desktop console (`ControlPanelDesign.md`); every colour the page paints with comes from '
+      'one of those two blocks, which the harness holds it to. The theme is light, dark, or the '
+      'system\'s - `prefers-color-scheme`, followed as the reader changes it - and the choice is '
+      'remembered in `localStorage`. The frame is the console\'s: a command bar (the brand, the '
+      'view, a search, the link\'s status pill, the theme, the shortcut list and signing out), a '
+      'navigation column that becomes a rail of glyphs under 900 pixels, and a content area of '
+      'cards, grids, form rows, empty states and notices. It is usable with no pointer: `/` puts '
+      'the keyboard in the search box, `?` opens the shortcut list, Escape closes what is open, '
+      'the arrows move a cursor down the rows of a table and Enter opens the row it is on, the '
+      'arrows move between the views while the keyboard is in the navigation column, and '
+      'everything that takes focus is ringed while it holds it.')
     a('')
     a('## Summary')
     a('')

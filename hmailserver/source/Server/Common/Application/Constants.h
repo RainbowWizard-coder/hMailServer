@@ -161,6 +161,42 @@
 #define PROPERTY_QUARANTINE_DIGEST_BASE_URL     _T("QuarantineDigestBaseUrl")
 #define PROPERTY_QUARANTINE_DIGEST_LINK_HOURS   _T("QuarantineDigestLinkHours")
 
+// The audit trail. Recording is on by default: a server nobody has configured
+// still answers "who changed this", and the cost is one row per administrative
+// change. Retention of 0 keeps everything, which is what an audit trail is for;
+// a number of days is for the installation whose own policy says so.
+#define PROPERTY_AUDIT_TRAIL_ENABLED            _T("AuditTrailEnabled")
+#define PROPERTY_AUDIT_RETENTION_DAYS           _T("AuditRetentionDays")
+
+// Alerts. The master switch is on, and the rules in hm_alertrules are off
+// except the two worth waking up for; with no AlertRecipient set nothing is
+// sent, which is what makes "on" safe in a stock install.
+#define PROPERTY_ALERTS_ENABLED                 _T("AlertsEnabled")
+#define PROPERTY_ALERT_RECIPIENT                _T("AlertRecipient")
+#define PROPERTY_ALERT_SENDER_ADDRESS           _T("AlertSenderAddress")
+#define PROPERTY_ALERT_DIGEST_ENABLED           _T("AlertDigestEnabled")
+#define PROPERTY_ALERT_DIGEST_HOUR              _T("AlertDigestHour")
+#define PROPERTY_ALERT_MAX_PER_HOUR             _T("AlertMaxPerHour")
+#define PROPERTY_ALERT_WEBHOOK_MAX_ATTEMPTS     _T("AlertWebhookMaxAttempts")
+// The syslog sink (RFC 5424), beside the log files rather than instead of them.
+// In hm_settings rather than in hMailServer.ini because of the rule in
+// .github/CONTRIBUTING.md from 15 September 2026: a setting belongs in the
+// database. The rows are created with these defaults by
+// PropertySet::EnsureLong/EnsureString at start-up when they are absent, which is
+// every installation that predates the feature - so no reader ever sees a missing
+// property, and none of them reports HM5015 on a server that has never touched
+// the page.
+//
+// SyslogHost empty is not "off": on Linux under systemd it is what selects the
+// journal, which is where a Linux administrator expects the lines to be.
+#define PROPERTY_SYSLOG_ENABLED                 _T("SyslogEnabled")
+#define PROPERTY_SYSLOG_HOST                    _T("SyslogHost")
+#define PROPERTY_SYSLOG_PORT                    _T("SyslogPort")
+#define PROPERTY_SYSLOG_TRANSPORT               _T("SyslogTransport")
+#define PROPERTY_SYSLOG_FACILITY                _T("SyslogFacility")
+#define PROPERTY_SYSLOG_SEVERITY                _T("SyslogMinimumSeverity")
+#define PROPERTY_SYSLOG_LOGTYPES                _T("SyslogLogTypes")
+
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
 //      hm_domains.domaindkimsecondaryprivatekeyfile, the staged half of a DKIM key

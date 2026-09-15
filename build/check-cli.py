@@ -95,9 +95,50 @@ ANSWERS = {
     ("GET", "/api/v1/accounts/ann@example.com/app-passwords"): {"app_passwords": [
         {"id": 2, "name": "phone", "created": "2026-09-01T10:00:00Z", "last_used": None}]},
     ("POST", "/api/v1/accounts/ann@example.com/app-passwords"): {"id": 3, "name": "tablet", "password": "abcd-efgh-ijkl"},
+    ("GET", "/api/v1/rules"): {"rules": [{"name": "Tag support", "active": True, "sort_order": 1}]},
+    ("GET", "/api/v1/routes"): {"routes": [{"domain_name": "partner.test", "target_smtp_host": "mx.partner.test",
+                                            "target_smtp_port": 25}]},
+    ("GET", "/api/v1/ports"): {"ports": [{"protocol": "SMTP", "address": "0.0.0.0", "port": 25,
+                                          "connection_security": 0}]},
+    ("GET", "/api/v1/domains/example.com/lists"): {"lists": [{"address": "all@example.com", "active": True,
+                                                              "mode": 0}]},
+    ("GET", "/api/v1/domains/example.net/accounts"): {"accounts": []},
+    ("GET", "/api/v1/domains/example.net/aliases"): {"aliases": []},
+    ("GET", "/api/v1/domains/example.net/lists"): {"lists": []},
+    ("PUT", "/api/v1/domains/example.net"): {"name": "example.net", "active": True},
     ("GET", "/api/v1/ipranges"): {"ipranges": [
         {"id": 1, "name": "My computer", "lower_ip": "127.0.0.1", "upper_ip": "127.0.0.1", "priority": 15}]},
+    ("GET", "/api/v1/reports"): {
+        "from": "2026-08-17", "to": "2026-09-15", "today": "2026-09-15",
+        "sections": [
+            {"name": "traffic", "scope": "domain", "source": "hm_messagetrace", "csv": True,
+             "summary": "Messages in and out, per day and per local domain."},
+            {"name": "storage", "scope": "server", "source": "hm_metricsamples", "csv": True,
+             "summary": "The size of the message store per day."}],
+        "sources": {
+            "message_trace": {"table": "hm_messagetrace", "enabled": False, "retention_days": 30, "oldest": ""},
+            "metric_history": {"table": "hm_metricsamples", "enabled": True, "retention_days": 7,
+                               "oldest": "2026-09-08 00:00:00"}},
+        "not_answerable": ["Spam and virus counts per domain."]},
+    ("GET", "/api/v1/reports/traffic"): {
+        "from": "2026-09-01", "to": "2026-09-15", "domain": "example.com", "top": 10,
+        "section": "traffic", "source": "hm_messagetrace", "enabled": True, "truncated": False,
+        "note": "Counted from the message trace.",
+        "columns": ["day", "domain", "incoming", "outgoing", "failed_incoming", "failed_outgoing"],
+        "rows": [{"day": "2026-09-14", "domain": "example.com", "incoming": 12, "outgoing": 3,
+                  "failed_incoming": 1, "failed_outgoing": 0}]},
+    ("GET", "/api/v1/reports/summary"): {
+        "section": "summary", "from": "2026-08-17", "to": "2026-09-15", "domain": "", "top": 10,
+        "sections": {"mailboxes": {"section": "mailboxes", "columns": ["address", "megabytes"],
+                                   "rows": [{"address": "ann@example.com", "megabytes": 40}]}},
+        "omitted": [{"section": "volume", "reason": "counted from server-wide metrics that carry no domain"}]},
 }
+
+# The one route that answers something other than JSON. Kept apart from ANSWERS
+# because it is decided by the query string, which ANSWERS is keyed without:
+# the point of the case is that the client ASKS for format=csv.
+REPORT_CSV = ("day,domain,incoming,outgoing\r\n"
+              "2026-09-14,example.com,12,3\r\n")
 
 
 class Recorder(BaseHTTPRequestHandler):
@@ -131,8 +172,18 @@ class Recorder(BaseHTTPRequestHandler):
             return
 
         path = self.path.split("?", 1)[0]
+        query = self.path.split("?", 1)[1] if "?" in self.path else ""
         import urllib.parse as parse
         path = parse.unquote(path)
+
+        if path.startswith("/api/v1/reports/") and "format=csv" in query:
+            payload = REPORT_CSV.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
 
         if (method, path) not in ANSWERS:
             payload = json.dumps({"error": "no such route: %s %s" % (method, path)}).encode("utf-8")
@@ -238,6 +289,15 @@ CASES = [
     ("app password create", ["app-password", "ann@example.com", "create", "tablet"],
      "POST", "/api/v1/accounts/ann@example.com/app-passwords", {"name": "tablet"}, ["abcd-efgh-ijkl", "only time"]),
     ("ip ranges", ["iprange", "list"], "GET", "/api/v1/ipranges", None, ["My computer"]),
+    ("report sections", ["report", "sections"], "GET", "/api/v1/reports", None,
+     ["traffic", "NOT RECORDING", "cannot answer"]),
+    ("report one section", ["report", "traffic", "--from", "2026-09-01", "--to", "2026-09-15",
+                            "--domain", "example.com"],
+     "GET", "/api/v1/reports/traffic", None, ["Counted from the message trace", "example.com", "INCOMING"]),
+    ("report summary", ["report", "summary"], "GET", "/api/v1/reports/summary", None,
+     ["mailboxes", "ann@example.com", "not shown"]),
+    ("report as CSV", ["report", "traffic", "--csv", "-"], "GET", "/api/v1/reports/traffic", None,
+     ["day,domain,incoming,outgoing", "2026-09-14,example.com,12,3"]),
     ("the escape hatch", ["api", "GET", "/api/v1/status"], "GET", "/api/v1/status", None, ["6.3.3"]),
 ]
 
@@ -342,6 +402,88 @@ POWERSHELL_CASES = [
 ]
 
 
+def run_powershell_config_cases(url, tmp, verbose):
+    """The module's configuration verbs, held to the same document and the same
+    refusals as hmctl's. The point of the pair is that they ask for the same
+    thing; a document one writes is a document the other reads."""
+    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    if not pwsh or not os.path.exists(MODULE):
+        return
+
+    document = os.path.join(tmp, "ps-config.json")
+    prologue = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
+                "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; "
+                % (MODULE.replace("'", "''"), url, PASSWORD))
+
+    def run(script):
+        return subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", prologue + script],
+                              capture_output=True, text=True, timeout=180)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run("Export-HmConfiguration -Path '%s'" % document.replace("'", "''"))
+    with Recorder.lock:
+        exporting = list(Recorder.requests)
+    check(completed.returncode == 0,
+          "Export-HmConfiguration: exit %d - %s" % (completed.returncode, completed.stderr.strip()[:400]))
+    check(all(r["method"] == "GET" for r in exporting),
+          "Export-HmConfiguration made a request that was not a GET: %s" % sorted({r["method"] for r in exporting}))
+
+    if not os.path.exists(document):
+        problem("Export-HmConfiguration wrote no file")
+        return
+
+    with open(document, encoding="utf-8-sig") as handle:
+        written = json.load(handle)
+
+    check(written.get("version") == 1, "the module's document carries no version")
+    names = [row.get("name") for row in written.get("sections", {}).get("domains", [])]
+    check("example.com" in names, "the module's document holds no domains: %s" % names)
+    addresses = [row.get("address") for row in written.get("sections", {}).get("accounts", [])]
+    check("ann@example.com" in addresses, "the module's document holds no accounts: %s" % addresses)
+
+    # The same document, read by the other client: one vocabulary, one file.
+    completed = subprocess.run(
+        [sys.executable, HMCTL, "--url", url, "--password", PASSWORD, "config", "diff", document],
+        capture_output=True, text=True, timeout=120)
+    check(completed.returncode == 0,
+          "hmctl does not agree that the module's document matches the server (exit %d):\n%s"
+          % (completed.returncode, completed.stdout))
+
+    completed = run("Compare-HmConfiguration -Path '%s' | Measure-Object | Select-Object -ExpandProperty Count"
+                    % document.replace("'", "''"))
+    check(completed.returncode == 0 and completed.stdout.strip() in ("0", ""),
+          "Compare-HmConfiguration of a matching document should be empty, said %r %s"
+          % (completed.stdout.strip(), completed.stderr.strip()[:200]))
+
+    # A change, planned but not applied.
+    with open(document, encoding="utf-8-sig") as handle:
+        changed = json.load(handle)
+    changed["sections"]["settings"]["settings"]["max_message_size_kb"] = 51200
+    changed_path = os.path.join(tmp, "ps-changed.json")
+    with open(changed_path, "w", encoding="utf-8") as handle:
+        json.dump(changed, handle, indent=2, sort_keys=True)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run("Import-HmConfiguration -Path '%s' | Out-Null" % changed_path.replace("'", "''"))
+    with Recorder.lock:
+        planning = list(Recorder.requests)
+    check(completed.returncode == 0,
+          "Import-HmConfiguration without -Force: exit %d - %s" % (completed.returncode, completed.stderr.strip()[:300]))
+    check(all(r["method"] == "GET" for r in planning),
+          "Import-HmConfiguration without -Force wrote something: %s" % [r["method"] for r in planning])
+
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run("Import-HmConfiguration -Path '%s' -Force -Confirm:$false | Out-Null" % changed_path.replace("'", "''"))
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    writes = [(r["method"], r["path"], r["body"]) for r in applying if r["method"] != "GET"]
+    check(("PUT", "/api/v1/settings", {"max_message_size_kb": 51200}) in writes,
+          "Import-HmConfiguration -Force did not write the setting: %s" % writes)
+
+
 def run_powershell_cases(url, verbose):
     pwsh = shutil.which("pwsh") or shutil.which("powershell")
     if not pwsh:
@@ -384,6 +526,116 @@ def run_powershell_cases(url, verbose):
             check(text in completed.stdout, "%s: %r is not in the output:\n%s" % (name, text, completed.stdout))
 
     return True
+
+
+def run_config_cases(url, tmp):
+    """The whole configuration as one document: exported, compared, applied.
+
+    Three properties are checked rather than described, because they are what
+    makes a document usable in a repository: an export of an unchanged server is
+    the same bytes twice, a document that matches produces an empty plan and
+    exit 0, and `apply` without --force writes nothing at all.
+    """
+    def run(arguments):
+        return subprocess.run(
+            [sys.executable, HMCTL, "--url", url, "--password", PASSWORD] + arguments,
+            capture_output=True, text=True, timeout=120)
+
+    document = os.path.join(tmp, "config.json")
+
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run(["config", "export", document])
+    check(completed.returncode == 0, "config export: exit %d - %s" % (completed.returncode, completed.stderr))
+    with Recorder.lock:
+        exporting = list(Recorder.requests)
+    check(all(r["method"] == "GET" for r in exporting),
+          "config export made a request that was not a GET: %s" % sorted({r["method"] for r in exporting}))
+
+    if not os.path.exists(document):
+        problem("config export wrote no file")
+        return
+
+    with open(document, encoding="utf-8") as handle:
+        first = handle.read()
+
+    check('"version": 1' in first, "the document carries no version")
+    check("example.com" in first and "ann@example.com" in first,
+          "the document holds neither the domain nor its accounts")
+    check("all@example.com" in first, "the document holds no distribution list")
+    check("mx.partner.test" in first, "the document holds no route")
+
+    second_path = os.path.join(tmp, "config-again.json")
+    run(["config", "export", second_path])
+    if os.path.exists(second_path):
+        with open(second_path, encoding="utf-8") as handle:
+            second = handle.read()
+        check(first == second, "two exports of an unchanged server are not the same bytes")
+
+    completed = run(["config", "diff", document])
+    check(completed.returncode == 0,
+          "a document that matches must exit 0, exited %d:\n%s" % (completed.returncode, completed.stdout))
+    check("already matches" in completed.stdout, "a matching document should say so:\n%s" % completed.stdout)
+
+    changed = json.loads(first)
+    changed["sections"]["settings"]["settings"]["max_message_size_kb"] = 51200
+    for row in changed["sections"]["domains"]:
+        if row.get("name") == "example.net":
+            row["active"] = True
+    changed_path = os.path.join(tmp, "changed.json")
+    with open(changed_path, "w", encoding="utf-8") as handle:
+        json.dump(changed, handle, indent=2, sort_keys=True)
+
+    completed = run(["config", "diff", changed_path])
+    check(completed.returncode == 1, "a document that differs must exit 1, exited %d" % completed.returncode)
+    check("max_message_size_kb" in completed.stdout,
+          "the plan does not name the changed setting:\n%s" % completed.stdout)
+    check("example.net" in completed.stdout, "the plan does not name the changed domain:\n%s" % completed.stdout)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run(["config", "apply", changed_path])
+    with Recorder.lock:
+        planning = list(Recorder.requests)
+    check(completed.returncode == 0, "apply without --force should exit 0, exited %d" % completed.returncode)
+    check(all(r["method"] == "GET" for r in planning),
+          "apply without --force wrote something: %s" % [r["method"] for r in planning])
+    check("Nothing was changed" in completed.stdout, "apply without --force must say so:\n%s" % completed.stdout)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    run(["config", "apply", changed_path, "--force"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    writes = [(r["method"], r["path"], r["body"]) for r in applying if r["method"] != "GET"]
+    check(("PUT", "/api/v1/settings", {"max_message_size_kb": 51200}) in writes,
+          "the setting was not written: %s" % writes)
+    check(any(method == "PUT" and path == "/api/v1/domains/example.net" for method, path, _ in writes),
+          "the domain was not written: %s" % writes)
+
+    fewer = json.loads(first)
+    fewer["sections"]["domains"] = [r for r in fewer["sections"]["domains"] if r.get("name") != "example.net"]
+    fewer_path = os.path.join(tmp, "fewer.json")
+    with open(fewer_path, "w", encoding="utf-8") as handle:
+        json.dump(fewer, handle, indent=2, sort_keys=True)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run(["config", "apply", fewer_path, "--force"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    deleted = [r["path"] for r in applying if r["method"] == "DELETE"]
+    check(not deleted, "apply --force deleted without --allow-delete: %s" % deleted)
+    check("left alone" in completed.stdout, "apply must say what it left alone:\n%s" % completed.stdout)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    run(["config", "apply", fewer_path, "--force", "--allow-delete"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    check(any(r["method"] == "DELETE" and r["path"] == "/api/v1/domains/example.net" for r in applying),
+          "apply --allow-delete did not delete the domain the document dropped: %s"
+          % [(r["method"], r["path"]) for r in applying])
 
 
 def run_import_cases(url, tmp):
@@ -445,6 +697,50 @@ def run_import_cases(url, tmp):
               "accounts export must never write a password column - the server does not have them to give")
 
 
+def run_report_cases(url, tmp):
+    """The reports, whose whole meaning is in the query string.
+
+    Every other case here asserts the path, because that is where a client goes
+    wrong: it asks the wrong route. A report asks the right route with the
+    wrong window, which looks identical in a path assertion and is a wrong
+    number in a spreadsheet - so these assert what came after the "?".
+    """
+    def run(arguments):
+        with Recorder.lock:
+            Recorder.requests = []
+        completed = subprocess.run([sys.executable, HMCTL, "--url", url, "--password", PASSWORD] + arguments,
+                                   capture_output=True, text=True, timeout=60)
+        with Recorder.lock:
+            sent = list(Recorder.requests)
+        return completed, (sent[-1]["path"] if sent else "")
+
+    completed, path = run(["report", "traffic", "--from", "2026-09-01", "--to", "2026-09-15",
+                           "--domain", "example.com", "--top", "25"])
+    check("from=2026-09-01" in path and "to=2026-09-15" in path,
+          "hmctl report must send the window it was given, sent %s" % path)
+    check("domain=example.com" in path, "hmctl report must send the domain, sent %s" % path)
+    check("top=25" in path, "hmctl report must send --top, sent %s" % path)
+    check("format=csv" not in path, "hmctl report without --csv must not ask for CSV, sent %s" % path)
+    check(completed.returncode == 0, "hmctl report: exit %d - %s" % (completed.returncode, completed.stderr))
+
+    out = os.path.join(tmp, "traffic.csv")
+    completed, path = run(["report", "traffic", "--csv", out])
+    check("format=csv" in path, "hmctl report --csv must ask the server for the CSV, sent %s" % path)
+    check(completed.returncode == 0, "hmctl report --csv: exit %d - %s" % (completed.returncode, completed.stderr))
+    if os.path.exists(out):
+        with open(out, encoding="utf-8") as handle:
+            text = handle.read()
+        check(text.startswith("day,domain,incoming,outgoing"),
+              "hmctl report --csv must write the server's own CSV, wrote %r" % text[:80])
+    else:
+        problem("hmctl report --csv wrote no file")
+
+    completed, path = run(["report", "nonsense"])
+    check(completed.returncode != 0 and "nonsense" in (completed.stdout + completed.stderr),
+          "hmctl report with an unknown section must refuse it by name, said: %s%s"
+          % (completed.stdout, completed.stderr))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--python", action="store_true", help="hmctl only")
@@ -472,9 +768,13 @@ def main():
             run_python_cases(url, arguments.verbose)
             run_python_refusals(url)
             run_import_cases(url, tmp)
+            run_config_cases(url, tmp)
+            run_report_cases(url, tmp)
         if not arguments.python:
             print("the PowerShell module against the same server")
             powershell_ran = run_powershell_cases(url, arguments.verbose)
+            if powershell_ran:
+                run_powershell_config_cases(url, tmp, arguments.verbose)
     finally:
         server.shutdown()
         shutil.rmtree(tmp, ignore_errors=True)

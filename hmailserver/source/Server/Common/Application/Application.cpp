@@ -36,6 +36,7 @@
 #include "../Util/OtelTracer.h"
 #include "../Util/OtelMetricsExporter.h"
 #include "../Util/OtelLogExporter.h"
+#include "../Util/SyslogSink.h"
 #include "../Mime/MimeCode.h"
 
 #include "Property.h"
@@ -79,6 +80,7 @@
 #include "MessageStoreConsistencyTask.h"
 #include "WorkQueueHealthTask.h"
 #include "../Util/DiskSpace.h"
+#include "../Util/AlertManager.h"
 #include "BackupScheduleTask.h"
 #include "../LDAP/DirectorySyncTask.h"
 
@@ -547,6 +549,12 @@ namespace HM
       OtelMetricsExporter::Instance()->Start();
       OtelLogExporter::Instance()->Start();
 
+      // The syslog sink: RFC 5424 to a collector, or the journal on a systemd
+      // host with no collector configured. Reads its settings from hm_settings,
+      // which Configuration::Load has already refreshed, so this is also where a
+      // Reinitialize picks a changed setting up.
+      SyslogSink::Instance()->Start();
+
       // Start the REST administration API if enabled in hMailServer.ini.
       int restApiPort = IniFileSettings::Instance()->GetRestApiPort();
       if (restApiPort > 0)
@@ -834,6 +842,18 @@ namespace HM
       workQueueHealthTask->SetMinutesBetweenRun(1);
       scheduler_->ScheduleTask(workQueueHealthTask);
 
+      // Alerts. Registered unconditionally and every minute, because it is the
+      // ONLY thing that sends: everything that notices a condition writes a row
+      // and returns, so that a notification about the delivery queue is never
+      // submitted into the delivery queue by the thread that is stuck on it.
+      // A minute is the resolution a cool-down and a digest hour need; with
+      // AlertsEnabled off, or with every rule off, each pass is three selects
+      // that find nothing.
+      std::shared_ptr<AlertTask> alertTask = std::shared_ptr<AlertTask>(new AlertTask);
+      alertTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      alertTask->SetMinutesBetweenRun(1);
+      scheduler_->ScheduleTask(alertTask);
+
       // Scheduled backups. Only registered when a schedule is configured in
       // hMailServer.ini ([Settings] ScheduledBackupTime or
       // ScheduledBackupIntervalMinutes), so a default installation gets no backup
@@ -974,6 +994,11 @@ namespace HM
       // Stop the OpenTelemetry exporters (each flushes what it has queued). The
       // log exporter goes last of the three so the others' shutdown log lines
       // still reach a collector.
+      // Before the OpenTelemetry exporters, so that their own shutdown lines
+      // still reach a collector: this one stops taking entries first and then
+      // flushes what it holds on the connection it already has.
+      SyslogSink::Instance()->Stop();
+
       OtelTracer::Instance()->Stop();
       OtelMetricsExporter::Instance()->Stop();
       OtelLogExporter::Instance()->Stop();

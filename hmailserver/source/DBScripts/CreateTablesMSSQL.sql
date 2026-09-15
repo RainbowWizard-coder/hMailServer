@@ -1,3 +1,10 @@
+if exists (select * from sysobjects where id = object_id('hm_audit') and objectproperty(id, 'isusertable') = 1) drop table hm_audit
+
+if exists (select * from sysobjects where id = object_id('hm_alertrules') and objectproperty(id, 'isusertable') = 1) drop table hm_alertrules
+
+if exists (select * from sysobjects where id = object_id('hm_alertevents') and objectproperty(id, 'isusertable') = 1) drop table hm_alertevents
+if exists (select * from sysobjects where id = object_id('hm_remotedomainpolicies') and objectproperty(id, 'isusertable') = 1) drop table hm_remotedomainpolicies
+
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
 if exists (select * from sysobjects where id = object_id('hm_contacts') and objectproperty(id, 'isusertable') = 1) drop table hm_contacts
@@ -279,6 +286,13 @@ create table hm_domains (
 	domainvacationinternalsubject nvarchar(200) not null,
 	domainvacationinternalmessage nvarchar(1000) not null,
 	domainvacationexternaloverride int not null,
+	domainexternaltagsubject int not null default 0,
+	domainexternaltagheader int not null default 0,
+	domainexternaltagtext nvarchar(100) not null default '',
+	domainfirstcontacttip int not null default 0,
+	domaindisclaimerenabled int not null default 0,
+	domaindisclaimerplaintext ntext not null,
+	domaindisclaimerhtml ntext not null,
 	domainquarantinedigest tinyint not null default 0,
 	domainquarantinedigesthour int not null default 7
 ) 
@@ -682,6 +696,31 @@ ALTER TABLE hm_calendarobjects ADD CONSTRAINT hm_calendarobjects_pk PRIMARY KEY 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_calendarobjects_uri ON hm_calendarobjects (objectcalendarid, objecturi)
 
 CREATE INDEX idx_hm_calendarobjects_sync ON hm_calendarobjects (objectcalendarid, objectsynctoken)
+
+create table hm_remotedomainpolicies
+(
+	policyid int identity(1,1) not null,
+	policydomainname nvarchar(255) not null,
+	policydescription nvarchar(255) not null,
+	policyactive tinyint not null,
+	policyoutboundtls int not null,
+	policyinboundtls tinyint not null,
+	policymaxmessagesizekb int not null,
+	policymaxconnections int not null,
+	policymaxperminute int not null,
+	policyallowreplies tinyint not null,
+	policyallowforwarding tinyint not null,
+	policycalloutenabled tinyint not null,
+	policycallouthost nvarchar(255) not null,
+	policycalloutport int not null,
+	policycallouttimeout int not null,
+	policycalloutcacheminutes int not null,
+	policycalloutperminute int not null
+)
+
+ALTER TABLE hm_remotedomainpolicies ADD CONSTRAINT hm_remotedomainpolicies_pk PRIMARY KEY NONCLUSTERED (policyid)
+
+CREATE INDEX idx_hm_remotedomainpolicies_domain ON hm_remotedomainpolicies (policydomainname)
 
 create table hm_rules
 (
@@ -1398,6 +1437,20 @@ ALTER TABLE hm_files ADD CONSTRAINT fk_hm_files_account FOREIGN KEY (fileaccount
 
 ALTER TABLE hm_smimekeys ADD CONSTRAINT fk_hm_smimekeys_account FOREIGN KEY (smimeaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+create table hm_knownsenders
+(
+	ksid bigint identity(1,1) not null,
+	ksaccountid int not null,
+	ksaddress nvarchar(255) not null,
+	kscount int not null,
+	ksfirstseen nvarchar(32) not null,
+	kslastseen nvarchar(32) not null
+)
+
+ALTER TABLE hm_knownsenders ADD CONSTRAINT hm_knownsenders_pk PRIMARY KEY NONCLUSTERED (ksid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress)
+
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE
@@ -1421,5 +1474,99 @@ ALTER TABLE hm_message_metadata ADD CONSTRAINT fk_hm_message_metadata_message FO
 ALTER TABLE hm_imapexpunged ADD CONSTRAINT fk_hm_imapexpunged_folder FOREIGN KEY (expungedfolderid) REFERENCES hm_imapfolders (folderid) ON DELETE CASCADE
 
 ALTER TABLE hm_messageindexterms ADD CONSTRAINT fk_hm_messageindexterms_message FOREIGN KEY (mitmessageid) REFERENCES hm_messages (messageid) ON DELETE CASCADE
+
+create table hm_audit
+(
+	auditid bigint identity(1,1) not null,
+	audittime bigint not null,
+	auditactor nvarchar(255) not null,
+	auditactortype nvarchar(32) not null,
+	auditinterface nvarchar(32) not null,
+	auditaddress nvarchar(64) not null,
+	auditobjecttype nvarchar(64) not null,
+	auditobjectname nvarchar(255) not null,
+	auditaction nvarchar(32) not null,
+	auditdetail ntext not null,
+	auditprevhash nvarchar(64) not null,
+	audithash nvarchar(64) not null
+)
+
+ALTER TABLE hm_audit ADD CONSTRAINT hm_audit_pk PRIMARY KEY CLUSTERED (auditid)
+
+CREATE INDEX idx_hm_audit_time ON hm_audit (audittime)
+
+CREATE INDEX idx_hm_audit_actor ON hm_audit (auditactor)
+
+create table hm_alertrules
+(
+	alertruleid bigint identity(1,1) not null,
+	alertrulecondition nvarchar(64) not null,
+	alertruleenabled tinyint not null,
+	alertrulethreshold int not null,
+	alertruleactions int not null,
+	alertruleaddress nvarchar(255) not null,
+	alertrulewebhook nvarchar(1024) not null,
+	alertrulesecret nvarchar(255) not null,
+	alertrulecooldown int not null,
+	alertruledigest tinyint not null
+)
+
+ALTER TABLE hm_alertrules ADD CONSTRAINT hm_alertrules_pk PRIMARY KEY CLUSTERED (alertruleid)
+
+CREATE UNIQUE INDEX idx_hm_alertrules_condition ON hm_alertrules (alertrulecondition)
+
+create table hm_alertevents
+(
+	alerteventid bigint identity(1,1) not null,
+	alerteventcondition nvarchar(64) not null,
+	alerteventseverity int not null,
+	alerteventstate int not null,
+	alerteventtime bigint not null,
+	alerteventsummary nvarchar(255) not null,
+	alerteventdetail ntext not null,
+	alerteventnotified tinyint not null,
+	alerteventdigested tinyint not null,
+	alerteventhookstate int not null,
+	alerteventhooktries int not null,
+	alerteventhooknext bigint not null
+)
+
+ALTER TABLE hm_alertevents ADD CONSTRAINT hm_alertevents_pk PRIMARY KEY CLUSTERED (alerteventid)
+
+CREATE INDEX idx_hm_alertevents_time ON hm_alertevents (alerteventtime)
+
+CREATE INDEX idx_hm_alertevents_condition ON hm_alertevents (alerteventcondition, alerteventtime)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('backup.failed', 1, 0, 1, '', '', '', 60, 0)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('certificate.expiring', 1, 7, 1, '', '', '', 1440, 1)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('disk.low', 0, 0, 1, '', '', '', 60, 1)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('queue.stalled', 0, 0, 1, '', '', '', 60, 1)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('autoban.storm', 0, 25, 1, '', '', '', 60, 1)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('minidump.written', 0, 0, 1, '', '', '', 60, 1)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertsEnabled', '', 1)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertRecipient', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertSenderAddress', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertDigestEnabled', '', 1)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertDigestHour', '', 7)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertMaxPerHour', '', 20)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertWebhookMaxAttempts', '', 5)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AuditTrailEnabled', '', 1)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('AuditRetentionDays', '', 0)
+
+ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 insert into hm_dbversion values (6046)
