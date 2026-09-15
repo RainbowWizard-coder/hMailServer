@@ -72,6 +72,13 @@ namespace HM
       static void MarkAsBlocked_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
                                  const String &senderAddress, const String &scopeName, const String &entry);
 
+      // The address in the message's From header, read once for the whole
+      // delivery and empty when there is none. The lists match it as well as the
+      // envelope sender; see SenderListCache.
+      const String &HeaderFromAddress_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage);
+      String header_from_address_;
+      bool header_from_read_ = false;
+
       // The total score the conversation recorded on the message - the
       // X-hMailServer-Reason-Score header, written when "add reason headers" is on
       // and the message was classified. Returns -1 when absent or unparseable;

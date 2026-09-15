@@ -258,6 +258,26 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("An entry covers the address in the From header as well as the envelope sender, which is what a mailing service's message carries - and a bounce is never decided by a list")]
+      public void AnEntryCoversTheFromHeaderAndABounceIsNeverDecided()
+      {
+         Account reader = AddAccount("reader");
+
+         // The newsletter comes through a mailing service: its envelope is the
+         // service's, its From header is the brand's, and the reader - like the
+         // webmail's "Block this sender" - names the brand.
+         AddOwnEntry(reader.Address, "brand.example", true);
+
+         SendRaw("bounces-12345@mailer.example", reader.Address, "News <news@brand.example>", "This week");
+         AssertMarked(reader.Address, true, "the From header's address is on the reader's block list");
+
+         // A delivery status notification has the null sender. Whatever its From
+         // header says, no list decides it.
+         SendRaw("", reader.Address, "news@brand.example", "Undeliverable: This week");
+         AssertMarked(reader.Address, false, "a bounce is never decided by a list");
+      }
+
+      [Test]
       [Description("An entry that is neither one address nor one domain is refused, and nothing is stored")]
       public void AnEntryThatIsNeitherAnAddressNorADomainIsRefused()
       {
@@ -406,6 +426,36 @@ namespace RegressionTests.AntiSpam
       private static void SendClean(string from, string to, string subject)
       {
          new SmtpClientSimulator().Send(from, to, subject, CleanBody);
+      }
+
+      private static void SendRaw(string envelopeSender, string recipient, string fromHeader, string subject)
+      {
+         var socket = new TcpConnection();
+         ClassicAssert.IsTrue(socket.Connect(25), "Could not connect to SMTP.");
+         socket.ReadUntil("220");
+
+         socket.Send("HELO test\r\n");
+         socket.ReadUntil("250");
+
+         socket.Send("MAIL FROM:<" + envelopeSender + ">\r\n");
+         socket.ReadUntil("250");
+
+         socket.Send("RCPT TO:<" + recipient + ">\r\n");
+         socket.ReadUntil("250");
+
+         socket.Send("DATA\r\n");
+         socket.ReadUntil("354");
+
+         socket.Send("From: " + fromHeader + "\r\n" +
+                     "To: " + recipient + "\r\n" +
+                     "Subject: " + subject + "\r\n" +
+                     "\r\n" +
+                     CleanBody + "\r\n" +
+                     ".\r\n");
+         socket.ReadUntil("250");
+
+         socket.Send("QUIT\r\n");
+         socket.Disconnect();
       }
 
       private static void AssertMarked(string address, bool marked, string because)

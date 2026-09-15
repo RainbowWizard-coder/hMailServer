@@ -19,6 +19,7 @@
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
 #include "../Common/AntiSpam/SenderListCache.h"
+#include "../Common/AntiSpam/DMARC/DMARC.h"
 
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Cache/AccountSizeCache.h"
@@ -1042,13 +1043,16 @@ namespace HM
       if (SenderListCache::IsEmpty())
          return true;
 
-      const String senderAddress = original_message_->GetFromAddress();
-
       const SenderListCache::Decision decision =
-         SenderListCache::Decide(senderAddress, account->GetID(), account->GetDomainID());
+         SenderListCache::Decide(original_message_->GetFromAddress(), HeaderFromAddress_(account, accountLevelMessage),
+                                 account->GetID(), account->GetDomainID());
 
       if (decision.verdict == SenderListCache::NoOpinion)
          return true;
+
+      // The address the entry matched - the envelope sender or the From header's -
+      // which is what the log and the reason header name.
+      const String senderAddress = decision.matched;
 
       const String scopeName = SenderListCache::ScopeName(decision.scope);
 
@@ -1112,6 +1116,34 @@ namespace HM
 
       decided = true;
       return true;
+   }
+
+   const String &
+   LocalDelivery::HeaderFromAddress_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage)
+   {
+      // Once per delivery, not once per recipient: every recipient's copy has the
+      // same From header, and a message to fifty accounts on this server should
+      // not read its header fifty times. Read from this copy's file because the
+      // queue file may already have been moved into the first recipient's folder.
+      if (header_from_read_)
+         return header_from_address_;
+
+      header_from_read_ = true;
+
+      const AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(account, accountLevelMessage), false);
+
+      if (header.IsEmpty())
+         return header_from_address_;
+
+      MimeHeader mimeHeader;
+      mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+      // The parser DMARC uses for the same header, so that the address a list
+      // matches is the address DMARC judged - comments stripped, and not
+      // whichever angle-bracketed text happened to come last.
+      header_from_address_ = DMARC::ExtractAddressFromHeaderValue(mimeHeader.GetUnicodeFieldValue("From"));
+
+      return header_from_address_;
    }
 
    void

@@ -13,6 +13,22 @@ namespace HM
    // The sender list, held in memory, and the one place the precedence between
    // the three scopes is decided.
    //
+   // WHICH ADDRESS IS "THE SENDER"
+   //
+   // Both of them: the envelope sender (MAIL FROM) and the address in the From
+   // header. An entry covers a message when it matches either. The From header is
+   // the address a person sees and the one the webmail's "Block this sender"
+   // writes, and mail sent through a mailing service carries the service's own
+   // address in the envelope - an entry that looked only at the envelope would
+   // never match the newsletter the reader was trying to block or to rescue.
+   //
+   // Neither address is proof of anything. Both are whatever the sender wrote, so
+   // an allow entry is exactly as forgeable as the address it names: somebody who
+   // knows a reader trusts example.com can write example.com. That is true of
+   // every safe-sender list there is, and it is why an allow entry is best kept to
+   // a correspondent whose domain publishes DMARC - and why the documentation says
+   // so rather than this list pretending otherwise.
+   //
    // THE PRECEDENCE, IN FULL
    //
    // Nearest first: the account, then its domain, then the server. The first
@@ -31,21 +47,23 @@ namespace HM
    // mechanisms, two strengths, and the difference is written down rather than
    // discovered.
    //
-   // WITHIN one scope, when two entries both match:
+   // WITHIN one scope, when two entries both match - through either address:
    //
    //   * the more specific entry wins - an address beats a domain, and a longer
    //     domain beats a shorter one - so "mail.example.com" is an exception to
    //     "example.com" rather than an argument with it;
-   //   * on an exact tie, BLOCK wins. A person who has written the same address
-   //     into both halves of their own list has written a contradiction, and the
-   //     safe reading of a contradiction about mail is the one that does not
-   //     deliver it. (The REST and COM writers replace rather than duplicate, so
-   //     this is the answer to a row pair that got in some other way - a
-   //     restore, a hand-written SQL statement - not to anything a person can do
-   //     through an editor.)
+   //   * on an exact tie, BLOCK wins. A list that says both things about one
+   //     message has written a contradiction, and the safe reading of a
+   //     contradiction about mail is the one that does not deliver it into the
+   //     inbox. (The REST and COM writers replace rather than duplicate one
+   //     value, so a tie is an allow on one address and a block on the other of
+   //     equal specificity, or a row pair that got in some other way.)
    //
    // An expired entry is not consulted at all, whether or not the sweep has got
-   // to it yet.
+   // to it yet. And a message with the null sender - a bounce, a delivery status
+   // notification - is never decided by any list, whatever its From header says:
+   // a list that could swallow a DSN would make a delivery failure invisible to
+   // the person who sent the message.
    class SenderListCache
    {
    public:
@@ -65,29 +83,27 @@ namespace HM
       {
          Verdict verdict = NoOpinion;
 
-         // Which scope decided, and the entry's own text - for the log line and
-         // for the X-hMailServer-SenderList header, so that "why did this arrive
-         // unmarked" has an answer in the message itself.
+         // Which scope decided, the entry's own text and reason, and which of the
+         // two addresses it matched - for the log line and the reason header, so
+         // that "why did this arrive unmarked" has an answer in the message itself.
          int scope = 0;
          String value;
          String reason;
+         String matched;
       };
 
-      // The decision for one envelope sender delivered to one account.
-      // domainId is the account's domain; pass 0 for a recipient that has none
-      // (nothing can then match at domain scope).
-      static Decision Decide(const String &senderAddress, __int64 accountId, __int64 domainId);
-
-      // The decision at one scope only, which is what the editors use to show a
-      // person what their own list says without the other two scopes confusing
-      // the answer.
-      static Decision DecideAtScope(const String &senderAddress, int scope, __int64 ownerId);
+      // The decision for one message delivered to one account. envelopeSender is
+      // MAIL FROM; headerFrom is the address in the From header, empty when there
+      // is none or it could not be read. domainId is the account's domain; pass
+      // 0 for a recipient that has none (nothing can then match at domain scope).
+      static Decision Decide(const String &envelopeSender, const String &headerFrom, __int64 accountId, __int64 domainId);
 
       static void SetNeedRefresh();
 
       // True when no entry exists at any scope, which lets the delivery path
       // skip the whole feature on an installation where nobody uses it - the
-      // common case, and the one that must cost nothing.
+      // common case, and the one that must cost nothing. Checked before the
+      // message's From header is read.
       static bool IsEmpty();
 
       // The scope's name, for a log line and for the header. Not localised: it
@@ -98,7 +114,7 @@ namespace HM
    private:
 
       static void Refresh_();
-      static Decision Evaluate_(const String &senderAddress, int scope, __int64 ownerId);
+      static Decision Evaluate_(const String &envelopeSender, const String &headerFrom, int scope, __int64 ownerId);
 
       static std::vector<std::shared_ptr<SenderListEntry> > entries_;
       static bool need_refresh_;

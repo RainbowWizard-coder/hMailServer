@@ -83,7 +83,7 @@ namespace HM
    }
 
    SenderListCache::Decision
-   SenderListCache::Evaluate_(const String &senderAddress, int scope, __int64 ownerId)
+   SenderListCache::Evaluate_(const String &envelopeSender, const String &headerFrom, int scope, __int64 ownerId)
    {
       Decision decision;
       decision.scope = scope;
@@ -101,7 +101,15 @@ namespace HM
          if (entry->HasExpired())
             continue;
 
-         if (!entry->Matches(senderAddress))
+         // The envelope first, so that when an entry covers both addresses the
+         // log names the one the SMTP conversation carried.
+         String matched;
+
+         if (entry->Matches(envelopeSender))
+            matched = envelopeSender;
+         else if (!headerFrom.IsEmpty() && entry->Matches(headerFrom))
+            matched = headerFrom;
+         else
             continue;
 
          const int specificity = entry->Specificity();
@@ -113,6 +121,7 @@ namespace HM
             decision.verdict = verdict;
             decision.value = entry->GetValue();
             decision.reason = entry->GetReason();
+            decision.matched = matched;
             continue;
          }
 
@@ -124,6 +133,7 @@ namespace HM
             decision.verdict = Blocked;
             decision.value = entry->GetValue();
             decision.reason = entry->GetReason();
+            decision.matched = matched;
          }
       }
 
@@ -131,30 +141,16 @@ namespace HM
    }
 
    SenderListCache::Decision
-   SenderListCache::DecideAtScope(const String &senderAddress, int scope, __int64 ownerId)
-   {
-      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
-
-      if (need_refresh_)
-      {
-         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
-         Refresh_();
-      }
-
-      return Evaluate_(senderAddress, scope, ownerId);
-   }
-
-   SenderListCache::Decision
-   SenderListCache::Decide(const String &senderAddress, __int64 accountId, __int64 domainId)
+   SenderListCache::Decide(const String &envelopeSender, const String &headerFrom, __int64 accountId, __int64 domainId)
    {
       Decision decision;
 
-      if (senderAddress.IsEmpty())
+      if (envelopeSender.IsEmpty())
       {
          // The null sender carries bounces. Nothing lists it, and nothing may
-         // stop it: a list that could swallow a delivery status notification
-         // would make a delivery failure invisible to the person who sent the
-         // message.
+         // stop it, whatever its From header claims: a list that could swallow a
+         // delivery status notification would make a delivery failure invisible
+         // to the person who sent the message.
          return decision;
       }
 
@@ -197,7 +193,7 @@ namespace HM
             ownerId = domainId;
          }
 
-         decision = Evaluate_(senderAddress, scope, ownerId);
+         decision = Evaluate_(envelopeSender, headerFrom, scope, ownerId);
 
          if (decision.verdict != NoOpinion)
             return decision;
