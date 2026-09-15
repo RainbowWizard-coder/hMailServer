@@ -1525,12 +1525,18 @@ namespace HM
       body += line;
 
       // The size of the message store. Unlike everything around it this is an
-      // aggregate over hm_messages rather than a counter held in memory, so a
-      // scrape must never run it: Reports::CachedStoreTotals runs it at most
-      // once an hour and hands out the cached figure, which is the same figure
-      // the metric sampler writes to the history. A monitoring system that
-      // scrapes every fifteen seconds therefore sees a value that steps once
-      // an hour, and costs this server nothing to answer.
+      // aggregate over hm_messages rather than a counter held in memory.
+      // Reports::CachedStoreTotals answers from its cache while the figure is
+      // under an hour old and otherwise runs the aggregate itself, for
+      // whichever caller arrives first after the hour - nothing refreshes it
+      // on a schedule. When the metric history is on (MetricsHistoryDays above
+      // 0) its sampler calls the same function every minute and is nearly
+      // always that caller, so a scrape gets the cached figure; when the
+      // history is off, the first scrape after each hour runs the aggregate
+      // and pays for it, and the scrapes in between cost nothing. Either way
+      // a monitoring system that scrapes every fifteen seconds sees a value
+      // that steps once an hour, and it is the same figure the sampler writes
+      // to the history.
       __int64 storeBytes = 0;
       __int64 storeMessages = 0;
       Reports::CachedStoreTotals(storeBytes, storeMessages);
