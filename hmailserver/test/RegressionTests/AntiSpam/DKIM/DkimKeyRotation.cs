@@ -107,6 +107,21 @@ namespace RegressionTests.AntiSpam.DKIM
          return _application.Utilities.RunDkimRotation(secondsAhead);
       }
 
+      /// <summary>
+      ///    A pass with the clock AT a moment rather than moved BY an amount - a moment
+      ///    measured from what the rotation recorded (a first sighting, the start of a
+      ///    retention period). The scheduled pass on the real clock can record a first
+      ///    sighting between a test publishing a record and its own pass, and then the
+      ///    period runs from that earlier moment; a run placed relative to what was
+      ///    recorded is right whichever of the two looked first.
+      /// </summary>
+      private Dictionary<string, object> RunAt(long moment)
+      {
+         long ahead = moment - DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+         Assert.IsTrue(ahead >= 0, "A pass cannot be run in the past: " + ahead + " second(s).");
+         return MiniJson.Object(_application.Utilities.RunDkimRotation((int) ahead));
+      }
+
       private static void PublishRecordsOf(Dictionary<string, object> status, string slot)
       {
          List<object> records = MiniJson.List(status, slot + ".records");
@@ -342,10 +357,13 @@ namespace RegressionTests.AntiSpam.DKIM
 
          PublishRecordsOf(staged, "next");
          Run(74 * Hour);
-         Run(145 * Hour);
+         long secondSighting = MiniJson.Number(Status(ReRead()), "next.first_seen");
+         Assert.IsTrue(secondSighting > 0, "The record published again was not seen.");
+
+         RunAt(secondSighting + 71 * Hour);
          Assert.AreEqual("old", ReRead().DKIMSelector, "The wait did not start again from the second sighting.");
 
-         Run(147 * Hour);
+         RunAt(secondSighting + 73 * Hour);
          Assert.AreEqual(next, ReRead().DKIMSelector, "The record seen again for the whole period was never switched to.");
       }
 
@@ -375,11 +393,15 @@ namespace RegressionTests.AntiSpam.DKIM
          Assert.AreEqual("first", MiniJson.Text(retiring, "retiring.selector"));
          Assert.IsTrue(MiniJson.Flag(retiring, "retiring.generated"));
 
-         Run(153 * Hour + 6 * Day);
+         // The retention period runs from the switch, whichever pass made it.
+         long retiringSince = MiniJson.Number(retiring, "retiring.since");
+         Assert.AreEqual(retiringSince + 7 * Day, MiniJson.Number(retiring, "retiring.retire_due"));
+
+         RunAt(retiringSince + 7 * Day - Hour);
          Assert.AreEqual("first", MiniJson.Text(Status(ReRead()), "retiring.selector"), "Retired before the retention period ended.");
          Assert.IsTrue(File.Exists(firstKey), "The retiring key file was removed before the retention period ended.");
 
-         Run(153 * Hour + 7 * Day + Hour);
+         RunAt(retiringSince + 7 * Day + Hour);
          Dictionary<string, object> retired = Status(ReRead());
          Assert.IsNull(MiniJson.At(retired, "retiring"));
          Assert.AreEqual("first", MiniJson.Text(retired, "retired.selector"));
@@ -460,13 +482,20 @@ namespace RegressionTests.AntiSpam.DKIM
          Dictionary<string, object> b = MiniJson.Object(ReRead().DKIMRotationStart("second-b"));
          PublishRecordsOf(b, "next");
          Run(74 * Hour);
-         Run(147 * Hour);
+         Dictionary<string, object> held = MiniJson.Object(Run(147 * Hour));
 
-         Dictionary<string, object> held = Status(ReRead());
+         // Held, at a moment past the propagation period, with the record matching:
+         // the only thing left in the way is the retiring slot. The status document
+         // itself is read on the real clock, so its phase says "propagating" here;
+         // the phase at the moved clock is DkimRotationTester's to prove, in process.
+         Assert.AreEqual(0, MiniJson.Number(held, "switched"), "A switch was made while the old selector was still retiring.");
          Assert.AreEqual("second-a", ReRead().DKIMSelector, "A switch was made while the old selector was still retiring.");
-         Assert.AreEqual("waiting_for_retiring_slot", MiniJson.Text(held, "phase"));
-         Assert.IsTrue(MiniJson.List(held, "waiting").Cast<Dictionary<string, object>>()
-                          .Any(w => (string) w["reason"] == "retiring_slot"), _domain.DKIMRotationStatus);
+
+         Dictionary<string, object> state = Status(ReRead());
+         Assert.AreEqual("matches", MiniJson.Text(state, "next.check.status"));
+         Assert.IsTrue(MiniJson.Number(state, "next.switch_due") > 0 && MiniJson.Number(state, "next.switch_due") <= MiniJson.Number(held, "as_of"),
+            "The pass that held the switch was not past the propagation period: " + ReRead().DKIMRotationStatus);
+         Assert.AreEqual("old", MiniJson.Text(state, "retiring.selector"));
 
          Run(73 * Hour + 7 * Day);
          Dictionary<string, object> moved = Status(ReRead());
