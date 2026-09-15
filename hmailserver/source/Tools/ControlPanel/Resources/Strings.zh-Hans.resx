@@ -18,6 +18,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
+    <value>
+
+是否仍要保存这个弱密码？</value>
+  </data>
   <data name="  Configured database type: {0}." xml:space="preserve">
     <value>  已配置的数据库类型：{0}。</value>
   </data>
@@ -174,11 +179,6 @@
   <data name=" — applied immediately." xml:space="preserve">
     <value> — 立即生效。</value>
   </data>
-  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
-    <value>
-
-是否仍要保存这个弱密码？</value>
-  </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>“域内任何人”是指发件人地址位于本服务器托管的某个域下，除非该列表同时要求身份验证，否则外部人员也可以冒称。如果该列表必须限定为已登录的人员，请勾选下面的选项。</value>
   </data>
@@ -187,6 +187,9 @@
   </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" 授权 {0} 的 MX 记录所指向的一切主机；"a:{1}" 授权本服务器在 HELO/EHLO 中所声明的主机名（“邮件投递 &gt; 主机名”）对应的地址。"~all" 对其余一切做软失败处理 - 在您确认这份列表完整之前，这比 "-all" 有意宽松一些。</value>
+  </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>“{0}”未保存：{1}</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' 不是 24 小时制的 HH:MM 时间。服务器只接受 02:00 或 23:45 这样的值，其余一律拒绝而不去猜测。若不需要每日备份，请将该框留空。</value>
@@ -331,6 +334,9 @@
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 个公用文件夹。</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>设为 1 时，只要密码在语料库中出现过一次就会被拒绝。</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>已将 1 个样本复制到剪贴板。</value>
@@ -1693,6 +1699,9 @@
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>正在检查…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>在设置新密码时（无论是在这里、在账户编辑器、在网页邮箱、通过脚本还是通过 REST API），将其与公开的泄露密码语料库比对，并拒绝其中出现过的密码。离开本服务器的只有密码 SHA-1 哈希的前五个字符；端点会返回所有以这五个字符开头的哈希，并加以填充，使响应的大小也不透露任何信息，比对在本服务器上进行。登录时从不应用此检查，因此今天能用的密码会继续可用。默认关闭，因为它会向服务器外部发送内容。</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>根据连接地址检查发件人的 SPF 策略。通过时还可以绕过灰名单。</value>
@@ -3933,6 +3942,9 @@
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>允许设备或打印机发送邮件</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>放行此更改，并记录到错误日志</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>让 Outlook、Thunderbird 和移动客户端仅凭电子邮件地址就能自行设置，方法是获取本服务器的配置 URL。</value>
   </data>
@@ -5373,6 +5385,9 @@
   <data name="Password storage" xml:space="preserve">
     <value>密码存储</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>在公开泄露中发现的密码</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>密码，以及允许承载密码的方式</value>
   </data>
@@ -5694,6 +5709,9 @@
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>为重试时间添加的随机抖动（分钟，0 = 关闭）</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>范围端点（https，或到本机的 http）</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>重新检查状态(_K)</value>
   </data>
@@ -5839,17 +5857,29 @@
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>在会话期间拒绝已满的邮箱（452 4.2.2）</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>拒绝在公开数据泄露中发现的新密码</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>可用空间低于此值时以临时错误拒收邮件（MB；0 = 从不）</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>拒绝入站邮件上有效期已过的签名</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>拒绝此更改，并记录到错误日志</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>出现次数达到此值时拒绝</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>在邮件进入队列之前就已被拒绝，因此没有可跟踪的邮件。</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>被拒绝的连接</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>拒绝更为严格，但在端点无法访问期间，任何地方都无法更改任何密码，包括管理员密码。</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>把该网关注册为入站中继，这样它的地址就不会被当作客户端。</value>
@@ -7409,6 +7439,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>用本页的值测试目录连接</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>测试端点…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>正在通过 {1} 测试 {0}...</value>
   </data>
@@ -7639,6 +7672,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>已启用的检查合计最多只能加 {0}，低于标记阈值 {1}: 无论邮件多糟糕，都无法达到任何一个阈值。</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>端点返回了 {0} 个条目。</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>无法使用端点：{0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>引擎的裁定以分数形式到达，这样它就与 SPF、DKIM 和 DMARC 并列，由您现有的阈值决定结果 - 而不是引入第二种平行的垃圾邮件概念，再去与第一种协调。这就是其最强裁定的分量。</value>
   </data>
@@ -7660,13 +7699,13 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>获取本身失败: {0} 这并不说明策略有任何问题。</value>
   </data>
-  <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
-    <value>无法将该文件解析为 PEM 证书。服务器只加载 PEM 格式的证书，因此此文件不会被加载，使用它的每个 TLS 端口都将无法启动 (服务器错误 5113)。</value>
-  </data>
   <data name="The file&#13;&#10;   {0}&#13;&#10;could not be loaded. The message has probably been delivered and is no longer in the queue." xml:space="preserve">
     <value>文件
    {0}
 无法加载。该邮件可能已投递，不再在队列中。</value>
+  </data>
+  <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
+    <value>无法将该文件解析为 PEM 证书。服务器只加载 PEM 格式的证书，因此此文件不会被加载，使用它的每个 TLS 端口都将无法启动 (服务器错误 5113)。</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>第一个发现问题的扫描器会结束扫描，所以顺序也就是代价: 排在快速扫描器前面的慢速扫描器，会在每封干净的邮件上付出代价。</value>
@@ -7812,6 +7851,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概览会指出那些悄悄不起作用的安排 - 为零的阈值、没有任何已启用检查能达到的阈值、评分为零的检查。</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>目前无法将该密码与公开的数据泄露进行比对，而本服务器被设置为拒绝无法检查的更改。请稍后再试。</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>本服务器为之传递邮件的人员和域。</value>
   </data>
@@ -7843,6 +7885,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>私钥的公开部分与证书的公钥完全相同 - 这一对是配套的。</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>公开语料库位于 https://api.pwnedpasswords.com/range/。自行运行镜像的组织可在此填写其地址：这五个字符会附加到路径末尾，或放在写有 {prefix} 的位置。未加密的 http 仅接受发往 localhost、127.0.0.1 或 ::1 的地址。</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>已发布的记录与暂存的密钥匹配。可以安全地提升。</value>
@@ -8151,6 +8196,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>此面板可以比较 RSA 和 ECDSA 密钥；此密钥两者都解析不了，因此它是否与证书匹配只有在服务器加载这一对时才能证明。</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>此密码出现在一次公开的数据泄露中，因此会是针对此账户最先尝试的密码之一。请另选一个。</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>此范围会过期(_E)</value>
@@ -8670,6 +8718,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>黑名单查询在 SMTP 会话的哪个时刻进行。查询哪些黑名单在“DNS 黑名单”页。</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>端点无法访问时</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>来自此域的邮件从哪里发出。这与路由是不同的问题，路由决定的是发往某个域的邮件送到哪里 - 这是为托管多个独立域、且每个域有自己的投递提供商的服务器准备的。</value>

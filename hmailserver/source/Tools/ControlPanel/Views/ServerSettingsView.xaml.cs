@@ -2588,6 +2588,45 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("Password")).Cards.Add(policy);
 
+         // The breach check, beside the policy it extends and before the history,
+         // because it is another rule about the password chosen rather than about the
+         // passwords before it. In hm_settings, unlike the policy above - which is why
+         // these rows are COM properties and those are INI rows.
+         var breach = Card(L("Passwords found in published breaches"),
+            L("Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server."));
+         breach.Settings.Add(new ComBool
+         {
+            Path = "BreachCheckEnabled",
+            Label = L("Refuse a new password found in published data breaches")
+         });
+         var breachUrl = new ComText
+         {
+            Path = "BreachCheckUrl",
+            Label = L("Range endpoint (https, or http to this machine)"),
+            Blurb = L("The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1.")
+         };
+         breach.Settings.Add(breachUrl);
+         breach.Settings.Add(new ComText
+         {
+            Path = "BreachCheckMinimumCount",
+            Label = L("Refuse when it has appeared at least this many times"),
+            Numeric = true,
+            Blurb = L("1 refuses a password that has appeared in the corpus even once.")
+         });
+         breach.Settings.Add(new ComCombo
+         {
+            Path = "BreachCheckUnreachableAction",
+            Label = L("When the endpoint cannot be reached"),
+            Options = ToOptions(SettingClaims.BreachCheckUnreachableOptions),
+            Blurb = L("Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included.")
+         });
+         breach.Settings.Add(new ComAction
+         {
+            ButtonText = L("Test the endpoint…"),
+            Action = () => TestBreachCheckEndpoint(breachUrl.CurrentText)
+         });
+         Tab(L("Password")).Cards.Add(breach);
+
          // Separate from the complexity card above, because the two carry very
          // different risks and putting them under one heading would hide that.
          var ageing = Card(L("Reuse and expiry"),
@@ -2855,6 +2894,31 @@ namespace hMailServer.ControlPanel.Views
       }
 
       // ---- live test / dependency helpers ------------------------------------
+
+      /// <summary>
+      /// Settings.TestBreachCheckEndpoint against what is typed in the endpoint box,
+      /// saved or not: the request is for the prefix 00000, which is no password's.
+      /// The reason for a failure is the server's, translated when it is a sentence
+      /// the catalogue holds.
+      /// </summary>
+      private static (bool ok, string text) TestBreachCheckEndpoint(string url)
+      {
+         dynamic settings = ServerSession.Current.Application.Settings;
+         try
+         {
+            object entries = ((object)settings).GetType().InvokeMember(
+               "TestBreachCheckEndpoint", BindingFlags.InvokeMethod, null, (object)settings, new object[] { url ?? "" });
+            return (true, F("The endpoint answered with {0} entries.", Convert.ToInt32(entries)));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return (false, F("The endpoint could not be used: {0}", L(ServerSentences.MessageOf(ex))));
+         }
+         finally
+         {
+            ServerSession.Release((object)settings);
+         }
+      }
 
       private static (bool ok, string text) TestSpamAssassin(string host, int port)
       {
@@ -3348,6 +3412,12 @@ namespace hMailServer.ControlPanel.Views
 
          int saved = 0, failed = 0;
 
+         // The first refusal, in the server's words. A count alone told an
+         // administrator whose new password was refused - by the breach check, the
+         // endpoint validation, a minimum below one - that "1 setting could not be
+         // written" and nothing about which or why.
+         string firstFailure = null;
+
          bool iniWritten = false;
 
          foreach (ComSetting setting in tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings))
@@ -3381,6 +3451,7 @@ namespace hMailServer.ControlPanel.Views
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
             {
                failed++;
+               firstFailure ??= F("\"{0}\" was not saved: {1}", setting.Label ?? setting.Path, L(ServerSentences.MessageOf(fatalCheck)));
             }
          }
 
@@ -3392,8 +3463,9 @@ namespace hMailServer.ControlPanel.Views
          // to find out which rows.
          ServerSettingsPageState outcome = failed == 0 ? ServerSettingsPageState.Saved : ServerSettingsPageState.PartlySaved;
          ShowState_(outcome);
+         string saveSentence = ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), iniWritten);
          ShowNotice_(
-            ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), iniWritten),
+            firstFailure == null ? saveSentence : saveSentence + " " + firstFailure,
             ServerSettingsPageStatus.LevelFor(outcome));
 
          if (failed == 0)

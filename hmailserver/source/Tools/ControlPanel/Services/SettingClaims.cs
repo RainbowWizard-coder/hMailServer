@@ -184,6 +184,28 @@ namespace hMailServer.ControlPanel.Services
             (7, N("Everything, debug included (severity 7)"))
          };
 
+      // ---- BreachCheckUnreachableAction ---------------------------------------
+
+      /// <summary>BreachCheckUnreachableAction: the change goes through unchecked.</summary>
+      public const int BreachCheckUnreachableAllow = 0;
+
+      /// <summary>BreachCheckUnreachableAction: the change is refused.</summary>
+      public const int BreachCheckUnreachableRefuse = 1;
+
+      /// <summary>
+      /// What the "When the endpoint cannot be reached" combo may offer. Both say that
+      /// the occurrence is recorded, because it is either way (HM6600 and HM6601), and
+      /// an administrator choosing between them should not have to wonder whether the
+      /// lenient one is also the silent one. Letting the change through is first
+      /// because it is the default.
+      /// </summary>
+      public static readonly IReadOnlyList<(int Value, string Label)> BreachCheckUnreachableOptions =
+         new (int, string)[]
+         {
+            (BreachCheckUnreachableAllow, N("Let the change through, and record it in the error log")),
+            (BreachCheckUnreachableRefuse, N("Refuse the change, and record it in the error log"))
+         };
+
       /// <summary>
       /// Shown on the syslog switch. Two things an administrator has to be told
       /// before they turn it on, and neither is guessable from the switch: that

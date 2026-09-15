@@ -64,6 +64,8 @@ LITERALS = [
    "objectCategory", "sAMAccountName", "strongAuthRequired", "/api/v1",
    "/metrics", "/livez", "/readyz", "/healthz", "/portal", ".well-known",
    "127.0.0.1", "INBOX", "identd",
+   # The breach check's public corpus, and the token its endpoint setting reads.
+   "api.pwnedpasswords.com", "{prefix}",
 ]
 
 # An INI or setting name: two or more CamelCase words run together.

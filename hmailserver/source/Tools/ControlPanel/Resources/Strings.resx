@@ -18,6 +18,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
+    <value>
+
+Save this weak password anyway?</value>
+  </data>
   <data name="  Configured database type: {0}." xml:space="preserve">
     <value>  Configured database type: {0}.</value>
   </data>
@@ -174,11 +179,6 @@
   <data name=" — applied immediately." xml:space="preserve">
     <value> — applied immediately.</value>
   </data>
-  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
-    <value>
-
-Save this weak password anyway?</value>
-  </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>"Anyone in the domain" means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in.</value>
   </data>
@@ -187,6 +187,9 @@ Save this weak password anyway?</value>
   </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" authorises whatever {0}'s MX records point at; "a:{1}" authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). "~all" soft-fails everything else - deliberately softer than "-all" until you are sure the list is complete.</value>
+  </data>
+  <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
+    <value>"{0}" was not saved: {1}</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup.</value>
@@ -331,6 +334,9 @@ Save this weak password anyway?</value>
   </data>
   <data name="1 public folder." xml:space="preserve">
     <value>1 public folder.</value>
+  </data>
+  <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
+    <value>1 refuses a password that has appeared in the corpus even once.</value>
   </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 sample copied to the clipboard.</value>
@@ -1693,6 +1699,9 @@ The staged selector "{0}" is removed from the server configuration; signing cont
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Checking…</value>
+  </data>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server.</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting.</value>
@@ -3933,6 +3942,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Let a device or printer send mail</value>
   </data>
+  <data name="Let the change through, and record it in the error log" xml:space="preserve">
+    <value>Let the change through, and record it in the error log</value>
+  </data>
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs.</value>
   </data>
@@ -5373,6 +5385,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Password storage" xml:space="preserve">
     <value>Password storage</value>
   </data>
+  <data name="Passwords found in published breaches" xml:space="preserve">
+    <value>Passwords found in published breaches</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Passwords, and what is allowed to carry them</value>
   </data>
@@ -5694,6 +5709,9 @@ Leave the OLD DNS record ({2}) published for at least a few days. Mail signed wi
   <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
     <value>Random jitter added to retry times (minutes, 0 = off)</value>
   </data>
+  <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
+    <value>Range endpoint (https, or http to this machine)</value>
+  </data>
   <data name="Re-chec_k status" xml:space="preserve">
     <value>Re-chec_k status</value>
   </data>
@@ -5839,17 +5857,29 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Refuse a full mailbox during the conversation (452 4.2.2)</value>
   </data>
+  <data name="Refuse a new password found in published data breaches" xml:space="preserve">
+    <value>Refuse a new password found in published data breaches</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Refuse mail with a temporary error below this much free space (MB; 0 = never)</value>
   </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Refuse signatures on incoming mail whose expiry has passed</value>
   </data>
+  <data name="Refuse the change, and record it in the error log" xml:space="preserve">
+    <value>Refuse the change, and record it in the error log</value>
+  </data>
+  <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
+    <value>Refuse when it has appeared at least this many times</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Refused before the message was queued, so there is no message to follow.</value>
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Refused connections</value>
+  </data>
+  <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
+    <value>Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included.</value>
   </data>
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Register the gateway as an incoming relay so its address is not treated as the client.</value>
@@ -7409,6 +7439,9 @@ Restart it now?</value>
   <data name="Test the directory connection with the values on this page" xml:space="preserve">
     <value>Test the directory connection with the values on this page</value>
   </data>
+  <data name="Test the endpoint…" xml:space="preserve">
+    <value>Test the endpoint…</value>
+  </data>
   <data name="Testing against {0} over {1}..." xml:space="preserve">
     <value>Testing against {0} over {1}...</value>
   </data>
@@ -7639,6 +7672,12 @@ Select the key above and copy it by hand - it will not be shown again.</value>
   <data name="The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is." xml:space="preserve">
     <value>The enabled checks can add at most {0} between them, which is below the mark threshold of {1}: no message can reach either threshold, however bad it is.</value>
   </data>
+  <data name="The endpoint answered with {0} entries." xml:space="preserve">
+    <value>The endpoint answered with {0} entries.</value>
+  </data>
+  <data name="The endpoint could not be used: {0}" xml:space="preserve">
+    <value>The endpoint could not be used: {0}</value>
+  </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth.</value>
   </data>
@@ -7660,13 +7699,13 @@ Select the key above and copy it by hand - it will not be shown again.</value>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>The fetch itself failed: {0} This says nothing about the policy.</value>
   </data>
-  <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
-    <value>The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113).</value>
-  </data>
   <data name="The file&#13;&#10;   {0}&#13;&#10;could not be loaded. The message has probably been delivered and is no longer in the queue." xml:space="preserve">
     <value>The file&#13;
    {0}&#13;
 could not be loaded. The message has probably been delivered and is no longer in the queue.</value>
+  </data>
+  <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
+    <value>The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113).</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message.</value>
@@ -7812,6 +7851,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero.</value>
   </data>
+  <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
+    <value>The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>The people and the domains this server carries mail for.</value>
   </data>
@@ -7843,6 +7885,9 @@ Add it anyway?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>The private key's public half is identical to the certificate's public key - the pair belongs together.</value>
+  </data>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
+    <value>The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1.</value>
   </data>
   <data name="The published record matches the staged key. It is safe to promote." xml:space="preserve">
     <value>The published record matches the staged key. It is safe to promote.</value>
@@ -8151,6 +8196,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair.</value>
+  </data>
+  <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
+    <value>This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>This range _expires</value>
@@ -8670,6 +8718,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
     <value>When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page.</value>
+  </data>
+  <data name="When the endpoint cannot be reached" xml:space="preserve">
+    <value>When the endpoint cannot be reached</value>
   </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider.</value>
