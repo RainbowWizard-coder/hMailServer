@@ -46,7 +46,7 @@ domains is refused them whatever it holds.
 | `view_quarantine` | The quarantine *(server-wide)* | ✅ | ✅ | | ✅ |
 | `view_archive` | The archive *(server-wide)* | ✅ | | | ✅ |
 | `view_logs` | The logs *(server-wide)* | ✅ | | | ✅ |
-| `view_message_trace` | The message trace — see below | ✅ | ✅ | ✅ | ✅ |
+| `view_message_trace` | The message trace — see below — and, with `view_configuration`, the reports | ✅ | ✅ | ✅ | ✅ |
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
@@ -108,6 +108,18 @@ address in a domain it reaches, and is shown only the events that name that addr
 exactly: `user@example.test` does not also show `otheruser@example.test`, and never
 `user@example.test.elsewhere`. The most recent events for anyone and one queued
 message's story are server-wide.
+
+### The reports
+
+`GET /api/v1/reports` needs **both** `view_configuration` and `view_message_trace`. Most of a report
+is counts per domain and per day, but its `senders` and `recipients` sections list which addresses
+sent and received the most, which is who mails whom: the message trace's to show, not the
+configuration's. `domainadmin` and `auditor` hold both and read the reports as before (the domain
+administrator for its own domains); `helpdesk` holds only the trace and is refused, as it always was;
+a custom role holding `view_configuration` alone is refused and told it lacks `view_message_trace`.
+The Control Deck leaves the *Reports* view out for a role without both. This is the one route that
+needs two permissions — `RestApiServer::SecondPermissionFor_` names the second — and
+`build/check-role-choke-point.py` holds both to the auditor rule. See [Reports.md](Reports.md).
 
 ### What a refusal says
 
@@ -205,7 +217,9 @@ else. `build/check-role-choke-point.py` runs on every pull request and fails whe
   `IsSelfServiceRoute_` or `IsSessionRoute_` — a route nobody classified is a route
   that decides for itself;
 * a route `IsMutatingRoute_` calls mutating needs a permission the auditor holds, or a
-  read needs one it lacks.
+  read needs one it lacks — for a route that needs two permissions
+  (`SecondPermissionFor_`), a read needs both held and a write at least one not held, and
+  the route must be classified in `PermissionFor_` too.
 
 `--self-test` shows each rule firing on text written to break it.
 

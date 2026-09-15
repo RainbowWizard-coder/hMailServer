@@ -3957,8 +3957,9 @@ namespace HM
    RolePermission
    RestApiServer::PermissionFor_(RouteKind kind)
    {
-      // Every route this server is administered with, and the one permission
-      // it needs. Written out rather than derived from the HTTP method, for
+      // Every route this server is administered with, and the permission it
+      // needs - the first of two, for the few routes SecondPermissionFor_
+      // names. Written out rather than derived from the HTTP method, for
       // the reason IsMutatingRoute_ gives: the method is what a client
       // asserts, and the kind is what this server decided the request does.
       //
@@ -4049,7 +4050,10 @@ namespace HM
       // their own domains, the auditor's for all of them, and not the help
       // desk's - it reads one address's trace, not a domain's traffic. The
       // domain a report names is judged below, and its server-wide sections
-      // are refused to a confined credential there.
+      // are refused to a confined credential there. The senders and
+      // recipients sections are who mails whom, which is the message trace's
+      // and not the configuration's: SecondPermissionFor_ asks for
+      // view_message_trace as well.
       case RouteReport:
          return RolePermission::ViewConfiguration;
 
@@ -4294,6 +4298,41 @@ namespace HM
       return RolePermission::AdministerServer;
    }
 
+   bool
+   RestApiServer::SecondPermissionFor_(RouteKind kind, RolePermission &permission)
+   {
+      // The routes whose answer is two kinds of thing at once, and so needs the
+      // permission for each. A second permission can only take a route away
+      // from somebody: Authorize_ asks for both, in the one domain the route
+      // names, and refuses when either is missing.
+      //
+      // build/check-role-choke-point.py reads this switch in the shape
+      // PermissionFor_ has - case labels, then one "permission = " line - holds
+      // every route here to being classified there too, and holds both
+      // permissions of a route to the auditor rule: a read needs two the
+      // auditor holds.
+      switch (kind)
+      {
+      // The reports. Most of a report is configuration-shaped - counts per
+      // domain and per day - but GET /api/v1/reports/senders and /recipients,
+      // and the summary that carries both, list which addresses sent and
+      // received the most: who mails whom, which is traffic metadata read out
+      // of the message trace. A role that may read the configuration is not
+      // thereby a role that may read that. The built-in outcomes do not move -
+      // domainadmin and auditor hold both, the help desk holds only the trace
+      // and was never let in - but a custom role holding view_configuration
+      // alone no longer sees who corresponds with whom.
+      case RouteReport:
+         permission = RolePermission::ViewMessageTrace;
+         return true;
+
+      default:
+         break;
+      }
+
+      return false;
+   }
+
    String
    RestApiServer::DomainNamedByRoute_(const Route &route)
    {
@@ -4464,9 +4503,10 @@ namespace HM
          // the auditor role exists to read the audit trail, and the server
          // administrator's own mailbox is the server administrator. Those
          // routes go on to the permission decision below (ViewAudit for the
-         // trail, ViewConfiguration and ManageSettings for the alerts) and to
-         // the server-wide refusal for a confined role. The key store and the
-         // [Settings] section stay the administrator password's alone.
+         // trail; ViewConfiguration, ManageSettings and ManageServer for the
+         // alerts) and to the server-wide refusal for a confined role. The key
+         // store and the [Settings] section stay the administrator password's
+         // alone.
          switch (route.kind)
          {
          case RouteAuditList:
@@ -4485,7 +4525,8 @@ namespace HM
       }
 
       // THE DECISION, and the only one. Every route of this API is answered
-      // by this one call: the permission the route needs (PermissionFor_), the
+      // by this one call: the permission the route needs (PermissionFor_, and
+      // SecondPermissionFor_ for the few that need two), the
       // authority the credential carries (caller.grant, resolved once when it
       // was authenticated), and the domain the route names. A read-only key is
       // the auditor role and a full key is the server administrator, so the
@@ -4493,9 +4534,18 @@ namespace HM
       // beside this - which is what stops the two from drifting apart.
       {
          String roleRefusal;
+         const String routeDomain = DomainNamedByRoute_(route);
 
-         if (!RoleManager::Allows(caller.grant, PermissionFor_(route.kind),
-                                  DomainNamedByRoute_(route), roleRefusal))
+         // The few routes that need two permissions ask for the second in
+         // the same domain, and only once the first has been granted, so that
+         // the refusal names the first permission the credential lacks.
+         RolePermission secondPermission = RolePermission::Count;
+         const bool permitted =
+            RoleManager::Allows(caller.grant, PermissionFor_(route.kind), routeDomain, roleRefusal) &&
+            (!SecondPermissionFor_(route.kind, secondPermission) ||
+             RoleManager::Allows(caller.grant, secondPermission, routeDomain, roleRefusal));
+
+         if (!permitted)
          {
             // A read-only key hears the sentence it has heard since August
             // 2026, because that is the restriction it was issued with and the

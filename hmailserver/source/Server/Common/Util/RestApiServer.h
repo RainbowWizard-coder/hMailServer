@@ -604,6 +604,14 @@ namespace HM
       // route nobody classified is a route that decides for itself.
       static RolePermission PermissionFor_(RouteKind kind);
 
+      // The second permission a route needs, for the few that need two, and
+      // false for every other. Asked in Authorize_ beside PermissionFor_, in the
+      // same domain, and both must be held: a second permission only ever
+      // narrows who reaches a route. build/check-role-choke-point.py holds a
+      // route named here to being classified in PermissionFor_ as well, and
+      // holds both of its permissions to the auditor rule.
+      static bool SecondPermissionFor_(RouteKind kind, RolePermission &permission);
+
       // The three routes that are about the credential rather than about the
       // server: starting a browser session, ending it, and asking what it is.
       // Decided before the permissions, because a caller has to be able to ask

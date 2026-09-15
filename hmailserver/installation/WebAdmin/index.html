@@ -318,7 +318,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="ports" data-serverwide="1" data-needs="view_configuration" title="Ports"><span class="ico">⊞</span><span>Ports</span></button>
         <button data-view="roles" data-needs="view_configuration" title="Roles"><span class="ico">⚑</span><span>Roles</span></button>
         <button data-view="logs" data-serverwide="1" data-needs="view_logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
-        <button data-view="reports" data-needs="view_configuration" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
+        <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
       </nav>
       <div class="foot">v<span id="ver">—</span></div>
@@ -658,6 +658,12 @@ let permissions=null;
 let confined=false;
 /* administer_server is the whole of it, as it is in RoleManager::Allows. */
 function may(permission){return !permissions||!permission||permissions.indexOf("administer_server")>=0||permissions.indexOf(permission)>=0;}
+/* A view that needs more than one permission names them all in data-needs,
+   separated by spaces, and is shown only when every one is held - the reports
+   need view_configuration and view_message_trace, as the server decides in
+   RestApiServer::SecondPermissionFor_, because their senders and recipients
+   are who mails whom. */
+function mayAll(needs){return String(needs||"").split(" ").filter(Boolean).every(may);}
 /* Whether a view is in the navigation for this credential. The tour and the
    keyboard ask this rather than walking into a view applyPermissions left out. */
 function viewShown(name){
@@ -668,7 +674,7 @@ function applyPermissions(){
   const buttons=Array.from(document.querySelectorAll("#nav button[data-view]"));
   let visible=null;
   buttons.forEach(b=>{
-    const allowed=may(b.dataset.needs)&&!(confined&&b.dataset.serverwide);
+    const allowed=mayAll(b.dataset.needs)&&!(confined&&b.dataset.serverwide);
     b.hidden=!allowed;
     if(allowed&&!visible)visible=b.dataset.view;
   });

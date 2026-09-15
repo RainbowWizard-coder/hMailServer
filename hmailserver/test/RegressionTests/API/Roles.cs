@@ -39,6 +39,7 @@ namespace RegressionTests.API
    ///      * a help desk allowed a password reset and refused a settings change,
    ///        and refused the password of anybody who holds more than it does;
    ///      * the two historical levels exactly as they were, with no row written;
+   ///      * the reports, which need the configuration and the message trace both;
    ///      * the COM path that let any account reach another account's full
    ///        object through a permission on a folder of its own, closed;
    ///      * and the audit trail, which records a change made under a role with
@@ -510,6 +511,53 @@ namespace RegressionTests.API
          Assert.AreEqual(200, everywhere.status, everywhere.body);
          StringAssert.Contains("\"every_domain\":true", Admin("GET", "/api/v1/role-assignments").body);
          StringAssert.Contains("\"domains\":[]", AsAccount("sam@example.test", "GET", "/api/v1/session").body);
+      }
+
+      [Test]
+      [Description("The reports need view_configuration and view_message_trace, both, because their senders and recipients are who mails whom: a custom role holding view_configuration alone is refused every report and told what it lacks, holding both it reads them, a domain administrator and an auditor read them as before, and a help desk is refused as before")]
+      public void TheReportsNeedTheConfigurationAndTheMessageTraceBoth()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "rita@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audrey@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-config\",\"permissions\":\"view_configuration\"}").status);
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-config-trace\",\"permissions\":\"view_configuration,view_message_trace\"}").status);
+
+         // * so that the confinement is not what refuses it: this is about the
+         // permission, and the settings below prove the role reaches the server.
+         Assign("rita@example.test", "rolestest-config", "*");
+         Assign("dora@example.test", "domainadmin", "");
+         Assign("audrey@example.test", "auditor", "");
+         Assign("helen@example.test", "helpdesk", "");
+
+         (int status, string body) settings = AsAccount("rita@example.test", "GET", "/api/v1/settings");
+         Assert.AreEqual(200, settings.status, "The role reads the configuration. Body: " + settings.body);
+
+         foreach (string path in new[] { "/api/v1/reports", "/api/v1/reports/senders", "/api/v1/reports/recipients", "/api/v1/reports/traffic", "/api/v1/reports/summary" })
+         {
+            (int status, string body) refused = AsAccount("rita@example.test", "GET", path);
+            Assert.AreEqual(403, refused.status, "A role that reads the configuration and not the message trace read " + path + ". Body: " + refused.body);
+            StringAssert.Contains("the role 'rolestest-config' does not hold the permission 'view_message_trace'", refused.body);
+         }
+
+         Assign("rita@example.test", "rolestest-config-trace", "*");
+         (int status, string body) both = AsAccount("rita@example.test", "GET", "/api/v1/reports/senders");
+         Assert.AreEqual(200, both.status, "Holding both, the role reads who mails whom. Body: " + both.body);
+
+         // The built-in outcomes do not move.
+         (int status, string body) domainAdministrator = AsAccount("dora@example.test", "GET", "/api/v1/reports/senders?domain=example.test");
+         Assert.AreEqual(200, domainAdministrator.status, domainAdministrator.body);
+
+         (int status, string body) auditor = AsAccount("audrey@example.test", "GET", "/api/v1/reports/recipients");
+         Assert.AreEqual(200, auditor.status, auditor.body);
+
+         (int status, string body) desk = AsAccount("helen@example.test", "GET", "/api/v1/reports/senders?domain=example.test");
+         Assert.AreEqual(403, desk.status, "A help desk reads one address's trace, not a domain's traffic. Body: " + desk.body);
+         StringAssert.Contains("'view_configuration'", desk.body);
       }
 
       [Test]

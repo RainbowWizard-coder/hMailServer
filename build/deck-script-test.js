@@ -3624,6 +3624,25 @@ async function main() {
       !$('#nav button[data-view="audit"]').hidden && !$('#nav button[data-view="reports"]').hidden &&
       !$('#nav button[data-view="remotedomains"]').hidden && !$('#nav button[data-view="groups"]').hidden);
 
+   // The reports need two permissions, because their senders and recipients are
+   // who mails whom: a custom role that reads the configuration and not the
+   // message trace is shown the settings and not the reports, and given the
+   // trace as well it is shown both.
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:rita@example.com', credential: 'account', administrative: true,
+      role: 'config-reader', permissions: ['view_configuration'], domains: [] };
+   await signIn();
+   check('a role holding view_configuration and not view_message_trace is not shown the reports, which name who mails whom',
+      $('#nav button[data-view="reports"]').hidden && !$('#nav button[data-view="settings"]').hidden);
+
+   click($('#logoutBtn'));
+   await flush();
+   whoami = { identity: 'account:rita@example.com', credential: 'account', administrative: true,
+      role: 'config-and-trace-reader', permissions: ['view_configuration', 'view_message_trace'], domains: [] };
+   await signIn();
+   check('and holding both it is shown them', !$('#nav button[data-view="reports"]').hidden);
+
    click($('#logoutBtn'));
    await flush();
    whoami = { identity: 'account:nobody@example.com', credential: 'account', administrative: false,

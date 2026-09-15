@@ -39,6 +39,14 @@ Four things are checked, and the last two are the ones that earn this script:
      and the classification out of RestApiServer.cpp - the two files that would
      otherwise be free to drift apart.
 
+     A route may need TWO permissions: PermissionFor_ names the first and
+     RestApiServer::SecondPermissionFor_ the second, and Authorize_ asks for
+     both. The invariant then holds of the pair - a route that only reads needs
+     two permissions the auditor holds, and one that changes something needs at
+     least one it does not - and a route named in SecondPermissionFor_ must be
+     classified in PermissionFor_ as well, since a second permission can only
+     narrow a route somebody already decided about.
+
      The API-key routes are the documented exception: they are refused to every
      credential but the administrator password in Authorize_ before any
      permission is consulted, so their classification (manage_roles) is about
@@ -111,6 +119,9 @@ REQUIRED = [
     (ROLE_H, "static RoleGrant GrantForAccount("),
     (ROLE_H, "static RoleGrant GrantForApiKey("),
     (REST_H, "static RolePermission PermissionFor_(RouteKind kind);"),
+    (REST_H, "static bool SecondPermissionFor_(RouteKind kind, RolePermission &permission);"),
+    # Authorize_ must ask for the second permission, or naming one guards nothing.
+    (REST_CPP, "SecondPermissionFor_(route.kind, secondPermission)"),
     (REST_H, "static bool IsSessionRoute_(RouteKind kind);"),
     (COM_CPP, "RoleManager::Allows(grant_, RolePermission::AdministerServer)"),
     (COM_CPP, "RoleManager::Allows(grant_, RolePermission::AdministerDomain)"),
@@ -169,6 +180,23 @@ def permission_map(body):
     return mapping
 
 
+def second_permission_map(body):
+    """RouteKind -> second permission, read out of SecondPermissionFor_'s switch."""
+    mapping = {}
+    pending = []
+    for line in (body or "").split("\n"):
+        label = re.match(r"\s+case (Route\w+):\s*$", line)
+        if label:
+            pending.append(label.group(1))
+            continue
+        answer = re.match(r"\s+permission = RolePermission::(\w+);\s*$", line)
+        if answer and pending:
+            for kind in pending:
+                mapping[kind] = answer.group(1)
+            pending = []
+    return mapping
+
+
 def builtin_permissions(role_cpp, function):
     """The permissions one built-in role holds, read out of its function."""
     index = role_cpp.find("unsigned __int64 " + function + "()")
@@ -219,6 +247,7 @@ def check_routes(problems, header, cpp, role_cpp):
         return
 
     classified = permission_map(function_body(cpp, "PermissionFor_"))
+    second = second_permission_map(function_body(cpp, "SecondPermissionFor_"))
     self_service = cases(function_body(cpp, "IsSelfServiceRoute_"))
     session = cases(function_body(cpp, "IsSessionRoute_"))
     mutating = cases(function_body(cpp, "IsMutatingRoute_"))
@@ -244,20 +273,29 @@ def check_routes(problems, header, cpp, role_cpp):
         problems.append("%s: the auditor role could not be read" % ROLE_CPP)
         return
 
+    for kind in sorted(second):
+        if kind not in classified:
+            problems.append(
+                "%s: %s is named in SecondPermissionFor_ and not in PermissionFor_ - a second "
+                "permission narrows a route somebody classified, it does not classify one"
+                % (REST_CPP, kind))
+
     for kind, permission in sorted(classified.items()):
         if kind in API_KEY_ROUTES:
             continue
-        held = permission in auditor
-        if kind in mutating and held:
+        needed = [permission] + ([second[kind]] if kind in second else [])
+        if kind in mutating and all(p in auditor for p in needed):
             problems.append(
                 "%s: %s changes something and needs '%s', which the auditor holds - "
                 "an auditor that can change something is not an auditor"
-                % (REST_CPP, kind, permission))
-        if kind not in mutating and not held:
-            problems.append(
-                "%s: %s only reads and needs '%s', which the auditor does not hold - "
-                "an auditor that cannot read something is not reading everything"
-                % (REST_CPP, kind, permission))
+                % (REST_CPP, kind, "' and '".join(needed)))
+        if kind not in mutating:
+            for p in needed:
+                if p not in auditor:
+                    problems.append(
+                        "%s: %s only reads and needs '%s', which the auditor does not hold - "
+                        "an auditor that cannot read something is not reading everything"
+                        % (REST_CPP, kind, p))
 
     # The two historical levels must be exactly what they were: serveradmin
     # holds everything, domainadmin holds AdministerDomain, and neither of the
@@ -290,6 +328,7 @@ def self_test():
       {
          RouteUnknown = 0,
          RouteStatus,
+         RouteReadNeedingTwo,
          RouteThingNobodyClassified
       };
 """
@@ -300,7 +339,25 @@ def self_test():
       {
       case RouteUnknown:
       case RouteStatus:
+      case RouteReadNeedingTwo:
          return RolePermission::ViewConfiguration;
+
+      default:
+         break;
+      }
+   }
+
+   RestApiServer::SecondPermissionFor_(RouteKind kind, RolePermission &permission)
+   {
+      switch (kind)
+      {
+      case RouteReadNeedingTwo:
+         permission = RolePermission::ViewMessageTrace;
+         return true;
+
+      case RouteSecondAndNothingElse:
+         permission = RolePermission::ViewConfiguration;
+         return true;
 
       default:
          break;
@@ -362,6 +419,10 @@ def self_test():
     wanted = [
         ("RouteThingNobodyClassified", "a route in no classification is not reported"),
         ("changes something and needs", "a mutating route the auditor may reach is not reported"),
+        ("RouteReadNeedingTwo only reads and needs 'ViewMessageTrace'",
+         "a read whose second permission the auditor lacks is not reported"),
+        ("RouteSecondAndNothingElse is named in SecondPermissionFor_ and not in PermissionFor_",
+         "a second permission on a route nobody classified is not reported"),
         ("domainadmin does not hold AdministerDomain", "a domainadmin without its level is not reported"),
         ("helpdesk holds AdministerServer", "a narrow role holding the full authority is not reported"),
     ]
