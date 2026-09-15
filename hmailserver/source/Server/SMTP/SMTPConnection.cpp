@@ -30,8 +30,7 @@
 #include "../Common/Scripting/ClientInfo.h"
 #include "../Common/AntiSpam/SpamTestResult.h"
 #include "../Common/Util/Math.h"
-#include "../Common/Util/SignatureAdder.h"
-#include "../Common/Util/DisclaimerAdder.h"
+#include "../Common/Util/OutgoingFooters.h"
 #include "../Common/Persistence/PersistentKnownSender.h"
 #include "../Common/BO/Routes.h"
 #include "../Common/BO/RouteAddresses.h"
@@ -2300,22 +2299,21 @@ namespace HM
          ServerStatus::Instance()->OnSpamMessageDetected();
       }
 
-      SetMessageSignature_(pMsgData);
-
-      // The sender domain's legal footer, on the same MessageData the signature
-      // was just appended to and committed by the same single write below.
-      // Beside the signature on purpose: this is the one place on this server
-      // where an outgoing message's body is modified, and a second one would be
-      // a second thing to keep correct. It is also before DKIMSigner::Sign,
-      // which runs at delivery, so this server's own signature covers the
-      // footer rather than being broken by it.
+      // The sender's signature and the sender domain's legal footer, on the same
+      // MessageData the spam headers went on and committed by the same single
+      // write below. Through OutgoingFooters because the webmail's send and its
+      // send-later put the same two on through the same function: the rules for
+      // which message gets what are in the two adders and nowhere else. Before
+      // DKIMSigner::Sign, which runs at delivery, so this server's own signature
+      // covers the footers rather than being broken by them.
       //
-      // The third argument is this session's answer to "is this message ours":
+      // The fourth argument is this session's answer to "is this message ours":
       // a message relayed in from outside that merely claims one of our domains
       // as its envelope sender must not have a customer's legal text attached.
-      DisclaimerAdder::Append(current_message_, sender_domain_,
-                              isAuthenticated_ || sender_account_ != nullptr,
-                              pMsgData);
+      OutgoingFooters::Add(current_message_, sender_domain_, sender_account_,
+                           isAuthenticated_ || sender_account_ != nullptr,
+                           OutgoingFooters::AccountSignatureAddedHere,
+                           pMsgData);
 
       // Who this account writes to is somebody it knows, so their reply is not
       // a first contact.
@@ -2404,18 +2402,6 @@ namespace HM
 
       for (auto recipient : current_message_->GetRecipients()->GetVector())
          PersistentKnownSender::RememberOutgoing(sender_account_->GetID(), recipient->GetAddress());
-   }
-
-   void
-   SMTPConnection::SetMessageSignature_(std::shared_ptr<MessageData> &pMessageData)
-   //---------------------------------------------------------------------------()
-   // DESCRIPTION:
-   // Sets the signature of the message, based on the signature in the account
-   // settings and domain settings.
-   //---------------------------------------------------------------------------()
-   {
-      std::shared_ptr<SignatureAdder> pSignatureAdder = std::shared_ptr<SignatureAdder>(new SignatureAdder);
-      pSignatureAdder->SetSignature(current_message_, sender_domain_, sender_account_, pMessageData);
    }
 
    bool
