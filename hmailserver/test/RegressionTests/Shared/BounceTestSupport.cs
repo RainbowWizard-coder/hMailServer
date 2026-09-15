@@ -164,6 +164,25 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    Waits up to ten seconds for the server's default log to hold this text,
+      ///    since a line written as a delivery pass ends can reach the file a moment
+      ///    after the queue is empty.
+      /// </summary>
+      public static void AssertLogContains(string text, string because)
+      {
+         DateTime deadline = DateTime.UtcNow.AddSeconds(10);
+         string log = LogHandler.ReadCurrentDefaultLog();
+
+         while (log.IndexOf(text, StringComparison.Ordinal) < 0 && DateTime.UtcNow < deadline)
+         {
+            System.Threading.Thread.Sleep(200);
+            log = LogHandler.ReadCurrentDefaultLog();
+         }
+
+         StringAssert.Contains(text, log, because);
+      }
+
+      /// <summary>
       ///    Opens an EHLO session - so the server's replies carry their enhanced codes -
       ///    gives MAIL FROM and one RCPT TO, and answers the reply to the RCPT TO. The
       ///    session is ended with QUIT before any DATA, so nothing is queued whatever

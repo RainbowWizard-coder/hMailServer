@@ -390,8 +390,7 @@ namespace RegressionTests.SMTP
 
          Pop3ClientSimulator.AssertMessageCount(sender.Address, Password, 0);
 
-         string log = LogHandler.ReadCurrentDefaultLog();
-         StringAssert.Contains("BounceSuppressionAction is drop", log, "A drop is silent to the sender, not to the log.");
+         BounceTestSupport.AssertLogContains("BounceSuppressionAction is drop", "A drop is silent to the sender, not to the log.");
       }
 
       [Test]
@@ -407,7 +406,7 @@ namespace RegressionTests.SMTP
          Assert.AreEqual(1, BounceTestSupport.DeliverThroughSimulator(sender.Address, Remote, 250, null),
             "Observe must deliver.");
 
-         StringAssert.Contains("BounceSuppressionAction is observe", LogHandler.ReadCurrentDefaultLog());
+         BounceTestSupport.AssertLogContains("BounceSuppressionAction is observe", "Observe delivers, and says in the log that the address is listed.");
          Pop3ClientSimulator.AssertMessageCount(sender.Address, Password, 0);
       }
 
