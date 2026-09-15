@@ -708,7 +708,7 @@ namespace HM
    // with the update's typed reads, so that every field an import sends is
    // either stored or refused by name.
    //
-   // What this replaced searched the body's text for five keys. A key it did
+   // What this replaced searched the body's text for six keys. A key it did
    // not search for - name, admin_level - was dropped and the account made
    // without it, which is how a spreadsheet's names and levels vanished on
    // import; and its string reader answered empty for a value that was not a
