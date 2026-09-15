@@ -29,12 +29,12 @@ if exists (select * from sysobjects where id = object_id('hm_messages') and obje
 if exists (select * from sysobjects where id = object_id('hm_message_metadata') and objectproperty(id, 'isusertable') = 1) drop table hm_message_metadata 
 
 if exists (select * from sysobjects where id = object_id('hm_settings') and objectproperty(id, 'isusertable') = 1) drop table hm_settings
+
 if exists (select * from sysobjects where id = object_id('hm_senderlist') and objectproperty(id, 'isusertable') = 1) drop table hm_senderlist
 
 if exists (select * from sysobjects where id = object_id('hm_digeststate') and objectproperty(id, 'isusertable') = 1) drop table hm_digeststate
 
 if exists (select * from sysobjects where id = object_id('hm_digesttokens') and objectproperty(id, 'isusertable') = 1) drop table hm_digesttokens
-
 
 if exists (select * from sysobjects where id = object_id('hm_inisettings') and objectproperty(id, 'isusertable') = 1) drop table hm_inisettings
 
