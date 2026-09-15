@@ -76,7 +76,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `queue` | list, retry, delete | |
 | `quarantine` | list, release, delete | |
 | `settings` | get, set | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `directories`. |
-| `ini` | list, get, set, delete | The `hMailServer.ini` keys the server exposes. |
+| `ini` | list, get, set, delete | The server settings that were the `[Settings]` section of `hMailServer.ini` - stored in the database since schema 6042, under the names they have always had. `list` shows a secret as `(set)`; `get` reads it. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
 | `app-password` | list, create, delete | Under an account's address. |
@@ -197,6 +197,13 @@ What it does not carry, and why:
   document. An account in the document that does not exist on the server is
   refused with that reason rather than created with a password nobody chose;
   add a `password` field for the accounts you mean to create.
+* **The secrets among the ini keys.** `GET /api/v1/settings/ini` lists a key
+  whose name says its value is a secret - `OAuth2HmacSecret`, `BATVSecret`,
+  `ServiceAccountPassword`, `MetricsServerAuthToken`, `PasswordPepper` and the
+  like - as `(set)` or empty, never as its value, and both clients leave such
+  a key out of the document rather than carry a placeholder that `apply` would
+  write over the real secret. `hmctl ini get <name>` reads one by name when it
+  is wanted. A key *file* is a path, not a secret, and stays in.
 * **Certificates and the directories.** A certificate is files on the server's
   own disk, and the directories are that machine's paths; copying either between
   machines would describe a server that does not exist.

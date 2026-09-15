@@ -10,6 +10,7 @@
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
 #include "../Util/XMLite.h"
+#include "../Util/AuditTrail.h"
 
 // The Win32 profile API - GetPrivateProfileString and the three calls beside
 // it - lives in kernel32 and has no POSIX equivalent, so the POSIX build
@@ -551,6 +552,43 @@ namespace HM
    IniSettingStore::IsFileOnlyName(const String &name)
    {
       return name.CompareNoCase(_T("PasswordPepper")) == 0;
+   }
+
+   bool
+   IniSettingStore::IsSecretName(const String &name)
+   {
+      if (!AuditTrail::IsSecretName(name))
+         return false;
+
+      // The fragments matched; these are the shapes in which they match a name
+      // whose value is no secret. Each is a shape rather than a key so that the
+      // next key of the same shape is right without anybody remembering this.
+      String lower = name;
+      lower.MakeLower();
+
+      // A path to a key or a certificate is where the secret is, not the secret:
+      // RestApiPrivateKeyFile, OAuth2PublicKeyFile, UpdateLogPublicKeyFile.
+      if (lower.EndsWith(_T("file")))
+         return false;
+
+      // An address: OutboundOAuth2TokenUrl.
+      if (lower.EndsWith(_T("url")))
+         return false;
+
+      // The password policy is about passwords and holds none.
+      if (lower.StartsWith(_T("passwordpolicy")))
+         return false;
+
+      // The choice of a hash algorithm, a count of index tokens, and the switch
+      // that says whether stored secrets are protected.
+      if (lower.Find(_T("hashalgorithm")) >= 0)
+         return false;
+      if (lower.Compare(_T("indexerfulltextmaxtokenspermessage")) == 0)
+         return false;
+      if (lower.Compare(_T("protectstoredsecretswithdpapi")) == 0)
+         return false;
+
+      return true;
    }
 
    bool

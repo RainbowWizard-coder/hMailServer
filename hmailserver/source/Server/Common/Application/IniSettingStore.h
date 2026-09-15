@@ -187,6 +187,25 @@ namespace HM
       static bool IsFileOnlyName(const String &name);
 
       /// <summary>
+      /// Whether a setting's VALUE is a secret, by its name: a password, a shared
+      /// secret, a token, a pepper. What GET /api/v1/settings/ini masks in its
+      /// list, because that list is what a configuration export is built from and
+      /// an export goes into a repository.
+      ///
+      /// The audit trail's rule (AuditTrail::IsSecretName, a list of fragments
+      /// matched anywhere in the name), narrowed. That rule errs towards masking,
+      /// which is right for a trail that records a change and wrong for a list
+      /// that feeds an export: a key masked here is a key the export drops. So the
+      /// fragments stand, and the shapes that match one without being a secret are
+      /// let through - a path (RestApiPrivateKeyFile is where the key is, not the
+      /// key), an address, a policy about passwords rather than one, the choice of
+      /// a hash algorithm. A key this build does not know that matches a fragment
+      /// is masked: that way costs a value in an export, the other way costs a
+      /// secret in a repository.
+      /// </summary>
+      static bool IsSecretName(const String &name);
+
+      /// <summary>
       /// Every setting name the server holds: the union of the table and the
       /// [Settings] section, which after a start are the same list.
       ///

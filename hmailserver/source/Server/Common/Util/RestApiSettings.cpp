@@ -1541,6 +1541,24 @@ namespace
       return json;
    }
 
+   // Both shapes at once. names is what this route has always answered and
+   // what the Linux test shim's IniSettingNames reads; settings is what hmctl
+   // and the PowerShell module read - and until 15 September 2026 believed
+   // they were reading: both parsed a settings array this route never sent,
+   // so `hmctl config export` and Export-HmConfiguration wrote an empty ini
+   // section against every real server, while build/check-cli.py's recorded
+   // server answered the shape the clients expected and the check passed.
+   // The recorded server now answers this shape, and the check reads this
+   // function to hold the two together.
+   //
+   // A value is the one the server is running with - the stored value, or
+   // the [SettingsOverride] value where one is forced - read through the same
+   // path GET /api/v1/settings/ini/{name} reads one. Except a secret's: a
+   // name IniSettingStore::IsSecretName recognises is listed as "(set)" when
+   // it has a value and empty when it has none, with secret true, because
+   // this list is what a configuration export is built from and an export
+   // goes into a repository. One key, asked for by name, is still read whole,
+   // as Settings.GetIniSetting reads it over COM.
    HttpResponse IniList(const Bridge &bridge)
    {
       std::vector<String> names;
@@ -1552,6 +1570,25 @@ namespace
          if (i > 0)
             json += ",";
          json += "\"" + bridge.escape(Utf8(names[i])) + "\"";
+      }
+
+      json += "],\"settings\":[";
+      for (size_t i = 0; i < names.size(); i++)
+      {
+         const String &name = names[i];
+         bool secret = IniSettingStore::IsSecretName(name);
+
+         String value = Ini()->GetSettingsValue(name);
+         if (secret && !value.IsEmpty())
+            value = _T("(set)");
+
+         if (i > 0)
+            json += ",";
+         json += "{\"name\":\"" + bridge.escape(Utf8(name)) + "\",\"value\":\"";
+         json += bridge.escape(Utf8(value));
+         json += "\",\"secret\":";
+         json += secret ? "true" : "false";
+         json += "}";
       }
       json += "]}";
       return bridge.respond(200, json, "");
@@ -1822,11 +1859,11 @@ namespace
       "\"/api/v1/settings/indexing/clear\":{\"post\":{\"summary\":\"Empty the message index\",\"description\":\"What Settings.MessageIndexing.Clear does over COM: every indexed message's metadata, the full-text terms and the backfill cursor go, so the indexer starts again from the first message when it next runs. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"}}}}";
 
    const char *IniAndLogonFailurePaths =
-      ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The keys in hMailServer.ini's [Settings] section\",\"description\":\"names: every key the section holds, in file order - what Settings.IniSettingNames lists over COM. The values are read one at a time. Administrator password only: an api key of any scope is refused, since the section holds the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...]}\"}}}},"
+      ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The server settings that were the [Settings] section of hMailServer.ini\",\"description\":\"names: every setting the store holds, in name order - what Settings.IniSettingNames lists over COM. settings: the same names with the value each is running with - the stored value, or the [SettingsOverride] value where the file forces one - as {name, value, secret}. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true: this list is what a configuration export is built from, and GET /api/v1/settings/ini/{name} reads such a value when it is wanted. Since schema 6042 the database (hm_inisettings) is the store and the section in the file is the server's copy of it. Administrator password only: an api key of any scope is refused, since the settings include the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...], settings: [{name, value, secret}]}\"}}}},"
       "\"/api/v1/settings/ini/{name}\":{"
-      "\"get\":{\"summary\":\"One [Settings] key of hMailServer.ini\",\"description\":\"name, value and present. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a key that is not in the file is a setting at its default, not an error. A name the file could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case as the file is read. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present}\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
-      "\"put\":{\"summary\":\"Write one [Settings] key of hMailServer.ini\",\"description\":\"Body: value (a string of at most 4000 characters with no line break). Written to the file as Settings.SetIniSetting writes it, and read by the server when it next starts or is reinitialised (POST /api/v1/server/reinitialize), except for the settings the server reads from the file each time it needs them. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"500\":{\"description\":\"The file could not be written; nothing changed\"}}},"
-      "\"delete\":{\"summary\":\"Remove one [Settings] key from hMailServer.ini\",\"description\":\"The key's line is removed, which returns the setting to its default at the next start or reinitialise - not the same as writing an empty value. Removing a key that is not there is a 200. Answers as GET does, with present false. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{name, value: empty, present: false}\"},\"400\":{\"description\":\"The name cannot be a key\"},\"500\":{\"description\":\"The file could not be written; nothing changed\"}}}},"
+      "\"get\":{\"summary\":\"One server setting, by the name it has in [Settings]\",\"description\":\"name, value and present. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a setting the store does not hold is at its default, not an error. The value is the one the server is running with, secret or not - this is the one place a secret is read, deliberately and by name; the list masks it. A name the store could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present}\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
+      "\"put\":{\"summary\":\"Store one server setting\",\"description\":\"Body: value (a string of at most 4000 characters with no line break; surrounding whitespace is trimmed). Stored in the database, which is the settings store since schema 6042, and then written into the [Settings] section of hMailServer.ini as the server's copy - what Settings.SetIniSetting does over COM. Read by the server when it next starts or is reinitialised (POST /api/v1/server/reinitialize), except for the few settings it reads afresh each time it needs them. Editing the file instead sets nothing: the stored value is used, the edit is named in the error log as HM5804 and the line is put back at the next start. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"500\":{\"description\":\"The database could not be written, so nothing was stored and nothing changed. A stored value whose line could not be written into the file is a 200: the setting is in force, and the error log names it (HM5806)\"}}},"
+      "\"delete\":{\"summary\":\"Remove one server setting, returning it to its default\",\"description\":\"The line is removed from the file and the row is dropped from the store, which returns the setting to its default at the next start or reinitialise - not the same as writing an empty value, and since schema 6042 the only way a setting is returned to its default: a line deleted from the file by hand is written back from the stored row. Removing a key that is not there is a 200. Answers as GET does, with present false. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{name, value: empty, present: false}\"},\"400\":{\"description\":\"The name cannot be a key\"},\"500\":{\"description\":\"The line could not be removed from the file, or the row could not be dropped; the setting is still set. When the row is what failed the error log says so (HM5806) and the next start writes the line back\"}}}},"
       "\"/api/v1/settings/logon-failures/clear\":{\"post\":{\"summary\":\"Forget every recorded logon failure\",\"description\":\"What Settings.ClearLogonFailureList does over COM: the failures the auto-ban counts are deleted, so that an address that was one failure from a ban starts again at none. It does not lift a ban already placed; that is an IP range, deleted through /api/v1/ipranges. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"},\"500\":{\"description\":\"The list could not be cleared\"}}}}";
 }
 

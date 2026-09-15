@@ -388,6 +388,24 @@ def collection(answer, key):
     return answer
 
 
+def ini_rows(answer):
+    """The rows of GET /api/v1/settings/ini: settings, each {name, value, secret}.
+
+    The route answers names as well - the list alone, for the Linux test shim -
+    and a server from before 15 September 2026 answered ONLY names. Until then
+    this file read a settings array the route never sent, collection() fell
+    through to the names, and `ini list` and `config export` were silently
+    empty against every real server. A names-only answer is now turned into
+    rows with no value, so that a list is a list of names rather than nothing.
+    """
+    rows = collection(answer, "settings")
+    if not isinstance(rows, list):
+        return []
+    if rows and all(isinstance(row, str) for row in rows):
+        return [{"name": row} for row in rows]
+    return [row for row in rows if isinstance(row, dict)]
+
+
 def parse_set(pairs):
     """--set name=value, with a value read as JSON when it looks like JSON.
 
@@ -561,7 +579,7 @@ def settings_command(client, arguments):
 def ini_command(client, arguments):
     if arguments.verb == "list":
         answer = client.request("GET", "/api/v1/settings/ini")
-        render(collection(answer, "settings"), arguments.json, ["name", "value"])
+        render(ini_rows(answer), arguments.json, ["name", "value"])
     elif arguments.verb == "get":
         render(client.request("GET", "/api/v1/settings/ini/%s" % arguments.name), arguments.json)
     elif arguments.verb == "set":
@@ -849,9 +867,15 @@ def read_configuration(client, domains=None):
                     continue
                 raise
             values = {}
-            for row in collection(answer, "settings"):
-                if isinstance(row, dict) and "name" in row:
-                    values[str(row["name"])] = row.get("value")
+            for row in ini_rows(answer):
+                if "name" not in row or "value" not in row:
+                    continue
+                # A secret is listed as "(set)", never as its value. It stays out of
+                # the document: a document is for a repository, and one that carried
+                # the placeholder would write "(set)" over the real secret on apply.
+                if row.get("secret"):
+                    continue
+                values[str(row["name"])] = row.get("value")
             document["sections"]["ini"] = dict(sorted(values.items()))
             continue
 
