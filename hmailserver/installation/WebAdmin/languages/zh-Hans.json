@@ -484,6 +484,7 @@
   "YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when the range expires, and taken only then.": "按服务器时钟的 YYYY-MM-DD HH:MM:SS；只写日期则表示当日零点。范围设有到期时间时必填，也只有那时才采用。",
   "YYYY-MM-DD; empty means today.": "YYYY-MM-DD；留空表示今天。",
   "collecting": "收取中",
+  "every domain": "所有域",
   "every recipient": "所有收件人",
   "expires {0}": "到期 {0}",
   "id {0}": "ID {0}",

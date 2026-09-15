@@ -484,6 +484,7 @@
   "YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when the range expires, and taken only then.": "サーバーの時計での YYYY-MM-DD HH:MM:SS 形式です。日付だけを書くと午前 0 時になります。範囲に有効期限を設ける場合は必須で、そのときにだけ使われます。",
   "YYYY-MM-DD; empty means today.": "YYYY-MM-DD 形式です。空の場合は今日になります。",
   "collecting": "取得中",
+  "every domain": "すべてのドメイン",
   "every recipient": "すべての受信者",
   "expires {0}": "有効期限 {0}",
   "id {0}": "ID {0}",

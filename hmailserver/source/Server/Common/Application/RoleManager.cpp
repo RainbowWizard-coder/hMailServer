@@ -420,6 +420,13 @@ namespace HM
       return grant;
    }
 
+   bool
+   RoleManager::ReachesEveryDomainWhenUnlisted(const String &roleName)
+   {
+      const String name = Lower(roleName);
+      return name.Compare(_T("serveradmin")) == 0 || name.Compare(_T("auditor")) == 0;
+   }
+
    RoleGrant
    RoleManager::GrantForAccount(std::shared_ptr<const Account> account)
    {
@@ -447,12 +454,14 @@ namespace HM
 
          if (assignedGrant.administrative)
          {
-            if (assignedGrant.domains.empty() && !assignedGrant.Holds(RolePermission::AdministerServer))
+            if (assignedGrant.domains.empty() && !ReachesEveryDomainWhenUnlisted(assignment.role_name))
             {
                // A confined role with no list of its own reaches the account's
-               // own domain, and only that. serveradmin is the exception: it
-               // has never been a domain's administrator and its empty list
-               // means every domain, as it does for the ini password.
+               // own domain, and only that. serveradmin and auditor are the
+               // exceptions: the one has never been a domain's administrator,
+               // and an auditor confined to the domain its own mailbox happens
+               // to sit in could not read the settings, the logs or the queue -
+               // which are server-wide - and would not be reading everything.
                assignedGrant.domains.push_back(ownDomain);
             }
 

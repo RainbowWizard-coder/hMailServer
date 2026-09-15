@@ -189,11 +189,16 @@ namespace hMailServer.ControlPanel.Views
                if (parts.Length < 3)
                   continue;
 
+               // What an empty list reaches is the server's to say (the fourth
+               // field): every domain for serveradmin and auditor, the account's
+               // own for every other role.
+               bool everyDomain = parts.Length > 3 && parts[3] == "1";
+
                assignments.Add(new AssignmentRow
                {
                   Address = parts[0],
                   Role = parts[1],
-                  Domains = parts[2].Length > 0 ? parts[2] : L("the account's own domain")
+                  Domains = parts[2].Length > 0 ? parts[2] : (everyDomain ? L("every domain") : L("the account's own domain"))
                });
             }
          }

@@ -207,10 +207,11 @@ namespace HM
             continue;
 
          AnsiString item;
-         item.Format("{\"address\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\"}",
+         item.Format("{\"address\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\",\"every_domain\":%hs}",
             JsonEscape_(Utf8_(account->GetAddress())).c_str(),
             JsonEscape_(Utf8_(assignment.role_name)).c_str(),
-            JsonEscape_(Utf8_(assignment.domains)).c_str());
+            JsonEscape_(Utf8_(assignment.domains)).c_str(),
+            assignment.domains.IsEmpty() && RoleManager::ReachesEveryDomainWhenUnlisted(assignment.role_name) ? "true" : "false");
 
          if (count > 0)
             items += ",";
@@ -277,10 +278,11 @@ namespace HM
       RoleManager::AssignmentForAccount(account->GetID(), assignment);
 
       AnsiString body;
-      body.Format("{\"address\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\"}",
+      body.Format("{\"address\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\",\"every_domain\":%hs}",
          JsonEscape_(Utf8_(account->GetAddress())).c_str(),
          JsonEscape_(Utf8_(assignment.role_name)).c_str(),
-         JsonEscape_(Utf8_(assignment.domains)).c_str());
+         JsonEscape_(Utf8_(assignment.domains)).c_str(),
+         assignment.domains.IsEmpty() && RoleManager::ReachesEveryDomainWhenUnlisted(assignment.role_name) ? "true" : "false");
 
       return BuildResponse_(200, body);
    }
@@ -468,9 +470,9 @@ namespace HM
          "\"put\":{\"summary\":\"Change a custom role\",\"description\":\"Body: description and permissions, judged as the create judges them. A built-in role is refused: its permissions are in the code so that an UPDATE against the database cannot hand somebody a permission.\",\"responses\":{\"200\":{\"description\":\"The role\"},\"400\":{\"description\":\"A built-in role, or no permission this server has\"},\"404\":{\"description\":\"No such role\"}}},"
          "\"delete\":{\"summary\":\"Remove a custom role\",\"description\":\"Its assignments go with it, so nobody is left holding a role that does not exist. A built-in role is refused.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"400\":{\"description\":\"A built-in role\"},\"404\":{\"description\":\"No such role\"}}}},"
          "\"/api/v1/role-assignments\":{"
-         "\"get\":{\"summary\":\"Who holds which role, and where\",\"description\":\"One entry per account with an explicit assignment: address, role, domains (empty means the account's own domain for a confined role, and every domain for serveradmin). An account with no entry holds the role its AdminLevel has always given it - server administrator, domain administrator or neither - which is why an upgrade writes no rows and nobody's authority changes on the day roles arrive.\",\"responses\":{\"200\":{\"description\":\"count, assignments\"}}}},"
+         "\"get\":{\"summary\":\"Who holds which role, and where\",\"description\":\"One entry per account with an explicit assignment: address, role, domains as stored, and every_domain - true when the list is empty and the role is serveradmin or auditor, which reach every domain unless told otherwise; every other role, custom roles included, reaches the account's own domain when the list is empty. An account with no entry holds the role its AdminLevel has always given it - server administrator, domain administrator or neither - which is why an upgrade writes no rows and nobody's authority changes on the day roles arrive.\",\"responses\":{\"200\":{\"description\":\"count, assignments\"}}}},"
          "\"/api/v1/role-assignments/{address}\":{"
-         "\"put\":{\"summary\":\"Give an account a role\",\"description\":\"Body: role (a name from /api/v1/roles) and domains (comma-separated; empty confines the role to the account's own domain). A credential may not give away a permission it does not itself hold. Needs manage_roles, and is scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"role\"],\"properties\":{\"role\":{\"type\":\"string\"},\"domains\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"address, role, domains\"},\"400\":{\"description\":\"No role named, or no such role\"},\"403\":{\"description\":\"The role holds permissions this credential does not\"},\"404\":{\"description\":\"No such account\"}}},"
+         "\"put\":{\"summary\":\"Give an account a role\",\"description\":\"Body: role (a name from /api/v1/roles) and domains (comma-separated; empty means every domain for serveradmin and auditor and the account's own domain for every other role). A credential may not give away a permission it does not itself hold. Needs manage_roles, and is scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"role\"],\"properties\":{\"role\":{\"type\":\"string\"},\"domains\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"address, role, domains, every_domain\"},\"400\":{\"description\":\"No role named, or no such role\"},\"403\":{\"description\":\"The role holds permissions this credential does not\"},\"404\":{\"description\":\"No such account\"}}},"
          "\"delete\":{\"summary\":\"Take a role away\",\"description\":\"The account falls back to the authority its AdminLevel gives it. Needs manage_roles.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"403\":{\"description\":\"The role holds permissions this credential does not\"},\"404\":{\"description\":\"No such account, or it holds no role\"}}}},"
          "\"/api/v1/accounts/{address}/password\":{"
          "\"post\":{\"summary\":\"Reset an account's password\",\"description\":\"Body: password. The password policy, the reuse history, the configured hash and the age clock, exactly as when the Control Panel sets one; the failed-authentication lockout is cleared with it, because somebody whose password has just been reset must be able to get in. A directory-linked account is 409. A server administrator's password may only be reset by a credential that administers the whole server. Needs reset_password, and is scoped to the address's domain - which is the whole of what the help-desk role is.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"password\"],\"properties\":{\"password\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Reset\"},\"400\":{\"description\":\"Empty, or the policy refused it (the reason is in error)\"},\"403\":{\"description\":\"A server administrator's account\"},\"404\":{\"description\":\"No such account\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"}}}},"

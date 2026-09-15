@@ -221,6 +221,16 @@ namespace HM
       static bool Assign(__int64 accountId, const String &roleName, const String &domains, String &error);
       static bool Unassign(__int64 accountId, String &error);
 
+      // What an assignment with no list of domains reaches. serveradmin and
+      // auditor are server-wide by definition - the one has always had every
+      // domain, and the other exists to read all of them - so for those two an
+      // empty list is every domain. Every other role, custom roles included, is
+      // confined, and an empty list is the account's own domain: naming domains
+      // is how an administrator widens a confined role, never how they narrow
+      // it. The listings answer this alongside the stored list, so that no page
+      // has to know the rule to show what an assignment reaches.
+      static bool ReachesEveryDomainWhenUnlisted(const String &roleName);
+
       // The name of a permission, and back again. The tokens are what the
       // database, the REST document and the two editors all spell.
       static AnsiString PermissionName(RolePermission permission);

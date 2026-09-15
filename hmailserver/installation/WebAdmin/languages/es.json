@@ -484,6 +484,7 @@
   "YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when the range expires, and taken only then.": "YYYY-MM-DD HH:MM:SS según el reloj del servidor, o solo una fecha para la medianoche; se requiere cuando el rango caduca, y solo entonces se tiene en cuenta.",
   "YYYY-MM-DD; empty means today.": "YYYY-MM-DD; vacío significa hoy.",
   "collecting": "recogiendo",
+  "every domain": "todos los dominios",
   "every recipient": "todos los destinatarios",
   "expires {0}": "caduca {0}",
   "id {0}": "id {0}",

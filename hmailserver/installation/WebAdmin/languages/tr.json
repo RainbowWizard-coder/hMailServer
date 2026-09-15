@@ -484,6 +484,7 @@
   "YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when the range expires, and taken only then.": "Sunucunun saatine göre YYYY-MM-DD HH:MM:SS veya gece yarısı için yalnızca bir tarih; aralık sona erdiğinde gereklidir ve yalnızca o zaman dikkate alınır.",
   "YYYY-MM-DD; empty means today.": "YYYY-MM-DD; boş bırakılırsa bugün demektir.",
   "collecting": "toplanıyor",
+  "every domain": "tüm alan adları",
   "every recipient": "her alıcı",
   "expires {0}": "{0} tarihinde sona erer",
   "id {0}": "id {0}",

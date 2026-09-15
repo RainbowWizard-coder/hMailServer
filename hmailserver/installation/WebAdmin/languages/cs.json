@@ -484,6 +484,7 @@
   "YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when the range expires, and taken only then.": "YYYY-MM-DD HH:MM:SS podle hodin serveru, nebo jen datum pro půlnoc; vyžadováno, když rozsah vyprší, a jen tehdy se použije.",
   "YYYY-MM-DD; empty means today.": "YYYY-MM-DD; prázdné znamená dnes.",
   "collecting": "vybírá se",
+  "every domain": "každá doména",
   "every recipient": "každý příjemce",
   "expires {0}": "vyprší {0}",
   "id {0}": "id {0}",
