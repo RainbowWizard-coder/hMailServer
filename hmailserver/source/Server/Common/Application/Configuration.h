@@ -250,6 +250,26 @@ namespace HM
       int GetAlertWebhookMaxAttempts();
       void SetAlertWebhookMaxAttempts(int attempts);
 
+      // Bounces read, and the suppression list (see SMTP/BounceTracker.h). All
+      // eight live in hm_settings. The getters clamp to the documented range, so a
+      // hand-edited row cannot turn a threshold of 0 into "list on no bounce at all".
+      bool GetBounceProcessingEnabled();
+      void SetBounceProcessingEnabled(bool enabled);
+      int GetBounceHardBounceThreshold();          // 1 to 100
+      void SetBounceHardBounceThreshold(int threshold);
+      bool GetBounceMailboxFullIsHard();
+      void SetBounceMailboxFullIsHard(bool enabled);
+      int GetBounceSuppressionAction();            // 0 refuse, 1 drop, 2 observe
+      void SetBounceSuppressionAction(int action);
+      int GetBounceSuppressionExpiryDays();        // 0 never, up to 3650
+      void SetBounceSuppressionExpiryDays(int days);
+      bool GetBounceReadDeliveryReports();
+      void SetBounceReadDeliveryReports(bool enabled);
+      int GetBounceCountRetentionDays();           // 0 keep, up to 3650
+      void SetBounceCountRetentionDays(int days);
+      int GetBounceReportWindowDays();             // 1 to 30
+      void SetBounceReportWindowDays(int days);
+
       int GetCrashSimulationMode() const;
       void SetCrashSimulationMode(int mode);
 

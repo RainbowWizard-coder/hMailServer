@@ -358,6 +358,8 @@
   "None yet.": "لا شيء بعد.",
   "Not junk": "ليست غير مرغوب فيها",
   "Not known yet.": "غير معروف بعد.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "لم تُرسَل الرسالة إلى {0}: البريد إلى هذا العنوان ارتدّ، وهو مدرج في قائمة الحظر الخاصة بنطاقك. يستطيع المسؤول إزالته.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "لم تُرسَل الرسالة إلى {0}: أدرج المسؤول هذا العنوان في قائمة الحظر الخاصة بنطاقك، ويستطيع إزالته منها.",
   "Not sent. The message is still here.": "لم تُرسل. الرسالة ما زالت هنا.",
   "Note": "ملاحظة",
   "Nothing": "لا شيء",

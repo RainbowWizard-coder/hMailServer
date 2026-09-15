@@ -17,6 +17,9 @@
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
+#include "../../SMTP/BounceClassifier.h"
+#include "../../SMTP/BounceTracker.h"
+#include "../../SMTP/DeliveryReportParser.h"
 #include "../Util/AcmeClient.h"
 #include "../Util/FileUtilities.h"
 #include "../Application/IniFileSettings.h"
@@ -155,6 +158,26 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DkimRotationPlan\n"));
       DkimRotationTester dkimRotationTester;
       dkimRotationTester.Test();
+
+      // Bounces read, and the suppression list: the classification that decides
+      // whether an address is dead, the report parser that reads hostile input,
+      // the gate a report must pass, and the key that ties a report to a message
+      // this server really sent. All four are functions of values.
+      OutputDebugString(_T("hMailServer: Testing BounceClassifier\n"));
+      BounceClassifierTester bounceClassifierTester;
+      bounceClassifierTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing DeliveryReportParser\n"));
+      DeliveryReportParserTester deliveryReportParserTester;
+      deliveryReportParserTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing the bounce report gate\n"));
+      BounceReportGateTester bounceReportGateTester;
+      bounceReportGateTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing the bounce report key\n"));
+      BounceKeyTester bounceKeyTester;
+      bounceKeyTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

@@ -469,6 +469,18 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Message trace|Delivery history|Where did my email go|Did it arrive|Track a message|Was it delivered|Message log|Audit|What happened to|Trace",
                   seeAlso: "queue|logs|quarantine"),
 
+               // Beside the trace, because it answers the question that follows
+               // one: the message bounced, and now the address is not being sent
+               // to - why, since when, and how to undo it. A domain administrator's
+               // page as well: Utilities.GetSuppressionList and the rest answer the
+               // administrator of that domain, and the domains it picks from are
+               // Application.Domains, narrowed to the credential's own.
+               Page("suppressions", N("Suppression list"),
+                  N("Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand."),
+                  aliases: "Bounces|Hard bounce|Dead addresses|Suppression|Bounce list|Why is mail to this address refused|Stop sending to an address",
+                  seeAlso: "messagetrace|queue|delivery",
+                  needs: "administer_domain"),
+
                Page("logs", N("Live logs"),
                   N("Stream the server log as it is written - the fastest way to see what happened to one message."),
                   aliases: "Log viewer|Tail|Trace|Debug|SMTP conversation|Error log|Awstats",

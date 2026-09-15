@@ -55,6 +55,7 @@
 #include "../Common/Mime/Mime.h"
 
 #include "DeliveryFailure.h"
+#include "BounceTracker.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -342,6 +343,12 @@ namespace HM
 
       otelDelivery.AddEvent("delivery.preprocessed");
 
+      // A delivery report for one of this installation's senders is read here,
+      // before local delivery takes its recipients away, and is then delivered
+      // unchanged like any other message. Returns at once unless bounce processing
+      // is on and the message has a null sender. See BounceTracker.
+      BounceTracker::InspectIncomingReport(pMessage);
+
       std::vector<DeliveryFailure> saErrorMessages;
 
       // Perform deliver to local recipients.
@@ -350,12 +357,25 @@ namespace HM
       otelDelivery.AddEvent("delivery.local");
 
       bool messageRescheduled = false;
+
+      // The suppression list, at the one point every outbound path meets: a
+      // submission, an alias expanding outwards, a forward, a rule, a scheduled
+      // send. A listed recipient is taken off the message here, before anything is
+      // sent to it.
+      if (pMessage->GetRecipients()->GetCount() > 0)
+         BounceTracker::ApplyAtDelivery(pMessage, sSendersIP, saErrorMessages);
+
       if (pMessage->GetRecipients()->GetCount() > 0)
       {
          // Perform deliveries to external recipients.
          ExternalDelivery externalDeliverer(sSendersIP, pMessage, globalRuleResult);
          messageRescheduled = externalDeliverer.Perform(saErrorMessages);
          otelDelivery.AddEvent("delivery.external");
+
+         // Every recipient still carries what happened to it - delivered, refused
+         // and in whose words, or deferred - so the bounces are counted from the
+         // recipients themselves, and a delivery's report key is kept.
+         BounceTracker::RecordDeliveryPass(pMessage, messageRescheduled);
       }
 
       // If an error has occurred, now is the time to send an error

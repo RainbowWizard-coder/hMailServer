@@ -133,6 +133,7 @@ LOCALISED = {
    "Views/MessageTraceView.cs",
    "Views/AboutView.cs",
    "Views/QuarantineView.cs",
+   "Views/SuppressionListView.cs",
    "Views/ScriptsView.cs",
    "Views/AccessibleChartCard.cs",
    "Views/PublicFoldersView.cs",

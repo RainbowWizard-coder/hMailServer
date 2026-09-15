@@ -115,6 +115,11 @@ PATH_SCOPE = {
     'scripting': ['Scripting'],
     'cache': ['Cache'],
     'indexing': ['MessageIndexing'],
+    # /api/v1/settings/bounces is the Settings interface's bounce properties;
+    # the list itself is reached through Utilities methods, which are not
+    # properties and have no resource of their own.
+    'bounces': ['Settings'],
+    'suppressions': [],
     'backup': ['BackupSettings', 'Backup'],
     'messages': ['ServerMessage'],
     'dkim': ['Domain'],
@@ -150,7 +155,7 @@ PATH_SCOPE = {
 # Trailing path segments that are verbs on the resource before them.
 VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'download',
                  'run', 'install', 'reinitialize', 'evaluate', 'history', 'start', 'index',
-                 'copy', 'match', 'test', 'switch', 'retire'}
+                 'copy', 'match', 'test', 'switch', 'retire', 'classify', 'expire'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

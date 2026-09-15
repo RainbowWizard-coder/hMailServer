@@ -511,6 +511,18 @@ namespace HM
          // the reason the delivery queue is - the counters are the server's
          // and there is no honest way to narrow them to one domain.
          RouteReport,
+         // Bounces read, and the suppression list (RestApiBounces.cpp). The four
+         // under a domain are scoped to it in Authorize_ as the account routes are;
+         // the settings group and the sweep are server-wide; classify reads and
+         // writes nothing.
+         RouteSuppressionList,
+         RouteSuppressionCreate,
+         RouteSuppressionDelete,
+         RouteBounceCountList,
+         RouteBounceClassify,
+         RouteBounceExpire,
+         RouteSettingsBouncesGet,
+         RouteSettingsBouncesPut,
          RouteOpenApi
       };
 
@@ -1040,6 +1052,8 @@ namespace HM
       HttpResponse HandleIndexingClear_();
       HttpResponse HandleSettingsBackup_();
       HttpResponse HandleSettingsBackupPut_(const AnsiString &requestBody);
+      HttpResponse HandleSettingsBounces_();
+      HttpResponse HandleSettingsBouncesPut_(const AnsiString &requestBody);
       HttpResponse HandleServerMessageList_();
       HttpResponse HandleServerMessagePut_(const AnsiString &name, const AnsiString &requestBody);
       HttpResponse HandleSieveEvaluate_(const AnsiString &requestBody);
@@ -1200,6 +1214,11 @@ namespace HM
       // In RestApiAudit.cpp.
       HttpResponse HandleAudit_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiAuditPaths_();
+
+      // The suppression list, the bounce counts, classify and the sweep. In
+      // RestApiBounces.cpp.
+      HttpResponse HandleBounces_(const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiBouncesPaths_();
 
       std::shared_ptr<HttpServer> server_;
       bool running_;

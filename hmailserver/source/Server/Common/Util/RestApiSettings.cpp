@@ -266,6 +266,15 @@ namespace
       { nullptr, 0 }
    };
 
+   // BounceTracker::Action, in the order the Control Panel lists them.
+   const Word BounceSuppressionActionWords[] =
+   {
+      { "refuse", 0 },
+      { "drop", 1 },
+      { "observe", 2 },
+      { nullptr, 0 }
+   };
+
    // InterfaceAntiVirus::put_Action's two values - eAntivirusAction over COM,
    // hDeleteEmail and hDeleteAttachments - in the order the Control Panel
    // lists them. Anything else is refused there rather than stored, and here.
@@ -1088,6 +1097,42 @@ namespace
         ROW_TEXT(BackupLogFile()), nullptr, ROW_NO_CHECK },
    };
 
+   // Bounces read, and the suppression list (SMTP/BounceTracker.h). In hm_settings,
+   // through the same Configuration setters the COM properties call, and read at the
+   // moment they matter, so every one is in force for the next message. The ranges
+   // are refused before anything is applied, in the sentences InterfaceSettings uses.
+   const Row BounceRows[] =
+   {
+      { "processing_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "The master switch: classify bounces, count them per address, and keep a suppression list per sending domain. Off by default, and with it off nothing is read, counted or refused.",
+        ROW_FLAG(Config()->GetBounceProcessingEnabled()), ROW_SET(Config()->SetBounceProcessingEnabled(v.flag)), ROW_NO_CHECK },
+      { "hard_bounce_threshold", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Hard bounces in a row, with no delivery between them, that put an address on its sending domain's list. 1 to 100; 1 by default.",
+        ROW_NUMBER(Config()->GetBounceHardBounceThreshold()), ROW_SET(Config()->SetBounceHardBounceThreshold((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 100) ? String(_T("hard_bounce_threshold must be between 1 and 100.")) : String(); } },
+      { "mailbox_full_is_hard", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a full mailbox (X.2.2) counts as a hard bounce. Off by default: a full mailbox is usually emptied.",
+        ROW_FLAG(Config()->GetBounceMailboxFullIsHard()), ROW_SET(Config()->SetBounceMailboxFullIsHard(v.flag)), ROW_NO_CHECK },
+      { "suppression_action", KindEnum, ReadWrite, EffectNow, BounceSuppressionActionWords,
+        "What happens to a listed recipient: refuse (a submission is refused at RCPT with the reason, anything else is returned to the sender), drop (removed without a report), or observe (delivered, and only recorded).",
+        ROW_NUMBER(Config()->GetBounceSuppressionAction()), ROW_SET(Config()->SetBounceSuppressionAction((int) v.number)), ROW_NO_CHECK },
+      { "suppression_expiry_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Days after which an entry made by a bounce or a report stops applying and is swept, measured from when it was made. 0, the default, keeps entries until they are removed by hand; at most 3650.",
+        ROW_NUMBER(Config()->GetBounceSuppressionExpiryDays()), ROW_SET(Config()->SetBounceSuppressionExpiryDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 3650) ? String(_T("suppression_expiry_days must be between 0 and 3650.")) : String(); } },
+      { "read_delivery_reports", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether RFC 3464 delivery reports arriving for this server's senders are read, and the register they are matched against is kept. On by default, and subordinate to processing_enabled.",
+        ROW_FLAG(Config()->GetBounceReadDeliveryReports()), ROW_SET(Config()->SetBounceReadDeliveryReports(v.flag)), ROW_NO_CHECK },
+      { "count_retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Days bounce counts are kept after an address last bounced and was last delivered to, unless the address is listed. 0 keeps them; 90 by default; at most 3650.",
+        ROW_NUMBER(Config()->GetBounceCountRetentionDays()), ROW_SET(Config()->SetBounceCountRetentionDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 3650) ? String(_T("count_retention_days must be between 0 and 3650.")) : String(); } },
+      { "report_window_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Days after a message is sent that a delivery report about it is still matched. 1 to 30; 7 by default, which is also how long a BATV tag stays valid.",
+        ROW_NUMBER(Config()->GetBounceReportWindowDays()), ROW_SET(Config()->SetBounceReportWindowDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 30) ? String(_T("report_window_days must be between 1 and 30.")) : String(); } },
+   };
+
 #undef ROW_TEXT
 #undef ROW_NUMBER
 #undef ROW_FLAG
@@ -1103,6 +1148,7 @@ namespace
    const Group BackupGroup = { "backup", "/api/v1/settings/backup", BackupRows, sizeof(BackupRows) / sizeof(BackupRows[0]) };
    const Group CacheGroup = { "cache", "/api/v1/settings/cache", CacheRows, sizeof(CacheRows) / sizeof(CacheRows[0]) };
    const Group IndexingGroup = { "indexing", "/api/v1/settings/indexing", IndexingRows, sizeof(IndexingRows) / sizeof(IndexingRows[0]) };
+   const Group BounceGroup = { "bounces", "/api/v1/settings/bounces", BounceRows, sizeof(BounceRows) / sizeof(BounceRows[0]) };
 
    // ---------------------------------------------------------------------
    // The two private helpers of RestApiServer these functions need, handed
@@ -1907,6 +1953,7 @@ namespace HM
       paths += OpenApiPath(IndexingGroup, "The message indexing settings and counts", "Change the indexing settings", bridge);
       paths += CacheAndIndexingPaths;
       paths += BreachCheckTestPath;
+      paths += OpenApiPath(BounceGroup, "The bounce and suppression list settings", "Change the bounce and suppression list settings", bridge);
       return paths;
    }
 
@@ -2157,6 +2204,20 @@ namespace HM
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       return GroupPut(BackupGroup, requestBody, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsBounces_()
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupGet(BounceGroup, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsBouncesPut_(const AnsiString &requestBody)
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupPut(BounceGroup, requestBody, bridge);
    }
 
    HttpResponse

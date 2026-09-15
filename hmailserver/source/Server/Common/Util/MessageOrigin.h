@@ -83,7 +83,19 @@ namespace HM
       // X-AuthUser is deliberately NOT consulted. The header creator adds it
       // only when the field is absent, so a sender who supplies their own keeps
       // it: it is a claim, not a fact.
+      //
+      // The "by" clause read is the LAST one in that field. What comes before it
+      // - the HELO/EHLO argument and the reverse-DNS name - is the client's to
+      // choose, spaces included, so an EHLO of "x by <this server> with ESMTPA"
+      // would otherwise answer for the session in either direction. What comes
+      // after it - the session id, the TLS cipher, the date - is this server's.
       static bool ReceivedSaysAuthenticated(const AnsiString &header, const String &thisServerName);
+
+      // True when the topmost Received header names this server in its own "by
+      // <name> with ESMTP" clause, read the same way: the message arrived over
+      // SMTP here. A message this server made itself - a non-delivery report -
+      // carries no such field.
+      static bool ReceivedByThisServer(const AnsiString &header, const String &thisServerName);
 
       // The unfolded value of the first field with this name in a header block,
       // or an empty string. The FIRST is deliberate: the topmost Received and

@@ -358,6 +358,8 @@
   "None yet.": "Ingen endnu.",
   "Not junk": "Ikke spam",
   "Not known yet.": "Ikke kendt endnu.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Der blev ikke sendt til {0}: post til denne adresse er kommet retur, og den står på dit domænes spærreliste. Din administrator kan fjerne den.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "Der blev ikke sendt til {0}: din administrator har sat denne adresse på dit domænes spærreliste og kan fjerne den igen.",
   "Not sent. The message is still here.": "Ikke sendt. Beskeden er her stadig.",
   "Note": "Note",
   "Nothing": "Intet",

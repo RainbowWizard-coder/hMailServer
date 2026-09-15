@@ -264,6 +264,24 @@ END_COM_MAP()
    STDMETHOD(put_BreachCheckUnreachableAction)(/*[in]*/ long newVal);
    STDMETHOD(TestBreachCheckEndpoint)(/*[in]*/ BSTR Url, /*[out, retval]*/ long *Entries);
 
+   // Bounces read, and the suppression list. See the IDL.
+   STDMETHOD(get_BounceProcessingEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_BounceProcessingEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_BounceHardBounceThreshold)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BounceHardBounceThreshold)(/*[in]*/ long newVal);
+   STDMETHOD(get_BounceMailboxFullIsHard)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_BounceMailboxFullIsHard)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_BounceSuppressionAction)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BounceSuppressionAction)(/*[in]*/ long newVal);
+   STDMETHOD(get_BounceSuppressionExpiryDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BounceSuppressionExpiryDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_BounceReadDeliveryReports)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_BounceReadDeliveryReports)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_BounceCountRetentionDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BounceCountRetentionDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_BounceReportWindowDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BounceReportWindowDays)(/*[in]*/ long newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

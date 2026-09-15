@@ -212,6 +212,19 @@
 #define PROPERTY_BREACH_CHECK_MINIMUM_COUNT     _T("BreachCheckMinimumCount")
 #define PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION _T("BreachCheckUnreachableAction")
 
+// Bounces read, and a suppression list (SMTP/BounceTracker.h). In hm_settings, by
+// the rule of 15 September 2026, with rows created at start by EnsureLong when a
+// database has none. Every default is the server as it was: processing off, so
+// nothing is classified, counted, listed or refused until an administrator says so.
+#define PROPERTY_BOUNCE_PROCESSING_ENABLED      _T("BounceProcessingEnabled")
+#define PROPERTY_BOUNCE_HARD_THRESHOLD          _T("BounceHardBounceThreshold")
+#define PROPERTY_BOUNCE_MAILBOX_FULL_IS_HARD    _T("BounceMailboxFullIsHard")
+#define PROPERTY_BOUNCE_SUPPRESSION_ACTION      _T("BounceSuppressionAction")
+#define PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS _T("BounceSuppressionExpiryDays")
+#define PROPERTY_BOUNCE_READ_REPORTS            _T("BounceReadDeliveryReports")
+#define PROPERTY_BOUNCE_COUNT_RETENTION_DAYS    _T("BounceCountRetentionDays")
+#define PROPERTY_BOUNCE_REPORT_WINDOW_DAYS      _T("BounceReportWindowDays")
+
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
 //      hm_domains.domaindkimsecondaryprivatekeyfile, the staged half of a DKIM key
@@ -246,4 +259,9 @@
 //      one row per domain whose rotation the server manages, holding the current,
 //      next and retiring selectors with their times and DNS check results; and seeds
 //      the dkim.rotation.stalled alert rule.
-#define REQUIRED_DB_VERSION            6048
+// 6051 adds hm_bouncesuppressions, hm_bouncecounts and hm_bouncereportkeys: the
+//      per-domain suppression list, the per-address bounce counts it is fed from,
+//      and the register of delivered messages a delivery report is matched against.
+//      All three start empty and nothing writes to them until BounceProcessingEnabled
+//      is switched on, so an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6051

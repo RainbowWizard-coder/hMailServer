@@ -337,6 +337,35 @@ namespace RegressionTests.Shared
          if (antiVirus.ClamAVHost != "localhost")
             antiVirus.ClamAVHost = "localhost";
 
+         // Bounces read, and the suppression list: all eight back to what the server
+         // ships, so a fixture that switched processing on and failed before its own
+         // TearDown cannot leave every later fixture's mail being counted - or a
+         // recipient refused. The rows themselves go with the test domain, which
+         // AddTestDomain deletes and every bounce table cascades from.
+         if (BounceTestSupport.ComBounceProcessingEnabled(_settings))
+            BounceTestSupport.ComSetBounceProcessingEnabled(_settings, false);
+
+         if (BounceTestSupport.ComBounceHardBounceThreshold(_settings) != 1)
+            BounceTestSupport.ComSetBounceHardBounceThreshold(_settings, 1);
+
+         if (BounceTestSupport.ComBounceMailboxFullIsHard(_settings))
+            BounceTestSupport.ComSetBounceMailboxFullIsHard(_settings, false);
+
+         if (BounceTestSupport.ComBounceSuppressionAction(_settings) != 0)
+            BounceTestSupport.ComSetBounceSuppressionAction(_settings, 0);
+
+         if (BounceTestSupport.ComBounceSuppressionExpiryDays(_settings) != 0)
+            BounceTestSupport.ComSetBounceSuppressionExpiryDays(_settings, 0);
+
+         if (!BounceTestSupport.ComBounceReadDeliveryReports(_settings))
+            BounceTestSupport.ComSetBounceReadDeliveryReports(_settings, true);
+
+         if (BounceTestSupport.ComBounceCountRetentionDays(_settings) != 90)
+            BounceTestSupport.ComSetBounceCountRetentionDays(_settings, 90);
+
+         if (BounceTestSupport.ComBounceReportWindowDays(_settings) != 7)
+            BounceTestSupport.ComSetBounceReportWindowDays(_settings, 7);
+
          EnableLogging(true);
 
          CustomAsserts.AssertNoReportedError();

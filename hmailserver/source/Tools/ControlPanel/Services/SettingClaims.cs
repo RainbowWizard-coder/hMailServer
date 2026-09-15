@@ -167,6 +167,29 @@ namespace hMailServer.ControlPanel.Services
             (SyslogTransportTls, N("TCP over TLS (RFC 5425), certificate verified"))
          };
 
+      // ---- BounceSuppressionAction -------------------------------------------
+
+      /// <summary>BounceSuppressionAction: refused with the reason.</summary>
+      public const int BounceActionRefuse = 0;
+
+      /// <summary>BounceSuppressionAction: removed without a report.</summary>
+      public const int BounceActionDrop = 1;
+
+      /// <summary>BounceSuppressionAction: delivered, and only recorded.</summary>
+      public const int BounceActionObserve = 2;
+
+      /// <summary>
+      /// What the "What happens to a listed recipient" combo may offer, in the
+      /// order the REST words refuse, drop and observe have them.
+      /// </summary>
+      public static readonly IReadOnlyList<(int Value, string Label)> BounceSuppressionActionOptions =
+         new (int, string)[]
+         {
+            (BounceActionRefuse, N("Refuse it, with the reason")),
+            (BounceActionDrop, N("Drop it without a report")),
+            (BounceActionObserve, N("Deliver it, and only record it"))
+         };
+
       // ---- Logging.SyslogMinimumSeverity -------------------------------------
 
       /// <summary>
@@ -278,6 +301,20 @@ namespace hMailServer.ControlPanel.Services
 
          new SettingClaim("Logging.SyslogTransport", ClaimKind.Honoured,
             N("UDP truncates an entry to 1024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine.")),
+
+         // Verified against the server: BounceTracker reads every one of these at
+         // the moment it acts, so a change applies to the next message, and with
+         // the switch off every hook returns after reading it.
+         new SettingClaim("BounceProcessingEnabled", ClaimKind.Honoured,
+            N("In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour.")),
+
+         new SettingClaim("BounceSuppressionAction", ClaimKind.Honoured,
+            N("Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it.")),
+
+         // Conditional: read only while bounce processing is on, and a report is
+         // counted only when it matches a message this server sent.
+         new SettingClaim("BounceReadDeliveryReports", ClaimKind.Conditional,
+            N("Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted.")),
 
          new SettingClaim("Logging.SyslogHost", ClaimKind.Conditional,
             N("Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4096 are waiting, and the application log says so once when it starts and once when the collector comes back.")),

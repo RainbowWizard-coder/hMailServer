@@ -5,6 +5,8 @@
 #include "stdafx.h"
 #include "InterfaceUtilities.h"
 #include "../Common/Util/AddressTraceEraser.h"
+#include "../Common/Util/Unicode.h"
+#include "../SMTP/BounceTracker.h"
 #include "../Common/Application/MailboxRetentionTask.h"
 #include "../Common/Application/MetricsHistoryTask.h"
 #include "../Common/Persistence/PersistentArchiveIndex.h"
@@ -794,6 +796,225 @@ STDMETHODIMP InterfaceUtilities::RunDkimRotation(long SecondsAhead, BSTR *Summar
 
       HM::String json = HM::String(summary.ToJson());
       *Summary = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+namespace
+{
+   HM::String WideFromUtf8(const HM::AnsiString &utf8)
+   {
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(utf8, wide);
+      return wide;
+   }
+}
+
+bool
+InterfaceUtilities::MayAdministerDomain_(__int64 domainID) const
+{
+   if (authentication_->GetIsServerAdmin())
+      return true;
+
+   return authentication_->GetIsDomainAdmin() && authentication_->GetDomainID() == domainID;
+}
+
+STDMETHODIMP InterfaceUtilities::GetSuppressionList(BSTR DomainName, BSTR Search, long MaxRows, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
+      if (domainID <= 0)
+      {
+         if (!authentication_->GetIsDomainAdmin())
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No domain of that name exists.");
+      }
+
+      if (!MayAdministerDomain_(domainID))
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString json;
+      if (!HM::BounceTracker::SuppressionsJson(domainID, Search, MaxRows <= 0 ? 100 : MaxRows, 0, json))
+         return COMError::GenerateError("The suppression list could not be read from the database.");
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::AddSuppression(BSTR DomainName, BSTR Address, BSTR Note, long ExpiresDays, VARIANT_BOOL *Added)
+{
+   try
+   {
+      if (!Added)
+         return COMError::GenerateGenericMessage();
+
+      *Added = VARIANT_FALSE;
+
+      const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
+      if (domainID <= 0)
+      {
+         if (!authentication_->GetIsDomainAdmin())
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No domain of that name exists.");
+      }
+
+      if (!MayAdministerDomain_(domainID))
+         return authentication_->GetAccessDenied();
+
+      HM::AuditScope auditScope(authentication_->GetAuditActor());
+
+      switch (HM::BounceTracker::AddManual(domainID, Address, Note, ExpiresDays))
+      {
+      case HM::BounceTracker::AddAdded:
+         *Added = VARIANT_TRUE;
+         return S_OK;
+      case HM::BounceTracker::AddAlreadyListed:
+         return S_OK;
+      case HM::BounceTracker::AddInvalidAddress:
+         return COMError::GenerateError("That is not a valid email address.");
+      case HM::BounceTracker::AddHostedAddress:
+         return COMError::GenerateError("That address is hosted on this server. The suppression list only ever applies to addresses outside it.");
+      case HM::BounceTracker::AddInvalidExpiry:
+         return COMError::GenerateError("ExpiresDays must be between 0 and 3650.");
+      default:
+         return COMError::GenerateError("The entry could not be written to the database.");
+      }
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RemoveSuppression(BSTR DomainName, BSTR Address, VARIANT_BOOL *Removed)
+{
+   try
+   {
+      if (!Removed)
+         return COMError::GenerateGenericMessage();
+
+      *Removed = VARIANT_FALSE;
+
+      const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
+      if (domainID <= 0)
+      {
+         if (!authentication_->GetIsDomainAdmin())
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No domain of that name exists.");
+      }
+
+      if (!MayAdministerDomain_(domainID))
+         return authentication_->GetAccessDenied();
+
+      HM::AuditScope auditScope(authentication_->GetAuditActor());
+
+      const int result = HM::BounceTracker::Remove(domainID, Address);
+
+      if (result < 0)
+         return COMError::GenerateError("The entry could not be removed from the database.");
+
+      *Removed = result > 0 ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetBounceCounts(BSTR DomainName, BSTR Search, long MaxRows, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
+      if (domainID <= 0)
+      {
+         if (!authentication_->GetIsDomainAdmin())
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No domain of that name exists.");
+      }
+
+      if (!MayAdministerDomain_(domainID))
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString json;
+      if (!HM::BounceTracker::CountsJson(domainID, Search, MaxRows <= 0 ? 100 : MaxRows, 0, json))
+         return COMError::GenerateError("The bounce counts could not be read from the database.");
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::ClassifyBounce(BSTR Status, BSTR Diagnostic, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String status = Status;
+      status.Trim();
+
+      *Json = WideFromUtf8(HM::BounceTracker::ClassifyJson(status, Diagnostic)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RunBounceMaintenance(long *Removed)
+{
+   try
+   {
+      if (!Removed)
+         return COMError::GenerateGenericMessage();
+
+      *Removed = 0;
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      int suppressionsExpired = 0;
+      int countsPruned = 0;
+      int reportKeysPruned = 0;
+
+      const bool succeeded = HM::BounceTracker::RunMaintenance(suppressionsExpired, countsPruned, reportKeysPruned);
+
+      *Removed = suppressionsExpired + countsPruned + reportKeysPruned;
+
+      if (!succeeded)
+         return COMError::GenerateError("The maintenance sweep failed part way; what it removed before failing has been removed.");
+
       return S_OK;
    }
    catch (...)

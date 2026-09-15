@@ -1019,6 +1019,11 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="listedit")openList(d.address,d.domain);
   else if(d.act==="listsave")saveList();
   else if(d.act==="listdel")deleteList(d.address,d.domain);
+  else if(d.act==="suppressions")showSuppressions(d.domain,"",0);
+  else if(d.act==="suppsearch")showSuppressions(suppressionView.domain,($("#suppSearch")||{}).value||"",0);
+  else if(d.act==="supppage")showSuppressions(suppressionView.domain,suppressionView.search,Math.max(0,suppressionView.offset+Number(d.by)));
+  else if(d.act==="suppnew")addSuppression();
+  else if(d.act==="suppdel")removeSuppression(d.address);
   else if(d.act==="domains"){editing=null;render();}
   else if(d.act==="domainnew")createDomain();
   else if(d.act==="domainedit")openDomain(d.name);
@@ -1497,6 +1502,7 @@ async function renderDomains(){
           <button class="btn ghost sm" data-act="accounts" data-domain="${escHtml(x.name)}">${t("Accounts ›")}</button>
           <button class="btn ghost sm" data-act="aliases" data-domain="${escHtml(x.name)}">${t("Aliases ›")}</button>
           <button class="btn ghost sm" data-act="lists" data-domain="${escHtml(x.name)}">${t("Lists ›")}</button>
+          <button class="btn ghost sm" data-act="suppressions" data-domain="${escHtml(x.name)}">${t("Suppressions ›")}</button>
           <button class="btn ghost sm" data-act="domainedit" data-name="${escHtml(x.name)}">${t("Edit")}</button>
           <button class="btn danger sm" data-act="domaindel" data-name="${escHtml(x.name)}">${t("Delete")}</button>
           <div class="err" id="err_domain_${escHtml(x.name)}"></div></td></tr>`).join("");
@@ -2162,6 +2168,124 @@ async function deleteList(address,domain){
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr(where,e.message);}
 }
 
+/* ---------- Suppression list ----------
+   The addresses a domain no longer sends to, because mail to them bounced for
+   good or because an administrator said so, and the bounce counts the list is
+   fed from - GET /api/v1/domains/{domain}/suppressions and /bounces, which are
+   also what Utilities.GetSuppressionList and GetBounceCounts answer the desktop
+   Control Panel. Reached from a domain's row, as its lists and aliases are.
+
+   The add form is the create's own schema, so a field added to the route
+   appears here on its own; a removal asks first, because the next message to
+   the address is sent. When bounce processing is off the page says so above
+   the table: an empty list and a list nobody is applying look the same
+   otherwise. */
+const SUPPRESSION_PAGE=50;
+let suppressionView={domain:"",search:"",offset:0};
+const SUPPRESSION_HINTS={
+  address:K("The address to stop sending to. An address this server hosts is refused."),
+  note:K("Why, for whoever reads the list next."),
+  expires_days:K("Days until the entry stops applying; 0 keeps it until it is removed.")
+};
+const SUPPRESSION_SOURCES={bounce:K("A bounce"),report:K("A delivery report"),manual:K("An administrator")};
+const BOUNCE_CATEGORIES={hard:K("Hard"),soft:K("Soft"),mailbox_full:K("Mailbox full"),policy:K("Policy"),other:K("Other")};
+const SUPPRESSION_ACTIONS={refuse:K("A listed recipient is refused, with the reason."),drop:K("A listed recipient is dropped without a report."),observe:K("A listed recipient is delivered, and only recorded.")};
+function suppressionProps(){
+  const props=properties("/api/v1/domains/{domain}/suppressions","post"),out={};
+  Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&SUPPRESSION_HINTS[k])out[k].description=SUPPRESSION_HINTS[k];});
+  return out;
+}
+function bounceCategoryHtml(word){
+  const label=BOUNCE_CATEGORIES[word];
+  if(!label)return "—";
+  const tone=word==="hard"?"warn":(word==="policy"||word==="mailbox_full")?"info":"";
+  return '<span class="badge '+tone+'">'+escHtml(t(label))+'</span>';
+}
+async function showSuppressions(domain,search,offset){
+  editing=null;
+  suppressionView={domain:domain,search:search||"",offset:offset||0};
+  await loadSpec();
+  const base="/api/v1/domains/"+encodeURIComponent(domain);
+  const filter=suppressionView.search?"&search="+encodeURIComponent(suppressionView.search):"";
+  let list,counts;
+  try{
+    list=await api(base+"/suppressions?limit="+SUPPRESSION_PAGE+"&offset="+suppressionView.offset+filter);
+    counts=await api(base+"/bounces?limit="+SUPPRESSION_PAGE+filter);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}toast(e.message);return;}
+  const items=asList(list,"items"),total=Number(list.total)||0;
+  const rows=items.map(x=>`
+    <tr><td><b>${escHtml(x.address)}</b>${x.diagnostic?'<div class="hint muted">'+escHtml(x.diagnostic)+'</div>':""}</td>
+        <td>${x.source==="manual"?"—":bounceCategoryHtml(x.category)} <code>${escHtml(x.status||"")}</code></td>
+        <td>${escHtml(t(SUPPRESSION_SOURCES[x.source]||x.source||""))}${x.remote_mta?'<div class="hint muted">'+escHtml(x.remote_mta)+'</div>':""}</td>
+        <td>${escHtml(x.created||"")}</td>
+        <td>${x.expires?escHtml(x.expires):t("Never")}${x.expired?' <span class="badge warn">'+t("expired")+'</span>':""}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn ghost sm" data-act="suppdel" data-address="${escHtml(x.address)}">${t("Remove")}</button></td></tr>`).join("");
+  const countRows=asList(counts,"items").map(c=>`
+    <tr><td><b>${escHtml(c.address)}</b>${c.suppressed?' <span class="badge warn">'+t("Listed")+'</span>':""}</td>
+        <td>${escHtml(c.hard)}</td><td>${escHtml(c.soft)}</td><td>${escHtml(c.mailbox_full)}</td><td>${escHtml(c.policy)}</td><td>${escHtml(c.other)}</td>
+        <td>${escHtml(c.consecutive_hard)}</td>
+        <td>${bounceCategoryHtml(c.last_category)} <code>${escHtml(c.last_status||"")}</code></td>
+        <td>${escHtml(c.last_bounce||"")}</td><td>${escHtml(c.last_delivered||"—")}</td></tr>`).join("");
+  const props=suppressionProps();
+  const off=list.processing_enabled?"":'<p class="note"><span class="badge warn">'+t("Off")+'</span> '+t("Bounce processing is off: nothing is counted, listed or refused, and the entries below are not applied. Settings has the switch.")+'</p>';
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
+    <div class="sect"><h2>${tf("{0} — suppression list",escHtml(domain))}</h2>
+      <div class="card flat">
+        ${off}
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/suppressions","get").summary||"")}. ${escHtml(t(SUPPRESSION_ACTIONS[list.action]||""))}</p>
+        <div class="row" data-enter="suppsearch" style="margin-bottom:12px">
+          <input id="suppSearch" placeholder="${t("Search addresses")}" aria-label="${t("Search addresses")}" value="${escHtml(suppressionView.search)}" style="flex:1;min-width:220px">
+          <button class="btn ghost sm" data-act="suppsearch">${t("Search")}</button>
+          <button class="btn ghost sm" data-act="supppage" data-by="-${SUPPRESSION_PAGE}">${t("Newer")}</button>
+          <button class="btn ghost sm" data-act="supppage" data-by="${SUPPRESSION_PAGE}">${t("Older")}</button>
+        </div>
+        <div class="err" id="err_supp"></div>
+        <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Why")}</th><th>${t("Source")}</th><th>${t("Since")}</th><th>${t("Expires")}</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No addresses are on this domain's suppression list.")+'</td></tr>'}</tbody></table></div>
+        <p class="note" style="margin-top:12px">${tf("{0} to {1} of {2}",total?suppressionView.offset+1:0,suppressionView.offset+items.length,total)}</p>
+      </div></div>
+    <div class="sect"><h2>${t("Put an address on the list")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/suppressions","post").description||"")}</p>
+        <div class="form">${formHtml("suppnew",props,documentedDefaults("/api/v1/domains/{domain}/suppressions","post",props),{required:requiredOf("/api/v1/domains/{domain}/suppressions","post")})}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" data-act="suppnew">${t("Add to the list")}</button>
+          <div class="err" id="err_suppnew"></div>
+        </div>
+      </div></div>
+    <div class="sect"><h2>${t("Bounce counts")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/bounces","get").description||"")}</p>
+        <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Hard")}</th><th>${t("Soft")}</th><th>${t("Mailbox full")}</th><th>${t("Policy")}</th><th>${t("Other")}</th>
+          <th>${t("In a row")}</th><th>${t("Last status")}</th><th>${t("Last bounce")}</th><th>${t("Last delivered")}</th></tr></thead>
+        <tbody>${countRows||'<tr><td colspan="10" class="empty">'+t("No bounces have been counted for this domain.")+'</td></tr>'}</tbody></table></div>
+      </div></div></div>`;
+}
+async function addSuppression(){
+  setErr("err_suppnew","");
+  const props=suppressionProps();
+  let body;
+  try{body=readForm("suppnew",props,{});}catch(e){setErr("err_suppnew",e.message);return;}
+  if(!String(body.address||"").trim()){setErr("err_suppnew",t("An address is required."));return;}
+  Object.keys(body).forEach(k=>{if(body[k]===undefined)delete body[k];});
+  try{
+    await api("/api/v1/domains/"+encodeURIComponent(suppressionView.domain)+"/suppressions",{method:"POST",body:JSON.stringify(body)});
+    toast(tf("Added to the suppression list: {0}",body.address));
+    await showSuppressions(suppressionView.domain,suppressionView.search,0);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_suppnew",e.message);}
+}
+async function removeSuppression(address){
+  if(!confirm(tf("Take {0} off the suppression list? The next message to it will be sent.",address)))return;
+  setErr("err_supp","");
+  try{
+    await api("/api/v1/domains/"+encodeURIComponent(suppressionView.domain)+"/suppressions/"+encodeURIComponent(address),{method:"DELETE"});
+    toast(tf("Removed from the suppression list: {0}",address));
+    await showSuppressions(suppressionView.domain,suppressionView.search,suppressionView.offset);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_supp",e.message);}
+}
+
 /* ---------- Groups ----------
    A group is a named set of accounts that a folder permission can name as one
    principal - Settings.Groups, Group and Group.Members over COM, the desktop
@@ -2350,7 +2474,9 @@ const SETTING_GROUPS=[
   {id:"cache",path:"/api/v1/settings/cache",    title:K("Cache"),save:K("Save cache settings"),
     verbs:[{path:"/api/v1/settings/cache/clear",label:K("Empty the caches")}]},
   {id:"index",path:"/api/v1/settings/indexing", title:K("Message indexing"),save:K("Save message indexing settings"),
-    verbs:[{path:"/api/v1/settings/indexing/index",label:K("Index now")},{path:"/api/v1/settings/indexing/clear",label:K("Empty the index")}]}
+    verbs:[{path:"/api/v1/settings/indexing/index",label:K("Index now")},{path:"/api/v1/settings/indexing/clear",label:K("Empty the index")}]},
+  {id:"bounce",path:"/api/v1/settings/bounces", title:K("Bounces and suppression"),save:K("Save bounce settings"),
+    verbs:[{path:"/api/v1/bounces/expire",label:K("Expire and prune now")}]}
 ];
 function verbButtonsHtml(g){
   return (g.verbs||[]).map(v=>`<button class="btn ghost" data-act="setpost" data-group="${g.id}" data-path="${escHtml(v.path)}" data-label="${escHtml(t(v.label))}" title="${escHtml(operation(v.path,"post").summary||"")}">${escHtml(t(v.label))}</button>`).join("");

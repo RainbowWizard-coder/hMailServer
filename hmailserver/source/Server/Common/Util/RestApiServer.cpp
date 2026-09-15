@@ -68,6 +68,7 @@
 #include <set>
 #include "../BO/MessageRecipients.h"
 #include "../BO/MessageRecipient.h"
+#include "../../SMTP/BounceTracker.h"
 #include "Unicode.h"
 #include "../Application/FolderManager.h"
 #include "../BO/ACLPermission.h"
@@ -1784,6 +1785,17 @@ namespace HM
             return HandleSettingsBackup_();
          case RouteSettingsBackupPut:
             return HandleSettingsBackupPut_(GetRequestBody_(request));
+         case RouteSettingsBouncesGet:
+            return HandleSettingsBounces_();
+         case RouteSettingsBouncesPut:
+            return HandleSettingsBouncesPut_(GetRequestBody_(request));
+         case RouteSuppressionList:
+         case RouteSuppressionCreate:
+         case RouteSuppressionDelete:
+         case RouteBounceCountList:
+         case RouteBounceClassify:
+         case RouteBounceExpire:
+            return HandleBounces_(route, GetRequestBody_(request));
          case RouteServerMessageList:
             return HandleServerMessageList_();
          case RouteServerMessagePut:
@@ -3089,6 +3101,52 @@ namespace HM
          }
       }
 
+      // /api/v1/domains/<name>/suppressions, one entry under it by address, and
+      // /api/v1/domains/<name>/bounces. The address is the last segment and may
+      // be percent-encoded; the handler decodes it.
+      if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/suppressions"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/suppressions").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteSuppressionList : RouteSuppressionCreate;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
+      if (method == "DELETE" && path.StartsWith(domainsPrefix) && path.Find("/suppressions/") > 0)
+      {
+         AnsiString rest = path.Mid(domainsPrefix.GetLength());
+         const AnsiString marker = "/suppressions/";
+         int at = rest.Find(marker);
+         AnsiString domainName = at > 0 ? rest.Mid(0, at) : AnsiString();
+         AnsiString address = at > 0 ? rest.Mid(at + marker.GetLength()) : AnsiString();
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0 && !address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteSuppressionDelete;
+            route.identifier = domainName;
+            route.name = address;
+            return;
+         }
+      }
+
+      if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/bounces"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/bounces").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = RouteBounceCountList;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
       if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/aliases"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -3697,6 +3755,24 @@ namespace HM
          return;
       }
 
+      if (path == "/api/v1/settings/bounces" && (method == "GET" || method == "PUT"))
+      {
+         route.kind = method == "GET" ? RouteSettingsBouncesGet : RouteSettingsBouncesPut;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/bounces/classify")
+      {
+         route.kind = RouteBounceClassify;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/bounces/expire")
+      {
+         route.kind = RouteBounceExpire;
+         return;
+      }
+
       // The server's message texts, named as the table names them.
       const AnsiString messagesPath = "/api/v1/settings/messages";
       if (path == messagesPath)
@@ -4016,6 +4092,10 @@ namespace HM
       case RouteServerReinitialize:
       case RouteArchiveHold:
       case RouteArchiveRelease:
+      case RouteSuppressionCreate:
+      case RouteSuppressionDelete:
+      case RouteBounceExpire:
+      case RouteSettingsBouncesPut:
       // An update check changes the recorded verdict and makes the server call
       // out, neither of which a read-only credential should be able to cause;
       // a download writes a file the next part will run; an install runs it.
@@ -4211,6 +4291,7 @@ namespace HM
       case RouteSettingsScriptingGet:
       case RouteScriptingCheck:
       case RouteSettingsBackupGet:
+      case RouteSettingsBouncesGet:
       case RouteBackupStatus:
       case RouteSettingsCacheGet:
       case RouteSettingsIndexingGet:
@@ -4243,6 +4324,16 @@ namespace HM
       // configuration like the lists above, and never a secret.
       case RouteSenderListList:
       case RouteSenderListDomainList:
+      // A domain's suppression list and the bounce counts it is fed from,
+      // scoped to that domain. Every row is an address outside the server that
+      // the domain sent to and what became of the mail, so SecondPermissionFor_
+      // asks for view_message_trace as well, as it does for the reports.
+      case RouteSuppressionList:
+      case RouteBounceCountList:
+      // How a status and a diagnostic would be classified: the server's rule
+      // applied to what the caller typed. It reads and writes nothing and names
+      // no domain.
+      case RouteBounceClassify:
       // The alert rules and what they have raised. A webhook secret is never
       // in either answer (webhook_secret_set says whether there is one), so
       // this is configuration like any other; a key of any scope is still
@@ -4412,6 +4503,13 @@ namespace HM
       case RouteDkimRotationSwitch:
       case RouteDkimRotationRetire:
       case RouteDkimRotationCancel:
+      // A domain's suppression list changed by hand: an address put on it,
+      // which stops the domain's mail to that address, or taken off, which lets
+      // it through again. The list is the domain's, as its own allow and block
+      // list is, and COM's Utilities.AddSuppression and RemoveSuppression answer
+      // that domain's administrator.
+      case RouteSuppressionCreate:
+      case RouteSuppressionDelete:
          return RolePermission::ManageAccounts;
 
       // Setting somebody's password, as a route of its own rather than as a
@@ -4438,6 +4536,7 @@ namespace HM
       case RouteIniSettingDelete:
       case RouteSettingsScriptingPut:
       case RouteSettingsBackupPut:
+      case RouteSettingsBouncesPut:
       case RouteSettingsCachePut:
       case RouteSettingsIndexingPut:
       case RouteServerMessagePut:
@@ -4519,6 +4618,10 @@ namespace HM
       // caller may move: the scheduled task's pass, and refused to a confined
       // credential below because it advances every domain's rotation.
       case RouteDkimRotationRun:
+      // The suppression list's hourly sweep run now: expired entries, old counts
+      // and old report keys removed from every domain's list, which is also why
+      // it is refused to a confined credential below.
+      case RouteBounceExpire:
          return RolePermission::ManageServer;
 
       default:
@@ -4556,6 +4659,17 @@ namespace HM
       // and was never let in - but a custom role holding view_configuration
       // alone no longer sees who corresponds with whom.
       case RouteReport:
+         permission = RolePermission::ViewMessageTrace;
+         return true;
+
+      // A domain's suppression list and its bounce counts: configuration in
+      // shape, but every row is an address outside the server that the domain
+      // sent mail to, with the remote's answer and when it last bounced or was
+      // delivered - who mails whom, as the reports' senders and recipients are.
+      // domainadmin and the auditor hold both permissions; a custom role holding
+      // view_configuration alone does not read them.
+      case RouteSuppressionList:
+      case RouteBounceCountList:
          permission = RolePermission::ViewMessageTrace;
          return true;
 
@@ -4598,6 +4712,13 @@ namespace HM
       case RouteSenderListDomainCreate:
       case RouteSenderListDomainUpdate:
       case RouteSenderListDomainDelete:
+      // A domain's suppression list and the bounce counts behind it. Left out
+      // of this list, one of these routes would name no domain, and a
+      // credential confined to one domain could read or change another's list.
+      case RouteSuppressionList:
+      case RouteSuppressionCreate:
+      case RouteSuppressionDelete:
+      case RouteBounceCountList:
       // A report names the domain it is about in ?domain=, which ParseRoute_
       // puts in identifier; a report that names none names nothing, and the
       // handler confines it to the credential's domains.
@@ -4938,6 +5059,11 @@ namespace HM
       case RouteIndexingClear:
       case RouteSettingsBackupGet:
       case RouteSettingsBackupPut:
+      // The bounce settings apply to every domain, and the sweep removes entries
+      // from every domain's list.
+      case RouteSettingsBouncesGet:
+      case RouteSettingsBouncesPut:
+      case RouteBounceExpire:
       case RouteServerMessageList:
       case RouteServerMessagePut:
       case RouteSieveEvaluate:
@@ -10682,6 +10808,24 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(reason)) + "\"}");
          }
 
+         // The suppression list, as RCPT TO applies it to a submission: refused
+         // here, where the page can tell the person who typed the address, and
+         // nothing is queued. The code lets the page say it in their language,
+         // and the source lets it say why - an entry an administrator added by
+         // hand is not an address that bounced.
+         {
+            String suppressionCode;
+            String suppressionText;
+            String suppressionSource;
+
+            if (BounceTracker::RefuseAtSubmission(from, address, suppressionCode, suppressionText, suppressionSource))
+            {
+               return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(suppressionText)) +
+                  "\",\"code\":\"recipient_suppressed\",\"address\":\"" + JsonEscape_(Utf8_(address)) +
+                  "\",\"source\":\"" + JsonEscape_(Utf8_(suppressionSource)) + "\"}");
+            }
+         }
+
          bool recipientOK = false;
          parser.CreateMessageRecipientList(address, message->GetRecipients(), recipientOK);
          if (!recipientOK)
@@ -11921,7 +12065,7 @@ namespace HM
          "\"/api/v1/me/settings\":{\"get\":{\"summary\":\"The signed-in account's own settings\",\"responses\":{\"200\":{\"description\":\"name (first, last), forwarding (enabled, address, keep_original), signature (enabled, text, html)\"}}},\"put\":{\"summary\":\"Change the signed-in account's own settings\",\"description\":\"Each of name, forwarding and signature the body names is applied whole; one it does not name is left as it is. A forwarding that is enabled needs an e-mail address, and not the account's own. signature.text is at most 20,000 characters; signature.html, the formatted signature - where the webmail keeps an image as a data: URL - is at most 64,000 bytes of UTF-8, images included, which is what the narrowest backend's column (MySQL's text) holds. A request to this route may be as large as a message's, so the limit is answered here as a sentence rather than by the listener.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"object\"},\"forwarding\":{\"type\":\"object\"},\"signature\":{\"type\":\"object\"}}}}}},\"responses\":{\"200\":{\"description\":\"The settings as saved\"},\"400\":{\"description\":\"Nothing named, a name or signature too long, or a forwarding address refused\"}}}},"
          "\"/api/v1/me/filters\":{\"get\":{\"summary\":\"The signed-in account's active Sieve script\",\"responses\":{\"200\":{\"description\":\"active (the script, empty when none), name (the active script's name when ManageSieve set one)\"}}},\"put\":{\"summary\":\"Set the signed-in account's active Sieve script\",\"description\":\"Body: script. Checked as ManageSieve's PUTSCRIPT checks it, with the same wording in error; an empty script removes the filter. The script runs on every message that arrives from then on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"script\"],\"properties\":{\"script\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"active\"},\"400\":{\"description\":\"script missing, over 256 KB, or not parsing (the reason is in error)\"}}}},"
          "\"/api/v1/me/search\":{\"get\":{\"x-operators\":\"q takes words (every one must be found), quoted phrases, -term (a word, phrase or operator the message must not match), a OR b (one of the two must match, and so on through a OR b OR c; OR in capitals), and from:, to:, cc:, bcc: (address or name in that header; Bcc only where the sender's own copy kept it), subject:, has:attachment, has:link (an http or https address in the text, or a link to one in the HTML; the message is read for it), filename: (an attachment's file name contains), larger:10M and smaller: (bytes, or K, M, G for multiples of 1024), before:YYYY-MM-DD, after:YYYY-MM-DD, older_than:7d and newer_than: (d, w, m or y, against the time the message was stored, as before: and after: are), in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned (the $Muted and $Pinned keywords), label:name (an IMAP keyword the message carries; several must all be there), category: (primary, social, promotions, updates or forums - the tab the listing gives the message), in_reply_to:<message-id> (the id, with or without its angle brackets, is in In-Reply-To or References: the replies to that message, which is what the webmail asks for the Sent folder's nudges); a folder listing's q takes the same, without in:.\",\"summary\":\"Search every folder of the signed-in account\",\"description\":\"Query parameters: q (required) and limit (1-200, default 50). The same match as q on a folder listing, over every folder the account may read, newest first; at most 2000 messages are looked at per request (scanned, complete), and more says whether hits beyond limit were cut. Each hit names its folder_id and folder path.\",\"responses\":{\"200\":{\"description\":\"query, scanned, complete, more, messages\"},\"400\":{\"description\":\"q missing\"}}}},"
-         "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept)\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error)\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
+         "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept)\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error). A recipient on the sending domain's suppression list also answers code recipient_suppressed, address, and source - bounce or report for an address that bounced, manual for one an administrator listed.\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
          "\"/api/v1/me/messages/{id}\":{\"get\":{\"summary\":\"One message, read\",\"description\":\"The listing's fields plus folder_id, to, cc, text, html and attachments (index, name, size, content_type, content_id). content_type is the media type the part declares, lower-cased and without its parameters, and is the empty string when the part declares none; content_id is the part's Content-ID with the angle brackets stripped - the form a cid: URL in html uses - and is the empty string when the part carries none. An inline image is an attachment here like any other part, so a page renders one by matching a cid: URL in html against content_id and pointing at the attachment route. A message over one megabyte is described with truncated true and no body. Another account's message, or one in a folder the ACL keeps from this account, is 404.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"Not this account's message\"}}},\"delete\":{\"summary\":\"Delete one message\",\"description\":\"Moved to the folder designated \\\\Trash when the account has one and the message is not in it already; expunged instead when the account has no Trash folder, when the message is already in it, or when the caller adds ?permanent=1. The rights EXPUNGE asks for.\",\"responses\":{\"200\":{\"description\":\"deleted true, or deleted false with moved_to and the new id\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/flags\":{\"put\":{\"summary\":\"Change one message's flags\",\"description\":\"Body: any of seen, flagged, answered, draft, deleted as booleans; only the flags named change. The rights STORE asks for - seen, deleted and the rest are three permissions. Every IMAP session on the folder is told.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, folder_id, flags\"},\"400\":{\"description\":\"No flag named\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/html\":{\"get\":{\"summary\":\"The message's HTML part as a document for a frame\",\"description\":\"text/html under a policy of its own: nothing runs, no form is submitted, no address is rewritten, and remote images and styles are blocked unless ?remote=1 is given - which the page does when the reader allowed this message or this sender. Images the message embeds (cid:) are inlined as data: URLs under the inline budget. The message JSON's html_remote says whether the part names anything remote at all. 404 when the message has no HTML part.\",\"responses\":{\"200\":{\"description\":\"The document\"},\"404\":{\"description\":\"No such message, or no HTML part\"}}}},"
@@ -12025,6 +12169,7 @@ namespace HM
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiAuditPaths_();
+      openApiJson += OpenApiBouncesPaths_();
       openApiJson += OpenApiReportsPaths_();
       openApiJson += OpenApiRolesPaths_();
       openApiJson += openApiTail;

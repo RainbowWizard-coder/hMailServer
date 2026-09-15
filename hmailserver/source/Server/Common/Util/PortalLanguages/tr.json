@@ -358,6 +358,8 @@
   "None yet.": "Henüz yok.",
   "Not junk": "Gereksiz değil",
   "Not known yet.": "Henüz bilinmiyor.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "{0} adresine gönderilmedi: bu adrese giden postalar geri döndü ve adres, etki alanınızın engelleme listesinde. Yöneticiniz onu listeden çıkarabilir.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "{0} adresine gönderilmedi: yöneticiniz bu adresi etki alanınızın engelleme listesine ekledi ve listeden yeniden çıkarabilir.",
   "Not sent. The message is still here.": "Gönderilmedi. İleti hâlâ burada.",
   "Note": "Not",
   "Nothing": "Hiçbir şey",

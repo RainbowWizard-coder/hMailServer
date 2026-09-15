@@ -78,6 +78,18 @@ public:
    STDMETHOD(SearchArchive)(/*[in]*/ BSTR Domain, /*[in]*/ BSTR Mailbox, /*[in]*/ BSTR Sender, /*[in]*/ BSTR Recipient, /*[in]*/ BSTR Subject, /*[in]*/ BSTR Since, /*[in]*/ BSTR Until, /*[in]*/ VARIANT_BOOL HoldOnly, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(SetArchiveHold)(/*[in]*/ long ArchiveID, /*[in]*/ VARIANT_BOOL Hold, /*[out, retval]*/ VARIANT_BOOL *Found);
    STDMETHOD(RunDkimRotation)(/*[in]*/ long SecondsAhead, /*[out, retval]*/ BSTR *Summary);
+   STDMETHOD(GetSuppressionList)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(AddSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[in]*/ BSTR Note, /*[in]*/ long ExpiresDays, /*[out, retval]*/ VARIANT_BOOL *Added);
+   STDMETHOD(RemoveSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[out, retval]*/ VARIANT_BOOL *Removed);
+   STDMETHOD(GetBounceCounts)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(ClassifyBounce)(/*[in]*/ BSTR Status, /*[in]*/ BSTR Diagnostic, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(RunBounceMaintenance)(/*[out, retval]*/ long *Removed);
+
+private:
+   // The server administrator, or the domain administrator of this domain. Asks
+   // the authorisation question, which is also what installs the audit actor.
+   bool MayAdministerDomain_(__int64 domainID) const;
+public:
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(Utilities), InterfaceUtilities)

@@ -466,6 +466,8 @@
     <Compile Include="SMTP\ESmtpTests.cs" />
     <Compile Include="SMTP\Deliverability.cs" />
     <Compile Include="SMTP\DeliveryStatusNotification.cs" />
+    <Compile Include="SMTP\BounceSuppression.cs" />
+    <Compile Include="SMTP\BounceReports.cs" />
     <Compile Include="SMTP\Srs.cs" />
     <Compile Include="SMTP\Batv.cs" />
     <Compile Include="SMTP\Bdat.cs" />
@@ -742,7 +744,9 @@
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
     <Compile Include="API\RestApiAccountImport.cs" />
+    <Compile Include="API\RestApiBounces.cs" />
     <Compile Include="Shared\RestRequest.cs" />
+    <Compile Include="Shared\BounceTestSupport.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Messages\MultipartMessageWithNoMainBodyText.txt" />

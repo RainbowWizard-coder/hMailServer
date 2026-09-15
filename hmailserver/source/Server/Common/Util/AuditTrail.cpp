@@ -109,6 +109,10 @@ namespace HM
          // holds it.
          { L"hm_roles",                       L"role" },
          { L"hm_roleassignments",             L"role assignment" },
+         // An entry an administrator adds or removes by hand. The ones delivery
+         // adds are the server's own writes, which have no actor and so are never
+         // recorded - the list itself says where each of those came from.
+         { L"hm_bouncesuppressions",          L"suppression list entry" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a

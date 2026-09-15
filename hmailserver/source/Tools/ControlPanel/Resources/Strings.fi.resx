@@ -284,6 +284,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
     <value>0 on toimitettu oletusarvo. 2 on järkevä lähtökohta: väärin kirjoitettu salasana maksaa ihmiselle kaksi sekuntia kerran, ja salasanoja haravoivalle asiakkaalle kaksi, neljä, kuusi… sekuntia arvausta kohden. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
   </data>
+  <data name="0 keeps the entry until it is removed." xml:space="preserve">
+    <value>0 säilyttää merkinnän, kunnes se poistetaan.</value>
+  </data>
   <data name="0 means archives are never deleted. Retention runs on the server after every backup into this folder - scheduled or started by hand with Start backup now - and only once the new archive has been written and verified readable, so a failed backup never deletes anything. The newest archive is never deleted, the age limit always leaves the two newest alone, and only this server's own HMBackup archives are counted - other files in the folder are never touched." xml:space="preserve">
     <value>0 tarkoittaa, ettei arkistoja poisteta koskaan. Säilytysajo suoritetaan palvelimella jokaisen tähän kansioon tehdyn varmuuskopion jälkeen – ajastetun tai käsin Aloita varmuuskopiointi nyt -toiminnolla käynnistetyn – ja vasta kun uusi arkisto on kirjoitettu ja todettu luettavaksi, joten epäonnistunut varmuuskopiointi ei koskaan poista mitään. Uusinta arkistoa ei poisteta koskaan, ikäraja jättää aina kaksi uusinta rauhaan, ja mukaan lasketaan vain tämän palvelimen omat HMBackup-arkistot – muihin kansion tiedostoihin ei kosketa koskaan.</value>
   </data>
@@ -298,6 +301,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 tili on jäsenenä.</value>
+  </data>
+  <data name="1 address listed." xml:space="preserve">
+    <value>1 osoite listalla.</value>
   </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 sovellussalasana.</value>
@@ -406,6 +412,12 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Mukautettu virustarkistin tai ulkoinen työkalu, joka jumittuu – rajana ExternalProcessTimeout.</value>
+  </data>
+  <data name="A delivery between two hard bounces starts the count again. A refusal this server cannot trust as a dead mailbox - a bare 550 with no enhanced code, a policy refusal, its own connection failures - never counts." xml:space="preserve">
+    <value>Toimitus kahden pysyvän palautuksen välissä aloittaa laskennan alusta. Hylkäys, johon tämä palvelin ei voi luottaa olemattomana postilaatikkona - pelkkä 550 ilman laajennettua koodia, käytäntöön perustuva hylkäys, sen omat yhteysvirheet - ei koskaan laske.</value>
+  </data>
+  <data name="A delivery report" xml:space="preserve">
+    <value>Toimitusraportti</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Tällä palvelimella isännöity verkkotunnus</value>
@@ -643,6 +655,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-yhteensopiva loki</value>
+  </data>
+  <data name="A_ddress" xml:space="preserve">
+    <value>_Osoite</value>
   </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>Keskeytä roskapostiksi _merkityissä viesteissä</value>
@@ -899,11 +914,20 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Lisää alla oleva avain todennussovellukseen ja vahvista sitten koodilla. Käyttöönoton jälkeen ylläpitäjän salasana ei yksin kirjaa sisään – myös COM API ja REST API vaativat koodin. Säilytä avain turvassa: jos todennussovellus katoaa, paikallisen järjestelmänvalvojan on tyhjennettävä AdministratorTotpSecret hMailServer.ini-tiedostosta pääsyn palauttamiseksi.</value>
   </data>
+  <data name="Add to the suppression list" xml:space="preserve">
+    <value>Lisää estolistalle</value>
+  </data>
+  <data name="Add to the suppression list of {0}" xml:space="preserve">
+    <value>Lisää verkkotunnuksen {0} estolistalle</value>
+  </data>
   <data name="Add {0}" xml:space="preserve">
     <value>Lisää {0}</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Lisätty {0}.</value>
+  </data>
+  <data name="Added by hand" xml:space="preserve">
+    <value>Lisätty käsin</value>
   </data>
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Lisätään kerran postiin, jolla on vähintään yksi vastaanottaja tämän palvelimen ulkopuolella. Ei koskaan allekirjoitettuun tai salattuun viestiin, automaattiseen vastaukseen, palautusilmoitukseen tai postituslistaviestiin, eikä koskaan toista kertaa vastaukseen, joka jo lainaa sitä.</value>
@@ -917,6 +941,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Address attri_bute" xml:space="preserve">
     <value>Osoiteattri_buutti</value>
   </data>
+  <data name="Address contains" xml:space="preserve">
+    <value>Osoite sisältää</value>
+  </data>
   <data name="Address or domain" xml:space="preserve">
     <value>Osoite tai verkkotunnus</value>
   </data>
@@ -926,8 +953,17 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Address to a_dd" xml:space="preserve">
     <value>Lisättävä _osoite</value>
   </data>
+  <data name="Address to stop sending to" xml:space="preserve">
+    <value>Osoite, johon ei enää lähetetä</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Osoitteet</value>
+  </data>
+  <data name="Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand." xml:space="preserve">
+    <value>Osoitteet, joihin verkkotunnus ei enää lähetä, koska niille lähetetty posti on palautunut - näkyvissä ja käsin poistettavissa.</value>
+  </data>
+  <data name="Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain." xml:space="preserve">
+    <value>Osoitteet, joihin verkkotunnus ei enää lähetä, koska niille lähetetty posti on palautunut pysyvästi tai joku on lisännyt ne tähän - kunkin takana olevine määrineen. Lista on lähettävän verkkotunnuksen kohtainen.</value>
   </data>
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Osoitteet ja verkkotunnukset, jotka kaikki tilit haluavat tai eivät halua, kunkin tilin oman ja sen verkkotunnuksen luettelon alapuolella.</value>
@@ -1067,6 +1103,15 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Tilin voi kytkeä pois käytöstä poistamatta sitä, jolloin posti säilyy ja uudet kirjautumiset hylätään.</value>
   </data>
+  <data name="An address is required." xml:space="preserve">
+    <value>Osoite on pakollinen.</value>
+  </data>
+  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
+    <value>Tämän palvelimen isännöimä osoite hylätään: lista koskee vain palvelimelta lähtevää postia.</value>
+  </data>
+  <data name="An administrator" xml:space="preserve">
+    <value>Ylläpitäjä</value>
+  </data>
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Alias ohjaa yhden osoitteen toiseen ilman toista postilaatikkoa.</value>
   </data>
@@ -1187,6 +1232,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Tulee voimaan palvelun seuraavassa käynnistyksessä tai alustettaessa uudelleen. Lokitiedostoihin tämä ei vaikuta: tämä lähettää kopion eikä siirrä mitään. Jos alla ei ole keräimen osoitetta, systemd:n alla toimiva palvelin Linuxissa kirjoittaa sen sijaan journaliin - Linuxissa tämä yksi kytkin on siis koko asetus.</value>
+  </data>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
+    <value>Koskee vain, kun palautusten käsittely on päällä. Raportti lasketaan vain, kun se nimeää viestin, jonka tämä palvelin todella toimitti kyseiselle vastaanottajalle, se saapui ulkoa todentamatta ja läpäisi SPF:n ja DMARCin, missä ne kirjataan - mutta kuka tahansa saman viestin saanut voi väärentää sellaisen toiselle näkyvälle vastaanottajalle. Pois päältä raportteja ei lueta lainkaan; toimituksen aikaiset hylkäykset lasketaan edelleen.</value>
   </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Suorita hakemistosynkronointi</value>
@@ -1454,6 +1502,15 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Molemmat kynnysarvot ovat 0, joten mikään pistemäärä ei voi merkitä tai hylätä mitään - palvelin testaa ne ehdolla "suurempi kuin 0" ennen käyttöä. Se myös lopettaa testaamisen heti, kun juokseva summa saavuttaa korkeamman kynnyksen, joka on 0, joten kussakin vaiheessa ajetaan täsmälleen yksi tarkistus ja sen tulos hylätään.</value>
+  </data>
+  <data name="Bounce counts" xml:space="preserve">
+    <value>Palautusten määrät</value>
+  </data>
+  <data name="Bounce processing is off, so nothing is being counted or listed and the entries here are not applied. The switch is on the Delivery of e-mail page." xml:space="preserve">
+    <value>Palautusten käsittely on pois päältä, joten mitään ei lasketa tai lisätä listaan, eikä tämän sivun merkintöjä sovelleta. Kytkin on sivulla Sähköpostin toimitus.</value>
+  </data>
+  <data name="Bounces and the suppression list" xml:space="preserve">
+    <value>Palautukset ja estolista</value>
   </data>
   <data name="Bounces and virus notifications are sent from mailer-daemon@&lt;domain&gt;. This overrides the &lt;domain&gt; part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed." xml:space="preserve">
     <value>Palautukset ja virusilmoitukset lähetetään osoitteesta mailer-daemon@&lt;domain&gt;. Tämä ohittaa &lt;domain&gt;-osan. Tyhjäksi jätettynä palvelin käyttää omaa konenimeään, sitten viestiin liittyvää paikallista verkkotunnusta, sitten tämän tietokoneen nimeä. Se ei ole toimitusasetus eikä muuta sitä, minne posti reititetään.</value>
@@ -1781,6 +1838,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>Viejä rajaa arvoon 5-3600. Käytetään vain, kun yllä oleva mittaripäätepiste on asetettu.</value>
+  </data>
+  <data name="Classify bounces and keep a suppression list" xml:space="preserve">
+    <value>Luokittele palautukset ja pidä estolistaa</value>
   </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Tyhjennä harmaalistauksen kolmikot</value>
@@ -2267,6 +2327,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Couldn't load distribution lists: " xml:space="preserve">
     <value>Jakelulistoja ei voitu ladata:</value>
   </data>
+  <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
+    <value>Laske täysi postilaatikko pysyväksi palautukseksi</value>
+  </data>
   <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
     <value>Lasketut kirjautumisvirheet tyhjennetty. Jo estetyt osoitteet pysyvät estettyinä, kunnes niiden "Auto-ban:"-alue vanhenee - poista se IP-alueet-sivulla vapauttaaksesi osoitteen heti.</value>
   </data>
@@ -2477,14 +2540,26 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Date this key stops working" xml:space="preserve">
     <value>Päivä, jolloin tämä avain lakkaa toimimasta</value>
   </data>
+  <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
+    <value>Päivät lähetyksen jälkeen, joiden aikana toimitusraportti vielä yhdistetään (1–30)</value>
+  </data>
+  <data name="Days before an entry made by a bounce expires (0 = never)" xml:space="preserve">
+    <value>Päivät, joiden jälkeen palautuksesta syntynyt merkintä vanhenee (0 = ei koskaan)</value>
+  </data>
   <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
     <value>Päiviä kierrät_ysten välillä (1–3650)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>Päiviä kierrätysten välillä</value>
   </data>
+  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
+    <value>Päivät, jotka palautusten määrät säilytetään (0 = säilytä)</value>
+  </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Palvelimella säilytettävät päivät (0 = poista latauksen jälkeen)</value>
+  </data>
+  <data name="Days until the entry expires" xml:space="preserve">
+    <value>Päivät merkinnän vanhenemiseen</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>Poista sää_ntö</value>
@@ -2642,6 +2717,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   </data>
   <data name="Deliver _local → local" xml:space="preserve">
     <value>T_oimita paikallinen → paikallinen</value>
+  </data>
+  <data name="Deliver it, and only record it" xml:space="preserve">
+    <value>Toimita ja vain kirjaa</value>
   </data>
   <data name="Deliver local → _remote" xml:space="preserve">
     <value>Toimita paikallinen → _etä</value>
@@ -2854,6 +2932,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Lataa ja varmenna asennusohjelma heti kun julkaisu löytyy</value>
+  </data>
+  <data name="Drop it without a report" xml:space="preserve">
+    <value>Jätä pois ilman raporttia</value>
   </data>
   <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
     <value>Katkaise ylisuuret saapuvat viestit yli N tavua kesken siirron (0 = pois)</value>
@@ -3506,6 +3587,15 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Luovuttaa tarkistetun asennusohjelman päivitysapurille. Palvelu pysähtyy ja käynnistyy; jos se ei palaa, edellinen versio asennetaan uudelleen. Tulos raportoidaan täällä, kun palvelu on takaisin.</value>
   </data>
+  <data name="Hard" xml:space="preserve">
+    <value>Pysyvä</value>
+  </data>
+  <data name="Hard bounce" xml:space="preserve">
+    <value>Pysyvä palautus</value>
+  </data>
+  <data name="Hard bounces in a row before an address is listed (1 to 100)" xml:space="preserve">
+    <value>Pysyviä palautuksia peräkkäin ennen kuin osoite lisätään listaan (1–100)</value>
+  </data>
   <data name="Hard link each local recipient's copy instead of copying the file" xml:space="preserve">
     <value>Luo kovalinkki jokaisen paikallisen vastaanottajan kopiolle tiedoston kopioimisen sijaan</value>
   </data>
@@ -3758,6 +3848,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Julkaise DNSSEC-allekirjoitetussa vyöhykkeessä TLSA-tietue (yleensä usage 3, selector 1, matching type 1 - '3 1 1' varmenteesi julkisen avaimen SHA-256-tiivisteellä) osoitteessa _25._tcp.&lt;mx-host&gt; jokaiselle MX-koneelle. Tarkista komennolla: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer ei voi julkaista DNS-tietueita eikä allekirjoittaa vyöhykettäsi, eikä tässä paneelissa ole TLSA-hakua, jolla ne voisi tarkistaa.</value>
   </data>
+  <data name="In a row" xml:space="preserve">
+    <value>Peräkkäin</value>
+  </data>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
+    <value>Voimassa seuraavasta viestistä. Pois päältä mitään ei luokitella, lasketa tai lisätä listaan eikä listaa sovelleta; listalla jo olevat merkinnät säilyvät, ja tunneittainen siivous vanhentaa niitä edelleen. Tietokanta, jota ei voi lukea, lähettää postin kuin osoite ei olisi listalla ja kertoo siitä virhelokissa kerran tunnissa.</value>
+  </data>
   <data name="In queue" xml:space="preserve">
     <value>Jonossa</value>
   </data>
@@ -3898,6 +3994,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Keeps a copy of every message received over SMTP in a folder tree, in addition to delivering it as normal - it does not divert or hold back mail. Mail from a local sender is filed under &lt;domain&gt;\&lt;mailbox&gt;, mail from elsewhere under Inbound, and messages with no envelope sender (bounces and delivery reports) under Error, plus a copy in the folder of each local recipient." xml:space="preserve">
     <value>Säilyttää kopion jokaisesta SMTP:n yli vastaanotetusta viestistä kansiopuussa sen lisäksi, että toimittaa sen normaalisti - se ei ohjaa postia muualle eikä pidätä sitä. Paikallisen lähettäjän posti arkistoidaan polkuun &lt;domain&gt;\&lt;mailbox&gt;, muualta tuleva posti kansioon Inbound ja viestit ilman kuoren lähettäjää (palautukset ja toimitusraportit) kansioon Error, sekä kopio jokaisen paikallisen vastaanottajan kansioon.</value>
   </data>
+  <data name="Kept with the entry, for whoever reads the list next." xml:space="preserve">
+    <value>Tallennetaan merkinnän mukana seuraavalle listan lukijalle.</value>
+  </data>
   <data name="Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)" xml:space="preserve">
     <value>Avaintenvaihtoryhmät, halutuin ensin (tyhjä = klassinen varavaihtoehto secp384r1:x25519:secp256r1)</value>
   </data>
@@ -3952,8 +4051,17 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Viimeisin varmuuskopio: {0} ({1}).</value>
   </data>
+  <data name="Last bounce" xml:space="preserve">
+    <value>Viimeisin palautus</value>
+  </data>
+  <data name="Last delivered" xml:space="preserve">
+    <value>Viimeksi toimitettu</value>
+  </data>
   <data name="Last l_ogon" xml:space="preserve">
     <value>_Viimeisin kirjautuminen</value>
+  </data>
+  <data name="Last status" xml:space="preserve">
+    <value>Viimeisin tila</value>
   </data>
   <data name="Last update: {0}. " xml:space="preserve">
     <value>Viimeisin päivitys: {0}.</value>
@@ -4026,6 +4134,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Luettele paikalliset portit, joissa AUTH-komentoa ei pidä mainostaa - tyypillisesti portti 25, joka ottaa vain saapuvaa postia.</value>
+  </data>
+  <data name="Listed" xml:space="preserve">
+    <value>Listalla</value>
   </data>
   <data name="Listener" xml:space="preserve">
     <value>Kuuntelija</value>
@@ -4234,6 +4345,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Postilaatikko tyhjennetty.</value>
   </data>
+  <data name="Mailbox full" xml:space="preserve">
+    <value>Postilaatikko täynnä</value>
+  </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Postilaatikon salasanat asetetaan tilillä, sen verkkotunnuksen sisällä.</value>
   </data>
@@ -4377,6 +4491,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Enimmäisaikakatkaisu (sekuntia)</value>
+  </data>
+  <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
+    <value>Mitataan merkinnän luomisesta, joten arvon laskeminen koskee myös jo olemassa olevia merkintöjä. Käsin lisätty merkintä säilyttää oman vanhenemisensa.</value>
   </data>
   <data name="Medium" xml:space="preserve">
     <value>Keskitaso</value>
@@ -4704,6 +4821,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Ei aktiivisia istuntoja</value>
+  </data>
+  <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
+    <value>Tämän verkkotunnuksen estolistalla ei ole osoitteita. Osoite päätyy tänne, kun sille lähetetty posti palautuu pysyvästi tai kun lisäät sellaisen.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Tällä verkkotunnuksella ei ole aliaksia.</value>
@@ -5101,6 +5221,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>Oletuksena pois päältä. Suojaamattomalla LDAP:lla ja yksinkertaisella sidonnalla palvelin EI lähetä salasanaa EIKÄ arvaa, mitä tarkoitit: se hylkää kirjautumisen ja raportoi ristiriidan kerran minuutissa. Tämän kytkeminen päälle lähettää salasanat selväkielisinä, ja niin pitäisi tehdä vain verkossa, jota hallitset päästä päähän.</value>
   </data>
+  <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
+    <value>Oletuksena pois päältä: täysi postilaatikko yleensä tyhjennetään, ja sen lisääminen listaan pysäyttäisi postin henkilöltä, joka lukee sen ensi viikolla.</value>
+  </data>
   <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
     <value>Pois, ja pois on se, mitä RFC 8301 vaatii: se poisti rsa-sha1:n DKIM:stä kokonaan, joten allekirjoittaja ei saa käyttää sitä ja tarkistajan on käsiteltävä sitä käyttävä allekirjoitus virheellisenä. DKIM-allekirjoitus on väite identiteetistä ja DMARC-kohdistus rakentuu sen varaan, ja SHA-1-törmäykset ovat olleet käytännöllisiä vuodesta 2020 - allekirjoitus, jonka joku voi väärentää, on arvottomampi kuin ei allekirjoitusta lainkaan, koska se kuljettaa allekirjoittajan verkkotunnuksen kohdistetun DMARC-tarkistuksen ohi. Tämän kytkeminen päälle palauttaa molemmat puoliskot: sitä käyttävät allekirjoitukset tarkistuvat taas, ja sillä allekirjoittamaan määritetty verkkotunnus tekee niin sen sijaan, että se päivitettäisiin rsa-sha256:een. Alle 1024-bittiset avaimet hylätään joka tapauksessa, eikä tämä asetus vaikuta siihen. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
   </data>
@@ -5323,6 +5446,12 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Organization name in TLS reports" xml:space="preserve">
     <value>Organisaation nimi TLS-raporteissa</value>
   </data>
+  <data name="Other" xml:space="preserve">
+    <value>Muut</value>
+  </data>
+  <data name="Other failure" xml:space="preserve">
+    <value>Muu virhe</value>
+  </data>
   <data name="Out of office" xml:space="preserve">
     <value>Poissa toimistolta</value>
   </data>
@@ -5541,6 +5670,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Osoita palvelin ACME-viranomaiseen, kuten Let's Encryptiin, niin se uusii itsestään.</value>
   </data>
+  <data name="Policy" xml:space="preserve">
+    <value>Käytäntö</value>
+  </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Käytännön MX-konekuviot (tyhjä = johda kunkin verkkotunnuksen MX:stä)</value>
   </data>
@@ -5552,6 +5684,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
     <value>Käytännön enimmäisikä (sekuntia; oletus 604800 = 7 päivää)</value>
+  </data>
+  <data name="Policy refusal" xml:space="preserve">
+    <value>Käytäntöön perustuva hylkäys</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Portti</value>
@@ -5844,6 +5979,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Kumoa / palauta</value>
   </data>
+  <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
+    <value>Lue toimitusraportit, jotka saapuvat tämän palvelimen lähettäjille</value>
+  </data>
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Luetaan hMailServer.INI-tiedoston [Directories] LogFolder -kohdasta, jota ei voi lukea tältä koneelta - Control Panel on käynnissä muualla kuin palvelimella.</value>
   </data>
@@ -5864,6 +6002,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Lukee projektin julkaisusyötteen nyt ja kertoo, onko uudempi julkaisu olemassa. Tämä ei lataa eikä asenna mitään.</value>
+  </data>
+  <data name="Reads the refusals and delivery reports that come back for this server's senders, counts them per address, and stops sending to an address that has bounced for good. The list is per sending domain, and it is on the Suppression list page." xml:space="preserve">
+    <value>Lukee hylkäykset ja toimitusraportit, jotka palaavat tämän palvelimen lähettäjille, laskee ne osoitteittain ja lopettaa lähettämisen osoitteeseen, joka on palautunut pysyvästi. Lista on lähettävän verkkotunnuksen kohtainen, ja se on sivulla Estolista.</value>
   </data>
   <data name="Ready to switch" xml:space="preserve">
     <value>Valmis vaihtoon</value>
@@ -5959,6 +6100,12 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Refuse a new password found in published data breaches" xml:space="preserve">
     <value>Hylkää uusi salasana, joka löytyy julkaistuista tietovuodoista</value>
   </data>
+  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>Hylkää vastaa lähetykseen RCPT-vaiheessa syyn kera ja palauttaa kaiken muun - aliaksen, edelleenlähetyksen, ajastetun lähetyksen - lähettäjälle toimitustilailmoituksessa. Osoitteeseen jo jonossa oleva posti kohtaa listan seuraavalla toimitusyrityksellä. Toimita ja vain kirjaa on turvallinen tapa nähdä, mitä lista tekisi, ennen kuin se tekee sen.</value>
+  </data>
+  <data name="Refuse it, with the reason" xml:space="preserve">
+    <value>Hylkää syyn kera</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Hylkää posti tilapäisellä virheellä, kun vapaata tilaa on alle tämän (Mt; 0 = ei koskaan)</value>
   </data>
@@ -5976,6 +6123,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Hylätyt yhteydet</value>
+  </data>
+  <data name="Refused while delivering" xml:space="preserve">
+    <value>Hylätty toimitettaessa</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Hylkääminen on tiukempaa, mutta niin kauan kuin päätepisteeseen ei saada yhteyttä, mitään salasanaa ei voi vaihtaa missään, ei edes ylläpitäjän salasanaa.</value>
@@ -6045,6 +6195,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>P_oista vanhentuneet</value>
+  </data>
+  <data name="Remove from the suppression list" xml:space="preserve">
+    <value>Poista estolistalta</value>
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>Poistetaanko viesti {0} jonosta?</value>
@@ -6810,6 +6963,9 @@ Jatketaanko?</value>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Valitse Active Directory -tili</value>
   </data>
+  <data name="Select an address first." xml:space="preserve">
+    <value>Valitse ensin osoite.</value>
+  </data>
   <data name="Select an app password first." xml:space="preserve">
     <value>Valitse ensin sovellussalasana.</value>
   </data>
@@ -7202,6 +7358,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Samanaikaiset yhteydet (0 on rajaton)</value>
   </data>
+  <data name="Since" xml:space="preserve">
+    <value>Alkaen</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Alkaen {0}</value>
   </data>
@@ -7217,11 +7376,17 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Hidastaa istuntoa, joka nimeää enemmän vastaanottajia kuin aito viesti tarvitsee. Määrän ylityttyä jokainen seuraava RCPT TO todentamattomassa istunnossa odottaa viiveen ennen vastausta - sanakirjahyökkäys tai roskapostiajo nimeää satoja osoitteita ja maksaa jokaisesta, kun taas lähettävä MTA nimeää kourallisen eikä koskaan saavuta määrää. Todennetut istunnot ja IP-alueet, joilla roskapostisuojaus on pois päältä, ovat vapautettuja. Odotus on ajastin yhteydellä, ei nukkuva säie. Tulee voimaan heti; tallennetaan hMailServer.ini-tiedostoon nimillä SmtpTarpitCount ja SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Soft" xml:space="preserve">
+    <value>Tilapäinen</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Joku arvailee salasanoja</value>
   </data>
   <data name="Something on this machine is listening on that address and port. This check reads the operating system's list of open ports, so it cannot tell hMailServer's listener from another program's - if connections are being refused or answered by the wrong service, that is what to look for." xml:space="preserve">
     <value>Jokin tällä koneella kuuntelee tuota osoitetta ja porttia. Tämä tarkistus lukee käyttöjärjestelmän luettelon avoimista porteista, joten se ei voi erottaa hMailServerin kuuntelijaa toisen ohjelman kuuntelijasta - jos yhteydet torjutaan tai niihin vastaa väärä palvelu, sitä kannattaa etsiä.</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Lähde</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Lähdeosoitteet, joista sitä saa käyttää (valinnainen)</value>
@@ -7391,6 +7556,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Lähetysnopeuden rajat</value>
   </data>
+  <data name="Suppression list" xml:space="preserve">
+    <value>Estolista</value>
+  </data>
   <data name="Sw_itch now…" xml:space="preserve">
     <value>Vai_hda nyt…</value>
   </data>
@@ -7541,6 +7709,11 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merkintä ja vastuuvapauslauseke</value>
   </data>
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Poistetaanko {0} verkkotunnuksen {1} estolistalta?
+
+Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vasta, kun siitä on tullut peräkkäin niin monta pysyvää palautusta kuin kynnysarvo vaatii.</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Tulee voimaan heti, mutta säilyy vain muistissa: mikään ei tallenna tätä arvoa, joten jokainen palvelun uudelleenkäynnistys palauttaa sen sisäänrakennettuun arvoon 10240 kt (10 Mt). Eri rajan säilyttämiseksi se on asetettava uudelleen jokaisen uudelleenkäynnistyksen jälkeen, esimerkiksi käynnistyskomentosarjasta COM-rajapinnan kautta. Tämän kortin TTL-arvot ja käyttöönottokytkin tallennetaan, ja ne säilyvät uudelleenkäynnistysten yli.</value>
   </data>
@@ -7577,6 +7750,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Temporarily rejects mail from unknown senders; legitimate servers retry and pass." xml:space="preserve">
     <value>Hylkää tilapäisesti postin tuntemattomilta lähettäjiltä; aidot palvelimet yrittävät uudelleen ja läpäisevät.</value>
   </data>
+  <data name="Temporary failure" xml:space="preserve">
+    <value>Tilapäinen virhe</value>
+  </data>
   <data name="Test" xml:space="preserve">
     <value>Testaa</value>
   </data>
@@ -7612,6 +7788,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Text" xml:space="preserve">
     <value>Teksti</value>
+  </data>
+  <data name="That address is already on this domain's list." xml:space="preserve">
+    <value>Tämä osoite on jo tämän verkkotunnuksen listalla.</value>
   </data>
   <data name="That code does not match. Make sure the authenticator app has the new key, then try the current code." xml:space="preserve">
     <value>Tuo koodi ei täsmää. Varmista, että todennussovelluksella on uusi avain, ja kokeile sitten nykyistä koodia.</value>
@@ -8034,6 +8213,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Seuraava avain peruutettiin.</value>
   </data>
+  <data name="The next message from this domain to the address is refused, dropped or delivered and recorded, as the bounce settings say. Mail already queued to it meets the list on its next delivery attempt." xml:space="preserve">
+    <value>Seuraava tämän verkkotunnuksen viesti osoitteeseen hylätään, jätetään pois tai toimitetaan ja kirjataan palautusten asetusten mukaan. Siihen jo jonossa oleva posti kohtaa listan seuraavalla toimitusyrityksellä.</value>
+  </data>
   <data name="The next rotation starts when the interval has passed." xml:space="preserve">
     <value>Seuraava kierrätys alkaa, kun väli on kulunut.</value>
   </data>
@@ -8224,6 +8406,9 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Palvelimen Konenimi (Sähköpostin toimitus) on TYHJÄ, joten se ilmoittaa HELO/EHLO:ssa Windows-tietokoneen nimensä - ei julkista DNS-nimeä - eikä yhtään "a:"-mekanismia voi rehellisesti tarjota. Ehdotus valtuuttaa vain verkkotunnuksen MX-koneet. Aseta ensin konenimi; useat tämän sivun tietueet tarvitsevat sitä.</value>
   </data>
+  <data name="The server's answer could not be read: {0}" xml:space="preserve">
+    <value>Palvelimen vastausta ei voitu lukea: {0}</value>
+  </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>Palvelimen konenimeä ei voitu lukea, joten nimeä, jonka se ilmoittaa HELO/EHLO:ssa, ei tiedetä täältä.</value>
   </data>
@@ -8333,6 +8518,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="There are no accounts on this server to add." xml:space="preserve">
     <value>Tällä palvelimella ei ole lisättäviä tilejä.</value>
+  </data>
+  <data name="There are no domains, so there is no list to show." xml:space="preserve">
+    <value>Verkkotunnuksia ei ole, joten näytettävää listaa ei ole.</value>
   </data>
   <data name="There is a total of {0} auto-ban IP range(s)." xml:space="preserve">
     <value>Automaattisen eston IP-alueita on yhteensä {0}.</value>
@@ -8897,6 +9085,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
     <value>Mitä tapahtuu TCP-yhteydelle, jonka tämä palvelin hylkää ennen minkään protokollakeskustelun alkua: yhteydelle osoitteesta, jota mikään IP-alue ei salli, tai yhteydelle, joka ylittää alueen yhteysrajan. Molemmat määritetään IP-alueet-sivulla. Jatkuvasti kirjautumisessa epäonnistuvan osoitteen lukitseminen on kokonaan eri mekanismi ja se on Automaattinen esto -sivulla.</value>
   </data>
+  <data name="What happens to a listed recipient" xml:space="preserve">
+    <value>Mitä listalla olevalle vastaanottajalle tapahtuu</value>
+  </data>
   <data name="What happens to a message" xml:space="preserve">
     <value>Mitä viestille tapahtuu</value>
   </data>
@@ -9062,6 +9253,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kuka saa yhdistää, kuka saa todentua ja mitä tapahtuu, kun joku yrittää yhä uudelleen.</value>
   </data>
+  <data name="Why" xml:space="preserve">
+    <value>Syy</value>
+  </data>
+  <data name="Why it is listed" xml:space="preserve">
+    <value>Miksi se on listalla</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Jokerimerkki</value>
   </data>
@@ -9178,6 +9375,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>_Osoite (muuttaminen nimeää postilaatikon uudelleen; sen on pysyttävä tässä verkkotunnuksessa)</value>
+  </data>
+  <data name="_Add…" xml:space="preserve">
+    <value>_Lisää…</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Sall_i salasanan lähettäminen suojaamattoman yhteyden yli (AllowUnprotectedPassword)</value>
@@ -9305,6 +9505,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Ota toinen tunnistustekijä käyttöön</value>
   </data>
+  <data name="_Expires after (days)" xml:space="preserve">
+    <value>_Vanhenee (päivää)</value>
+  </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Va_nhenemispäivä</value>
   </data>
@@ -9409,6 +9612,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nimi</value>
+  </data>
+  <data name="_Note" xml:space="preserve">
+    <value>_Muistiinpano</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>_Toimituksen uudelleenyritysten määrä</value>
@@ -10394,6 +10600,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, vanhenee {2}</value>
   </data>
+  <data name="{0} (expired)" xml:space="preserve">
+    <value>{0} (vanhentunut)</value>
+  </data>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (ei aktiivinen)</value>
   </data>
@@ -10435,6 +10644,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} active of {1}" xml:space="preserve">
     <value>{0} aktiivista / {1}</value>
+  </data>
+  <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
+    <value>{0} osoitetta listalla, {1} uusinta näytetään. Rajaa hakemalla.</value>
+  </data>
+  <data name="{0} addresses listed." xml:space="preserve">
+    <value>{0} osoitetta listalla.</value>
   </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} ja {1}</value>
@@ -10528,6 +10743,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} on päällä, mutta sen pistemäärä on 0, joten se maksaa haun jokaisesta viestistä eikä voi koskaan muuttaa lopputulosta. Anna sille pistemäärä tai kytke se pois.</value>
+  </data>
+  <data name="{0} is on the suppression list of {1}." xml:space="preserve">
+    <value>{0} on verkkotunnuksen {1} estolistalla.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} on kytketty päälle, mutta ei voi toimia. {1} Jokainen siltä pyydetty skannaus epäonnistuu, eikä epäonnistunut skannaus ole epäonnistunut viesti: virhe kirjataan lokiin ja viesti toimitetaan kuin se olisi tutkittu ja todettu puhtaaksi.</value>
@@ -10657,6 +10875,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea — {1} Alla olevat rivit voivat olla puutteellisia.</value>
+  </data>
+  <data name="{0} was not on the list any more." xml:space="preserve">
+    <value>{0} ei ollut enää listalla.</value>
+  </data>
+  <data name="{0} was removed from the list." xml:space="preserve">
+    <value>{0} poistettiin listalta.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} täysillä oikeuksilla</value>

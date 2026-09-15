@@ -73,9 +73,12 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `rule`, `route`, `port`, `iprange`, `certificate` | list, create, update, delete | Server-wide. |
 | `fetchaccount` | list, get, create, update, delete | Under `--address`. |
 | `apikey` | list, create, delete | Administrator password only, never an API key. |
+| `suppression` | list, create, delete | A domain's suppression list, under `--domain`; `list` takes `--search`, and an entry is deleted by its address. |
+| `bounce` | list | The bounce counts behind a domain's suppression list, under `--domain`, with `--search`. |
+| `bounces` | classify, expire | How the server would read a status or a reply, and the list's hourly sweep run now. |
 | `queue` | list, retry, delete | |
 | `quarantine` | list, release, delete | |
-| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `directories`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
+| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `directories`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
 | `ini` | list, get, set, delete | The `hMailServer.ini` keys the server exposes. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
@@ -181,6 +184,26 @@ In the PowerShell module the same verbs are `Get-HmDkimRotation` (with
 `-Records`, one object per record), `Start-HmDkimRotation`, `Test-HmDkimRotation`,
 `Complete-HmDkimRotation`, `Remove-HmDkimRetiringKey`, `Stop-HmDkimRotation` and
 `Invoke-HmDkimRotation`.
+
+Bounces and the suppression list
+--------------------------------
+
+```bash
+hmctl settings set bounces --set processing_enabled=true --set suppression_action=observe
+hmctl suppression list --domain example.com --search elsewhere.test
+hmctl suppression create --domain example.com --set address=gone@elsewhere.test --set-string note="old export" --set expires_days=90
+hmctl suppression delete gone@elsewhere.test --domain example.com
+hmctl bounce list --domain example.com
+hmctl bounces classify "550 5.1.1 <gone@elsewhere.test>: User unknown"
+hmctl bounces expire
+```
+
+`bounces classify` asks the server rather than a copy of its table, because the
+rule that matters is the server's: a code a remote did not send itself - a bare
+`550` - is never read as a dead mailbox, and the answer says so when it is not
+trusted. Deleting an entry sends the next message to the address and starts its
+run of hard bounces again. [BounceSuppression.md](BounceSuppression.md) is the
+whole of it.
 
 Accounts from a spreadsheet
 ---------------------------
@@ -335,6 +358,10 @@ Set-HmSetting -Group antispam -Property @{ use_spf = $true }
 Test-HmBreachCheckEndpoint -Url https://mirror.example/range/
 Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery
 Get-HmDkimRotation -Domain example.com -Records | Where-Object Action -eq publish
+Get-HmSuppression -Domain example.com | Where-Object category -eq 'hard' | Format-Table address, status, created
+Add-HmSuppression -Domain example.com -Address gone@elsewhere.test -Note 'old export' -ExpiresDays 90
+Get-HmBounceCount -Domain example.com | Sort-Object consecutive_hard -Descending | Select-Object -First 10
+Test-HmBounceStatus -Status '550 5.2.2 Mailbox full'
 Import-HmAccount -Path .\new-people.csv -WhatIf
 ```
 

@@ -284,6 +284,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
     <value>0 is de meegeleverde standaard. 2 is een redelijk begin: een verkeerd getypt wachtwoord kost een persoon eenmalig twee seconden, en een password-sprayingclient twee, vier, zes... seconden per gok. Geldt na een herstart van de service.</value>
   </data>
+  <data name="0 keeps the entry until it is removed." xml:space="preserve">
+    <value>0 houdt de vermelding tot ze wordt verwijderd.</value>
+  </data>
   <data name="0 means archives are never deleted. Retention runs on the server after every backup into this folder - scheduled or started by hand with Start backup now - and only once the new archive has been written and verified readable, so a failed backup never deletes anything. The newest archive is never deleted, the age limit always leaves the two newest alone, and only this server's own HMBackup archives are counted - other files in the folder are never touched." xml:space="preserve">
     <value>0 betekent dat archieven nooit worden verwijderd. Bewaring draait op de server na elke back-up naar deze map - gepland of handmatig gestart met "Back-up nu starten" - en pas nadat het nieuwe archief is geschreven en leesbaar is bevonden, zodat een mislukte back-up nooit iets verwijdert. Het nieuwste archief wordt nooit verwijderd, de leeftijdsgrens laat de twee nieuwste altijd met rust, en alleen de eigen HMBackup-archieven van deze server tellen mee - andere bestanden in de map worden nooit aangeraakt.</value>
   </data>
@@ -298,6 +301,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 account is lid.</value>
+  </data>
+  <data name="1 address listed." xml:space="preserve">
+    <value>1 adres op de lijst.</value>
   </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 app-wachtwoord.</value>
@@ -406,6 +412,12 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Een aangepaste virusscanner of extern hulpmiddel dat blijft hangen - begrensd door ExternalProcessTimeout.</value>
+  </data>
+  <data name="A delivery between two hard bounces starts the count again. A refusal this server cannot trust as a dead mailbox - a bare 550 with no enhanced code, a policy refusal, its own connection failures - never counts." xml:space="preserve">
+    <value>Een aflevering tussen twee harde bounces begint de telling opnieuw. Een weigering die deze server niet kan vertrouwen als niet-bestaand postvak - een kale 550 zonder uitgebreide code, een beleidsweigering, eigen verbindingsfouten - telt nooit.</value>
+  </data>
+  <data name="A delivery report" xml:space="preserve">
+    <value>Een afleverrapport</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Een domein dat op deze server wordt gehost</value>
@@ -643,6 +655,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-compatibel logboek</value>
+  </data>
+  <data name="A_ddress" xml:space="preserve">
+    <value>_Adres</value>
   </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>Afbreken bij berichten die als spam ge_markeerd zijn</value>
@@ -899,11 +914,20 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Voeg de sleutel hieronder toe aan een authenticator-app en bevestig dan met een code. Na inschrijving meldt het beheerderswachtwoord alleen niet meer aan - de COM-API en REST-API hebben dan ook een code nodig. Bewaar de sleutel ergens veilig: als u de authenticator verliest, moet een lokale beheerder AdministratorTotpSecret uit hMailServer.ini wissen om weer binnen te komen.</value>
   </data>
+  <data name="Add to the suppression list" xml:space="preserve">
+    <value>Aan de onderdrukkingslijst toevoegen</value>
+  </data>
+  <data name="Add to the suppression list of {0}" xml:space="preserve">
+    <value>Aan de onderdrukkingslijst van {0} toevoegen</value>
+  </data>
   <data name="Add {0}" xml:space="preserve">
     <value>{0} toevoegen</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Toegevoegd op {0}.</value>
+  </data>
+  <data name="Added by hand" xml:space="preserve">
+    <value>Met de hand toegevoegd</value>
   </data>
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Wordt één keer toegevoegd, aan post met minstens één ontvanger buiten deze server. Nooit aan een ondertekend of versleuteld bericht, een automatisch antwoord, een onbestelbaarheidsbericht of een lijstbericht, en nooit een tweede keer aan een antwoord dat hem al citeert.</value>
@@ -917,6 +941,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Address attri_bute" xml:space="preserve">
     <value>Adresattri_buut</value>
   </data>
+  <data name="Address contains" xml:space="preserve">
+    <value>Adres bevat</value>
+  </data>
   <data name="Address or domain" xml:space="preserve">
     <value>Adres of domein</value>
   </data>
@@ -926,8 +953,17 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Address to a_dd" xml:space="preserve">
     <value>Toe te voegen a_dres</value>
   </data>
+  <data name="Address to stop sending to" xml:space="preserve">
+    <value>Adres waarnaar niet meer verzonden wordt</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adressen</value>
+  </data>
+  <data name="Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand." xml:space="preserve">
+    <value>Adressen waarnaar een domein niet meer verzendt omdat mail aan ze is gebounced - zichtbaar, en met de hand te verwijderen.</value>
+  </data>
+  <data name="Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain." xml:space="preserve">
+    <value>Adressen waarnaar een domein niet meer verzendt omdat mail aan ze definitief is gebounced, of omdat iemand ze hier heeft gezet - met de tellingen achter elk adres. De lijst geldt per verzendend domein.</value>
   </data>
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Adressen en domeinen die elk account wel of niet wil, onder de eigen lijst van elk account en die van zijn domein.</value>
@@ -1067,6 +1103,15 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Een account kan worden uitgeschakeld zonder het te verwijderen, wat de mail bewaart en nieuwe aanmeldingen weigert.</value>
   </data>
+  <data name="An address is required." xml:space="preserve">
+    <value>Een adres is vereist.</value>
+  </data>
+  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
+    <value>Een adres dat deze server host, wordt geweigerd: de lijst geldt alleen voor mail die de server verlaat.</value>
+  </data>
+  <data name="An administrator" xml:space="preserve">
+    <value>Een beheerder</value>
+  </data>
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Een alias laat één adres naar een ander wijzen zonder een tweede postvak nodig te hebben.</value>
   </data>
@@ -1187,6 +1232,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Wordt van kracht bij de volgende herstart van de service of bij herinitialiseren. De logbestanden veranderen niet: dit verstuurt een kopie, het verplaatst niets. Zonder collectorhost hieronder schrijft een server onder systemd op Linux naar de journal - op Linux is deze ene schakelaar dus de hele configuratie.</value>
+  </data>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
+    <value>Geldt alleen zolang bounceverwerking aan staat. Een rapport telt alleen als het een bericht noemt dat deze server echt aan die ontvanger heeft afgeleverd, het zonder authenticatie van buiten binnenkwam en SPF en DMARC doorstond waar die worden vastgelegd - maar iedereen die hetzelfde bericht ontving, kan er een vervalsen voor een andere zichtbare ontvanger. Uitgeschakeld worden rapporten helemaal niet gelezen; weigeringen tijdens de aflevering worden nog steeds geteld.</value>
   </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Directorysynchronisatie toepassen</value>
@@ -1454,6 +1502,15 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Beide drempels staan op 0, dus geen enkele score kan iets markeren of weigeren - de server toetst ze met "groter dan 0" voordat hij ze gebruikt. Hij stopt ook met toetsen zodra het lopende totaal de hoogste drempel bereikt, en die is 0, dus er draait precies één controle in elke fase en het resultaat daarvan wordt weggegooid.</value>
+  </data>
+  <data name="Bounce counts" xml:space="preserve">
+    <value>Bouncetellingen</value>
+  </data>
+  <data name="Bounce processing is off, so nothing is being counted or listed and the entries here are not applied. The switch is on the Delivery of e-mail page." xml:space="preserve">
+    <value>Bounceverwerking staat uit, dus er wordt niets geteld of op de lijst gezet en de vermeldingen hier worden niet toegepast. De schakelaar staat op de pagina E-mailbezorging.</value>
+  </data>
+  <data name="Bounces and the suppression list" xml:space="preserve">
+    <value>Bounces en de onderdrukkingslijst</value>
   </data>
   <data name="Bounces and virus notifications are sent from mailer-daemon@&lt;domain&gt;. This overrides the &lt;domain&gt; part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed." xml:space="preserve">
     <value>Bounces en virusmeldingen worden verzonden vanaf mailer-daemon@&lt;domain&gt;. Dit overschrijft het deel &lt;domain&gt;. Blijft het leeg, dan gebruikt de server zijn eigen hostnaam, dan het lokale domein waar het bericht bij hoort, en dan de naam van deze computer. Het is geen bezorginstelling en verandert niets aan de route die mail neemt.</value>
@@ -1781,6 +1838,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>Wordt door de exporter begrensd tot 5-3600. Wordt alleen gebruikt wanneer het metrics-eindpunt hierboven is ingesteld.</value>
+  </data>
+  <data name="Classify bounces and keep a suppression list" xml:space="preserve">
+    <value>Bounces indelen en een onderdrukkingslijst bijhouden</value>
   </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Greylisting-triplets wissen</value>
@@ -2267,6 +2327,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Couldn't load distribution lists: " xml:space="preserve">
     <value>Kon de distributielijsten niet laden: </value>
   </data>
+  <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
+    <value>Een vol postvak als harde bounce tellen</value>
+  </data>
   <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
     <value>Getelde mislukte aanmeldingen gewist. Adressen die al verbannen zijn, blijven verbannen totdat hun bereik "Auto-ban:" verloopt - verwijder dat op de pagina IP-bereiken om er nu een vrij te geven.</value>
   </data>
@@ -2477,14 +2540,26 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Date this key stops working" xml:space="preserve">
     <value>Datum waarop deze sleutel stopt met werken</value>
   </data>
+  <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
+    <value>Dagen na verzending dat een afleverrapport nog wordt gekoppeld (1 tot 30)</value>
+  </data>
+  <data name="Days before an entry made by a bounce expires (0 = never)" xml:space="preserve">
+    <value>Dagen voordat een vermelding door een bounce verloopt (0 = nooit)</value>
+  </data>
   <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
     <value>Dagen tussen _rotaties (1 tot 3650)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>Dagen tussen rotaties</value>
   </data>
+  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
+    <value>Dagen dat bouncetellingen worden bewaard (0 = bewaren)</value>
+  </data>
   <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
     <value>Dagen bewaren op de server (0 = verwijderen na het downloaden)</value>
+  </data>
+  <data name="Days until the entry expires" xml:space="preserve">
+    <value>Dagen tot de vermelding verloopt</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>_Regel verwijderen</value>
@@ -2642,6 +2717,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Deliver _local → local" xml:space="preserve">
     <value>_Lokaal → lokaal bezorgen</value>
+  </data>
+  <data name="Deliver it, and only record it" xml:space="preserve">
+    <value>Afleveren en alleen vastleggen</value>
   </data>
   <data name="Deliver local → _remote" xml:space="preserve">
     <value>Lokaal → e_xtern bezorgen</value>
@@ -2854,6 +2932,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Het installatieprogramma downloaden en verifiëren zodra er een release is gevonden</value>
+  </data>
+  <data name="Drop it without a report" xml:space="preserve">
+    <value>Weglaten zonder rapport</value>
   </data>
   <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
     <value>Te grote inkomende berichten boven N bytes tijdens de overdracht afbreken (0 = uit)</value>
@@ -3506,6 +3587,15 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Geeft het geverifieerde installatieprogramma door aan de updatehelper. De service stopt en start; komt hij niet terug, dan wordt de vorige versie opnieuw geïnstalleerd. De uitkomst wordt hier gemeld zodra de service weer draait.</value>
   </data>
+  <data name="Hard" xml:space="preserve">
+    <value>Hard</value>
+  </data>
+  <data name="Hard bounce" xml:space="preserve">
+    <value>Harde bounce</value>
+  </data>
+  <data name="Hard bounces in a row before an address is listed (1 to 100)" xml:space="preserve">
+    <value>Harde bounces op rij voordat een adres op de lijst komt (1 tot 100)</value>
+  </data>
   <data name="Hard link each local recipient's copy instead of copying the file" xml:space="preserve">
     <value>De kopie van elke lokale ontvanger als hardlink maken in plaats van het bestand te kopiëren</value>
   </data>
@@ -3758,6 +3848,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Publiceer in een met DNSSEC ondertekende zone voor elke MX-host een TLSA-record (meestal usage 3, selector 1, matching type 1 - '3 1 1' met de SHA-256 van de publieke sleutel van uw certificaat) op _25._tcp.&lt;mx-host&gt;. Controleer met: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer kan geen DNS-records publiceren en uw zone niet ondertekenen, en dit paneel heeft geen TLSA-opzoeking om ze mee te controleren.</value>
   </data>
+  <data name="In a row" xml:space="preserve">
+    <value>Op rij</value>
+  </data>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
+    <value>Van kracht voor het volgende bericht. Uitgeschakeld wordt niets ingedeeld, geteld of op de lijst gezet en wordt de lijst niet toegepast; de vermeldingen die er al op staan blijven, en de opschoning van elk uur laat ze nog steeds verlopen. Een database die niet te lezen is, verzendt de mail alsof het adres niet op de lijst staat en meldt dat eens per uur in het foutenlogboek.</value>
+  </data>
   <data name="In queue" xml:space="preserve">
     <value>In wachtrij</value>
   </data>
@@ -3898,6 +3994,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Keeps a copy of every message received over SMTP in a folder tree, in addition to delivering it as normal - it does not divert or hold back mail. Mail from a local sender is filed under &lt;domain&gt;\&lt;mailbox&gt;, mail from elsewhere under Inbound, and messages with no envelope sender (bounces and delivery reports) under Error, plus a copy in the folder of each local recipient." xml:space="preserve">
     <value>Bewaart een kopie van elk bericht dat via SMTP is ontvangen in een mappenboom, naast de normale bezorging - het leidt geen mail om en houdt niets tegen. Mail van een lokale afzender wordt opgeslagen onder &lt;domain&gt;\&lt;mailbox&gt;, mail van elders onder Inbound, en berichten zonder envelopafzender (bounces en bezorgingsrapporten) onder Error, plus een kopie in de map van elke lokale ontvanger.</value>
   </data>
+  <data name="Kept with the entry, for whoever reads the list next." xml:space="preserve">
+    <value>Wordt bij de vermelding bewaard, voor wie de lijst hierna leest.</value>
+  </data>
   <data name="Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)" xml:space="preserve">
     <value>Sleuteluitwisselingsgroepen, in volgorde van voorkeur (leeg = de klassieke terugval secp384r1:x25519:secp256r1)</value>
   </data>
@@ -3952,8 +4051,17 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Laatste back-up: {0} ({1}).</value>
   </data>
+  <data name="Last bounce" xml:space="preserve">
+    <value>Laatste bounce</value>
+  </data>
+  <data name="Last delivered" xml:space="preserve">
+    <value>Laatst afgeleverd</value>
+  </data>
   <data name="Last l_ogon" xml:space="preserve">
     <value>_Laatste aanmelding</value>
+  </data>
+  <data name="Last status" xml:space="preserve">
+    <value>Laatste status</value>
   </data>
   <data name="Last update: {0}. " xml:space="preserve">
     <value>Laatste update: {0}. </value>
@@ -4026,6 +4134,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Som de lokale poorten op waar AUTH niet moet worden aangeboden - meestal een poort 25 die alleen inkomende mail aanneemt.</value>
+  </data>
+  <data name="Listed" xml:space="preserve">
+    <value>Op de lijst</value>
   </data>
   <data name="Listener" xml:space="preserve">
     <value>Listener</value>
@@ -4234,6 +4345,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Postvak geleegd.</value>
   </data>
+  <data name="Mailbox full" xml:space="preserve">
+    <value>Postvak vol</value>
+  </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Postvakwachtwoorden worden op het account ingesteld, binnen het domein ervan.</value>
   </data>
@@ -4377,6 +4491,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Maximale time-out (seconden)</value>
+  </data>
+  <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
+    <value>Gemeten vanaf het maken van de vermelding, dus een lagere waarde geldt ook voor de vermeldingen die er al zijn. Een met de hand toegevoegde vermelding houdt haar eigen verloopdatum.</value>
   </data>
   <data name="Medium" xml:space="preserve">
     <value>Gemiddeld</value>
@@ -4704,6 +4821,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Geen actieve sessies</value>
+  </data>
+  <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
+    <value>Er staat geen adres op de onderdrukkingslijst van dit domein. Een adres komt hier als mail eraan definitief bouncet, of als u er een toevoegt.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Geen aliassen voor dit domein.</value>
@@ -5101,6 +5221,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>Staat standaard uit. Bij onbeschermd LDAP met een simple bind verzendt de server het wachtwoord NIET en raadt hij NIET wat u bedoelde: hij weigert de aanmelding en meldt de tegenstrijdigheid, eenmaal per minuut. Dit aanzetten verstuurt wachtwoorden in klare tekst en hoort alleen te gebeuren op een netwerk dat u van begin tot eind beheert.</value>
   </data>
+  <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
+    <value>Standaard uit: een vol postvak wordt meestal geleegd, en het op de lijst zetten zou mail tegenhouden voor iemand die het volgende week leest.</value>
+  </data>
   <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
     <value>Uit, en uit is wat RFC 8301 vereist: die heeft rsa-sha1 ronduit uit DKIM verwijderd, dus een ondertekenaar mag het niet gebruiken en een verifieerder moet een handtekening die dat wel doet als ongeldig behandelen. Een DKIM-handtekening is een bewering over identiteit en de DMARC-uitlijning is erop gebouwd, en SHA-1-botsingen zijn sinds 2020 praktisch haalbaar - een handtekening die iemand kan vervalsen is minder waard dan helemaal geen handtekening, omdat ze het domein van de ondertekenaar door een uitgelijnde DMARC-controle heen draagt. Dit aanzetten herstelt beide helften: handtekeningen die het gebruiken verifiëren weer, en een domein dat is geconfigureerd om ermee te ondertekenen doet dat ook, in plaats van te worden opgewaardeerd naar rsa-sha256. Sleutels korter dan 1024 bits worden hoe dan ook geweigerd, en deze instelling verandert daar niets aan. Geldt na een herstart van de service.</value>
   </data>
@@ -5323,6 +5446,12 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Organization name in TLS reports" xml:space="preserve">
     <value>Organisatienaam in TLS-rapporten</value>
   </data>
+  <data name="Other" xml:space="preserve">
+    <value>Overig</value>
+  </data>
+  <data name="Other failure" xml:space="preserve">
+    <value>Andere fout</value>
+  </data>
   <data name="Out of office" xml:space="preserve">
     <value>Afwezigheid</value>
   </data>
@@ -5541,6 +5670,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Wijs de server een ACME-autoriteit zoals Let's Encrypt aan en hij verlengt vanzelf.</value>
   </data>
+  <data name="Policy" xml:space="preserve">
+    <value>Beleid</value>
+  </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>MX-hostpatronen voor het beleid (leeg = afleiden uit de MX van elk domein)</value>
   </data>
@@ -5552,6 +5684,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
     <value>Maximale leeftijd van het beleid (seconden; standaard 604800 = 7 dagen)</value>
+  </data>
+  <data name="Policy refusal" xml:space="preserve">
+    <value>Beleidsweigering</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Poort</value>
@@ -5844,6 +5979,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Intrekken / _herstellen</value>
   </data>
+  <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
+    <value>Afleverrapporten lezen die binnenkomen voor de afzenders van deze server</value>
+  </data>
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Gelezen uit [Directories] LogFolder in hMailServer.INI, wat vanaf deze machine niet leesbaar is - het Control Panel draait ergens anders dan de server.</value>
   </data>
@@ -5864,6 +6002,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Reads the project's release feed now and says whether a newer release exists. Nothing is downloaded or installed by this." xml:space="preserve">
     <value>Leest nu de releasefeed van het project en zegt of er een nieuwere release bestaat. Hierdoor wordt niets gedownload of geïnstalleerd.</value>
+  </data>
+  <data name="Reads the refusals and delivery reports that come back for this server's senders, counts them per address, and stops sending to an address that has bounced for good. The list is per sending domain, and it is on the Suppression list page." xml:space="preserve">
+    <value>Leest de weigeringen en afleverrapporten die terugkomen voor de afzenders van deze server, telt ze per adres en verzendt niet meer naar een adres dat definitief is gebounced. De lijst geldt per verzendend domein en staat op de pagina Onderdrukkingslijst.</value>
   </data>
   <data name="Ready to switch" xml:space="preserve">
     <value>Klaar om over te stappen</value>
@@ -5959,6 +6100,12 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Refuse a new password found in published data breaches" xml:space="preserve">
     <value>Een nieuw wachtwoord weigeren dat in gepubliceerde datalekken voorkomt</value>
   </data>
+  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>Weigeren beantwoordt een inzending bij RCPT met de reden, en stuurt al het andere - een alias, een doorsturing, een geplande verzending - terug naar de afzender in een melding over de afleverstatus. Mail die al voor een adres in de wachtrij staat, stuit bij de volgende afleverpoging op de lijst. Afleveren en alleen vastleggen is de veilige manier om te zien wat de lijst zou doen voordat ze het doet.</value>
+  </data>
+  <data name="Refuse it, with the reason" xml:space="preserve">
+    <value>Weigeren, met de reden</value>
+  </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Mail met een tijdelijke fout weigeren onder deze hoeveelheid vrije ruimte (MB; 0 = nooit)</value>
   </data>
@@ -5976,6 +6123,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Refused connections" xml:space="preserve">
     <value>Geweigerde verbindingen</value>
+  </data>
+  <data name="Refused while delivering" xml:space="preserve">
+    <value>Geweigerd tijdens aflevering</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Weigeren is strenger, maar zolang het eindpunt onbereikbaar is, kan nergens een wachtwoord worden gewijzigd, ook het beheerderswachtwoord niet.</value>
@@ -6045,6 +6195,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Verlopen _items verwijderen</value>
+  </data>
+  <data name="Remove from the suppression list" xml:space="preserve">
+    <value>Van de onderdrukkingslijst verwijderen</value>
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>Bericht {0} uit de wachtrij verwijderen?</value>
@@ -6810,6 +6963,9 @@ Doorgaan?</value>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Selecteer een Active Directory-account</value>
   </data>
+  <data name="Select an address first." xml:space="preserve">
+    <value>Selecteer eerst een adres.</value>
+  </data>
   <data name="Select an app password first." xml:space="preserve">
     <value>Selecteer eerst een app-wachtwoord.</value>
   </data>
@@ -7202,6 +7358,9 @@ Nu herstarten?</value>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Gelijktijdige verbindingen (0 is onbeperkt)</value>
   </data>
+  <data name="Since" xml:space="preserve">
+    <value>Sinds</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Sinds {0}</value>
   </data>
@@ -7217,11 +7376,17 @@ Nu herstarten?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Vertraagt een sessie die meer ontvangers noemt dan een legitiem bericht nodig heeft. Voorbij dat aantal wacht elke volgende RCPT TO in een niet-geauthenticeerde sessie de vertraging af voordat hij wordt beantwoord - een dictionary-aanval of een spamrun noemt honderden adressen en betaalt voor elk ervan, terwijl een verzendende MTA er een handvol noemt en dat aantal nooit bereikt. Geauthenticeerde sessies en IP-bereiken met spambescherming uit zijn vrijgesteld. Het wachten is een timer op de verbinding, geen slapende thread. Werkt direct; opgeslagen in hMailServer.ini als SmtpTarpitCount en SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Soft" xml:space="preserve">
+    <value>Zacht</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Iemand is wachtwoorden aan het raden</value>
   </data>
   <data name="Something on this machine is listening on that address and port. This check reads the operating system's list of open ports, so it cannot tell hMailServer's listener from another program's - if connections are being refused or answered by the wrong service, that is what to look for." xml:space="preserve">
     <value>Er luistert iets op deze machine op dat adres en die poort. Deze controle leest de lijst met open poorten van het besturingssysteem en kan de listener van hMailServer dus niet onderscheiden van die van een ander programma - worden verbindingen geweigerd of door de verkeerde service beantwoord, dan is dat waar u naar moet zoeken.</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Bron</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Bronadressen waarvandaan hij mag worden gebruikt (optioneel)</value>
@@ -7391,6 +7556,9 @@ Nu herstarten?</value>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Indieningslimieten</value>
   </data>
+  <data name="Suppression list" xml:space="preserve">
+    <value>Onderdrukkingslijst</value>
+  </data>
   <data name="Sw_itch now…" xml:space="preserve">
     <value>Nu oversta_ppen…</value>
   </data>
@@ -7541,6 +7709,11 @@ Nu herstarten?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Markering en disclaimer</value>
   </data>
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>{0} van de onderdrukkingslijst van {1} halen?
+
+Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de lijst na zoveel harde bounces op rij als de drempel vraagt.</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Werkt direct, maar wordt alleen in het geheugen bewaard: niets slaat deze waarde op, dus elke herstart van de service zet hem terug op de ingebouwde 10240 KB (10 MB). Om een andere limiet te behouden moet hij na elke herstart opnieuw worden ingesteld, bijvoorbeeld vanuit een opstartscript via de COM-API. De TTL's en de aan/uit-schakelaar op deze kaart worden wél opgeslagen en overleven een herstart.</value>
   </data>
@@ -7577,6 +7750,9 @@ Nu herstarten?</value>
   <data name="Temporarily rejects mail from unknown senders; legitimate servers retry and pass." xml:space="preserve">
     <value>Weigert mail van onbekende afzenders tijdelijk; legitieme servers proberen opnieuw en komen erdoor.</value>
   </data>
+  <data name="Temporary failure" xml:space="preserve">
+    <value>Tijdelijke fout</value>
+  </data>
   <data name="Test" xml:space="preserve">
     <value>Testen</value>
   </data>
@@ -7612,6 +7788,9 @@ Nu herstarten?</value>
   </data>
   <data name="Text" xml:space="preserve">
     <value>Tekst</value>
+  </data>
+  <data name="That address is already on this domain's list." xml:space="preserve">
+    <value>Dat adres staat al op de lijst van dit domein.</value>
   </data>
   <data name="That code does not match. Make sure the authenticator app has the new key, then try the current code." xml:space="preserve">
     <value>Die code komt niet overeen. Zorg dat de authenticator-app de nieuwe sleutel heeft en probeer dan de huidige code.</value>
@@ -8034,6 +8213,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The next key was cancelled." xml:space="preserve">
     <value>De volgende sleutel is geannuleerd.</value>
   </data>
+  <data name="The next message from this domain to the address is refused, dropped or delivered and recorded, as the bounce settings say. Mail already queued to it meets the list on its next delivery attempt." xml:space="preserve">
+    <value>Het volgende bericht van dit domein aan het adres wordt geweigerd, weggelaten of afgeleverd en vastgelegd, zoals de bounce-instellingen zeggen. Mail die er al voor in de wachtrij staat, stuit bij de volgende afleverpoging op de lijst.</value>
+  </data>
   <data name="The next rotation starts when the interval has passed." xml:space="preserve">
     <value>De volgende rotatie begint zodra het interval voorbij is.</value>
   </data>
@@ -8224,6 +8406,9 @@ Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezo
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>De Hostnaam van de server (E-mailbezorging) is LEEG, dus hij kondigt zijn Windows-computernaam aan in HELO/EHLO - geen publieke DNS-naam - en er kan niet eerlijk een "a:"-mechanisme worden aangeboden. Het voorstel autoriseert alleen de MX-hosts van het domein. Stel eerst de hostnaam in; meerdere records op deze pagina hebben die nodig.</value>
   </data>
+  <data name="The server's answer could not be read: {0}" xml:space="preserve">
+    <value>Het antwoord van de server kon niet worden gelezen: {0}</value>
+  </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>De hostnaam van de server kon niet worden gelezen, dus de naam die hij aankondigt in HELO/EHLO is hiervandaan onbekend.</value>
   </data>
@@ -8333,6 +8518,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="There are no accounts on this server to add." xml:space="preserve">
     <value>Er zijn op deze server geen accounts om toe te voegen.</value>
+  </data>
+  <data name="There are no domains, so there is no list to show." xml:space="preserve">
+    <value>Er zijn geen domeinen, dus er is geen lijst om te tonen.</value>
   </data>
   <data name="There is a total of {0} auto-ban IP range(s)." xml:space="preserve">
     <value>Er zijn in totaal {0} IP-bereik(en) voor automatisch verbannen.</value>
@@ -8897,6 +9085,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
     <value>Wat er gebeurt met een TCP-verbinding die deze server weigert voordat er enig protocolgesprek begint: een verbinding vanaf een adres dat geen enkel IP-bereik toestaat, of een verbinding boven de verbindingslimiet van dat bereik. Beide worden ingesteld op de pagina IP-bereiken. Een adres buitensluiten dat zich telkens niet kan aanmelden, is een heel ander mechanisme en staat op de pagina Automatisch verbannen.</value>
   </data>
+  <data name="What happens to a listed recipient" xml:space="preserve">
+    <value>Wat er met een ontvanger op de lijst gebeurt</value>
+  </data>
   <data name="What happens to a message" xml:space="preserve">
     <value>Wat er met een bericht gebeurt</value>
   </data>
@@ -9062,6 +9253,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Wie verbinding mag maken, wie zich mag authenticeren, en wat er gebeurt wanneer iemand het blijft proberen.</value>
   </data>
+  <data name="Why" xml:space="preserve">
+    <value>Waarom</value>
+  </data>
+  <data name="Why it is listed" xml:space="preserve">
+    <value>Waarom het op de lijst staat</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Jokerteken</value>
   </data>
@@ -9178,6 +9375,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>_Adres (wijzigen hernoemt het postvak; het moet in dit domein blijven)</value>
+  </data>
+  <data name="_Add…" xml:space="preserve">
+    <value>_Toevoegen…</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Verzenden van het wachtwoord over _een onbeveiligde verbinding toestaan (AllowUnprotectedPassword)</value>
@@ -9305,6 +9505,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Tweede factor inschrijven</value>
   </data>
+  <data name="_Expires after (days)" xml:space="preserve">
+    <value>Ver_loopt na (dagen)</value>
+  </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>_Vervaldatum</value>
   </data>
@@ -9409,6 +9612,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Naam</value>
+  </data>
+  <data name="_Note" xml:space="preserve">
+    <value>_Notitie</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>Aantal _bezorgpogingen</value>
@@ -10394,6 +10600,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, verloopt {2}</value>
   </data>
+  <data name="{0} (expired)" xml:space="preserve">
+    <value>{0} (verlopen)</value>
+  </data>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inactief)</value>
   </data>
@@ -10435,6 +10644,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} active of {1}" xml:space="preserve">
     <value>{0} van {1} actief</value>
+  </data>
+  <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
+    <value>{0} adressen op de lijst, de {1} nieuwste worden getoond. Zoek om ze te beperken.</value>
+  </data>
+  <data name="{0} addresses listed." xml:space="preserve">
+    <value>{0} adressen op de lijst.</value>
   </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} en {1}</value>
@@ -10528,6 +10743,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} staat aan maar scoort 0, dus kost het bij elk bericht een opzoeking en kan het de uitkomst nooit veranderen. Geef het een score, of zet het uit.</value>
+  </data>
+  <data name="{0} is on the suppression list of {1}." xml:space="preserve">
+    <value>{0} staat op de onderdrukkingslijst van {1}.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} staat aan maar kan niet draaien. {1} Elke scan die eraan wordt gevraagd, mislukt, en een mislukte scan is geen mislukt bericht: de fout wordt gelogd en het bericht wordt bezorgd alsof het was onderzocht en schoon bevonden.</value>
@@ -10657,6 +10875,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} waarde(n) konden niet worden gelezen — {1} De rijen hieronder kunnen onvolledig zijn.</value>
+  </data>
+  <data name="{0} was not on the list any more." xml:space="preserve">
+    <value>{0} stond niet meer op de lijst.</value>
+  </data>
+  <data name="{0} was removed from the list." xml:space="preserve">
+    <value>{0} is van de lijst verwijderd.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} met volledige bevoegdheid</value>

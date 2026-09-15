@@ -301,6 +301,11 @@ NOT_AUDITED = {
                        "it each update the selector and key file columns of hm_domains, which are audited with the pass's actor or "
                        "the caller. A retire changes only this row and the key file, and is NOT recorded: "
                        "docs/DkimKeyRotation.md says so, and the application log has a line for it.",
+   "hm_bouncecounts": "how often each address outside the server bounced a domain's mail and when it was last delivered to, written by "
+                      "delivery and by the delivery reports that arrive, with no actor; traffic. What an administrator decides about "
+                      "bounces is a setting (hm_settings) or a suppression list entry (hm_bouncesuppressions), and both are audited.",
+   "hm_bouncereportkeys": "the register of sent messages a delivery report is matched against, one row per message delivered to a "
+                          "remote while reports are read, written by delivery and pruned by the sweep; traffic.",
 }
 
 # Tables whose chokepoint is not the statement one, and which must therefore

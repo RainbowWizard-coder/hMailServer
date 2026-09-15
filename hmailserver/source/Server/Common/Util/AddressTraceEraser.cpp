@@ -6,6 +6,7 @@
 
 #include "AddressTraceEraser.h"
 #include "../Persistence/PersistentArchiveIndex.h"
+#include "../Persistence/PersistentBounce.h"
 
 #include "FileUtilities.h"
 #include "../Application/Application.h"
@@ -81,6 +82,16 @@ namespace HM
       // for an erasure is the difference between done and not done.
       Cache<Alias>::Instance()->Clear();
       Cache<DistributionList>::Instance()->Clear();
+
+      // Bounce counts and suppression-list entries, in every sending domain. This
+      // is the one store where erasing an address changes what the server does next:
+      // an address removed from a suppression list is sent to again. An erasure is
+      // the person asking to be forgotten, which includes being forgotten as dead.
+      count = PersistentBounce::EraseAddress(address);
+      if (count < 0)
+         failedStores.push_back(_T("the bounce counts and suppression lists"));
+      else
+         removedCount += count;
 
       bool quarantineFailed = false;
       removedCount += EraseQuarantine_(address, quarantineFailed);

@@ -59,6 +59,10 @@ namespace HM
       static const wchar_t *EventFailed;
       static const wchar_t *EventQuarantined;
 
+      // A recipient the suppression list stopped - refused, dropped, or observed
+      // and delivered anyway - with the action in the detail. See BounceTracker.
+      static const wchar_t *EventSuppressed;
+
       static bool GetEnabled();
 
       // Records one event. Never throws and never blocks a delivery: a trace that

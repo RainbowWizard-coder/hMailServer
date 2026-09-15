@@ -290,6 +290,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\LogRetentionTask.cpp" />
     <ClCompile Include="..\Common\Application\MessageStoreConsistencyTask.cpp" />
     <ClCompile Include="..\Common\Application\WorkQueueHealthTask.cpp" />
+    <ClCompile Include="..\Common\Application\BounceMaintenanceTask.cpp" />
     <ClCompile Include="..\Common\Sieve\SieveLexer.cpp" />
     <ClCompile Include="..\Common\Sieve\SieveMessage.cpp" />
     <ClCompile Include="..\Common\Sieve\SieveEvaluator.cpp" />
@@ -417,6 +418,7 @@ EXIT 0
     <ClCompile Include="..\Common\Persistence\PersistentGreyList.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentKnownSender.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentDkimRotation.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentBounce.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGreyListingWhiteAddress.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGroup.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentGroupMember.cpp" />
@@ -588,6 +590,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiPortal.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSettings.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAudit.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiBounces.cpp" />
     <ClCompile Include="..\Common\Util\AuditTrail.cpp" />
     <ClCompile Include="..\Common\Util\AlertManager.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
@@ -933,6 +936,9 @@ EXIT 0
     <ClCompile Include="..\Smtp\SMTPConfiguration.cpp" />
     <ClCompile Include="..\Smtp\SMTPConnection.cpp" />
     <ClCompile Include="..\Smtp\SMTPDeliverer.cpp" />
+    <ClCompile Include="..\SMTP\BounceClassifier.cpp" />
+    <ClCompile Include="..\SMTP\BounceTracker.cpp" />
+    <ClCompile Include="..\SMTP\DeliveryReportParser.cpp" />
     <ClCompile Include="..\Smtp\SMTPDeliveryManager.cpp" />
     <ClCompile Include="..\SMTP\SMTPForwarding.cpp" />
     <ClCompile Include="..\SMTP\SMTPMessageHeaderCreator.cpp" />
@@ -1067,6 +1073,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\LogRetentionTask.h" />
     <ClInclude Include="..\Common\Application\MessageStoreConsistencyTask.h" />
     <ClInclude Include="..\Common\Application\WorkQueueHealthTask.h" />
+    <ClInclude Include="..\Common\Application\BounceMaintenanceTask.h" />
     <ClInclude Include="..\Common\Sieve\SieveLexer.h" />
     <ClInclude Include="..\Common\Sieve\SieveMessage.h" />
     <ClInclude Include="..\Common\Sieve\SieveEvaluator.h" />
@@ -1202,6 +1209,7 @@ EXIT 0
     <ClInclude Include="..\Common\Persistence\PersistentGreyList.h" />
     <ClInclude Include="..\Common\Persistence\PersistentKnownSender.h" />
     <ClInclude Include="..\Common\Persistence\PersistentDkimRotation.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentBounce.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGreyListingWhiteAddress.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGroup.h" />
     <ClInclude Include="..\Common\Persistence\PersistentGroupMember.h" />
@@ -1613,6 +1621,9 @@ EXIT 0
     <ClInclude Include="..\Smtp\BLCheck.h" />
     <ClInclude Include="..\Smtp\DeliveryQueue.h" />
     <ClInclude Include="..\SMTP\DeliveryFailure.h" />
+    <ClInclude Include="..\SMTP\BounceClassifier.h" />
+    <ClInclude Include="..\SMTP\BounceTracker.h" />
+    <ClInclude Include="..\SMTP\DeliveryReportParser.h" />
     <ClInclude Include="..\Smtp\DeliveryTask.h" />
     <ClInclude Include="..\SMTP\ExternalDelivery.h" />
     <ClInclude Include="..\SMTP\ExternalDeliveryServerResult.h" />

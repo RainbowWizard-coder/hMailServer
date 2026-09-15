@@ -1253,6 +1253,64 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("Delivery")).Cards.Add(del);
 
+         // Bounces read, and the suppression list: what happens after a delivery
+         // gives up, so it sits under the retries that decide when that is. The
+         // list itself is a page of its own under Monitoring.
+         var bounces = Card(L("Bounces and the suppression list"),
+            L("Reads the refusals and delivery reports that come back for this server's senders, counts them per address, and stops sending to an address that has bounced for good. The list is per sending domain, and it is on the Suppression list page."));
+         bounces.Settings.Add(new ComBool
+         {
+            Path = "BounceProcessingEnabled",
+            Label = L("Classify bounces and keep a suppression list"),
+            Blurb = L(SettingClaims.NoteFor("BounceProcessingEnabled"))
+         });
+         bounces.Settings.Add(new ComText
+         {
+            Path = "BounceHardBounceThreshold",
+            Label = L("Hard bounces in a row before an address is listed (1 to 100)"),
+            Numeric = true,
+            Blurb = L("A delivery between two hard bounces starts the count again. A refusal this server cannot trust as a dead mailbox - a bare 550 with no enhanced code, a policy refusal, its own connection failures - never counts.")
+         });
+         bounces.Settings.Add(new ComBool
+         {
+            Path = "BounceMailboxFullIsHard",
+            Label = L("Count a full mailbox as a hard bounce"),
+            Blurb = L("Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week.")
+         });
+         bounces.Settings.Add(new ComCombo
+         {
+            Path = "BounceSuppressionAction",
+            Label = L("What happens to a listed recipient"),
+            Options = ToOptions(SettingClaims.BounceSuppressionActionOptions),
+            Blurb = L(SettingClaims.NoteFor("BounceSuppressionAction"))
+         });
+         bounces.Settings.Add(new ComText
+         {
+            Path = "BounceSuppressionExpiryDays",
+            Label = L("Days before an entry made by a bounce expires (0 = never)"),
+            Numeric = true,
+            Blurb = L("Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry.")
+         });
+         bounces.Settings.Add(new ComBool
+         {
+            Path = "BounceReadDeliveryReports",
+            Label = L("Read delivery reports that arrive for this server's senders"),
+            Blurb = L(SettingClaims.NoteFor("BounceReadDeliveryReports"))
+         });
+         bounces.Settings.Add(new ComText
+         {
+            Path = "BounceCountRetentionDays",
+            Label = L("Days bounce counts are kept (0 = keep)"),
+            Numeric = true
+         });
+         bounces.Settings.Add(new ComText
+         {
+            Path = "BounceReportWindowDays",
+            Label = L("Days after sending that a delivery report is still matched (1 to 30)"),
+            Numeric = true
+         });
+         Tab(L("Delivery")).Cards.Add(bounces);
+
          var relay = Card(L("SMTP relayer (smart host)"),
             L("Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)."));
          relay.Settings.Add(new ComText { Path = "SMTPRelayer", Label = L("Relay host name (empty = direct delivery; use host1|host2 for failover)") });

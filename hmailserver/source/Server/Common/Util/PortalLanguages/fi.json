@@ -358,6 +358,8 @@
   "None yet.": "Ei vielä yhtään.",
   "Not junk": "Ei roskapostia",
   "Not known yet.": "Ei vielä tiedossa.",
+  "Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.": "Osoitteeseen {0} ei lähetetty: posti tähän osoitteeseen on palautunut, ja osoite on verkkotunnuksesi estolistalla. Ylläpitäjä voi poistaa sen.",
+  "Not sent to {0}: your administrator has put this address on the suppression list of your domain, and can take it off again.": "Osoitteeseen {0} ei lähetetty: ylläpitäjä on lisännyt osoitteen verkkotunnuksesi estolistalle ja voi poistaa sen sieltä.",
   "Not sent. The message is still here.": "Ei lähetetty. Viesti on yhä täällä.",
   "Note": "Muistiinpano",
   "Nothing": "Ei mitään",
