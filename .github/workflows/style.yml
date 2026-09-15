@@ -102,6 +102,16 @@ jobs:
       - name: Every folder-access decision is ACLManager's
         run: python3 build/check-authz-choke-point.py
 
+      # Five copies of "policy, reuse, record, hash" had grown by September 2026, one
+      # of them without the policy. The breach check was added to each by reading
+      # them; this is what tells the sixth. The self-test breaks each rule in a copy
+      # and proves the check reports it, so a check that has quietly stopped seeing
+      # the call sites fails too.
+      - name: Every place a password is chosen asks the breach check
+        run: |
+          python3 build/check-password-choice-sites.py
+          python3 build/check-password-choice-sites.py --self-test
+
       # The portal's page and its script are C++ string literals, and what stood
       # behind them was a test asserting that certain substrings appeared - which
       # proves a name is spelled somewhere and nothing about what the page does.
