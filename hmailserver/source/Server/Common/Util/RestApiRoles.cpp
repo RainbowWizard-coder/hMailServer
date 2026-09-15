@@ -9,7 +9,7 @@
 //    POST   /api/v1/roles                        make a custom role
 //    GET    /api/v1/roles/{name}                 one role
 //    PUT    /api/v1/roles/{name}                 change a custom role
-//    DELETE /api/v1/roles/{name}                 remove a custom role
+//    DELETE /api/v1/roles/{name}                 remove a custom role nobody holds
 //    GET    /api/v1/role-assignments             who holds which role, where
 //    PUT    /api/v1/role-assignments/{address}   give an account a role
 //    DELETE /api/v1/role-assignments/{address}   take it away
@@ -174,9 +174,16 @@ namespace HM
    RestApiServer::HandleRoleDelete_(const AnsiString &name)
    {
       String error;
+      int holders = 0;
 
-      if (!RoleManager::DeleteCustomRole(String(name), error))
+      if (!RoleManager::DeleteCustomRole(String(name), error, holders))
       {
+         // Accounts hold it: nothing was deleted, and the sentence says how many
+         // and what is to be done about them first. A conflict with the state of
+         // the server, which the administrator resolves, and not a bad request.
+         if (holders > 0)
+            return BuildResponse_(409, AnsiString("{\"error\":\"") + JsonEscape_(Utf8_(error)) + "\"}");
+
          RoleRecord record;
 
          if (!RoleManager::FindRole(String(name), record))
@@ -185,7 +192,7 @@ namespace HM
          return BuildResponse_(400, AnsiString("{\"error\":\"") + JsonEscape_(Utf8_(error)) + "\"}");
       }
 
-      LOG_APPLICATION("RestApi: the role '" + String(name) + "' was deleted, with every assignment of it.");
+      LOG_APPLICATION("RestApi: the role '" + String(name) + "' was deleted. Nobody held it.");
 
       return BuildResponse_(200, "{\"deleted\":true}");
    }
@@ -550,7 +557,7 @@ namespace HM
          "\"/api/v1/roles/{name}\":{"
          "\"get\":{\"summary\":\"One role\",\"responses\":{\"200\":{\"description\":\"The role\"},\"404\":{\"description\":\"No such role\"}}},"
          "\"put\":{\"summary\":\"Change a custom role\",\"description\":\"Body: description and permissions, judged as the create judges them. A built-in role is refused: its permissions are in the code so that an UPDATE against the database cannot hand somebody a permission.\",\"responses\":{\"200\":{\"description\":\"The role\"},\"400\":{\"description\":\"A built-in role, or no permission this server has\"},\"404\":{\"description\":\"No such role\"}}},"
-         "\"delete\":{\"summary\":\"Remove a custom role\",\"description\":\"Its assignments go with it, so nobody is left holding a role that does not exist. A built-in role is refused.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"400\":{\"description\":\"A built-in role\"},\"404\":{\"description\":\"No such role\"}}}},"
+         "\"delete\":{\"summary\":\"Remove a custom role\",\"description\":\"A role nobody holds, and only that. A role any account holds is refused with 409 and a sentence saying how many accounts hold it, each of which must be given another role or have this one taken away first. The assignments are never taken away to make a role deletable, because an account with no assignment holds what its AdminLevel gives it - an account narrowed from server administrator to the role would be the server administrator again, with nothing said. A built-in role is refused. A refusal changes nothing and is not on the audit trail. Needs manage_roles.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"400\":{\"description\":\"A built-in role\"},\"404\":{\"description\":\"No such role\"},\"409\":{\"description\":\"Accounts hold the role; error says how many, and that each must be given another role or have this one taken away first\"}}}},"
          "\"/api/v1/role-assignments\":{"
          "\"get\":{\"summary\":\"Who holds which role, and where\",\"description\":\"One entry per account with an explicit assignment: address, role, domains as stored, and every_domain - true when the list is * or when it is empty and the role is serveradmin or auditor, which reach every domain unless told otherwise; every other role, custom roles included, reaches the account's own domain when the list is empty. An account with no entry holds the role its AdminLevel has always given it - server administrator, domain administrator or neither - which is why an upgrade writes no rows and nobody's authority changes on the day roles arrive.\",\"responses\":{\"200\":{\"description\":\"count, assignments\"}}}},"
          "\"/api/v1/role-assignments/{address}\":{"

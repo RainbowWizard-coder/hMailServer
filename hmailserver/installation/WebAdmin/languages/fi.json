@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "Poistetaanko saapuva välityspalvelin {0}?",
   "Delete the listener {0}?": "Poistetaanko kuuntelija {0}?",
   "Delete the remote domain policy for {0}?": "Poistetaanko etäverkkotunnuksen {0} käytäntö?",
+  "Delete the role {0}?": "Poistetaanko rooli {0}?",
   "Delete the route for {0}?": "Poistetaanko kohteen {0} reitti?",
   "Delete the rule “{0}”?": "Poistetaanko sääntö ”{0}”?",
   "Delete the white-list address {0}?": "Poistetaanko valkolistaosoite {0}?",

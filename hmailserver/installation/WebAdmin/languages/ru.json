@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "Удалить входящий ретранслятор {0}?",
   "Delete the listener {0}?": "Удалить порт прослушивания {0}?",
   "Delete the remote domain policy for {0}?": "Удалить правило для внешнего домена {0}?",
+  "Delete the role {0}?": "Удалить роль {0}?",
   "Delete the route for {0}?": "Удалить маршрут для {0}?",
   "Delete the rule “{0}”?": "Удалить правило «{0}»?",
   "Delete the white-list address {0}?": "Удалить адрес белого списка {0}?",

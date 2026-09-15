@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "{0} 수신 릴레이를 삭제하시겠습니까?",
   "Delete the listener {0}?": "{0} 리스너를 삭제하시겠습니까?",
   "Delete the remote domain policy for {0}?": "원격 도메인 {0}의 정책을 삭제할까요?",
+  "Delete the role {0}?": "{0} 역할을 삭제하시겠습니까?",
   "Delete the route for {0}?": "{0}의 경로를 삭제하시겠습니까?",
   "Delete the rule “{0}”?": "“{0}” 규칙을 삭제하시겠습니까?",
   "Delete the white-list address {0}?": "{0} 화이트리스트 주소를 삭제하시겠습니까?",

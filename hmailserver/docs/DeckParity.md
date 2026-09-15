@@ -831,7 +831,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `remotedomains` | `GET /api/v1/openapi.json`, `GET /api/v1/remote-domains`, `POST /api/v1/remote-domains`, `POST /api/v1/remote-domains/verification-cache/clear`, `DELETE /api/v1/remote-domains/{}`, `PUT /api/v1/remote-domains/{}` |
 | `certs` | `GET /api/v1/certificates`, `POST /api/v1/certificates`, `DELETE /api/v1/certificates/{}`, `GET /api/v1/openapi.json` |
 | `ports` | `GET /api/v1/certificates`, `GET /api/v1/openapi.json`, `GET /api/v1/ports`, `POST /api/v1/ports`, `DELETE /api/v1/ports/{}`, `PUT /api/v1/ports/{}`, `POST /api/v1/server/reinitialize` |
-| `roles` | `GET /api/v1/role-assignments`, `DELETE /api/v1/role-assignments/{}`, `PUT /api/v1/role-assignments/{}`, `GET /api/v1/roles` |
+| `roles` | `GET /api/v1/role-assignments`, `DELETE /api/v1/role-assignments/{}`, `PUT /api/v1/role-assignments/{}`, `GET /api/v1/roles`, `DELETE /api/v1/roles/{}` |
 | `logs` | `GET /api/v1/logs`, `GET /api/v1/logs/{}?lines={}`, `GET /api/v1/session`, `GET /api/v1/status` |
 | `reports` | `GET /api/v1/domains`, `GET /api/v1/reports`, `GET /api/v1/reports/summary?{}` |
 | `audit` | `GET /api/v1/audit/verify`, `GET /api/v1/audit{}` |

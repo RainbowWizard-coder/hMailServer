@@ -39,6 +39,9 @@ namespace RegressionTests.API
    ///      * a help desk allowed a password reset and refused a settings change,
    ///        and refused the password of anybody who holds more than it does;
    ///      * the two historical levels exactly as they were, with no row written;
+   ///      * a custom role somebody holds refused deletion, over REST and as COM
+   ///        sees it, so that nobody narrowed to it is handed back the authority
+   ///        of its admin level;
    ///      * the reports, which need the configuration and the message trace both;
    ///      * the COM path that let any account reach another account's full
    ///        object through a permission on a folder of its own, closed;
@@ -313,7 +316,7 @@ namespace RegressionTests.API
 
          Assert.IsTrue(AccountOverCom("exists@" + OtherDomain).ValidatePassword(AccountPassword), "The refused reset changed nothing.");
 
-         (int status, string body) ownMissing = AsAccount("helen@example.test", "POST", "/api/v1/accounts/missing@example.test/password", body);
+         (int status, string body) ownMissing = AsAccount("helen@example.test", "POST", "/api/v1/accounts/missing@example.test/password", resetBody);
          Assert.AreEqual(404, ownMissing.status, "Inside its own domain, a missing account is simply missing. Body: " + ownMissing.body);
 
          // Widening the assignment by naming the other domain is how an
@@ -469,7 +472,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A custom role never holds the authority that hands out authority; a built-in role cannot be edited or deleted; deleting a custom role takes its assignments with it")]
+      [Description("A custom role never holds the authority that hands out authority; a built-in role cannot be edited or deleted; a custom role somebody holds is not deleted, and deletes once it has been taken away")]
       public void ACustomRoleCannotHoldTheAuthorityThatHandsOutAuthority()
       {
          SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
@@ -486,11 +489,63 @@ namespace RegressionTests.API
          Assign("user@example.test", "rolestest-reader", "");
          StringAssert.Contains("rolestest-reader", Admin("GET", "/api/v1/role-assignments").body);
 
+         Assert.AreEqual(409, Admin("DELETE", "/api/v1/roles/rolestest-reader").status, "A role somebody holds was deleted.");
+         StringAssert.Contains("rolestest-reader", Admin("GET", "/api/v1/role-assignments").body, "A refused delete took the assignment away.");
+
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/user@example.test").status);
          Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-reader").status);
-         StringAssert.DoesNotContain("rolestest-reader", Admin("GET", "/api/v1/role-assignments").body);
+         StringAssert.DoesNotContain("rolestest-reader", Admin("GET", "/api/v1/roles").body);
 
          (int status, string body) who = AsAccount("user@example.test", "GET", "/api/v1/session");
-         StringAssert.Contains("\"administrative\":false", who.body, "An account whose role was deleted falls back to what its admin level gives it.");
+         StringAssert.Contains("\"administrative\":false", who.body, "An account whose role was taken away falls back to what its admin level gives it.");
+      }
+
+      [Test]
+      [Description("Deleting a custom role never hands its holders the authority of their admin level: an account whose level says server administrator, narrowed to a custom role, keeps the role while the delete is refused with 409 and how many accounts hold it, and stays refused what a server administrator may do; once the role has been taken away from every holder, it deletes")]
+      public void AHeldCustomRoleIsNotDeletedAndItsHoldersAreNotWidened()
+      {
+         Account narrowed = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "narrowed@example.test", AccountPassword);
+         narrowed.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         narrowed.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-held\",\"description\":\"finds accounts\",\"permissions\":\"view_accounts\"}").status);
+         Assign("narrowed@example.test", "rolestest-held", "");
+
+         (int status, string body) refused = Admin("DELETE", "/api/v1/roles/rolestest-held");
+         Assert.AreEqual(409, refused.status, "A role somebody holds was deleted, handing its holder the authority of its admin level. Body: " + refused.body);
+         StringAssert.Contains("The role rolestest-held is held by 1 account, which must be given another role or have this one taken away before the role can be deleted.", refused.body);
+
+         Assert.AreEqual(200, Admin("GET", "/api/v1/roles/rolestest-held").status, "The refused delete removed the role.");
+         StringAssert.Contains("\"address\":\"narrowed@example.test\",\"role\":\"rolestest-held\"", Admin("GET", "/api/v1/role-assignments").body,
+            "The refused delete took the assignment away.");
+
+         (int status, string body) who = AsAccount("narrowed@example.test", "GET", "/api/v1/session");
+         Assert.AreEqual(200, who.status, who.body);
+         StringAssert.Contains("\"role\":\"rolestest-held\"", who.body, "The account holds its role, not the server administrator its level says.");
+         StringAssert.DoesNotContain("administer_server", who.body);
+
+         (int status, string body) settings = AsAccount("narrowed@example.test", "PUT", "/api/v1/settings", "{\"welcome_smtp\":\"changed by a narrowed administrator\"}");
+         Assert.AreEqual(403, settings.status, "The narrowed account changed the settings. Body: " + settings.body);
+
+         (int status, string body) domain = AsAccount("narrowed@example.test", "POST", "/api/v1/domains", "{\"name\":\"widened.example.test\"}");
+         Assert.AreEqual(403, domain.status, "The narrowed account made a domain. Body: " + domain.body);
+
+         // Two holders are counted as two, and the role stays for as long as
+         // either holds it.
+         Assign("user@example.test", "rolestest-held", "");
+         refused = Admin("DELETE", "/api/v1/roles/rolestest-held");
+         Assert.AreEqual(409, refused.status, refused.body);
+         StringAssert.Contains("The role rolestest-held is held by 2 accounts, which must be given another role or have this one taken away before the role can be deleted.", refused.body);
+
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/user@example.test").status);
+         Assert.AreEqual(409, Admin("DELETE", "/api/v1/roles/rolestest-held").status, "The role was deleted while narrowed@example.test still held it.");
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/narrowed@example.test").status);
+
+         (int status, string body) deleted = Admin("DELETE", "/api/v1/roles/rolestest-held");
+         Assert.AreEqual(200, deleted.status, "A role nobody holds is deleted as it always was. Body: " + deleted.body);
+         Assert.AreEqual(404, Admin("GET", "/api/v1/roles/rolestest-held").status);
       }
 
       [Test]
@@ -743,6 +798,41 @@ namespace RegressionTests.API
          Assert.AreEqual("", AccountOverCom("helen@example.test").RolePermissions);
       }
 
+      [Test]
+      [Description("Over COM the same guarantee holds: an account whose admin level says server administrator, given a custom role over COM, keeps the role in COM's listings and is refused the settings over COM while the role's delete is refused; COM has no way to delete a role, and once COM has taken the role away the delete succeeds")]
+      public void AHeldCustomRoleKeepsItsHolderNarrowedOverCom()
+      {
+         Account narrowed = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "narrowed@example.test", AccountPassword);
+         narrowed.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         narrowed.Save();
+
+         // A custom role is made, and deleted, over REST: COM lists the roles and
+         // gives them out, and neither makes one nor deletes one.
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-held\",\"description\":\"finds accounts\",\"permissions\":\"view_accounts\"}").status);
+         _application.AssignRole("narrowed@example.test", "rolestest-held", "");
+
+         (int status, string body) refused = Admin("DELETE", "/api/v1/roles/rolestest-held");
+         Assert.AreEqual(409, refused.status, "A role somebody holds was deleted. Body: " + refused.body);
+         StringAssert.Contains("The role rolestest-held is held by 1 account, which must be given another role or have this one taken away before the role can be deleted.", refused.body);
+
+         StringAssert.Contains("rolestest-held\t0\t", _application.Roles, "The refused delete removed the role.");
+         Assert.AreEqual("rolestest-held", AccountOverCom("narrowed@example.test").RoleName, "The refused delete took the assignment away.");
+         StringAssert.Contains("narrowed@example.test\trolestest-held\t", _application.RoleAssignments);
+
+         var asNarrowed = new Application();
+         Assert.IsNotNull(asNarrowed.Authenticate("narrowed@example.test", AccountPassword));
+         Assert.AreEqual("rolestest-held", asNarrowed.CurrentRole);
+         StringAssert.DoesNotContain("administer_server", asNarrowed.CurrentPermissions);
+         StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => { var settings = asNarrowed.Settings; }).Message,
+            "The narrowed account reached the settings over COM.");
+         StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => asNarrowed.AssignRole("narrowed@example.test", "serveradmin", "")).Message);
+
+         _application.AssignRole("narrowed@example.test", "", "");
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-held").status, "A role nobody holds is deleted as it always was.");
+         StringAssert.DoesNotContain("rolestest-held", _application.Roles);
+      }
+
       // ------------------------------------------------------- the audit trail
 
       [Test]
@@ -919,6 +1009,12 @@ namespace RegressionTests.API
          Assert.AreEqual(200, Admin("PUT", "/api/v1/roles/rolestest-words",
             "{\"description\":\"reads logs and the queue\",\"permissions\":\"view_logs,view_queue\"}").status);
          Assign("olga@example.test", "rolestest-words", "");
+
+         // Refused while olga holds it, and a refusal is no row: the trail below
+         // holds exactly one deletion of the role, the one made after her
+         // assignment was taken away.
+         Assert.AreEqual(409, Admin("DELETE", "/api/v1/roles/rolestest-words").status);
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/olga@example.test").status);
          Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-words").status);
 
          // A role nobody held, deleted: the role's row, and no row saying that
@@ -956,11 +1052,16 @@ namespace RegressionTests.API
                row("role", "created", "rolestest-words").GetProperty("detail").GetString());
             StringAssert.StartsWith("permissions: view_logs -> view_queue,view_logs; description: 'reads logs' -> 'reads logs and the queue'",
                row("role", "updated", "rolestest-words").GetProperty("detail").GetString());
-            StringAssert.StartsWith("role: rolestest-words -> (none), because the role was deleted; held by olga@example.test",
+            StringAssert.StartsWith("role: rolestest-words -> (none); domains: the account's own domain -> (none)",
                row("role assignment", "deleted", "olga@example.test").GetProperty("detail").GetString());
             StringAssert.StartsWith("permissions: view_queue,view_logs; description: 'reads logs and the queue'",
                row("role", "deleted", "rolestest-words").GetProperty("detail").GetString());
             row("role", "deleted", "rolestest-unheld");
+
+            // No assignment goes with a role any more: a held role is refused, so
+            // every assignment that went was taken away on its own.
+            Assert.IsFalse(rows.Any(e => e.GetProperty("detail").GetString().Contains("because the role was deleted")),
+               "An assignment is on the record as going with a deleted role. Trail: " + trail.body);
 
             Assert.IsFalse(rows.Any(e => e.GetProperty("detail").GetString().Contains("raaccountid") ||
                                          e.GetProperty("detail").GetString().Contains("raroleid") ||
@@ -1231,6 +1332,15 @@ namespace RegressionTests.API
          (int status, string body) roles = Admin("GET", "/api/v1/roles");
          if (roles.status != 200)
             return;
+
+         // A role somebody holds is refused deletion, so the holders of a test's
+         // roles - a test that stopped part-way leaves them - lose them first.
+         (int status, string body) held = Admin("GET", "/api/v1/role-assignments");
+         if (held.status == 200)
+         {
+            foreach (Match match in Regex.Matches(held.body, "\"address\":\"([^\"]+)\",\"role\":\"rolestest-[a-z0-9_-]+\""))
+               Admin("DELETE", "/api/v1/role-assignments/" + match.Groups[1].Value);
+         }
 
          foreach (Match match in Regex.Matches(roles.body, "\"name\":\"(rolestest-[a-z0-9_-]+)\""))
             Admin("DELETE", "/api/v1/roles/" + match.Groups[1].Value);

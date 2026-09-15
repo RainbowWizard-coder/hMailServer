@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "Να διαγραφεί η εισερχόμενη αναμετάδοση {0};",
   "Delete the listener {0}?": "Να διαγραφεί η θύρα ακρόασης {0};",
   "Delete the remote domain policy for {0}?": "Διαγραφή της πολιτικής για τον απομακρυσμένο τομέα {0};",
+  "Delete the role {0}?": "Να διαγραφεί ο ρόλος {0};",
   "Delete the route for {0}?": "Να διαγραφεί η διαδρομή για {0};",
   "Delete the rule “{0}”?": "Να διαγραφεί ο κανόνας «{0}»;",
   "Delete the white-list address {0}?": "Να διαγραφεί η διεύθυνση λευκής λίστας {0};",

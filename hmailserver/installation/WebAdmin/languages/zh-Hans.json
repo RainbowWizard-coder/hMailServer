@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "要删除传入中继 {0} 吗？",
   "Delete the listener {0}?": "要删除侦听器 {0} 吗？",
   "Delete the remote domain policy for {0}?": "删除远程域 {0} 的策略？",
+  "Delete the role {0}?": "要删除角色 {0} 吗？",
   "Delete the route for {0}?": "要删除 {0} 的路由吗？",
   "Delete the rule “{0}”?": "要删除规则“{0}”吗？",
   "Delete the white-list address {0}?": "要删除白名单地址 {0} 吗？",

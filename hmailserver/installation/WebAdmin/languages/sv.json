@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "Radera det inkommande relayet {0}?",
   "Delete the listener {0}?": "Radera listenern {0}?",
   "Delete the remote domain policy for {0}?": "Ta bort regeln för den externa domänen {0}?",
+  "Delete the role {0}?": "Radera rollen {0}?",
   "Delete the route for {0}?": "Radera rutten för {0}?",
   "Delete the rule “{0}”?": "Radera regeln ”{0}”?",
   "Delete the white-list address {0}?": "Radera whitelistadressen {0}?",

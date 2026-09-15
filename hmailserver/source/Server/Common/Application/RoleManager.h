@@ -229,7 +229,16 @@ namespace HM
       static std::vector<RoleRecord> ListRoles();
       static bool FindRole(const String &name, RoleRecord &record);
       static bool SaveCustomRole(const String &name, const String &description, const String &permissions, String &error);
-      static bool DeleteCustomRole(const String &name, String &error);
+
+      // Removes a custom role, and nothing else. Refused - false, with the
+      // sentence in error - for a name no role has, for a built-in role, and for
+      // a role any account holds, whose assignments are never taken away to make
+      // it deletable: an account with no assignment holds what its admin level
+      // gives it, so an account narrowed from server administrator to the role
+      // would be the server administrator again, with nothing said. holders is
+      // how many accounts hold the role when that is the refusal, and 0 every
+      // other way. A refusal writes nothing, the audit trail included.
+      static bool DeleteCustomRole(const String &name, String &error, int &holders);
 
       // The assignments.
       static std::vector<RoleAssignment> ListAssignments();

@@ -178,8 +178,17 @@ know.
 Made over REST (`POST /api/v1/roles` with a name and a comma-separated permission
 list, needs `manage_roles`), listed and given out in both editors. A permission this
 server does not know is dropped rather than refused, so a custom role always ends with
-less authority than it asked for and never more. Deleting a custom role deletes its
-assignments; an account that held it falls back to what its admin level gives it.
+less authority than it asked for and never more.
+
+**A custom role somebody holds cannot be deleted.** `DELETE /api/v1/roles/{name}` answers
+`409` with a sentence saying how many accounts hold the role, and the Deck's *Delete* on
+the role's row shows that sentence: each holder must first be given another role or have
+this one taken away. The assignments are never taken away to make a role deletable,
+because an account with no assignment holds what its admin level gives it - an account
+whose level says server administrator, narrowed to a custom role, would be the server
+administrator again, with nothing said. Taking a role away from an account is a decision
+about that account, and on the audit trail as one. A role nobody holds deletes as it
+always has, a built-in role never does, and COM has no way to delete a role at all.
 
 Where each role works
 ---------------------
@@ -251,10 +260,10 @@ away, is a row in the audit trail with the credential that did it - in words, no
 role assignment's row names the account by its address and says the role and the domains
 it reaches before and after (`role: helpdesk -> auditor; domains: the account's own domain
 -> every domain`); a role's row names the role and says its permissions and description
-before and after; and deleting a custom role that somebody held records whose assignments
-went with it - one holder by its address, several as `N accounts`, and every address in
-the detail. A change that changes nothing writes nothing: a role taken from an account
-that holds none, or a role nobody held deleted, adds no assignment row.
+before and after. A delete that is refused - a built-in role, or a custom role somebody
+still holds - changes nothing and writes nothing, so the one row a role's deletion adds is
+for a deletion that happened, and no assignment ever goes with a role. A change that
+changes nothing writes nothing: a role taken from an account that holds none adds no row.
 
 A backup carries each account's assignment with the account (`AccountStores`), with the
 role written by its name rather than its id, so that a restore onto another server

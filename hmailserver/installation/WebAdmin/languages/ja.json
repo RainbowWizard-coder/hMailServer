@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "受信リレー {0} を削除しますか？",
   "Delete the listener {0}?": "リスナー {0} を削除しますか？",
   "Delete the remote domain policy for {0}?": "リモートドメイン {0} のポリシーを削除しますか？",
+  "Delete the role {0}?": "ロール {0} を削除しますか？",
   "Delete the route for {0}?": "{0} のルートを削除しますか？",
   "Delete the rule “{0}”?": "ルール「{0}」を削除しますか？",
   "Delete the white-list address {0}?": "ホワイトリストアドレス {0} を削除しますか？",

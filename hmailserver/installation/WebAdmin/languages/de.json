@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "Eingehendes Relay {0} löschen?",
   "Delete the listener {0}?": "Listener {0} löschen?",
   "Delete the remote domain policy for {0}?": "Regel für die fremde Domain {0} löschen?",
+  "Delete the role {0}?": "Rolle {0} löschen?",
   "Delete the route for {0}?": "Route für {0} löschen?",
   "Delete the rule “{0}”?": "Regel „{0}“ löschen?",
   "Delete the white-list address {0}?": "Whitelist-Adresse {0} löschen?",

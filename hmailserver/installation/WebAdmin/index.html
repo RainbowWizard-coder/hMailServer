@@ -1062,6 +1062,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="unlock")unlockAccount(d.address);
   else if(d.act==="assign")assignRole();
   else if(d.act==="unassign")unassignRole(d.address);
+  else if(d.act==="roledel")deleteRole(d.name);
   else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
   else if(d.act==="auditverify")verifyAuditChain();
   else if(d.act==="rdnew")openRemoteDomain(0);
@@ -3351,14 +3352,15 @@ async function renderRoles(){
     <tr><td><code class="ro">${escHtml(r.name)}</code></td>
         <td>${escHtml(r.description||"")}</td>
         <td>${r.builtin?'<span class="badge info">'+t("Built in")+'</span>':""}</td>
-        <td style="word-break:break-word">${escHtml((r.permissions||"").split(",").join(", "))}</td></tr>`).join("");
+        <td style="word-break:break-word">${escHtml((r.permissions||"").split(",").join(", "))}</td>
+        <td style="text-align:right">${may("manage_roles")&&!r.builtin?`<button class="btn danger sm" data-act="roledel" data-name="${escHtml(r.name)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
   const options=roles.map(r=>`<option value="${escHtml(r.name)}">${escHtml(r.name)}</option>`).join("");
   const heldRows=(held.assignments||[]).map(a=>`
     <tr><td>${escHtml(a.address)}</td><td><code class="ro">${escHtml(a.role)}</code></td>
         <td>${escHtml(a.every_domain?t("every domain"):(a.domains||t("the account's own domain")))}</td>
         <td style="text-align:right">${may("manage_roles")?`<button class="btn danger sm" data-act="unassign" data-address="${escHtml(a.address)}">${t("Remove")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`<div class="card view">
-    <div class="tablewrap"><table><thead><tr><th>${t("Role")}</th><th>${t("What it is for")}</th><th></th><th>${t("Permissions")}</th></tr></thead>
+    <div class="tablewrap"><table><thead><tr><th>${t("Role")}</th><th>${t("What it is for")}</th><th></th><th>${t("Permissions")}</th><th></th></tr></thead>
     <tbody>${roleRows}</tbody></table></div></div>
     <div class="card view" style="margin-top:14px">
     <div class="tablewrap"><table><thead><tr><th>${t("Account")}</th><th>${t("Role")}</th><th>${t("Domains")}</th><th></th></tr></thead>
@@ -3384,6 +3386,17 @@ async function unassignRole(address){
   setErr("err_roles","");
   try{
     await api("/api/v1/role-assignments/"+encodeURIComponent(address),{method:"DELETE"});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+/* A custom role nobody holds is deleted. One somebody holds is refused by the
+   server - deleting it would hand each holder what its admin level gives - with
+   a sentence saying how many accounts hold it, shown here beside who holds what. */
+async function deleteRole(name){
+  setErr("err_roles","");
+  if(!confirm(tf("Delete the role {0}?",name)))return;
+  try{
+    await api("/api/v1/roles/"+encodeURIComponent(name),{method:"DELETE"});
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
 }

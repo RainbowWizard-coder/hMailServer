@@ -1001,9 +1001,10 @@ namespace HM
    }
 
    bool
-   RoleManager::DeleteCustomRole(const String &name, String &error)
+   RoleManager::DeleteCustomRole(const String &name, String &error, int &holders)
    {
       error = _T("");
+      holders = 0;
 
       RoleRecord record;
       if (!FindRole(name, record))
@@ -1018,54 +1019,44 @@ namespace HM
          return false;
       }
 
-      // Who held it, read from the table before the delete takes the rows
-      // away - the table and not the copy, so that a row the copy has not seen
-      // is neither missed nor invented - so that the record of the assignments
-      // going says whose they were. One holder is the row's object, by its
-      // address; more are counted there, because the object name is short, and
-      // every address is in the detail, which is not.
-      std::vector<String> holders;
+      // A role somebody holds is not deleted, and its assignments are not taken
+      // away to make it deletable. An account with no assignment holds what its
+      // admin level gives it, so deleting a held role would hand every holder
+      // that authority back with nothing said - and an account whose level says
+      // server administrator, narrowed to this role, would be the server
+      // administrator again. Each holder is given another role or has this one
+      // taken away first: a decision about one account, made by somebody, and
+      // on the audit trail as that.
+      //
+      // Counted from the table and not the copy, so that an assignment the copy
+      // has not seen yet still counts.
+      SQLCommand countHolders("select count(*) as c from hm_roleassignments where raroleid = @ROLEID");
+      countHolders.AddParameter("@ROLEID", record.id);
 
-      SQLCommand selectHolders(
-         "select accountaddress from hm_accounts inner join hm_roleassignments on raaccountid = accountid "
-         "where raroleid = @ID order by accountaddress");
-      selectHolders.AddParameter("@ID", record.id);
+      std::shared_ptr<DALRecordset> counted = Application::Instance()->GetDBManager()->OpenRecordset(countHolders);
 
-      std::shared_ptr<DALRecordset> holding = Application::Instance()->GetDBManager()->OpenRecordset(selectHolders);
-
-      if (!holding)
+      if (!counted || counted->IsEOF())
       {
          error = _T("the role's assignments could not be read");
          return false;
       }
 
-      while (!holding->IsEOF())
+      holders = (int) counted->GetLongValue("c");
+
+      if (holders > 0)
       {
-         holders.push_back(holding->GetStringValue("accountaddress"));
-         holding->MoveNext();
+         error = String(_T("The role ")) + record.name + _T(" is held by ") + StringParser::IntToString(holders) +
+            (holders == 1 ? _T(" account") : _T(" accounts")) +
+            _T(", which must be given another role or have this one taken away before the role can be deleted.");
+         return false;
       }
 
-      // A role nobody held has no assignments to delete, and a row that said
-      // "(nobody held it)" went would be a record of nothing happening.
-      if (!holders.empty())
-      {
-         const String objectName = holders.size() == 1
-            ? holders[0]
-            : StringParser::IntToString((int) holders.size()) + _T(" accounts");
-
-         AuditDescription described(_T("hm_roleassignments"), objectName,
-            String(_T("role: ")) + record.name + _T(" -> (none), because the role was deleted; held by ") +
-            StringParser::JoinVector(holders, _T(", ")));
-
-         SQLCommand removeAssignments("delete from hm_roleassignments where raroleid = @ID");
-         removeAssignments.AddParameter("@ID", record.id);
-         if (!Application::Instance()->GetDBManager()->Execute(removeAssignments))
-         {
-            error = _T("the role's assignments could not be removed");
-            return false;
-         }
-      }
-
+      // Only a role nobody holds reaches the delete, so the one row it puts on
+      // the audit trail records a deletion that happened: every refusal above
+      // returned before a statement ran. An assignment written between the count
+      // and the delete does not slip through either. The assignments' foreign key
+      // to hm_roles has no cascade, so the delete fails, the role stays, and the
+      // trail - which records only a statement that succeeded - says nothing.
       {
          AuditDescription described(_T("hm_roles"), record.name,
             String(_T("permissions: ")) + record.permissions + _T("; description: ") + DescribeText(record.description));

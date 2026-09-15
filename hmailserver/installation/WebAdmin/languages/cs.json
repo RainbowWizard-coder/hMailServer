@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "Smazat příchozí relay {0}?",
   "Delete the listener {0}?": "Smazat naslouchací port {0}?",
   "Delete the remote domain policy for {0}?": "Smazat pravidlo pro vzdálenou doménu {0}?",
+  "Delete the role {0}?": "Smazat roli {0}?",
   "Delete the route for {0}?": "Smazat trasu pro {0}?",
   "Delete the rule “{0}”?": "Smazat pravidlo „{0}“?",
   "Delete the white-list address {0}?": "Smazat adresu bílé listiny {0}?",

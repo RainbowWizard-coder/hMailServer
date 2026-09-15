@@ -157,6 +157,7 @@
   "Delete the incoming relay {0}?": "{0} gelen aktarması silinsin mi?",
   "Delete the listener {0}?": "{0} dinleyicisi silinsin mi?",
   "Delete the remote domain policy for {0}?": "{0} uzak alan adının ilkesi silinsin mi?",
+  "Delete the role {0}?": "{0} rolü silinsin mi?",
   "Delete the route for {0}?": "{0} için rota silinsin mi?",
   "Delete the rule “{0}”?": "“{0}” kuralı silinsin mi?",
   "Delete the white-list address {0}?": "{0} beyaz liste adresi silinsin mi?",

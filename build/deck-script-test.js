@@ -901,7 +901,8 @@ const ROLE_CATALOGUE = [
    { name: 'helpdesk', description: 'Resets a password, unlocks an account and reads a message trace.', builtin: true,
      permissions: 'view_accounts,view_message_trace,reset_password,unlock_account' },
    { name: 'auditor', description: 'Reads everything and changes nothing, the audit trail included.', builtin: true,
-     permissions: 'view_configuration,view_accounts,view_logs,view_audit' }
+     permissions: 'view_configuration,view_accounts,view_logs,view_audit' },
+   { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
 ];
 
 const state = {
@@ -1467,6 +1468,19 @@ function answer(method, path, headers, raw) {
    }
    if (path === '/api/v1/role-assignments' && method === 'GET') {
       return json(200, { count: state.assignments.length, assignments: state.assignments });
+   }
+   if (path.indexOf('/api/v1/roles/') === 0 && method === 'DELETE') {
+      const name = decodeURIComponent(path.slice('/api/v1/roles/'.length));
+      const at = ROLE_CATALOGUE.findIndex((r) => r.name === name);
+      if (at < 0) { return json(404, { error: 'no such role' }); }
+      if (ROLE_CATALOGUE[at].builtin) { return json(400, { error: 'a built-in role cannot be deleted' }); }
+      const holders = state.assignments.filter((a) => a.role === name).length;
+      if (holders > 0) {
+         return json(409, { error: 'The role ' + name + ' is held by ' + holders + (holders === 1 ? ' account' : ' accounts') +
+            ', which must be given another role or have this one taken away before the role can be deleted.' });
+      }
+      ROLE_CATALOGUE.splice(at, 1);
+      return json(200, { deleted: true });
    }
    if (/^\/api\/v1\/accounts\/[^/]+\/password$/.test(path) && method === 'POST') {
       if (!parsed.password) { return json(400, { error: 'password must not be empty' }); }
@@ -3508,6 +3522,48 @@ async function main() {
    check('taking a role away names the account and nothing else',
       called(before, 'DELETE', '/api/v1/role-assignments/bob%40example.com').length === 1, paths(before));
    check('and the account is gone from the listing', content().textContent.indexOf('bob@example.com') < 0);
+
+   /* A custom role is deleted from its row, and a built-in one has no button to
+      try. A role somebody holds is refused by the server with how many accounts
+      hold it - deleting it would hand each of them what its admin level gives -
+      and the page shows that sentence, not a code. */
+   check('a custom role has a delete button and no built-in role has one',
+      content().querySelectorAll('button[data-act="roledel"]').length === 1 && act('roledel', { name: 'logreader' }) !== null,
+      JSON.stringify(content().querySelectorAll('button[data-act="roledel"]').map((b) => b.attributes)));
+
+   setValue('roleAddress', 'dora@example.com');
+   setValue('roleName', 'logreader');
+   setValue('roleDomains', '');
+   click(act('assign'));
+   await flush();
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('roledel', { name: 'logreader' }));
+   await flush();
+   check('deleting a role asks first, naming it, and no means nothing is sent',
+      called(before, 'DELETE', /^\/api\/v1\/roles\//).length === 0 && confirmations[confirmations.length - 1].indexOf('logreader') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+
+   before = requests.length;
+   click(act('roledel', { name: 'logreader' }));
+   await flush();
+   check('a role somebody holds is refused, and the refusal is the server\'s sentence beside who holds what',
+      called(before, 'DELETE', '/api/v1/roles/logreader').length === 1 &&
+      $('#err_roles').textContent === 'The role logreader is held by 1 account, which must be given another role or have this one taken away before the role can be deleted.',
+      $('#err_roles').textContent);
+   check('and the role and its holder are both still listed',
+      content().textContent.indexOf('Reads the logs.') >= 0 && content().textContent.indexOf('dora@example.com') >= 0);
+
+   before = requests.length;
+   click(act('unassign', { address: 'dora@example.com' }));
+   await flush();
+   click(act('roledel', { name: 'logreader' }));
+   await flush();
+   check('once nobody holds it the role is deleted, gone from the listing, with no refusal left showing',
+      called(before, 'DELETE', '/api/v1/roles/logreader').length === 1 && content().textContent.indexOf('Reads the logs.') < 0 &&
+      $('#err_roles').textContent === '', paths(before) + ' ' + $('#err_roles').textContent);
 
    /* A page a role may not use is not shown. The Deck is not the boundary - the
       server refuses the request whatever this page draws - but showing a view
