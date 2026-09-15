@@ -112,6 +112,21 @@ namespace HM
       // diagnostic chatter, and a collector charged by volume is a real cost.
       property_set_->EnsureLong(PROPERTY_SYSLOG_LOGTYPES,
          Logger::LSSMTP | Logger::LSPOP3 | Logger::LSApplication | Logger::LSIMAP);
+
+      // Bounces read, and the suppression list. Off, and with it off nothing below
+      // is consulted. The other seven are what an administrator gets on switching it
+      // on: one hard bounce lists an address, a full mailbox does not, a listed
+      // recipient is refused with a reason, entries do not expire by age, delivery
+      // reports are read, counts are kept 90 days and a report is matched for 7 days
+      // after the message went, which is also how long a BATV tag stays valid.
+      property_set_->EnsureLong(PROPERTY_BOUNCE_PROCESSING_ENABLED, 0);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_HARD_THRESHOLD, 1);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_MAILBOX_FULL_IS_HARD, 0);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_ACTION, 0);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS, 0);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_READ_REPORTS, 1);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, 90);
+      property_set_->EnsureLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, 7);
    }
 
    void
@@ -957,6 +972,114 @@ namespace HM
          attempts = 20;
 
       GetSettings()->SetLong(PROPERTY_ALERT_WEBHOOK_MAX_ATTEMPTS, attempts);
+   }
+
+   namespace
+   {
+      int ClampSetting(int value, int minimum, int maximum)
+      {
+         if (value < minimum)
+            return minimum;
+         if (value > maximum)
+            return maximum;
+         return value;
+      }
+   }
+
+   bool
+   Configuration::GetBounceProcessingEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_BOUNCE_PROCESSING_ENABLED);
+   }
+
+   void
+   Configuration::SetBounceProcessingEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_BOUNCE_PROCESSING_ENABLED, enabled);
+   }
+
+   int
+   Configuration::GetBounceHardBounceThreshold()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_BOUNCE_HARD_THRESHOLD), 1, 100);
+   }
+
+   void
+   Configuration::SetBounceHardBounceThreshold(int threshold)
+   {
+      GetSettings()->SetLong(PROPERTY_BOUNCE_HARD_THRESHOLD, ClampSetting(threshold, 1, 100));
+   }
+
+   bool
+   Configuration::GetBounceMailboxFullIsHard()
+   {
+      return GetSettings()->GetBool(PROPERTY_BOUNCE_MAILBOX_FULL_IS_HARD);
+   }
+
+   void
+   Configuration::SetBounceMailboxFullIsHard(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_BOUNCE_MAILBOX_FULL_IS_HARD, enabled);
+   }
+
+   int
+   Configuration::GetBounceSuppressionAction()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_BOUNCE_SUPPRESSION_ACTION), 0, 2);
+   }
+
+   void
+   Configuration::SetBounceSuppressionAction(int action)
+   {
+      GetSettings()->SetLong(PROPERTY_BOUNCE_SUPPRESSION_ACTION, ClampSetting(action, 0, 2));
+   }
+
+   int
+   Configuration::GetBounceSuppressionExpiryDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS), 0, 3650);
+   }
+
+   void
+   Configuration::SetBounceSuppressionExpiryDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS, ClampSetting(days, 0, 3650));
+   }
+
+   bool
+   Configuration::GetBounceReadDeliveryReports()
+   {
+      return GetSettings()->GetBool(PROPERTY_BOUNCE_READ_REPORTS);
+   }
+
+   void
+   Configuration::SetBounceReadDeliveryReports(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_BOUNCE_READ_REPORTS, enabled);
+   }
+
+   int
+   Configuration::GetBounceCountRetentionDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS), 0, 3650);
+   }
+
+   void
+   Configuration::SetBounceCountRetentionDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, ClampSetting(days, 0, 3650));
+   }
+
+   int
+   Configuration::GetBounceReportWindowDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS), 1, 30);
+   }
+
+   void
+   Configuration::SetBounceReportWindowDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, ClampSetting(days, 1, 30));
    }
 
    int

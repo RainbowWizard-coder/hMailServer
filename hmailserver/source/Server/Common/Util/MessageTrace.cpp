@@ -26,6 +26,7 @@ namespace HM
    const wchar_t *MessageTrace::EventDelivered = L"delivered";
    const wchar_t *MessageTrace::EventFailed = L"failed";
    const wchar_t *MessageTrace::EventQuarantined = L"quarantined";
+   const wchar_t *MessageTrace::EventSuppressed = L"suppressed";
 
    bool
    MessageTrace::GetEnabled()

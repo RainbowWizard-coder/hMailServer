@@ -85,6 +85,7 @@
 #include "SMTPConfiguration.h"
 #include "SMTPMessageHeaderCreator.h"
 #include "DistributionListSender.h"
+#include "BounceTracker.h"
 
 #include "../Common/TCPIP/CipherInfo.h"
 
@@ -1365,6 +1366,22 @@ namespace HM
       // here because this is where that determination is already made. Upstream #552.
       if (isAuthenticated_ || (localSender && !authenticationRequired))
          message_submission_ = true;
+
+      // The suppression list, for a submission to an address outside: refused here,
+      // while the person sending can still be told why, rather than accepted and
+      // returned to them later. Everything else meets the same list at delivery.
+      if (message_submission_ && !localDelivery)
+      {
+         String suppressionCode;
+         String suppressionText;
+
+         if (BounceTracker::RefuseAtSubmission(current_message_->GetFromAddress(), sRecipientAddress, suppressionCode, suppressionText))
+         {
+            AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
+            SendResponse_(550, suppressionCode, suppressionText);
+            return;
+         }
+      }
 
       // RFC 3030 section 4: a BINARYMIME message must not be sent to a server that
       // has not advertised BINARYMIME, and until 5 September 2026 this server's

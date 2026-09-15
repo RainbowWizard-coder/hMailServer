@@ -78,6 +78,7 @@
 #include "IMAPExpungeRetentionTask.h"
 #include "MessageStoreConsistencyTask.h"
 #include "WorkQueueHealthTask.h"
+#include "BounceMaintenanceTask.h"
 #include "../Util/DiskSpace.h"
 #include "../Util/AlertManager.h"
 #include "BackupScheduleTask.h"
@@ -695,6 +696,19 @@ namespace HM
       // Log retention: prune date-stamped log files older than LogDeleteDays.
       // The task itself no-ops when LogDeleteDays <= 0 (retention disabled).
       // Run once promptly at startup, then periodically thereafter.
+      // The suppression list's sweeps: expired entries, old counts, old report
+      // keys. Once at start and then hourly, whether or not bounce processing is on,
+      // so switching it off does not strand what it wrote; on a server that never
+      // switched it on each pass is three counts of nothing.
+      std::shared_ptr<BounceMaintenanceTask> bounceMaintenanceStartupTask = std::shared_ptr<BounceMaintenanceTask>(new BounceMaintenanceTask);
+      bounceMaintenanceStartupTask->SetReoccurance(ScheduledTask::RunOnce);
+      scheduler_->ScheduleTask(bounceMaintenanceStartupTask);
+
+      std::shared_ptr<BounceMaintenanceTask> bounceMaintenanceTask = std::shared_ptr<BounceMaintenanceTask>(new BounceMaintenanceTask);
+      bounceMaintenanceTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      bounceMaintenanceTask->SetMinutesBetweenRun(60);
+      scheduler_->ScheduleTask(bounceMaintenanceTask);
+
       std::shared_ptr<LogRetentionTask> logRetentionStartupTask = std::shared_ptr<LogRetentionTask>(new LogRetentionTask);
       logRetentionStartupTask->SetReoccurance(ScheduledTask::RunOnce);
       scheduler_->ScheduleTask(logRetentionStartupTask);

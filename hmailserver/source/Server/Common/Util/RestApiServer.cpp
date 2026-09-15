@@ -65,6 +65,7 @@
 #include <set>
 #include "../BO/MessageRecipients.h"
 #include "../BO/MessageRecipient.h"
+#include "../../SMTP/BounceTracker.h"
 #include "Unicode.h"
 #include "../Application/FolderManager.h"
 #include "../BO/ACLPermission.h"
@@ -9563,6 +9564,20 @@ namespace HM
             }
 
             return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(reason)) + "\"}");
+         }
+
+         // The suppression list, as RCPT TO applies it to a submission: refused
+         // here, where the page can tell the person who typed the address, and
+         // nothing is queued. The code lets the page say it in their language.
+         {
+            String suppressionCode;
+            String suppressionText;
+
+            if (BounceTracker::RefuseAtSubmission(from, address, suppressionCode, suppressionText))
+            {
+               return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(suppressionText)) +
+                  "\",\"code\":\"recipient_suppressed\",\"address\":\"" + JsonEscape_(Utf8_(address)) + "\"}");
+            }
          }
 
          bool recipientOK = false;

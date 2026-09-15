@@ -77,6 +77,10 @@ namespace HM
          { L"hm_fetchaccounts",               L"fetch account" },
          { L"hm_apppasswords",                L"application password" },
          { L"hm_alertrules",                  L"alert rule" },
+         // An entry an administrator adds or removes by hand. The ones delivery
+         // adds are the server's own writes, which have no actor and so are never
+         // recorded - the list itself says where each of those came from.
+         { L"hm_bouncesuppressions",          L"suppression list entry" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a
