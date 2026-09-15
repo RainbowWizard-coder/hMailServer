@@ -1489,7 +1489,8 @@ def build_parser():
                            help="do not wait out the propagation period; the record must still resolve")
     run = dkim_verbs.add_parser("run", parents=[common], help="one pass of the rotation over every domain, now")
     run.add_argument("--seconds-ahead", type=int, default=0,
-                     help="move the clock forward for this pass only (tests; server administrators)")
+                     help="move the clock forward for this pass (tests only: a switch or retire it makes is real "
+                          "and early, and the times it records stay recorded; server administrators)")
 
     accounts = commands.add_parser("accounts", help="accounts in bulk, from and to a CSV file")
     accounts_verbs = accounts.add_subparsers(dest="verb")

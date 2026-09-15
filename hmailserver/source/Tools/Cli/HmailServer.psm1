@@ -1017,9 +1017,13 @@ function Invoke-HmDkimRotation {
         One pass of the DKIM key rotation over every domain, now - the pass the
         server makes every fifteen minutes.
     .DESCRIPTION
-        -SecondsAhead moves the clock forward for this pass only, which is how a
-        propagation or retention period is tried without waiting. Server
-        administrators only; a non-zero offset is written to the application log.
+        -SecondsAhead moves the clock forward for this pass, which is how the
+        regression suite tries a propagation or retention period without waiting.
+        It is a test's tool, not for a production server: a switch or retire the
+        pass makes happens at once, early, and the times it records are the moved
+        clock's and stay recorded, so the server's own passes afterwards wait that
+        much longer. Server administrators only; a non-zero offset is written to
+        the application log.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param([ValidateRange(0, 316224000)] [int] $SecondsAhead = 0)

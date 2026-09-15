@@ -168,8 +168,11 @@ key's record resolves with that key in a check made for the request, and without
 `--force` until it has resolved for the whole propagation period. The other
 refusals are the same shape: a second `rotate` while a next key is staged, a
 `retire` with nothing retiring. `run` makes one pass over every domain, and
-`--seconds-ahead` moves the clock for that pass only, which is how a test waits out
-three days; it needs the administrator password or a server-wide key.
+`--seconds-ahead` moves the clock for that pass, which is how a test waits out three
+days; it needs the administrator password or a server-wide key. **It is a test's
+tool, not for a production server**: a switch or retire the pass makes happens at
+once, early, and the times it records are the moved clock's and stay recorded, so
+the server's own passes afterwards wait that much longer.
 [DkimKeyRotation.md](DkimKeyRotation.md) is the whole walk.
 
 In the PowerShell module the same verbs are `Get-HmDkimRotation` (with
