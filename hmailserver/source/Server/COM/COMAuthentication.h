@@ -48,6 +48,9 @@ namespace HM
       bool Allows(RolePermission permission) const;
       bool AllowsForDomain(RolePermission permission, const String &domainName) const;
 
+      // Whether this credential reaches every domain rather than a list of them.
+      bool ReachesEveryDomain() const;
+
       // What this credential holds, for the actor the audit trail records and
       // for the Control Panel, which hides a page a role may not use.
       const RoleGrant &GetGrant() const { return grant_; }

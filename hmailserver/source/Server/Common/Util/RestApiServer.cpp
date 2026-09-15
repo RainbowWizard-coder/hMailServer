@@ -1655,6 +1655,10 @@ namespace HM
             return HandleListRules_();
          case RouteLogList:
             return HandleListLogs_();
+         case RouteMessageTraceRecent:
+         case RouteMessageTraceAddress:
+         case RouteMessageTraceQueue:
+            return HandleMessageTrace_(caller, route.kind, route.identifier);
          case RouteLogTail:
             return HandleLogTail_(route.identifier, route.query);
          case RouteBackupStart:
@@ -3242,6 +3246,35 @@ namespace HM
          route.kind = RouteLogList;
          return;
       }
+
+      if (method == "GET" && path == "/api/v1/message-trace")
+      {
+         route.kind = RouteMessageTraceRecent;
+         return;
+      }
+
+      if (method == "GET" && path.StartsWith("/api/v1/message-trace/address/"))
+      {
+         AnsiString address = path.Mid(AnsiString("/api/v1/message-trace/address/").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteMessageTraceAddress;
+            route.identifier = address;
+         }
+         return;
+      }
+
+      if (method == "GET" && path.StartsWith("/api/v1/message-trace/queue/"))
+      {
+         AnsiString idPart = path.Mid(AnsiString("/api/v1/message-trace/queue/").GetLength());
+         __int64 queueId = 0;
+         if (idPart.Find("/") < 0 && ParseQueueId(idPart, queueId))
+         {
+            route.kind = RouteMessageTraceQueue;
+            route.identifier = idPart;
+         }
+         return;
+      }
       const AnsiString logsPrefix = "/api/v1/logs/";
       if (method == "GET" && path.StartsWith(logsPrefix))
       {
@@ -3897,6 +3930,14 @@ namespace HM
       case RouteLogTail:
          return RolePermission::ViewLogs;
 
+      // Where a message went. The recent events and one message's story are
+      // server-wide and refused to a confined credential below; one address's
+      // events are scoped to that address's domain.
+      case RouteMessageTraceRecent:
+      case RouteMessageTraceAddress:
+      case RouteMessageTraceQueue:
+         return RolePermission::ViewMessageTrace;
+
       // Which domains exist. Deliberately not ManageAccounts: a domain
       // administrator administers what is inside a domain and does not decide
       // which domains the server hosts, and deleting one takes every mailbox
@@ -4084,6 +4125,8 @@ namespace HM
       // by editing one path segment.
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
+      // One address's trace, scoped to that address's domain.
+      case RouteMessageTraceAddress:
       // An assignment names the account it is for, and giving somebody a role
       // in a domain is administering that domain.
       case RouteRoleAssign:
@@ -4283,6 +4326,10 @@ namespace HM
       case RouteRuleList:
       case RouteLogList:
       case RouteLogTail:
+      // A search that matches any address, and one queued message whose
+      // recipients are in any number of domains, have no domain to confine to.
+      case RouteMessageTraceRecent:
+      case RouteMessageTraceQueue:
       case RouteBackupStart:
       case RouteBackupStatus:
       case RouteSettingsGet:

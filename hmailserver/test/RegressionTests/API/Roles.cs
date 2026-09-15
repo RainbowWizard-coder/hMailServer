@@ -415,6 +415,71 @@ namespace RegressionTests.API
          StringAssert.Contains("\"administrative\":false", who.body, "An account whose role was deleted falls back to what its admin level gives it.");
       }
 
+      [Test]
+      [Description("A help desk reads the trace of one address in its own domain - exactly that address, where the search itself matches a substring - and nothing server-wide, over REST and over COM; an auditor reads the whole trace")]
+      public void AHelpDeskTracesOneAddressInItsDomainAndNothingServerWide()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "otheruser@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audrey@example.test", AccountPassword);
+         Assign("helen@example.test", "helpdesk", "");
+         Assign("audrey@example.test", "auditor", "");
+
+         _application.Database.ExecuteSQL("delete from hm_messagetrace");
+         ServerIniFile.SetSetting("MessageTraceEnabled", "1");
+         _application.Reinitialize();
+
+         try
+         {
+            SmtpClientSimulator.StaticSend("sender@example.com", "user@example.test", "traced", "body");
+            SmtpClientSimulator.StaticSend("sender@example.com", "otheruser@example.test", "traced", "body");
+            Pop3ClientSimulator.AssertMessageCount("user@example.test", AccountPassword, 1);
+            Pop3ClientSimulator.AssertMessageCount("otheruser@example.test", AccountPassword, 1);
+
+            // The search matches a substring, so the administrator's answer for
+            // user@example.test carries otheruser@example.test too. That is what
+            // makes the help desk's answer below a test of the filter.
+            (int status, string body) asAdministrator = Admin("GET", "/api/v1/message-trace/address/user@example.test");
+            Assert.AreEqual(200, asAdministrator.status, asAdministrator.body);
+            StringAssert.Contains("otheruser@example.test", asAdministrator.body);
+
+            (int status, string body) own = AsAccount("helen@example.test", "GET", "/api/v1/message-trace/address/user@example.test");
+            Assert.AreEqual(200, own.status, own.body);
+            StringAssert.Contains("\"recipient\":\"user@example.test\"", own.body);
+            StringAssert.DoesNotContain("otheruser@example.test", own.body, "A confined role sees the events that name the address exactly.");
+
+            Assert.AreEqual(403, AsAccount("helen@example.test", "GET", "/api/v1/message-trace/address/someone@" + OtherDomain).status);
+            Assert.AreEqual(403, AsAccount("helen@example.test", "GET", "/api/v1/message-trace").status, "The recent events are anybody's.");
+            Assert.AreEqual(403, AsAccount("helen@example.test", "GET", "/api/v1/message-trace/queue/1").status, "One message carries recipients in any domain.");
+
+            (int status, string body) asAuditor = AsAccount("audrey@example.test", "GET", "/api/v1/message-trace");
+            Assert.AreEqual(200, asAuditor.status, asAuditor.body);
+            StringAssert.Contains("otheruser@example.test", asAuditor.body);
+
+            var desk = new Application();
+            Assert.IsNotNull(desk.Authenticate("helen@example.test", AccountPassword));
+            var trace = desk.GlobalObjects.MessageTrace;
+            trace.Search("user@example.test");
+            Assert.GreaterOrEqual(trace.Count, 1);
+            for (int i = 0; i < trace.Count; i++)
+            {
+               Assert.IsTrue(trace[i].Recipient == "user@example.test" || trace[i].Sender == "user@example.test",
+                  "An event that does not name the address was shown: " + trace[i].Sender + " -> " + trace[i].Recipient);
+            }
+
+            StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => trace.Search("")).Message);
+            StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => trace.SearchByQueueID(1)).Message);
+            StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => trace.Search("someone@" + OtherDomain)).Message);
+         }
+         finally
+         {
+            ServerIniFile.SetSetting("MessageTraceEnabled", null);
+            _application.Reinitialize();
+            _application.Database.ExecuteSQL("delete from hm_messagetrace");
+         }
+      }
+
       // ------------------------------------------------------------------- COM
 
       [Test]

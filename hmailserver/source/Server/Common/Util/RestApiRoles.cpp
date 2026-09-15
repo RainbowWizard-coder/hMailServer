@@ -45,6 +45,7 @@
 #include "../BO/Account.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../../POP3/POP3Sessions.h"
+#include "MessageTrace.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -458,6 +459,80 @@ namespace HM
       return BuildResponse_(200, "{\"unlocked\":true}");
    }
 
+   HttpResponse
+   RestApiServer::HandleMessageTrace_(const Caller &caller, RouteKind kind, const AnsiString &identifier)
+   {
+      // The same three questions Application.GlobalObjects.MessageTrace answers
+      // over COM, and the same most-recent-first limit. Authorize_ has already
+      // refused the two server-wide ones to a credential confined to named
+      // domains, and the address one to an address outside them.
+      const int maximum = 500;
+      std::vector<MessageTraceEvent> events;
+
+      if (kind == RouteMessageTraceQueue)
+      {
+         __int64 queueId = strtoll(identifier.c_str(), nullptr, 10);
+         events = MessageTrace::GetByQueueID(queueId);
+      }
+      else if (kind == RouteMessageTraceAddress)
+      {
+         const String address = String(identifier);
+
+         if (address.Find(_T("@")) <= 0 || StringParser::ExtractDomain(address).IsEmpty())
+            return BuildResponse_(400, "{\"error\":\"a whole address is required\"}");
+
+         // The query matches the address as a substring. A credential confined
+         // to named domains sees the events that name the address exactly,
+         // because the substring also answers for user@example.test.elsewhere,
+         // which is another customer; one that reaches every domain sees what
+         // the Control Panel's search shows.
+         const bool confined = !caller.domains.empty();
+
+         for (const MessageTraceEvent &traceEvent : MessageTrace::Search(address, maximum))
+         {
+            if (!confined ||
+                traceEvent.sender.CompareNoCase(address.c_str()) == 0 ||
+                traceEvent.recipient.CompareNoCase(address.c_str()) == 0)
+            {
+               events.push_back(traceEvent);
+            }
+         }
+      }
+      else
+      {
+         events = MessageTrace::Search(String(), maximum);
+      }
+
+      AnsiString items;
+      int count = 0;
+
+      for (const MessageTraceEvent &traceEvent : events)
+      {
+         AnsiString item;
+         item.Format("{\"id\":%I64d,\"queue_id\":%I64d,\"occurred\":\"%hs\",\"event\":\"%hs\",\"sender\":\"%hs\","
+                     "\"recipient\":\"%hs\",\"source_ip\":\"%hs\",\"status_code\":%d,\"detail\":\"%hs\"}",
+            traceEvent.id, traceEvent.queue_id,
+            JsonEscape_(Utf8_(traceEvent.occurred)).c_str(),
+            JsonEscape_(Utf8_(traceEvent.event_name)).c_str(),
+            JsonEscape_(Utf8_(traceEvent.sender)).c_str(),
+            JsonEscape_(Utf8_(traceEvent.recipient)).c_str(),
+            JsonEscape_(Utf8_(traceEvent.source_ip)).c_str(),
+            traceEvent.status_code,
+            JsonEscape_(Utf8_(traceEvent.detail)).c_str());
+
+         if (count > 0)
+            items += ",";
+
+         items += item;
+         count++;
+      }
+
+      AnsiString body;
+      body.Format("{\"count\":%d,\"events\":[%hs]}", count, items.c_str());
+
+      return BuildResponse_(200, body);
+   }
+
    AnsiString
    RestApiServer::OpenApiRolesPaths_()
    {
@@ -477,6 +552,12 @@ namespace HM
          "\"/api/v1/accounts/{address}/password\":{"
          "\"post\":{\"summary\":\"Reset an account's password\",\"description\":\"Body: password. The password policy, the reuse history, the configured hash and the age clock, exactly as when the Control Panel sets one; the failed-authentication lockout is cleared with it, because somebody whose password has just been reset must be able to get in. A directory-linked account is 409. A server administrator's password may only be reset by a credential that administers the whole server. Needs reset_password, and is scoped to the address's domain - which is the whole of what the help-desk role is.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"password\"],\"properties\":{\"password\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Reset\"},\"400\":{\"description\":\"Empty, or the policy refused it (the reason is in error)\"},\"403\":{\"description\":\"A server administrator's account\"},\"404\":{\"description\":\"No such account\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"}}}},"
          "\"/api/v1/accounts/{address}/unlock\":{"
-         "\"post\":{\"summary\":\"Let an account back in\",\"description\":\"Both locks: the failed-authentication lockout that refuses the password, and the POP3 mailbox lock a dropped session leaves behind. Needs unlock_account, and is scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"Unlocked\"},\"404\":{\"description\":\"No such account\"}}}}";
+         "\"post\":{\"summary\":\"Let an account back in\",\"description\":\"Both locks: the failed-authentication lockout that refuses the password, and the POP3 mailbox lock a dropped session leaves behind. Needs unlock_account, and is scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"Unlocked\"},\"404\":{\"description\":\"No such account\"}}}},"
+         "\"/api/v1/message-trace\":{"
+         "\"get\":{\"summary\":\"The most recent message trace events, for anyone\",\"description\":\"What Application.GlobalObjects.MessageTrace.Search answers for an empty address: the latest events, newest first, 500 at most. Server-wide, so refused to a credential confined to named domains. Needs view_message_trace.\",\"responses\":{\"200\":{\"description\":\"count, events (id, queue_id, occurred, event, sender, recipient, source_ip, status_code, detail)\"}}}},"
+         "\"/api/v1/message-trace/address/{address}\":{"
+         "\"get\":{\"summary\":\"Where mail to or from one address went\",\"description\":\"The events that name the address as sender or recipient, newest first, 500 at most. Scoped to the address's domain: a help desk confined to example.test traces user@example.test and nobody in another domain, and sees the events that name the address exactly - the search matches as a substring, which would otherwise also answer for another customer's user@example.test.elsewhere. Needs view_message_trace.\",\"responses\":{\"200\":{\"description\":\"count, events\"},\"400\":{\"description\":\"Not a whole address\"}}}},"
+         "\"/api/v1/message-trace/queue/{id}\":{"
+         "\"get\":{\"summary\":\"The story of one queued message\",\"description\":\"Every event recorded for one queue id, oldest first. One message carries recipients in any number of domains, so this is server-wide and refused to a credential confined to named domains. Needs view_message_trace.\",\"responses\":{\"200\":{\"description\":\"count, events\"}}}}";
    }
 }

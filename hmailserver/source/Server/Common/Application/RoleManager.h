@@ -231,6 +231,14 @@ namespace HM
       // has to know the rule to show what an assignment reaches.
       static bool ReachesEveryDomainWhenUnlisted(const String &roleName);
 
+      // True when a grant is confined to no list of domains - the server
+      // administrator, an unrestricted key, an auditor given no list. A
+      // question some resources have to ask before they can answer at all: a
+      // search that matches any address, or one queued message whose
+      // recipients sit in any number of domains, has no domain to confine to,
+      // so only a grant that reaches every domain may ask it.
+      static bool ReachesEveryDomain(const RoleGrant &grant);
+
       // The name of a permission, and back again. The tokens are what the
       // database, the REST document and the two editors all spell.
       static AnsiString PermissionName(RolePermission permission);

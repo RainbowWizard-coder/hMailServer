@@ -287,6 +287,14 @@ namespace HM
       return RoleManager::Allows(grant_, permission, domainName, reason);
    }
 
+   bool
+   COMAuthentication::ReachesEveryDomain() const
+   {
+      InstallActor_();
+
+      return RoleManager::ReachesEveryDomain(grant_);
+   }
+
    RoleActor
    COMAuthentication::GetActor() const
    {

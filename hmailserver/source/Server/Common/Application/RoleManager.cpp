@@ -421,6 +421,13 @@ namespace HM
    }
 
    bool
+   RoleManager::ReachesEveryDomain(const RoleGrant &grant)
+   {
+      return grant.administrative &&
+             (grant.Holds(RolePermission::AdministerServer) || grant.domains.empty());
+   }
+
+   bool
    RoleManager::ReachesEveryDomainWhenUnlisted(const String &roleName)
    {
       const String name = Lower(roleName);

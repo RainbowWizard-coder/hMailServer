@@ -431,6 +431,14 @@ namespace HM
          // only be that narrow when the route is.
          RouteAccountPasswordReset,
          RouteAccountUnlock,
+         // The message trace (RestApiRoles.cpp): Application.GlobalObjects.
+         // MessageTrace over COM. The recent events and one queued message's
+         // story are server-wide; one address's events are scoped to its domain,
+         // which is how a help desk reads the trace of a person it was rung up
+         // about and nobody else's.
+         RouteMessageTraceRecent,
+         RouteMessageTraceAddress,
+         RouteMessageTraceQueue,
          RouteOpenApi
       };
 
@@ -1029,6 +1037,7 @@ namespace HM
       HttpResponse HandleSessionGet_(const Caller &caller);
       HttpResponse HandleAccountPasswordReset_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
       HttpResponse HandleAccountUnlock_(const Caller &caller, const AnsiString &address);
+      HttpResponse HandleMessageTrace_(const Caller &caller, RouteKind kind, const AnsiString &identifier);
       static AnsiString RoleJson_(const RoleRecord &record);
       static AnsiString OpenApiRolesPaths_();
       // A rule criterion tried against a value (RestApiRules.cpp): what
