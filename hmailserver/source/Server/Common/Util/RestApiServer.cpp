@@ -71,6 +71,7 @@
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "MessageUtilities.h"
+#include "OutgoingFooters.h"
 #include "../Application/Application.h"
 #include "../BO/Aliases.h"
 #include "../BO/Alias.h"
@@ -9700,6 +9701,10 @@ namespace HM
          if (!messageData.Write(fileName))
             return BuildResponse_(500, "{\"error\":\"the message could not be written\"}");
       }
+
+      // The domain's signature and disclaimer, by the rules SMTP submission
+      // applies, before the size is taken and the \Sent copy made.
+      OutgoingFooters::AddToWebmailMessage(message);
 
       message->SetSize((int) FileUtilities::FileSize(fileName));
 

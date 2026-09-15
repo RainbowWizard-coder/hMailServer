@@ -20,6 +20,7 @@
 #include "../Util/Time.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/MessageUtilities.h"
+#include "../Util/OutgoingFooters.h"
 #include "../Util/RestApiServer.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
@@ -208,6 +209,9 @@ namespace HM
       data.SetSentTime(Time::GetCurrentMimeDate());
       if (!data.Write(fileName))
          return false;
+
+      // The domain's signature and disclaimer, as the send route puts them on.
+      OutgoingFooters::AddToWebmailMessage(message);
 
       message->SetSize((int) FileUtilities::FileSize(fileName));
       message->SetState(Message::Delivering);

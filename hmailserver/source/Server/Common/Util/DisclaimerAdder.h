@@ -4,12 +4,13 @@
 
 // The domain's legal footer, appended to mail leaving the organisation.
 //
-// It runs where the signature runs - SMTPConnection::DoPreAcceptMessageModifications_,
-// against the same MessageData and committed by the same single write - because
-// that is the one place on this server where a message's body is modified on
-// its way out, and a second one would be a second thing to keep correct. That
-// position also puts it before DKIMSigner::Sign, which runs at delivery, so
-// this server's own signature covers the footer rather than being broken by it.
+// It runs where the signature runs - OutgoingFooters, which SMTP submission and
+// the webmail's send and send-later all call - against the same MessageData and
+// committed by the same single write, because that is the one function on this
+// server where a message's body is modified on its way out, and a second one
+// would be a second thing to keep correct. Every caller is before
+// DKIMSigner::Sign, which runs at delivery, so this server's own signature
+// covers the footer rather than being broken by it.
 
 #pragma once
 

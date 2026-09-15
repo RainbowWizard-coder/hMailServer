@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "SignatureAdder.h"
+#include "DisclaimerAdder.h"
 
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
@@ -39,13 +40,14 @@ namespace HM
    SignatureAdder::SetSignature(std::shared_ptr<Message> message, 
       std::shared_ptr<const Domain> sender_domain, 
       std::shared_ptr<const Account> sender_account,
-      std::shared_ptr<MessageData> &message_data)
+      std::shared_ptr<MessageData> &message_data,
+      bool account_signature_in_body)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Sets the signature of the message, based on the signature in the account
    // settings and domain settings.
    //---------------------------------------------------------------------------()
-   {  
+   {
       if (!message)
       {
          HM_ASSERT(0);
@@ -66,22 +68,30 @@ namespace HM
          return false;
       }
 
-      String signature_plain_text;
-      String signature_html;
+      String account_plain_text;
+      String account_html;
 
       // First check if an account signature has been specified.
       if (sender_account && sender_account->GetEnableSignature())
       {
-         signature_plain_text = sender_account->GetSignaturePlainText();
-         signature_html = sender_account->GetSignatureHTML();
+         account_plain_text = sender_account->GetSignaturePlainText();
+         account_html = sender_account->GetSignatureHTML();
 
-         if (!signature_plain_text.IsEmpty() && signature_html.IsEmpty())
+         if (!account_plain_text.IsEmpty() && account_html.IsEmpty())
          {
             // Plain text specified but not HTML. Copy plain text to HTML.
-            signature_html = signature_plain_text;
-            signature_html.Replace(_T("\r\n"), _T("<br>\r\n"));
+            account_html = account_plain_text;
+            account_html.Replace(_T("\r\n"), _T("<br>\r\n"));
          }
       }
+
+      // What is appended starts from the account's signature - unless the client
+      // has already written that into the body, as the webmail does in its
+      // compose box, where adding it again would sign the message twice. The
+      // domain's part below is still decided against the account's signature,
+      // so it is the same whichever way the message was sent.
+      String signature_plain_text = account_signature_in_body ? String() : account_plain_text;
+      String signature_html = account_signature_in_body ? String() : account_html;
 
       if (sender_domain->GetEnableSignature())
       {
@@ -100,9 +110,9 @@ namespace HM
          // keep it.
          if (sender_domain->GetSignatureMethod() == HM::Domain::SMSetIfNotSpecifiedInAccount)
          {
-            if (signature_plain_text.IsEmpty()) 
+            if (account_plain_text.IsEmpty())
                signature_plain_text = sDomainPlainText;
-            if (signature_html.IsEmpty())
+            if (account_html.IsEmpty())
                signature_html = sDomainHTML;
          }
          else if (sender_domain->GetSignatureMethod() == HM::Domain::SMAppendToAccountSignature)
@@ -123,19 +133,40 @@ namespace HM
          return false;
       }
 
-      // A signature should be created.
-      if (!message_data)
+      // A signature should be created. Loaded into a local and handed back only
+      // when it is actually appended: a MessageData left in the caller's
+      // variable by one of the guards below would have the caller rewrite a
+      // message this function decided not to touch - and a signed message
+      // re-serialised is a signed message whose bytes may have changed.
+      std::shared_ptr<MessageData> data = message_data;
+      const bool loadedHere = !data;
+
+      if (loadedHere)
       {
-         message_data = std::shared_ptr<MessageData>(new MessageData());
+         data = std::shared_ptr<MessageData>(new MessageData());
          std::shared_ptr<Account> emptyAccount;
-         if (!message_data->LoadFromMessage(emptyAccount, message))
+         if (!data->LoadFromMessage(emptyAccount, message))
             return false;
       }
 
-      if (!sender_domain->GetAddSignaturesToReplies() && GetMessageIsReply_(message_data))
+      if (!sender_domain->GetAddSignaturesToReplies() && GetMessageIsReply_(data))
       {
          // The message is a reply, but we have configured the
          // server not to add signatures to replies
+         return false;
+      }
+
+      if (DisclaimerAdder::IsProtectedContentType(data->GetFieldValue(_T("Content-Type"))))
+      {
+         // The disclaimer's rule, for the same reason: GetBodyTextPlainPart finds
+         // the text inside a multipart/signed, and appending to it breaks the
+         // signature in every client that checks. The webmail's S/MIME send is
+         // one of these, and so is a desktop client's. Sent as written, and said
+         // in the log where an administrator missing a signature will look.
+         String logText;
+         logText.Format(_T("SignatureAdder - Message %I64d from %s is signed or encrypted (%s), so the signature was not appended: appending to it would break the signature or the encryption. The message was sent unchanged."),
+            message->GetID(), message->GetFromAddress().c_str(), data->GetFieldValue(_T("Content-Type")).c_str());
+         LOG_APPLICATION(logText);
          return false;
       }
 
@@ -150,7 +181,7 @@ namespace HM
          signature_html.ReplaceNoCase(_T("%User.Address%"), sender_account->GetAddress());
       }
 
-      auto text_plain_body_part = message_data->GetBodyTextPlainPart();
+      auto text_plain_body_part = data->GetBodyTextPlainPart();
       if (text_plain_body_part)
       {
          String text_plan_body_content = text_plain_body_part->GetUnicodeText();
@@ -158,7 +189,7 @@ namespace HM
          text_plain_body_part->SetUnicodeText(text_plan_body_content);
       }
 
-      auto text_html_body_part = message_data->GetBodyTextHtmlPart();
+      auto text_html_body_part = data->GetBodyTextHtmlPart();
       if (text_html_body_part)
       {
          String text_html_body_content = text_html_body_part->GetUnicodeText();
@@ -166,7 +197,10 @@ namespace HM
          text_html_body_part->SetUnicodeText(text_html_body_content);
       }
 
-      return true;      
+      if (loadedHere)
+         message_data = data;
+
+      return true;
 
 
    }

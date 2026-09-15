@@ -1,0 +1,82 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+// The two footers a hosted domain puts on the mail its people send - the
+// signature (SignatureAdder) and the legal disclaimer (DisclaimerAdder) - put
+// on in one function, in that order, whichever way the person sent.
+//
+// There are three ways, and until 15 September 2026 only the first had them:
+//
+//   * SMTP submission, SMTPConnection::DoPreAcceptMessageModifications_;
+//   * the webmail's send, POST /api/v1/me/messages (RestApiServer::HandleMeMessageSend_);
+//   * the webmail's send-later, ScheduledMailTask::SendDraft.
+//
+// The two webmail paths write the message into the queue themselves, so they
+// never passed through the SMTP accept path, and a domain's compliance footer
+// was silently missing from every message a person wrote in the browser. Each
+// of them now calls AddToWebmailMessage once, after the file is written and
+// before its size is taken and its row saved; SMTP calls Add. The rules - which
+// messages get what - live in the two adders and nowhere else, so the paths
+// cannot drift apart.
+//
+// Every one of these runs before DKIMSigner::Sign, which signs at delivery, so
+// this server's own DKIM signature covers the footers rather than being broken
+// by them.
+
+#pragma once
+
+namespace HM
+{
+   class Account;
+   class Domain;
+   class Message;
+   class MessageData;
+
+   class OutgoingFooters
+   {
+   public:
+
+      // Who wrote the account's own signature into the body. Over SMTP the
+      // server adds it, because a mail client does not know it exists. The
+      // webmail writes it into the compose box itself, where the person sees
+      // it and can change it, so adding it again would sign the message
+      // twice; what the DOMAIN adds is decided against the account's signature
+      // just the same (SignatureAdder::SetSignature).
+      enum AccountSignature
+      {
+         AccountSignatureAddedHere = 0,
+         AccountSignatureWrittenByClient = 1
+      };
+
+      // The sender domain and account whose settings apply to mail sent from
+      // envelope_sender: the domain aliases applied, then the domain and the
+      // account looked up by name. It is the lookup SMTPConnection::ProtocolMAIL_
+      // makes for sender_domain_ and sender_account_, so a message from an
+      // address at domain A uses domain A's signature and disclaimer on every
+      // path. Either may come back empty.
+      static void SenderOf(const String &envelope_sender,
+                           std::shared_ptr<const Domain> &sender_domain,
+                           std::shared_ptr<const Account> &sender_account);
+
+      // The signature, then the disclaimer, on message_data - loaded here from
+      // the message file when the caller has not loaded it and one of them has
+      // something to add. True when message_data was changed and must be
+      // written; the caller owns the write. submission_is_ours is
+      // DisclaimerAdder::Append's.
+      static bool Add(std::shared_ptr<Message> message,
+                      std::shared_ptr<const Domain> sender_domain,
+                      std::shared_ptr<const Account> sender_account,
+                      bool submission_is_ours,
+                      AccountSignature account_signature,
+                      std::shared_ptr<MessageData> &message_data);
+
+      // For a message the webmail has written into the queue for a signed-in
+      // account: the sender resolved from the envelope, both footers added,
+      // and the file rewritten only when something was added - a message
+      // neither changes, a signed or encrypted one above all, keeps its bytes.
+      // A failed rewrite is logged and the message goes as written, which is
+      // what the SMTP path does with one.
+      static void AddToWebmailMessage(std::shared_ptr<Message> message);
+   };
+}
