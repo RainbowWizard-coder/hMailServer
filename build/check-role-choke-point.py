@@ -15,9 +15,11 @@ file and the line, before it can be merged.
 
 Four things are checked, and the last two are the ones that earn this script:
 
-  1. RoleManager::Allows is named only in the three files above; the raw role
-     accessors (Account::GetAdminLevel, RoleGrant::Holds) are named only where
-     a grant is BUILT or REPORTED, never where one is judged.
+  1. RoleManager::Allows is named only in the three files above, and
+     RoleManager::Encompasses - may this credential hand out, or take over,
+     another grant's authority - only where a role is given or an account is
+     changed; the raw role accessors (Account::GetAdminLevel, RoleGrant::Holds)
+     are named only where a grant is BUILT or REPORTED, never where one is judged.
 
   2. The decision functions exist. Without them the rule above guards nothing.
 
@@ -66,6 +68,17 @@ ALLOWED = {
         REST_CPP,     # the REST choke point, Authorize_
         COM_CPP,      # the COM one, COMAuthentication
     },
+    # The other half of the decision: may this credential hand out, or take
+    # over, the authority another grant holds. Named where a role is given or
+    # taken away and where an account is changed or its password set.
+    "RoleManager::Encompasses(": {
+        ROLE_CPP,
+        ROLE_H,
+        "Common/Util/RestApiRoles.cpp",      # the assignment and the password reset
+        "Common/Util/RestApiRoutes.cpp",     # the account update
+        "COM/InterfaceApplication.cpp",      # AssignRole and ResetPassword
+        "COM/InterfaceAccount.cpp",          # RoleName and Save
+    },
     # The historical level. A grant is DERIVED from it in RoleManager; every
     # other reader either stores it, reports it or applies the one rule that
     # predates roles (a server administrator's account is not a domain
@@ -79,8 +92,6 @@ ALLOWED = {
         COM_CPP,                             # the administrator stand-in, when a grant is BUILT
         "COM/InterfaceAccount.cpp",          # the property itself, and the server-admin rule
         "COM/InterfaceAccounts.cpp",
-        "Common/Util/RestApiRoles.cpp",      # the same server-admin rule, on the reset route
-        "COM/InterfaceApplication.cpp",      # the same rule, on Application.ResetPassword
         "COM/InterfaceDistributionList.cpp",
         "Common/Util/RestApiRoutes.cpp",     # the same property, over REST
     },
@@ -90,8 +101,7 @@ ALLOWED = {
     "grant.Holds(": {
         ROLE_CPP,
         ROLE_H,
-        REST_CPP,
-        "Common/Util/RestApiRoles.cpp",
+        "Common/Util/RestApiRoles.cpp",      # GET /api/v1/session reports what the grant holds
     },
 }
 

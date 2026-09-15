@@ -76,7 +76,17 @@ Two things are deliberately not permissions of any role but `serveradmin`:
 * **Handing out authority.** No custom role may hold `administer_server`,
   `administer_domain` or `manage_roles` — each is a way to write "server administrator"
   without calling it that — and a credential may never give an account a role holding a
-  permission it does not hold itself.
+  permission, or reaching a domain, that it does not hold itself.
+
+The same rule stops a narrow role **taking over** a wider one. A credential may not
+reset the password of, or change, an account whose authority it does not take in —
+every permission, in every domain. A help desk resets an ordinary account's password
+and is refused a domain administrator's or an auditor's, even in its own domain,
+because otherwise it could sign in as them; a domain administrator may change the
+accounts of its domain as it always could, and is refused an auditor's. Over COM this
+is `Account.Save` and `Application.ResetPassword`; over REST, the password reset and
+`PUT /api/v1/accounts/{address}`. The refusal says so: *that account holds authority this
+credential does not*.
 
 ### The message trace
 

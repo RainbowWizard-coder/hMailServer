@@ -257,16 +257,13 @@ namespace HM
       if (!RoleManager::FindRole(String(roleName), record))
          return BuildResponse_(400, "{\"error\":\"no such role\"}");
 
-      // A credential may not hand out authority it does not hold. Without this
-      // a domain administrator with ManageRoles - which no custom role may
-      // have, but the administrator password's own delegate might one day -
-      // could make an account a server administrator and then sign in as it.
-      // Checked against the grant the request came in on, which is the same
-      // object Authorize_ decided with.
-      const RoleGrant wouldBe = RoleManager::GrantForRole(String(roleName), std::vector<String>());
-
-      if (!caller.grant.Holds(RolePermission::AdministerServer) &&
-          (wouldBe.permissions & ~caller.grant.permissions) != 0)
+      // A credential may not hand out authority it does not hold - neither a
+      // permission nor a domain. Without this a holder of ManageRoles narrower
+      // than the server administrator - which no custom role may be today, and
+      // a delegate might be one day - could make an account a server
+      // administrator and then sign in as it. Checked against the grant the
+      // request came in on, which is the object Authorize_ decided with.
+      if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAssignment(account, String(roleName), String(domains))))
       {
          return BuildResponse_(403, "{\"error\":\"that role holds permissions this credential does not, and a credential may not hand out authority it has not got\"}");
       }
@@ -309,10 +306,7 @@ namespace HM
       if (!RoleManager::AssignmentForAccount(account->GetID(), assignment))
          return BuildResponse_(404, "{\"error\":\"that account holds no role\"}");
 
-      const RoleGrant held = RoleManager::GrantForRole(assignment.role_name, std::vector<String>());
-
-      if (!caller.grant.Holds(RolePermission::AdministerServer) &&
-          (held.permissions & ~caller.grant.permissions) != 0)
+      if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAccount(account)))
       {
          return BuildResponse_(403, "{\"error\":\"that role holds permissions this credential does not, and a credential may not take away authority it has not got\"}");
       }
@@ -393,16 +387,15 @@ namespace HM
       if (!account)
          return BuildResponse_(404, "{\"error\":\"no such account\"}");
 
-      // A server administrator's password is not a help desk's to reset: the
-      // account it belongs to administers every domain, so resetting it is a
-      // way to become the server administrator from a role that reaches one
-      // domain. The rule is the one the account update already applies to
-      // admin_level, said again here because this route is narrower and would
-      // otherwise be the way round it.
-      if (account->GetAdminLevel() == Account::ServerAdmin &&
-          !caller.grant.Holds(RolePermission::AdministerServer))
+      // Resetting a password is taking the account over, so it is refused for an
+      // account whose authority this credential does not take in: a help desk
+      // that could reset a domain administrator's password in its domain could
+      // sign in as that domain administrator, and one that could reset a server
+      // administrator's could become the server. The rule the account update
+      // applies to a server administrator's account, generalised to every role.
+      if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAccount(account)))
       {
-         return BuildResponse_(403, "{\"error\":\"a server administrator's password may only be reset by a credential that administers the whole server\"}");
+         return BuildResponse_(403, "{\"error\":\"that account holds authority this credential does not, so its password is not this credential's to reset\"}");
       }
 
       if (password.IsEmpty())
@@ -558,7 +551,7 @@ namespace HM
          "\"put\":{\"summary\":\"Give an account a role\",\"description\":\"Body: role (a name from /api/v1/roles) and domains (comma-separated; empty means every domain for serveradmin and auditor and the account's own domain for every other role). A credential may not give away a permission it does not itself hold. Needs manage_roles, and is scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"role\"],\"properties\":{\"role\":{\"type\":\"string\"},\"domains\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"address, role, domains, every_domain\"},\"400\":{\"description\":\"No role named, or no such role\"},\"403\":{\"description\":\"The role holds permissions this credential does not\"},\"404\":{\"description\":\"No such account\"}}},"
          "\"delete\":{\"summary\":\"Take a role away\",\"description\":\"The account falls back to the authority its AdminLevel gives it. Needs manage_roles.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"403\":{\"description\":\"The role holds permissions this credential does not\"},\"404\":{\"description\":\"No such account, or it holds no role\"}}}},"
          "\"/api/v1/accounts/{address}/password\":{"
-         "\"post\":{\"summary\":\"Reset an account's password\",\"description\":\"Body: password. The password policy, the reuse history, the configured hash and the age clock, exactly as when the Control Panel sets one; the failed-authentication lockout is cleared with it, because somebody whose password has just been reset must be able to get in. A directory-linked account is 409. A server administrator's password may only be reset by a credential that administers the whole server. Needs reset_password, and is scoped to the address's domain - which is the whole of what the help-desk role is.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"password\"],\"properties\":{\"password\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Reset\"},\"400\":{\"description\":\"Empty, or the policy refused it (the reason is in error)\"},\"403\":{\"description\":\"A server administrator's account\"},\"404\":{\"description\":\"No such account\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"}}}},"
+         "\"post\":{\"summary\":\"Reset an account's password\",\"description\":\"Body: password. The password policy, the reuse history, the configured hash and the age clock, exactly as when the Control Panel sets one; the failed-authentication lockout is cleared with it, because somebody whose password has just been reset must be able to get in. A directory-linked account is 409. An account whose authority the credential does not take in - every permission, in every domain - is refused, so a help desk cannot reset a domain administrator's password and sign in as them. Needs reset_password, and is scoped to the address's domain - which is the whole of what the help-desk role is.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"password\"],\"properties\":{\"password\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Reset\"},\"400\":{\"description\":\"Empty, or the policy refused it (the reason is in error)\"},\"403\":{\"description\":\"An account holding authority this credential does not\"},\"404\":{\"description\":\"No such account\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"}}}},"
          "\"/api/v1/accounts/{address}/unlock\":{"
          "\"post\":{\"summary\":\"Let an account back in\",\"description\":\"Both locks: the failed-authentication lockout that refuses the password, and the POP3 mailbox lock a dropped session leaves behind. Needs unlock_account, and is scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"Unlocked\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/message-trace\":{"

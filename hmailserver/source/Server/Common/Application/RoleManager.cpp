@@ -434,6 +434,52 @@ namespace HM
       return name.Compare(_T("serveradmin")) == 0 || name.Compare(_T("auditor")) == 0;
    }
 
+   bool
+   RoleManager::Encompasses(const RoleGrant &holder, const RoleGrant &other)
+   {
+      if (!other.administrative)
+         return true;
+
+      if (!holder.administrative)
+         return false;
+
+      if (holder.Holds(RolePermission::AdministerServer))
+         return true;
+
+      if ((other.permissions & ~holder.permissions) != 0)
+         return false;
+
+      // Reaching every domain takes in any list; a list takes in only a list
+      // that is inside it.
+      if (holder.domains.empty())
+         return true;
+
+      if (other.domains.empty())
+         return false;
+
+      for (const String &domain : other.domains)
+      {
+         if (!IsDomainReached_(holder, domain))
+            return false;
+      }
+
+      return true;
+   }
+
+   RoleGrant
+   RoleManager::GrantForAssignment(std::shared_ptr<const Account> account, const String &roleName, const String &domains)
+   {
+      if (!account)
+         return RoleGrant();
+
+      RoleGrant grant = GrantForRole(roleName, SplitDomains_(domains));
+
+      if (grant.administrative && grant.domains.empty() && !ReachesEveryDomainWhenUnlisted(roleName))
+         grant.domains.push_back(Lower(StringParser::ExtractDomain(account->GetAddress())));
+
+      return grant;
+   }
+
    RoleGrant
    RoleManager::GrantForAccount(std::shared_ptr<const Account> account)
    {

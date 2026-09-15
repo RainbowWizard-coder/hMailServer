@@ -1097,6 +1097,19 @@ namespace HM
          return BuildResponse_(403, "{\"error\":\"this api key is restricted to named domains, and a server administrator's account may only be updated by the administrator password or a key issued for every domain\"}");
       }
 
+      // The same rule for every role: an account whose authority this credential
+      // does not take in - a domain administrator's to a help desk, an auditor's
+      // to a domain administrator, a wider domain administrator's to a narrower
+      // one - is not this credential's to change, because a change here can be
+      // its password. The server administrator's account above is the case this
+      // generalises; its own sentence is kept for the callers that read it.
+      if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAccount(account)))
+      {
+         LOG_APPLICATION("RestApi: Refused to update account " + address + " for " + String(caller.identity) +
+            ": it holds authority the credential does not.");
+         return BuildResponse_(403, "{\"error\":\"that account holds authority this credential does not, so it is not this credential's to change\"}");
+      }
+
       bool adminLevelGiven = false;
       Account::AdminLevel adminLevel = account->GetAdminLevel();
 

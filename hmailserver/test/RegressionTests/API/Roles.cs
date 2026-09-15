@@ -36,7 +36,8 @@ namespace RegressionTests.API
    ///        told nothing about whether it exists;
    ///      * an auditor refused every write the API documents, and reading what
    ///        an auditor exists to read;
-   ///      * a help desk allowed a password reset and refused a settings change;
+   ///      * a help desk allowed a password reset and refused a settings change,
+   ///        and refused the password of anybody who holds more than it does;
    ///      * the two historical levels exactly as they were, with no row written;
    ///      * and the COM path that let any account reach another account's full
    ///        object through a permission on a folder of its own, closed.
@@ -241,6 +242,49 @@ namespace RegressionTests.API
 
          (int status, string body) update = AsAccount("helen@example.test", "PUT", "/api/v1/accounts/user@example.test", "{\"max_size_mb\":1}");
          Assert.AreEqual(403, update.status, "The account update is every other field of the account; the reset is its own route. Body: " + update.body);
+      }
+
+      [Test]
+      [Description("A credential may not take over an account whose authority it does not hold: a help desk cannot reset a domain administrator's or an auditor's password in its own domain, over REST or COM, and a domain administrator cannot save an auditor's account")]
+      public void ARoleCannotTakeOverAnAccountWithMoreAuthority()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         boss.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audrey@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+         Assign("helen@example.test", "helpdesk", "");
+         Assign("audrey@example.test", "auditor", "");
+
+         foreach (string target in new[] { "boss@example.test", "audrey@example.test" })
+         {
+            (int status, string body) reset = AsAccount("helen@example.test", "POST", "/api/v1/accounts/" + target + "/password",
+               "{\"password\":\"Taken-over-3\"}");
+            Assert.AreEqual(403, reset.status, "A help desk reset the password of " + target + " and could sign in as it. Body: " + reset.body);
+            StringAssert.Contains("holds authority this credential does not", reset.body);
+            Assert.IsTrue(AccountOverCom(target).ValidatePassword(AccountPassword), target + "'s password is unchanged.");
+         }
+
+         var desk = new Application();
+         Assert.IsNotNull(desk.Authenticate("helen@example.test", AccountPassword));
+         var refused = Assert.Throws<COMException>(() => desk.ResetPassword("boss@example.test", "Taken-over-3"));
+         StringAssert.Contains("holds authority this credential does not", refused.Message);
+         desk.ResetPassword("user@example.test", "An-ordinary-reset-4");
+
+         // Over COM a domain administrator reaches every account of its domain, as
+         // it always has, and saves an ordinary one - but not the auditor's.
+         var dora = new Application();
+         Assert.IsNotNull(dora.Authenticate("boss@example.test", AccountPassword));
+         Account ordinary = dora.Domains[0].Accounts.get_ItemByAddress("user@example.test");
+         ordinary.PersonFirstName = "Ordinary";
+         ordinary.Save();
+
+         Account auditor = dora.Domains[0].Accounts.get_ItemByAddress("audrey@example.test");
+         auditor.Password = "Taken-over-5";
+         var saveRefused = Assert.Throws<COMException>(() => auditor.Save());
+         StringAssert.Contains("holds administrative authority that this credential does not", saveRefused.Message);
+         Assert.IsTrue(AccountOverCom("audrey@example.test").ValidatePassword(AccountPassword));
       }
 
       [Test]

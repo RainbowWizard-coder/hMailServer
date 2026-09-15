@@ -619,6 +619,25 @@ STDMETHODIMP InterfaceAccount::Save()
          }
       }
 
+      // The rule above, for every role: an account whose STORED authority this
+      // credential does not take in is not this credential's to save, because
+      // saving it can set its password. The stored account and not object_,
+      // for the reason put_AdminLevel gives - the in-memory level is whatever
+      // the caller has just assigned. An unauthenticated holder of an account
+      // object is left exactly as it was: that is the script host, whose
+      // OnClientValidatePassword hands a script the account being logged on and
+      // has always let it save it.
+      if (authentication_->GetIsAuthenticated() && object_->GetID() > 0)
+      {
+         std::shared_ptr<HM::Account> stored = std::shared_ptr<HM::Account>(new HM::Account());
+
+         if (HM::PersistentAccount::ReadObject(stored, object_->GetID()) &&
+             !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(stored)))
+         {
+            return COMError::GenerateError("You do not have access to save the user account. It holds administrative authority that this credential does not.");
+         }
+      }
+
 
       String sErrorMessage;
       if (PersistentAccount::SaveObject(object_, sErrorMessage, true, HM::PersistenceModeNormal))
@@ -1865,23 +1884,19 @@ STDMETHODIMP InterfaceAccount::put_RoleName(BSTR newVal)
 
       const HM::String wanted = newVal;
 
-      // A credential may not hand out authority it has not got. Only the
-      // server administrator holds ManageRoles today, so this cannot fire yet;
-      // it is written now because the day a delegate holds it is the day the
-      // check has to already be here.
-      if (!wanted.IsEmpty())
-      {
-         const HM::RoleGrant wouldBe = HM::RoleManager::GrantForRole(wanted, std::vector<HM::String>());
-
-         if (!authentication_->GetGrant().Holds(HM::RolePermission::AdministerServer) &&
-             (wouldBe.permissions & ~authentication_->GetGrant().permissions) != 0)
-         {
-            return COMError::GenerateError("That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
-         }
-      }
-
       HM::RoleAssignment existing;
       HM::RoleManager::AssignmentForAccount(object_->GetID(), existing);
+
+      // A credential may not hand out authority it has not got, nor take away
+      // authority it has not got. Only the server administrator holds
+      // ManageRoles today, so this cannot fire yet; it is written now because
+      // the day a delegate holds it is the day the check has to already be here.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(object_)) ||
+          (!wanted.IsEmpty() &&
+           !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAssignment(object_, wanted, existing.domains))))
+      {
+         return COMError::GenerateError("That role holds authority this credential does not, and a credential may not hand out authority it has not got.");
+      }
 
       HM::String error;
 

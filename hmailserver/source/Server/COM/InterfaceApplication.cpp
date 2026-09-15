@@ -753,11 +753,10 @@ STDMETHODIMP InterfaceApplication::AssignRole(BSTR Address, BSTR Role, BSTR Doma
          return S_OK;
       }
 
-      // A credential may not hand out authority it has not got.
-      const HM::RoleGrant wouldBe = HM::RoleManager::GrantForRole(wanted, std::vector<HM::String>());
-
-      if (!authentication_->GetIsServerAdmin() &&
-          (wouldBe.permissions & ~authentication_->GetGrant().permissions) != 0)
+      // A credential may not hand out authority it has not got, nor take away
+      // authority it has not got.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAssignment(account, wanted, HM::String(Domains))) ||
+          !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(account)))
       {
          return COMError::GenerateError("That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
       }
@@ -823,12 +822,12 @@ STDMETHODIMP InterfaceApplication::ResetPassword(BSTR Address, BSTR Password)
       if (!account)
          return COMError::GenerateError("No such account.");
 
-      // A server administrator's password is not a narrow role's to reset:
-      // the account it belongs to administers every domain, so resetting it is
-      // a way to become the server administrator from a role that reaches one.
-      // Account.Save applies the same rule for the same reason.
-      if (account->GetAdminLevel() == HM::Account::ServerAdmin && !authentication_->GetIsServerAdmin())
-         return COMError::GenerateError("A server administrator's password can only be reset by a server administrator.");
+      // Resetting a password is taking the account over: refused for an account
+      // whose authority this credential does not take in, which is how a help
+      // desk is kept from resetting a domain administrator's password in its
+      // domain and signing in as them.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(account)))
+         return COMError::GenerateError("That account holds authority this credential does not, so its password is not this credential's to reset.");
 
       if (account->GetIsAD())
          return COMError::GenerateError("This account authenticates against the directory; its password is not this server's to set.");

@@ -198,6 +198,22 @@ namespace HM
       // existed before roles did goes on having exactly the authority it had.
       static RoleGrant GrantForAccount(std::shared_ptr<const Account> account);
 
+      // The grant an account WOULD hold if it were given this role in these
+      // domains - an empty list read exactly as GrantForAccount reads it - so
+      // that the authority an assignment hands out is judged before it is
+      // written, not after.
+      static RoleGrant GrantForAssignment(std::shared_ptr<const Account> account, const String &roleName, const String &domains);
+
+      // True when holder's authority takes in the whole of other's: every
+      // permission other holds, in every domain other reaches. The rule behind
+      // two refusals that are one refusal: a credential may not hand out
+      // authority it has not got, and a credential may not take over an account
+      // - set its password, change it - whose authority it has not got. Without
+      // the second, a help desk that may reset passwords in a domain could
+      // reset a domain administrator's there and sign in as them. A grant that
+      // administers nothing is taken in by every grant.
+      static bool Encompasses(const RoleGrant &holder, const RoleGrant &other);
+
       // An API key's grant. roleName is the key store's Role= line; when it is
       // empty the historical Scope= decides, exactly as it did: full is
       // serveradmin, read-only is auditor. domains is the key's Domains= line.
