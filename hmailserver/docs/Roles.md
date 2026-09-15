@@ -228,7 +228,10 @@ from the one grant: `RoleManager::CurrentActor`, and the audit trail's own actor
 (see [AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)). The REST dispatcher installs
 both for the length of a request, and COM installs both on every authority question
 (`COMAuthentication::InstallActor_`), since a COM call may arrive on a different thread
-from the one that authenticated. What the audit trail records follows the role, not
+from the one that authenticated. An event script that signs in to COM does so on the
+server thread that fired the event, so the script host takes both actors off the thread
+around every script and puts back what was there, and nothing the server does on the
+thread afterwards is recorded under the script's credential. What the audit trail records follows the role, not
 `AdminLevel`: an account holding `serveradmin` or `domainadmin` is an `administrator`,
 every other account is an `account`, and the role a change was made under ends its
 detail as `[role: helpdesk]`. A password a help desk resets is therefore on the record

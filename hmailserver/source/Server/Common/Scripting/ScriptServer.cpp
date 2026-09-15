@@ -31,6 +31,8 @@
 #include "ScriptSite.h"
 #endif
 #include "ScriptObjectContainer.h"
+#include "../Application/RoleManager.h"
+#include "../Util/AuditTrail.h"
 
 
 #ifdef _DEBUG
@@ -137,6 +139,56 @@ namespace HM
          CComPtr<IActiveScript> engine_;
          HANDLE timer_;
          volatile LONG fired_;
+      };
+
+      // WHO IS ACTING, AROUND A SCRIPT.
+      //
+      // The audit trail and RoleManager each keep the acting credential in a
+      // thread-local, and COM installs both from every authority question it is
+      // asked (COMAuthentication::InstallActor_) and never takes them away - on
+      // COM's own pool threads the next question simply replaces them. A script
+      // is not on COM's threads. It runs in process, on whichever server thread
+      // fired the event: an SMTP, IMAP or POP3 worker, a delivery thread, the
+      // thread that reloads the scripts. A script that creates
+      // hMailServer.Application, authenticates and asks it anything installs
+      // that credential on THAT thread, and it stayed there after the script had
+      // gone - so the next change the server made on the thread by itself was
+      // recorded as the script's credential's. The auto-ban range a failed logon
+      // writes, on the very thread whose OnClientValidatePassword just ran, is
+      // the plain case: the server banning an address appeared on the audit trail
+      // as the administrator doing it.
+      //
+      // So a script runs inside this. It takes both actors off the thread before
+      // the script starts - the script is not whoever happened to be acting on
+      // the thread, so nothing it changes without authenticating is recorded
+      // under them - lets the script install its own through COM as it always
+      // could, so what it changes as an administrator is recorded as that, and
+      // puts back exactly what was there before when the script has finished and
+      // been torn down: nothing, on a worker thread; the request's credential,
+      // when a REST request reloaded the scripts.
+      class ScriptActorBoundary
+      {
+      public:
+         ScriptActorBoundary() :
+            audit_scope_(AuditTrail::Actor()),
+            role_actor_(RoleManager::CurrentActor())
+         {
+            RoleManager::ClearCurrentActor();
+         }
+
+         ~ScriptActorBoundary()
+         {
+            // The role actor here, and the audit trail's as audit_scope_ goes.
+            RoleManager::SetCurrentActor(role_actor_);
+         }
+
+      private:
+         ScriptActorBoundary(const ScriptActorBoundary &);
+         ScriptActorBoundary &operator=(const ScriptActorBoundary &);
+
+         // Installs no actor, and restores the one it found when it goes.
+         AuditScope audit_scope_;
+         RoleActor role_actor_;
       };
    }
 #endif
@@ -377,6 +429,10 @@ namespace HM
       // far.
       return false;
 #else
+      // Code outside a function runs here, once per handler looked for, on the
+      // thread reloading the scripts - see ScriptActorBoundary.
+      ScriptActorBoundary actors;
+
       // Create an instance of the script engine and execute the script.
       CComObject<CScriptSiteBasic>* pBasic;
       CComObject<CScriptSiteBasic>::CreateInstance(&pBasic);
@@ -446,6 +502,10 @@ namespace HM
          "so no event handler in this file will run. Remove the file, or turn scripting off in the settings, "
          "to stop this being reported on every reload.";
 #else
+      // The whole file runs once here, on the thread checking or reloading the
+      // scripts - see ScriptActorBoundary.
+      ScriptActorBoundary actors;
+
       // Create an instance of the script engine and execute the script.
       CComObject<CScriptSiteBasic>* pBasic;
       CComObject<CScriptSiteBasic>::CreateInstance(&pBasic);
@@ -639,6 +699,13 @@ namespace HM
       (void) sScript;
       (void) pObjects;
 #else
+      // The event's handler runs on the thread that fired it - a protocol
+      // worker, a delivery thread - and whatever credential the script signs in
+      // to COM with must not outlive it there. See ScriptActorBoundary. Declared
+      // before the engine so that it is taken down after the engine, and with it
+      // every object the script was still holding.
+      ScriptActorBoundary actors;
+
       CComObject<CScriptSiteBasic>* pBasic;
       CComObject<CScriptSiteBasic>::CreateInstance(&pBasic);
       CComQIPtr<IActiveScriptSite> spUnk;

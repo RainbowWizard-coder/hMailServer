@@ -12,7 +12,7 @@ setter, or a new REST route, written by somebody who had no reason to know this
 class existed. So it fails here, with the file and the line, rather than being
 discovered by a regulator.
 
-Six rules, in the shape of build/check-authz-choke-point.py:
+Seven rules, in the shape of build/check-authz-choke-point.py:
 
   recorded    AuditTrail::RecordStatement and ::RecordSettingChange are called
               from ONE file each - the statement chokepoint in the DAL and the
@@ -51,6 +51,13 @@ Six rules, in the shape of build/check-authz-choke-point.py:
               place of "raaccountid=12, raroleid=3" - is supplied only by
               RoleManager, which writes the two role tables. It changes what a
               row says and never whether it is written.
+
+  scripts     Every script engine ScriptServer starts runs inside a
+              ScriptActorBoundary. A script runs in process on the server thread
+              that fired its event, and a COM object it authenticates installs
+              that credential on the thread as every COM authority question
+              does; without the boundary it stays there, and the server's next
+              change on that thread is recorded as the script's credential's.
 
 Run from the repository root: python3 build/check-audit-choke-point.py
 """
@@ -281,6 +288,21 @@ def check_rest(problems):
                       % text.count("AuditScope auditScope("))
 
 
+def check_scripts(problems):
+   rel = "Common/Scripting/ScriptServer.cpp"
+   text = read(os.path.join(SERVER, "Common", "Scripting", "ScriptServer.cpp"))
+
+   engines = text.count("pBasic->Initiate(")
+   boundaries = text.count("ScriptActorBoundary actors;")
+
+   if engines == 0:
+      problems.append("%s: no script engine is started here any more - the scripts rule guards nothing" % rel)
+   elif boundaries != engines:
+      problems.append("%s: %d script engine(s) are started and %d ScriptActorBoundary scope(s) opened - a script run "
+                      "outside one leaves the credential it signed in to COM with on the server thread it ran on"
+                      % (rel, engines, boundaries))
+
+
 def check_table(problems):
    for path in sources():
       rel = relative(path)
@@ -301,6 +323,7 @@ def main():
    check_required(problems)
    check_com(problems)
    check_rest(problems)
+   check_scripts(problems)
    check_table(problems)
 
    if problems:

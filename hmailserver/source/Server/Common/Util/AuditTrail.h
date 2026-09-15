@@ -49,6 +49,14 @@
 // the authority a change was decided on and the name it is recorded under are
 // one credential and not two readings of it.
 //
+// COM's install is never taken away again, which is safe on COM's own pool
+// threads - the next question replaces it - and was not safe where COM is used
+// in process: an event script runs on the server thread that fired the event,
+// and the credential it signed in to COM with stayed on that thread for the
+// server's next change. ScriptServer runs every script inside a
+// ScriptActorBoundary, which takes both actors off the thread first and puts
+// back what was there once the script is gone.
+//
 // That is also what keeps the server's own writes out of the record: delivery,
 // retention, greylisting and the rest run with no actor, and an audit trail
 // that says "the mail server changed something" every minute is one nobody

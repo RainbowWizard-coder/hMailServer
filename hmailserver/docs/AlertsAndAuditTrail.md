@@ -104,10 +104,22 @@ interface:
   methods that write without asking — the settings property setters — carry an
   `AuditScope` of their own.
 
+**An event script** runs in process, on the server thread that fired its event - an
+SMTP, IMAP or POP3 worker, a delivery thread. A script that creates
+`hMailServer.Application`, authenticates and asks it anything installs that credential
+on that thread, as every COM authority question does. So every script runs inside a
+boundary (`ScriptActorBoundary` in `ScriptServer.cpp`) that takes both actors off the
+thread before the script starts and puts back exactly what was there when it has
+finished: what the script changes through COM as an administrator is recorded as that
+administrator, and what the server does on the thread afterwards - an auto-ban range
+written after a failed logon the script refused, say - is recorded as nobody's, which
+means it is not recorded.
+
 `build/check-audit-choke-point.py` fails the build if a third caller appears, if
 either chokepoint goes away, if `RecordEvent` is called anywhere but the two unlock
 call sites or either of those goes away, if a COM method that persists something
-does neither of those two things, or if anything but `AuditTrail` writes `hm_audit`.
+does neither of those two things, if a script engine is started outside the
+boundary, or if anything but `AuditTrail` writes `hm_audit`.
 
 ### Verifying the chain
 

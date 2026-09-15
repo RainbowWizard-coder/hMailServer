@@ -1003,6 +1003,106 @@ namespace RegressionTests.API
          StringAssert.Contains("\"intact\":true", verified.body);
       }
 
+      [Test]
+      [Description("An event script that signs in to COM in process leaves no actor on the server thread it ran on: when OnClientValidatePassword authenticates as the administrator, asks for the settings and refuses the logon, the auto-ban range the same thread then writes is not on the audit trail as the administrator's")]
+      public void AScriptLeavesNoActorOnTheThreadItRanOn()
+      {
+         const string victim = "victim@example.test";
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, victim, AccountPassword);
+
+         bool autoBan = _settings.AutoBanOnLogonFailure;
+         int maxAttempts = _settings.MaxInvalidLogonAttempts;
+         int within = _settings.MaxInvalidLogonAttemptsWithin;
+         int minutes = _settings.AutoBanMinutes;
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            // One refused logon bans the address. The ban is an INSERT into
+            // hm_securityranges - an audited table - made by the server itself, on
+            // the thread that ran the logon, straight after the script: exactly the
+            // write that must be recorded as nobody's.
+            _settings.AutoBanOnLogonFailure = true;
+            _settings.MaxInvalidLogonAttempts = 1;
+            _settings.MaxInvalidLogonAttemptsWithin = 5;
+            _settings.AutoBanMinutes = 5;
+            _settings.ClearLogonFailureList();
+
+            // The administrator password rather than an account's, so that signing
+            // in does not validate a password and fire this handler again. Reading
+            // Settings asks GetIsServerAdmin, which installs the actor on the thread;
+            // Result.Value is set only after it, so a ban below proves both ran.
+            string script =
+               "Sub OnClientValidatePassword(account, password)\r\n" +
+               "   If LCase(account.Address) <> \"" + victim + "\" Then Exit Sub\r\n" +
+               "   Dim app, settings\r\n" +
+               "   Set app = CreateObject(\"hMailServer.Application\")\r\n" +
+               "   Call app.Authenticate(\"Administrator\", \"" + AdminPassword + "\")\r\n" +
+               "   Set settings = app.Settings\r\n" +
+               "   Result.Value = 1\r\n" +
+               "End Sub\r\n";
+
+            File.WriteAllText(scripting.CurrentScriptFile, script);
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            _application.Database.ExecuteSQL("delete from hm_audit");
+
+            Assert.IsFalse(ImapClientSimulator.ValidatePassword(victim, AccountPassword),
+               "The script refuses every password for " + victim + ".");
+
+            _settings.SecurityRanges.Refresh();
+            SecurityRange ban = null;
+            try
+            {
+               ban = _settings.SecurityRanges.get_ItemByName("Auto-ban: " + victim);
+            }
+            catch (COMException)
+            {
+            }
+
+            Assert.IsNotNull(ban,
+               "The refused logon did not ban the address, so either the script did not reach Result.Value - its COM calls failed - or the ban was not written, and the test proves nothing.");
+
+            // Lifted before anything else connects from this address.
+            ban.Delete();
+
+            (int status, string body) trail = Admin("GET", "/api/v1/audit?action=created&limit=500");
+            Assert.AreEqual(200, trail.status, trail.body);
+
+            using (JsonDocument document = JsonDocument.Parse(trail.body))
+            {
+               List<JsonElement> bans = document.RootElement.GetProperty("entries").EnumerateArray()
+                  .Where(e => e.GetProperty("object_type").GetString() == "ip range").Select(e => e.Clone()).ToList();
+
+               Assert.IsEmpty(bans,
+                  "The auto-ban the server wrote on the script's thread is on the audit trail under the credential the script signed in to COM with - the actor outlived the script. Trail: " + trail.body);
+            }
+         }
+         finally
+         {
+            scripting.Enabled = false;
+            File.WriteAllText(scripting.CurrentScriptFile, "");
+            scripting.Reload();
+
+            try
+            {
+               _settings.SecurityRanges.Refresh();
+               _settings.SecurityRanges.get_ItemByName("Auto-ban: " + victim).Delete();
+            }
+            catch (COMException)
+            {
+               // Already lifted above.
+            }
+
+            _settings.AutoBanOnLogonFailure = autoBan;
+            _settings.MaxInvalidLogonAttempts = maxAttempts;
+            _settings.MaxInvalidLogonAttemptsWithin = within;
+            _settings.AutoBanMinutes = minutes;
+            _settings.ClearLogonFailureList();
+         }
+      }
+
       // --------------------------------------------------------------- helpers
 
       // The newest audit row made by this actor over this interface.
