@@ -1547,4 +1547,4 @@ insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) v
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('auditor', 'Reads everything and changes nothing, the audit trail included.', 1, 'view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit')
 
-insert into hm_dbversion values (6048)
+insert into hm_dbversion values (6047)

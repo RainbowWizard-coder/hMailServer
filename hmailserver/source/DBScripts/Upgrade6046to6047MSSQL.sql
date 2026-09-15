@@ -7,9 +7,9 @@ create table hm_roles
 	rolepermissions nvarchar(1000) not null
 )
 
-ALTER TABLE hm_roles ADD CONSTRAINT hm_roles_pk PRIMARY KEY (roleid)
+ALTER TABLE hm_roles ADD CONSTRAINT hm_roles_pk PRIMARY KEY NONCLUSTERED (roleid)
 
-CREATE UNIQUE INDEX idx_hm_roles_name ON hm_roles (rolename)
+CREATE UNIQUE CLUSTERED INDEX idx_hm_roles_name ON hm_roles (rolename)
 
 create table hm_roleassignments
 (
@@ -19,9 +19,9 @@ create table hm_roleassignments
 	radomains nvarchar(1000) not null
 )
 
-ALTER TABLE hm_roleassignments ADD CONSTRAINT hm_roleassignments_pk PRIMARY KEY (raid)
+ALTER TABLE hm_roleassignments ADD CONSTRAINT hm_roleassignments_pk PRIMARY KEY NONCLUSTERED (raid)
 
-CREATE UNIQUE INDEX idx_hm_roleassignments_account ON hm_roleassignments (raaccountid)
+CREATE UNIQUE CLUSTERED INDEX idx_hm_roleassignments_account ON hm_roleassignments (raaccountid)
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FOREIGN KEY (raaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
@@ -35,4 +35,4 @@ insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) v
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('auditor', 'Reads everything and changes nothing, the audit trail included.', 1, 'view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit')
 
-update hm_dbversion set value = 6048
+update hm_dbversion set value = 6047

@@ -207,7 +207,7 @@ COM call may arrive on a different thread from the one that authenticated.
 Storage
 -------
 
-Schema step 6048 adds `hm_roles` (`rolename`, `roledescription`, `rolebuiltin`,
+Schema step 6047 adds `hm_roles` (`rolename`, `roledescription`, `rolebuiltin`,
 `rolepermissions`; the four built-in rows seeded) and `hm_roleassignments`
 (`raaccountid`, `raroleid`, `radomains`; one role per account, removed with the
 account). Roles are data, not settings: nothing is added to `hm_settings` or to

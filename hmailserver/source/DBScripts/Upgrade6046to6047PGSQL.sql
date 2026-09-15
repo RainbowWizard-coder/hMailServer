@@ -1,27 +1,23 @@
 create table hm_roles
 (
-	roleid int auto_increment not null, primary key(`roleid`), unique(`roleid`),
+	roleid bigserial not null primary key,
 	rolename varchar(64) not null,
 	roledescription varchar(255) not null,
-	rolebuiltin tinyint not null,
+	rolebuiltin smallint not null,
 	rolepermissions varchar(1000) not null
 );
 
 CREATE UNIQUE INDEX idx_hm_roles_name ON hm_roles (rolename);
 
-ALTER TABLE hm_roles ENGINE=InnoDB;
-
 create table hm_roleassignments
 (
-	raid int auto_increment not null, primary key(`raid`), unique(`raid`),
+	raid bigserial not null primary key,
 	raaccountid int not null,
 	raroleid int not null,
 	radomains varchar(1000) not null
 );
 
 CREATE UNIQUE INDEX idx_hm_roleassignments_account ON hm_roleassignments (raaccountid);
-
-ALTER TABLE hm_roleassignments ENGINE=InnoDB;
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FOREIGN KEY (raaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -35,4 +31,4 @@ insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) v
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('auditor', 'Reads everything and changes nothing, the audit trail included.', 1, 'view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit');
 
-update hm_dbversion set value = 6048;
+update hm_dbversion set value = 6047;
