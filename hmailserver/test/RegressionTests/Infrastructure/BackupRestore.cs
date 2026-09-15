@@ -283,6 +283,14 @@ namespace RegressionTests.Infrastructure
 
          domain.SignaturePlainText = "PLS";
          domain.SignatureHTML = "HTML";
+
+         // The DKIM key rotation's policy rides the domain through the backup. The
+         // schedule is left off: a keyless domain with it on would be given a key by
+         // the first scheduled pass, which is not what this test is about.
+         domain.DKIMRotationIntervalDays = 90;
+         domain.DKIMRotationPropagationHours = 48;
+         domain.DKIMRotationRetentionDays = 14;
+         domain.DKIMRotationKeyBits = 3072;
          domain.Save();
 
          var da = domain.DomainAliases.Add();
@@ -774,6 +782,12 @@ namespace RegressionTests.Infrastructure
          Assert.IsTrue(domain.AddSignaturesToReplies);
          Assert.AreEqual("PLS", domain.SignaturePlainText);
          Assert.AreEqual("HTML", domain.SignatureHTML);
+
+         Assert.IsFalse(domain.DKIMRotationEnabled);
+         Assert.AreEqual(90, domain.DKIMRotationIntervalDays, "The rotation interval did not survive the backup.");
+         Assert.AreEqual(48, domain.DKIMRotationPropagationHours, "The propagation period did not survive the backup.");
+         Assert.AreEqual(14, domain.DKIMRotationRetentionDays, "The retention period did not survive the backup.");
+         Assert.AreEqual(3072, domain.DKIMRotationKeyBits, "The key size did not survive the backup.");
 
          Assert.AreEqual("example.test", _application.Domains[0].Name);
          Assert.AreEqual(2, _application.Domains[0].DomainAliases.Count);

@@ -1363,8 +1363,12 @@ namespace HM
       {
          const State &state = row.second;
 
+         // Measured to the rotation's own last look when that is later than now:
+         // a pass run with the clock moved forward has looked at a later moment
+         // than the wall clock, and what it saw then is what is stuck.
+         const __int64 lookedAt = state.next.checked > now ? state.next.checked : now;
          const bool waitingTooLong = !state.next.IsEmpty() && state.next_first_seen <= 0 &&
-                                     now - state.next.since >= (__int64) thresholdDays * Plan::SecondsPerDay;
+                                     lookedAt - state.next.since >= (__int64) thresholdDays * Plan::SecondsPerDay;
          const bool failed = !state.last_error.IsEmpty() && state.last_error_time > 0;
 
          if (!waitingTooLong && !failed)
