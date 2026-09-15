@@ -650,11 +650,24 @@ CSV_FIELDS = ["address", "password", "first_name", "last_name", "active", "max_s
 
 # How a cell is sent. active is a boolean and max_size_mb a number; every other
 # column is text, whatever it looks like - a password of digits alone, or a
-# surname of "True", is a string. Those two and admin_level are checked here in
-# the server's own words, so a dry run refuses what the create would refuse.
+# surname of "True", is a string. Those two, admin_level, a missing password and
+# a name past its column are checked here in the server's own words, so a dry
+# run refuses what the create would refuse. What only the server can judge - the
+# password policy, the domain's limits - is refused when the row is sent.
 CSV_TRUE = ("true", "yes", "on", "1")
 CSV_FALSE = ("false", "no", "off", "0")
 CSV_ADMIN_LEVELS = ("user", "domain", "server")
+
+# The width of accountpersonfirstname and accountpersonlastname, counted as the
+# Windows server counts it and as SQL Server's nvarchar(60) holds it: in UTF-16
+# code units, so a character outside the Basic Multilingual Plane counts two.
+# PowerShell's String.Length counts the same way, so the two clients refuse
+# the same names.
+CSV_NAME_WIDTH = 60
+
+
+def utf16_length(text):
+    return len(text.encode("utf-16-le")) // 2
 
 
 def account_csv_columns(path, fieldnames, rows):
@@ -698,13 +711,19 @@ def account_csv_body(row):
         if value is None or column == "":
             continue
 
-        # Every cell is trimmed, the password's too: PowerShell's CSV reader
-        # drops the leading spaces of a cell that is not in quotes, and a space
-        # at either end of a spreadsheet cell is far more often a slip than
-        # part of a password. The two clients send the same body for one file.
+        # Every cell is trimmed but the password's: a space at either end of a
+        # spreadsheet cell is far more often a slip than part of a name, and
+        # trimming one out of a password would make an account whose password
+        # is not the one in the file, without a word. So a password with white
+        # space at an edge is refused instead, and a dry run shows it. The two
+        # clients send the same body for one file.
         text = value.strip()
         if text == "":
             continue
+
+        if column == "password" and text != value:
+            return None, ("the password begins or ends with white space, which a spreadsheet cell rarely means; "
+                          "take it out of the cell, or set that password after the import")
 
         if column == "active":
             word = text.lower()
@@ -722,11 +741,16 @@ def account_csv_body(row):
             if text.lower() not in CSV_ADMIN_LEVELS:
                 return None, "admin_level must be user, domain or server, not %r" % text
             body[column] = text.lower()
+        elif column in ("first_name", "last_name"):
+            if utf16_length(text) > CSV_NAME_WIDTH:
+                return None, ("first_name and last_name are at most 60 characters each; this %s has %d"
+                              % (column, utf16_length(text)))
+            body[column] = text
         else:
             body[column] = text
 
     if not body.get("password"):
-        return None, "no password; the server makes no account without one"
+        return None, "address and password are required; this row has no password"
 
     return body, None
 

@@ -127,7 +127,7 @@ ANSWERS = {
                                           "connection_security": 0}]},
     ("GET", "/api/v1/domains/example.com/lists"): {"lists": [{"address": "all@example.com", "active": True,
                                                               "mode": 0}]},
-    ("GET", "/api/v1/domains/example.net/accounts"): {"accounts": []},
+    ("GET", "/api/v1/domains/example.net/accounts"): [],
     ("GET", "/api/v1/domains/example.net/aliases"): {"aliases": []},
     ("GET", "/api/v1/domains/example.net/lists"): {"lists": []},
     ("PUT", "/api/v1/domains/example.net"): {"name": "example.net", "active": True},
@@ -671,21 +671,33 @@ def run_config_cases(url, tmp):
 # Every expectation here is a body the create route (ReadNewAccount_) stores:
 # a password is a string whatever it looks like, a name goes in first_name and
 # last_name, active is a boolean, max_size_mb a number and admin_level one of
-# three lower-case words. Five rows are refused by the client before anything
+# three lower-case words. Seven rows are refused by the client before anything
 # is sent, in the create's own words, so a dry run refuses them too; one more is
 # sent and refused by the server, and must be reported in the server's words.
+#
+# A name is held to its 60-character column as the Windows server counts it, in
+# UTF-16 code units: LOU_SURNAME is 30 characters outside the Basic Multilingual
+# Plane, 60 units, and is sent; MIA_FIRST_NAME is 60 characters and 61 units, and
+# is refused. A client that counted characters (Python's len) or bytes would
+# disagree with the other client on one of the two.
+LOU_SURNAME = "\U0001F600" * 30
+MIA_FIRST_NAME = "x" * 59 + "\U0001F600"
+
 IMPORT_CSV = (
     "address,password,first_name,last_name,active,max_size_mb,admin_level\r\n"
     "ann@example.com,secret,Ann,Adams,true,100,domain\r\n"            # exists: left alone
     "carol@example.com,20260915,Carol,Clark,yes,50,DOMAIN\r\n"        # a password of digits alone
     "dave@example.com,true,,,false,,\r\n"                             # a password that reads as a boolean
-    "una@example.org, pass word ,\u00dana,\"\u00d3 N\u00e9ill, Jr\",TRUE,0,user\r\n"
-    "kim@example.net,Kim-Pass-1,Kim,,,,server\r\n"                       # sent, and refused by the server
+    "una@example.org,pass word,\u00dana,\"\u00d3 N\u00e9ill, Jr\",TRUE,0,user\r\n"
+    "lou@example.com,Lou-Pass-1,," + LOU_SURNAME + ",,,\r\n"          # a surname the full width of its column
+    "kim@example.net,Kim-Pass-1,Kim,,,,server\r\n"                    # sent, and refused by the server
     "erin@example.com,Erin-Pass-1,Erin,,maybe,,\r\n"                  # refused: active
     "frank@example.com,,Frank,,,,\r\n"                                # refused: no password
     "gina@example.com,Gina-Pass-1,,,,5.5,\r\n"                        # refused: max_size_mb
     "hal@example.com,Hal-Pass-1,,,,,root\r\n"                         # refused: admin_level
-    "ivy@example.com,Ivy-Pass-1,Ivy,Adams, Jr,true,,user\r\n"        # refused: a comma outside quotes
+    "ivy@example.com,Ivy-Pass-1,Ivy,Adams, Jr,true,,user\r\n"         # refused: a comma outside quotes
+    "mia@example.com,Mia-Pass-1," + MIA_FIRST_NAME + ",,,,\r\n"       # refused: a name one unit too wide
+    "ned@example.com, Ned-Pass-1,,,,,\r\n"                            # refused: a space the password would keep
 )
 
 IMPORT_BODIES = [
@@ -697,6 +709,8 @@ IMPORT_BODIES = [
     ("/api/v1/domains/example.org/accounts",
      {"address": "una@example.org", "password": "pass word", "first_name": "\u00dana",
       "last_name": "\u00d3 N\u00e9ill, Jr", "active": True, "max_size_mb": 0, "admin_level": "user"}),
+    ("/api/v1/domains/example.com/accounts",
+     {"address": "lou@example.com", "password": "Lou-Pass-1", "last_name": LOU_SURNAME}),
     ("/api/v1/domains/example.net/accounts",
      {"address": "kim@example.net", "password": "Kim-Pass-1", "first_name": "Kim", "admin_level": "server"}),
 ]
@@ -704,12 +718,18 @@ IMPORT_BODIES = [
 # The row the server refuses, and the words it must be reported in.
 SERVER_REFUSED = ("kim@example.net", "restricted to named domains")
 
+# Each in the words the create answers with, but the last two: the comma
+# outside quotes is a fault of the file the server never sees, and a password
+# with a space at its edge is one the server would store as sent - the clients
+# refuse it rather than trim a password or guess.
 IMPORT_REFUSED = {
     "erin@example.com": "active must be true or false",
-    "frank@example.com": "no password",
+    "frank@example.com": "address and password are required",
     "gina@example.com": "max_size_mb must be a whole number",
     "hal@example.com": "admin_level must be user, domain or server",
+    "mia@example.com": "first_name and last_name are at most 60 characters each",
     "ivy@example.com": "more cells than the header has columns",
+    "ned@example.com": "the password begins or ends with white space",
 }
 
 EXPORT_HEADER = ["address", "first_name", "last_name", "active", "max_size_mb", "admin_level"]
@@ -809,8 +829,8 @@ def run_import_cases(url, tmp):
           % (completed.returncode, completed.stderr))
     check(all(r["method"] == "GET" for r in requests),
           "accounts import --dry-run made a request that was not a GET: %s" % [r["method"] for r in requests])
-    check("4 would be made, 1 already there, 5 refused." in completed.stdout,
-          "accounts import --dry-run should count four to make, one there and five refused:\n%s" % completed.stdout)
+    check("5 would be made, 1 already there, 7 refused." in completed.stdout,
+          "accounts import --dry-run should count five to make, one there and seven refused:\n%s" % completed.stdout)
     check("ann@example.com (exists; left alone)" in completed.stdout,
           "accounts import --dry-run should leave the existing account alone and say so:\n%s" % completed.stdout)
     for address, reason in sorted(IMPORT_REFUSED.items()):
@@ -820,8 +840,8 @@ def run_import_cases(url, tmp):
     completed, requests = run(["accounts", "import", people])
     check(completed.returncode == 1, "accounts import with refused rows should exit 1, exited %d" % completed.returncode)
     check_import_posts("hmctl accounts import", [r for r in requests if r["method"] == "POST"])
-    check("3 made, 1 already there, 6 refused." in completed.stdout,
-          "accounts import should count three made, one there and six refused:\n%s" % completed.stdout)
+    check("4 made, 1 already there, 8 refused." in completed.stdout,
+          "accounts import should count four made, one there and eight refused:\n%s" % completed.stdout)
     check(any(SERVER_REFUSED[0] in line and SERVER_REFUSED[1] in line for line in completed.stdout.splitlines()),
           "accounts import should report the server's refusal of %s in its words:\n%s" % (SERVER_REFUSED[0], completed.stdout))
 
@@ -997,6 +1017,14 @@ def main():
     parser.add_argument("--powershell", action="store_true", help="the PowerShell module only")
     parser.add_argument("--verbose", action="store_true")
     arguments = parser.parse_args()
+
+    # A problem quotes what a client sent, and the spreadsheet holds characters
+    # outside the Basic Multilingual Plane that a Windows console's code page
+    # cannot print. Escaped rather than raised, so a failing run lists its
+    # problems instead of ending in a traceback over the first of them.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="backslashreplace")
 
     if not os.path.exists(HMCTL):
         print("No hmctl at %s" % HMCTL, file=sys.stderr)

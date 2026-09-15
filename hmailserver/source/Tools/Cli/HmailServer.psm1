@@ -961,11 +961,17 @@ function ConvertTo-HmAccountBody {
     foreach ($column in @($Record.Cells.Keys)) {
         $value = $Record.Cells[$column]
         if ($null -eq $value -or $column -eq '') { continue }
-        # Every cell is trimmed, the password's too, as hmctl trims them: a
-        # space at either end of a spreadsheet cell is far more often a slip
-        # than part of a password.
+        # Every cell is trimmed but the password's, as hmctl does it: a space at
+        # either end of a spreadsheet cell is far more often a slip than part
+        # of a name, and trimming one out of a password would make an account
+        # whose password is not the one in the file, without a word. So a
+        # password with white space at an edge is refused, and -WhatIf shows it.
         $text = ([string] $value).Trim()
         if ($text -eq '') { continue }
+
+        if ($column -eq 'password' -and $text -cne ([string] $value)) {
+            return [pscustomobject] @{ Body = $null; Error = 'the password begins or ends with white space, which a spreadsheet cell rarely means; take it out of the cell, or set that password after the import' }
+        }
 
         if ($column -eq 'active') {
             $word = $text.ToLowerInvariant()
@@ -987,13 +993,21 @@ function ConvertTo-HmAccountBody {
             }
             $body[$column] = $level
         }
+        elseif ($column -eq 'first_name' -or $column -eq 'last_name') {
+            # The column's width, in UTF-16 code units - String.Length, which
+            # is how the Windows server counts it and how hmctl counts it.
+            if ($text.Length -gt 60) {
+                return [pscustomobject] @{ Body = $null; Error = "first_name and last_name are at most 60 characters each; this $column has $($text.Length)" }
+            }
+            $body[$column] = $text
+        }
         else {
             $body[$column] = $text
         }
     }
 
     if (-not $body.ContainsKey('password')) {
-        return [pscustomobject] @{ Body = $null; Error = 'no password; the server makes no account without one' }
+        return [pscustomobject] @{ Body = $null; Error = 'address and password are required; this row has no password' }
     }
 
     [pscustomobject] @{ Body = $body; Error = $null }
@@ -1011,8 +1025,11 @@ function Import-HmAccount {
         before anything is sent. An address that already exists is left alone
         and counted, because an import that silently overwrote a password
         would lock a hundred people out with one command. A row the server
-        would refuse for its active, max_size_mb or admin_level cell is
-        refused under -WhatIf as well.
+        would refuse for its cells - no password, an active, max_size_mb or
+        admin_level it does not take, a name past 60 characters - is refused
+        under -WhatIf as well, and so is a password with white space at its
+        start or end. The password policy and the domain's limits are the
+        server's to judge, when the row is sent.
     .EXAMPLE
         Import-HmAccount -Path .\new-people.csv -WhatIf
     #>

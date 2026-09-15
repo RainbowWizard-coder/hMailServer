@@ -161,9 +161,9 @@ columns. These are the columns, and there are no others:
 | Column | Required | Sent as | Notes |
 |---|---|---|---|
 | `address` | yes | text | Created under the address's own domain. |
-| `password` | yes | text | Digits alone are still a password: `20260915` is sent as the text it is. Stored under the server's configured hash. |
-| `first_name` | | text | At most 60 characters. |
-| `last_name` | | text | At most 60 characters. |
+| `password` | yes | text | Digits alone are still a password: `20260915` is sent as the text it is. Never trimmed: white space at either end is refused. Judged by the server's password policy, then stored under its configured hash. |
+| `first_name` | | text | At most 60 characters, counted as UTF-16 code units, so a character outside the Basic Multilingual Plane (an emoji) counts two. |
+| `last_name` | | text | As `first_name`. |
 | `active` | | true or false | `true`, `yes`, `on` or `1`; `false`, `no`, `off` or `0`. Default true. |
 | `max_size_mb` | | a whole number | Megabytes; `0` is no limit, and is the default. |
 | `admin_level` | | `user`, `domain` or `server` | Default `user`. |
@@ -176,21 +176,25 @@ bob@example.com,An0therOne!,Bob,"Brown, Jr",true,,domain
 
 A person's name is two columns, not one: a name split at a space is a guess
 ("Mary Ann Smith"), and the file has to come back out exactly as it went in. The
-columns may come in any order, their names in any case, and every cell is
-trimmed. An empty cell is not sent, so the server's default applies. A value
-with a comma in it goes in quotes, as `"Brown, Jr"` does; a row with more cells
-than the header has columns is refused rather than shifted along.
+columns may come in any order, their names in any case, and every cell but the
+password is trimmed. An empty cell is not sent, so the server's default applies.
+A value with a comma in it goes in quotes, as `"Brown, Jr"` does; a row with more
+cells than the header has columns is refused rather than shifted along.
 
 Each row becomes one `POST /api/v1/domains/<domain>/accounts`, and that route
 refuses a field it does not know by name rather than ignoring it - so **a column
 that is not in the table is refused before anything is sent**, a `name` column
-included. The clients also refuse, before anything is sent and in the server's
-own words, a row with no password, an `active` that is not one of the eight
-words, a `max_size_mb` that is not a whole number, and an `admin_level` that is
-not one of the three, which is why `--dry-run` and `-WhatIf` refuse the same rows
-the import would. What only the server can judge - the domain's account limit,
-an address it does not accept - is refused per row when the import runs, and
-listed with its address and the server's reason (hmctl adds the line number).
+included. The clients also refuse, before anything is sent and in the words the
+server would use, a row with no password, an `active` that is not one of the
+eight words, a `max_size_mb` that is not a whole number, an `admin_level` that is
+not one of the three and a name past its 60 characters - which is why `--dry-run`
+and `-WhatIf` refuse the rows the create would refuse for their cells. They
+refuse one row the server would take: a password with a space or a tab at its
+start or end, which a spreadsheet cell rarely means and which trimming would
+silently turn into a different password. What only the server can judge - the
+password policy, the domain's account limit, an address it does not accept - is
+refused per row when the import runs, and listed with its address and the
+server's reason (hmctl adds the line number); a dry run cannot foresee those.
 
 **An address that already exists is left alone and counted**, never overwritten:
 an import that silently reset a password would lock a hundred people out with
