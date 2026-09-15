@@ -79,6 +79,19 @@ namespace HM
       // announce every correspondent it has as a first contact until each of them
       // had written again.
       { _T("hm_knownsenders"), 0 },
+
+      // The quarantine digest's memory of this account (schema 6046): whether its
+      // owner asked for the digest to stop, when the last one went, and the highest
+      // quarantine entry it listed. The opt-out is the part that cannot be lost - it
+      // is a person having said "stop sending me this", and a restore that dropped
+      // it would start the digest again for everybody who had turned it off, with a
+      // message that tells them how to stop it as though they never had.
+      //
+      // The position is carried as it stands, and it can be ahead of a quarantine
+      // restored onto a fresh database, whose entries start again from 1. That is
+      // QuarantineDigest::Held's problem and it answers it: an entry held after the
+      // last digest was sent is new whatever its id.
+      { _T("hm_digeststate"), 0 },
    };
 
    const AccountStores::Column AccountStores::columns_[] =
@@ -174,6 +187,15 @@ namespace HM
       { _T("hm_knownsenders"), _T("kscount"),        AccountStores::RoleNumber },
       { _T("hm_knownsenders"), _T("ksfirstseen"),    AccountStores::RoleText },
       { _T("hm_knownsenders"), _T("kslastseen"),     AccountStores::RoleText },
+
+      // dssenttime is a datetime column in every dialect, so RoleTimestamp; the
+      // placeholder an opt-out writes before any digest was sent (2000-01-01) is an
+      // ordinary date to it and comes back as the same placeholder.
+      { _T("hm_digeststate"), _T("dsid"),            AccountStores::RoleIdentity },
+      { _T("hm_digeststate"), _T("dsaccountid"),     AccountStores::RoleAccount },
+      { _T("hm_digeststate"), _T("dssenttime"),      AccountStores::RoleTimestamp },
+      { _T("hm_digeststate"), _T("dslastid"),        AccountStores::RoleNumber },
+      { _T("hm_digeststate"), _T("dsoptout"),        AccountStores::RoleNumber },
    };
 
    // Per-account tables this file does NOT carry, and why. Every one of them is
@@ -213,6 +235,9 @@ namespace HM
         _T("The full-text index: derived from the messages themselves and rebuilt by the indexer, so carrying it would double the archive to save work a background task does.") },
       { _T("hm_messageindexstate"),
         _T("How far the indexer has read. Derived, as above; a restored server indexes from the beginning.") },
+      { _T("hm_digesttokens"),
+        _T("The one-shot capabilities a quarantine digest's links carry - release this entry, release everything listed, stop the digest - each good once and dead within QuarantineDigestLinkHours (72 by default, 720 at most). ")
+        _T("Restoring one would bring back a link that was already spent or had expired, naming a quarantine entry by an id the restore does not carry; the next digest issues fresh ones.") },
    };
 
    const int AccountStores::store_count_ = (int) (sizeof(stores_) / sizeof(stores_[0]));

@@ -103,6 +103,8 @@ interface IInterfaceMessageIndexing;
 interface IInterfaceDiagnostics;
 interface IInterfaceDiagnosticResults;
 interface IInterfaceDiagnosticResult;
+interface IInterfaceSenderListEntry;
+interface IInterfaceSenderListEntries;
 
 // interface IInterfaceIMAPFolderACL;
 
@@ -863,6 +865,14 @@ interface IInterfaceSettings : IDispatch{
    [propput, id(123), helpstring("What happens when the endpoint cannot be used: 0 lets the change through (the default), 1 refuses it. Both are recorded in the error log.")] HRESULT BreachCheckUnreachableAction([in] long newVal);
    [id(124), helpstring("Asks the endpoint (empty for BreachCheckUrl) for the prefix 00000, which belongs to no password, and returns the number of entries it answered with. An endpoint that cannot be used is an error carrying the reason. Server administrators only.")] HRESULT TestBreachCheckEndpoint([in] BSTR Url, [out, retval] long *Entries);
 
+   // The quarantine digest's server-wide half: where its release links point and
+   // how long they last. Stored in hm_settings. Declared last although the ids are
+   // lower, so that no member already in the vtable moves.
+   [propget, id(118), helpstring("The absolute base URL the quarantine digest writes its release links against, such as https://mail.example.com. Empty means no digest is sent at all, because a link nobody can follow is worse than no message.")] HRESULT QuarantineDigestBaseUrl([out, retval] BSTR *pVal);
+   [propput, id(118), helpstring("The absolute base URL the quarantine digest writes its release links against, such as https://mail.example.com. Empty means no digest is sent at all, because a link nobody can follow is worse than no message.")] HRESULT QuarantineDigestBaseUrl([in] BSTR newVal);
+   [propget, id(119), helpstring("How many hours a release link in a digest stays usable, 1 to 720. Each link also works only once.")] HRESULT QuarantineDigestLinkHours([out, retval] long *pVal);
+   [propput, id(119), helpstring("How many hours a release link in a digest stays usable, 1 to 720. Each link also works only once.")] HRESULT QuarantineDigestLinkHours([in] long newVal);
+
 };
 
 
@@ -1003,6 +1013,12 @@ interface IInterfaceDomain : IDispatch
       [propput, id(62), helpstring("The footer, as plain text.")] HRESULT DisclaimerPlainText([in] BSTR newVal);
       [propget, id(63), helpstring("The footer, as HTML. Empty means the plain text is used with its line breaks turned into <br>.")] HRESULT DisclaimerHTML([out, retval] BSTR *pVal);
       [propput, id(63), helpstring("The footer, as HTML. Empty means the plain text is used with its line breaks turned into <br>.")] HRESULT DisclaimerHTML([in] BSTR newVal);
+
+      [propget, id(64), helpstring("This domain's allow and block list: addresses and domains wanted, or not wanted, by every account of this domain. Consulted after an account's own list and before the server's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
+      [propget, id(65), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(65), helpstring("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default. Needs Settings.QuarantineDigestBaseUrl to be set, or the links would point nowhere.")] HRESULT QuarantineDigest([in] VARIANT_BOOL newVal);
+      [propget, id(66), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([out, retval] long *pVal);
+      [propput, id(66), helpstring("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")] HRESULT QuarantineDigestHour([in] long newVal);
 
 };
 [
@@ -2823,6 +2839,8 @@ interface IInterfaceAntiSpam : IDispatch
    // binding stable, and only one of the two is visible in a diff.
    [propget, id(43), helpstring("The spam quarantine: messages held for review instead of refused. Empty and inert unless QuarantineEnabled is set in hMailServer.ini.")] HRESULT Quarantine([out, retval] IInterfaceQuarantine** pVal);
    [propget, id(44), helpstring("Global list of blocked sender addresses and domains.")] HRESULT BlockedSenders([out, retval] IInterfaceBlockedSenders **pVal);
+   [propget, id(45), helpstring("The server's allow and block list: addresses and domains wanted, or not wanted, by every account. Consulted at delivery, after the account's own list and its domain's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
+   [id(46), helpstring("Sends the quarantine digest now to every account of every domain that has the digest switched on and something newly held for it, ignoring the digest hour and the once-a-day rule. Not the opt-out, a missing QuarantineDigestBaseUrl or an empty digest: those still send nothing. Returns how many digests were sent.")] HRESULT SendQuarantineDigests([out, retval] long *pVal);
 };
 
 
@@ -3075,6 +3093,62 @@ interface IInterfaceBlockedSender : IDispatch
    [propput, id(4), helpstring("Description of the record.")] HRESULT Description([in] BSTR newVal);
    [id(5), helpstring("Saves changes of the object in the database.")] HRESULT Save();
    [id(6), helpstring("Deletes the object from the database.")] HRESULT Delete();
+};
+
+// The sender list: one address or one domain that somebody has said is
+// wanted, or is not. The same row shape at three scopes - an account, a
+// domain, the server - because it is the same question at three distances,
+// and Scope says which this one came from.
+//
+// Read at LOCAL DELIVERY, not during the SMTP conversation, which is what
+// lets it be per-recipient at all: a conversation shared by several
+// recipients cannot be refused for one of them. The account's list is
+// consulted first, then its domain's, then the server's, and the nearest
+// scope that says anything is the only one that decides.
+[
+   object,
+   uuid(7FD56286-DBE1-4E8D-A480-4704070ED8F1),
+   dual,
+   nonextensible,
+   helpstring("The SenderListEntry object represents one address or domain on an allow or block list."),
+   pointer_default(unique)
+]
+interface IInterfaceSenderListEntry : IDispatch
+{
+   [propget, id(1), helpstring("The unique database identifier for the object.")] HRESULT ID([out, retval] long *pVal);
+   [propget, id(2), helpstring("The address (user@example.com) or domain (example.com, which also covers its subdomains). Stored lower-cased, with a leading @ dropped.")] HRESULT Value([out, retval] BSTR *pVal);
+   [propput, id(2), helpstring("The address (user@example.com) or domain (example.com, which also covers its subdomains). Stored lower-cased, with a leading @ dropped.")] HRESULT Value([in] BSTR newVal);
+   [propget, id(3), helpstring("False allows the sender - its mail skips the spam verdict for whoever this list belongs to. True blocks it - the message is held for review where the server holds spam, and marked as spam where it does not. Never destroyed either way.")] HRESULT Blocked([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(3), helpstring("False allows the sender - its mail skips the spam verdict for whoever this list belongs to. True blocks it - the message is held for review where the server holds spam, and marked as spam where it does not. Never destroyed either way.")] HRESULT Blocked([in] VARIANT_BOOL newVal);
+   [propget, id(4), helpstring("Why the entry is there. Kept for whoever reads the list a year later.")] HRESULT Reason([out, retval] BSTR *pVal);
+   [propput, id(4), helpstring("Why the entry is there. Kept for whoever reads the list a year later.")] HRESULT Reason([in] BSTR newVal);
+   [propget, id(5), helpstring("Whether the entry stops mattering at ExpiresTime. An expired entry is ignored whether or not the sweep has removed it yet.")] HRESULT Expires([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(5), helpstring("Whether the entry stops mattering at ExpiresTime. An expired entry is ignored whether or not the sweep has removed it yet.")] HRESULT Expires([in] VARIANT_BOOL newVal);
+   [propget, id(6), helpstring("When the entry expires, if Expires is set.")] HRESULT ExpiresTime([out, retval] VARIANT *pVal);
+   [propput, id(6), helpstring("When the entry expires, if Expires is set.")] HRESULT ExpiresTime([in] VARIANT newVal);
+   [propget, id(7), helpstring("Which list this entry came out of: 0 the server, 1 a domain, 2 an account. Read-only - a scope that could be written would move an entry between authorities.")] HRESULT Scope([out, retval] long *pVal);
+   [id(8), helpstring("Saves changes of the object in the database.")] HRESULT Save();
+   [id(9), helpstring("Deletes the object from the database.")] HRESULT Delete();
+};
+
+[
+   object,
+   uuid(C0C0F520-AB92-43F4-8E8F-1462CEDEDF0A),
+   dual,
+   nonextensible,
+   helpstring("The SenderListEntries object is one scope's allow and block list."),
+   pointer_default(unique)
+]
+interface IInterfaceSenderListEntries : IDispatch
+{
+   [propget, id(0), defaultbind, helpstring("Returns an object by its given index.")] HRESULT Item([in] long Index, [out, retval] IInterfaceSenderListEntry **pVal);
+   [propget, id(1), helpstring("The number of objects in the collection.")] HRESULT Count([out, retval] long *pVal);
+   [id(2), helpstring("Deletes an object in the database by its given database identifier.")] HRESULT DeleteByDBID([in] long DBID);
+   [id(3), helpstring("Adds a new entry to this list. It already carries this list's scope and owner.")] HRESULT Add([out, retval] IInterfaceSenderListEntry **pVal);
+   [propget, id(4), helpstring("Returns an object by the address or domain it names.")] HRESULT ItemByName([in] BSTR sName, [out, retval] IInterfaceSenderListEntry **pVal);
+   [propget, id(5), helpstring("Returns a object by its database identifier")] HRESULT ItemByDBID([in] long DBID, [out, retval] IInterfaceSenderListEntry* *pVal);
+   [id(6), helpstring("Refreshes the collection.")] HRESULT Refresh();
+   [id(7), helpstring("Clears the collection.")] HRESULT Clear();
 };
 
 [
@@ -4242,6 +4316,22 @@ library hMailServer
    coclass MessageIndexing
    {
       [default] interface IInterfaceMessageIndexing;
+   };
+   [
+      uuid(5A012C36-D930-4F2E-9AC7-73C0D9EE1207),
+      helpstring("SenderListEntry Class")
+   ]
+   coclass SenderListEntry
+   {
+      [default] interface IInterfaceSenderListEntry;
+   };
+   [
+      uuid(78E74BA8-BB64-46B9-AD47-F6F8061B68C0),
+      helpstring("SenderListEntries Class")
+   ]
+   coclass SenderListEntries
+   {
+      [default] interface IInterfaceSenderListEntries;
    };
 };
 

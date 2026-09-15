@@ -48,6 +48,37 @@ namespace HM
       // and subject tag rewritten out of this account's file.
       bool ApplyAccountSpamOverrides_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage);
 
+      // The reader's own allow and block lists, and the domain's and the
+      // server's, applied to this copy before the thresholds above. The
+      // precedence between the three scopes lives in SenderListCache::Decide;
+      // this is what the decision does to a message.
+      //
+      // Returns false when the copy must not be delivered - a blocked sender
+      // whose message the quarantine accepted, so that there is something for
+      // the recipient to release from their held-mail page and their digest.
+      //
+      // `decided` is true when a list spoke for this copy and the per-account
+      // thresholds must therefore not run: an allowed sender has skipped the
+      // spam verdict, and a blocked one has already been marked. It is
+      // deliberately separate from the return value, which is only about
+      // whether the copy is delivered at all.
+      bool ApplySenderLists_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage, bool &decided);
+
+      // Marks this account's copy as spam because a block list named its sender:
+      // the flag, the X-hMailServer-Spam and X-hMailServer-Reason-1 headers and
+      // the configured subject tag, so that the copy reaches whatever rule or
+      // Sieve script the account already uses for spam. No Reason-Score header,
+      // because nothing measured this message.
+      static void MarkAsBlocked_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
+                                 const String &senderAddress, const String &scopeName, const String &entry);
+
+      // The address in the message's From header, read once for the whole
+      // delivery and empty when there is none. The lists match it as well as the
+      // envelope sender; see SenderListCache.
+      const String &HeaderFromAddress_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage);
+      String header_from_address_;
+      bool header_from_read_ = false;
+
       // The total score the conversation recorded on the message - the
       // X-hMailServer-Reason-Score header, written when "add reason headers" is on
       // and the message was classified. Returns -1 when absent or unparseable;

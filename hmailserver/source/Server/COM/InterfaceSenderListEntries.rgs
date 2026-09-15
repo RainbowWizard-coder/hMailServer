@@ -1,0 +1,24 @@
+HKCR
+{
+	hMailServer.SenderListEntries.1 = s 'SenderListEntries Class'
+	{
+		CLSID = s '{78E74BA8-BB64-46B9-AD47-F6F8061B68C0}'
+	}
+	hMailServer.SenderListEntries = s 'SenderListEntries Class'
+	{
+		CLSID = s '{78E74BA8-BB64-46B9-AD47-F6F8061B68C0}'
+		CurVer = s 'hMailServer.SenderListEntries.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {78E74BA8-BB64-46B9-AD47-F6F8061B68C0} = s 'SenderListEntries Class'
+		{
+			ProgID = s 'hMailServer.SenderListEntries.1'
+			VersionIndependentProgID = s 'hMailServer.SenderListEntries'
+			ForceRemove 'Programmable'
+			LocalServer32 = s '%MODULE%'
+			val AppID = s '%APPID%'
+			'TypeLib' = s '{DB241B59-A1B1-4C59-98FC-8D101A2995F2}'
+		}
+	}
+}

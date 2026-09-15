@@ -10,6 +10,7 @@
 #include "Aliases.h"
 #include "DistributionLists.h"
 #include "DomainAliases.h"
+#include "SenderListEntries.h"
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
 
@@ -28,6 +29,8 @@ namespace HM
       anti_spam_options_(1),
       max_size_mb_(0),
       message_retention_days_(0),
+      quarantine_digest_(0),
+      quarantine_digest_hour_(7),
       enable_signature_(false),
       signature_method_(SMSetIfNotSpecifiedInAccount),
       add_signatures_to_local_mail_(true),
@@ -171,6 +174,9 @@ namespace HM
       pNode->AppendAttr(_T("DisclaimerPlainText"), disclaimer_plain_text_);
       pNode->AppendAttr(_T("DisclaimerHTML"), disclaimer_html_);
 
+      pNode->AppendAttr(_T("QuarantineDigest"), quarantine_digest_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("QuarantineDigestHour"), StringParser::IntToString(quarantine_digest_hour_));
+
       if (!GetDomainAliases()->XMLStore(pNode, iBackupOptions))
          return false;
 
@@ -182,6 +188,16 @@ namespace HM
          return false;
 
       if (!GetDistributionLists()->XMLStore(pNode, iBackupOptions))
+         return false;
+
+      // The domain's allow and block list (hm_senderlist, scope domain). A restore
+      // deletes the domain, and PersistentDomain::DeleteObject takes its list with
+      // it, so the archive is the only place the list can come back from.
+      std::shared_ptr<SenderListEntries> senderList =
+         std::shared_ptr<SenderListEntries>(new SenderListEntries(SenderListEntry::ScopeDomain, id_));
+      if (!senderList->Refresh())
+         return false;
+      if (!senderList->XMLStore(pNode, iBackupOptions))
          return false;
 
       return true;
@@ -250,6 +266,19 @@ namespace HM
       disclaimer_plain_text_ = pNode->GetAttrValue(_T("DisclaimerPlainText"));
       disclaimer_html_ = pNode->GetAttrValue(_T("DisclaimerHTML"));
 
+      // The digest, under the same rule: a backup taken before it existed has no
+      // attribute and restores with the digest off at the default hour, which is
+      // every domain before an administrator turns it on.
+      quarantine_digest_ = pNode->GetAttrValue(_T("QuarantineDigest")) == _T("1") ? 1 : 0;
+
+      const String digestHour = pNode->GetAttrValue(_T("QuarantineDigestHour"));
+      if (!digestHour.IsEmpty())
+      {
+         const int hour = _ttoi(digestHour);
+         if (hour >= 0 && hour <= 23)
+            quarantine_digest_hour_ = hour;
+      }
+
       return true;
    }
 
@@ -266,6 +295,14 @@ namespace HM
          return false;
 
       if (!GetDistributionLists()->XMLLoad(pNode, iRestoreOptions))
+         return false;
+
+      // Under the domain's new id; see SenderListEntries::PreSaveObject.
+      std::shared_ptr<SenderListEntries> senderList =
+         std::shared_ptr<SenderListEntries>(new SenderListEntries(SenderListEntry::ScopeDomain, id_));
+      if (!senderList->Refresh())
+         return false;
+      if (!senderList->XMLLoad(pNode, iRestoreOptions))
          return false;
 
       return true;

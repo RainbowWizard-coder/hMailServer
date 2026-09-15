@@ -25,6 +25,9 @@
 #include "COMAuthentication.h"
 
 #include "COMError.h"
+#include "InterfaceSenderListEntries.h"
+#include "../Common/BO/SenderListEntries.h"
+#include "../Common/BO/SenderListEntry.h"
 
 
 #ifdef _DEBUG
@@ -2348,6 +2351,126 @@ STDMETHODIMP InterfaceDomain::put_DisclaimerHTML(BSTR newVal)
          return authentication_->GetAccessDenied();
 
       object_->SetDisclaimerHTML(newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+
+STDMETHODIMP InterfaceDomain::get_SenderList(IInterfaceSenderListEntries **pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // A fresh collection scoped to this domain. Nothing holds it: the server
+      // reads the list through SenderListCache, out of its own copy of the whole
+      // table, which every save and delete invalidates.
+      std::shared_ptr<HM::SenderListEntries> entries =
+         std::shared_ptr<HM::SenderListEntries>(new HM::SenderListEntries(HM::SenderListEntry::ScopeDomain, object_->GetID()));
+
+      entries->Refresh();
+
+      CComObject<InterfaceSenderListEntries>* pInterface = new CComObject<InterfaceSenderListEntries>();
+      pInterface->SetAuthentication(authentication_);
+      pInterface->Attach(entries);
+      pInterface->AddRef();
+
+      *pVal = pInterface;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_QuarantineDigest(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetQuarantineDigest() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_QuarantineDigest(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      object_->SetQuarantineDigest(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_QuarantineDigestHour(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = (long) object_->GetQuarantineDigestHour();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_QuarantineDigestHour(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // Refused rather than clamped. An hour of 25 is a mistake somebody made,
+      // and silently turning it into 23 would send the digests at a time they
+      // never chose and then show them the 23 as though they had.
+      if (newVal < 0 || newVal > 23)
+         return COMError::GenerateError("The digest hour is a whole number from 0 to 23.");
+
+      object_->SetQuarantineDigestHour((int) newVal);
 
       return S_OK;
    }

@@ -205,6 +205,11 @@ namespace HM
          RouteMeQuarantineList,
          RouteMeQuarantineRelease,
          RouteMeQuarantineDelete,
+         // Whether the quarantine digest reaches this account, read and
+         // written by its owner. The domain decides whether one is sent at all;
+         // this is the reader's own half of that decision.
+         RouteMeQuarantineDigestGet,
+         RouteMeQuarantineDigestPut,
          RouteMeFolders,
          RouteMeFolderMessages,
          // Wave 164: the account's own folder writes, and the change probe the
@@ -381,6 +386,23 @@ namespace HM
          RouteGreyListingWhiteAddressCreate,
          RouteGreyListingWhiteAddressUpdate,
          RouteGreyListingWhiteAddressDelete,
+         // The sender list (RestApiSenderLists.cpp): the same four verbs at
+         // each of its three scopes. The server's is server-wide; the domain's
+         // is scoped to the domain in its path, as the distribution lists are;
+         // the account's own is a /me route and needs no authorisation beyond
+         // being signed in as that account.
+         RouteSenderListList,
+         RouteSenderListCreate,
+         RouteSenderListUpdate,
+         RouteSenderListDelete,
+         RouteSenderListDomainList,
+         RouteSenderListDomainCreate,
+         RouteSenderListDomainUpdate,
+         RouteSenderListDomainDelete,
+         RouteSenderListMeList,
+         RouteSenderListMeCreate,
+         RouteSenderListMeUpdate,
+         RouteSenderListMeDelete,
          // An account's resources under its address (RestApiAccountResources.cpp):
          // its app passwords, its folders and their ACLs, its messages. Each
          // scoped to the address's domain in Authorize_ as the account routes are.
@@ -998,6 +1020,18 @@ namespace HM
       // in the same shape: one entry point for the four routes.
       HttpResponse HandleBlockedAttachments_(RouteKind kind, __int64 id, const AnsiString &requestBody);
       static AnsiString OpenApiBlockedAttachmentsPaths_();
+      // The sender list at all three of its scopes (RestApiSenderLists.cpp):
+      // one entry point, the route saying which scope and which verb, and the
+      // caller carrying the account for the /me routes.
+      HttpResponse HandleSenderLists_(const Route &route, const Caller &caller, const AnsiString &requestBody);
+      static AnsiString OpenApiSenderListPaths_();
+      // Whether the quarantine digest reaches the signed-in account, read and
+      // written by its owner (RestApiSenderLists.cpp).
+      HttpResponse HandleMeQuarantineDigest_(const Caller &caller, const AnsiString &method, const AnsiString &requestBody);
+      // The two pages a digest's links lead to, which carry no credentials at
+      // all: the capability is the token (RestApiQuarantineDigest.cpp).
+      static HttpResponse HandleDigestRelease_(const AnsiString &method, const AnsiString &query, const AnsiString &body);
+      static HttpResponse HandleDigestStop_(const AnsiString &method, const AnsiString &query, const AnsiString &body);
       // An account's resources under its address, administered
       // (RestApiAccountResources.cpp): the app passwords, the folders and
       // their ACLs, the messages. One entry point,

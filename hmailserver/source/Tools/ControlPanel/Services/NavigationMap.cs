@@ -561,6 +561,16 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Blacklist|Block list|Deny list|Block a sender|Banned senders|Refuse mail from",
                   seeAlso: "spamwhitelist|antispam|spamoverview"),
 
+               // Beside Blocked senders on purpose, because the two are easy to
+               // confuse and are not the same thing: that list refuses during the
+               // SMTP conversation for every recipient at once; this one decides at
+               // delivery, per recipient, and a recipient's own list or domain's
+               // list can overrule it.
+               Page("senderlist", N("Allow and block list"),
+                  N("Addresses and domains every account wants or does not, below each account's own list and its domain's."),
+                  aliases: "Tenant allow list|Tenant block list|Sender allow list|Sender block list|Allow a sender for everyone|Never junk from|Precedence of sender lists",
+                  seeAlso: "blockedsenders|spamwhitelist|quarantine"),
+
                Page("greylistwhitelist", N("Greylisting white list"),
                   N("IP addresses exempt from the greylisting delay, for senders that will not retry."),
                   aliases: "Greylist exemption|Greylisting delay|Slow mail|First message delayed|Retry delay",

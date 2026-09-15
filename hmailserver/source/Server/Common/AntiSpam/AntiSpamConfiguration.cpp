@@ -10,6 +10,7 @@
 #include "../BO/GreyListingWhiteAddresses.h"
 #include "../BO/WhiteListAddresses.h"
 #include "../BO/BlockedSenders.h"
+#include "../BO/SenderListEntries.h"
 #include "../Persistence/PersistentGreyList.h"
 
 #ifdef _DEBUG
@@ -218,6 +219,15 @@ namespace HM
       if (!GetBlockedSenders()->XMLStore(pBackupNode, iOptions))
          return false;
 
+      // THE SERVER'S ALLOW AND BLOCK LIST (hm_senderlist, scope server). The
+      // account and domain lists travel with their accounts and domains.
+      std::shared_ptr<SenderListEntries> senderList =
+         std::shared_ptr<SenderListEntries>(new SenderListEntries(SenderListEntry::ScopeServer, 0));
+      if (!senderList->Refresh())
+         return false;
+      if (!senderList->XMLStore(pBackupNode, iOptions))
+         return false;
+
       // DNS BLACK LISTS
       if (!dnsBlackLists_->XMLStore(pBackupNode, iOptions))
          return false;
@@ -243,6 +253,15 @@ namespace HM
 
       // BLOCKED SENDERS
       if (!GetBlockedSenders()->XMLLoad(pBackupNode, iRestoreOptions))
+         return false;
+
+      // THE SERVER'S ALLOW AND BLOCK LIST. Replaces the server's list, as every
+      // collection in this section replaces its own.
+      std::shared_ptr<SenderListEntries> senderList =
+         std::shared_ptr<SenderListEntries>(new SenderListEntries(SenderListEntry::ScopeServer, 0));
+      if (!senderList->Refresh())
+         return false;
+      if (!senderList->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       // DNS BLACK LISTS

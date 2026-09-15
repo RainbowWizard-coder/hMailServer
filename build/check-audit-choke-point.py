@@ -229,6 +229,10 @@ NOT_AUDITED = {
    "hm_files": "files an account attached as links from webmail; the account's own data.",
    "hm_scheduled": "an account's own scheduled sends and snoozed messages.",
    "hm_smimekeys": "an account's own S/MIME certificates, kept for it by the portal.",
+   "hm_digeststate": "when each account last had a quarantine digest and whether it opted out, written by the digest task and by the "
+                     "account itself in the webmail; the domain's switch and hour are hm_domains columns, which are audited.",
+   "hm_digesttokens": "the digest's one-use release links, written by the digest task and spent by whoever follows one; traffic, and "
+                      "each row holds a token that releases a held message.",
 }
 
 # Tables whose chokepoint is not the statement one, and which must therefore

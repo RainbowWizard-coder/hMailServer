@@ -21,9 +21,11 @@ namespace RegressionTests.Infrastructure
    ///    (hm_accountprefs), the messages it has put off (hm_scheduled), the large
    ///    files it has sent as links (hm_files), its S/MIME certificates and keys
    ///    (hm_smimekeys), the history that stops it reusing a password
-   ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects) and
-   ///    the memory of who has written to it before (hm_knownsenders) - and, on each
-   ///    message, the keywords the webmail calls labels.
+   ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects), the
+   ///    memory of who has written to it before (hm_knownsenders), whether it asked
+   ///    for the quarantine digest to stop (hm_digeststate) and its own safe and
+   ///    blocked senders (hm_senderlist) - and, on each message, the keywords the
+   ///    webmail calls labels.
    ///
    ///    Until 15 September 2026 not one of those was in the archive, and because
    ///    every one of those tables cascades from hm_accounts and a restore deletes
@@ -83,6 +85,7 @@ namespace RegressionTests.Infrastructure
       public void StopListeners()
       {
          TurnTheFirstContactNoteOff();
+         TurnTheDigestAddressOff();
 
          IniFileSetting.Write("WebServicesHttpPort", "0");
          // Put back whatever a test turned on, whether it reached its own last line
@@ -403,6 +406,108 @@ namespace RegressionTests.Infrastructure
             + "who has written to it did not come back.");
       }
 
+      // ------------------------------------------------------- hm_digeststate
+
+      [Test]
+      [Description("hm_digeststate: an account that asked for the quarantine digest to stop is still opted out after a "
+                   + "backup and a restore that deleted the domain, and the domain comes back with its digest on")]
+      public void TheDigestOptOutComesBack()
+      {
+         string domainName = _domain.Name;
+
+         // A server setting in hm_settings, which this restore does not touch; put
+         // back to empty in TearDown. dynamic because the test project's interop
+         // predates the property.
+         dynamic settings = _settings;
+         settings.QuarantineDigestBaseUrl = "http://127.0.0.1:" + RestPort;
+
+         dynamic domain = _domain;
+         domain.QuarantineDigest = true;
+         domain.QuarantineDigestHour = 5;
+         _domain.Save();
+
+         Response offered = Rest("GET", "/api/v1/me/quarantine-digest", User());
+         Assert.AreEqual(200, offered.Status, "Body: " + offered.Body);
+         StringAssert.Contains("\"enabled\":true", offered.Body,
+            "Before anything is stopped the digest is on for the account, or the test below proves nothing. Body: " + offered.Body);
+
+         Response stopped = Rest("PUT", "/api/v1/me/quarantine-digest", User(), "{\"enabled\":false}");
+         Assert.AreEqual(200, stopped.Status, "Body: " + stopped.Body);
+         StringAssert.Contains("\"enabled\":false", stopped.Body);
+
+         BackupDeleteAndRestore();
+
+         // The domain first, because the account's answer below is "off" whenever the
+         // domain's digest is off, whatever the archive held for the account - and a
+         // test that passed that way would be passing on the wrong row.
+         dynamic restored = _application.Domains.ItemByName[domainName];
+         Assert.IsTrue((bool) restored.QuarantineDigest,
+            "The domain came back with the quarantine digest off, so Domain::XMLStore did not carry it.");
+         Assert.AreEqual(5, (int) restored.QuarantineDigestHour,
+            "The domain came back with a different digest hour, so Domain::XMLStore did not carry it.");
+
+         Response read = Rest("GET", "/api/v1/me/quarantine-digest", User());
+         Assert.AreEqual(200, read.Status, "Body: " + read.Body);
+         StringAssert.Contains("\"available\":true", read.Body);
+
+         // On a build whose archive has no hm_digeststate the restored account has no
+         // state row, which reads as an account that never asked - and the next digest
+         // would go to somebody who had said to stop.
+         StringAssert.Contains("\"enabled\":false", read.Body,
+            "The restored account is being sent the digest again, so its opt-out did not come back. Body: " + read.Body);
+      }
+
+      // -------------------------------------------------------- hm_senderlist
+
+      [Test]
+      [Description("hm_senderlist: an account's own safe and blocked senders, and its domain's allow and block list, survive "
+                   + "a backup and a restore that deleted the domain - each under the account or domain the restore made")]
+      public void TheSafeSendersComeBack()
+      {
+         string domainName = _domain.Name;
+
+         Response safe = Rest("POST", "/api/v1/me/sender-list", User(),
+            "{\"value\":\"Friend.Example\",\"reason\":\"my accountant\"}");
+         Assert.AreEqual(201, safe.Status, "Body: " + safe.Body);
+
+         Response blocked = Rest("POST", "/api/v1/me/sender-list", User(),
+            "{\"value\":\"pest@example.net\",\"blocked\":true}");
+         Assert.AreEqual(201, blocked.Status, "Body: " + blocked.Body);
+
+         // The domain's list is edited by an administrator, over COM as the Control
+         // Panel does.
+         dynamic domainList = ((dynamic) _domain).SenderList;
+         dynamic entry = domainList.Add();
+         entry.Value = "supplier.example";
+         entry.Blocked = false;
+         entry.Reason = "invoices";
+         entry.Save();
+
+         BackupDeleteAndRestore();
+
+         // The account's own list, read the way its owner reads it. On a build whose
+         // archive does not carry hm_senderlist this is empty: the restore deleted the
+         // account, PersistentAccount::DeleteObject took the entries with it, and the
+         // archive had nothing to put back.
+         Response listed = Rest("GET", "/api/v1/me/sender-list", User());
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.Contains("\"value\":\"friend.example\"", listed.Body,
+            "The account's safe sender did not come back. Body: " + listed.Body);
+         StringAssert.Contains("\"reason\":\"my accountant\"", listed.Body);
+         StringAssert.Contains("\"value\":\"pest@example.net\",\"blocked\":true", listed.Body,
+            "The account's blocked sender did not come back blocked. Body: " + listed.Body);
+         StringAssert.Contains("\"scope\":\"account\"", listed.Body);
+
+         // The domain's list, on the domain the restore made - which has a new id, so
+         // an entry restored under the old one would be invisible here - read the way
+         // the Deck reads it.
+         Response domainListed = Rest("GET", "/api/v1/domains/" + domainName + "/sender-list",
+            BasicAuth("Administrator", AdminPassword));
+         Assert.AreEqual(200, domainListed.Status, "Body: " + domainListed.Body);
+         StringAssert.Contains("\"scope\":\"domain\",\"value\":\"supplier.example\",\"blocked\":false,\"reason\":\"invoices\"",
+            domainListed.Body, "The domain's allow and block list did not come back. Body: " + domainListed.Body);
+      }
+
       // --------------------------------------------------- a message's labels
 
       [Test]
@@ -524,6 +629,24 @@ namespace RegressionTests.Infrastructure
             // A restore that failed half way can leave domains nothing can save.
             // Failing TearDown over that would replace the failure that matters.
             Console.WriteLine("Could not turn the first-contact note off: " + tidying.Message);
+         }
+      }
+
+      /// <summary>
+      ///    The digest's address is a server setting a restore with RestoreSettings off
+      ///    leaves alone, so it is put back here rather than left to the next SetUp,
+      ///    which replaces the domain and nothing else.
+      /// </summary>
+      private void TurnTheDigestAddressOff()
+      {
+         try
+         {
+            dynamic settings = _settings;
+            settings.QuarantineDigestBaseUrl = "";
+         }
+         catch (Exception tidying) when (!ExceptionPolicy.IsFatal(tidying))
+         {
+            Console.WriteLine("Could not clear the quarantine digest address: " + tidying.Message);
          }
       }
 

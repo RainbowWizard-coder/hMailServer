@@ -1401,6 +1401,15 @@ namespace HM
       if ((method == "GET" || method == "POST") && path.StartsWith("/files/"))
          return HandlePublicFile_(method, path.Mid(7), GetRequestBody_(request));
 
+      // The two links a quarantine digest carries. No credentials: the token in
+      // the query string is the whole capability, it names one account and one
+      // entry, it works once and it expires. See RestApiQuarantineDigest.cpp.
+      if ((method == "GET" || method == "POST") && path == "/held/release")
+         return HandleDigestRelease_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
+
+      if ((method == "GET" || method == "POST") && path == "/held/stop")
+         return HandleDigestStop_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
+
       if (method == "GET" && path == "/portal-sw.js")
          return HandlePortalServiceWorker_();
 
@@ -1606,6 +1615,19 @@ namespace HM
          case RouteBlockedAttachmentUpdate:
          case RouteBlockedAttachmentDelete:
             return HandleBlockedAttachments_(route.kind, route.record_id, GetRequestBody_(request));
+         case RouteSenderListList:
+         case RouteSenderListCreate:
+         case RouteSenderListUpdate:
+         case RouteSenderListDelete:
+         case RouteSenderListDomainList:
+         case RouteSenderListDomainCreate:
+         case RouteSenderListDomainUpdate:
+         case RouteSenderListDomainDelete:
+         case RouteSenderListMeList:
+         case RouteSenderListMeCreate:
+         case RouteSenderListMeUpdate:
+         case RouteSenderListMeDelete:
+            return HandleSenderLists_(route, caller, GetRequestBody_(request));
          case RouteGroupList:
          case RouteGroupCreate:
          case RouteGroupGet:
@@ -1794,6 +1816,12 @@ namespace HM
 
          case RouteMeQuarantineRelease:
             return HandleMeQuarantineRelease_(caller, route.message_id);
+
+         case RouteMeQuarantineDigestGet:
+            return HandleMeQuarantineDigest_(caller, "GET", AnsiString());
+
+         case RouteMeQuarantineDigestPut:
+            return HandleMeQuarantineDigest_(caller, "PUT", GetRequestBody_(request));
 
          case RouteMeQuarantineDelete:
             return HandleMeQuarantineDelete_(caller, route.message_id);
@@ -2270,6 +2298,47 @@ namespace HM
             route.kind = RouteMePreferences;
          else if (method == "PUT")
             route.kind = RouteMePreferencesPut;
+
+         return;
+      }
+
+      // Before the quarantine block below, because "/api/v1/me/quarantine-digest"
+      // does not begin with "/api/v1/me/quarantine/" and would otherwise fall
+      // through to the unknown route - but the next reader looking at these two
+      // lines should not have to work that out, so it is matched first and said
+      // here.
+      if (path == "/api/v1/me/quarantine-digest")
+      {
+         if (method == "GET")
+            route.kind = RouteMeQuarantineDigestGet;
+         else if (method == "PUT")
+            route.kind = RouteMeQuarantineDigestPut;
+
+         return;
+      }
+
+      const AnsiString meSenderListPath = "/api/v1/me/sender-list";
+
+      if (path == meSenderListPath)
+      {
+         if (method == "GET")
+            route.kind = RouteSenderListMeList;
+         else if (method == "POST")
+            route.kind = RouteSenderListMeCreate;
+
+         return;
+      }
+
+      if ((method == "PUT" || method == "DELETE") && path.StartsWith(meSenderListPath + "/"))
+      {
+         AnsiString idPart = path.Mid(meSenderListPath.GetLength() + 1);
+         __int64 id = 0;
+
+         if (idPart.Find("/") < 0 && ParseQueueId(idPart, id))
+         {
+            route.kind = method == "PUT" ? RouteSenderListMeUpdate : RouteSenderListMeDelete;
+            route.record_id = id;
+         }
 
          return;
       }
@@ -2942,6 +3011,7 @@ namespace HM
             { "/api/v1/incoming-relays", RouteIncomingRelayList, RouteIncomingRelayCreate, RouteIncomingRelayUpdate, RouteIncomingRelayDelete },
             { "/api/v1/blocked-attachments", RouteBlockedAttachmentList, RouteBlockedAttachmentCreate, RouteBlockedAttachmentUpdate, RouteBlockedAttachmentDelete },
             { "/api/v1/greylisting-white-addresses", RouteGreyListingWhiteAddressList, RouteGreyListingWhiteAddressCreate, RouteGreyListingWhiteAddressUpdate, RouteGreyListingWhiteAddressDelete },
+            { "/api/v1/sender-list", RouteSenderListList, RouteSenderListCreate, RouteSenderListUpdate, RouteSenderListDelete },
          };
 
          for (const SmallCollection &collection : collections)
@@ -3045,6 +3115,56 @@ namespace HM
             }
          }
       }
+      // One domain's allow and block list, in the shape the distribution lists
+      // use: the collection under its domain, the entry under the collection.
+      // The id stays inside the domain's path rather than moving to a flat
+      // /api/v1/sender-list/{id}, so that a key restricted to some domains is
+      // scoped by the same rule that scopes every other domain resource.
+      {
+         const AnsiString senderListSuffix = "/sender-list";
+
+         if (path.StartsWith(domainsPrefix) && path.EndsWith(senderListSuffix))
+         {
+            AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+               path.GetLength() - domainsPrefix.GetLength() - senderListSuffix.GetLength());
+
+            if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+            {
+               if (method == "GET")
+               {
+                  route.kind = RouteSenderListDomainList;
+                  route.identifier = domainName;
+                  return;
+               }
+
+               if (method == "POST")
+               {
+                  route.kind = RouteSenderListDomainCreate;
+                  route.identifier = domainName;
+                  return;
+               }
+            }
+         }
+
+         const AnsiString senderListEntry = "/sender-list/";
+         const int entryAt = path.Find(senderListEntry);
+
+         if ((method == "PUT" || method == "DELETE") && path.StartsWith(domainsPrefix) && entryAt > 0)
+         {
+            AnsiString domainName = path.Mid(domainsPrefix.GetLength(), entryAt - domainsPrefix.GetLength());
+            AnsiString idPart = path.Mid(entryAt + senderListEntry.GetLength());
+            __int64 id = 0;
+
+            if (!domainName.IsEmpty() && domainName.Find("/") < 0 && idPart.Find("/") < 0 && ParseQueueId(idPart, id))
+            {
+               route.kind = method == "PUT" ? RouteSenderListDomainUpdate : RouteSenderListDomainDelete;
+               route.identifier = domainName;
+               route.record_id = id;
+               return;
+            }
+         }
+      }
+
       const AnsiString listsPrefix = "/api/v1/lists/";
       if ((method == "DELETE" || method == "PUT") && path.StartsWith(listsPrefix))
       {
@@ -3605,6 +3725,16 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteSenderListCreate:
+      case RouteSenderListUpdate:
+      case RouteSenderListDelete:
+      case RouteSenderListDomainCreate:
+      case RouteSenderListDomainUpdate:
+      case RouteSenderListDomainDelete:
+      case RouteSenderListMeCreate:
+      case RouteSenderListMeUpdate:
+      case RouteSenderListMeDelete:
+      case RouteMeQuarantineDigestPut:
       case RouteGroupCreate:
       case RouteGroupUpdate:
       case RouteGroupDelete:
@@ -3888,6 +4018,10 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteSenderListList:
+      case RouteSenderListCreate:
+      case RouteSenderListUpdate:
+      case RouteSenderListDelete:
       case RouteCertificateList:
       case RouteRuleList:
       case RouteLogList:
@@ -3993,6 +4127,10 @@ namespace HM
       case RouteDomainAliasList:
       case RouteDomainAliasCreate:
       case RouteDomainAliasDelete:
+      case RouteSenderListDomainList:
+      case RouteSenderListDomainCreate:
+      case RouteSenderListDomainUpdate:
+      case RouteSenderListDomainDelete:
          targetDomain = String(route.identifier);
          break;
       case RouteListDelete:
@@ -6289,6 +6427,12 @@ namespace HM
       case RouteMeQuarantineList:
       case RouteMeQuarantineRelease:
       case RouteMeQuarantineDelete:
+      case RouteMeQuarantineDigestGet:
+      case RouteMeQuarantineDigestPut:
+      case RouteSenderListMeList:
+      case RouteSenderListMeCreate:
+      case RouteSenderListMeUpdate:
+      case RouteSenderListMeDelete:
       case RouteMeFolders:
       case RouteMeFolderCreate:
       case RouteMeFolderRename:
@@ -10932,7 +11076,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
-         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
@@ -11000,6 +11144,7 @@ namespace HM
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();
+      openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();

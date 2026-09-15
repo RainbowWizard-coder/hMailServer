@@ -177,6 +177,12 @@ END_COM_MAP()
    STDMETHOD(put_VacationInternalMessage)(/*[in]*/ BSTR newVal);
    STDMETHOD(get_VacationExternalOverride)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_VacationExternalOverride)(/*[in]*/ VARIANT_BOOL newVal);
+
+   STDMETHOD(get_SenderList)(/*[out, retval]*/ IInterfaceSenderListEntries **pVal);
+   STDMETHOD(get_QuarantineDigest)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_QuarantineDigest)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_QuarantineDigestHour)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuarantineDigestHour)(/*[in]*/ long newVal);
    STDMETHOD(put_RelayHost)(/*[in]*/ BSTR newVal);
    STDMETHOD(get_RelayPort)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_RelayPort)(/*[in]*/ long newVal);

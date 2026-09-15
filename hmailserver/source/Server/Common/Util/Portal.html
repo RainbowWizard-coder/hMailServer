@@ -862,6 +862,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button type="button" data-route="/filters">Filters</button>
 <button type="button" data-route="/folders">Folders</button>
 <button type="button" data-route="/storage">Storage</button>
+<button type="button" data-route="/senders">Safe senders</button>
 <button type="button" data-route="/security">Security</button>
 <button type="button" data-route="/password">Password</button>
 </nav>
@@ -1067,6 +1068,29 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </section>
 
+<section id="senders-section" class="view page" hidden>
+<div class="card">
+<h2>Safe senders and blocked senders</h2>
+<p class="note">An address, or a whole domain and everything under it. Mail from a safe sender skips the spam filter for you and for nobody else. Mail from a blocked sender is held for review where your server holds suspected spam, and marked as junk where it does not - it is never thrown away.</p>
+<p class="note">Your own list is consulted first. If it says nothing, your domain's is, and then the server's; the nearest one that has an opinion is the one that decides.</p>
+<form id="sender-form" class="row">
+<input id="sender-value" type="text" maxlength="255" placeholder="someone@example.com or example.com" aria-label="Address or domain" required>
+<select id="sender-kind" aria-label="Treatment"><option value="allow">Safe</option><option value="block">Blocked</option></select>
+<input id="sender-reason" type="text" maxlength="255" placeholder="Why, if you want a note" aria-label="Note">
+<button class="btn sm" type="submit">Add</button>
+</form>
+<div id="sender-status" class="status" aria-live="polite"></div>
+<table class="list" id="sender-table"><thead><tr><th>Address or domain</th><th>Treatment</th><th>Note</th><th></th></tr></thead><tbody id="sender-rows"></tbody></table>
+<div id="sender-empty" class="hint" hidden>Nothing on your lists yet.</div>
+</div>
+<div class="card">
+<h2>Digest of held mail</h2>
+<p class="note">One message listing what was held for you since the last one, each entry with a link that delivers it. A link works once and stops working after a few days. Your server decides whether a digest is sent at all; you decide whether it reaches you.</p>
+<label class="inline"><input id="digest-enabled" type="checkbox"> Send me the digest</label>
+<div id="digest-note" class="hint"></div>
+<div id="digest-status" class="status" aria-live="polite"></div>
+</div>
+</section>
 <section id="security-section" class="view page" hidden>
 <div class="card">
 <h2>App passwords</h2>

@@ -18,6 +18,8 @@
 
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
+#include "../Common/AntiSpam/SenderListCache.h"
+#include "../Common/AntiSpam/DMARC/DMARC.h"
 
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Cache/AccountSizeCache.h"
@@ -1041,8 +1043,198 @@ namespace HM
    }    
 
    bool
+   LocalDelivery::ApplySenderLists_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage, bool &decided)
+   {
+      decided = false;
+
+      // A message the quarantine released has been judged by a person already,
+      // and the person was the recipient or an administrator: a list must not
+      // overrule that and send it back into the quarantine it came out of. The
+      // mark is cleared on this copy, so it does not travel on into the mailbox.
+      if (original_message_->GetReleasedFromQuarantine())
+      {
+         accountLevelMessage->SetReleasedFromQuarantine(false);
+         return true;
+      }
+
+      // An installation where nobody has listed anything pays one atomic read
+      // per recipient and nothing else. That matters: this runs for every copy
+      // of every delivered message, and the feature is off until somebody types
+      // an address into it.
+      if (SenderListCache::IsEmpty())
+         return true;
+
+      const SenderListCache::Decision decision =
+         SenderListCache::Decide(original_message_->GetFromAddress(), HeaderFromAddress_(account, accountLevelMessage),
+                                 account->GetID(), account->GetDomainID());
+
+      if (decision.verdict == SenderListCache::NoOpinion)
+         return true;
+
+      // The address the entry matched - the envelope sender or the From header's -
+      // which is what the log and the reason header name.
+      const String senderAddress = decision.matched;
+
+      const String scopeName = SenderListCache::ScopeName(decision.scope);
+
+      if (decision.verdict == SenderListCache::Allowed)
+      {
+         // Nothing to undo on a message that was never classified - the common
+         // case for an allowed sender, and the one where the list costs
+         // nothing. `decided` is still set: a sender somebody has vouched for
+         // is not then re-judged by the account's own mark and delete
+         // thresholds, which is what "skips the spam verdict" has to mean if it
+         // is to mean anything.
+         if (accountLevelMessage->GetFlagSpam())
+         {
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered to {1} unmarked - {2} is on the {3} allow list as {4}.",
+               original_message_->GetID(), account->GetAddress(), senderAddress, scopeName, decision.value));
+
+            RemoveSpamClassification_(account, accountLevelMessage);
+         }
+
+         decided = true;
+         return true;
+      }
+
+      // Blocked.
+      if (QuarantineStore::GetEnabled())
+      {
+         const String fileName = PersistentMessage::GetFileName(account, accountLevelMessage);
+
+         String reason = Formatter::Format("{0} is on the {1} block list as {2}.",
+            senderAddress, scopeName, decision.value);
+
+         if (!decision.reason.IsEmpty())
+            reason += " " + decision.reason;
+
+         if (QuarantineStore::Quarantine(accountLevelMessage, reason, 0, fileName))
+         {
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: quarantined instead of delivered to {1} - {2} is on the {3} block list as {4}.",
+               original_message_->GetID(), account->GetAddress(), senderAddress, scopeName, decision.value));
+
+            return false;
+         }
+
+         // The store refused it. The same trade the delete threshold makes: a
+         // message that was not actually stored anywhere is not discarded, it is
+         // marked and delivered, because silent loss is worse than a junk
+         // message in the junk folder.
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6746, "LocalDelivery::ApplySenderLists_",
+            Formatter::Format("Message {0} could not be quarantined for {1}, whose {2} block list lists {3}. A marked copy has been delivered instead.",
+               original_message_->GetID(), account->GetAddress(), scopeName, decision.value));
+      }
+
+      // No quarantine, or the quarantine refused it: the copy is marked as spam
+      // and delivered, so it lands wherever this account already sends spam.
+      // NOT deleted - a block list is a person saying "I do not want to read
+      // this", not "destroy it unseen", and the difference is a support call
+      // about a missing invoice.
+      MarkAsBlocked_(account, accountLevelMessage, senderAddress, scopeName, decision.value);
+
+      LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: marked as spam for {1} - {2} is on the {3} block list as {4}.",
+         original_message_->GetID(), account->GetAddress(), senderAddress, scopeName, decision.value));
+
+      decided = true;
+      return true;
+   }
+
+   const String &
+   LocalDelivery::HeaderFromAddress_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage)
+   {
+      // Once per delivery, not once per recipient: every recipient's copy has the
+      // same From header, and a message to fifty accounts on this server should
+      // not read its header fifty times. Read from this copy's file because the
+      // queue file may already have been moved into the first recipient's folder.
+      if (header_from_read_)
+         return header_from_address_;
+
+      header_from_read_ = true;
+
+      const AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(account, accountLevelMessage), false);
+
+      if (header.IsEmpty())
+         return header_from_address_;
+
+      MimeHeader mimeHeader;
+      mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+      // The parser DMARC uses for the same header, so that the address a list
+      // matches is the address DMARC judged - comments stripped, and not
+      // whichever angle-bracketed text happened to come last.
+      header_from_address_ = DMARC::ExtractAddressFromHeaderValue(mimeHeader.GetUnicodeFieldValue("From"));
+
+      return header_from_address_;
+   }
+
+   void
+   LocalDelivery::MarkAsBlocked_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
+                                 const String &senderAddress, const String &scopeName, const String &entry)
+   {
+      // The mirror of RemoveSpamClassification_, and deliberately the same
+      // shape: the flag first, because the flag is what the rules engine,
+      // forwarding, Sieve's spamtest and the auto-replies consult, then the
+      // headers, so that a failed rewrite leaves correct behaviour with stale
+      // headers rather than the reverse.
+      message->SetFlagSpam(true);
+
+      const String fileName = PersistentMessage::GetFileName(account, message);
+
+      MessageData data;
+      if (!data.LoadFromMessage(fileName, message))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6747, "LocalDelivery::MarkAsBlocked_",
+            Formatter::Format("Message {0} could not be loaded while marking it for {1}, whose {2} block list lists {3}. The copy is delivered with its spam flag set but without the spam headers.",
+               message->GetID(), account->GetAddress(), scopeName, entry));
+         return;
+      }
+
+      data.SetFieldValue("X-hMailServer-Spam", "YES");
+
+      // Reason 1 and no Reason-Score. There is no score: nothing measured this
+      // message, a person named the sender. Writing a score here would put a
+      // number in front of ReadRecordedSpamScore_ that no test produced, and
+      // that number would then steer another account's threshold override.
+      data.SetFieldValue("X-hMailServer-Reason-1",
+         Formatter::Format("{0} is on the {1} block list as {2}", senderAddress, scopeName, entry));
+
+      AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
+      const String prependText = config.GetPrependSubjectText();
+
+      if (config.GetPrependSubject() && !prependText.IsEmpty())
+      {
+         const String subject = data.GetFieldValue("Subject");
+
+         // Not twice. A message the filter already tagged and the list then
+         // blocked would otherwise read "[SPAM] [SPAM] ...".
+         if (subject.Find(prependText) != 0)
+            data.SetFieldValue("Subject", prependText + " " + subject);
+      }
+
+      if (!data.WriteReported(fileName, "The recipient's block list"))
+      {
+         LOG_APPLICATION(Formatter::Format("Message {0} was delivered to {1} with its spam flag set but its spam headers missing - the rewrite of the message file failed.",
+            message->GetID(), account->GetAddress()));
+      }
+   }
+
+   bool
    LocalDelivery::ApplyAccountSpamOverrides_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage)
    {
+      // The reader's own lists first, before anything the filter concluded is
+      // even looked at. They are the only part of the spam decision that is a
+      // person's stated preference rather than a measurement, so they come
+      // first and they are final: an allow skips every threshold below, and a
+      // block acts on a message the filter never classified, which is the whole
+      // point of being able to block a sender by hand.
+      bool senderListDecided = false;
+
+      if (!ApplySenderLists_(account, accountLevelMessage, senderListDecided))
+         return false;
+
+      if (senderListDecided)
+         return true;
+
       // Only a message the conversation actually classified carries anything to
       // re-judge. An unclassified message reaches delivery with no flag and no
       // recorded score - there is nothing a per-account threshold could honestly

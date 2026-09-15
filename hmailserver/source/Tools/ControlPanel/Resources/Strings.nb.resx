@@ -953,11 +953,23 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Address or domain" xml:space="preserve">
     <value>Adresse eller domene</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>Adressen frigivelseslenkene peker til, for eksempel https://mail.example.com (tom = ingen sammendrag)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dresse som skal legges til</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresser</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>Adresser og domener som alle kontoer ønsker eller ikke ønsker, under hver kontos egen liste og domenets.</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>Adresser og hele domener som alle kontoer ønsker, eller ikke ønsker. Posten fra en tillatt avsender hopper over søppelpostdommen; posten fra en blokkert holdes i karantene der den er slått på, og merkes som søppel der den ikke er det - den slettes aldri. En kontos egen liste brukes først og domenets deretter, så denne listen avgjør bare for en mottaker hvis egne lister ikke sier noe. For å avvise en avsender for alle under SMTP-samtalen, uansett hva noens egen liste sier, bruk Blokkerte avsendere.</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>Adresser og hele domener som kontoene i {0} ønsker, eller ikke ønsker. Brukes etter en kontos egen liste og før tjenerens.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>Legger ARC-forseglinger på videresendt e-post slik at servere lenger ned i kjeden kan stole på de opprinnelige autentiseringsresultatene (RFC 8617). Forseglingen låner DKIM-selektoren og den private nøkkelen til domenet som videresender, så den krever minst ett driftet domene med DKIM-signering satt opp - uten det står bryteren som påslått og forsegler ingenting, med bare en linje i feilsøkingsloggen som sier fra. Siden Eksternt oppsett kontrollerer domenene dine for dette.</value>
@@ -1036,6 +1048,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>Tillat _SMTP</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>Liste over tillatte og blokkerte</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Tillat feil linjeskift</value>
@@ -1439,6 +1454,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>Blokkeringslister som sjekkes mot lenkene som finnes inne i en meldingskropp.</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>Blokker i stedet for å tillate</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blokkerte vedlegg</value>
@@ -2702,6 +2720,9 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Utviklet og vedlikeholdt av</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>_Innstillinger for sammendrag</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnostisere post som har stoppet opp</value>
   </data>
@@ -2710,6 +2731,12 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostikken mislyktes: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>Sammendragets time</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>Innstillingene for sammendrag er lagret. Hvilke domener som sender et sammendrag, og når, angis på hvert domenes fane Karantenesammendrag.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Katalog</value>
@@ -3570,6 +3597,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>Hostet domene</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>Timer en frigivelseslenke kan brukes (1 til 720)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Timer mellom kontroller (1 til 168)</value>
@@ -5106,6 +5136,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Én liste over de ni kontrollene, hvilke som er på, og hvilken av de to fasene hver kjører i.</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>Én melding til hver konto i dette domenet som har fått noe nytt holdt tilbake, med en liste over det og en lenke som leverer det. En lenke virker én gang og slutter å virke etter antallet timer som er angitt på siden Karantene, der også adressen lenkene peker til angis - uten den sendes ingenting. Et tomt sammendrag sendes aldri, og hver melding sier hvordan det stoppes.</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Ett punkt per {0}, fra historikken på {1} dager som serveren beholder. Gjennomstrømning er endringen i totalen av behandlede meldinger per minutt.</value>
   </data>
@@ -5697,6 +5730,9 @@ La den GAMLE DNS-oppføringen ({2}) stå publisert i minst noen dager. Post sign
   <data name="Quarantine" xml:space="preserve">
     <value>Karantene</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>Karantenesammendrag</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Sett i karantene i stedet for å avvise</value>
   </data>
@@ -5810,6 +5846,9 @@ La den GAMLE DNS-oppføringen ({2}) stå publisert i minst noen dager. Post sign
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Sanntids-svartelister (RBL) kontrollert mot IP-adressen som kobler til.</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Årsak</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>Beregn UID-tellerne for mapper på nytt</value>
@@ -6735,6 +6774,9 @@ Fortsette?</value>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Send en melding til hver konto på serveren (eller de som treffer et jokertegn) - for vedlikeholdskunngjøringer.</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>Send hver konto et daglig _sammendrag av det karantenen holder for den</value>
+  </data>
   <data name="Send entries at least this severe" xml:space="preserve">
     <value>Send poster med minst denne alvorsgraden</value>
   </data>
@@ -6743,6 +6785,9 @@ Fortsette?</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Send det som et bearer-token:  Authorization: Bearer hmapi_...  til REST-lytteren som er konfigurert på siden API og overvåking. Administratorpassordet fungerer også og er ubegrenset, som er grunnen til å foretrekke en nøkkel: en nøkkel kan være skrivebeskyttet, begrenset til navngitte domener, begrenset til én kildeadresse, gis et utløp og tilbakekalles uten å endre noe annet.</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>Send det i denne _timen av det lokale døgnet (0 til 23; sendingene fordeles over timen)</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Send loggposter til syslog</value>
@@ -9553,6 +9598,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="diagnose slow mail" xml:space="preserve">
     <value>diagnostiser treg post</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>innstillinger for sammendrag</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>katalogtilgang er slått av ([LDAP] Enabled=0 - siden Katalogautentisering slår den på)</value>
   </data>
@@ -9747,6 +9795,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>begrens hvor mange meldinger en konto kan sende per minutt</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>listeoppføring</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>lytter er</value>

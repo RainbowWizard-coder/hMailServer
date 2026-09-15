@@ -146,6 +146,14 @@ namespace hMailServer.ControlPanel.Views
       // Names (domain aliases) — embedded list editor
       private CollectionEditorView aliasEditor_;
 
+      // The domain's allow and block list - embedded list editor
+      private CollectionEditorView senderListEditor_;
+
+      // Quarantine digest
+      private readonly CheckBox digestOn_ = new() { Content = L("Send each account a daily _digest of what the quarantine holds for it") };
+      private readonly TextBox digestHour_ = NewInput();
+      private FieldRow digestHourRow_;
+
       public DomainDialog(Window owner, string domainName)
       {
          domainName_ = domainName;
@@ -162,6 +170,8 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Out of office"), Content = BuildOutOfOffice() });
          tabs.Items.Add(new TabItem { Header = L("Tagging and disclaimer"), Content = BuildTransforms() });
          tabs.Items.Add(new TabItem { Header = L("DKIM"), Content = BuildDkim() });
+         tabs.Items.Add(new TabItem { Header = L("Allow and block list"), Content = BuildSenderList() });
+         tabs.Items.Add(new TabItem { Header = L("Quarantine digest"), Content = BuildQuarantineDigest() });
          DialogFields.FillTabs(tabs);
 
          var body = new StackPanel();
@@ -174,7 +184,7 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => Close();
 
          UseFrame(domainName, body, save, cancel, width: DialogWidth);
-         Loaded += (s, e) => { Load(); aliasEditor_?.OnEnter(); };
+         Loaded += (s, e) => { Load(); aliasEditor_?.OnEnter(); senderListEditor_?.OnEnter(); };
       }
 
       private ScrollViewer BuildGeneral()
@@ -279,6 +289,23 @@ namespace hMailServer.ControlPanel.Views
          aliasEditor_ = CollectionSpecs.DomainAliases(domainName_);
          aliasEditor_.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
          return aliasEditor_;
+      }
+
+      private FrameworkElement BuildSenderList()
+      {
+         senderListEditor_ = CollectionSpecs.DomainSenderList(domainName_);
+         senderListEditor_.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
+         return senderListEditor_;
+      }
+
+      private ScrollViewer BuildQuarantineDigest()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it.")));
+         panel.Children.Add(DialogFields.Check(digestOn_));
+         digestHourRow_ = Label(L("Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)"), digestHour_);
+         panel.Children.Add(digestHourRow_);
+         return DialogFields.Scroll(panel);
       }
 
       private ScrollViewer BuildLimits()
@@ -1015,6 +1042,20 @@ namespace hMailServer.ControlPanel.Views
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
             RestoreStagedRotation(stagedSelector, stagedKeyFile);
 
+            // The digest, defensively for the same reason: a server older than the
+            // feature has no such properties, and the tab then shows its defaults
+            // rather than taking the dialog down.
+            try
+            {
+               digestOn_.IsChecked = (bool)d.QuarantineDigest;
+               digestHour_.Text = ((int)d.QuarantineDigestHour).ToString();
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               digestOn_.IsEnabled = false;
+               digestHour_.IsEnabled = false;
+            }
+
             ServerSession.Release(d);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1032,7 +1073,7 @@ namespace hMailServer.ControlPanel.Views
       {
          notice_.Hide();
          DialogFields.ClearErrors(nameRow_, maxSizeRow_, maxMessageSizeRow_, maxAccountSizeRow_, retentionRow_,
-                                  maxAccountsRow_, maxAliasesRow_, maxDistsRow_, relayPortRow_, tagTextRow_);
+                                  maxAccountsRow_, maxAliasesRow_, maxDistsRow_, relayPortRow_, tagTextRow_, digestHourRow_);
 
          // Eight numbers, each said on its own field. They used to share one line
          // at the foot of the dialog, which named the field in words and left the
@@ -1061,6 +1102,9 @@ namespace hMailServer.ControlPanel.Views
 
          if (!NumericField.TryValidate(relayPort_.Text, L("Relay port"), 0, 65535, out int relayPortValue, out bool _, out error))
          { DialogFields.ShowError(relayPortRow_, error); return; }
+
+         if (!NumericField.TryValidate(digestHour_.Text, L("Digest hour"), 0, 23, out int digestHourValue, out bool hasDigestHour, out error))
+         { DialogFields.ShowError(digestHourRow_, error); return; }
 
          // Said here as well as by the server, because a tag the server truncated
          // would be a tag every reader learns to ignore.
@@ -1148,6 +1192,12 @@ namespace hMailServer.ControlPanel.Views
             d.DisclaimerEnabled = disclaimerOn_.IsChecked is true;
             d.DisclaimerPlainText = disclaimerPlain_.Text;
             d.DisclaimerHTML = disclaimerHtml_.Text;
+
+            if (digestOn_.IsEnabled)
+            {
+               d.QuarantineDigest = digestOn_.IsChecked is true;
+               if (hasDigestHour) d.QuarantineDigestHour = digestHourValue;
+            }
 
             d.DKIMSignEnabled = dkimOn_.IsChecked is true;
             d.DKIMSignAliasesEnabled = dkimAliases_.IsChecked is true;

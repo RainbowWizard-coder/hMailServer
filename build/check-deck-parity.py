@@ -99,6 +99,9 @@ PATH_SCOPE = {
     'surbl-servers': ['SURBLServer'],
     'whitelist-addresses': ['WhiteListAddress'],
     'blocked-senders': ['BlockedSender'],
+    # The allow and block lists: the server's at /api/v1/sender-list and a
+    # domain's at /api/v1/domains/{domain}/sender-list, one row shape for both.
+    'sender-list': ['SenderListEntry', 'SenderListEntries'],
     'incoming-relays': ['IncomingRelay'],
     'blocked-attachments': ['BlockedAttachment'],
     'greylisting-white-addresses': ['GreyListingWhiteAddress'],

@@ -104,6 +104,27 @@ namespace hMailServer.ControlPanel.Views
          }
       });
 
+      /// <summary>
+      /// The server's allow and block list: one row per address or domain, allowed
+      /// or blocked, with the reason kept. The same rows at domain scope are edited
+      /// on the domain's own dialog, and an account's are its owner's, in the
+      /// webmail. Consulted at delivery, after the account's own list and its
+      /// domain's - the nearest scope with an opinion is the only one that decides.
+      /// </summary>
+      public static CollectionEditorView SenderList() => new(new CollectionSpec
+      {
+         Title = L("Allow and block list"),
+         Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders."),
+         ItemNoun = L("list entry"),
+         GetCollection = () => AntiSpam.SenderList,
+         Fields =
+         {
+            new FieldSpec { Prop = "Value", Label = L("Address or domain"), GridWidth = 260 },
+            new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
+            new FieldSpec { Prop = "Reason", Label = L("Reason") }
+         }
+      });
+
       public static CollectionEditorView GreyListWhiteList() => new(new CollectionSpec
       {
          Title = L("Greylisting white list"),
@@ -241,6 +262,27 @@ namespace hMailServer.ControlPanel.Views
          ServerSession.Release(domain);
          return account;
       }
+
+      /// <summary>One domain's allow and block list (embedded in the Domain editor).</summary>
+      public static CollectionEditorView DomainSenderList(string domainName) => new(new CollectionSpec
+      {
+         Title = L("Allow and block list"),
+         Subtitle = F("Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's.", domainName),
+         ItemNoun = L("list entry"),
+         GetCollection = () =>
+         {
+            dynamic domain = OpenDomain(domainName);
+            dynamic list = domain.SenderList;
+            ServerSession.Release(domain);
+            return list;
+         },
+         Fields =
+         {
+            new FieldSpec { Prop = "Value", Label = L("Address or domain"), GridWidth = 240 },
+            new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
+            new FieldSpec { Prop = "Reason", Label = L("Reason") }
+         }
+      }, embedded: true);
 
       /// <summary>Domain-name aliases for one domain (embedded in the Domain editor).</summary>
       public static CollectionEditorView DomainAliases(string domainName) => new(new CollectionSpec

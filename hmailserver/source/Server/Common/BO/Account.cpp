@@ -12,6 +12,7 @@
 
 #include "FetchAccounts.h"
 #include "AppPasswords.h"
+#include "SenderListEntries.h"
 
 #include "../Application/AccountStores.h"
 
@@ -364,6 +365,20 @@ namespace HM
       if (!GetRules()->XMLStore(pNode,iBackupOptions))
          return false;
 
+      // The account's own safe and blocked senders (hm_senderlist, scope account).
+      // Not a store of AccountStores: the table holds the domain's and the
+      // server's lists as well, told apart by a scope column, and it has no
+      // foreign key to hm_accounts - PersistentAccount::DeleteObject removes an
+      // account's entries itself. Which is exactly why it has to be here: a
+      // restore deletes every account first, so a list the archive does not
+      // carry is a list the restore destroys.
+      std::shared_ptr<HM::SenderListEntries> senderList =
+         std::shared_ptr<HM::SenderListEntries>(new HM::SenderListEntries(SenderListEntry::ScopeAccount, id_));
+      if (!senderList->Refresh())
+         return false;
+      if (!senderList->XMLStore(pNode, iBackupOptions))
+         return false;
+
       // The stores that have no business object: the address book, the webmail's
       // settings, the scheduled messages, the files sent as links, the S/MIME keys,
       // the password history and the calendar. Each of those tables cascades from
@@ -458,6 +473,14 @@ namespace HM
          return false;
 
       if (!GetRules()->XMLLoad(pAccountNode, iRestoreOptions))
+         return false;
+
+      // Under the account's new id; see SenderListEntries::PreSaveObject.
+      std::shared_ptr<HM::SenderListEntries> senderList =
+         std::shared_ptr<HM::SenderListEntries>(new HM::SenderListEntries(SenderListEntry::ScopeAccount, id_));
+      if (!senderList->Refresh())
+         return false;
+      if (!senderList->XMLLoad(pAccountNode, iRestoreOptions))
          return false;
 
       // Should we restore messages as well?

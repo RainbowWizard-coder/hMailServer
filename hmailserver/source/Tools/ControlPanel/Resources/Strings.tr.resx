@@ -953,11 +953,23 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Address or domain" xml:space="preserve">
     <value>Adres veya etki alanı</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>Serbest bırakma bağlantılarının gösterdiği adres, örneğin https://mail.example.com (boş = özet yok)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Eklenecek a_dres</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresler</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adları; her hesabın kendi listesinin ve alan adının listesinin altında.</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adlarının tamamı. İzinli bir göndericinin postası istenmeyen posta kararını atlar; engellenmiş birininki karantina açıksa orada alıkonur, değilse istenmeyen olarak işaretlenir - asla silinmez. Önce hesabın kendi listesine, sonra alan adının listesine bakılır; bu yüzden bu liste yalnızca kendi listeleri bir şey söylemeyen alıcı için karar verir. Bir göndericiyi, kimin listesi ne derse desin, SMTP görüşmesi sırasında herkes için reddetmek için Engellenen gönderenler listesini kullanın.</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>{0} hesaplarının istediği ya da istemediği adresler ve alan adlarının tamamı. Hesabın kendi listesinden sonra, sunucunun listesinden önce bakılır.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>İletilen postalara ARC mühürleri ekler; böylece aşağı akıştaki sunucular özgün kimlik doğrulama sonuçlarına güvenebilir (RFC 8617). Mühürleme, ileten etki alanının DKIM seçicisini ve özel anahtarını ödünç alır; bu nedenle DKIM imzalaması yapılandırılmış en az bir barındırılan etki alanı gerekir - bu olmadan anahtar etkin görünür ama hiçbir şey mühürlenmez ve bunu söyleyen yalnızca bir hata ayıklama günlüğü satırı olur. Harici kurulum sayfası etki alanlarınızı bunun için denetler.</value>
@@ -1036,6 +1048,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>_SMTP'ye izin ver</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>İzin ve engel listesi</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Hatalı satır sonlarına izin ver</value>
@@ -1439,6 +1454,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>Bir ileti gövdesinin içinde bulunan bağlantılara karşı denetlenen engelleme listeleri.</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>İzin vermek yerine engelle</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Engellenen ekler</value>
@@ -2702,6 +2720,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Geliştiren ve sürdüren</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>_Özet ayarları</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Takılan postayı tanılama</value>
   </data>
@@ -2710,6 +2731,12 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Tanılama başarısız oldu: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>Özet saati</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>Özet ayarları kaydedildi. Hangi alan adlarının özet gönderdiği ve hangi saatte, her alan adının Karantina özeti sekmesinde ayarlanır.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Dizin</value>
@@ -3570,6 +3597,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>Barındırılan etki alanı</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>Bir serbest bırakma bağlantısının kullanılabilir kaldığı saat (1 ile 720 arası)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Denetimler arasındaki saat sayısı (1 ile 168 arası)</value>
@@ -5106,6 +5136,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Dokuz denetimin tek bir listesi, hangilerinin açık olduğu ve her birinin iki aşamadan hangisinde çalıştığı.</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>Bu alan adının, kendisi için yeni bir şey alıkonan her hesabına, alıkonanları listeleyen ve bunları teslim eden bir bağlantı içeren tek bir ileti. Bağlantı bir kez çalışır ve Karantina sayfasında ayarlanan saat dolunca geçersiz olur; bağlantıların gösterdiği adres de aynı sayfada ayarlanır - o adres olmadan hiçbir şey gönderilmez. Boş bir özet asla gönderilmez ve her ileti nasıl durdurulacağını söyler.</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Sunucunun sakladığı {1} günlük geçmişten, {0} başına bir nokta. Verim, işlenen ileti toplamındaki dakika başına değişimdir.</value>
   </data>
@@ -5697,6 +5730,9 @@ ESKİ DNS kaydını ({2}) en az birkaç gün yayında bırakın. Eski anahtarla 
   <data name="Quarantine" xml:space="preserve">
     <value>Karantina</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>Karantina özeti</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Reddetmek yerine karantinaya al</value>
   </data>
@@ -5810,6 +5846,9 @@ ESKİ DNS kaydını ({2}) en az birkaç gün yayında bırakın. Eski anahtarla 
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Bağlanan IP adresine karşı denetlenen gerçek zamanlı kara delik listeleri.</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Neden</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>Klasör UID sayaçlarını yeniden hesapla</value>
@@ -6735,6 +6774,9 @@ Devam edilsin mi?</value>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Sunucudaki her hesaba (veya bir joker karakterle eşleşenlere) bir ileti gönderin - bakım duyuruları için.</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>Her hesaba, karantinanın onun için tuttuklarının günlük _özetini gönder</value>
+  </data>
   <data name="Send entries at least this severe" xml:space="preserve">
     <value>En az bu önem düzeyindeki girdileri gönder</value>
   </data>
@@ -6743,6 +6785,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Taşıyıcı belirteç olarak gönderin:  Authorization: Bearer hmapi_...  API ve izleme sayfasında yapılandırılan REST dinleyicisine. Yönetici parolası da çalışır ve kısıtlanmamıştır; anahtarı tercih etmenin nedeni de budur: bir anahtar salt okunur olabilir, adlandırılmış etki alanlarıyla sınırlanabilir, tek bir kaynak adresiyle sınırlanabilir, bir süre sonu verilebilir ve başka hiçbir şey değiştirilmeden iptal edilebilir.</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>Yerel günün bu _saatinde gönder (0 ile 23 arası; gönderimler saate yayılır)</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Günlük girdilerini syslog'a gönder</value>
@@ -9553,6 +9598,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="diagnose slow mail" xml:space="preserve">
     <value>yavaş postayı tanıla</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>özet ayarları</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>dizin erişimi kapalı ([LDAP] Enabled=0 - Dizin kimlik doğrulaması sayfası bunu açar)</value>
   </data>
@@ -9747,6 +9795,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>bir hesabın dakikada kaç ileti gönderebileceğini sınırla</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>liste kaydı</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>dinleyici</value>

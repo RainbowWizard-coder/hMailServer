@@ -501,8 +501,9 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'message_retention_days', 'relay_host', 'relay_port', 'relay_requires_auth', 'relay_username', 'relay_password', 'relay_connection_security',
    'vacation_enabled', 'vacation_subject', 'vacation_message',
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
-   'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html'];
-const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
+   'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
+   'quarantine_digest', 'quarantine_digest_hour'];
+const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
 // The account's update schema as RestApiRoutes.cpp emits it - every field
@@ -563,6 +564,9 @@ const COLLECTION_SPECS = {
    '/api/v1/greylisting-white-addresses': { props: { ip_address: { type: 'string' }, description: { type: 'string' } }, required: ['ip_address'], noun: 'greylisting white address',
       get: 'AntiSpam.GreyListingWhiteAddresses over COM: the address patterns whose connections are never greylisted. Each entry: id, ip_address (with the wildcards as typed), description. Server-wide; refused for domain-restricted keys.',
       post: 'Body: ip_address (required; an address, or a pattern such as 192.168.* or 2001:db8:*) and description. Saved as one saved in the Control Panel is, and consulted for the next connection. Server-wide; refused for domain-restricted and read-only keys.' },
+   '/api/v1/sender-list': { props: { value: { type: 'string' }, blocked: { type: 'boolean' }, reason: { type: 'string' }, expires: { type: 'boolean' }, expires_time: { type: 'string' } }, required: ['value'], noun: 'list entry',
+      get: "The server's allow and block list: the addresses and domains wanted, or not wanted, by every account. Each entry: id, scope, value, blocked, reason, expires, expires_time, expired, created. Server-wide; refused for domain-restricted keys.",
+      post: 'Body: value (required; an address, or a domain that covers its subdomains), blocked (default false), reason, expires (default false) and expires_time. A value the list already holds is rewritten rather than duplicated. Server-wide; refused for domain-restricted and read-only keys.' },
    '/api/v1/incoming-relays': { props: { name: { type: 'string' }, lower_ip: { type: 'string' }, upper_ip: { type: 'string' } }, required: ['name', 'lower_ip', 'upper_ip'], noun: 'incoming relay',
       get: 'Settings.IncomingRelays over COM: the address ranges whose Received headers are skipped when the real sender of a message is looked for. Each entry: id, name, lower_ip, upper_ip. Server-wide; refused for domain-restricted keys.',
       post: 'Body: name, lower_ip and upper_ip (all required). Saved as one saved in the Control Panel is, and in force for the next session. Server-wide; refused for domain-restricted and read-only keys.' }
@@ -666,7 +670,8 @@ function domainRecord(name, active, postmaster) {
       relay_host: '', relay_requires_auth: false, relay_username: '', relay_connection_security: 'none',
       vacation_enabled: false, vacation_subject: '', vacation_message: '',
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
-      disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '' };
+      disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
+      quarantine_digest: false, quarantine_digest_hour: 7 };
 }
 
 function body(props, required) {
@@ -821,6 +826,11 @@ const spec = {
          post: { summary: 'Add a domain alias', description: 'Body: name.', requestBody: body({ name: { type: 'string' } }, ['name']) }
       },
       '/api/v1/domains/{domain}/domain-aliases/{name}': { delete: { summary: 'Remove a domain alias' } },
+      '/api/v1/domains/{domain}/sender-list': {
+         get: { summary: 'One domain\'s allow and block list', description: 'The same object as the server\'s list, for every account of this domain.' },
+         post: { summary: 'Add an entry to a domain\'s list', requestBody: body({ value: { type: 'string' }, blocked: { type: 'boolean' }, reason: { type: 'string' } }, ['value']) }
+      },
+      '/api/v1/domains/{domain}/sender-list/{id}': { delete: { summary: 'Remove an entry from a domain\'s list' } },
       '/api/v1/domains/{domain}/aliases': {
          get: { summary: 'List aliases in a domain' },
          post: { summary: 'Create an alias', description: 'Body: name (the alias address, in this domain), value (the e-mail address it delivers to) and active (default true). Judged as the Control Panel judges an alias - a name an account or a distribution list already has, or a domain at its alias limit, is refused with the same sentence - and in effect for the next message to the name. Scoped to the domain.',
@@ -901,6 +911,8 @@ const state = {
       domainRecord(HOSTILE, false, ''),
       domainRecord('second.example', true, '')
    ],
+   // Each domain's own allow and block list, made on first read.
+   domainSenders: { 'example.com': [{ id: 901, scope: 'domain', value: 'partner.example', blocked: false, reason: 'the partner', expires: false, expired: false }] },
    domainAliases: {
       'example.com': [{ id: 1, name: 'example.net' }],
       [HOSTILE]: [],
@@ -944,7 +956,8 @@ const state = {
       '/api/v1/blocked-senders': [{ id: 14, address: 'spam.example', score: 100, description: 'A spam domain' }],
       '/api/v1/blocked-attachments': [{ id: 15, wildcard: '*.exe', description: 'Programs' }],
       '/api/v1/greylisting-white-addresses': [{ id: 16, ip_address: '10.0.0.*', description: 'The office' }],
-      '/api/v1/incoming-relays': [{ id: 17, name: 'Front relay', lower_ip: '192.0.2.1', upper_ip: '192.0.2.1' }]
+      '/api/v1/incoming-relays': [{ id: 17, name: 'Front relay', lower_ip: '192.0.2.1', upper_ip: '192.0.2.1' }],
+      '/api/v1/sender-list': [{ id: 18, scope: 'server', value: 'partner.example', blocked: false, reason: 'Their invoices kept scoring', expires: false, expires_time: '', expired: false, created: '2026-09-15 08:00:00' }]
    },
    groups: [{ id: 3, name: 'Support' }, { id: 4, name: 'Everyone' }],
    groupMembers: { 3: [{ id: 30, group_id: 3, account_id: 1, account: 'anna@example.com' }], 4: [] },
@@ -1139,6 +1152,27 @@ function answer(method, path, headers, raw) {
          delete state.domainAliases[name];
          return json(200, { deleted: true });
       }
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/sender-list$/.test(path)) {
+      const domain = segment(path, 4);
+      if (!state.domains.some((d) => d.name === domain)) { return json(404, { error: 'no such domain' }); }
+      const list = state.domainSenders[domain] || (state.domainSenders[domain] = []);
+      if (method === 'GET') { return json(200, { scope: 'domain', items: list }); }
+      if (method === 'POST') {
+         const value = String(parsed.value || '').trim().toLowerCase();
+         if (!value) { return json(400, { error: 'value is required: an address, or a domain that covers its subdomains' }); }
+         const entry = { id: nextId++, scope: 'domain', value: value, blocked: !!parsed.blocked, reason: parsed.reason || '', expires: false, expired: false };
+         list.push(entry);
+         return json(201, entry);
+      }
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/sender-list\/\d+$/.test(path) && method === 'DELETE') {
+      const domain = segment(path, 4);
+      const id = Number(segment(path, 6));
+      const list = state.domainSenders[domain] || [];
+      if (!list.some((x) => x.id === id)) { return json(404, { error: 'no such entry' }); }
+      state.domainSenders[domain] = list.filter((x) => x.id !== id);
+      return json(200, { deleted: true });
    }
    if (path === '/api/v1/groups' && method === 'GET') { return json(200, state.groups); }
    if (path === '/api/v1/groups' && method === 'POST') {
@@ -2040,6 +2074,8 @@ async function main() {
    click(act('domainedit', { name: 'example.com' }));
    await flush();
    check('Edit reads the domain\'s other names', called(before, 'GET', '/api/v1/domains/example.com/domain-aliases').length === 1, paths(before));
+   check('and its own allow and block list', called(before, 'GET', '/api/v1/domains/example.com/sender-list').length === 1 && document.getElementById('domainSenders') !== null &&
+      document.getElementById('domainSenders').textContent.indexOf('partner.example') >= 0 && document.getElementById('domainSenders').textContent.indexOf('Allowed') >= 0, paths(before));
    const headings = content().querySelectorAll('h2').map((h) => h.textContent.trim());
    check('the editor is grouped as the desktop dialog is', ['General', 'Names', 'Limits', 'Signature', 'Relay', 'Out of office', 'DKIM'].every((g) => headings.indexOf(g) >= 0), JSON.stringify(headings));
    check('the route\'s own description is the note', content().textContent.indexOf('A field left out keeps its value') >= 0);
@@ -2114,6 +2150,28 @@ async function main() {
    await flush();
    check('removing a name asks, deletes it by name and re-reads', confirmations[confirmations.length - 1].indexOf('example.net') >= 0 &&
       called(before, 'DELETE', '/api/v1/domains/renamed.example/domain-aliases/example.net').length === 1 && content().querySelectorAll('button[data-act="daliasdel"]').length === 1);
+   setValue('newDomainSender', 'Spam.Example');
+   setValue('newDomainSenderReason', 'kept sending');
+   setChecked('newDomainSenderBlocked', true);
+   before = requests.length;
+   document.getElementById('newDomainSender').dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/renamed.example/sender-list');
+   check('Enter in the list box adds a blocked entry to the domain\'s list, with its reason', JSON.stringify(posted) === '{"value":"Spam.Example","blocked":true,"reason":"kept sending"}', JSON.stringify(posted));
+   check('the list is read again and shows it blocked', called(before, 'GET', '/api/v1/domains/renamed.example/sender-list').length === 1 &&
+      document.getElementById('domainSenders').textContent.indexOf('spam.example') >= 0 && document.getElementById('domainSenders').textContent.indexOf('Blocked') >= 0);
+   check('and an edit made in another group survives that too', document.getElementById('dom_postmaster').value === 'keep-me@renamed.example');
+   const senderId = act('dsenderdel', { value: 'spam.example' }).attributes['data-id'];
+   before = requests.length;
+   click(act('dsenderdel', { value: 'spam.example' }));
+   await flush();
+   check('removing an entry asks, naming it, and deletes it by id', confirmations[confirmations.length - 1].indexOf('spam.example') >= 0 &&
+      called(before, 'DELETE', '/api/v1/domains/renamed.example/sender-list/' + senderId).length === 1 && document.getElementById('domainSenders').textContent.indexOf('spam.example') < 0);
+   setValue('newDomainSender', '');
+   before = requests.length;
+   click(act('dsenderadd'));
+   await flush();
+   check('an empty entry is refused by the page and nothing is sent', called(before, 'POST', /sender-list/).length === 0 && document.getElementById('err_dsender').textContent === 'An address or a domain is required.');
    nextRefusal = 'That name is already a domain.';
    setValue('newDomainAlias', 'second.example');
    click(act('daliasadd'));
@@ -2367,15 +2425,16 @@ async function main() {
    // ---- the seven small collections, one view
    before = requests.length;
    await goTo('lists');
-   check('the Lists view reads the seven collections', Object.keys(COLLECTION_SPECS).every((p) => called(before, 'GET', p).length === 1) && $('#viewTitle').textContent === 'Lists', paths(before));
+   check('the Lists view reads the eight collections', Object.keys(COLLECTION_SPECS).every((p) => called(before, 'GET', p).length === 1) && $('#viewTitle').textContent === 'Lists', paths(before));
    const tables = content().querySelectorAll('table');
-   check('one table per collection, each with its entry\'s own columns and a row per entry', tables.length === 7 && tables.every((t) => t.querySelectorAll('tbody tr').length === 1) &&
+   check('one table per collection, each with its entry\'s own columns and a row per entry', tables.length === 8 && tables.every((t) => t.querySelectorAll('tbody tr').length === 1) &&
       tables[0].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Active,DNS host,Expected result,Reject message,Score,' &&
-      tables[6].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Name,Lower IP,Upper IP,', tables.length + ' tables');
+      tables[7].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Name,Lower IP,Upper IP,', tables.length + ' tables');
    check('a flag is yes or no, and the values are the entries\' own', tables[0].querySelector('.badge.good') !== null && tables[1].querySelector('.badge.warn') !== null &&
-      tables[0].textContent.indexOf('zen.spamhaus.org') >= 0 && tables[4].textContent.indexOf('*.exe') >= 0 && tables[5].textContent.indexOf('10.0.0.*') >= 0 && tables[6].textContent.indexOf('Front relay') >= 0);
+      tables[0].textContent.indexOf('zen.spamhaus.org') >= 0 && tables[4].textContent.indexOf('*.exe') >= 0 && tables[5].textContent.indexOf('partner.example') >= 0 &&
+      tables[6].textContent.indexOf('10.0.0.*') >= 0 && tables[7].textContent.indexOf('Front relay') >= 0);
    check('each section carries its route\'s own sentence and an Add', content().textContent.indexOf('AntiVirus.BlockedAttachments over COM') >= 0 &&
-      COLLECTION_SPECS && ['dnsbl', 'surbl', 'whitelist', 'blocked', 'attachments', 'greylist', 'relays'].every((id) => act('collnew', { coll: id }) !== null));
+      COLLECTION_SPECS && ['dnsbl', 'surbl', 'whitelist', 'blocked', 'attachments', 'senderlist', 'greylist', 'relays'].every((id) => act('collnew', { coll: id }) !== null));
    click(act('collnew', { coll: 'dnsbl' }));
    await flush();
    const drawnColl = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('coll_') === 0).map((id) => id.slice(5)).sort();
@@ -2411,6 +2470,24 @@ async function main() {
    await flush();
    put = lastBody(before, 'PUT', '/api/v1/blocked-senders/14');
    check('saving an existing entry PUTs the whole record by id', JSON.stringify(put) === '{"address":"spam.example","score":50,"description":"A spam domain"}' && content().querySelectorAll('table')[3].textContent.indexOf('50') >= 0, JSON.stringify(put));
+   // The server's allow and block list, which is the same collection machinery
+   // as the six before it - so what is worth pinning is that its own fields are
+   // drawn and that a save reaches its own path, not the mechanism again.
+   click(act('collnew', { coll: 'senderlist' }));
+   await flush();
+   const drawnSender = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('coll_') === 0).map((id) => id.slice(5)).sort();
+   check('the allow and block list draws its own five fields', JSON.stringify(drawnSender) === JSON.stringify(['blocked', 'expires', 'expires_time', 'reason', 'value']), JSON.stringify(drawnSender));
+   check('a new entry allows rather than blocks, which is the harmless accident', document.getElementById('coll_blocked').checked === false && document.getElementById('coll_expires').checked === false);
+   setValue('coll_value', 'newsletters.example');
+   setValue('coll_reason', 'their invoices kept scoring');
+   before = requests.length;
+   click(act('collsave'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/sender-list');
+   check('saving posts the entry to the sender list', JSON.stringify(posted) === '{"value":"newsletters.example","blocked":false,"reason":"their invoices kept scoring","expires":false,"expires_time":""}', JSON.stringify(posted));
+   check('and the re-read table shows it', content().querySelectorAll('table')[5].textContent.indexOf('newsletters.example') >= 0,
+      content().querySelectorAll('table')[5].textContent);
+
    click(act('collnew', { coll: 'attachments' }));
    await flush();
    check('a new attachment starts at the desktop\'s *.exe, a new relay at nothing', document.getElementById('coll_wildcard').value === '*.exe');
@@ -2426,7 +2503,7 @@ async function main() {
    before = requests.length;
    click(act('collsave'));
    await flush();
-   check('and the next save posts to the collection\'s own path', called(before, 'POST', '/api/v1/greylisting-white-addresses').length === 1 && content().querySelectorAll('table')[5].textContent.indexOf('203.0.113.*') >= 0);
+   check('and the next save posts to the collection\'s own path', called(before, 'POST', '/api/v1/greylisting-white-addresses').length === 1 && content().querySelectorAll('table')[6].textContent.indexOf('203.0.113.*') >= 0);
    confirmAnswer = false;
    before = requests.length;
    click(act('colldel', { coll: 'relays', id: 17 }));
@@ -2436,7 +2513,7 @@ async function main() {
    confirmAnswer = true;
    click(act('colldel', { coll: 'relays', id: 17 }));
    await flush();
-   check('yes deletes by id and the re-read table is empty', called(before, 'DELETE', '/api/v1/incoming-relays/17').length === 1 && content().querySelectorAll('table')[6].textContent.indexOf('Nothing here') >= 0);
+   check('yes deletes by id and the re-read table is empty', called(before, 'DELETE', '/api/v1/incoming-relays/17').length === 1 && content().querySelectorAll('table')[7].textContent.indexOf('Nothing here') >= 0);
    nextRefusal = 'The white list is in use.';
    click(act('colldel', { coll: 'whitelist', id: 13 }));
    await flush();

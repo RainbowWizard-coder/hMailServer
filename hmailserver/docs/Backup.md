@@ -25,11 +25,11 @@ In the archive
 
 | What | Notes |
 |---|---|
-| Domains, and their aliases, distribution lists and signatures | |
+| Domains, and their aliases, distribution lists and signatures | With each domain its allow and block list and its quarantine digest switch and hour |
 | Accounts | Address, password hash, forwarding, vacation, signature, quota, admin level, TOTP secret, anti-spam thresholds |
 | Aliases and distribution lists, with their members | |
 | Routes, IP ranges, TCP/IP ports, SSL certificate *records*, incoming relays, groups | Only with **Back up settings** on |
-| Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, blocked attachments, greylisting white list |
+| Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, the server's allow and block list, blocked attachments, greylisting white list |
 | Public folders, and the permissions on them | |
 | The `[Settings]` section of `hMailServer.ini` | Mirrored into the database since schema 6011 and carried with the settings |
 
@@ -49,6 +49,8 @@ In the archive
 | The password reuse history | `hm_passwordhistory` | So a restore does not let every account go back to a password it was made to change |
 | Who has written to the account before | `hm_knownsenders` | The memory the first-contact note is decided against, as of the backup. Without it a restore would announce every correspondent of every account as a first contact again — see [DomainTransforms.md](DomainTransforms.md) |
 | Calendars and their events and tasks | `hm_calendars`, `hm_calendarobjects` | Tombstones included, so a CalDAV client's next sync is answered correctly rather than being told nothing was ever deleted |
+| Safe senders and blocked senders | `hm_senderlist`, the account's own entries | With their reasons and expiries. The table also holds each domain's list and the server's, which travel with the domain and with the settings; see [SenderListsAndDigests.md](SenderListsAndDigests.md) |
+| Whether the quarantine digest was stopped | `hm_digeststate` | A person who asked for the digest to stop is still opted out after a restore. The digest's position is carried too, and an entry held after the last digest went is still new if a restore onto a fresh database starts the quarantine's numbering again |
 
 The per-account stores are carried as rows under their account, in the archive's
 own XML. A value is written as an attribute where every character of it is safe
@@ -70,6 +72,7 @@ Not in the archive, deliberately
 | Per-message and per-mailbox annotations (RFC 5257, RFC 5464) | Keyed on ids a restore reassigns. Recorded as a gap in `Roadmap2.md` rather than silently dropped |
 | The expunge log a QRESYNC client is answered from | Restoring it would tell a client that messages the restore has just put back are gone |
 | Quarantine, message trace, metric history, the archive index | Server-wide operational records rather than an account's data. Back the database up if you need them |
+| The links in quarantine digests already sent (`hm_digesttokens`) | Each is good once and expires within `QuarantineDigestLinkHours`, and names a quarantine entry the archive does not hold. The next digest issues new ones |
 
 
 References: how a scheduled send survives a restore

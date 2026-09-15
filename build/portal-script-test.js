@@ -340,6 +340,10 @@ let renameRefusal = null;
 // What POST /api/v1/me/password answers: a changed password, unless a test
 // sets a refusal with its status and body.
 let passwordAnswer = null;
+// The account's own safe and blocked senders, and whether the digest reaches
+// it. Both change as the page writes to them.
+let senderList = [{ id: 401, scope: 'account', value: 'friend@example.org', blocked: false, reason: 'a customer', expires: false, expired: false }];
+const digestState = { available: true, enabled: true, hour: 7, last_sent: '2026-09-14 07:05:00' };
 // One message arrives while the reader is looking at the folder: the probe
 // says so, and from then on the folder tree and the listing both show it.
 let arrived = false;
@@ -454,6 +458,43 @@ function answer(method, path, body) {
    }
    if (path === '/api/v1/me/folders' && method === 'GET') { return json(200, folderTree()); }
    if (path === '/api/v1/me/quarantine') { return json(200, { enabled: true, messages: [] }); }
+   // The reader's own safe and blocked senders. Kept as state, not a constant:
+   // the page's whole contract is that a POST of a value already on the list
+   // rewrites that row rather than adding a second, and a constant could not
+   // show the difference.
+   if (path === '/api/v1/me/sender-list' && method === 'GET') { return json(200, { scope: 'account', items: senderList.slice() }); }
+   if (path === '/api/v1/me/sender-list' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const value = String(wanted.value || '').trim().toLowerCase().replace(/^@/, '');
+      const existing = senderList.filter((e) => e.value === value)[0];
+      if (existing) {
+         existing.blocked = !!wanted.blocked;
+         existing.reason = wanted.reason || '';
+         return json(200, existing);
+      }
+      const entry = { id: 500 + senderList.length, scope: 'account', value: value, blocked: !!wanted.blocked, reason: wanted.reason || '', expires: false, expired: false };
+      senderList.push(entry);
+      return json(201, entry);
+   }
+   if (/^\/api\/v1\/me\/sender-list\/\d+$/.test(path) && method === 'PUT') {
+      const id = Number(path.split('/').pop());
+      const wanted = JSON.parse(body || '{}');
+      const entry = senderList.filter((e) => e.id === id)[0];
+      if (!entry) { return json(404, { error: 'no such entry' }); }
+      if (wanted.blocked !== undefined) { entry.blocked = !!wanted.blocked; }
+      return json(200, entry);
+   }
+   if (/^\/api\/v1\/me\/sender-list\/\d+$/.test(path) && method === 'DELETE') {
+      const id = Number(path.split('/').pop());
+      senderList = senderList.filter((e) => e.id !== id);
+      return json(200, { deleted: true });
+   }
+   if (path === '/api/v1/me/quarantine-digest' && method === 'GET') { return json(200, digestState); }
+   if (path === '/api/v1/me/quarantine-digest' && method === 'PUT') {
+      const wanted = JSON.parse(body || '{}');
+      digestState.enabled = digestState.available && !!wanted.enabled;
+      return json(200, digestState);
+   }
    if (path === '/api/v1/me/settings' && method === 'GET') {
       return json(200, { name: { first: 'A', last: 'B' }, forwarding: { enabled: false, address: '', keep_original: true }, signature: { enabled: false, text: '' } });
    }
@@ -1481,10 +1522,83 @@ async function main() {
    const phishReport = since(beforePhish).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/messages').map((r) => JSON.parse(r.body))[0];
    check('the report goes to the postmaster of the reader\'s domain with the message named', !!phishReport && phishReport.to === 'postmaster@example.com' && phishReport.subject === 'Phishing report: Second' && phishReport.text.indexOf('b@example.net') >= 0,
       JSON.stringify(phishReport).slice(0, 200));
-   check('the sender is blocked by a rule', since(beforePhish).some((r) => r.method === 'PUT' && r.path === '/api/v1/me/filters' && /b@example\.net/.test(r.body || '')),
+   // The sender goes onto the reader's own blocked-sender list, not into their
+   // Sieve script. It used to be a rule - a move-to-Junk, or a DISCARD when the
+   // account had no Junk folder, which destroyed the evidence of a phishing
+   // report - and a rule could not cover a domain, could not expire and was
+   // invisible to the administrator asked why a sender was not getting through.
+   check('the sender goes onto the blocked-sender list', since(beforePhish).some((r) => r.method === 'POST' && r.path === '/api/v1/me/sender-list' && /b@example\.net/.test(r.body || '') && /"blocked":true/.test(r.body || '')),
+      JSON.stringify(since(beforePhish).map((r) => r.method + ' ' + r.path).slice(0, 6)));
+   check('and nothing is written over the reader\'s filter script', !since(beforePhish).some((r) => r.method === 'PUT' && r.path === '/api/v1/me/filters'),
       JSON.stringify(since(beforePhish).map((r) => r.method + ' ' + r.path).slice(0, 6)));
    check('and the message is filed', since(beforePhish).some((r) => r.method !== 'GET' && /move|junk/.test(r.path + ' ' + (r.body || ''))),
       JSON.stringify(since(beforePhish).map((r) => r.method + ' ' + r.path).slice(0, 6)));
+
+   // ---- safe senders and blocked senders, and the digest switch
+   dismissAllToasts();
+   location.hash = '#/senders';
+   await flush();
+   await flush();
+   check('the safe-senders page is a settings page', !document.getElementById('senders-section').hidden && !document.getElementById('settings-head').hidden,
+      document.getElementById('senders-section').hidden + ' ' + document.getElementById('settings-head').hidden);
+   const senderRowsAtFirst = document.getElementById('sender-rows').children.length;
+   check('the account\'s own list is listed', senderRowsAtFirst > 0 && document.getElementById('sender-rows').textContent.indexOf('friend@example.org') >= 0,
+      document.getElementById('sender-rows').textContent);
+
+   // Adding a domain: the whole point of the feature is that a person may name
+   // one sender or every sender under a name, and the page must not insist on
+   // an @.
+   document.getElementById('sender-value').value = 'newsletters.example.net';
+   document.getElementById('sender-kind').value = 'allow';
+   document.getElementById('sender-reason').value = 'the invoices come from here';
+   const beforeSenderAdd = requests.length;
+   document.getElementById('sender-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   const senderAdded = since(beforeSenderAdd).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/sender-list').map((r) => JSON.parse(r.body))[0];
+   check('a domain can be added as a safe sender, with the reason', !!senderAdded && senderAdded.value === 'newsletters.example.net' && senderAdded.blocked === false && senderAdded.reason === 'the invoices come from here',
+      JSON.stringify(senderAdded));
+   check('and the list is read back rather than guessed at', since(beforeSenderAdd).some((r) => r.method === 'GET' && r.path === '/api/v1/me/sender-list'),
+      JSON.stringify(since(beforeSenderAdd).map((r) => r.method + ' ' + r.path)));
+   check('so the new row is on the page', document.getElementById('sender-rows').children.length === senderRowsAtFirst + 1,
+      String(document.getElementById('sender-rows').children.length));
+
+   // The same address again, blocked this time. One row, changed - not two rows
+   // arguing, which is what a list a person keeps by hand must never grow.
+   document.getElementById('sender-value').value = 'newsletters.example.net';
+   document.getElementById('sender-kind').value = 'block';
+   document.getElementById('sender-reason').value = '';
+   const beforeSenderAgain = requests.length;
+   document.getElementById('sender-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   check('naming the same value again changes the row rather than adding a second', document.getElementById('sender-rows').children.length === senderRowsAtFirst + 1 && senderList.filter((e) => e.value === 'newsletters.example.net').length === 1,
+      String(senderList.length));
+   check('and it is now blocked', senderList.filter((e) => e.value === 'newsletters.example.net')[0].blocked === true,
+      JSON.stringify(senderList));
+
+   // Removing the row it had at the start, to prove the delete goes to the
+   // entry's own id and not to the first row on the page.
+   const beforeSenderRemove = requests.length;
+   document.getElementById('sender-rows').children[0].children[3].children[1].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('a row is removed by its own id', since(beforeSenderRemove).some((r) => r.method === 'DELETE' && r.path === '/api/v1/me/sender-list/401'),
+      JSON.stringify(since(beforeSenderRemove).map((r) => r.method + ' ' + r.path)));
+
+   // The digest switch is the reader's half of a decision the domain makes.
+   check('the digest switch shows what the server said', document.getElementById('digest-enabled').checked === true && document.getElementById('digest-enabled').disabled === false,
+      document.getElementById('digest-enabled').checked + ' ' + document.getElementById('digest-enabled').disabled);
+   const beforeDigest = requests.length;
+   document.getElementById('digest-enabled').checked = false;
+   document.getElementById('digest-enabled').dispatchEvent(makeEvent('change'));
+   await flush();
+   await flush();
+   const digestWrite = since(beforeDigest).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/quarantine-digest').map((r) => JSON.parse(r.body))[0];
+   check('turning the digest off writes the reader\'s own opt-out', !!digestWrite && digestWrite.enabled === false,
+      JSON.stringify(digestWrite));
+   check('and the page says the mail is still held', document.getElementById('digest-status').textContent.toLowerCase().indexOf('still held') >= 0,
+      document.getElementById('digest-status').textContent);
 
    // ---- a formatted signature: the editor, its tools, and the field the page saves
    location.hash = '#/settings';

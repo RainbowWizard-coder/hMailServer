@@ -11,6 +11,8 @@
 #include "PersistentAlias.h"
 #include "PersistentDistributionList.h"
 #include "PersistentDistributionListRecipient.h"
+#include "PersistentSenderListEntry.h"
+#include "../BO/SenderListEntry.h"
 
 #include "../Util/Crypt.h"
 #include "../BO/Domain.h"
@@ -355,6 +357,20 @@ namespace HM
          if (!pDomain->GetDomainAliases()->DeleteAll())
             return false;
 
+         // The domain's own allow and block list. Domain ids are reissued, so a
+         // list left behind becomes the next domain to take that number - and an
+         // allow list inherited by a domain nobody wrote it for is somebody
+         // else's mail skipping the spam filter. Reported rather than fatal: the
+         // rows are inert (nothing matches a scope-and-owner pair that no domain
+         // has), and refusing to delete a domain because a tidy-up failed would
+         // be the worse trade.
+         if (!PersistentSenderListEntry::DeleteByOwner(SenderListEntry::ScopeDomain, iDomainID))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6751, "PersistentDomain::DeleteObject",
+               Formatter::Format("Domain {0} is being deleted but its allow and block list could not be, and will be left behind referring to a domain that no longer exists.",
+                  iDomainID));
+         }
+
          SQLCommand command("delete from hm_domains where domainid = @DOMAINID");
          command.AddParameter("@DOMAINID", iDomainID);
 
@@ -449,6 +465,8 @@ namespace HM
       pDomain->SetAntiSpamOptions(pRS->GetLongValue("domainantispamoptions"));
       pDomain->SetMaxSizeMB(pRS->GetLongValue("domainmaxsize"));
       pDomain->SetMessageRetentionDays(pRS->GetLongValue("domainmessageretentiondays"));
+      pDomain->SetQuarantineDigest(pRS->GetLongValue("domainquarantinedigest") == 1);
+      pDomain->SetQuarantineDigestHour(pRS->GetLongValue("domainquarantinedigesthour"));
 
       pDomain->SetEnableSignature(pRS->GetLongValue("domainenablesignature") ? true : false);
       pDomain->SetSignatureMethod((Domain::DomainSignatureMethod) pRS->GetLongValue("domainsignaturemethod"));
@@ -560,6 +578,8 @@ namespace HM
       oStatement.AddColumn("domainpostmaster", pDomain->GetPostmaster());
       oStatement.AddColumn("domainmaxsize", pDomain->GetMaxSizeMB());
       oStatement.AddColumn("domainmessageretentiondays", pDomain->GetMessageRetentionDays());
+      oStatement.AddColumn("domainquarantinedigest", pDomain->GetQuarantineDigest() ? 1L : 0L);
+      oStatement.AddColumn("domainquarantinedigesthour", (long) pDomain->GetQuarantineDigestHour());
       oStatement.AddColumn("domainaddomain", pDomain->GetADDomainName());
       oStatement.AddColumn("domainmaxmessagesize", pDomain->GetMaxMessageSize());
       oStatement.AddColumn("domainmaxaccountsize", pDomain->GetMaxAccountSize());

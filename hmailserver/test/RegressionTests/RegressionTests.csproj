@@ -178,6 +178,7 @@
       <HintPath>..\packages\Microsoft.TestPlatform.ObjectModel.18.10.0\lib\net462\Microsoft.TestPlatform.PlatformAbstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\Microsoft.TestPlatform.ObjectModel.18.10.0\lib\net462\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
@@ -358,6 +359,8 @@
     <Compile Include="AntiSpam\Quarantine.cs" />
     <Compile Include="AntiSpam\SenderBlacklist.cs" />
     <Compile Include="AntiSpam\PerAccountSpamSettings.cs" />
+    <Compile Include="AntiSpam\SenderLists.cs" />
+    <Compile Include="AntiSpam\QuarantineDigests.cs" />
     <Compile Include="AntiSpam\SpamAssassin.cs" />
     <Compile Include="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="AntiSpam\SpamAssassinLearning.cs" />

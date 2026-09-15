@@ -30,6 +30,12 @@ if exists (select * from sysobjects where id = object_id('hm_message_metadata') 
 
 if exists (select * from sysobjects where id = object_id('hm_settings') and objectproperty(id, 'isusertable') = 1) drop table hm_settings
 
+if exists (select * from sysobjects where id = object_id('hm_senderlist') and objectproperty(id, 'isusertable') = 1) drop table hm_senderlist
+
+if exists (select * from sysobjects where id = object_id('hm_digeststate') and objectproperty(id, 'isusertable') = 1) drop table hm_digeststate
+
+if exists (select * from sysobjects where id = object_id('hm_digesttokens') and objectproperty(id, 'isusertable') = 1) drop table hm_digesttokens
+
 if exists (select * from sysobjects where id = object_id('hm_inisettings') and objectproperty(id, 'isusertable') = 1) drop table hm_inisettings
 
 if exists (select * from sysobjects where id = object_id('hm_dbversion') and objectproperty(id, 'isusertable') = 1) drop table hm_dbversion
@@ -286,7 +292,9 @@ create table hm_domains (
 	domainfirstcontacttip int not null default 0,
 	domaindisclaimerenabled int not null default 0,
 	domaindisclaimerplaintext ntext not null,
-	domaindisclaimerhtml ntext not null
+	domaindisclaimerhtml ntext not null,
+	domainquarantinedigest tinyint not null default 0,
+	domainquarantinedigesthour int not null default 7
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -1172,6 +1180,10 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('AS
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcFilteringEnabled', '', 0)
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('QuarantineDigestBaseUrl', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('QuarantineDigestLinkHours', '', 72)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5)
@@ -1263,6 +1275,52 @@ create table hm_quarantine
 ALTER TABLE hm_quarantine ADD CONSTRAINT hm_quarantine_pk PRIMARY KEY NONCLUSTERED (quarantineid)
 
 CREATE CLUSTERED INDEX idx_hm_quarantine_created ON hm_quarantine (quarantinecreated)
+
+create table hm_senderlist
+(
+	slid int identity(1,1) not null,
+	slscope int not null,
+	slownerid int not null,
+	sltype int not null,
+	slvalue nvarchar(255) not null,
+	slreason nvarchar(255) not null,
+	slexpires tinyint not null,
+	slexpirestime datetime not null,
+	slcreated datetime not null
+)
+
+ALTER TABLE hm_senderlist ADD CONSTRAINT hm_senderlist_pk PRIMARY KEY NONCLUSTERED (slid)
+
+CREATE CLUSTERED INDEX idx_hm_senderlist_scope ON hm_senderlist (slscope, slownerid)
+
+create table hm_digeststate
+(
+	dsid int identity(1,1) not null,
+	dsaccountid int not null,
+	dssenttime datetime not null,
+	dslastid int not null,
+	dsoptout tinyint not null
+)
+
+ALTER TABLE hm_digeststate ADD CONSTRAINT hm_digeststate_pk PRIMARY KEY NONCLUSTERED (dsid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_digeststate_account ON hm_digeststate (dsaccountid)
+
+create table hm_digesttokens
+(
+	dtid int identity(1,1) not null,
+	dtaccountid int not null,
+	dtkind int not null,
+	dtquarantineid int not null,
+	dttoken nvarchar(64) not null,
+	dtexpirestime datetime not null,
+	dtused tinyint not null,
+	dtcreated datetime not null
+)
+
+ALTER TABLE hm_digesttokens ADD CONSTRAINT hm_digesttokens_pk PRIMARY KEY NONCLUSTERED (dtid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_digesttokens_token ON hm_digesttokens (dttoken)
 
 create table hm_passwordhistory
 (
@@ -1405,6 +1463,10 @@ ALTER TABLE hm_group_members ADD CONSTRAINT fk_hm_group_members_group FOREIGN KE
 
 ALTER TABLE hm_passwordhistory ADD CONSTRAINT fk_hm_passwordhistory_account FOREIGN KEY (phaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_digeststate ADD CONSTRAINT fk_hm_digeststate_account FOREIGN KEY (dsaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_digesttokens ADD CONSTRAINT fk_hm_digesttokens_account FOREIGN KEY (dtaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_messagerecipients ADD CONSTRAINT fk_hm_messagerecipients_message FOREIGN KEY (recipientmessageid) REFERENCES hm_messages (messageid) ON DELETE CASCADE
 
 ALTER TABLE hm_message_metadata ADD CONSTRAINT fk_hm_message_metadata_message FOREIGN KEY (metadata_messageid) REFERENCES hm_messages (messageid) ON DELETE CASCADE
@@ -1507,4 +1569,4 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Au
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6045)
+insert into hm_dbversion values (6046)

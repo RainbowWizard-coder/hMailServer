@@ -34,7 +34,16 @@ namespace HM
          // RFC 3030 BINARYMIME. The ninth bit, which is why hm_messages.
          // messageflags had to be widened from tinyint to smallint in schema
          // 6025 - FlagSeen..FlagSpam had taken every bit a tinyint could hold.
-         FlagBinaryMime = 256
+         FlagBinaryMime = 256,
+
+         // A message the quarantine released: an administrator, or the recipient
+         // through the webmail or a digest link, said "this was wrong". Persisted
+         // with the other flags because the release goes back through the delivery
+         // queue, and the delivery that picks it up - possibly after a restart -
+         // must know not to hold it again. Only the server sets it: it lives in
+         // hm_messages, not in anything a sender writes, so it cannot be forged
+         // the way a header could.
+         FlagReleasedFromQuarantine = 512
       };
 
       Message(bool generateFileName);
@@ -120,6 +129,15 @@ namespace HM
       // at the first NUL and smuggling bare LFs past the check that exists to
       // stop them. Schema 6025 widened the column for this, so the mark now
       // survives the database round-trip and the refusal holds on every path.
+      bool GetReleasedFromQuarantine() const { return (flags_ & FlagReleasedFromQuarantine) != 0; }
+      void SetReleasedFromQuarantine(bool bNewVal)
+      {
+         if (bNewVal)
+            flags_ |= FlagReleasedFromQuarantine;
+         else
+            flags_ &= ~FlagReleasedFromQuarantine;
+      }
+
       bool GetBinaryMime() const { return (flags_ & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {

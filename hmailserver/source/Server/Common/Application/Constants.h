@@ -153,6 +153,14 @@
 
 #define PROPERTY_TLSOPTIONS                     _T("TlsOptions")
 
+// The quarantine digest. Both rows live in hm_settings, which is where a
+// setting belongs since 15 September 2026: the base URL the digest's release
+// links are written against - without one no digest is sent, because a link
+// nobody can follow is worse than no message - and how many hours one of those
+// links stays usable.
+#define PROPERTY_QUARANTINE_DIGEST_BASE_URL     _T("QuarantineDigestBaseUrl")
+#define PROPERTY_QUARANTINE_DIGEST_LINK_HOURS   _T("QuarantineDigestLinkHours")
+
 // The audit trail. Recording is on by default: a server nobody has configured
 // still answers "who changed this", and the cost is one row per administrative
 // change. Retention of 0 keeps everything, which is what an audit trail is for;
@@ -220,4 +228,11 @@
 //      administrator names the sealers to trust. The rows exist rather than being
 //      absent-with-a-default because PropertySet reports error 5015 on every read of
 //      a missing property, which would fill the error log on ARC-bearing mail.
-#define REQUIRED_DB_VERSION            6045
+// 6046 adds hm_senderlist (the reader's, the domain's and the server's allow and
+//      block lists, one table with a scope on it), hm_digeststate and
+//      hm_digesttokens (when each account last had a quarantine digest, whether it
+//      asked to stop, and the one-shot capabilities its links carry),
+//      hm_domains.domainquarantinedigest and .domainquarantinedigesthour, and seeds
+//      hm_settings rows QuarantineDigestBaseUrl ('') and QuarantineDigestLinkHours
+//      (72). The digest is off in every domain until an administrator turns it on.
+#define REQUIRED_DB_VERSION            6046
