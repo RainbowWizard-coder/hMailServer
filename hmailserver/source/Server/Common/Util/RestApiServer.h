@@ -567,6 +567,16 @@ namespace HM
       // cookie - so that both read the same store and neither decides.
       static void ApplyAccountGrant_(Caller &caller);
 
+      // True when the request carries the server administrator's whole
+      // authority: AdministerServer, with no list of domains narrowing it. The
+      // handlers that decide what may be done to a server administrator's own
+      // account, or to a domain's limits, ask this rather than reading the
+      // domain list alone - which is what they did when a key's only narrowing
+      // was a list of domains, and which would let a key issued with Role=
+      // domainadmin and no Domains line promote somebody to server
+      // administrator.
+      static bool HoldsServerAuthority_(const Caller &caller);
+
       // The domain a route acts inside, or nothing when it acts on the server.
       // One reading of the path for both decisions made about it.
       static String DomainNamedByRoute_(const Route &route);

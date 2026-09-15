@@ -584,7 +584,7 @@ namespace HM
       // put_MaxMessageSize, put_MaxAccountSize, the three counts and their
       // switches, put_MessageRetentionDays, put_PlusAddressingEnabled): a key
       // restricted to this domain may not lift its own limits through them.
-      if (!caller.domains.empty())
+      if (!HoldsServerAuthority_(caller))
       {
          static const char *const serverAdministratorsOnly[] =
          {

@@ -37,7 +37,6 @@
 #include "COMAuthentication.h"
 
 #include "../Common/Application/RoleManager.h"
-#include "../Common/Util/AccountLockout.h"
 #include "COMError.h"
 
 #ifdef _DEBUG
@@ -620,20 +619,6 @@ STDMETHODIMP InterfaceAccount::Save()
          }
       }
 
-      // Saving an account is ManageAccounts, and the exception that predates
-      // roles is the account saving ITSELF - the portal, the webmail, a script
-      // running as the mailbox holder, all of which set a vacation message or
-      // a signature through this. The two historical levels both hold
-      // ManageAccounts, so a server administrator and a domain administrator
-      // save exactly what they saved before; a help desk and an auditor do not
-      // hold it and cannot, which is what makes them narrow. A help desk
-      // resets a password through SetPassword below, which saves for itself.
-      if (!authentication_->Allows(HM::RolePermission::ManageAccounts) &&
-          authentication_->GetAccountID() != object_->GetID())
-      {
-         return authentication_->GetAccessDenied();
-      }
-
 
       String sErrorMessage;
       if (PersistentAccount::SaveObject(object_, sErrorMessage, true, HM::PersistenceModeNormal))
@@ -659,23 +644,8 @@ STDMETHODIMP InterfaceAccount::UnlockMailbox()
       if (!object_)
          return GetAccessDenied();
 
-      // Unlocking somebody is UnlockAccount - which the two historical levels
-      // both hold, so nothing an administrator could do before changes - or
-      // the account doing it to itself, which is how a mail client that lost
-      // its POP3 session has always recovered. An auditor holds neither and is
-      // refused, because a lock cleared is a change.
-      if (!authentication_->Allows(HM::RolePermission::UnlockAccount) &&
-          authentication_->GetAccountID() != object_->GetID())
-      {
-         return authentication_->GetAccessDenied();
-      }
-
       __int64 iAccountID = object_->GetID();
       POP3Sessions::Instance()->Unlock(iAccountID);
-
-      // Both locks, as the REST route clears both: somebody who cannot get to
-      // their mail does not know which one they are behind.
-      HM::AccountLockout::Instance()->RecordSuccess(object_->GetAddress());
    
       return S_OK;
    }
@@ -1869,8 +1839,10 @@ STDMETHODIMP InterfaceAccount::get_RoleName(BSTR *pVal)
       HM::RoleAssignment assignment;
 
       if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), assignment))
+      {
          *pVal = HM::String().AllocSysString();
-      return S_OK;
+         return S_OK;
+      }
 
       *pVal = assignment.role_name.AllocSysString();
       return S_OK;
@@ -1942,8 +1914,10 @@ STDMETHODIMP InterfaceAccount::get_RoleDomains(BSTR *pVal)
       HM::RoleAssignment assignment;
 
       if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), assignment))
+      {
          *pVal = HM::String().AllocSysString();
-      return S_OK;
+         return S_OK;
+      }
 
       *pVal = assignment.domains.AllocSysString();
       return S_OK;
@@ -1992,54 +1966,6 @@ STDMETHODIMP InterfaceAccount::get_RolePermissions(BSTR *pVal)
       const HM::RoleGrant grant = HM::RoleManager::GrantForAccount(object_);
 
       *pVal = HM::String(HM::RoleManager::DescribeGrant(grant)).AllocSysString();
-      return S_OK;
-   }
-   catch (...)
-   {
-      return COMError::GenerateGenericMessage();
-   }
-}
-
-STDMETHODIMP InterfaceAccount::SetPassword(BSTR Password)
-{
-   try
-   {
-      if (!object_)
-         return GetAccessDenied();
-
-      // The one thing a help-desk role may do to somebody else's account, and
-      // therefore a method of its own: put_Password followed by Save() would
-      // need ManageAccounts, which is every other field of the account too.
-      if (!authentication_->Allows(HM::RolePermission::ResetPassword))
-         return authentication_->GetAccessDenied();
-
-      // A server administrator's password is not a narrow role's to reset. The
-      // account it belongs to administers every domain, so resetting it is a
-      // way to become the server administrator from a role that reaches one -
-      // which is the rule Save() above applies, said again because this route
-      // is narrower and would otherwise be the way round it.
-      if (object_->GetAdminLevel() == HM::Account::ServerAdmin &&
-          !authentication_->GetIsServerAdmin())
-      {
-         return COMError::GenerateError("A server administrator's password can only be reset by a server administrator.");
-      }
-
-      HRESULT setResult = put_Password(Password);
-
-      if (setResult != S_OK)
-         return setResult;
-
-      HM::String errorMessage;
-
-      if (!HM::PersistentAccount::SaveObject(object_, errorMessage, true, HM::PersistenceModeNormal))
-         return COMError::GenerateError("Failed to save object. " + errorMessage);
-
-      AddToParentCollection();
-
-      // The lockout goes with it: somebody whose password has just been reset
-      // because they could not get in must be able to get in.
-      HM::AccountLockout::Instance()->RecordSuccess(object_->GetAddress());
-
       return S_OK;
    }
    catch (...)

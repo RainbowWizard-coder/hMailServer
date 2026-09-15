@@ -80,6 +80,7 @@ ALLOWED = {
         "COM/InterfaceAccount.cpp",          # the property itself, and the server-admin rule
         "COM/InterfaceAccounts.cpp",
         "Common/Util/RestApiRoles.cpp",      # the same server-admin rule, on the reset route
+        "COM/InterfaceApplication.cpp",      # the same rule, on Application.ResetPassword
         "COM/InterfaceDistributionList.cpp",
         "Common/Util/RestApiRoutes.cpp",     # the same property, over REST
     },

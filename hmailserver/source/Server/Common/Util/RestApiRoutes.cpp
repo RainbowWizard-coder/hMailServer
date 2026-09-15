@@ -1088,7 +1088,7 @@ namespace HM
       // account that already is one - because a server administrator's mailbox
       // can sit in a domain somebody else administers, and its password is a
       // COM logon with the server's whole authority.
-      const bool unrestricted = caller.domains.empty();
+      const bool unrestricted = HoldsServerAuthority_(caller);
 
       if (account->GetAdminLevel() == Account::ServerAdmin && !unrestricted)
       {

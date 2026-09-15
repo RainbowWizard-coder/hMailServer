@@ -3679,6 +3679,13 @@ namespace HM
       return false;
    }
 
+   bool
+   RestApiServer::HoldsServerAuthority_(const Caller &caller)
+   {
+      return caller.domains.empty() &&
+             RoleManager::Allows(caller.grant, RolePermission::AdministerServer);
+   }
+
    void
    RestApiServer::ApplyAccountGrant_(Caller &caller)
    {
@@ -3804,7 +3811,6 @@ namespace HM
       case RoutePortalFilesPolicy:
       case RouteDomainAliasList:
       case RouteRuleMatch:
-      case RouteOpenApi:
       case RouteRoleList:
       case RouteRoleGet:
       case RouteRoleAssignmentList:
@@ -3825,6 +3831,12 @@ namespace HM
       case RouteGroupList:
       case RouteGroupGet:
       case RouteGroupMemberList:
+      // The OpenAPI document is the map every Control Deck form is drawn from,
+      // not the server's state, and it holds nothing a caller could not learn
+      // by reading the source. It sits with the lowest read every built-in
+      // administrative role holds, so that a help desk's account editor has
+      // the document it is built from.
+      case RouteOpenApi:
          return RolePermission::ViewAccounts;
 
       // Another person's folders and the messages in them. Deliberately not
@@ -4163,7 +4175,20 @@ namespace HM
       // credential problem - including for a verb that does not exist, which is
       // why RouteApiKeyUnsupported is in this set.
       if (IsApiKeyRoute_(route.kind))
+      {
+         // An account that holds a role has already proved its credential and
+         // is refused as a matter of permission, with the reason - a 401 would
+         // tell the Control Deck its session had ended and sign it out. The
+         // 401 stays for keys, where it keeps "valid but not permitted"
+         // indistinguishable from "not a key at all".
+         if (caller.result == AuthenticatedAsAccount)
+         {
+            refusalReason = "the api keys and the [Settings] section of hMailServer.ini answer to the administrator password only";
+            return AuthorizationForbidden;
+         }
+
          return AuthorizationUnauthenticated;
+      }
 
       // THE DECISION, and the only one. Every route of this API is answered
       // by this one call: the permission the route needs (PermissionFor_), the
@@ -4182,7 +4207,8 @@ namespace HM
             // 2026, because that is the restriction it was issued with and the
             // one its holder will look for; every other refusal names the role
             // and the permission.
-            refusalReason = (caller.result == AuthenticatedWithApiKey && caller.read_only && IsMutatingRoute_(route.kind))
+            refusalReason = (caller.result == AuthenticatedWithApiKey && caller.read_only &&
+                             caller.grant.name == _T("auditor") && IsMutatingRoute_(route.kind))
                ? AnsiString("this api key is read-only")
                : AnsiString(roleRefusal);
 
@@ -6974,6 +7000,14 @@ namespace HM
 
       if (!supportBy.IsEmpty())
       {
+         // A support session opens the portal as the account, for the person
+         // who asked for help. It is not that account's administration: an
+         // administrator who opens one into a mailbox that happens to hold a
+         // role must not find the session reaching the administration API as
+         // well, so the grant goes.
+         caller.grant = RoleGrant();
+         caller.domains.clear();
+
          // Every request of a support session is on the record: who, as whom,
          // from where, what.
          caller.support_by = supportBy;

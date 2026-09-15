@@ -318,12 +318,7 @@ STDMETHODIMP InterfaceDomain::get_Accounts(IInterfaceAccounts **pVal)
    
       std::shared_ptr<HM::Accounts> pAccounts;
    
-      // A role that may read the accounts sees the domain's accounts; anything
-      // else sees its own and no other, which is what an ordinary mailbox
-      // holder has always seen. The help-desk role reaches an account to reset
-      // its password through here, so a role that could not see the collection
-      // could not do the one thing it exists for.
-      if (authentication_->GetIsDomainAdmin() || authentication_->Allows(HM::RolePermission::ViewAccounts))
+      if (authentication_->GetIsDomainAdmin())
          pAccounts = object_->GetAccounts();
       else
          pAccounts = object_->GetAccounts(authentication_->GetAccountID());

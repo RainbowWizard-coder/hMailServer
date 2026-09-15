@@ -20,6 +20,14 @@
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/BO/Account.h"
 #include "../Common/Application/RoleManager.h"
+#include "../Common/Application/IniFileSettings.h"
+#include "../Common/Util/AccountLockout.h"
+#include "../Common/Util/Crypt.h"
+#include "../Common/Util/PasswordHistory.h"
+#include "../Common/Util/PasswordPolicy.h"
+#include "../Common/Util/Time.h"
+#include "../Common/Util/Parsing/StringParser.h"
+#include "../POP3/POP3Sessions.h"
 #include "COMError.h"
 
 #include "../Common/Application/IniFileSettings.h"
@@ -741,6 +749,142 @@ STDMETHODIMP InterfaceApplication::AssignRole(BSTR Address, BSTR Role, BSTR Doma
 
       if (!HM::RoleManager::Assign(account->GetID(), wanted, HM::String(Domains), error))
          return COMError::GenerateError(error);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+namespace
+{
+   // This unit sits outside namespace HM, where the logging macros do not
+   // resolve; the two role actions log through here.
+   void LogRoleAction_(const HM::String &message)
+   {
+      using namespace HM;
+      LOG_APPLICATION(message);
+   }
+
+   // The account an address names, if this credential may act on it with this
+   // permission - or nothing, with ONE answer for both "there is no such
+   // account" and "there is, and it is not yours". The domain is judged from
+   // the address alone, before the database is asked, so that the time the
+   // answer takes does not tell the two apart either.
+   std::shared_ptr<HM::Account> ReachableAccount_(std::shared_ptr<HM::COMAuthentication> authentication,
+                                                  HM::RolePermission permission, const HM::String &address)
+   {
+      const HM::String domainName = HM::StringParser::ExtractDomain(address);
+
+      if (domainName.IsEmpty() || !authentication->AllowsForDomain(permission, domainName))
+         return std::shared_ptr<HM::Account>();
+
+      std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+      if (!HM::PersistentAccount::ReadObject(account, address) || account->GetID() == 0)
+         return std::shared_ptr<HM::Account>();
+
+      return account;
+   }
+}
+
+STDMETHODIMP InterfaceApplication::ResetPassword(BSTR Address, BSTR Password)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      // The permission first, with no account named: a credential that holds
+      // no reset_password anywhere is refused as every COM refusal is, and
+      // learns nothing about any address.
+      if (!authentication_->Allows(HM::RolePermission::ResetPassword))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = ReachableAccount_(authentication_, HM::RolePermission::ResetPassword, HM::String(Address));
+
+      if (!account)
+         return COMError::GenerateError("No such account.");
+
+      // A server administrator's password is not a narrow role's to reset:
+      // the account it belongs to administers every domain, so resetting it is
+      // a way to become the server administrator from a role that reaches one.
+      // Account.Save applies the same rule for the same reason.
+      if (account->GetAdminLevel() == HM::Account::ServerAdmin && !authentication_->GetIsServerAdmin())
+         return COMError::GenerateError("A server administrator's password can only be reset by a server administrator.");
+
+      if (account->GetIsAD())
+         return COMError::GenerateError("This account authenticates against the directory; its password is not this server's to set.");
+
+      const HM::String password = Password;
+
+      // The policy, the reuse history, the old hash recorded before the new
+      // one replaces it, the configured hash and the age clock: exactly what
+      // InterfaceAccount::put_Password does, because a password set by a help
+      // desk must be no weaker than one set anywhere else.
+      HM::String policyFailure;
+
+      if (!HM::PasswordPolicy::IsAcceptable(account->GetAddress(), password, policyFailure))
+         return COMError::GenerateError(policyFailure);
+
+      if (HM::PasswordHistory::IsReuse(account, password))
+         return COMError::GenerateError("This password has been used recently on this account. Choose one that has not.");
+
+      HM::PasswordHistory::Record(account);
+
+      const int preferredHashAlgorithm = HM::IniFileSettings::Instance()->GetPreferredHashAlgorithm();
+      account->SetPassword(HM::Crypt::Instance()->EnCrypt(password, (HM::Crypt::EncryptionType) preferredHashAlgorithm));
+      account->SetPasswordEncryption(preferredHashAlgorithm);
+      account->SetPasswordChanged(HM::Time::GetCurrentDateTime());
+
+      HM::String errorMessage;
+
+      if (!HM::PersistentAccount::SaveObject(account, errorMessage, false, HM::PersistenceModeNormal))
+         return COMError::GenerateError("Failed to save object. " + errorMessage);
+
+      // Somebody whose password has just been reset because they could not get
+      // in must be able to get in.
+      HM::AccountLockout::Instance()->RecordSuccess(account->GetAddress());
+
+      HM::String logged;
+      logged.Format(_T("COM: the password of %s was reset by %s."),
+                    account->GetAddress().c_str(), HM::String(authentication_->GetActor().identity).c_str());
+      LogRoleAction_(logged);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::UnlockAccount(BSTR Address)
+{
+   try
+   {
+      if (!authentication_->GetIsAuthenticated())
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->Allows(HM::RolePermission::UnlockAccount))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = ReachableAccount_(authentication_, HM::RolePermission::UnlockAccount, HM::String(Address));
+
+      if (!account)
+         return COMError::GenerateError("No such account.");
+
+      // Both locks, as the REST route clears both: somebody who cannot get to
+      // their mail does not know which one they are behind.
+      HM::AccountLockout::Instance()->RecordSuccess(account->GetAddress());
+      HM::POP3Sessions::Instance()->Unlock(account->GetID());
+
+      HM::String logged;
+      logged.Format(_T("COM: %s was unlocked by %s."),
+                    account->GetAddress().c_str(), HM::String(authentication_->GetActor().identity).c_str());
+      LogRoleAction_(logged);
 
       return S_OK;
    }
