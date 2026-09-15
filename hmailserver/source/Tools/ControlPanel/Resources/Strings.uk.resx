@@ -7514,10 +7514,10 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Позначення та застереження</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Вилучити {0} зі списку придушення домену {1}?
 
-Наступне повідомлення на цю адресу буде надіслано, а ще одна постійна відмова поверне її до списку.</value>
+Наступне повідомлення на цю адресу буде надіслано, а до списку адреса повернеться лише після стількох постійних відмов поспіль, скільки вимагає поріг.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Набирає чинності негайно, але зберігається лише в пам'яті: ніщо не зберігає це значення, тому кожен перезапуск служби скидає його до вбудованих 10240 КБ (10 МБ). Щоб зберегти іншу межу, її потрібно задавати знову після кожного перезапуску, наприклад зі скрипту запуску через COM API. TTL і перемикач увімкнення на цій картці зберігаються і переживають перезапуски.</value>

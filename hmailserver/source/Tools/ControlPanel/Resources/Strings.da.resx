@@ -7514,10 +7514,10 @@ Genstart den nu?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Mærkning og ansvarsfraskrivelse</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Fjern {0} fra spærrelisten for {1}?
 
-Den næste besked til adressen bliver sendt, og én hård returmail mere sætter den tilbage.</value>
+Den næste besked til adressen bliver sendt, og den kommer først på listen igen efter så mange hårde returmails i træk, som tærsklen kræver.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Får virkning med det samme, men holdes kun i hukommelsen: intet gemmer denne værdi, så hver genstart af tjenesten nulstiller den til de indbyggede 10240 KB (10 MB). For at beholde en anden grænse skal den sættes igen efter hver genstart, for eksempel fra et opstartsscript gennem COM API'et. TTL'erne og aktiveringskontakten på dette kort gemmes og overlever genstarter.</value>

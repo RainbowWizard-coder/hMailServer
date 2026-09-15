@@ -7514,10 +7514,10 @@ Reiniciá-lo agora?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Marcação e aviso legal</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Tirar {0} da lista de supressão de {1}?
 
-A próxima mensagem para esse endereço será enviada, e mais um retorno permanente o coloca de volta.</value>
+A próxima mensagem para esse endereço será enviada, e ele só volta à lista depois de tantos retornos permanentes seguidos quantos o limite exigir.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Vale imediatamente, mas é mantido apenas em memória: nada armazena este valor, então cada reinício do serviço o devolve aos 10240 KB (10 MB) embutidos. Para manter um limite diferente é preciso defini-lo de novo após cada reinício, por exemplo a partir de um script de inicialização através da API COM. Os TTLs e a chave de ativação deste cartão são armazenados e sobrevivem aos reinícios.</value>

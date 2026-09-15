@@ -7514,10 +7514,10 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merkintä ja vastuuvapauslauseke</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Poistetaanko {0} verkkotunnuksen {1} estolistalta?
 
-Seuraava viesti tähän osoitteeseen lähetetään, ja yksi pysyvä palautus lisää palauttaa sen listalle.</value>
+Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vasta, kun siitä on tullut peräkkäin niin monta pysyvää palautusta kuin kynnysarvo vaatii.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Tulee voimaan heti, mutta säilyy vain muistissa: mikään ei tallenna tätä arvoa, joten jokainen palvelun uudelleenkäynnistys palauttaa sen sisäänrakennettuun arvoon 10240 kt (10 Mt). Eri rajan säilyttämiseksi se on asetettava uudelleen jokaisen uudelleenkäynnistyksen jälkeen, esimerkiksi käynnistyskomentosarjasta COM-rajapinnan kautta. Tämän kortin TTL-arvot ja käyttöönottokytkin tallennetaan, ja ne säilyvät uudelleenkäynnistysten yli.</value>

@@ -7514,10 +7514,10 @@ Nu herstarten?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Markering en disclaimer</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0} van de onderdrukkingslijst van {1} halen?
 
-Het volgende bericht aan dit adres wordt verzonden, en nog een harde bounce zet het terug op de lijst.</value>
+Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de lijst na zoveel harde bounces op rij als de drempel vraagt.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Werkt direct, maar wordt alleen in het geheugen bewaard: niets slaat deze waarde op, dus elke herstart van de service zet hem terug op de ingebouwde 10240 KB (10 MB). Om een andere limiet te behouden moet hij na elke herstart opnieuw worden ingesteld, bijvoorbeeld vanuit een opstartscript via de COM-API. De TTL's en de aan/uit-schakelaar op deze kaart worden wél opgeslagen en overleven een herstart.</value>

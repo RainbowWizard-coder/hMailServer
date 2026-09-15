@@ -7514,10 +7514,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>タグ付けと免責事項</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0} を {1} の抑止リストから外しますか？
 
-このアドレスへの次のメッセージは送信され、もう 1 回ハード バウンスすると再びリストに載ります。</value>
+このアドレスへの次のメッセージは送信されます。再びリストに載るのは、しきい値の回数だけ連続してハード バウンスした後です。</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>直ちに有効になりますが、メモリ内にしか保持されません。この値を保存するものはないため、サービスを再起動するたびに組み込みの 10240 KB (10 MB) にリセットされます。別の上限を維持するには、再起動のたびに、たとえば起動スクリプトから COM API 経由で再設定する必要があります。このカードの TTL と有効化スイッチは保存され、再起動後も維持されます。</value>

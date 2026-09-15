@@ -7514,10 +7514,10 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Пометка и оговорка</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Убрать {0} из списка подавления домена {1}?
 
-Следующее сообщение на этот адрес будет отправлено, а ещё один постоянный отказ вернёт его в список.</value>
+Следующее сообщение на этот адрес будет отправлено, а в список адрес вернётся только после стольких постоянных отказов подряд, сколько требует порог.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Вступает в силу немедленно, но хранится только в памяти: это значение нигде не сохраняется, поэтому каждый перезапуск службы возвращает встроенные 10240 КБ (10 МБ). Чтобы удерживать другой предел, его нужно задавать заново после каждого перезапуска — например, из сценария запуска через COM API. Значения TTL и переключатель включения на этой карточке сохраняются и перезапуск переживают.</value>

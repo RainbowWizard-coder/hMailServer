@@ -7514,10 +7514,10 @@ Restartovat ji nyní?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Označování a doložka</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Odebrat {0} ze seznamu blokovaných domény {1}?
 
-Příští zpráva na tuto adresu bude odeslána a další trvalá nedoručenka ji vrátí zpět.</value>
+Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí až po tolika trvalých nedoručenkách po sobě, kolik určuje práh.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Projeví se okamžitě, ale drží se pouze v paměti: tuto hodnotu nic neukládá, takže každý restart služby ji vrátí na vestavěných 10240 KB (10 MB). Chcete-li zachovat jiný limit, je nutné jej po každém restartu nastavit znovu, například ze spouštěcího skriptu přes COM API. Hodnoty TTL a přepínač zapnutí na této kartě se ukládají a restart přežijí.</value>

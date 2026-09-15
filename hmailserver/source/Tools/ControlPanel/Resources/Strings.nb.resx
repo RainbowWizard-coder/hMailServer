@@ -7514,10 +7514,10 @@ Starte den på nytt nå?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merking og ansvarsfraskrivelse</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Ta {0} av sperrelisten for {1}?
 
-Neste melding til adressen blir sendt, og én hard returmelding til setter den tilbake.</value>
+Neste melding til adressen blir sendt, og den kommer først på listen igjen etter så mange harde returmeldinger på rad som terskelen krever.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Trer i kraft med en gang, men holdes bare i minnet: ingenting lagrer denne verdien, så hver omstart av tjenesten tilbakestiller den til de innebygde 10240 KB (10 MB). For å beholde en annen grense må den settes på nytt etter hver omstart, for eksempel fra et oppstartsskript gjennom COM-API-et. TTL-ene og aktiveringsbryteren på dette kortet lagres og overlever omstarter.</value>

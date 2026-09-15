@@ -7514,10 +7514,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>标记与免责声明</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>要将 {0} 从 {1} 的抑制列表中移除吗？
 
-发往该地址的下一封邮件将会发出，再有一次硬退信会将其重新列入。</value>
+发往该地址的下一封邮件将会发出；只有连续硬退信的次数达到阈值后，才会将其重新列入。</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>立即生效，但只保存在内存中: 没有任何地方存储此值，因此每次服务重启都会将其重置为内置的 10240 KB (10 MB)。要保持不同的限制，必须在每次重启后重新设置，例如通过 COM API 从启动脚本设置。此卡片上的 TTL 和启用开关会被存储，并且在重启后保留。</value>

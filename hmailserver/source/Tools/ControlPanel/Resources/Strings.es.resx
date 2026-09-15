@@ -7514,10 +7514,10 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Etiquetado y descargo</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>¿Quitar {0} de la lista de supresión de {1}?
 
-El próximo mensaje a esa dirección se enviará, y un rebote permanente más la volverá a añadir.</value>
+El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tras tantos rebotes permanentes seguidos como exija el umbral.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Se aplica de inmediato, pero se mantiene solo en memoria: nada guarda este valor, así que cada reinicio del servicio lo devuelve a los 10240 KB (10 MB) integrados. Para conservar otro límite hay que volver a definirlo tras cada reinicio, por ejemplo desde un script de arranque a través de la API COM. Los TTL y el interruptor de activación de esta tarjeta sí se guardan y sobreviven a los reinicios.</value>

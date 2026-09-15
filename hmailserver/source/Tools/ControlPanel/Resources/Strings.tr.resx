@@ -7514,10 +7514,10 @@ Devam edilsin mi?</value>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Etiketleme ve yasal uyarı</value>
   </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and one more hard bounce puts it back." xml:space="preserve">
+  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0}, {1} engelleme listesinden kaldırılsın mı?
 
-Bu adrese giden bir sonraki ileti gönderilir ve bir kalıcı geri dönüş daha onu listeye geri koyar.</value>
+Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerektirdiği sayıda art arda kalıcı geri dönüşten sonra listeye yeniden alınır.</value>
   </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Hemen etkili olur, ancak yalnızca bellekte tutulur: bu değeri hiçbir şey saklamaz, bu yüzden her hizmet yeniden başlatması onu yerleşik 10240 KB'a (10 MB) sıfırlar. Farklı bir sınırı korumak için her yeniden başlatmadan sonra, örneğin COM API üzerinden bir başlangıç betiğinden, yeniden ayarlanmalıdır. Bu karttaki TTL'ler ve etkinleştirme anahtarı saklanır ve yeniden başlatmalardan etkilenmez.</value>
