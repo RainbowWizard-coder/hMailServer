@@ -56,6 +56,7 @@ What is where
 | The settings the `[Settings]` section used to hold | **the database** (`hm_inisettings`) since schema 6042; the INI section is a cache | sharing the database (see below) |
 | `[Directories]`, `[Database]`, `[Security]`, `[GUILanguages]` sections of the INI | each machine's own INI | configured per machine, deliberately |
 | `[SettingsOverride]` section of the INI | each machine's own INI, and nothing else | **not** shared — it is per-machine on purpose |
+| `PasswordPepper` | each machine's own INI, and nothing else — the one `[Settings]` key the store never holds and no backup carries | **copy it by hand.** It must be the same on both machines, or no account whose password is an Argon2id or scrypt hash signs in on the standby |
 | TLS certificates and private keys | **files on disk** — `hm_sslcertificates` stores *paths* (`sslcertificatefile`, `sslprivatekeyfile`) | replicate the files to the same paths |
 | DKIM signing keys | **files on disk** — `hm_domains` stores *paths* (`domaindkimprivatekeyfile`) | replicate the files to the same paths |
 | Route / external-fetch / per-domain-relay passwords | the database, **DPAPI-protected** | **they do not travel — see below** |
@@ -72,7 +73,27 @@ put back, rather than quietly diverging. What the store deliberately does not
 carry is `[Directories]`, `[Database]`, `[Security]` and `[GUILanguages]` — the
 paths, the database connection, the administrator credential and the language
 list are per-machine facts, and they are exactly what you want to differ or
-verify on the standby, not inherit.
+verify on the standby, not inherit — and `PasswordPepper`, which is kept out
+of the database on purpose and is yours to copy (the row above).
+
+**What a standby start does with a file older than the store** — which the
+standby's file usually is, because a setting is written into the copy of the
+machine that stored it and no other. Every stored value is used. Each setting the
+primary changed since the standby's file was written is named in the standby's
+error log as `HM5804`, as if the file had been edited, and its line is rewritten:
+that report is the standby's copy catching up, not a fault, and it appears once.
+A setting the primary added in that time has no line to disagree with, and is
+written in with a note in the application log instead. Two things a
+stale file *can* do are worth knowing before a failover rather than during
+one. A setting **deleted** on the primary — returned to its default with
+`DeleteIniSetting`, `DELETE /api/v1/settings/ini/{name}` or the Control Panel,
+which drops the row — whose line the standby's file still carries is adopted
+back into the shared store when the standby starts, because a line with no row
+is a new setting; so delete it from the standby's file as well, or expect it
+back on both machines. And a `[Settings]` key the standby's file holds that the
+primary never had is adopted the same way. Neither is a reason to copy the
+primary's INI over the standby's — see the DPAPI section for why that breaks
+the standby's database connection outright.
 
 **`[SettingsOverride]` is the per-machine escape hatch, and it is a liability on
 a standby.** A key written in that section of a machine's INI is applied over
@@ -208,7 +229,11 @@ Building the standby
    (`--set-admin-password`, or the Control Panel). It lives in
    `hMailServer.ini` and not in the database, so it does not travel; without it
    the standby has no REST API and no COM authentication when you most need
-   both. Found by the rehearsal below, where the standby came up mute.
+   both. Found by the rehearsal below, where the standby came up mute. Copy
+   `PasswordPepper` from the primary's `[Settings]` into the standby's file at
+   the same time, if the primary has one: it is the one `[Settings]` key that
+   lives in the file only, and with a different value - or none - no account
+   whose password is an Argon2id or scrypt hash signs in on the standby.
 6. Rehearse the failover below at least once before it is real. A standby that
    has never been started is a hope, not a topology. One rehearsal is recorded
    below.
@@ -342,7 +367,10 @@ fixed description string, used for route, fetch-account, per-domain-relay and
 SSL-key passwords. The settings store and the reconciliation that keeps each
 machine's INI matching it are `IniSettingStore`, whose header documents the
 database-wins rules quoted here, and `IniFileSettings::LoadDatabaseSettings`,
-which applies `[SettingsOverride]`. Certificate and DKIM key *paths* (not blobs) are `hm_sslcertificates.
+which applies `[SettingsOverride]`. The `HM5804` report for a stale line and the
+adoption of a line with no row are both `IniSettingStore::Synchronize`;
+`IniSettingStore::IsFileOnlyName` is what keeps `PasswordPepper` out of the store,
+and `XMLStore` skips it for the same reason. Certificate and DKIM key *paths* (not blobs) are `hm_sslcertificates.
 sslcertificatefile`/`sslprivatekeyfile` and `hm_domains.domaindkimprivatekeyfile`
 in the create scripts. The schema pin is `REQUIRED_DB_VERSION` in `Constants.h`,
 enforced by `Application::OnDatabaseConnected` in both directions. The

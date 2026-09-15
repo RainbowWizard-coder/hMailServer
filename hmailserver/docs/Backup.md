@@ -31,7 +31,7 @@ In the archive
 | Routes, IP ranges, TCP/IP ports, SSL certificate *records*, incoming relays, groups | Only with **Back up settings** on |
 | Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, blocked attachments, greylisting white list |
 | Public folders, and the permissions on them | |
-| The `[Settings]` section of `hMailServer.ini` | Mirrored into the database since schema 6011 and carried with the settings |
+| The server settings that were the `[Settings]` section of `hMailServer.ini` | The rows of `hm_inisettings`, which is the settings store since schema 6042; the section in the file is the server's copy of them, and is not what the archive reads. Carried as name and value with **Back up settings** on, so a row this build does not know still comes back. **Not `PasswordPepper`** - see *Not in the archive* |
 
 ### Everything an account has
 
@@ -44,7 +44,7 @@ In the archive
 | The address book | `hm_contacts` | Including the vCard a CardDAV client stored, under the resource name it chose |
 | The webmail's remembered choices | `hm_accountprefs` | Theme, density, reading pane, notifications, language, labels and their colours, saved searches, swipe actions — the server attaches no meaning to a key and carries each verbatim |
 | Scheduled sends and snoozes | `hm_scheduled` | See *References*, below |
-| Files sent as expiring links | `hm_files` | The bytes are already in the message store; this is the record that gives them a name, an owner and an expiry |
+| Files sent as expiring links | `hm_files` | The record: name, owner, size, expiry, download count and the password hash. The bytes are not messages: they are files under `<data directory>\Files\<token>`, and an archive holds them only because **Back up messages** copies the whole data directory. An archive taken without it, or with `BackupMessagesDBOnly`, has the records and not the files; restored onto a data directory that does not hold them, each link answers *No such file* |
 | S/MIME certificates and keys | `hm_smimekeys` | Including the wrapped private key. This server cannot open it, so if a restore lost it nothing would fail — the account would simply never read its own encrypted mail again |
 | The password reuse history | `hm_passwordhistory` | So a restore does not let every account go back to a password it was made to change |
 | Who has written to the account before | `hm_knownsenders` | The memory the first-contact note is decided against, as of the backup. Without it a restore would announce every correspondent of every account as a first contact again — see [DomainTransforms.md](DomainTransforms.md) |
@@ -64,6 +64,7 @@ Not in the archive, deliberately
 |---|---|
 | `[Database]` and `[Directories]` in `hMailServer.ini` | Per-machine. They are how this installation finds its database and its data folder, and they would be wrong on the machine you restore onto. Keep a copy of the file |
 | The administrator password and its second-factor secret | In `hMailServer.ini`, for the same reason: they are what lets you in when there is no database |
+| `PasswordPepper` | The one `[Settings]` key the settings store never holds and the archive never carries. Its whole purpose is to be somewhere the password hashes are not, and the archive holds the hashes: every Argon2id and scrypt hash was made with it, and without it each verifies false. It lives in `hMailServer.ini` only - the server takes it back out of the database if an earlier start put it there, and says so in the application log. **A restore onto new hardware needs the same pepper in that machine's `hMailServer.ini` before an account whose password is an Argon2id or scrypt hash can sign in**; PBKDF2, SHA-256 and MD5 hashes, and the administrator password, do not use it. Keep a copy of the value with the backups, apart from the archive |
 | TLS certificate and DKIM key **files** | The database stores the *paths*, not the files. A restore onto a machine where those paths hold nothing gives you a server that starts, serves no TLS and signs nothing. Keep them inside the data directory (where the message-store backup carries them) or copy them yourself |
 | Mail still in the delivery queue, and its recipients | A queued message is in flight rather than in a mailbox. Let the queue drain before a migration |
 | The full-text index | Derived from the messages, and rebuilt by the indexer. Carrying it would roughly double the archive to save work a background task does anyway |
