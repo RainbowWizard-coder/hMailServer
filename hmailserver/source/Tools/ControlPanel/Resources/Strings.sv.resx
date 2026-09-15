@@ -926,11 +926,23 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Address or domain" xml:space="preserve">
     <value>Adress eller domän</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>Adressen som frisläppningslänkarna pekar på, till exempel https://mail.example.com (tom = ingen sammanfattning)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dress att lägga till</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresser</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>Adresser och domäner som alla konton vill eller inte vill ha, under varje kontos egen lista och dess domäns.</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>Adresser och hela domäner som alla konton vill ha, eller inte. Post från en tillåten avsändare går förbi skräppostdomen; post från en blockerad hålls i karantän där den är påslagen, och märks som skräp där den inte är det - den tas aldrig bort. Först gäller kontots egen lista och sedan domänens, så den här listan avgör bara för en mottagare vars egna listor inte säger något. För att avvisa en avsändare för alla redan under SMTP-samtalet, oavsett vad någons egen lista säger, använd Blockerade avsändare.</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>Adresser och hela domäner som kontona i {0} vill ha, eller inte. Gäller efter kontots egen lista och före serverns.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>Lägger till ARC-sigill på vidarebefordrad post så att servrar längre fram kan lita på de ursprungliga autentiseringsresultaten (RFC 8617). Förseglingen lånar den vidarebefordrande domänens DKIM-selektor och privata nyckel, så den kräver minst en hyst domän med DKIM-signering konfigurerad - utan det står strömbrytaren som aktiverad och förseglar ingenting, med bara en felsökningsrad i loggen som säger det. Sidan Extern konfiguration kontrollerar dina domäner för detta.</value>
@@ -1009,6 +1021,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>Tillåt _SMTP</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>Lista över tillåtna och blockerade</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Tillåt felaktiga radslut</value>
@@ -1397,6 +1412,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>Spärrlistor som kontrolleras mot länkarna i meddelandetexten.</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>Blockera i stället för att tillåta</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blockerade bilagor</value>
@@ -2642,6 +2660,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Utvecklad &amp; underhållen av</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>Inställningar för sa_mmanfattning</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnos av post som fastnat</value>
   </data>
@@ -2650,6 +2671,12 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostiken misslyckades: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>Sammanfattningens timme</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>Inställningarna för sammanfattning sparades. Vilka domäner som skickar en sammanfattning, och när, anges på varje domäns flik Karantänsammanfattning.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Katalog</value>
@@ -3474,6 +3501,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>Hostad domän</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>Timmar som en frisläppningslänk går att använda (1 till 720)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Timmar mellan kontroller (1 till 168)</value>
@@ -4971,6 +5001,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>En lista över de nio kontrollerna, vilka som är på, och i vilken av de två faserna var och en körs.</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>Ett meddelande till varje konto i den här domänen som har fått något nytt kvarhållet, med en lista över det och en länk som levererar det. En länk fungerar en gång och slutar fungera efter det antal timmar som anges på sidan Karantän, där också adressen som länkarna pekar på anges - utan den skickas ingenting. En tom sammanfattning skickas aldrig, och varje meddelande talar om hur man stoppar den.</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>En punkt per {0}, från den {1}-dagarshistorik servern behåller. Genomströmning är förändringen i totalen behandlade meddelanden per minut.</value>
   </data>
@@ -5550,6 +5583,9 @@ Låt den GAMLA DNS-posten ({2}) vara publicerad i minst några dagar. Post signe
   <data name="Quarantine" xml:space="preserve">
     <value>Karantän</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>Karantänsammanfattning</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Karantän i stället för avvisning</value>
   </data>
@@ -5660,6 +5696,9 @@ Låt den GAMLA DNS-posten ({2}) vara publicerad i minst några dagar. Post signe
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Realtidssvartlistor som kontrolleras mot den anslutande IP-adressen.</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Orsak</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>Räkna om mappars UID-räknare</value>
@@ -6564,11 +6603,17 @@ Fortsätt?</value>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Skicka ett meddelande till varje konto på servern (eller de som matchar en joker) - för underhållsmeddelanden.</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>Skicka varje konto en daglig sa_mmanfattning av det karantänen håller åt det</value>
+  </data>
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Skicka allt genom min leverantör</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Skicka den som en bearer-token:  Authorization: Bearer hmapi_...  till REST-lyssnaren som konfigurerats på sidan API &amp; övervakning. Administratörslösenordet fungerar också och är obegränsat, vilket är skälet att föredra en nyckel: en nyckel kan vara skrivskyddad, begränsad till namngivna domäner, begränsad till en källadress, ges en utgångstid och återkallas utan att något annat ändras.</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>Skicka under den här _timmen av det lokala dygnet (0 till 23; utskicken sprids över timmen)</value>
   </data>
   <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
     <value>Skicka det här meddelandet till alla konton som matchar '{0}'?</value>
@@ -9256,6 +9301,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="diagnose slow mail" xml:space="preserve">
     <value>diagnostisera långsam post</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>inställningar för sammanfattning</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>katalogåtkomst är avstängd ([LDAP] Enabled=0 - sidan Katalogautentisering slår på den)</value>
   </data>
@@ -9450,6 +9498,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>begränsa hur många meddelanden ett konto kan skicka per minut</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>listpost</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>lyssnare är</value>

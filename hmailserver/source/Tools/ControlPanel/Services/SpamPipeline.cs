@@ -180,6 +180,15 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>Anti-spam white list entries: senders that skip every check above.</summary>
       public int WhiteListEntries { get; set; }
+
+      /// <summary>
+      /// Entries on the server's allow and block list. Not a check the score
+      /// runs - the list is read at delivery, per recipient, after every check
+      /// here has finished - so it is counted with the lists rather than drawn as
+      /// a row of the pipeline, where it would claim a place in an order it does
+      /// not have.
+      /// </summary>
+      public int SenderListEntries { get; set; }
    }
 
    /// <summary>
@@ -229,7 +238,7 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static IReadOnlyList<string> LinkedPages { get; } = new[]
       {
-         "antispam", "blockedsenders", "dnsbl", "quarantine", "surbl", "spamwhitelist", "greylistwhitelist"
+         "antispam", "blockedsenders", "dnsbl", "quarantine", "surbl", "spamwhitelist", "greylistwhitelist", "senderlist"
       };
 
       /// <summary>

@@ -926,11 +926,23 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Address or domain" xml:space="preserve">
     <value>Endereço ou domínio</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>Endereço para onde apontam os links de liberação, como https://mail.example.com (vazio = sem resumo)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Endereço _a adicionar</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>Endereços</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>Endereços e domínios que todas as contas querem ou não, abaixo da lista própria de cada conta e da do seu domínio.</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>Endereços e domínios inteiros que todas as contas querem, ou não. A mensagem de um remetente permitido passa pelo veredito de spam; a de um bloqueado fica retida na quarentena onde ela está ativada, e é marcada como spam onde não está - nunca é excluída. A lista própria de uma conta é consultada primeiro e a do domínio depois, então esta lista só decide para um destinatário cujas listas não dizem nada. Para recusar um remetente para todos durante a conversa SMTP, diga o que disser a lista de qualquer um, use Remetentes bloqueados.</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>Endereços e domínios inteiros que as contas de {0} querem, ou não. Consultada depois da lista própria de uma conta e antes da do servidor.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>Adiciona selos ARC a e-mails encaminhados para que servidores adiante possam confiar nos resultados de autenticação originais (RFC 8617). A selagem empresta o seletor DKIM e a chave privada do domínio que encaminha, então precisa de pelo menos um domínio hospedado com assinatura DKIM configurada - sem isso a chave aparece como ligada e não sela nada, com apenas uma linha de log de depuração dizendo isso. A página Configuração externa verifica seus domínios quanto a isso.</value>
@@ -1009,6 +1021,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>Permitir _SMTP</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>Lista de permitidos e bloqueados</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Permitir terminações de linha incorretas</value>
@@ -1397,6 +1412,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>Listas de bloqueio verificadas contra os links encontrados dentro do corpo de uma mensagem.</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>Bloquear em vez de permitir</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Anexos bloqueados</value>
@@ -2642,6 +2660,9 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Desenvolvido e mantido por</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>_Configurações do resumo</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnóstico de e-mails parados</value>
   </data>
@@ -2650,6 +2671,12 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Falha no diagnóstico: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>Hora do resumo</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>Configurações do resumo salvas. Quais domínios enviam um resumo, e a que hora, é definido na guia Resumo da quarentena de cada domínio.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Diretório</value>
@@ -3474,6 +3501,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>Domínio hospedado</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>Horas em que um link de liberação continua válido (1 a 720)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Horas entre verificações (1 a 168)</value>
@@ -4971,6 +5001,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Uma única lista das nove verificações, quais estão ligadas, e em qual das duas fases cada uma roda.</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>Uma mensagem a cada conta deste domínio que teve algo retido recentemente, listando o que foi retido com um link que o entrega. Um link funciona uma vez e deixa de funcionar depois das horas definidas na página Quarentena, onde também se define o endereço para onde os links apontam - sem ele nada é enviado. Um resumo vazio nunca é enviado, e cada mensagem diz como pará-lo.</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Um ponto por {0}, a partir do histórico de {1} dias que o servidor mantém. A vazão é a variação do total de mensagens processadas por minuto.</value>
   </data>
@@ -5550,6 +5583,9 @@ Deixe o registro DNS ANTIGO ({2}) publicado por pelo menos alguns dias. E-mails 
   <data name="Quarantine" xml:space="preserve">
     <value>Quarentena</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>Resumo da quarentena</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Colocar em quarentena em vez de recusar</value>
   </data>
@@ -5660,6 +5696,9 @@ Deixe o registro DNS ANTIGO ({2}) publicado por pelo menos alguns dias. E-mails 
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Listas blackhole em tempo real verificadas contra o endereço IP que se conecta.</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>Recalcular os contadores de UID das pastas</value>
@@ -6564,11 +6603,17 @@ Continuar?</value>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Envie uma mensagem para todas as contas do servidor (ou as que correspondem a um curinga) - para avisos de manutenção.</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>Enviar a cada conta um _resumo diário do que a quarentena retém para ela</value>
+  </data>
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Enviar tudo através do meu provedor</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Envie-a como um token portador:  Authorization: Bearer hmapi_...  para o ouvinte REST configurado na página API e monitoramento. A senha de administrador também funciona e não tem restrição alguma, e é justamente por isso que se prefere uma chave: uma chave pode ser somente leitura, limitada a domínios nomeados, limitada a um endereço de origem, receber uma validade e ser revogada sem alterar mais nada.</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>Enviar durante esta _hora do dia local (0 a 23; os envios são distribuídos ao longo da hora)</value>
   </data>
   <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
     <value>Enviar esta mensagem para todas as contas que correspondem a '{0}'?</value>
@@ -9256,6 +9301,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="diagnose slow mail" xml:space="preserve">
     <value>diagnosticar e-mail lento</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>configurações do resumo</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>o acesso ao diretório está desligado ([LDAP] Enabled=0 - a página Autenticação de diretório o liga)</value>
   </data>
@@ -9450,6 +9498,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>limitar quantas mensagens uma conta pode enviar por minuto</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>entrada da lista</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>ouvinte está</value>

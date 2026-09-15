@@ -926,11 +926,23 @@
   <data name="Address or domain" xml:space="preserve">
     <value>アドレスまたはドメイン</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>解放リンクが指すアドレス (例: https://mail.example.com、空欄ならダイジェストは送られません)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>追加するアドレス(_D)</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>アドレス</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>すべてのアカウントが望む、または望まないアドレスとドメイン。各アカウント自身の一覧とそのドメインの一覧より後に参照されます。</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>すべてのアカウントが望む、または望まないアドレスとドメイン全体。許可した差出人のメールは迷惑メールの判定を通過し、ブロックした差出人のメールは検疫が有効なら検疫に保留され、そうでなければ迷惑メールとして印が付きます。削除されることはありません。まずアカウント自身の一覧、次にそのドメインの一覧が参照されるため、この一覧が決め手になるのは自身の一覧が何も言わない受信者だけです。誰の一覧にかかわらず SMTP のやり取りの間に全員に対して差出人を拒否するには、ブロックされた送信者を使います。</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>{0} のアカウントが望む、または望まないアドレスとドメイン全体。アカウント自身の一覧の後、サーバーの一覧の前に参照されます。</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>転送メールに ARC シールを付けて、下流のサーバーが元の認証結果を信頼できるようにします (RFC 8617)。シールの付与は転送元ドメインの DKIM セレクターと秘密鍵を借りるため、DKIM 署名を設定したホスト済みドメインが少なくとも 1 つ必要です。それがないと、スイッチは有効と表示されるのに何もシールされず、その旨はデバッグ ログの 1 行にしか現れません。「外部セットアップ」ページが、この点についてドメインを確認します。</value>
@@ -1009,6 +1021,9 @@
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>SMTP を許可する(_S)</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>許可・ブロック一覧</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>正しくない行末を許可する</value>
@@ -1397,6 +1412,9 @@
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>メッセージ本文内で見つかったリンクに対して照会されるブロック リスト。</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>許可ではなくブロック</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>ブロックされた添付ファイル</value>
@@ -2642,6 +2660,9 @@
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>開発と保守</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>ダイジェスト設定(_G)</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>停滞したメールの診断</value>
   </data>
@@ -2650,6 +2671,12 @@
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>診断に失敗しました: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>ダイジェストの時刻</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>ダイジェスト設定を保存しました。どのドメインが何時にダイジェストを送るかは、各ドメインの 検疫ダイジェスト タブで設定します。</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>ディレクトリ</value>
@@ -3474,6 +3501,9 @@
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>ホストしているドメイン</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>解放リンクを使える時間 (1 から 720)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>チェックの間隔 (時間、1 から 168)</value>
@@ -4971,6 +5001,9 @@
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>9 つのチェックの一覧。どれがオンか、それぞれが 2 つのフェーズのどちらで実行されるか。</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>このドメインで新たに何かが保留されたアカウントそれぞれに、保留されたものの一覧と配信用のリンクを 1 通で送ります。リンクは一度だけ使え、検疫 ページで設定した時間が過ぎると無効になります。リンクが指すアドレスも同じページで設定し、それがなければ何も送られません。空のダイジェストは送られず、各メールには停止方法が書かれています。</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>{0}ごとに 1 点で、サーバーが保持している {1} 日分の履歴から取っています。スループットは、処理済みメッセージ総数の 1 分あたりの変化量です。</value>
   </data>
@@ -5550,6 +5583,9 @@
   <data name="Quarantine" xml:space="preserve">
     <value>検疫</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>検疫ダイジェスト</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>拒否する代わりに検疫する</value>
   </data>
@@ -5660,6 +5696,9 @@
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>接続元 IP アドレスと照合されるリアルタイム ブラックホール リスト。</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>理由</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>フォルダーの UID カウンターを再計算する</value>
@@ -6564,11 +6603,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>サーバー上のすべてのアカウント (またはワイルドカードに一致するアカウント) にメッセージを送信します。メンテナンスの告知用です。</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>各アカウントに、検疫が保留しているもののダイジェストを毎日送る(_D)</value>
+  </data>
   <data name="Send everything through my provider" xml:space="preserve">
     <value>すべてをプロバイダー経由で送信</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>ベアラー トークンとして送信します:  Authorization: Bearer hmapi_...  API と監視ページで設定した REST リスナー宛てです。管理者パスワードも使えますが制限がなく、それがキーを使うべき理由です。キーは読み取り専用にでき、指定ドメインに限定でき、1 つの送信元アドレスに限定でき、有効期限を設定でき、他に何も変更せずに失効させられます。</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>現地時刻のこの時に送る (0 から 23、送信はその 1 時間に分散)(_H)</value>
   </data>
   <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
     <value>'{0}' に一致するすべてのアカウントにこのメッセージを送信しますか?</value>
@@ -9256,6 +9301,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="diagnose slow mail" xml:space="preserve">
     <value>メールの遅延を診断する</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>ダイジェスト設定</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>ディレクトリ アクセスは無効になっています ([LDAP] Enabled=0。「ディレクトリ認証」ページで有効にできます)</value>
   </data>
@@ -9450,6 +9498,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>アカウントが 1 分間に送信できるメッセージ数を制限する</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>一覧のエントリ</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>件のリスナーが</value>

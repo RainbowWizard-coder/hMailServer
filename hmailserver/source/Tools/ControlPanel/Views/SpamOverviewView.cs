@@ -168,6 +168,15 @@ namespace hMailServer.ControlPanel.Views
 
             CountList(() => antiSpam.GreyListingWhiteAddresses, false, out _, out int greyList);
             config.GreylistWhiteListEntries = greyList;
+
+            // Read on its own: a server older than the allow and block list has no
+            // such collection, and the rest of the overview must not fail with it.
+            try
+            {
+               CountList(() => antiSpam.SenderList, false, out _, out int senderList);
+               config.SenderListEntries = senderList;
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: an older server has no allow and block list, and the row then reads 0 entries. */ }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -430,6 +439,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(ListRow(L("SURBL servers"), config.ActiveSurblServers, config.TotalSurblServers, "surbl"));
          content.Children.Add(ListRow(L("Anti-spam white list"), null, config.WhiteListEntries, "spamwhitelist"));
          content.Children.Add(ListRow(L("Greylisting white list"), null, config.GreylistWhiteListEntries, "greylistwhitelist"));
+         content.Children.Add(ListRow(L("Allow and block list"), null, config.SenderListEntries, "senderlist"));
 
          return card;
       }

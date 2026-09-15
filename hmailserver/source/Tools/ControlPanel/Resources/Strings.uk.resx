@@ -926,11 +926,23 @@
   <data name="Address or domain" xml:space="preserve">
     <value>Адреса або домен</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>Адреса, на яку ведуть посилання звільнення, наприклад https://mail.example.com (порожньо — зведення не надсилається)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Адреса для додавання</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>Адреси</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>Адреси й домени, які всі облікові записи хочуть або не хочуть отримувати, після власного списку кожного облікового запису та списку його домену.</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>Адреси й цілі домени, які всі облікові записи хочуть або не хочуть отримувати. Пошта дозволеного відправника оминає вердикт фільтра спаму; пошта заблокованого затримується в карантині, якщо його ввімкнено, а інакше позначається як спам — її ніколи не видаляють. Спершу діє власний список облікового запису, потім список його домену, тож цей список вирішує лише для одержувача, чиї списки мовчать. Щоб відхиляти відправника для всіх ще під час сеансу SMTP, хоч би що казав чий-небудь список, використовуйте Заблоковані відправники.</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>Адреси й цілі домени, які облікові записи {0} хочуть або не хочуть отримувати. Діє після власного списку облікового запису та перед списком сервера.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>Додає печатки ARC до пересланої пошти, щоб сервери далі за ланцюжком могли довіряти початковим результатам автентифікації (RFC 8617). Запечатування позичає селектор DKIM і закритий ключ домену, який пересилає пошту, тому потребує принаймні одного обслуговуваного домену з налаштованим підписуванням DKIM — без цього перемикач показує «увімкнено», але нічого не запечатує, і сказати про це може лише рядок у журналі налагодження. Сторінка «Зовнішнє налаштування» перевіряє ваші домени саме на це.</value>
@@ -1009,6 +1021,9 @@
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>Дозволити _SMTP</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>Список дозволених і заблокованих</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Дозволяти неправильні закінчення рядків</value>
@@ -1397,6 +1412,9 @@
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>Чорні списки, за якими перевіряються посилання, знайдені в тілі повідомлення.</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>Блокувати, а не дозволяти</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Заблоковані вкладення</value>
@@ -2642,6 +2660,9 @@
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Розроблено та підтримується</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>Налаштування _зведення</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Діагностика пошти, що зависла</value>
   </data>
@@ -2650,6 +2671,12 @@
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Діагностика не вдалася: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>Година зведення</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>Налаштування зведення збережено. Які домени надсилають зведення і о котрій годині, задається на вкладці «Зведення карантину» кожного домену.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Каталог</value>
@@ -3474,6 +3501,9 @@
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>Розміщений домен</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>Скільки годин посилання звільнення лишається чинним (від 1 до 720)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Годин між перевірками (від 1 до 168)</value>
@@ -4971,6 +5001,9 @@
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Один список із дев’яти перевірок: які ввімкнено та в якій із двох фаз виконується кожна.</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>Один лист кожному обліковому запису цього домену, для якого затримано щось нове, зі списком затриманого та посиланням, яке це доставить. Посилання спрацьовує один раз і перестає діяти через кількість годин, задану на сторінці Карантин, де задається й адреса, на яку ведуть посилання, — без неї нічого не надсилається. Порожнє зведення ніколи не надсилається, і в кожному листі сказано, як його вимкнути.</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Одна точка на {0} з історії за {1} дн., яку зберігає сервер. Пропускна здатність — це зміна загальної кількості оброблених повідомлень за хвилину.</value>
   </data>
@@ -5550,6 +5583,9 @@
   <data name="Quarantine" xml:space="preserve">
     <value>Карантин</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>Зведення карантину</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Карантин замість відхилення</value>
   </data>
@@ -5660,6 +5696,9 @@
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Списки чорних дір реального часу, за якими перевіряється IP-адреса підключення.</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Причина</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>Перерахувати лічильники UID папок</value>
@@ -6564,11 +6603,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Надіслати повідомлення кожному обліковому запису на сервері (або тим, що відповідають шаблону) - для оголошень про обслуговування.</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>Щодня надсилати кожному обліковому запису зведення того, що _карантин утримує для нього</value>
+  </data>
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Надсилати все через мого провайдера</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Надсилайте його як bearer-токен:  Authorization: Bearer hmapi_...  на слухач REST, налаштований на сторінці «API та моніторинг». Пароль адміністратора також працює і нічим не обмежений - саме тому варто віддати перевагу ключу: ключ може бути лише для читання, обмежений названими доменами, обмежений однією адресою джерела, мати термін дії та бути відкликаним без зміни чогось іншого.</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>Надсилати в цю _годину місцевої доби (0–23; надсилання розподіляється впродовж години)</value>
   </data>
   <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
     <value>Надіслати це повідомлення всім обліковим записам, що відповідають '{0}'?</value>
@@ -9256,6 +9301,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="diagnose slow mail" xml:space="preserve">
     <value>з’ясувати, чому пошта йде повільно</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>налаштування зведення</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>доступ до каталогу вимкнено ([LDAP] Enabled=0 — вмикає його сторінка «Автентифікація через каталог»)</value>
   </data>
@@ -9450,6 +9498,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>обмежити, скільки повідомлень обліковий запис може надіслати за хвилину</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>запис списку</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>слухач</value>

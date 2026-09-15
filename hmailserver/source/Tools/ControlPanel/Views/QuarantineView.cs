@@ -357,6 +357,60 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>
+      /// The two server-wide settings the quarantine digest needs, which live in
+      /// hm_settings and are reached through the COM Settings object: the address
+      /// the release links point at, and how long a link stays usable. Whether a
+      /// domain sends a digest, and at what hour, is set on the domain.
+      ///
+      /// The generated field dialog rather than a page of its own: two values do
+      /// not earn a navigation entry, and this is the page an administrator is on
+      /// when the question "why did nobody get a digest" comes up.
+      /// </summary>
+      private void EditDigestSettings()
+      {
+         dynamic settings = null;
+
+         try
+         {
+            settings = ServerSession.Current.Application.Settings;
+
+            var current = new CollectionEditorView.Row();
+            current.Values["QuarantineDigestBaseUrl"] = (string)settings.QuarantineDigestBaseUrl ?? "";
+            current.Values["QuarantineDigestLinkHours"] = (int)settings.QuarantineDigestLinkHours;
+
+            var spec = new CollectionEditorView.CollectionSpec
+            {
+               ItemNoun = L("digest settings"),
+               Fields =
+               {
+                  new CollectionEditorView.FieldSpec { Prop = "QuarantineDigestBaseUrl", Label = L("Address the release links point at, such as https://mail.example.com (empty sends no digest)") },
+                  new CollectionEditorView.FieldSpec { Prop = "QuarantineDigestLinkHours", Label = L("Hours a release link stays usable (1 to 720)"), Kind = CollectionEditorView.FieldKind.Number }
+               }
+            };
+
+            var dialog = new FieldDialog(spec, current, Window.GetWindow(this));
+            if (dialog.ShowDialog() != true)
+               return;
+
+            // Written in this order so that a refused address - the server insists
+            // on an absolute http or https URL - stops before the hours are
+            // touched, and the message says which of the two was wrong.
+            settings.QuarantineDigestBaseUrl = ((string)dialog.Result["QuarantineDigestBaseUrl"] ?? "").Trim();
+            settings.QuarantineDigestLinkHours = (int)dialog.Result["QuarantineDigestLinkHours"];
+
+            Status_(StatusLevel.Good, L("Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab."));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+         }
+         finally
+         {
+            ServerSession.Release((object)settings);
+         }
+      }
+
       private void Build()
       {
          var root = new Grid();
@@ -373,6 +427,7 @@ namespace hMailServer.ControlPanel.Views
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, release, delete);
          actions.Children.Add(MakeButton(L("Remove _expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired()));
          actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         actions.Children.Add(MakeButton(L("Di_gest settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => EditDigestSettings()));
 
          root.Children.Add(new PageHeader
          {

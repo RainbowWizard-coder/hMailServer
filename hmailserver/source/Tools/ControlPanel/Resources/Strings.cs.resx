@@ -926,11 +926,23 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Address or domain" xml:space="preserve">
     <value>Adresa nebo doména</value>
   </data>
+  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
+    <value>Adresa, na kterou vedou odkazy k uvolnění, například https://mail.example.com (prázdná = žádný souhrn)</value>
+  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Adresa k přidání</value>
   </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresy</value>
+  </data>
+  <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
+    <value>Adresy a domény, které všechny účty chtějí nebo nechtějí, pod vlastním seznamem každého účtu a seznamem jeho domény.</value>
+  </data>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
+    <value>Adresy a celé domény, které všechny účty chtějí, nebo nechtějí. Pošta povoleného odesílatele obchází verdikt filtru nevyžádané pošty; pošta blokovaného se zadrží v karanténě, je-li zapnutá, a jinak se označí jako nevyžádaná - nikdy se nesmaže. Nejprve se použije vlastní seznam účtu a potom seznam jeho domény, takže tento seznam rozhoduje jen o příjemci, jehož vlastní seznamy mlčí. Chcete-li odesílatele odmítnout pro všechny už během konverzace SMTP bez ohledu na seznam kohokoli, použijte Blokovaní odesílatelé.</value>
+  </data>
+  <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
+    <value>Adresy a celé domény, které účty domény {0} chtějí, nebo nechtějí. Použije se po vlastním seznamu účtu a před seznamem serveru.</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
     <value>Přidává pečeti ARC k přeposlané poště, aby navazující servery mohly důvěřovat původním výsledkům ověření (RFC 8617). Pečetění si vypůjčuje DKIM selektor a soukromý klíč přeposílající domény, takže vyžaduje alespoň jednu hostovanou doménu s nastaveným podepisováním DKIM – bez toho přepínač hlásí, že je zapnuto, a nepečetí nic, přičemž to oznámí jen jedním ladicím řádkem v logu. Stránka Externí nastavení vaše domény kvůli tomu kontroluje.</value>
@@ -1009,6 +1021,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Allow _SMTP" xml:space="preserve">
     <value>Povolit _SMTP</value>
+  </data>
+  <data name="Allow and block list" xml:space="preserve">
+    <value>Seznam povolených a blokovaných</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Povolit nesprávné konce řádků</value>
@@ -1397,6 +1412,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Block lists checked against the links found inside a message body." xml:space="preserve">
     <value>Blokační seznamy, proti kterým se kontrolují odkazy nalezené v těle zprávy.</value>
+  </data>
+  <data name="Block rather than allow" xml:space="preserve">
+    <value>Blokovat místo povolit</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blokované přílohy</value>
@@ -2642,6 +2660,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Vyvíjí a udržuje</value>
   </data>
+  <data name="Di_gest settings" xml:space="preserve">
+    <value>Nastavení souh_rnu</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnostika uvázlé pošty</value>
   </data>
@@ -2650,6 +2671,12 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostika selhala: {0}</value>
+  </data>
+  <data name="Digest hour" xml:space="preserve">
+    <value>Hodina souhrnu</value>
+  </data>
+  <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
+    <value>Nastavení souhrnu uloženo. Které domény souhrn posílají a v kterou hodinu, se nastavuje na kartě Souhrn karantény každé domény.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Adresář</value>
@@ -3474,6 +3501,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Hosted domain" xml:space="preserve">
     <value>Hostovaná doména</value>
+  </data>
+  <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
+    <value>Kolik hodin zůstane odkaz k uvolnění použitelný (1 až 720)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Hodiny mezi kontrolami (1 až 168)</value>
@@ -4971,6 +5001,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Jeden seznam devíti kontrol, které z nich jsou zapnuté a ve které ze dvou fází každá běží.</value>
   </data>
+  <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
+    <value>Jedna zpráva každému účtu této domény, pro který se nově něco zadrželo, se seznamem zadržených zpráv a odkazem, který je doručí. Odkaz funguje jednou a přestane platit po počtu hodin nastaveném na stránce Karanténa, kde se nastavuje i adresa, na kterou odkazy vedou - bez ní se nic neodešle. Prázdný souhrn se nikdy neposílá a každá zpráva říká, jak jej zastavit.</value>
+  </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Jeden bod na {0}, z {1}denní historie, kterou server uchovává. Propustnost je změna celkového počtu zpracovaných zpráv za minutu.</value>
   </data>
@@ -5550,6 +5583,9 @@ STARÝ DNS záznam ({2}) nechte publikovaný ještě alespoň několik dní. Po�
   <data name="Quarantine" xml:space="preserve">
     <value>Karanténa</value>
   </data>
+  <data name="Quarantine digest" xml:space="preserve">
+    <value>Souhrn karantény</value>
+  </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Dát do karantény místo odmítnutí</value>
   </data>
@@ -5660,6 +5696,9 @@ STARÝ DNS záznam ({2}) nechte publikovaný ještě alespoň několik dní. Po�
   </data>
   <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
     <value>Realtime blackhole listy kontrolované proti připojující se IP adrese.</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Důvod</value>
   </data>
   <data name="Recalculate folder UID counters" xml:space="preserve">
     <value>Přepočítat čítače UID složek</value>
@@ -6564,11 +6603,17 @@ Pokračovat?</value>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Odešlete zprávu na každý účet na serveru (nebo na ty, které odpovídají zástupnému vzoru) – pro oznámení o údržbě.</value>
   </data>
+  <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
+    <value>Posílat každému účtu denní _souhrn toho, co pro něj karanténa drží</value>
+  </data>
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Odesílat vše přes mého poskytovatele</value>
   </data>
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Odešlete jej jako bearer token:  Authorization: Bearer hmapi_...  na REST listener nastavený na stránce API a monitorování. Funguje i heslo správce, to však není nijak omezeno, a právě proto je lepší klíč: klíč může být jen pro čtení, omezený na uvedené domény, omezený na jednu zdrojovou adresu, s vypršením platnosti, a lze jej odvolat, aniž by se cokoli jiného měnilo.</value>
+  </data>
+  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
+    <value>Odesílat v této _hodině místního dne (0 až 23; odesílání se rozloží do celé hodiny)</value>
   </data>
   <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
     <value>Odeslat tuto zprávu všem účtům odpovídajícím '{0}'?</value>
@@ -9256,6 +9301,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="diagnose slow mail" xml:space="preserve">
     <value>diagnostikovat pomalou poštu</value>
   </data>
+  <data name="digest settings" xml:space="preserve">
+    <value>nastavení souhrnu</value>
+  </data>
   <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
     <value>přístup k adresáři je vypnutý ([LDAP] Enabled=0 – zapíná se na stránce Ověřování proti adresáři)</value>
   </data>
@@ -9450,6 +9498,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="limit how many messages an account can send per minute" xml:space="preserve">
     <value>omezit, kolik zpráv smí účet odeslat za minutu</value>
+  </data>
+  <data name="list entry" xml:space="preserve">
+    <value>položka seznamu</value>
   </data>
   <data name="listener is" xml:space="preserve">
     <value>listener je</value>
