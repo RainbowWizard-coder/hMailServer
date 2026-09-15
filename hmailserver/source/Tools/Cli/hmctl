@@ -534,6 +534,21 @@ def quarantine_command(client, arguments):
 
 
 def settings_command(client, arguments):
+    if arguments.verb == "breach-test":
+        # The password breach check's endpoint, asked for the prefix 00000, which is
+        # no password's; nothing is changed. Exit 1 when it could not be used, so a
+        # monitoring job can alert on the exit code alone.
+        body = {"url": arguments.endpoint} if arguments.endpoint else {}
+        answer = client.request("POST", "/api/v1/settings/breach-check/test", body=body) or {}
+        if arguments.json:
+            render(answer, True)
+        elif answer.get("reachable"):
+            print("reachable: %s entries, %s, in %s ms" % (
+                answer.get("entries"), "padded" if answer.get("padded") else "not padded", answer.get("milliseconds")))
+        else:
+            print("not reachable: %s" % answer.get("error", "no answer"))
+        return EXIT_OK if answer.get("reachable") else EXIT_ERROR
+
     group = arguments.group or "settings"
     if group not in SETTING_GROUPS:
         raise ApiError(0, "unknown settings group %r; the groups are: %s" % (group, ", ".join(SETTING_GROUPS)))
@@ -1272,6 +1287,10 @@ def build_parser():
     set_parser.add_argument("--set-string", action="append", metavar="NAME=VALUE")
     set_parser.add_argument("--from-json", metavar="FILE")
     set_parser.set_defaults(name=None)
+    breach_test = settings_verbs.add_parser("breach-test", parents=[common],
+                                            help="ask the password breach check's endpoint for a range, changing nothing")
+    breach_test.add_argument("--endpoint", metavar="URL", help="the endpoint to test; the configured breach_check_url when left out")
+    breach_test.set_defaults(group=None, name=None)
 
     ini = commands.add_parser("ini", help="hMailServer.ini keys the server exposes")
     ini.set_defaults(handler=ini_command)

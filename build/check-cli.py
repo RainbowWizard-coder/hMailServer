@@ -85,6 +85,7 @@ ANSWERS = {
     ("PUT", "/api/v1/settings"): {"max_message_size_kb": 51200},
     ("GET", "/api/v1/settings/antispam"): {"use_spf": True, "spam_mark_threshold": 5},
     ("PUT", "/api/v1/settings/antispam"): {"use_spf": False},
+    ("POST", "/api/v1/settings/breach-check/test"): {"reachable": True, "status": 200, "entries": 812, "padded": True, "milliseconds": 41},
     ("GET", "/api/v1/settings/ini"): {"settings": [{"name": "DisableAUTHList", "value": "0"}]},
     ("PUT", "/api/v1/settings/ini/DisableAUTHList"): {"name": "DisableAUTHList", "value": "1"},
     ("GET", "/api/v1/logs"): {"logs": [{"name": "hmailserver_2026-09-15.log", "size": 91234}]},
@@ -273,6 +274,10 @@ CASES = [
      "PUT", "/api/v1/settings", {"max_message_size_kb": 51200}, []),
     ("settings set a group", ["settings", "set", "antispam", "--set", "use_spf=false"],
      "PUT", "/api/v1/settings/antispam", {"use_spf": False}, []),
+    ("settings breach-test", ["settings", "breach-test", "--endpoint", "https://mirror.example/range/"],
+     "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812 entries", "padded"]),
+    ("settings breach-test, configured endpoint", ["settings", "breach-test"],
+     "POST", "/api/v1/settings/breach-check/test", {}, ["reachable"]),
     ("ini list", ["ini", "list"], "GET", "/api/v1/settings/ini", None, ["DisableAUTHList"]),
     ("ini set", ["ini", "set", "DisableAUTHList", "1"],
      "PUT", "/api/v1/settings/ini/DisableAUTHList", {"value": "1"}, []),
@@ -360,6 +365,20 @@ def run_python_refusals(url):
     check(completed.returncode == 4,
           "hmctl on a 404 should exit 4, exited %d" % completed.returncode)
 
+    # The breach check's endpoint test answers 200 whether or not the endpoint
+    # could be used; hmctl turns "not reachable" into exit 1, which is what a
+    # monitoring job reads.
+    key = ("POST", "/api/v1/settings/breach-check/test")
+    reachable = ANSWERS[key]
+    ANSWERS[key] = {"reachable": False, "status": 0, "error": "The request to mirror.example failed: refused", "milliseconds": 2003}
+    try:
+        completed = run(["settings", "breach-test"])
+    finally:
+        ANSWERS[key] = reachable
+    check(completed.returncode == 1 and "not reachable" in completed.stdout and "mirror.example failed" in completed.stdout,
+          "hmctl settings breach-test against an endpoint that could not be used should say why and exit 1, exited %d: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+
     completed = subprocess.run(
         [sys.executable, HMCTL, "--url", "https://example.invalid:8045", "--insecure", "--password", "x", "status"],
         capture_output=True, text=True, timeout=60)
@@ -395,6 +414,8 @@ POWERSHELL_CASES = [
      "PUT", "/api/v1/settings", {"max_message_size_kb": 51200}, []),
     ("Set-HmSetting -Group", "Set-HmSetting -Group antispam -Property @{use_spf=$false} | Out-String",
      "PUT", "/api/v1/settings/antispam", {"use_spf": False}, []),
+    ("Test-HmBreachCheckEndpoint", "Test-HmBreachCheckEndpoint -Url https://mirror.example/range/ | Select-Object -ExpandProperty entries",
+     "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812"]),
     ("Get-HmQueue", "Get-HmQueue | Select-Object -ExpandProperty to_address", "GET", "/api/v1/queue", None, ["far@away.test"]),
     ("Get-HmStatus", "Get-HmStatus | Select-Object -ExpandProperty version", "GET", "/api/v1/status", None, ["6.3.3"]),
     ("Invoke-HmApi", "Invoke-HmApi -Method GET -Path /api/v1/status | Select-Object -ExpandProperty database",

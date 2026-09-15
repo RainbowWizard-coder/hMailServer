@@ -680,6 +680,29 @@ function Set-HmSetting {
     }
 }
 
+function Test-HmBreachCheckEndpoint {
+    <#
+    .SYNOPSIS
+        Asks the password breach check's range endpoint for the prefix 00000 and
+        answers what it said: reachable, status, entries, padded and milliseconds,
+        or error. Nothing is changed.
+    .DESCRIPTION
+        POST /api/v1/settings/breach-check/test. Without -Url the configured
+        endpoint (breach_check_url) is asked. The endpoint's own answer is never
+        returned, only what it said about itself.
+    .EXAMPLE
+        Test-HmBreachCheckEndpoint
+    .EXAMPLE
+        Test-HmBreachCheckEndpoint -Url https://mirror.example/range/
+    #>
+    [CmdletBinding()]
+    param([Parameter(Position = 0)] [string] $Url)
+
+    $body = @{}
+    if ($Url) { $body.url = $Url }
+    Invoke-HmApi -Method POST -Path '/api/v1/settings/breach-check/test' -Body $body
+}
+
 function Get-HmIniSetting {
     <#
     .SYNOPSIS
@@ -1266,7 +1289,7 @@ Export-ModuleMember -Function @(
     'Get-HmAccount', 'New-HmAccount', 'Set-HmAccount', 'Remove-HmAccount',
     'Get-HmAlias', 'New-HmAlias', 'Remove-HmAlias',
     'Get-HmGroup', 'New-HmGroup', 'Remove-HmGroup', 'Get-HmGroupMember', 'Add-HmGroupMember', 'Remove-HmGroupMember',
-    'Get-HmSetting', 'Set-HmSetting', 'Get-HmIniSetting', 'Set-HmIniSetting',
+    'Get-HmSetting', 'Set-HmSetting', 'Test-HmBreachCheckEndpoint', 'Get-HmIniSetting', 'Set-HmIniSetting',
     'Get-HmQueue', 'Start-HmQueueDelivery', 'Remove-HmQueueMessage',
     'Get-HmQuarantine', 'Restore-HmQuarantineMessage',
     'Get-HmLog', 'Get-HmBackup', 'Start-HmBackup', 'Test-HmRuleCriterion',
