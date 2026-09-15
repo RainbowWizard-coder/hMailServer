@@ -25,6 +25,10 @@
 #include "COMAuthentication.h"
 
 #include "COMError.h"
+#include "../Common/AntiSpam/DKIM/DkimRotation.h"
+#include "../Common/Util/Unicode.h"
+
+#include <ctime>
 
 
 #ifdef _DEBUG
@@ -2350,6 +2354,387 @@ STDMETHODIMP InterfaceDomain::put_DisclaimerHTML(BSTR newVal)
       object_->SetDisclaimerHTML(newVal);
 
       return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// ---------------------------------------------------------------------------
+// DKIM keys that rotate.
+//
+// The five policy properties are ordinary domain properties: set in memory,
+// validated here, persisted by Save. The six members below them act at once -
+// unlike DKIMPromoteSecondary - because a rotation is the server's to carry out
+// and its state is not the object's, and each one reads the domain's four key
+// columns back into this object afterwards, so that a Save on the same object
+// later cannot write the selectors it had before the operation moved them.
+// Domain-administrator level, like every other DKIM member of this interface.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+   void RefreshDkimKeys_(std::shared_ptr<HM::Domain> object)
+   {
+      std::shared_ptr<HM::Domain> stored = std::shared_ptr<HM::Domain>(new HM::Domain());
+      if (!HM::PersistentDomain::ReadObject(stored, object->GetID()))
+         return;
+
+      object->SetDKIMSelector(HM::String(stored->GetDKIMSelector()));
+      object->SetDKIMPrivateKeyFile(stored->GetDKIMPrivateKeyFile());
+      object->SetDKIMSecondarySelector(HM::String(stored->GetDKIMSecondarySelector()));
+      object->SetDKIMSecondaryPrivateKeyFile(stored->GetDKIMSecondaryPrivateKeyFile());
+   }
+
+   HRESULT DkimRotationAnswer_(const HM::DkimRotation::Result &result, BSTR *out)
+   {
+      if (!result.Succeeded())
+         return COMError::GenerateError(result.error);
+
+      // The document is UTF-8, as REST sends it; a domain or a path outside the
+      // ANSI code page must reach a COM client as the characters it is.
+      HM::String json;
+      HM::Unicode::MultiByteToWide(result.json, json);
+      *out = json.AllocSysString();
+      return S_OK;
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_DKIMRotationEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetDKIMRotationEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_DKIMRotationEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      object_->SetDKIMRotationEnabled(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_DKIMRotationIntervalDays(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetDKIMRotationIntervalDays();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_DKIMRotationIntervalDays(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // Refused rather than clamped, as every period here is: a value quietly
+      // changed on the way in is a schedule nobody chose.
+      if (newVal < 1 || newVal > 3650)
+         return COMError::GenerateError("DKIMRotationIntervalDays must be between 1 and 3650.");
+
+      object_->SetDKIMRotationIntervalDays((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_DKIMRotationPropagationHours(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetDKIMRotationPropagationHours();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_DKIMRotationPropagationHours(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (newVal < 1 || newVal > 720)
+         return COMError::GenerateError("DKIMRotationPropagationHours must be between 1 and 720.");
+
+      object_->SetDKIMRotationPropagationHours((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_DKIMRotationRetentionDays(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetDKIMRotationRetentionDays();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_DKIMRotationRetentionDays(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (newVal < 1 || newVal > 365)
+         return COMError::GenerateError("DKIMRotationRetentionDays must be between 1 and 365.");
+
+      object_->SetDKIMRotationRetentionDays((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_DKIMRotationKeyBits(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetDKIMRotationKeyBits();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_DKIMRotationKeyBits(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (newVal != 2048 && newVal != 3072 && newVal != 4096)
+         return COMError::GenerateError("DKIMRotationKeyBits must be 2048, 3072 or 4096.");
+
+      object_->SetDKIMRotationKeyBits((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_DKIMRotationStatus(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("Save the domain before asking for its DKIM key rotation.");
+
+      return DkimRotationAnswer_(HM::DkimRotation::Status(object_->GetID(), (__int64) time(nullptr)), pVal);
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::DKIMRotationStart(BSTR Selector, BSTR *Status)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("Save the domain before rotating its DKIM key.");
+
+      HM::String selector = Selector;
+      HM::DkimRotation::Result result = HM::DkimRotation::Start(object_->GetID(), HM::AnsiString(selector), (__int64) time(nullptr));
+      RefreshDkimKeys_(object_);
+      return DkimRotationAnswer_(result, Status);
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::DKIMRotationCheck(BSTR *Status)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("Save the domain before checking its DKIM records.");
+
+      HM::DkimRotation::Result result = HM::DkimRotation::CheckNow(object_->GetID(), (__int64) time(nullptr));
+      RefreshDkimKeys_(object_);
+      return DkimRotationAnswer_(result, Status);
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::DKIMRotationSwitch(VARIANT_BOOL Force, BSTR *Status)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("Save the domain before switching its DKIM key.");
+
+      HM::DkimRotation::Result result = HM::DkimRotation::Switch(object_->GetID(), Force == VARIANT_TRUE, (__int64) time(nullptr));
+      RefreshDkimKeys_(object_);
+      return DkimRotationAnswer_(result, Status);
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::DKIMRotationRetire(BSTR *Status)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("Save the domain before retiring its DKIM key.");
+
+      HM::DkimRotation::Result result = HM::DkimRotation::Retire(object_->GetID(), (__int64) time(nullptr));
+      RefreshDkimKeys_(object_);
+      return DkimRotationAnswer_(result, Status);
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::DKIMRotationCancel(BSTR *Status)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("Save the domain before cancelling its DKIM key rotation.");
+
+      HM::DkimRotation::Result result = HM::DkimRotation::Cancel(object_->GetID(), (__int64) time(nullptr));
+      RefreshDkimKeys_(object_);
+      return DkimRotationAnswer_(result, Status);
    }
    catch (...)
    {

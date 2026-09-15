@@ -27,6 +27,9 @@
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Sieve/SieveScript.h"
 #include "COMError.h"
+#include "../Common/AntiSpam/DKIM/DkimRotation.h"
+
+#include <ctime>
 
 STDMETHODIMP InterfaceUtilities::InterfaceSupportsErrorInfo(REFIID riid)
 {
@@ -750,6 +753,39 @@ STDMETHODIMP InterfaceUtilities::SetArchiveHold(long ArchiveID, VARIANT_BOOL Hol
       if (HM::PersistentArchiveIndex::SetHold(ArchiveID, Hold == VARIANT_TRUE))
          *Found = VARIANT_TRUE;
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RunDkimRotation(long SecondsAhead, BSTR *Summary)
+{
+   try
+   {
+      if (!Summary)
+         return COMError::GenerateGenericMessage();
+
+      // Every domain's rotation, and a clock an administrator can move: the server
+      // administrator's, like the retention sweep.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      // Bounded and never negative. A clock moved backwards would make a first
+      // sighting later than a check that followed it; ten years forward is further
+      // than any period the policy can hold.
+      if (SecondsAhead < 0 || (__int64) SecondsAhead > (__int64) 3660 * 86400)
+         return COMError::GenerateError("SecondsAhead must be between 0 and 316224000 (3660 days).");
+
+      if (SecondsAhead > 0 && (HM::Logger::Instance()->GetLogMask() & HM::Logger::LSApplication))
+         HM::Logger::Instance()->LogApplication(HM::Formatter::Format("DKIM rotation: a pass was run with the clock moved {0} second(s) ahead, on request.", (int) SecondsAhead));
+
+      HM::DkimRotation::RunSummary summary = HM::DkimRotation::RunAll((__int64) time(nullptr) + (__int64) SecondsAhead);
+
+      HM::String json = HM::String(summary.ToJson());
+      *Summary = json.AllocSysString();
       return S_OK;
    }
    catch (...)
