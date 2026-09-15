@@ -205,4 +205,9 @@
 //      administrator names the sealers to trust. The rows exist rather than being
 //      absent-with-a-default because PropertySet reports error 5015 on every read of
 //      a missing property, which would fill the error log on ARC-bearing mail.
-#define REQUIRED_DB_VERSION            6044
+// 6051 adds hm_bouncesuppressions, hm_bouncecounts and hm_bouncereportkeys: the
+//      per-domain suppression list, the per-address bounce counts it is fed from,
+//      and the register of delivered messages a delivery report is matched against.
+//      All three start empty and nothing writes to them until BounceProcessingEnabled
+//      is switched on, so an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6051
