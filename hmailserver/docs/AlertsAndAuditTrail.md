@@ -23,7 +23,9 @@ The audit trail
 ### What is recorded
 
 Every **administrative change**: a configuration row created, changed or
-deleted, and every server setting written. One row per change, in `hm_audit`:
+deleted, and every server setting written — both kinds, the settings in
+`hm_settings` and the `[Settings]` keys that moved from `hMailServer.ini` into
+`hm_inisettings` at schema 6042. One row per change, in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
@@ -36,6 +38,39 @@ deleted, and every server setting written. One row per change, in `hm_audit`:
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. |
 | `auditaction` | `created`, `updated` or `deleted`. |
 | `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. |
+
+The configuration tables recorded, and the object type each is recorded as:
+
+| Table | `auditobjecttype` |
+|---|---|
+| `hm_domains`, `hm_domain_aliases` | `domain`, `domain alias` |
+| `hm_accounts`, `hm_aliases`, `hm_apppasswords` | `account`, `alias`, `application password` |
+| `hm_distributionlists`, `hm_distributionlistsrecipients` | `distribution list`, `distribution list recipient` |
+| `hm_groups`, `hm_group_members` | `group`, `group member` |
+| `hm_acl` | `folder permission` |
+| `hm_routes`, `hm_routeaddresses` | `route`, `route address` |
+| `hm_rules`, `hm_rule_criterias`, `hm_rule_actions` | `rule`, `rule criterion`, `rule action` |
+| `hm_securityranges`, `hm_tcpipports`, `hm_sslcertificates` | `ip range`, `tcp/ip port`, `ssl certificate` |
+| `hm_incoming_relays`, `hm_remotedomainpolicies` | `incoming relay`, `remote domain policy` |
+| `hm_dnsbl`, `hm_surblservers` | `dns blacklist`, `surbl server` |
+| `hm_whitelist`, `hm_greylisting_whiteaddresses` | `white list address`, `greylisting white address` |
+| `hm_blocked_attachments`, `hm_blocked_senders` | `blocked attachment`, `blocked sender` |
+| `hm_servermessages`, `hm_fetchaccounts`, `hm_alertrules` | `server message`, `fetch account`, `alert rule` |
+
+Every other table the server creates is named in `build/check-audit-choke-point.py`
+with the reason it is not recorded: messages and everything derived from them
+are traffic, and calendars, contacts, webmail preferences, attached files,
+scheduled sends and S/MIME keys are an account's own data rather than server
+configuration.
+
+A setting's row reads `Name: old -> new`. For a `[Settings]` key, a side on which
+there is no stored value is `(default)`: the first time a key is set it reads
+`SmtpTarpitCount: (default) -> 5`, and returning it to its default — `DELETE
+/api/v1/settings/ini/{name}` or COM `DeleteIniSetting` — is recorded with the
+action `deleted` and reads `SmtpTarpitCount: 5 -> (default)`. A write of the
+value a setting already has changes nothing and records nothing, for either
+kind of setting, because a settings page that saves every field it shows would
+otherwise bury the one that moved.
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 ### What is never recorded
@@ -45,6 +80,19 @@ as `(changed)` and never as a value. The decision is made by the NAME of the
 column or the setting (`AuditTrail::IsSecretName`), matched as a substring, so a
 column added later called `accountnewpassword` is covered without anybody
 remembering to add it.
+
+Among the `[Settings]` keys that means `BATVSecret`, `SRSSecret`,
+`PasswordPepper`, `ServiceAccountPassword`, `GssapiServicePassword`,
+`MetricsServerAuthPassword`, `MetricsServerAuthToken`, `OAuth2HmacSecret`,
+`OAuth2IntrospectionClientSecret`, `OutboundOAuth2ClientSecret` and
+`OutboundOAuth2FixedToken`; the private-key and key-file paths are withheld too.
+Twelve keys whose names only look like secrets are recorded with their values,
+by exact name: the seven `PasswordPolicy*` keys, `PreferredHashAlgorithm`,
+`MinimumAcceptedHashAlgorithm`, `ProtectStoredSecretsWithDPAPI`,
+`OAuth2PublicKeyFile` and `UpdateLogPublicKeyFile`. A change-control reader is
+owed "the minimum password length went from 12 to 4", not "it changed". The
+list is exact rather than a pattern on purpose: a key added later that merely
+resembles one of them is withheld until somebody decides it is not a secret.
 
 An audit trail that copies every password an administrator sets into a table the
 Deck renders is worse than no audit trail at all.
@@ -64,16 +112,30 @@ something holding the administrator credential — the Control Panel,
 
 ### Where it is written from
 
-Two places in the whole server, and a check under `build/` that keeps it that
+Three places in the whole server, and a check under `build/` that keeps it that
 way:
 
 * **Objects** — `DatabaseConnectionManager::Execute`, the single statement
   chokepoint every write in the server already runs through. The audit row is
-  taken there, after the pooled connection has been released.
+  taken there, after the pooled connection has been released, for a statement
+  against one of the tables listed above. The name is matched exactly, which is
+  why the list is checked against the create scripts: until 15 September 2026
+  five of its names (`hm_domainaliases`, `hm_incomingrelays`,
+  `hm_whiteaddresses`, `hm_greyliststats`, `hm_blockedsenders`) were not tables
+  at all, and domain aliases, incoming relays, both white lists and blocked
+  senders were never recorded.
 * **Settings** — `PropertySet::SetLong` / `SetBool` / `SetString`, which is the
   only place where the value the setting HAD is still readable. `hm_settings` is
   deliberately not one of the audited tables, so a setting is recorded once,
   with its old value and its new one, and not twice.
+* **`[Settings]` keys** — `IniSettingStore::WriteSetting`, `::RemoveSetting`
+  and `::XMLLoad` (a restore), which every route to those keys ends in: COM
+  `SetIniSetting` and `DeleteIniSetting`, `PUT` and `DELETE
+  /api/v1/settings/ini/{name}`, the `/api/v1/settings` fields kept in that
+  store (`tarpit_count` and `tarpit_delay` among them), hmctl, and the Control
+  Panel pages built on them. The stored value is read before it is replaced.
+  `hm_inisettings` is not an audited table either, for the same reason as
+  `hm_settings`.
 
 Both sit BELOW the interfaces, so COM and REST are covered by construction
 rather than by two parallel implementations that can drift.
@@ -92,9 +154,17 @@ interface:
   methods that write without asking — the settings property setters — carry an
   `AuditScope` of their own.
 
-`build/check-audit-choke-point.py` fails the build if a third caller appears, if
-either chokepoint goes away, if a COM method that persists something does
-neither of those two things, or if anything but `AuditTrail` writes `hm_audit`.
+`build/check-audit-choke-point.py` runs in the *Coding style* workflow and fails
+it if a caller outside those three appears, if any of the chokepoints goes away,
+if a COM method that persists something neither asks the authorisation question
+nor opens an `AuditScope`, if anything but `AuditTrail` writes `hm_audit`, if the
+list of tables names one the create scripts do not define (or names
+`hm_settings` or `hm_inisettings`, which would record every change twice), or if
+a table the create scripts define is neither listed nor named in the checker
+with the reason it is not recorded. That last rule is what makes a new
+configuration table a decision rather than an omission: folder permissions
+(`hm_acl`) and remote domain policies were simply never added, and the twelve
+syslog setters on COM's `Logging` object wrote with no actor, until it existed.
 
 ### Verifying the chain
 
@@ -331,4 +401,12 @@ What this does not do
 * **One logical change can be more than one row** where saving an object writes
   its children as separate statements — a rule with its criteria, a distribution
   list with its recipients. Each row says what it was.
+* **A change nobody made through an interface is not recorded.** An account
+  sharing its own folder with IMAP `SETACL` has no administrator behind it, and
+  neither has the start-up pass that reconciles `hMailServer.ini` with
+  `hm_inisettings` or a `[SettingsOverride]` section edited into the file. The
+  override announces itself in the error log at every start instead.
+* **A folder permission's row names the folder and the account by id**
+  (`aclsharefolderid`, `aclpermissionaccountid`), because those are the columns
+  the statement carries.
 * **`hmctl` and the PowerShell module have no `audit` or `alerts` verbs yet.**
