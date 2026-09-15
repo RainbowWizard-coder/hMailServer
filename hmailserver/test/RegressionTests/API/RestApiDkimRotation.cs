@@ -182,6 +182,8 @@ namespace RegressionTests.API
          Dictionary<string, object> retired = Status(domain);
          Assert.IsNull(MiniJson.At(retired, "retiring"));
          Assert.AreEqual("walk-a", MiniJson.Text(retired, "retired.selector"));
+         Assert.AreEqual("", MiniJson.Text(retired, "retired.key_file_kept"),
+            "The key the rotation generated for walk-a was kept when it retired, though nothing names it any more.");
          Assert.AreEqual("off", MiniJson.Text(retired, "phase"));
          Assert.AreEqual("remove", (string) MiniJson.List(retired, "retired.records").Cast<Dictionary<string, object>>().First()["action"]);
       }

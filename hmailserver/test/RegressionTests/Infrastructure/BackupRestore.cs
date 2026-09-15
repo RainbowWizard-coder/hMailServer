@@ -930,5 +930,48 @@ namespace RegressionTests.Infrastructure
          _backupMessages = false;
          Assert.IsTrue(Execute());
       }
+
+      [Test]
+      [Description("A restore deletes every domain before it loads the backup's, and deletes no key file a DKIM key rotation generated doing it: the restored domain names the same file and the file is still on disk. The restored domain's new ID is the control that the restore really did delete and recreate it.")]
+      public void ARestoreKeepsTheKeyFilesTheRotationGenerated()
+      {
+         _backupMessages = false;
+
+         Domain domain = _application.Domains.get_ItemByName("example.test");
+         string keyFile = MiniJson.Text(MiniJson.Object(domain.DKIMRotationStart("")), "next.key_file");
+         Assert.IsTrue(File.Exists(keyFile), "The rotation did not write its key: " + keyFile);
+         int idBefore = domain.ID;
+
+         try
+         {
+            Assert.IsTrue(BackupEnvironment(), "The backup did not complete.");
+            RestoreEnvironment();
+
+            Domain restored = _application.Domains.get_ItemByName("example.test");
+            Assert.AreNotEqual(idBefore, restored.ID, "The restore did not replace the domain, so this proves nothing about what a replaced domain keeps.");
+            Assert.AreEqual(keyFile, restored.DKIMSecondaryPrivateKeyFile, "The restored domain does not name the key file the backup named.");
+            Assert.IsTrue(File.Exists(keyFile), "The restore deleted the key file the rotation had generated for a domain it put back.");
+         }
+         finally
+         {
+            if (Directory.Exists(_backupDir))
+               Directory.Delete(_backupDir, true);
+
+            // Named by no rotation now - the restore does not carry the rotation's
+            // state - so no domain delete will remove it. As far as the key's
+            // permissions let the test.
+            try
+            {
+               if (File.Exists(keyFile))
+                  File.Delete(keyFile);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+         }
+      }
    }
 }

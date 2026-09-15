@@ -377,6 +377,10 @@ namespace RegressionTests.AntiSpam.DKIM
          // second makes that generated key the one that retires.
          Dictionary<string, object> first = MiniJson.Object(_domain.DKIMRotationStart("first"));
          string firstKey = MiniJson.Text(first, "next.key_file");
+
+         // Should the retire below keep the file after all, it is not left for the
+         // next run's directory listing to find.
+         _filesToDelete.Add(firstKey);
          PublishRecordsOf(first, "next");
          Run(0);
          Run(73 * Hour);
@@ -464,6 +468,11 @@ namespace RegressionTests.AntiSpam.DKIM
          finally
          {
             _application.Domains.DeleteByDBID(other.ID);
+
+            // Kept by design, and then named by nothing: neither domain's delete
+            // removes a key its rotation has already retired. Removed here, as far as
+            // the key's permissions let the test.
+            _filesToDelete.Add(generated);
          }
       }
 
@@ -535,6 +544,13 @@ namespace RegressionTests.AntiSpam.DKIM
          Domain domain = PrimaryKeyedDomain("old", false);
          string keyFile = domain.DKIMPrivateKeyFile;
 
+         // What is in the key directory already - a key an earlier run kept, one this
+         // fixture's other tests left - is not this test's business; a file that
+         // appears during the pass is.
+         string keyDirectory = Paths.Combine(_settings.Directories.DataDirectory, "DKIM");
+         var before = new HashSet<string>(Directory.Exists(keyDirectory) ? Directory.GetFiles(keyDirectory) : new string[0],
+                                          StringComparer.OrdinalIgnoreCase);
+
          SuiteDns.Zone.ClearQueries();
          Run(3650 * Day);
 
@@ -547,9 +563,42 @@ namespace RegressionTests.AntiSpam.DKIM
          Assert.IsFalse(SuiteDns.Zone.Queries.Any(q => q.IndexOf("._domainkey.example.test", StringComparison.OrdinalIgnoreCase) >= 0),
             "A domain with the rotation off was looked up: " + string.Join(", ", SuiteDns.Zone.Queries));
 
-         string keyDirectory = Paths.Combine(_settings.Directories.DataDirectory, "DKIM");
-         if (Directory.Exists(keyDirectory))
-            Assert.AreEqual(0, Directory.GetFiles(keyDirectory, "*example.test*").Length, "A key was generated for a domain with the rotation off.");
+         string[] appeared = (Directory.Exists(keyDirectory) ? Directory.GetFiles(keyDirectory) : new string[0])
+                                .Where(file => !before.Contains(file) && file.IndexOf("example.test", StringComparison.OrdinalIgnoreCase) >= 0)
+                                .ToArray();
+         Assert.AreEqual(0, appeared.Length, "A key was generated for a domain with the rotation off: " + string.Join(", ", appeared));
+      }
+
+      [Test]
+      [Description("With the schedule on and the interval long past, an inactive domain is given no new key and the status says why; the same domain switched on is given one, which is the negative control.")]
+      public void AnInactiveDomainIsGivenNoNewKeyByTheSchedule()
+      {
+         PrimaryKeyedDomain("old", false);
+         _domain.DKIMRotationEnabled = true;
+         _domain.DKIMRotationIntervalDays = 30;
+         _domain.Active = false;
+         _domain.Save();
+
+         Run(31 * Day);
+
+         Domain inactive = ReRead();
+         Dictionary<string, object> status = Status(inactive);
+         Assert.IsNull(MiniJson.At(status, "next"), "The schedule started a rotation for an inactive domain: " + inactive.DKIMRotationStatus);
+         Assert.AreEqual("", inactive.DKIMSecondarySelector, "A key was staged for an inactive domain.");
+         Assert.IsTrue(MiniJson.List(status, "waiting").Cast<Dictionary<string, object>>()
+                          .Any(w => (string) w["step"] == "start" && (string) w["reason"] == "domain_inactive"),
+            "The status does not say the start waits for the domain to be active: " + inactive.DKIMRotationStatus);
+
+         // The control: the same domain, the same pass, switched on.
+         inactive.Active = true;
+         inactive.Save();
+
+         Run(31 * Day);
+
+         Dictionary<string, object> active = Status(ReRead());
+         Assert.IsNotNull(MiniJson.At(active, "next"),
+            "No rotation started for the same domain once it was active, so the first half proved nothing: " + ReRead().DKIMRotationStatus);
+         Assert.IsTrue(MiniJson.Flag(active, "next.generated"));
       }
 
       [Test]
