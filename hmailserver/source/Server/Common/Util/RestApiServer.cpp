@@ -3667,8 +3667,12 @@ namespace HM
       // and the alert rules hold the webhook secrets. A key that could read the
       // first could watch for its own footprints; a key that could write the
       // second could silence the alerting or point it at an endpoint of its own.
-      // Both are the administrator password's, and a key of any scope is
-      // answered 401 rather than 403 so that it learns nothing from asking.
+      // A key of any scope is answered 401 rather than 403 so that it learns
+      // nothing from asking. These seven - and only these - are not the
+      // administrator password's alone: an account that holds a role goes on
+      // from Authorize_ to the permission decision for them (view_audit for the
+      // trail, which is what the auditor role is for), and to the server-wide
+      // refusal when its role is confined to named domains.
       case RouteAuditList:
       case RouteAuditVerify:
       case RouteAlertRuleList:
