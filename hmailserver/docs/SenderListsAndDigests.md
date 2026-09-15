@@ -67,6 +67,18 @@ in. A release is a person overruling the filters.
 The other recipients of the same message are not affected by one recipient's
 list.
 
+**What runs after the list.** The list is the first thing local delivery does
+with a recipient's copy, then the account's own spam thresholds, then the
+domain's outside-sender tagging ([DomainTransforms.md](DomainTransforms.md)):
+the `[EXTERNAL]` subject tag, the `X-hMailServer-External` header and the
+first-contact note. So the tagging reads the subject after the list has
+removed or added the spam tag. An allowed sender from outside is still tagged
+as external, because allowing a sender says the mail is wanted, not that it
+came from inside. A blocked sender's copy that the quarantine holds is neither
+tagged nor remembered as a correspondent until it is released; one that is
+marked and delivered instead, because the quarantine is off, is tagged and
+remembered like any other delivered message.
+
 ### Precedence
 
 **Nearest first: the account, then its domain, then the server.** The first of
