@@ -287,6 +287,7 @@ namespace HM
          RouteSettingsScriptingPut,
          RouteScriptingReload,
          RouteScriptingCheck,
+         RouteBreachCheckTest,
          RouteSettingsBackupGet,
          RouteSettingsBackupPut,
          RouteSettingsCacheGet,
@@ -881,6 +882,8 @@ namespace HM
       HttpResponse HandleSettingsScriptingPut_(const AnsiString &requestBody);
       HttpResponse HandleScriptingReload_();
       HttpResponse HandleScriptingCheck_();
+      // POST /api/v1/settings/breach-check/test: Settings.TestBreachCheckEndpoint.
+      HttpResponse HandleBreachCheckTest_(const AnsiString &requestBody);
       // Settings.Cache and Settings.MessageIndexing over REST (RestApiSettings.cpp).
       HttpResponse HandleSettingsCache_();
       HttpResponse HandleSettingsCachePut_(const AnsiString &requestBody);

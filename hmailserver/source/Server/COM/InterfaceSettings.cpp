@@ -16,6 +16,7 @@
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Util/Totp.h"
+#include "../Common/Util/PasswordBreachCheck.h"
 #include "../Common/LDAP/LdapClient.h"
 #include "../Common/LDAP/LdapSettings.h"
 #include "../Common/LDAP/DirectorySync.h"
@@ -3280,6 +3281,195 @@ STDMETHODIMP InterfaceSettings::put_CreateDefaultSpecialUseFoldersEnabled(VARIAN
          return NotLoaded_();
 
       config_->SetCreateDefaultSpecialUseFolders(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// The password breach check. The puts refuse what the check could not use, in the
+// sentence the Control Panel shows, before anything is stored - so the value
+// readable afterwards is always one the check accepts.
+
+STDMETHODIMP InterfaceSettings::get_BreachCheckEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetBreachCheckEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_BreachCheckEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetBreachCheckEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_BreachCheckUrl(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetBreachCheckUrl().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_BreachCheckUrl(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String url = newVal;
+      HM::String reason;
+      if (!HM::PasswordBreachCheck::ValidateEndpoint(url, reason))
+         return COMError::GenerateError(reason);
+
+      config_->SetBreachCheckUrl(url);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_BreachCheckMinimumCount(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetBreachCheckMinimumCount();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_BreachCheckMinimumCount(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1)
+         return COMError::GenerateError("BreachCheckMinimumCount must be 1 or more: a password is refused when it has appeared in the corpus at least this many times.");
+
+      config_->SetBreachCheckMinimumCount(newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_BreachCheckUnreachableAction(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetBreachCheckUnreachableAction();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_BreachCheckUnreachableAction(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal != HM::PasswordBreachCheck::UnreachableAllow && newVal != HM::PasswordBreachCheck::UnreachableRefuse)
+         return COMError::GenerateError("BreachCheckUnreachableAction must be 0 (let the change through) or 1 (refuse it).");
+
+      config_->SetBreachCheckUnreachableAction(newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::TestBreachCheckEndpoint(BSTR Url, long *Entries)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      int status = 0;
+      int entries = 0;
+      bool padded = false;
+      int milliseconds = 0;
+      HM::String error;
+
+      // Changes nothing: a request for the prefix 00000, which is no password's.
+      if (!HM::PasswordBreachCheck::Probe(HM::String(Url), status, entries, padded, milliseconds, error))
+         return COMError::GenerateError(error);
+
+      *Entries = entries;
 
       return S_OK;
    }

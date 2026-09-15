@@ -252,6 +252,17 @@ END_COM_MAP()
    STDMETHOD(get_CreateDefaultSpecialUseFoldersEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_CreateDefaultSpecialUseFoldersEnabled)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // The password breach check (PasswordBreachCheck), in hm_settings.
+   STDMETHOD(get_BreachCheckEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_BreachCheckEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_BreachCheckUrl)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_BreachCheckUrl)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_BreachCheckMinimumCount)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BreachCheckMinimumCount)(/*[in]*/ long newVal);
+   STDMETHOD(get_BreachCheckUnreachableAction)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BreachCheckUnreachableAction)(/*[in]*/ long newVal);
+   STDMETHOD(TestBreachCheckEndpoint)(/*[in]*/ BSTR Url, /*[out, retval]*/ long *Entries);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

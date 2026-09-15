@@ -1673,6 +1673,8 @@ namespace HM
             return HandleScriptingReload_();
          case RouteScriptingCheck:
             return HandleScriptingCheck_();
+         case RouteBreachCheckTest:
+            return HandleBreachCheckTest_(GetRequestBody_(request));
          case RouteSettingsCacheGet:
             return HandleSettingsCache_();
          case RouteSettingsCachePut:
@@ -3264,6 +3266,12 @@ namespace HM
          return;
       }
 
+      if (method == "POST" && path == "/api/v1/settings/breach-check/test")
+      {
+         route.kind = RouteBreachCheckTest;
+         return;
+      }
+
       if (path == "/api/v1/settings/cache" && (method == "GET" || method == "PUT"))
       {
          route.kind = method == "GET" ? RouteSettingsCacheGet : RouteSettingsCachePut;
@@ -3562,6 +3570,8 @@ namespace HM
       case RouteLogonFailuresClear:
       case RouteSettingsScriptingPut:
       case RouteScriptingReload:
+      // Makes the server send a request to a URL the caller chose.
+      case RouteBreachCheckTest:
       case RouteSettingsCachePut:
       case RouteCacheClear:
       case RouteSettingsIndexingPut:
@@ -3832,6 +3842,7 @@ namespace HM
       case RouteSettingsScriptingPut:
       case RouteScriptingReload:
       case RouteScriptingCheck:
+      case RouteBreachCheckTest:
       case RouteSettingsCacheGet:
       case RouteSettingsCachePut:
       case RouteCacheClear:
