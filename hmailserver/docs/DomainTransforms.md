@@ -164,12 +164,13 @@ organisation. `disclaimer_plain_text` and `disclaimer_html` are the two forms;
 filling in only the plain one uses it for both, with its line breaks turned into
 line breaks in HTML, which is what the domain signature already does.
 
-It runs where the signature runs — `SMTPConnection::DoPreAcceptMessageModifications_`,
-against the same `MessageData` and committed by the same single write — because
-that is the one place on this server where an outgoing message's body is
-modified, and a second one would be a second thing to keep correct. That is also
-**before** `DKIMSigner::Sign`, which runs at delivery, so this server's own
-signature covers the footer rather than being broken by it.
+It runs where the domain signature runs — `OutgoingFooters`, one function that
+puts the signature on and then the disclaimer, against the same `MessageData` and
+committed by the same single write — because that is the one place on this
+server where an outgoing message's body is modified, and a second one would be a
+second thing to keep correct. Every way a person sends goes through it (below).
+All of them are **before** `DKIMSigner::Sign`, which runs at delivery, so this
+server's own signature covers the footer rather than being broken by it.
 
 The footer is appended to the message's `text/plain` part and to its `text/html`
 part, in place, wherever those sit in a multipart tree — so a
@@ -220,6 +221,89 @@ A footer shorter than eight characters is never treated as already present —
 a needle that short would match almost any body, and the administrator would get
 no footer at all.
 
+Every way a person sends
+------------------------
+
+The disclaimer and the domain signature go on a message however the person sent
+it, by the same rules, because all three paths call the same function
+(`Common/Util/OutgoingFooters.cpp`):
+
+| Path | Where | Which domain's settings |
+|---|---|---|
+| A mail client over SMTP | `SMTPConnection::DoPreAcceptMessageModifications_` | the `MAIL FROM` address's |
+| The webmail's send (`POST /api/v1/me/messages`), which is also its reply, forward and phishing report | `RestApiServer::HandleMeMessageSend_` | the envelope sender's: the account, or the identity chosen in From |
+| The webmail's send-later | `ScheduledMailTask::SendDraft` | the envelope sender's, which is always the account |
+
+The sender's domain is resolved as `MAIL FROM` resolves it — the domain aliases
+applied, then the domain looked up by the address — so an account on one domain
+gets that domain's disclaimer and signature on every path, never another hosted
+domain's. (Which *account's* signature counts is below.) Until 15 September 2026 only the first path had either footer:
+the webmail wrote its messages into the queue itself, so a domain with the
+disclaimer on sent every browser-written message to a partner without it and
+logged nothing, and the domain signature had always had the same gap.
+
+On the two webmail paths the footers go on after the message is written and
+before its size is taken, so the copy the webmail keeps in the folder designated
+`\Sent` is the message as it went, footers included. A mail client over SMTP
+keeps its own copy, which never had them.
+
+A draft scheduled with a chosen From at another hosted domain is a sharp edge:
+send-later sends with the **account** as the envelope sender, so it gets the
+account's domain's footers, where the same message sent at once would get the
+chosen address's domain's. That is send-later's envelope, not a rule of the
+footers.
+
+### The account's own signature and the webmail
+
+The webmail writes the account's signature into the compose box itself, where
+the person sees it and can change it, from the same account settings the server
+reads. So on the two webmail paths the server does not add the **account's**
+signature a second time; it adds only what the **domain** adds, decided against
+the account's signature exactly as over SMTP:
+
+* **Set if not specified in the account** — nothing, when the account has a
+  signature; the domain's, when it has none.
+* **Append to the account's signature** — the domain's, below the account's
+  that the page wrote.
+* **Overwrite the account's signature** — the domain's, below the account's.
+  This is the one method the webmail cannot match: the page has already put
+  the account's signature in a body the person read and sent, and the server
+  does not take text out of a message. A domain that means to replace every
+  account's signature should also switch the accounts' own off.
+
+The account meant is the one signed in to the webmail, whichever identity the
+message is sent from, because that is whose signature the page wrote; its name
+fills the macros (`%User.FirstName%` and the rest). Over SMTP it is the account
+the `MAIL FROM` address belongs to, if any.
+
+A mail client over SMTP is unchanged: the server adds the account's signature and
+the domain's by the method, as it always has.
+
+### Signed and encrypted messages get no signature either
+
+Since 15 September 2026 the **signature** follows the disclaimer's rule for a
+`multipart/signed`, `multipart/encrypted`, PKCS#7 or PGP message: it is sent as
+written, with a line in the application log. Before, a domain signature was
+appended to the text part inside a `multipart/signed` — breaking the S/MIME
+signature of every such message a desktop client sent — and the webmail's own
+S/MIME send would have been broken the same way the moment the signature reached
+it. This is a change on the SMTP path too, and deliberately.
+
+### What is not a person sending
+
+These put mail in the queue as well, and get neither footer, because none of them
+carries a message a person wrote:
+
+* the webmail's **read receipt** and **list unsubscribe**, which the server
+  composes on a click and marks `Auto-Submitted` itself;
+* a script's `Message.Save` over COM;
+* automatic replies, Sieve notifications and vacations, quota and virus notices,
+  alerts, and the DMARC and TLS reports;
+* forwarding, rules, distribution-list postings re-submitted to their members,
+  mirroring and quarantine release, which send on a message this server already
+  accepted once — with its footers, if it was ours;
+* external fetching and import, which bring mail in.
+
 What the webmail shows
 ----------------------
 
@@ -238,10 +322,14 @@ Where the code is
 |---|---|
 | `Common/Util/MessageOrigin.*` | The rule, and its unit tests (`MessageOriginTester`, run from `ClassTester::DoTests`). |
 | `Common/Util/ExternalSenderTagger.*` | The tag and the note, applied at local delivery. |
-| `Common/Util/DisclaimerAdder.*` | The footer, applied at submission beside the signature. |
+| `Common/Util/DisclaimerAdder.*` | The footer's rules, applied at submission beside the signature. |
+| `Common/Util/SignatureAdder.*` | The signature's rules. |
+| `Common/Util/OutgoingFooters.*` | The one function that applies both, called by every way a person sends. |
 | `Common/Persistence/PersistentKnownSender.*` | `hm_knownsenders`. |
 | `SMTP/LocalDelivery.cpp` | Where the tagger is called. |
-| `SMTP/SMTPConnection.cpp` | Where the disclaimer and the outgoing half of the memory are called. |
+| `SMTP/SMTPConnection.cpp` | Where the footers are applied to SMTP submission, and the outgoing half of the memory. |
+| `Common/Util/RestApiServer.cpp`, `Common/Application/ScheduledMailTask.cpp` | Where the footers are applied to the webmail's send and its send-later. |
 | `test/RegressionTests/SMTP/DomainTransforms.cs` | The delivery tests. |
+| `test/RegressionTests/API/WebmailFooters.cs` | The footers on the webmail's send and send-later, every exclusion, the account's signature and an identity, two domains kept apart, and a signed message on both paths. |
 | `test/RegressionTests/API/RestApiDomains.cs` | The REST round trip. |
 | `test/RegressionTests/Infrastructure/BackupAccountStores.cs` | The memory through a backup and a restore. |
