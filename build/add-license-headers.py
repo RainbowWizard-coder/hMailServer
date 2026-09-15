@@ -113,8 +113,10 @@ SKIP_DIRS = {'.git', 'obj', 'bin', 'publish', 'packages', 'Output',
 # at the top of libraries/, and the sources they unpack below them.
 NO_DESCEND = {os.path.join(ROOT, 'libraries')}
 
-# MIDL output, regenerated on every build.
-SKIP_FILES = {'dlldata.c', 'hMailServer_i.c', 'hMailServer_p.c'}
+# MIDL output, regenerated on every build. hMailServer.h is the type library's
+# header, ignored by git beside the other three and tracked nowhere, so a
+# worktree that has been built is judged the same as a fresh checkout.
+SKIP_FILES = {'dlldata.c', 'hMailServer_i.c', 'hMailServer_p.c', 'hMailServer.h'}
 
 BOM = b'\xef\xbb\xbf'
 UTF16_BOMS = (b'\xff\xfe', b'\xfe\xff')
