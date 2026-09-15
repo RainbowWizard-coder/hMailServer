@@ -990,9 +990,28 @@ namespace HM
       diagnosticText.Trim();
 
       if (BounceClassifier::IsEnhancedStatusCode(status))
+      {
          verdict = BounceClassifier::ClassifyReport(status, diagnosticText);
+      }
       else
-         verdict = BounceClassifier::ClassifyRefusal(status, diagnosticText);
+      {
+         // The status IS the remote's reply. What delivery would have recorded for
+         // it is worked out the way SMTPClientConnection works it out at RCPT TO -
+         // the remote's own code, or the one its three digits alone support - and
+         // the reply is then judged under the trust rule exactly as a refusal is.
+         // Handing the reply over as the recorded code, with no reply beside it,
+         // read every reply as this server's own reason and so as "other".
+         String reply = status;
+         if (!diagnosticText.IsEmpty())
+            reply += _T(" ") + diagnosticText;
+
+         const int replyCode = BounceClassifier::ReplyCode(reply);
+         const String recorded = replyCode > 0
+            ? DeliveryFailure::EnhancedStatusFromSmtpReply(replyCode, Utf8(reply), true)
+            : String();
+
+         verdict = BounceClassifier::ClassifyRefusal(recorded, reply);
+      }
 
       const Configuration *configuration = Configuration::Instance();
       const bool mailboxFullIsHard = configuration ? Configuration::Instance()->GetBounceMailboxFullIsHard() : false;
