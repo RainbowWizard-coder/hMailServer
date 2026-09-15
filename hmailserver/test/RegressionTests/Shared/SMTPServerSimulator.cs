@@ -123,6 +123,17 @@ namespace RegressionTests.Shared
       // authenticated some other way.
       public string XOAuth2Blob { get; private set; } = "";
 
+      /// <summary>
+      ///    The text after the reply code for a recipient, by address, when the
+      ///    reply to its RCPT TO should say more than the address - "5.1.1 &lt;x&gt;:
+      ///    User unknown", say, which is what a server that sends enhanced codes
+      ///    answers. An address not in the map is answered "&lt;code&gt; &lt;address&gt;",
+      ///    as it always was, and that bare form is itself what some tests need:
+      ///    a reply with no enhanced code of its own.
+      /// </summary>
+      public Dictionary<string, string> RecipientReplyTexts { get; } =
+         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
       public void AddRecipientResult(Dictionary<string, int> result)
       {
          _recipientResults.Add(result);
@@ -334,7 +345,10 @@ namespace RegressionTests.Shared
 
             var result = recipientResult.ToString();
 
-            Send(result + " " + address + "\r\n");
+            if (RecipientReplyTexts.TryGetValue(address, out var replyText))
+               Send(result + " " + replyText + "\r\n");
+            else
+               Send(result + " " + address + "\r\n");
 
             RcptTosReceived++;
 
