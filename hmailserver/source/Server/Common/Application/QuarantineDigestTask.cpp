@@ -104,22 +104,7 @@ namespace HM
       if (!QuarantineStore::GetEnabled())
          return 0;
 
-      // A digest with no link in it is a list of things the reader cannot act
-      // on. Rather than send that, nothing is sent and the administrator is told
-      // once - in the log, where an administrator who turned the digest on and
-      // saw nothing happen will look.
-      if (QuarantineDigest::BaseUrl().IsEmpty())
-      {
-         static bool complained = false;
-
-         if (!complained)
-         {
-            complained = true;
-            LOG_APPLICATION(_T("QuarantineDigest: a domain has the quarantine digest switched on, but QuarantineDigestBaseUrl is not set, so the release links would point nowhere. No digest will be sent until it is."));
-         }
-
-         return 0;
-      }
+      const bool haveBaseUrl = !QuarantineDigest::BaseUrl().IsEmpty();
 
       std::time_t now = std::time(nullptr);
       struct tm local;
@@ -146,6 +131,26 @@ namespace HM
 
          if (!domain->GetQuarantineDigest())
             continue;
+
+         // A digest with no link in it is a list of things the reader cannot act
+         // on. Rather than send that, nothing is sent and the administrator is
+         // told once - in the log, where an administrator who turned the digest
+         // on and saw nothing happen will look. Only once a domain actually has
+         // the digest on: a server holding spam with no digest configured has
+         // nothing to be told.
+         if (!haveBaseUrl)
+         {
+            static bool complained = false;
+
+            if (!complained)
+            {
+               complained = true;
+               LOG_APPLICATION(Formatter::Format("QuarantineDigest: {0} has the quarantine digest switched on, but QuarantineDigestBaseUrl is not set, so the release links would point nowhere. No digest will be sent until it is.",
+                  domain->GetName()));
+            }
+
+            return 0;
+         }
 
          if (!force && domain->GetQuarantineDigestHour() != local.tm_hour)
             continue;
