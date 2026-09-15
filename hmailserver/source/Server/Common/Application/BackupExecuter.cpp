@@ -1117,15 +1117,17 @@ namespace HM
       // The custom roles FIRST: before the domains, and so before the accounts and
       // the role assignments they carry, which name a role by its name and can be
       // written only once that role exists here. Before anything is deleted, too,
-      // so that a role that cannot be written stops a restore that has not yet
-      // changed anything else. An archive with no roles in it restores none.
+      // so that a role that cannot be written stops a restore before any domain
+      // has been removed; the roles created before the failure stay, and the log
+      // names them. A role this server already has is kept as it is here. An
+      // archive with no roles in it restores none.
       if (iRestoreOptions & (Backup::BODomains | Backup::BOSettings))
       {
          Logger::Instance()->LogBackup("Restoring custom roles...");
 
          if (!RoleManager::XMLLoad(pBackupNode))
          {
-            String sErrorMessage = "Restore of custom roles failed. Nothing else has been restored. Please check hMailServer log.";
+            String sErrorMessage = "Restore of custom roles failed. No domain has been removed; the custom roles created before the failure are named in the log above, and nothing else has been restored. Please check hMailServer log.";
             Logger::Instance()->LogBackup(sErrorMessage);
             Application::Instance()->GetBackupManager()->OnBackupFailed(sErrorMessage);
             return false;

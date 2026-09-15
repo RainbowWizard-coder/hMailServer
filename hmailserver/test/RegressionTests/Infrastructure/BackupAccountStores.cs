@@ -43,6 +43,12 @@ namespace RegressionTests.Infrastructure
    ///    DAV listeners, and for the first-contact memory a delivery - rather than by
    ///    writing rows, so what is proved is what an account actually has rather than
    ///    what a test put in a table.
+   ///
+   ///    The role tests go further than "it comes back", because a role is authority:
+   ///    an assignment names a role the server lacks, the archive is edited so that
+   ///    the restore fails between the account's row and its assignment, and the
+   ///    server holds a role narrower than the archive's - and in each case the
+   ///    account must come back holding no more than its role gives it.
    /// </summary>
    [TestFixture]
    public class BackupAccountStores : TestFixtureBase
@@ -558,6 +564,109 @@ namespace RegressionTests.Infrastructure
          string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
          StringAssert.Contains("The backup gives " + _address + " the role no-such-role", log, "Log: " + log);
          StringAssert.Contains("its admin level is now that of an ordinary account", log, "Log: " + log);
+         StringAssert.Contains("(server administrator)", log, "The level that was not given back is named. Log: " + log);
+
+         // And in the error log, where an administrator watching a restore that
+         // ends "completed successfully" is told that an account lost its
+         // authority; consumed here, since the next fixture asserts the log empty.
+         CustomAsserts.AssertReportedError("HM6129", _address, "no-such-role");
+      }
+
+      [Test]
+      [Description("hm_roleassignments: a restore that fails after the account's row is saved leaves the account no wider "
+                   + "than its role - the admin level the archive carries is withheld until the assignment is back, so an "
+                   + "account narrowed from server administrator to help desk does not come back the server administrator "
+                   + "when the restore stops between the two")]
+      public void AFailedRestoreLeavesTheAccountNoWiderThanItsRole()
+      {
+         hMailServer.Account account = _domain.Accounts.get_ItemByAddress(_address);
+         account.AdminLevel = hMailServer.eAdminLevel.hAdminLevelServerAdmin;
+         account.Save();
+
+         Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+            BasicAuth("Administrator", AdminPassword), "{\"role\":\"helpdesk\",\"domains\":\"\"}");
+         Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+         RunBackup();
+
+         // The archive, edited so that the restore fails exactly where it matters:
+         // after the account's row is saved and before its assignment is written.
+         // A second copy of the assignment row is refused by the unique index on
+         // the account, and the restore stops there - with the account's row in
+         // place and, until 15 September 2026, its archived admin level in it.
+         DuplicateTheArchivedAssignment();
+
+         string log = DeleteAndRestoreExpectingFailure();
+         StringAssert.Contains("Restore of domains failed", log, "Log: " + log);
+
+         string domainName = _address.Substring(_address.IndexOf('@') + 1);
+         hMailServer.Account restored = _application.Domains.get_ItemByName(domainName).Accounts.get_ItemByAddress(_address);
+         Assert.AreEqual(hMailServer.eAdminLevel.hAdminLevelNormal, restored.AdminLevel,
+            "The account's row was saved with the archive's admin level before the restore failed, so it is the server "
+            + "administrator with nothing to say otherwise. The level must be withheld until the assignment is back.");
+
+         Response session = Rest("GET", "/api/v1/session", User());
+         Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+         StringAssert.DoesNotContain("administer_server", session.Body,
+            "The account holds the server administrator's authority after a failed restore. Body: " + session.Body);
+
+         // The refused row's report and the failed restore's, both consumed here.
+         CustomAsserts.AssertReportedError("HM6128", "HM5014");
+      }
+
+      [Test]
+      [Description("hm_roles: a custom role the restoring server already has is kept as it is here rather than overwritten "
+                   + "with the archive's wider definition - every credential holding it keeps what this server gives it, "
+                   + "the backup log names the difference, and the assignment that names the role is restored")]
+      public void AServerRoleOfTheSameNameIsKeptAndNotWidened()
+      {
+         const string role = "storestest-narrowed";
+
+         try
+         {
+            Response created = Rest("POST", "/api/v1/roles", BasicAuth("Administrator", AdminPassword),
+               "{\"name\":\"" + role + "\",\"description\":\"Runs the queue\",\"permissions\":\"view_queue,manage_queue\"}");
+            Assert.AreEqual(201, created.Status, "Body: " + created.Body);
+
+            Response assigned = Rest("PUT", "/api/v1/role-assignments/" + _address,
+               BasicAuth("Administrator", AdminPassword), "{\"role\":\"" + role + "\",\"domains\":\"*\"}");
+            Assert.AreEqual(200, assigned.Status, "Body: " + assigned.Body);
+
+            RunBackup();
+
+            // Narrowed here after the backup was taken: what the archive carries is
+            // wider than what this server's administrator decided.
+            Response narrowed = Rest("PUT", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword),
+               "{\"description\":\"Reads the queue\",\"permissions\":\"view_queue\"}");
+            Assert.AreEqual(200, narrowed.Status, "Body: " + narrowed.Body);
+
+            DeleteAndRestore();
+
+            Response kept = Rest("GET", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+            Assert.AreEqual(200, kept.Status, "Body: " + kept.Body);
+
+            using (JsonDocument document = JsonDocument.Parse(kept.Body))
+            {
+               Assert.AreEqual("view_queue", document.RootElement.GetProperty("permissions").GetString(),
+                  "The restore overwrote this server's role with the archive's wider definition. Body: " + kept.Body);
+               Assert.AreEqual("Reads the queue", document.RootElement.GetProperty("description").GetString());
+            }
+
+            Response session = Rest("GET", "/api/v1/session", User());
+            Assert.AreEqual(200, session.Status, "Body: " + session.Body);
+            StringAssert.Contains("\"role\":\"" + role + "\"", session.Body, "The assignment naming the kept role was not restored. Body: " + session.Body);
+            StringAssert.DoesNotContain("manage_queue", session.Body, "The account holds a permission the archive's role had and this server's does not. Body: " + session.Body);
+
+            string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            StringAssert.Contains("The backup carries the custom role " + role + ", which this server already has. This server's definition has been kept", log, "Log: " + log);
+            StringAssert.Contains("permissions 'view_queue' here and 'view_queue,manage_queue' in the backup", log, "Log: " + log);
+            StringAssert.Contains("description 'Reads the queue' here and 'Runs the queue' in the backup", log, "Log: " + log);
+            Assert.IsTrue(Regex.IsMatch(log, @"Restored 0 custom role\(s\)\. 1 role\(s\) the backup carries were already on this server"), "Log: " + log);
+         }
+         finally
+         {
+            Rest("DELETE", "/api/v1/roles/" + role, BasicAuth("Administrator", AdminPassword));
+         }
       }
 
       // --------------------------------------------------- a message's labels
@@ -653,6 +762,54 @@ namespace RegressionTests.Infrastructure
       }
 
       /// <summary>
+      ///    The same disaster and the same restore, from an archive edited so that
+      ///    the restore cannot finish. A failed restore reinitialises nothing, so it is
+      ///    awaited through the backup log rather than through a restart, and the log
+      ///    is returned for the test to read what stopped it.
+      /// </summary>
+      private string DeleteAndRestoreExpectingFailure()
+      {
+         while (_application.Domains.Count > 0)
+            _application.Domains[0].Delete();
+
+         FileInfo[] archives = new DirectoryInfo(_backupDirectory).GetFiles("*.7z");
+         Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + _backupDirectory);
+
+         CustomAsserts.AssertDeleteFile(_application.Settings.Backup.LogFile);
+
+         var backup = _application.BackupManager.LoadBackup(archives[0].FullName);
+         backup.RestoreDomains = true;
+         backup.RestoreMessages = true;
+         backup.RestoreSettings = false;
+         backup.StartRestore();
+
+         for (int attempt = 0; attempt < 480; attempt++)
+         {
+            string log = "";
+
+            try
+            {
+               log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            }
+            catch (Exception sharing) when (!ExceptionPolicy.IsFatal(sharing))
+            {
+               // The server is writing the file; read it again in a moment.
+            }
+
+            if (log.Contains("BACKUP ERROR:"))
+               return log;
+
+            if (log.Contains("Restore completed successfully"))
+               Assert.Fail("The restore was expected to fail and completed instead, so the edited archive did not do what it was meant to. Log: " + log);
+
+            Thread.Sleep(250);
+         }
+
+         Assert.Fail("The restore neither failed nor completed within two minutes.");
+         return "";
+      }
+
+      /// <summary>
       ///    Edits the one archive in the backup directory: the role an archived
       ///    assignment names is renamed, in the index, and the index is put back into
       ///    the archive in place of the one the backup wrote. What a person would do
@@ -660,6 +817,35 @@ namespace RegressionTests.Infrastructure
       ///    role that is in neither the archive nor the server.
       /// </summary>
       private void RenameTheArchivedRole(string from, string to)
+      {
+         EditTheArchivedIndex(xml =>
+         {
+            var reference = new Regex("(Column=[\"']raroleid[\"']\\s+Name=[\"'])" + Regex.Escape(from) + "([\"'])");
+            Assert.AreEqual(1, reference.Matches(xml).Count,
+               "Expected exactly one archived assignment naming " + from + " in the index.");
+
+            return reference.Replace(xml, "${1}" + to + "${2}");
+         });
+      }
+
+      /// <summary>
+      ///    Edits the archive so that the account's assignment appears twice. The
+      ///    second row is refused by the unique index on the account, which is the one
+      ///    way to make a restore fail exactly between the account's row and its
+      ///    assignment, on every database this server runs on.
+      /// </summary>
+      private void DuplicateTheArchivedAssignment()
+      {
+         EditTheArchivedIndex(xml =>
+         {
+            var store = new Regex("(<Store Name=[\"']hm_roleassignments[\"']>)(\\s*<Row\\b.*?</Row>)(\\s*</Store>)", RegexOptions.Singleline);
+            Assert.AreEqual(1, store.Matches(xml).Count, "Expected exactly one archived assignment store in the index.");
+
+            return store.Replace(xml, "${1}${2}${2}${3}");
+         });
+      }
+
+      private void EditTheArchivedIndex(Func<string, string> edit)
       {
          FileInfo[] archives = new DirectoryInfo(_backupDirectory).GetFiles("*.7z");
          Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + _backupDirectory);
@@ -673,13 +859,7 @@ namespace RegressionTests.Infrastructure
          Assert.IsTrue(File.Exists(index), "7za.exe did not extract the backup's index.");
 
          // settings-store-exempt: reads and rewrites the backup archive's index, not hMailServer.ini.
-         string xml = File.ReadAllText(index);
-
-         var reference = new Regex("(Column=[\"']raroleid[\"']\\s+Name=[\"'])" + Regex.Escape(from) + "([\"'])");
-         Assert.AreEqual(1, reference.Matches(xml).Count,
-            "Expected exactly one archived assignment naming " + from + " in the index.");
-
-         xml = reference.Replace(xml, "${1}" + to + "${2}");
+         string xml = edit(File.ReadAllText(index));
 
          // UTF-16 with a byte-order mark, which is what the server writes the index in
          // and what its reader detects.

@@ -291,6 +291,24 @@ namespace HM
       {
          return text.IsEmpty() ? String(_T("(none)")) : String(_T("'")) + text + String(_T("'"));
       }
+
+      // Every level by name, and a number no level has by its number: a
+      // hand-edited row or archive can carry one, and a message that called
+      // it "domain administrator" because it was not the other would be wrong.
+      String AdminLevelName(Account::AdminLevel level)
+      {
+         switch (level)
+         {
+         case Account::ServerAdmin:
+            return _T("server administrator");
+         case Account::DomainAdmin:
+            return _T("domain administrator");
+         case Account::NormalUser:
+            return _T("ordinary account");
+         default:
+            return String(_T("admin level ")) + StringParser::IntToString((int) level);
+         }
+      }
    }
 
    bool
@@ -1224,6 +1242,8 @@ namespace HM
          return true;
 
       unsigned int restored = 0;
+      unsigned int kept = 0;
+      String restoredNames;
 
       for (int index = 0; index < rolesNode->GetChildCount(); index++)
       {
@@ -1233,6 +1253,44 @@ namespace HM
             continue;
 
          const String roleName = ReadRoleAttribute(roleNode, RoleNameAttribute);
+         const String description = ReadRoleAttribute(roleNode, RoleDescriptionAttribute);
+         const String permissions = ReadRoleAttribute(roleNode, RolePermissionsAttribute);
+
+         // A role this server already has is KEPT as it is here - see the
+         // header. The difference, if there is one, is named with both sides,
+         // so that the administrator who wants the archive's definition makes
+         // that change and it is recorded as theirs.
+         RoleRecord existing;
+         if (FindRole(roleName, existing))
+         {
+            kept++;
+
+            RoleGrant asArchived;
+            asArchived.permissions = ParsePermissionList_(permissions);
+            const String archivedPermissions = String(DescribeGrant(asArchived));
+
+            if (existing.builtin)
+            {
+               Logger::Instance()->LogBackup(Formatter::Format(
+                  "The backup carries a role named {0}, which is a built-in role here; its permissions are in the code, and the backup's ({1}) have been ignored.",
+                  roleName, archivedPermissions));
+            }
+            else if (existing.permissions != archivedPermissions || existing.description != description)
+            {
+               Logger::Instance()->LogBackup(Formatter::Format(
+                  "The backup carries the custom role {0}, which this server already has. This server's definition has been kept: permissions {1} here and {2} in the backup; description {3} here and {4} in the backup. Every credential holding the role keeps what this server gives it; change the role deliberately if the backup's definition is wanted.",
+                  roleName, DescribeText(existing.permissions), DescribeText(archivedPermissions),
+                  DescribeText(existing.description), DescribeText(description)));
+            }
+            else
+            {
+               Logger::Instance()->LogBackup(Formatter::Format(
+                  "The backup carries the custom role {0}, which this server already has with the same permissions and description. Left as it is.",
+                  roleName));
+            }
+
+            continue;
+         }
 
          String error;
          bool refused = false;
@@ -1240,18 +1298,25 @@ namespace HM
          // Through the one writer a role has, so that a restored role is judged
          // exactly as a role made over REST is: no built-in name, no permission
          // that hands out authority, none this build does not know.
-         if (SaveCustomRole_(roleName, ReadRoleAttribute(roleNode, RoleDescriptionAttribute),
-                             ReadRoleAttribute(roleNode, RolePermissionsAttribute), error, refused))
+         if (SaveCustomRole_(roleName, description, permissions, error, refused))
          {
             restored++;
+
+            if (!restoredNames.IsEmpty())
+               restoredNames += _T(", ");
+            restoredNames += roleName;
+
             continue;
          }
 
          if (!refused)
          {
+            // The roles before this one in the archive are written already; a
+            // message that said nothing had changed would be wrong.
             Logger::Instance()->LogBackup(Formatter::Format(
-               "The custom role {0} could not be written to hm_roles: {1}. The restore has been stopped before any domain was removed.",
-               roleName, error));
+               "The custom role {0} could not be written to hm_roles: {1}. The restore has been stopped: no domain has been removed, and {2} custom role(s) the backup carries had already been created before the failure{3}.",
+               roleName, error, restored,
+               restoredNames.IsEmpty() ? String() : String(_T(" (")) + restoredNames + _T(")")));
             return false;
          }
 
@@ -1260,33 +1325,62 @@ namespace HM
             roleName, error));
       }
 
-      Logger::Instance()->LogBackup(Formatter::Format("Restored {0} custom role(s).", restored));
+      Logger::Instance()->LogBackup(Formatter::Format(
+         "Restored {0} custom role(s). {1} role(s) the backup carries were already on this server and have been kept as they are here.",
+         restored, kept));
 
       return true;
    }
 
    bool
-   RoleManager::RevokeUnrestoredRole(Account &account, const String &roleName)
+   RoleManager::WriteAdminLevel_(Account &account, Account::AdminLevel level)
+   {
+      SQLCommand write("update hm_accounts set accountadminlevel = @LEVEL where accountid = @ACCOUNTID");
+      write.AddParameter("@LEVEL", (int) level);
+      write.AddParameter("@ACCOUNTID", account.GetID());
+
+      if (!Application::Instance()->GetDBManager()->Execute(write))
+         return false;
+
+      account.SetAdminLevel(level);
+      Cache<Account>::Instance()->RemoveObject(account.GetAddress());
+
+      return true;
+   }
+
+   bool
+   RoleManager::RestoreArchivedAdminLevel(Account &account, Account::AdminLevel archivedLevel)
+   {
+      // An ordinary account's level was never withheld, and a level already in
+      // place needs nothing.
+      if (archivedLevel == Account::NormalUser || account.GetAdminLevel() == archivedLevel)
+         return true;
+
+      if (WriteAdminLevel_(account, archivedLevel))
+         return true;
+
+      // Not given back. That is the safe side of this - the account holds its
+      // role and nothing more - so the restore goes on, and both logs say what
+      // the account has not got.
+      const String message = Formatter::Format(
+         "The admin level the backup carries for {0} ({1}) could not be written back behind its restored role assignment. {0} holds its role and nothing more; give it the admin level deliberately if it is wanted.",
+         account.GetAddress(), AdminLevelName(archivedLevel));
+
+      Logger::Instance()->LogBackup(message);
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6130, "RoleManager::RestoreArchivedAdminLevel", message);
+
+      return true;
+   }
+
+   bool
+   RoleManager::RevokeUnrestoredRole(Account &account, const String &roleName, Account::AdminLevel archivedLevel)
    {
       const String missing = roleName.IsEmpty() ? String(_T("(no role named)")) : roleName;
-      const Account::AdminLevel level = account.GetAdminLevel();
 
-      if (level == Account::NormalUser)
-      {
-         Logger::Instance()->LogBackup(Formatter::Format(
-            "The backup gives {0} the role {1}, which neither the backup nor this server has. The assignment has not been restored: {0} is an ordinary account until an administrator gives it a role.",
-            account.GetAddress(), missing));
-
-         return true;
-      }
-
-      // The row first and the object after, so that a level that could not be
-      // written is not reported as lowered.
-      SQLCommand lower("update hm_accounts set accountadminlevel = @LEVEL where accountid = @ACCOUNTID");
-      lower.AddParameter("@LEVEL", (int) Account::NormalUser);
-      lower.AddParameter("@ACCOUNTID", account.GetID());
-
-      if (!Application::Instance()->GetDBManager()->Execute(lower))
+      // The row is an ordinary account's already when Account::XMLLoad saw the
+      // assignment coming, which is every way here; made sure of all the same,
+      // because this is the one place the wider level must not stand.
+      if (account.GetAdminLevel() != Account::NormalUser && !WriteAdminLevel_(account, Account::NormalUser))
       {
          Logger::Instance()->LogBackup(Formatter::Format(
             "The backup gives {0} the role {1}, which neither the backup nor this server has, and its admin level could not be lowered in the assignment's place. The restore has been stopped rather than leave {0} holding the authority of its admin level.",
@@ -1295,14 +1389,25 @@ namespace HM
          return false;
       }
 
-      account.SetAdminLevel(Account::NormalUser);
-      Cache<Account>::Instance()->RemoveObject(account.GetAddress());
+      if (archivedLevel == Account::NormalUser)
+      {
+         Logger::Instance()->LogBackup(Formatter::Format(
+            "The backup gives {0} the role {1}, which neither the backup nor this server has. The assignment has not been restored: {0} is an ordinary account until an administrator gives it a role.",
+            account.GetAddress(), missing));
 
-      const String levelName = level == Account::ServerAdmin ? String(_T("server administrator")) : String(_T("domain administrator"));
+         return true;
+      }
 
-      Logger::Instance()->LogBackup(Formatter::Format(
+      const String message = Formatter::Format(
          "The backup gives {0} the role {1}, which neither the backup nor this server has. The assignment has not been restored, and because the account's admin level ({2}) would otherwise have given it authority the role had narrowed away, its admin level is now that of an ordinary account. Give {0} a role or an admin level to restore its authority.",
-         account.GetAddress(), missing, levelName));
+         account.GetAddress(), missing, AdminLevelName(archivedLevel));
+
+      Logger::Instance()->LogBackup(message);
+
+      // The error log and the Control Panel as well as the backup log: the
+      // restore goes on to report success, and an account that has lost its
+      // authority is not a line an administrator should have to go looking for.
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6129, "RoleManager::RevokeUnrestoredRole", message);
 
       return true;
    }

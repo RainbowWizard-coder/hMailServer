@@ -382,6 +382,12 @@ namespace HM
       return true;
    }
 
+   Account::AdminLevel
+   Account::ArchivedAdminLevel(XNode *pAccountNode)
+   {
+      return (AdminLevel) _ttoi(pAccountNode->GetAttrValue(_T("AdminLevel")));
+   }
+
    bool
    Account::XMLLoad(XNode *pAccountNode, int iRestoreOptions)
    {
@@ -406,7 +412,25 @@ namespace HM
       vacation_begin_date_ = pAccountNode->GetAttrValue(_T("VacationBeginDate"));
       vacation_abort_spam_flagged_ = (pAccountNode->GetAttrValue(_T("VacationAbortSpamFlagged")) == _T("1"));
 
-      admin_level_ = (AdminLevel) _ttoi(pAccountNode->GetAttrValue(_T("AdminLevel")));
+      // The admin level, WITHHELD while the account's role is not yet back.
+      //
+      // A role assignment narrows an account to its role, and the archive carries
+      // both the assignment and the level. The account's row is saved before its
+      // assignment can be (the row's id is what the assignment names), and until
+      // 15 September 2026 the assignment came last of everything, after the
+      // folders and the messages - so for the whole of that time, and for good
+      // if any step between failed and stopped the restore, an account narrowed
+      // from server administrator to help desk was the server administrator with
+      // nothing said. Now an account whose node carries an assignment is saved as
+      // an ordinary account, AccountStores::XMLLoadAssignment puts the assignment
+      // back first thing after the row, and only then is the archived level given
+      // back, behind the row that narrows it (RoleManager::RestoreArchivedAdminLevel);
+      // when the role cannot be found the level stays withheld
+      // (RoleManager::RevokeUnrestoredRole). An account with no assignment in the
+      // archive takes its level here, as it always did.
+      admin_level_ = AccountStores::CarriesAnAssignment(pAccountNode)
+         ? NormalUser
+         : ArchivedAdminLevel(pAccountNode);
      
       forward_address_ = pAccountNode->GetAttrValue(_T("ForwardAddress"));
 
@@ -446,6 +470,15 @@ namespace HM
    bool
    Account::XMLLoadSubItems(XNode *pAccountNode, int iRestoreOptions)
    {
+      // FIRST, before anything else of the account: its role assignment, and with
+      // it the admin level XMLLoad withheld. The assignment depends on no folder
+      // and no message, and every step below it here can fail and stop the
+      // restore - so it goes back the moment the row it names exists, and the
+      // account is never a step away from holding the authority its level alone
+      // would give it. See XMLLoad and AccountStores.h.
+      if (!AccountStores::XMLLoadAssignment(*this, pAccountNode))
+         return false;
+
       // Load 
       std::shared_ptr<HM::FetchAccounts> pFetchAccounts = std::shared_ptr<HM::FetchAccounts>(new HM::FetchAccounts(id_));
       pFetchAccounts->Refresh();
@@ -480,11 +513,13 @@ namespace HM
             return false;
       }
 
-      // LAST, and after the folders on purpose. A scheduled send names a message and
-      // a folder, and the archive carries those as a folder path and a UID because
-      // the ids themselves are reassigned by the restore - so they can only be
-      // resolved once this account's folders and messages are back. A reference that
-      // still does not resolve drops its row and says so; see AccountStores.h.
+      // The rest of the account's stores LAST, and after the folders on purpose. A
+      // scheduled send names a message and a folder, and the archive carries those
+      // as a folder path and a UID because the ids themselves are reassigned by the
+      // restore - so they can only be resolved once this account's folders and
+      // messages are back. A reference that still does not resolve drops its row
+      // and says so; see AccountStores.h. The role assignment is not among these:
+      // it went back first, above.
       if (!AccountStores::XMLLoad(*this, pAccountNode))
          return false;
 

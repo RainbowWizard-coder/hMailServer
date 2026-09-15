@@ -91,6 +91,11 @@ namespace HM
       AdminLevel GetAdminLevel() const{return admin_level_;}
       void SetAdminLevel(AdminLevel iNewVal) {admin_level_ = iNewVal; }
 
+      // The admin level an archive carries for an account node - what XMLStore
+      // wrote as AdminLevel. XMLLoad does not always take it (see there), so the
+      // restore reads it from the node again once the account's role is back.
+      static AdminLevel ArchivedAdminLevel(XNode *accountNode);
+
       void SetPasswordEncryption(int iNewVal) {password_encryption_ = iNewVal; }
 
       // The account's TOTP secret, base32. Empty means no second factor, which is

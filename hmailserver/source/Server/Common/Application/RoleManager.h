@@ -7,10 +7,10 @@
 #include <vector>
 #include <map>
 
+#include "../BO/Account.h"
+
 namespace HM
 {
-   class Account;
-
    // Who may administer what.
    //
    // Until September 2026 this server had two answers to that question and no
@@ -323,32 +323,56 @@ namespace HM
       // custom roles.
       //
       // XMLLoad puts them back, and BackupExecuter::StartRestore calls it BEFORE
-      // the domains - and so before the assignments - are restored. A role of
-      // the same name is updated to the archive's permissions and description;
-      // a custom role this server has and the archive does not is left alone,
-      // as the settings store leaves a setting alone. An archive with no <Roles>
-      // is one taken before this existed, and restores nothing here. A role the
-      // restore refuses - a built-in name, a name no role may have, no
-      // permission this server knows - is named in the backup log and skipped,
-      // and the assignments that name it are then dropped as below. False only
-      // when a role could not be written.
+      // the domains - and so before the assignments - are restored. It CREATES
+      // the roles this server lacks and KEEPS the ones it has, whatever the
+      // archive says about them: a role that is here already is this server's
+      // administrator's decision, and every holder of it that is not in the
+      // archive - an API key issued with Role=<name>, whose store no archive
+      // carries; on a settings-only restore, every account holding it - would
+      // otherwise be widened by a restore with nothing said and no actor to
+      // record it under. A kept role whose permissions or description differ
+      // from the archive's is named in the backup log with both, so that an
+      // administrator who wants the archive's definition makes that change
+      // deliberately. An archive with no <Roles> is one taken before this
+      // existed, and restores nothing here. A role the restore refuses - a
+      // built-in name, a name no role may have, no permission this server
+      // knows - is named in the backup log and skipped, and the assignments
+      // that name it are then dropped as below. False only when a role could
+      // not be written; the log then names the roles already created.
       static bool XMLStore(XNode *backupNode);
       static bool XMLLoad(XNode *backupNode);
 
-      // An assignment a restore could not put back: its role is in neither the
-      // archive nor this server. Without a row the account's grant is DERIVED
-      // from AdminLevel (see GrantForAccount), and the archive carries
-      // AdminLevel - so an account whose level says server administrator and
-      // which had been narrowed to a help desk would come back as the server
-      // administrator, with nothing said. So the level goes too: when it is
-      // higher than an ordinary account's it is set to one, and the backup log
-      // names the account and the role that was missing, so that an
+      // THE ADMIN LEVEL BEHIND AN ASSIGNMENT, ON RESTORE. Without a row an
+      // account's grant is DERIVED from AdminLevel (see GrantForAccount), and
+      // the archive carries AdminLevel beside the assignment - so an account
+      // whose level says server administrator and which had been narrowed to
+      // a help desk is the server administrator for as long as its level
+      // stands with no row beside it. Account::XMLLoad therefore saves such an
+      // account as an ordinary one, and AccountStores::XMLLoadAssignment calls
+      // one of these two once it knows whether the row can be written.
+      //
+      // RestoreArchivedAdminLevel: the row is written, so the level the
+      // archive carries goes back behind it, as it was on the server the
+      // backup was taken from. False when it could not be written; the
+      // account then holds its role and nothing more, and the log says so.
+      //
+      // RevokeUnrestoredRole: the row could not be placed - its role is in
+      // neither the archive nor this server - and the level stays withheld
+      // (and is made sure of, should the row not have been saved that way).
+      // The backup log and the error log name the account, the role that was
+      // missing and the level that has not been given back, so that an
       // administrator gives the authority back deliberately. False when the
       // account's level could not be written, which fails the restore rather
-      // than leaving the wider authority in place.
-      static bool RevokeUnrestoredRole(Account &account, const String &roleName);
+      // than leaving the wider authority in place. archivedLevel is the level
+      // the archive carries, which the account object no longer shows.
+      static bool RestoreArchivedAdminLevel(Account &account, Account::AdminLevel archivedLevel);
+      static bool RevokeUnrestoredRole(Account &account, const String &roleName, Account::AdminLevel archivedLevel);
 
    private:
+
+      // The row and the object, in that order, so that a level that could not
+      // be written is not reported as changed. The account leaves the cache.
+      static bool WriteAdminLevel_(Account &account, Account::AdminLevel level);
 
       // SaveCustomRole, saying which of the two ways it failed: refused is true
       // when the role itself was refused (its name, its permissions) and false
