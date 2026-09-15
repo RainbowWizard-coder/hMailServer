@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading;
 using hMailServer;
 using NUnit.Framework;
@@ -205,6 +206,8 @@ namespace RegressionTests.SMTP
 
             server.WaitForCompletion();
             Assert.AreEqual(1, server.RcptTosReceived);
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          }
       }
 
@@ -460,7 +463,7 @@ namespace RegressionTests.SMTP
          StringAssert.StartsWith("250", BounceTestSupport.RcptReply(sender.Address, Remote),
             "An expired entry must stop applying before the sweep removes it.");
 
-         (int status, string body) swept = Http("POST", "/api/v1/bounces/expire");
+         (int status, string body) swept = Http("POST", "/api/v1/bounces/expire", "{}");
          Assert.AreEqual(200, swept.status, swept.body);
          Assert.AreEqual(1, BounceTestSupport.Number(swept.body, "suppressions_expired"), swept.body);
 
@@ -468,7 +471,7 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("Deleting a domain takes its counts, its entries and its report keys with it, on every database: all three tables cascade from hm_domains.")]
+      [Description("Deleting a domain with a count, an entry and a report key succeeds, and each table still refuses a row for a domain that does not exist: all three cascade from hm_domains.")]
       public void DeletingTheDomainRemovesItsRows()
       {
          _settings.BounceProcessingEnabled = true;
@@ -486,15 +489,34 @@ namespace RegressionTests.SMTP
          Assert.AreEqual(201, Http("POST", "/api/v1/domains/" + Name + "/suppressions",
             "{\"address\":\"other@" + BounceTestSupport.RemoteDomain + "\"}").status);
 
-         _application.Domains.DeleteByDBID(doomed.ID);
+         int doomedId = doomed.ID;
 
-         Assert.AreEqual(404, Http("GET", "/api/v1/domains/" + Name + "/suppressions").status);
+         // With rows in all three tables, the delete can only succeed if every one of
+         // them either has no constraint at all or cascades.
+         _application.Domains.DeleteByDBID(doomedId);
 
-         SingletonProvider<TestSetup>.Instance.AddDomain(Name);
+         // And each still has its constraint: a row naming the deleted domain is
+         // refused by the database. Together the two leave only the cascade - read
+         // off the database's behaviour, so it holds on whichever of the four the
+         // bench runs, without reading a table the COM API cannot return.
+         string[] orphans =
+         {
+            "insert into hm_bouncesuppressions (bsdomainid, bsaddress, bssource, bscategory, bsstatus, bsdiagnostic, bsremotemta, bscreated, bsexpires) " +
+               "values (" + doomedId + ", 'orphan@" + BounceTestSupport.RemoteDomain + "', 2, 0, '', '', '', '2026-01-01 00:00:00', '')",
+            "insert into hm_bouncecounts (bcdomainid, bcaddress, bchard, bcsoft, bcmailboxfull, bcpolicy, bcother, bcconsecutivehard, bclaststatus, bclastcategory, bclastbounce, bclastdelivered) " +
+               "values (" + doomedId + ", 'orphan@" + BounceTestSupport.RemoteDomain + "', 0, 0, 0, 0, 0, 0, '', 0, '', '')",
+            "insert into hm_bouncereportkeys (brkdomainid, brkkey, brksent) values (" + doomedId + ", 'orphan', '2026-01-01 00:00:00')"
+         };
 
-         Assert.AreEqual(0, BounceTestSupport.Number(Read("/api/v1/domains/" + Name + "/suppressions"), "total"),
-            "A domain created again under the same name inherited the deleted domain's list.");
-         Assert.AreEqual(0, BounceTestSupport.Number(Read("/api/v1/domains/" + Name + "/bounces"), "total"));
+         foreach (string orphan in orphans)
+         {
+            Assert.Throws<COMException>(() => _application.Database.ExecuteSQL(orphan),
+               "A row naming a domain that does not exist was accepted, so this table has no foreign key to hm_domains: " + orphan);
+         }
+
+         // The refusals are reported to the error log by the connection that saw
+         // them; those lines are this test's, not a fault.
+         LogHandler.ReadAndDeleteErrorLog();
       }
 
       [Test]

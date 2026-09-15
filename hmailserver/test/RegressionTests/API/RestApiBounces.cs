@@ -205,7 +205,7 @@ namespace RegressionTests.API
 
             Assert.AreEqual(403, Bearer("GET", SettingsPath, scoped.token).status, "The bounce settings apply to every domain.");
             Assert.AreEqual(403, Bearer("PUT", SettingsPath, scoped.token, "{\"processing_enabled\":true}").status);
-            Assert.AreEqual(403, Bearer("POST", "/api/v1/bounces/expire", scoped.token).status, "The sweep removes entries from every domain.");
+            Assert.AreEqual(403, Bearer("POST", "/api/v1/bounces/expire", scoped.token, "{}").status, "The sweep removes entries from every domain.");
             Assert.AreEqual(200, Bearer("POST", "/api/v1/bounces/classify", scoped.token, "{\"status\":\"5.1.1\"}").status,
                "Classify reads and writes nothing, so it is anybody's.");
 
