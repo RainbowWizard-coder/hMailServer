@@ -86,7 +86,8 @@ One kind of change passes neither: **a lockout lifted**. `POST
 failed-authentication lockout and the POP3 mailbox lock, both held in memory;
 `Account.UnlockMailbox` clears the POP3 lock alone (and, since 15 September 2026,
 asks `unlock_account` for anybody's mailbox but the caller's own - an account clearing
-its own lock is not an administrative change and is recorded as nothing); and `POST
+its own lock is not an administrative change, asks no question, installs no actor and is
+deliberately not recorded, since a COM pool thread still carries the last caller's); and `POST
 /api/v1/settings/logon-failures/clear` and `Settings.ClearLogonFailureList` delete the
 rows of `hm_logon_failures`, which is traffic and not an audited table. Each is recorded
 explicitly, through `AuditTrail::RecordEvent`, at the call site that makes it - object

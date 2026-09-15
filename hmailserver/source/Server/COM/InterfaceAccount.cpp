@@ -668,20 +668,24 @@ STDMETHODIMP InterfaceAccount::UnlockMailbox()
       // unlock needs, in the account's domain, exactly as Application.UnlockAccount
       // and POST /api/v1/accounts/{address}/unlock ask it. Until 15 September
       // 2026 this asked nothing at all.
-      if (authentication_->GetAccountID() != object_->GetID() &&
-          !authentication_->AllowsForDomain(HM::RolePermission::UnlockAccount, HM::StringParser::ExtractDomain(object_->GetAddress())))
-      {
+      const bool own = authentication_->GetAccountID() == object_->GetID();
+
+      if (!own && !authentication_->AllowsForDomain(HM::RolePermission::UnlockAccount, HM::StringParser::ExtractDomain(object_->GetAddress())))
          return authentication_->GetAccessDenied();
-      }
 
       POP3Sessions::Instance()->Unlock(object_->GetID());
 
       // The lock is held in memory, so neither audit chokepoint sees this; it is
-      // recorded here, under the actor the question above installed. An account
-      // clearing its own lock installs none and is recorded as nothing, which is
-      // what it is.
-      HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("unlocked"),
-         _T("the POP3 mailbox lock was cleared"));
+      // recorded here, under the actor the question above installed. The
+      // account's own unlock asked no question and so installed none, and a
+      // COM pool thread keeps the last caller's actor - so it is not recorded
+      // at all, rather than recorded under whoever used the thread last. It is
+      // not an administrative change, which is the same answer.
+      if (!own)
+      {
+         HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("unlocked"),
+            _T("the POP3 mailbox lock was cleared"));
+      }
    
       return S_OK;
    }
