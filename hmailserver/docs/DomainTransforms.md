@@ -304,18 +304,24 @@ differ from SMTP:
   reply gets no domain signature — but they cannot take out what the page wrote.
   Over SMTP they keep both signatures off.
 
-A mail client over SMTP is unchanged: the server adds the account's signature and
-the domain's by the method, as it always has.
+A mail client over SMTP is unchanged in this: the server adds the account's
+signature and the domain's by the method, as it always has — except on a signed
+or encrypted message, below.
 
 ### Signed and encrypted messages get no signature either
 
 Since 15 September 2026 the **signature** follows the disclaimer's rule for a
 `multipart/signed`, `multipart/encrypted`, PKCS#7 or PGP message: it is sent as
-written, with a line in the application log. Before, a domain signature was
-appended to the text part inside a `multipart/signed` — breaking the S/MIME
-signature of every such message a desktop client sent — and the webmail's own
-S/MIME send would have been broken the same way the moment the signature reached
-it. This is a change on the SMTP path too, and deliberately.
+written, with a line in the application log (`SignatureAdder - Message ... is
+signed or encrypted`), and the disclaimer writes a line of its own
+(`DisclaimerAdder - Message ...`) when it is on and would otherwise have applied.
+Before, the account's or the domain's signature was appended to the text part
+inside a `multipart/signed` — breaking the S/MIME signature of every such message
+a desktop client sent from an account or a domain with a signature on — and the
+webmail's own S/MIME send would have been broken the same way the moment the
+signature reached it. This is a change on the SMTP path too, and deliberately: an
+installation that relied on a signature inside signed mail will now see none
+there, and it belongs in the release notes as a change of behaviour.
 
 ### What is not a person sending
 
