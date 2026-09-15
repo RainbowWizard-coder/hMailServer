@@ -237,7 +237,9 @@ signing with a file that no longer exists. A restore from backup is not affected
 The clients avoid tripping it: the Control Panel writes the selector and key file
 only when they were changed in the dialog, the Deck sends only the keys that
 changed, and `hmctl config` and the PowerShell module leave those four keys out of
-a configuration document for a domain whose rotation is on.
+a configuration document for a domain whose rotation is on - and, for a domain
+whose schedule is off but whose rotation the server says is in flight, out of the
+comparison and out of what an apply sends.
 
 To take a domain back to managing its key by hand: cancel the next key if there is
 one, retire the old selector (or wait for it), and switch the schedule off. The

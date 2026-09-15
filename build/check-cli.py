@@ -73,6 +73,24 @@ ROTATION_STATUS = {
     "last_error": None,
 }
 
+# A rotation started by hand on a domain whose schedule is off, switched and still
+# keeping its old selector: the server holds the domain's selectors (and refuses a
+# change to them with 409) until that selector retires.
+HELD_ROTATION_STATUS = dict(
+    ROTATION_STATUS, domain="example.org", phase="idle",
+    policy={"enabled": False, "interval_days": 180, "propagation_hours": 72, "retention_days": 7, "key_bits": 2048},
+    current=dict(ROTATION_STATUS["current"], selector="s20260901",
+                 key_file="/var/lib/hmailserver/DKIM/s20260901._domainkey.example.org.pem"),
+    next=None,
+    retiring={"selector": "s20260301", "key_file": "/var/lib/hmailserver/DKIM/s20260301._domainkey.example.org.pem",
+              "generated": True, "since": 1788220800, "retire_due": 1788825600,
+              "records": [{"host": "s20260301._domainkey.example.org", "type": "TXT",
+                           "value": "v=DKIM1; k=rsa; p=OLDKEY", "action": "keep"}],
+              "check": {"status": "matches", "checked": 1789000000, "detail": ""}},
+    retired=None,
+    waiting=[{"step": "retire", "reason": "retention", "until": 1788825600, "detail": ""},
+             {"step": "start", "reason": "not_scheduled", "until": 0, "detail": ""}])
+
 # What the recorded server answers, by (method, path). A path not here is a 404,
 # which is what an unknown route deserves and what a wrong one will get.
 ANSWERS = {
@@ -83,6 +101,10 @@ ANSWERS = {
          "dkim_private_key_file": "/var/lib/hmailserver/DKIM/s20260915._domainkey.example.com.pem",
          "dkim_secondary_selector": "", "dkim_secondary_private_key_file": ""},
         {"name": "example.net", "active": False, "max_size_mb": 100, "account_count": 0},
+        {"name": "example.org", "active": True, "max_size_mb": 0, "account_count": 0,
+         "dkim_rotation_enabled": False, "dkim_selector": "s20260901",
+         "dkim_private_key_file": "/var/lib/hmailserver/DKIM/s20260901._domainkey.example.org.pem",
+         "dkim_secondary_selector": "", "dkim_secondary_private_key_file": ""},
     ]},
     ("GET", "/api/v1/domains/example.com"): {"name": "example.com", "active": True, "plus_addressing_enabled": True},
     ("POST", "/api/v1/domains"): {"name": "new.example", "active": True},
@@ -134,6 +156,11 @@ ANSWERS = {
     ("GET", "/api/v1/domains/example.net/aliases"): {"aliases": []},
     ("GET", "/api/v1/domains/example.net/lists"): {"lists": []},
     ("PUT", "/api/v1/domains/example.net"): {"name": "example.net", "active": True},
+    ("GET", "/api/v1/domains/example.org/accounts"): {"accounts": []},
+    ("GET", "/api/v1/domains/example.org/aliases"): {"aliases": []},
+    ("GET", "/api/v1/domains/example.org/lists"): {"lists": []},
+    ("PUT", "/api/v1/domains/example.org"): {"name": "example.org", "active": False},
+    ("GET", "/api/v1/domains/example.org/dkim/rotation"): HELD_ROTATION_STATUS,
     ("GET", "/api/v1/ipranges"): {"ipranges": [
         {"id": 1, "name": "My computer", "lower_ip": "127.0.0.1", "upper_ip": "127.0.0.1", "priority": 15}]},
     ("GET", "/api/v1/reports"): {
@@ -277,6 +304,8 @@ class Recorder(BaseHTTPRequestHandler):
 
 PROBLEMS = []
 CHECKS = [0]
+
+ROTATION_OWNED_KEYS = ("dkim_selector", "dkim_private_key_file", "dkim_secondary_selector", "dkim_secondary_private_key_file")
 
 
 def problem(message):
@@ -595,6 +624,45 @@ def run_powershell_config_cases(url, tmp, verbose):
           "Compare-HmConfiguration must still see a selector change on a domain whose rotation is off, said %r %s"
           % (completed.stdout.strip(), completed.stderr.strip()[:200]))
 
+    # example.org's schedule is off, and a rotation started by hand still keeps its
+    # old selector, so the server holds its selectors. The document keeps them...
+    for row in written.get("sections", {}).get("domains", []):
+        if row.get("name") == "example.org":
+            check(row.get("dkim_selector") == "s20260901",
+                  "the module's document must keep the selector of a domain whose schedule is off: %s" % row)
+
+    # ...and a document from before that rotation's switch matches while it holds them.
+    held_path = os.path.join(tmp, "ps-held.json")
+    completed = run("$d = Get-Content -Path '%s' -Raw | ConvertFrom-Json; "
+                    "$o = $d.sections.domains | Where-Object name -eq 'example.org'; "
+                    "$o.dkim_selector = 's20260301'; "
+                    "$o.dkim_private_key_file = '/var/lib/hmailserver/DKIM/s20260301._domainkey.example.org.pem'; "
+                    "$d | ConvertTo-Json -Depth 20 | Set-Content -Path '%s' -Encoding utf8; "
+                    "Compare-HmConfiguration -Path '%s' | Where-Object Key -eq 'example.org' | Measure-Object | Select-Object -ExpandProperty Count"
+                    % (document.replace("'", "''"), held_path.replace("'", "''"), held_path.replace("'", "''")))
+    check(completed.returncode == 0 and completed.stdout.strip() == "0",
+          "Compare-HmConfiguration of an old selector on a domain whose hand-started rotation holds it should be empty, "
+          "said %r %s" % (completed.stdout.strip(), completed.stderr.strip()[:300]))
+
+    # With a real change beside it, the change is sent and the selectors are not.
+    held_change_path = os.path.join(tmp, "ps-held-change.json")
+    completed = run("$d = Get-Content -Path '%s' -Raw | ConvertFrom-Json; "
+                    "($d.sections.domains | Where-Object name -eq 'example.org').active = $false; "
+                    "$d | ConvertTo-Json -Depth 20 | Set-Content -Path '%s' -Encoding utf8"
+                    % (held_path.replace("'", "''"), held_change_path.replace("'", "''")))
+    check(completed.returncode == 0, "the module could not write the held document: %s" % completed.stderr.strip()[:300])
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run("Import-HmConfiguration -Path '%s' -Force -Confirm:$false | Out-Null" % held_change_path.replace("'", "''"))
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    puts = [r["body"] for r in applying if r["method"] == "PUT" and r["path"] == "/api/v1/domains/example.org"]
+    check(completed.returncode == 0 and len(puts) == 1 and isinstance(puts[0], dict) and puts[0].get("active") is False
+          and not any(key in puts[0] for key in ("dkim_selector", "dkim_private_key_file",
+                                                 "dkim_secondary_selector", "dkim_secondary_private_key_file")),
+          "Import-HmConfiguration must send example.org's change without the selectors its rotation holds: exit %d, %s %s"
+          % (completed.returncode, puts, completed.stderr.strip()[:300]))
+
     # A change, planned but not applied.
     with open(document, encoding="utf-8-sig") as handle:
         changed = json.load(handle)
@@ -702,7 +770,9 @@ def run_config_cases(url, tmp):
     check("example.com" in first and "ann@example.com" in first,
           "the document holds neither the domain nor its accounts")
     check("all@example.com" in first, "the document holds no distribution list")
-    check('"dkim_rotation_enabled": true' in first and "s20260915" not in first and "dkim_selector" not in first,
+    rotating = [row for row in json.loads(first).get("sections", {}).get("domains", []) if row.get("name") == "example.com"]
+    check(len(rotating) == 1 and rotating[0].get("dkim_rotation_enabled") is True and "s20260915" not in first
+          and not any(key in rotating[0] for key in ROTATION_OWNED_KEYS),
           "a domain whose DKIM key rotation is on must not carry the selector and key files the rotation owns:\n%s"
           % first[:1200])
     check("mx.partner.test" in first, "the document holds no route")
@@ -793,6 +863,70 @@ def run_config_cases(url, tmp):
     check(not any(r["method"] == "PUT" and r["path"] == "/api/v1/domains/example.com" for r in applying),
           "apply --force of a stale document wrote the domain whose rotation owns its selector: %s"
           % [(r["method"], r["path"], r["body"]) for r in applying if r["method"] != "GET"])
+
+    # example.org's schedule is off, and a rotation started by hand still keeps its
+    # old selector, so the server holds its selectors. The document keeps them...
+    check('"s20260901"' in first,
+          "a domain whose schedule is off must keep its selector in the document:\n%s" % first[:1600])
+
+    # ...a document from before that rotation's switch matches while it holds them...
+    held = json.loads(first)
+    for row in held["sections"]["domains"]:
+        if row.get("name") == "example.org":
+            row["dkim_selector"] = "s20260301"
+            row["dkim_private_key_file"] = "/var/lib/hmailserver/DKIM/s20260301._domainkey.example.org.pem"
+    held_path = os.path.join(tmp, "held.json")
+    with open(held_path, "w", encoding="utf-8") as handle:
+        json.dump(held, handle, indent=2, sort_keys=True)
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run(["config", "diff", held_path])
+    with Recorder.lock:
+        asking = list(Recorder.requests)
+    check(completed.returncode == 0 and "already matches" in completed.stdout,
+          "an old selector on a domain whose hand-started rotation holds it must match, exit %d:\n%s"
+          % (completed.returncode, completed.stdout))
+    check(any(r["method"] == "GET" and r["path"] == "/api/v1/domains/example.org/dkim/rotation" for r in asking),
+          "config diff did not ask the server whether a rotation holds example.org's selectors: %s"
+          % [r["path"] for r in asking])
+
+    # ...and applied with a real change beside it, the change is sent without them.
+    for row in held["sections"]["domains"]:
+        if row.get("name") == "example.org":
+            row["active"] = False
+    with open(held_path, "w", encoding="utf-8") as handle:
+        json.dump(held, handle, indent=2, sort_keys=True)
+    with Recorder.lock:
+        Recorder.requests = []
+    run(["config", "apply", held_path, "--force"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    puts = [r["body"] for r in applying if r["method"] == "PUT" and r["path"] == "/api/v1/domains/example.org"]
+    check(len(puts) == 1 and isinstance(puts[0], dict) and puts[0].get("active") is False
+          and not any(key in puts[0] for key in ROTATION_OWNED_KEYS),
+          "apply --force must send example.org's change without the selectors its rotation holds: %s" % puts)
+
+    # The negative control: the same selector change on example.net, which no
+    # rotation holds, is a difference, and applying it sends the selector.
+    loose = json.loads(first)
+    for row in loose["sections"]["domains"]:
+        if row.get("name") == "example.net":
+            row["dkim_selector"] = "s20260301"
+    loose_path = os.path.join(tmp, "loose.json")
+    with open(loose_path, "w", encoding="utf-8") as handle:
+        json.dump(loose, handle, indent=2, sort_keys=True)
+    completed = run(["config", "diff", loose_path])
+    check(completed.returncode == 1 and "example.net" in completed.stdout,
+          "a selector change on a domain no rotation holds must be a difference, exit %d:\n%s"
+          % (completed.returncode, completed.stdout))
+    with Recorder.lock:
+        Recorder.requests = []
+    run(["config", "apply", loose_path, "--force"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    puts = [r["body"] for r in applying if r["method"] == "PUT" and r["path"] == "/api/v1/domains/example.net"]
+    check(len(puts) == 1 and isinstance(puts[0], dict) and puts[0].get("dkim_selector") == "s20260301",
+          "apply --force must send the selector of a domain no rotation holds: %s" % puts)
 
     fewer = json.loads(first)
     fewer["sections"]["domains"] = [r for r in fewer["sections"]["domains"] if r.get("name") != "example.net"]

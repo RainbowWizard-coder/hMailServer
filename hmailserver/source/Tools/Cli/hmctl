@@ -916,6 +916,13 @@ NOT_CONFIGURATION = {
 # server refuses with 409. Left out of the document and out of the comparison,
 # and not sent, whenever the domain (on the server or in the document) has the
 # rotation on.
+#
+# The server holds them for a while with the schedule off too: while a rotation
+# started by hand has a next key staged or an old selector still being kept, it
+# refuses a change to them just the same. The document keeps them then - they are
+# the domain's configuration once that rotation is over - but a comparison that
+# finds them different asks the server (rotation_in_flight), and an update leaves
+# them out while the server says it holds them.
 ROTATION_OWNED = ("dkim_selector", "dkim_private_key_file", "dkim_secondary_selector", "dkim_secondary_private_key_file")
 
 CONFIG_VERSION = 1
@@ -927,6 +934,24 @@ def without_rotation_owned(row, rotation_on=None):
     if not rotation_on:
         return row
     return dict((k, v) for k, v in row.items() if k not in ROTATION_OWNED)
+
+
+def rotation_in_flight(client, domain):
+    """Whether the server's DKIM key rotation holds a domain's selector and key
+    files right now - its schedule on, a next key staged, or an old selector still
+    being kept - which is when the server refuses a change to them with 409. A
+    server without the route, or a key that may not read it, answers no, and the
+    update is sent as before."""
+    try:
+        answer = client.request("GET", "/api/v1/domains/" + urllib.parse.quote(domain, safe="") + "/dkim/rotation")
+    except ApiError as error:
+        if error.status in (403, 404):
+            return False
+        raise
+    if not isinstance(answer, dict):
+        return False
+    policy = answer.get("policy") if isinstance(answer.get("policy"), dict) else {}
+    return policy.get("enabled") is True or answer.get("next") is not None or answer.get("retiring") is not None
 
 
 def configuration_key(section, row):
@@ -1033,10 +1058,12 @@ def read_configuration(client, domains=None):
     return document
 
 
-def configuration_plan(live, wanted):
+def configuration_plan(live, wanted, in_flight=None):
     """What would have to happen to make the server match the document: a list
     of (section, verb, key, detail). Nothing is decided here about whether it
-    may happen - that is apply's business."""
+    may happen - that is apply's business. in_flight, when given, answers for a
+    domain name whether the server's key rotation holds its selectors; it is
+    asked only about a domain whose selectors differ and whose schedule is off."""
     plan = []
 
     live_sections = live.get("sections", {})
@@ -1075,9 +1102,16 @@ def configuration_plan(live, wanted):
 
         if name == "domains":
             for key in there_rows:
-                live_on = here_rows.get(key, {}).get("dkim_rotation_enabled") is True
-                there_rows[key] = without_rotation_owned(
-                    there_rows[key], live_on or there_rows[key].get("dkim_rotation_enabled") is True)
+                here = here_rows.get(key)
+                there = there_rows[key]
+                owned = (here or {}).get("dkim_rotation_enabled") is True or there.get("dkim_rotation_enabled") is True
+                if (not owned and here is not None and in_flight is not None
+                        and any(here.get(k) != there.get(k) for k in ROTATION_OWNED)):
+                    owned = in_flight(key)
+                if owned:
+                    there_rows[key] = without_rotation_owned(there, True)
+                    if here is not None:
+                        here_rows[key] = without_rotation_owned(here, True)
 
         for key in sorted(there_rows):
             if key not in here_rows:
@@ -1127,7 +1161,7 @@ def config_diff(client, arguments):
     with io.open(arguments.file, encoding="utf-8") as handle:
         wanted = json.load(handle)
     live = read_configuration(client)
-    plan = configuration_plan(live, wanted)
+    plan = configuration_plan(live, wanted, lambda name: rotation_in_flight(client, name))
     render_plan(plan, arguments.json)
     # A difference is an exit code, so that a pipeline can gate on it the way it
     # gates on a failing test.
@@ -1138,7 +1172,7 @@ def config_apply(client, arguments):
     with io.open(arguments.file, encoding="utf-8") as handle:
         wanted = json.load(handle)
     live = read_configuration(client)
-    plan = configuration_plan(live, wanted)
+    plan = configuration_plan(live, wanted, lambda name: rotation_in_flight(client, name))
 
     deletions = [step for step in plan if step[1] == "delete"]
     if deletions and not arguments.allow_delete:
@@ -1216,7 +1250,10 @@ def apply_one(client, wanted, section, verb, key):
         raise ApiError(0, "the document has no %s named %s" % (section, key))
 
     if section == "domains" and verb == "update":
-        row = without_rotation_owned(row)
+        # Asked of the server at the moment of the update, not of the document: the
+        # schedule may be on there and off here, or a rotation started by hand may
+        # be holding the selectors with the schedule off on both.
+        row = without_rotation_owned(row, row.get("dkim_rotation_enabled") is True or rotation_in_flight(client, key))
 
     if verb == "create":
         path = resource["collection"]

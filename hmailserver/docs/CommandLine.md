@@ -249,7 +249,13 @@ What it does not carry, and why:
   key back - which the server refuses. They are left out of the document, out of
   the comparison and out of what `apply` sends while the rotation is on, in the
   document or on the server; the schedule itself (`dkim_rotation_enabled` and the
-  four periods) is configuration and travels.
+  four periods) is configuration and travels. A rotation started by hand holds
+  them for a while with the schedule off - while its next key is staged or its old
+  selector is still being kept - and the server refuses a change to them then
+  too. The document keeps them for such a domain, because they are its
+  configuration once that rotation is over, but when `diff` or `apply` finds
+  them different it asks the server's rotation route, and while the server says
+  it holds them they are left out of the comparison and of what is sent.
 
 ### A repository that is the configuration
 

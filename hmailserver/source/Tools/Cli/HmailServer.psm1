@@ -1178,7 +1178,46 @@ $script:NotConfiguration = @(
 # server after it, and importing it would ask for the old key back, which the
 # server refuses. Left out of the document, out of the comparison and out of what
 # is sent whenever the domain has the rotation on - the same rule as hmctl's.
+#
+# The server holds them for a while with the schedule off too, while a rotation
+# started by hand has a next key staged or an old selector still being kept. The
+# document keeps them then - they are the domain's configuration once that
+# rotation is over - but a comparison that finds them different asks the server
+# (Test-HmRotationHoldsKeys), and an update leaves them out while it says so.
 $script:RotationOwned = @('dkim_selector', 'dkim_private_key_file', 'dkim_secondary_selector', 'dkim_secondary_private_key_file')
+
+function Test-HmRotationHoldsKeys {
+    # Whether the server's DKIM key rotation holds a domain's selector and key
+    # files right now: its schedule on, a next key staged, or an old selector still
+    # being kept - when the server refuses a change to them with 409. A server
+    # without the route, or a key that may not read it, answers no.
+    param([Parameter(Mandatory = $true)] [string] $Domain)
+    try {
+        $status = Invoke-HmApi -Method GET -Path (Get-HmDkimRotationPath -Domain $Domain)
+    }
+    catch {
+        return $false
+    }
+    if (-not $status) { return $false }
+    $names = @($status.PSObject.Properties.Name)
+    $enabled = ($names -contains 'policy') -and $status.policy -and
+               (@($status.policy.PSObject.Properties.Name) -contains 'enabled') -and $status.policy.enabled -eq $true
+    $next = ($names -contains 'next') -and $null -ne $status.next
+    $retiring = ($names -contains 'retiring') -and $null -ne $status.retiring
+    return [bool] ($enabled -or $next -or $retiring)
+}
+
+function Test-HmRotationOwnedDiffers {
+    param([Parameter(Mandatory = $true)] $Here, [Parameter(Mandatory = $true)] $There)
+    $hereNames = @($Here.PSObject.Properties.Name)
+    $thereNames = @($There.PSObject.Properties.Name)
+    foreach ($owned in $script:RotationOwned) {
+        $before = if ($hereNames -contains $owned) { [string] $Here.$owned } else { '' }
+        $after = if ($thereNames -contains $owned) { [string] $There.$owned } else { '' }
+        if ($before -ne $after) { return $true }
+    }
+    return $false
+}
 
 function Remove-HmRotationOwned {
     param([Parameter(Mandatory = $true)] $Row, [bool] $RotationOn = $false)
@@ -1343,6 +1382,14 @@ function Compare-HmConfiguration {
             if ($section.Name -eq 'domains') {
                 $liveOn = $here.ContainsKey($key) -and ($here[$key].PSObject.Properties.Name -contains 'dkim_rotation_enabled') -and
                           $here[$key].dkim_rotation_enabled -eq $true
+                $documentOn = ($row.PSObject.Properties.Name -contains 'dkim_rotation_enabled') -and $row.dkim_rotation_enabled -eq $true
+                if (-not $liveOn -and -not $documentOn -and $here.ContainsKey($key) -and
+                    (Test-HmRotationOwnedDiffers -Here $here[$key] -There $row) -and (Test-HmRotationHoldsKeys -Domain $key)) {
+                    # A rotation started by hand holds them with the schedule off:
+                    # left out of both sides, as they are for a schedule that is on.
+                    $liveOn = $true
+                    $here[$key] = Remove-HmRotationOwned -Row $here[$key] -RotationOn $true
+                }
                 $row = Remove-HmRotationOwned -Row $row -RotationOn $liveOn
             }
             $there[$key] = $row
@@ -1423,7 +1470,10 @@ function Import-HmConfiguration {
             continue
         }
 
-        if ($step.Section -eq 'domains' -and $step.Verb -eq 'update') { $row = Remove-HmRotationOwned -Row $row }
+        if ($step.Section -eq 'domains' -and $step.Verb -eq 'update') {
+            # Asked of the server at the moment of the update, not of the document.
+            $row = Remove-HmRotationOwned -Row $row -RotationOn (Test-HmRotationHoldsKeys -Domain $step.Key)
+        }
 
         $body = @{}
         foreach ($property in $row.PSObject.Properties) {
