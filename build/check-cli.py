@@ -33,6 +33,7 @@ Usage:
 
 import argparse
 import base64
+import csv
 import json
 import os
 import shutil
@@ -60,11 +61,28 @@ ANSWERS = {
     ("POST", "/api/v1/domains"): {"name": "new.example", "active": True},
     ("PUT", "/api/v1/domains/example.com"): {"name": "example.com", "active": False},
     ("DELETE", "/api/v1/domains/example.net"): None,
-    ("GET", "/api/v1/domains/example.com/accounts"): {"accounts": [
-        {"address": "ann@example.com", "active": True, "max_size_mb": 100, "admin_level": 0},
-        {"address": "bob@example.com", "active": True, "max_size_mb": 0, "admin_level": 0},
-    ]},
-    ("POST", "/api/v1/domains/example.com/accounts"): {"address": "new@example.com", "active": True},
+    # The listing as the real route answers it (AccountListEntryJson_ in
+    # RestApiRoutes.cpp): a bare array, each entry address and active and then
+    # the four fields a spreadsheet export writes. This answer once carried an
+    # admin_level of 0 and no names, which the real route never sent, and the
+    # export check passed against it while a real export wrote empty columns.
+    ("GET", "/api/v1/domains/example.com/accounts"): [
+        {"address": "ann@example.com", "active": True, "max_size_mb": 100, "first_name": "Ann",
+         "last_name": "Adams", "admin_level": "domain"},
+        {"address": "bob@example.com", "active": True, "max_size_mb": 0, "first_name": "",
+         "last_name": "", "admin_level": "user"},
+    ],
+    ("POST", "/api/v1/domains/example.com/accounts"): {"address": "new@example.com", "created": True},
+    # A domain that is not in the domain listing, so the configuration cases
+    # never read it: the export and the round trip of the spreadsheet, with a
+    # name outside ASCII and a comma inside a cell.
+    ("GET", "/api/v1/domains/example.org/accounts"): [
+        {"address": "zoe@example.org", "active": False, "max_size_mb": 250, "first_name": "Zo\u00eb",
+         "last_name": "O'Neil, Jr", "admin_level": "user"},
+        {"address": "yan@example.org", "active": True, "max_size_mb": 0, "first_name": "",
+         "last_name": "", "admin_level": "server"},
+    ],
+    ("POST", "/api/v1/domains/example.org/accounts"): {"address": "new@example.org", "created": True},
     ("GET", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": True, "vacation_message": ""},
     ("PUT", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": False},
     ("DELETE", "/api/v1/accounts/bob@example.com"): None,
@@ -638,63 +656,261 @@ def run_config_cases(url, tmp):
           % [(r["method"], r["path"]) for r in applying])
 
 
-def run_import_cases(url, tmp):
-    """The CSV import, which is the one verb with logic of its own."""
-    path = os.path.join(tmp, "accounts.csv")
+# The spreadsheet both clients import, and exactly what each row must become.
+# Every expectation here is a body the create route (ReadNewAccount_) stores:
+# a password is a string whatever it looks like, a name goes in first_name and
+# last_name, active is a boolean, max_size_mb a number and admin_level one of
+# three lower-case words. Five rows are refused by the client before anything
+# is sent, in the create's own words, so a dry run refuses them too.
+IMPORT_CSV = (
+    "address,password,first_name,last_name,active,max_size_mb,admin_level\r\n"
+    "ann@example.com,secret,Ann,Adams,true,100,domain\r\n"            # exists: left alone
+    "carol@example.com,20260915,Carol,Clark,yes,50,DOMAIN\r\n"        # a password of digits alone
+    "dave@example.com,true,,,false,,\r\n"                             # a password that reads as a boolean
+    "una@example.org, pass word ,\u00dana,\"\u00d3 N\u00e9ill, Jr\",TRUE,0,user\r\n"
+    "erin@example.com,Erin-Pass-1,Erin,,maybe,,\r\n"                  # refused: active
+    "frank@example.com,,Frank,,,,\r\n"                                # refused: no password
+    "gina@example.com,Gina-Pass-1,,,,5.5,\r\n"                        # refused: max_size_mb
+    "hal@example.com,Hal-Pass-1,,,,,root\r\n"                         # refused: admin_level
+    "ivy@example.com,Ivy-Pass-1,Ivy,Adams, Jr,true,,user\r\n"        # refused: a comma outside quotes
+)
+
+IMPORT_BODIES = [
+    ("/api/v1/domains/example.com/accounts",
+     {"address": "carol@example.com", "password": "20260915", "first_name": "Carol", "last_name": "Clark",
+      "active": True, "max_size_mb": 50, "admin_level": "domain"}),
+    ("/api/v1/domains/example.com/accounts",
+     {"address": "dave@example.com", "password": "true", "active": False}),
+    ("/api/v1/domains/example.org/accounts",
+     {"address": "una@example.org", "password": "pass word", "first_name": "\u00dana",
+      "last_name": "\u00d3 N\u00e9ill, Jr", "active": True, "max_size_mb": 0, "admin_level": "user"}),
+]
+
+IMPORT_REFUSED = {
+    "erin@example.com": "active must be true or false",
+    "frank@example.com": "no password",
+    "gina@example.com": "max_size_mb must be a whole number",
+    "hal@example.com": "admin_level must be user, domain or server",
+    "ivy@example.com": "more cells than the header has columns",
+}
+
+EXPORT_HEADER = ["address", "first_name", "last_name", "active", "max_size_mb", "admin_level"]
+
+# The two passwords the round trip adds to the exported file, by address.
+ROUND_TRIP_PASSWORDS = {"zoe@example.org": "Round-Trip-1", "yan@example.org": "Round-Trip-2"}
+
+
+def write_import_files(tmp):
+    """The three files every import case reads: the spreadsheet above, one with
+    a single name column (which the documentation once showed), and one saved in
+    the ANSI code page rather than UTF-8."""
+    people = os.path.join(tmp, "people.csv")
+    with open(people, "w", encoding="utf-8", newline="") as handle:
+        handle.write(IMPORT_CSV)
+    named = os.path.join(tmp, "named.csv")
+    with open(named, "w", encoding="utf-8", newline="") as handle:
+        handle.write("address,password,name\r\nivy@example.com,Ivy-Pass-1,Ivy Iverson\r\n")
+    ansi = os.path.join(tmp, "ansi.csv")
+    with open(ansi, "wb") as handle:
+        handle.write(b"address,password,first_name\r\njo@example.com,Jo-Pass-1,Jos\xe9\r\n")
+    return people, named, ansi
+
+
+def check_export(label, path):
+    """The exported file: the import's columns less the password, and every
+    field the listing answered. Read with the BOM allowed, which Windows
+    PowerShell 5.1 writes."""
+    if not check(os.path.exists(path), "%s wrote no file" % label):
+        return []
+    with open(path, encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+        header = reader.fieldnames
+    if not check(header == EXPORT_HEADER, "%s wrote the columns %r, expected %r" % (label, header, EXPORT_HEADER)):
+        return []
+    expected = []
+    for entry in ANSWERS[("GET", "/api/v1/domains/example.org/accounts")]:
+        expected.append({
+            "address": entry["address"], "first_name": entry["first_name"], "last_name": entry["last_name"],
+            "active": "true" if entry["active"] else "false", "max_size_mb": str(entry["max_size_mb"]),
+            "admin_level": entry["admin_level"]})
+    check(rows == expected, "%s wrote %r, expected %r" % (label, rows, expected))
+    return rows
+
+
+def round_trip_file(tmp, label, rows):
+    """The exported rows given a password column and new addresses: what an
+    administrator does to copy a domain's accounts, and the proof that the
+    export writes nothing the import cannot take back."""
+    path = os.path.join(tmp, "round-trip-%s.csv" % label)
     with open(path, "w", encoding="utf-8", newline="") as handle:
-        handle.write("address,password,active,max_size_mb\r\n")
-        handle.write("ann@example.com,secret,true,100\r\n")       # exists: left alone
-        handle.write("carol@example.com,secret2,true,50\r\n")     # made
-        handle.write("dave@example.com,secret3,false,\r\n")       # made, empty column ignored
-    with Recorder.lock:
-        Recorder.requests = []
+        writer = csv.DictWriter(handle, fieldnames=["password"] + EXPORT_HEADER, lineterminator="\r\n")
+        writer.writeheader()
+        for row in rows:
+            moved = dict(row)
+            moved["password"] = ROUND_TRIP_PASSWORDS.get(row["address"], "")
+            moved["address"] = row["address"].replace("@", "2@")
+            writer.writerow(moved)
+    return path
 
-    completed = subprocess.run(
-        [sys.executable, HMCTL, "--url", url, "--password", PASSWORD, "accounts", "import", path, "--dry-run"],
-        capture_output=True, text=True, timeout=60)
 
-    with Recorder.lock:
-        requests = list(Recorder.requests)
+def check_round_trip(label, posts):
+    """Each body the round trip posted carries the listing's entry back: every
+    field it answered, of the type it answered, and an empty field not sent."""
+    listing = ANSWERS[("GET", "/api/v1/domains/example.org/accounts")]
+    check(len(posts) == len(listing), "%s round trip posted %d accounts, expected %d" % (label, len(posts), len(listing)))
+    for entry, post in zip(listing, posts):
+        expected = {"address": entry["address"].replace("@", "2@"), "password": ROUND_TRIP_PASSWORDS[entry["address"]]}
+        for key, value in entry.items():
+            if key != "address" and value != "":
+                expected[key] = value
+        check(post["path"] == "/api/v1/domains/example.org/accounts" and post["body"] == expected,
+              "%s round trip sent %r to %s, expected %r" % (label, post["body"], post["path"], expected))
 
-    check(completed.returncode == 0, "accounts import --dry-run: exit %d - %s" % (completed.returncode, completed.stderr))
+
+def check_import_posts(label, posts):
+    sent = [(r["path"], r["body"]) for r in posts]
+    check(sent == IMPORT_BODIES,
+          "%s posted:\n    %r\n  expected:\n    %r" % (label, sent, IMPORT_BODIES))
+
+
+def run_import_cases(url, tmp):
+    """The CSV import and export, which are the verbs with logic of their own."""
+    people, named, ansi = write_import_files(tmp)
+
+    def run(arguments):
+        with Recorder.lock:
+            Recorder.requests = []
+        completed = subprocess.run([sys.executable, HMCTL, "--url", url, "--password", PASSWORD] + arguments,
+                                   capture_output=True, text=True, encoding="utf-8", timeout=60)
+        with Recorder.lock:
+            return completed, list(Recorder.requests)
+
+    completed, requests = run(["accounts", "import", people, "--dry-run"])
+    check(completed.returncode == 1, "accounts import --dry-run of a file with refused rows should exit 1, exited %d - %s"
+          % (completed.returncode, completed.stderr))
     check(all(r["method"] == "GET" for r in requests),
           "accounts import --dry-run made a request that was not a GET: %s" % [r["method"] for r in requests])
-    check("2 would be made" in completed.stdout,
-          "accounts import --dry-run should say two would be made:\n%s" % completed.stdout)
+    check("3 would be made, 1 already there, 5 refused." in completed.stdout,
+          "accounts import --dry-run should count three to make, one there and five refused:\n%s" % completed.stdout)
     check("ann@example.com (exists; left alone)" in completed.stdout,
           "accounts import --dry-run should leave the existing account alone and say so:\n%s" % completed.stdout)
+    for address, reason in sorted(IMPORT_REFUSED.items()):
+        check(any(address in line and reason in line for line in completed.stdout.splitlines()),
+              "accounts import --dry-run should refuse %s with %r:\n%s" % (address, reason, completed.stdout))
 
-    with Recorder.lock:
-        Recorder.requests = []
+    completed, requests = run(["accounts", "import", people])
+    check(completed.returncode == 1, "accounts import with refused rows should exit 1, exited %d" % completed.returncode)
+    check_import_posts("hmctl accounts import", [r for r in requests if r["method"] == "POST"])
 
-    completed = subprocess.run(
-        [sys.executable, HMCTL, "--url", url, "--password", PASSWORD, "accounts", "import", path],
-        capture_output=True, text=True, timeout=60)
+    completed, requests = run(["accounts", "import", named])
+    check(completed.returncode != 0 and "'name'" in completed.stderr and "first_name and last_name" in completed.stderr,
+          "accounts import of a file with a name column must refuse it and say where a name goes, said: %s%s"
+          % (completed.stdout, completed.stderr))
+    check(not requests, "accounts import of a file with a name column must send nothing, sent %s"
+          % [(r["method"], r["path"]) for r in requests])
 
-    with Recorder.lock:
-        requests = list(Recorder.requests)
+    completed, requests = run(["accounts", "import", ansi])
+    check(completed.returncode != 0 and "not UTF-8" in completed.stderr,
+          "accounts import of a file that is not UTF-8 must say so, said: %s%s" % (completed.stdout, completed.stderr))
+    check(not requests, "accounts import of a file that is not UTF-8 must send nothing")
 
-    posts = [r for r in requests if r["method"] == "POST"]
-    check(len(posts) == 2, "accounts import should have posted two accounts, posted %d" % len(posts))
-    if len(posts) == 2:
-        check(posts[0]["body"] == {"address": "carol@example.com", "password": "secret2", "active": True, "max_size_mb": 50},
-              "accounts import sent %r for carol" % posts[0]["body"])
-        check(posts[1]["body"] == {"address": "dave@example.com", "password": "secret3", "active": False},
-              "accounts import sent %r for dave (an empty column must not be sent)" % posts[1]["body"])
-
-    # Export.
     out = os.path.join(tmp, "out.csv")
-    completed = subprocess.run(
-        [sys.executable, HMCTL, "--url", url, "--password", PASSWORD, "accounts", "export", "example.com", out],
-        capture_output=True, text=True, timeout=60)
+    completed, requests = run(["accounts", "export", "example.org", out])
     check(completed.returncode == 0, "accounts export: exit %d - %s" % (completed.returncode, completed.stderr))
+    rows = check_export("hmctl accounts export", out)
     if os.path.exists(out):
         with open(out, encoding="utf-8") as handle:
-            text = handle.read()
-        check("address" in text.splitlines()[0], "accounts export wrote no header: %r" % text[:80])
-        check("ann@example.com" in text, "accounts export wrote no accounts: %r" % text[:200])
-        check("password" not in text,
-              "accounts export must never write a password column - the server does not have them to give")
+            check("password" not in handle.readline(),
+                  "accounts export must never write a password column - the server does not have them to give")
+
+    if rows:
+        completed, requests = run(["accounts", "import", round_trip_file(tmp, "hmctl", rows)])
+        check(completed.returncode == 0, "the exported file, with passwords added, should import: exit %d - %s%s"
+              % (completed.returncode, completed.stdout, completed.stderr))
+        check_round_trip("hmctl", [r for r in requests if r["method"] == "POST"])
+
+
+def run_powershell_import_cases(url, tmp):
+    """Import-HmAccount and Export-HmAccount on the same files, held to the same
+    bodies as hmctl: one spreadsheet, one set of requests, whichever client."""
+    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    if not pwsh or not os.path.exists(MODULE):
+        return
+
+    people, named, ansi = write_import_files(tmp)
+    prologue = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
+                "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; "
+                % (MODULE.replace("'", "''"), url, PASSWORD))
+
+    def run(script):
+        with Recorder.lock:
+            Recorder.requests = []
+        completed = subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", prologue + script],
+                                   capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
+        with Recorder.lock:
+            return completed, list(Recorder.requests)
+
+    def quoted(path):
+        return "'" + path.replace("'", "''") + "'"
+
+    def outcome(completed):
+        for line in completed.stdout.splitlines():
+            if line.startswith("{") and '"Made"' in line:
+                try:
+                    return json.loads(line)
+                except ValueError:
+                    return None
+        return None
+
+    def as_list(value):
+        if value is None:
+            return []
+        return value if isinstance(value, list) else [value]
+
+    completed, requests = run("Import-HmAccount -Path %s -WhatIf | ConvertTo-Json -Compress -Depth 5" % quoted(people))
+    result = outcome(completed)
+    check(result is not None, "Import-HmAccount -WhatIf printed no outcome: %s %s"
+          % (completed.stdout[:400], completed.stderr[:400]))
+    check(all(r["method"] == "GET" for r in requests),
+          "Import-HmAccount -WhatIf made a request that was not a GET: %s" % [r["method"] for r in requests])
+    if result is not None:
+        check(sorted(as_list(result.get("Made"))) == sorted(body["address"] for _, body in IMPORT_BODIES),
+              "Import-HmAccount -WhatIf would make %r" % result.get("Made"))
+        check(as_list(result.get("Skipped")) == ["ann@example.com"],
+              "Import-HmAccount -WhatIf should leave ann@example.com alone, skipped %r" % result.get("Skipped"))
+        failed = dict((f.get("Address"), f.get("Error")) for f in as_list(result.get("Failed")))
+        for address, reason in sorted(IMPORT_REFUSED.items()):
+            check(reason in (failed.get(address) or ""),
+                  "Import-HmAccount -WhatIf should refuse %s with %r, said %r" % (address, reason, failed.get(address)))
+
+    completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null" % quoted(people))
+    check(completed.returncode == 0, "Import-HmAccount: exit %d - %s" % (completed.returncode, completed.stderr.strip()[:400]))
+    check_import_posts("Import-HmAccount", [r for r in requests if r["method"] == "POST"])
+
+    completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null" % quoted(named))
+    check(completed.returncode != 0 and "'name'" in completed.stderr and "first_name and last_name" in completed.stderr,
+          "Import-HmAccount of a file with a name column must refuse it and say where a name goes, said: %s"
+          % completed.stderr.strip()[:400])
+    check(not requests, "Import-HmAccount of a file with a name column must send nothing, sent %s"
+          % [(r["method"], r["path"]) for r in requests])
+
+    completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null" % quoted(ansi))
+    check(completed.returncode != 0 and "not UTF-8" in completed.stderr,
+          "Import-HmAccount of a file that is not UTF-8 must say so, said: %s" % completed.stderr.strip()[:400])
+    check(not requests, "Import-HmAccount of a file that is not UTF-8 must send nothing")
+
+    out = os.path.join(tmp, "ps-out.csv")
+    completed, requests = run("Export-HmAccount -Domain example.org -Path %s" % quoted(out))
+    check(completed.returncode == 0, "Export-HmAccount: exit %d - %s" % (completed.returncode, completed.stderr.strip()[:400]))
+    rows = check_export("Export-HmAccount", out)
+
+    if rows:
+        completed, requests = run("Import-HmAccount -Path %s -Confirm:$false | Out-Null"
+                                  % quoted(round_trip_file(tmp, "powershell", rows)))
+        check(completed.returncode == 0, "Import-HmAccount of the exported file: exit %d - %s"
+              % (completed.returncode, completed.stderr.strip()[:400]))
+        check_round_trip("Import-HmAccount", [r for r in requests if r["method"] == "POST"])
 
 
 def run_report_cases(url, tmp):
@@ -775,6 +991,7 @@ def main():
             powershell_ran = run_powershell_cases(url, arguments.verbose)
             if powershell_ran:
                 run_powershell_config_cases(url, tmp, arguments.verbose)
+                run_powershell_import_cases(url, tmp)
     finally:
         server.shutdown()
         shutil.rmtree(tmp, ignore_errors=True)

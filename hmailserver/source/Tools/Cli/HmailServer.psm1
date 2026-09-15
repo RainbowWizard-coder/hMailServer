@@ -195,7 +195,11 @@ function Invoke-HmApi {
     }
 
     if ($null -ne $Body) {
-        $arguments['Body'] = ($Body | ConvertTo-Json -Depth 10 -Compress)
+        # As UTF-8 bytes, not as a string: Windows PowerShell 5.1 writes a
+        # string body in ISO-8859-1, so an imported name with an accented
+        # letter reached the server as a byte that is not UTF-8, and a letter
+        # outside Latin-1 as its base letter. PowerShell 7 sent UTF-8 already.
+        $arguments['Body'] = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 10 -Compress))
         $arguments['ContentType'] = 'application/json'
     }
 
@@ -204,6 +208,19 @@ function Invoke-HmApi {
     }
 
     try {
+        if ($PSVersionTable.PSVersion.Major -lt 6) {
+            # Windows PowerShell 5.1 decodes a response that names no charset as
+            # ISO-8859-1, and the server's JSON names none (JSON is UTF-8, and
+            # RFC 8259 defines no charset parameter). So the bytes are read and
+            # decoded as UTF-8 here; otherwise Export-HmAccount wrote an e with
+            # a diaeresis as two characters of mojibake, and the next import
+            # sent them back.
+            $response = Invoke-WebRequest @arguments -UseBasicParsing
+            $text = [System.Text.Encoding]::UTF8.GetString($response.RawContentStream.ToArray())
+            if (-not $text.Trim()) { return }
+            if ([string] $response.Headers['Content-Type'] -like 'application/json*') { return , ($text | ConvertFrom-Json) }
+            return $text
+        }
         Invoke-RestMethod @arguments
     }
     catch [System.Net.WebException], [Microsoft.PowerShell.Commands.HttpResponseException] {
@@ -857,16 +874,137 @@ function Test-HmRuleCriterion {
 # Accounts in bulk
 # ---------------------------------------------------------------------------
 
+# The columns, in the order the export writes them. Each is a field of
+# POST /api/v1/domains/<domain>/accounts under the create's own name, and the
+# export reads the same names from the domain's listing, so a file exported and
+# given a password column goes back in as it came out. The create refuses any
+# other field by name, so a column not in this list is refused before a request
+# is made. The same list and the same rules as hmctl's CSV_FIELDS;
+# build/check-cli.py holds the two to the same requests.
+$script:AccountCsvColumns = @('address', 'password', 'first_name', 'last_name', 'active', 'max_size_mb', 'admin_level')
+
+function Read-HmAccountCsv {
+    # The file's records as ordered column -> cell dictionaries, the column
+    # names trimmed and lower-cased, each with Extra set when the record has
+    # more cells than the header has columns. Internal to Import-HmAccount.
+    #
+    # Read as UTF-8, strictly, as hmctl reads it: Import-Csv in Windows
+    # PowerShell 5.1 reads a file without a byte-order mark in the ANSI code
+    # page, which turns every accented name into mojibake, and a file that is
+    # not UTF-8 at all is refused rather than imported wrong. And parsed by
+    # the .NET CSV reader rather than ConvertFrom-Csv, which drops a cell past
+    # the header's last column without a word - so "Adams, Ann" written
+    # without quotes would have imported as Adams.
+    param([Parameter(Mandatory = $true)] [string] $Path)
+
+    $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $Path -ErrorAction Stop).ProviderPath)
+    try {
+        $text = (New-Object System.Text.UTF8Encoding($false, $true)).GetString($bytes).TrimStart([char] 0xFEFF)
+    }
+    catch {
+        throw "$Path is not UTF-8. Save it as CSV UTF-8 and import it again."
+    }
+
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    $parser = New-Object Microsoft.VisualBasic.FileIO.TextFieldParser (New-Object System.IO.StringReader $text)
+    $parser.TextFieldType = [Microsoft.VisualBasic.FileIO.FieldType]::Delimited
+    $parser.SetDelimiters(',')
+    $parser.HasFieldsEnclosedInQuotes = $true
+    $parser.TrimWhiteSpace = $false
+
+    $header = @()
+    $records = New-Object System.Collections.Generic.List[object]
+    try {
+        if (-not $parser.EndOfData) {
+            $header = @($parser.ReadFields() | ForEach-Object { ([string] $_).Trim().ToLowerInvariant() })
+        }
+        while (-not $parser.EndOfData) {
+            $fields = @($parser.ReadFields())
+            $cells = [ordered] @{}
+            for ($i = 0; $i -lt $header.Count; $i++) {
+                $cells[$header[$i]] = if ($i -lt $fields.Count) { [string] $fields[$i] } else { $null }
+            }
+            $records.Add([pscustomobject] @{ Cells = $cells; Extra = ($fields.Count -gt $header.Count) })
+        }
+    }
+    catch [Microsoft.VisualBasic.FileIO.MalformedLineException] {
+        throw "$Path is not CSV this can read, at line $($parser.ErrorLineNumber): $($_.Exception.Message)"
+    }
+    finally {
+        $parser.Close()
+    }
+
+    [pscustomobject] @{ Header = $header; Records = $records.ToArray() }
+}
+
+function ConvertTo-HmAccountBody {
+    # One record as the create's body, or the reason the create would refuse
+    # it. A cell is text unless its column is active (a boolean) or max_size_mb
+    # (a number): a password of digits alone, or a surname of "True", is a
+    # string. An empty cell is not sent, so the server's default applies.
+    # Internal to Import-HmAccount.
+    param([Parameter(Mandatory = $true)] $Record)
+
+    if ($Record.Extra) {
+        return [pscustomobject] @{ Body = $null; Error = 'more cells than the header has columns (a comma inside a value needs the value in quotes)' }
+    }
+
+    $body = @{}
+    foreach ($column in @($Record.Cells.Keys)) {
+        $value = $Record.Cells[$column]
+        if ($null -eq $value -or $column -eq '') { continue }
+        # Every cell is trimmed, the password's too, as hmctl trims them: a
+        # space at either end of a spreadsheet cell is far more often a slip
+        # than part of a password.
+        $text = ([string] $value).Trim()
+        if ($text -eq '') { continue }
+
+        if ($column -eq 'active') {
+            $word = $text.ToLowerInvariant()
+            if (@('true', 'yes', 'on', '1') -contains $word) { $body[$column] = $true }
+            elseif (@('false', 'no', 'off', '0') -contains $word) { $body[$column] = $false }
+            else { return [pscustomobject] @{ Body = $null; Error = "active must be true or false, not '$text'" } }
+        }
+        elseif ($column -eq 'max_size_mb') {
+            [long] $megabytes = 0
+            if ($text -notmatch '^[0-9]{1,10}$' -or -not [long]::TryParse($text, [ref] $megabytes) -or $megabytes -gt 2147483647) {
+                return [pscustomobject] @{ Body = $null; Error = "max_size_mb must be a whole number of megabytes, 0 for no limit, not '$text'" }
+            }
+            $body[$column] = $megabytes
+        }
+        elseif ($column -eq 'admin_level') {
+            $level = $text.ToLowerInvariant()
+            if (@('user', 'domain', 'server') -notcontains $level) {
+                return [pscustomobject] @{ Body = $null; Error = "admin_level must be user, domain or server, not '$text'" }
+            }
+            $body[$column] = $level
+        }
+        else {
+            $body[$column] = $text
+        }
+    }
+
+    if (-not $body.ContainsKey('password')) {
+        return [pscustomobject] @{ Body = $null; Error = 'no password; the server makes no account without one' }
+    }
+
+    [pscustomobject] @{ Body = $body; Error = $null }
+}
+
 function Import-HmAccount {
     <#
     .SYNOPSIS
         Makes accounts from a CSV file, with a dry run.
     .DESCRIPTION
-        The header row names the fields; address is the only one required, and
-        anything the account resource takes may be a column. An address that
-        already exists is left alone and counted, because an import that
-        silently overwrote a password would lock a hundred people out with one
-        command.
+        The file is UTF-8, and its header row names the columns: address,
+        password, first_name, last_name, active, max_size_mb and admin_level,
+        in any order. address and password are required on every row; the rest
+        may be left out or left empty, and a column not in that list is refused
+        before anything is sent. An address that already exists is left alone
+        and counted, because an import that silently overwrote a password
+        would lock a hundred people out with one command. A row the server
+        would refuse for its active, max_size_mb or admin_level cell is
+        refused under -WhatIf as well.
     .EXAMPLE
         Import-HmAccount -Path .\new-people.csv -WhatIf
     #>
@@ -876,14 +1014,33 @@ function Import-HmAccount {
         [string[]] $Domain
     )
 
-    $rows = @(Import-Csv -Path $Path)
-    if (-not $rows) { throw "$Path has no rows under its header." }
-    if ($rows[0].PSObject.Properties.Name -notcontains 'address') {
-        throw "$Path has no 'address' column; its columns are: " + ($rows[0].PSObject.Properties.Name -join ', ')
+    $file = Read-HmAccountCsv -Path $Path
+    $records = @($file.Records)
+    if ($records.Count -eq 0) { throw "$Path has no rows under its header." }
+
+    if ($file.Header -notcontains 'address') {
+        throw "$Path has no 'address' column; its columns are: " + (@($file.Header | Where-Object { $_ }) -join ', ')
+    }
+
+    # A header cell left blank over cells left blank is a spreadsheet's
+    # trailing comma, not a column.
+    $unknown = @()
+    foreach ($column in $file.Header) {
+        if ($script:AccountCsvColumns -contains $column -or $unknown -contains $column) { continue }
+        if ($column -eq '' -and -not ($records | Where-Object { $_.Cells[''] -and ([string] $_.Cells['']).Trim() })) { continue }
+        $unknown += $column
+    }
+    if ($unknown.Count -gt 0) {
+        $hint = if ($unknown -contains 'name') { ' A person''s name goes in two columns, first_name and last_name.' } else { '' }
+        throw ("$Path has a column the server does not take: " + (($unknown | ForEach-Object { "'$_'" }) -join ', ') +
+            '. The columns are ' + ($script:AccountCsvColumns -join ', ') + '.' + $hint)
     }
 
     $domains = if ($Domain) { $Domain } else {
-        $rows | ForEach-Object { if ($_.address -match '@') { ($_.address -split '@', 2)[1] } } | Sort-Object -Unique
+        $records | ForEach-Object {
+            $a = ([string] $_.Cells['address']).Trim()
+            if ($a -match '@') { ($a -split '@', 2)[1].ToLowerInvariant() }
+        } | Sort-Object -Unique
     }
 
     $existing = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
@@ -898,27 +1055,19 @@ function Import-HmAccount {
 
     $made = @(); $skipped = @(); $failed = @()
 
-    foreach ($row in $rows) {
-        $address = ([string] $row.address).Trim()
+    foreach ($record in $records) {
+        $address = ([string] $record.Cells['address']).Trim()
         if (-not $address) { $failed += [pscustomobject] @{ Address = ''; Error = 'no address' }; continue }
         if ($existing.Contains($address)) { $skipped += $address; continue }
+        if ($address -notmatch '@') { $failed += [pscustomobject] @{ Address = $address; Error = 'not an e-mail address' }; continue }
 
-        $body = @{}
-        foreach ($property in $row.PSObject.Properties) {
-            $value = [string] $property.Value
-            if ($null -eq $property.Value -or $value -eq '') { continue }
-            $body[$property.Name] = switch -regex ($value.Trim().ToLowerInvariant()) {
-                '^(true|yes|on)$'  { $true; break }
-                '^(false|no|off)$' { $false; break }
-                '^-?\d+$'          { if ($property.Name -eq 'address') { $value } else { [int] $value }; break }
-                default            { $value }
-            }
-        }
+        $converted = ConvertTo-HmAccountBody -Record $record
+        if ($null -eq $converted.Body) { $failed += [pscustomobject] @{ Address = $address; Error = $converted.Error }; continue }
 
         if (-not $PSCmdlet.ShouldProcess($address, 'Add account')) { $made += $address; continue }
 
         try {
-            Invoke-HmApi -Method POST -Path ("/api/v1/domains/" + [uri]::EscapeDataString(($address -split '@', 2)[1]) + "/accounts") -Body $body | Out-Null
+            Invoke-HmApi -Method POST -Path ("/api/v1/domains/" + [uri]::EscapeDataString(($address -split '@', 2)[1]) + "/accounts") -Body $converted.Body | Out-Null
             $made += $address
         }
         catch {
@@ -938,8 +1087,10 @@ function Export-HmAccount {
     .SYNOPSIS
         Writes a domain's accounts as a CSV file, or to the pipeline.
     .DESCRIPTION
-        No password column: the server does not have the passwords to give, and
-        a column of empty passwords re-imported would be a column of accounts
+        The columns Import-HmAccount reads, less the password: address,
+        first_name, last_name, active, max_size_mb and admin_level. No password
+        column, because the server does not have the passwords to give, and a
+        column of empty passwords re-imported would be a column of accounts
         nobody can sign in to.
     #>
     [CmdletBinding()]
@@ -948,8 +1099,11 @@ function Export-HmAccount {
         [Parameter(Position = 1)] [string] $Path
     )
 
+    # The JSON words for active, so the file reads the same whichever client wrote it.
     $accounts = Get-HmAccount -Domain $Domain |
-        Select-Object address, name, active, max_size_mb, admin_level
+        Select-Object address, first_name, last_name,
+            @{ Name = 'active'; Expression = { if ($null -eq $_.active) { '' } elseif ($_.active) { 'true' } else { 'false' } } },
+            max_size_mb, admin_level
 
     if ($Path) {
         $accounts | Export-Csv -Path $Path -NoTypeInformation -Encoding utf8

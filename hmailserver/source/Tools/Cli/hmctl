@@ -640,27 +640,121 @@ def member_command(client, arguments):
 # Accounts from a spreadsheet
 # ---------------------------------------------------------------------------
 
-CSV_FIELDS = ["address", "password", "name", "active", "max_size_mb", "admin_level"]
+# The columns, in the order the export writes them. Each is a field of
+# POST /api/v1/domains/<domain>/accounts under the create's own name, and the
+# export reads the same names from the domain's listing, so a file exported and
+# given a password column goes back in as it came out. The create refuses any
+# other field by name, so a column not in this list is refused here, before a
+# request is made - which is what lets a dry run say so as well.
+CSV_FIELDS = ["address", "password", "first_name", "last_name", "active", "max_size_mb", "admin_level"]
+
+# How a cell is sent. active is a boolean and max_size_mb a number; every other
+# column is text, whatever it looks like - a password of digits alone, or a
+# surname of "True", is a string. Those two and admin_level are checked here in
+# the server's own words, so a dry run refuses what the create would refuse.
+CSV_TRUE = ("true", "yes", "on", "1")
+CSV_FALSE = ("false", "no", "off", "0")
+CSV_ADMIN_LEVELS = ("user", "domain", "server")
+
+
+def account_csv_columns(path, fieldnames, rows):
+    """The header's columns, lower-cased and trimmed, or a refusal naming the
+    ones the create does not take."""
+    columns = [(name or "").strip().lower() for name in (fieldnames or [])]
+
+    if "address" not in columns:
+        raise ApiError(0, "%s has no 'address' column; its columns are: %s" %
+                       (path, ", ".join(name for name in (fieldnames or []) if name)))
+
+    unknown = []
+    for original, column in zip(fieldnames or [], columns):
+        if column in CSV_FIELDS or column in unknown:
+            continue
+        # A header cell left blank over cells left blank is a spreadsheet's
+        # trailing comma, not a column.
+        if column == "" and not any((row.get(original) or "").strip() for row in rows):
+            continue
+        unknown.append(column)
+
+    if unknown:
+        hint = ""
+        if "name" in unknown:
+            hint = " A person's name goes in two columns, first_name and last_name."
+        raise ApiError(0, "%s has a column the server does not take: %s. The columns are %s.%s" %
+                       (path, ", ".join(repr(column) for column in unknown), ", ".join(CSV_FIELDS), hint))
+
+    return columns
+
+
+def account_csv_body(row):
+    """One row as the create's body, or (None, reason) when the create would
+    refuse it. An empty cell is not sent, so the server's default applies."""
+    if None in row:
+        return None, "more cells than the header has columns (a comma inside a value needs the value in quotes)"
+
+    body = {}
+    for original, value in row.items():
+        column = (original or "").strip().lower()
+        if value is None or column == "":
+            continue
+
+        # Every cell is trimmed, the password's too: PowerShell's CSV reader
+        # drops the leading spaces of a cell that is not in quotes, and a space
+        # at either end of a spreadsheet cell is far more often a slip than
+        # part of a password. The two clients send the same body for one file.
+        text = value.strip()
+        if text == "":
+            continue
+
+        if column == "active":
+            word = text.lower()
+            if word in CSV_TRUE:
+                body[column] = True
+            elif word in CSV_FALSE:
+                body[column] = False
+            else:
+                return None, "active must be true or false, not %r" % text
+        elif column == "max_size_mb":
+            if not (text.isascii() and text.isdigit()) or len(text) > 10 or int(text) > 2147483647:
+                return None, "max_size_mb must be a whole number of megabytes, 0 for no limit, not %r" % text
+            body[column] = int(text)
+        elif column == "admin_level":
+            if text.lower() not in CSV_ADMIN_LEVELS:
+                return None, "admin_level must be user, domain or server, not %r" % text
+            body[column] = text.lower()
+        else:
+            body[column] = text
+
+    if not body.get("password"):
+        return None, "no password; the server makes no account without one"
+
+    return body, None
 
 
 def accounts_import(client, arguments):
-    """A CSV of accounts into a domain, with a dry run that says what would happen.
+    """A CSV of accounts into their domains, with a dry run that says what would happen.
 
-    The header row names the fields; address is the only one required. Anything
-    the account resource takes may be a column, so this does not need changing
-    when the account gains a field. A row whose address already exists is left
-    alone and counted, because an import that silently overwrote a password
-    would be a way to lock a hundred people out with one command.
+    The header row names the columns, which are CSV_FIELDS in any order: address
+    and password are required on every row, and the rest may be left out or left
+    empty. A row whose address already exists is left alone and counted, because
+    an import that silently overwrote a password would be a way to lock a hundred
+    people out with one command.
     """
-    with io.open(arguments.file, encoding="utf-8-sig", newline="") as handle:
-        rows = list(csv.DictReader(handle))
+    try:
+        with io.open(arguments.file, encoding="utf-8-sig", newline="") as handle:
+            reader = csv.DictReader(handle)
+            rows = list(reader)
+            fieldnames = reader.fieldnames
+    except UnicodeDecodeError:
+        # A spreadsheet's plain "CSV" is often the ANSI code page. Guessing
+        # which one would import a name wrong without a word.
+        raise ApiError(0, "%s is not UTF-8. Save it as CSV UTF-8 and import it again." % arguments.file)
 
     if not rows:
         raise ApiError(0, "%s has no rows under its header" % arguments.file)
 
-    if "address" not in (rows[0].keys() if rows else []):
-        raise ApiError(0, "%s has no 'address' column; the columns are: %s" %
-                       (arguments.file, ", ".join(rows[0].keys())))
+    account_csv_columns(arguments.file, fieldnames, rows)
+    address_key = [name for name in fieldnames if (name or "").strip().lower() == "address"][0]
 
     # The domains to read the existing addresses from: the ones named, or the
     # ones the file's own addresses are in. Accounts are listed UNDER their
@@ -671,7 +765,7 @@ def accounts_import(client, arguments):
     if not domains:
         seen = set()
         for row in rows:
-            address = (row.get("address") or "").strip()
+            address = (row.get(address_key) or "").strip()
             if "@" in address:
                 seen.add(address.split("@", 1)[1].lower())
         domains = sorted(seen)
@@ -692,28 +786,21 @@ def accounts_import(client, arguments):
 
     made, skipped, failed = [], [], []
     for number, row in enumerate(rows, start=2):
-        address = (row.get("address") or "").strip()
+        address = (row.get(address_key) or "").strip()
         if not address:
             failed.append((number, "(blank)", "no address"))
             continue
         if address.lower() in existing:
             skipped.append(address)
             continue
+        if "@" not in address:
+            failed.append((number, address, "not an e-mail address"))
+            continue
 
-        body = {}
-        for name, value in row.items():
-            if name is None or value is None or value == "":
-                continue
-            name = name.strip()
-            stripped = value.strip()
-            if stripped.lower() in ("true", "yes", "on"):
-                body[name] = True
-            elif stripped.lower() in ("false", "no", "off"):
-                body[name] = False
-            elif _is_number(stripped) and name != "address":
-                body[name] = json.loads(stripped)
-            else:
-                body[name] = value
+        body, reason = account_csv_body(row)
+        if body is None:
+            failed.append((number, address, reason))
+            continue
 
         if arguments.dry_run:
             made.append(address)
@@ -744,6 +831,8 @@ def accounts_import(client, arguments):
 
 
 def accounts_export(client, arguments):
+    """A domain's accounts as the import reads them, less the password column:
+    the server does not have the passwords to give."""
     answer = client.request("GET", "/api/v1/domains/%s/accounts"
                             % urllib.parse.quote(arguments.domain, safe=""))
     accounts = collection(answer, "accounts")
@@ -754,7 +843,12 @@ def accounts_export(client, arguments):
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
         for account in accounts:
-            writer.writerow({field: account.get(field, "") for field in fields})
+            cells = {}
+            for field in fields:
+                value = account.get(field, "")
+                # The JSON words, so the file reads the same whichever client wrote it.
+                cells[field] = ("true" if value else "false") if isinstance(value, bool) else value
+            writer.writerow(cells)
     finally:
         if handle is not sys.stdout:
             handle.close()
