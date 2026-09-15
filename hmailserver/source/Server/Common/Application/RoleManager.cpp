@@ -1018,23 +1018,44 @@ namespace HM
          return false;
       }
 
-      // Who held it, read before the delete takes the rows away, so that the
-      // record of the assignments going says whose they were.
-      String holders;
-      for (const RoleAssignment &assignment : ListAssignments())
+      // Who held it, read from the table before the delete takes the rows
+      // away - the table and not the copy, so that a row the copy has not seen
+      // is neither missed nor invented - so that the record of the assignments
+      // going says whose they were. One holder is the row's object, by its
+      // address; more are counted there, because the object name is short, and
+      // every address is in the detail, which is not.
+      std::vector<String> holders;
+
+      SQLCommand selectHolders(
+         "select accountaddress from hm_accounts inner join hm_roleassignments on raaccountid = accountid "
+         "where raroleid = @ID order by accountaddress");
+      selectHolders.AddParameter("@ID", record.id);
+
+      std::shared_ptr<DALRecordset> holding = Application::Instance()->GetDBManager()->OpenRecordset(selectHolders);
+
+      if (!holding)
       {
-         if (assignment.role_id != record.id)
-            continue;
-
-         if (!holders.IsEmpty())
-            holders += _T(", ");
-
-         holders += AccountAddress(assignment.account_id);
+         error = _T("the role's assignments could not be read");
+         return false;
       }
 
+      while (!holding->IsEOF())
       {
-         AuditDescription described(_T("hm_roleassignments"), holders.IsEmpty() ? String(_T("(nobody held it)")) : holders,
-            String(_T("role: ")) + record.name + _T(" -> (none), because the role was deleted"));
+         holders.push_back(holding->GetStringValue("accountaddress"));
+         holding->MoveNext();
+      }
+
+      // A role nobody held has no assignments to delete, and a row that said
+      // "(nobody held it)" went would be a record of nothing happening.
+      if (!holders.empty())
+      {
+         const String objectName = holders.size() == 1
+            ? holders[0]
+            : StringParser::IntToString((int) holders.size()) + _T(" accounts");
+
+         AuditDescription described(_T("hm_roleassignments"), objectName,
+            String(_T("role: ")) + record.name + _T(" -> (none), because the role was deleted; held by ") +
+            StringParser::JoinVector(holders, _T(", ")));
 
          SQLCommand removeAssignments("delete from hm_roleassignments where raroleid = @ID");
          removeAssignments.AddParameter("@ID", record.id);
@@ -1163,10 +1184,16 @@ namespace HM
    {
       error = _T("");
 
+      // Nothing held is nothing to take away: no statement, and so no row on
+      // the audit trail saying "(none) -> (none)". COM's AssignRole with an
+      // empty role name reaches here for any account; the REST route asks
+      // first and answers 404.
       RoleAssignment existing;
-      const String detail = AssignmentForAccount(accountId, existing)
-         ? String(_T("role: ")) + existing.role_name + _T(" -> (none); domains: ") + DescribeReach(existing.role_name, existing.domains) + _T(" -> (none)")
-         : String(_T("role: (none) -> (none)"));
+      if (!AssignmentForAccount(accountId, existing))
+         return true;
+
+      const String detail = String(_T("role: ")) + existing.role_name + _T(" -> (none); domains: ") +
+                            DescribeReach(existing.role_name, existing.domains) + _T(" -> (none)");
 
       AuditDescription described(_T("hm_roleassignments"), AccountAddress(accountId), detail);
 

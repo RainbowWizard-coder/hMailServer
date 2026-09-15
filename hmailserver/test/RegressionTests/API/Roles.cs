@@ -908,12 +908,23 @@ namespace RegressionTests.API
          Assign("helen@example.test", "auditor", "*");
          Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/helen@example.test").status);
 
+         // Taking away a role from an account that holds none takes nothing, and
+         // writes nothing: COM's AssignRole with an empty role reaches Unassign
+         // for any account.
+         _application.AssignRole("helen@example.test", "", "");
+
          Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
             "{\"name\":\"rolestest-words\",\"description\":\"reads logs\",\"permissions\":\"view_logs\"}").status);
          Assert.AreEqual(200, Admin("PUT", "/api/v1/roles/rolestest-words",
             "{\"description\":\"reads logs and the queue\",\"permissions\":\"view_logs,view_queue\"}").status);
          Assign("olga@example.test", "rolestest-words", "");
          Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-words").status);
+
+         // A role nobody held, deleted: the role's row, and no row saying that
+         // nobody's assignment went.
+         Assert.AreEqual(201, Admin("POST", "/api/v1/roles",
+            "{\"name\":\"rolestest-unheld\",\"description\":\"\",\"permissions\":\"view_logs\"}").status);
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/roles/rolestest-unheld").status);
 
          (int status, string body) trail = Admin("GET", "/api/v1/audit?limit=200");
          Assert.AreEqual(200, trail.status, trail.body);
@@ -944,16 +955,25 @@ namespace RegressionTests.API
                row("role", "created", "rolestest-words").GetProperty("detail").GetString());
             StringAssert.StartsWith("permissions: view_logs -> view_queue,view_logs; description: 'reads logs' -> 'reads logs and the queue'",
                row("role", "updated", "rolestest-words").GetProperty("detail").GetString());
-            StringAssert.StartsWith("role: rolestest-words -> (none), because the role was deleted",
+            StringAssert.StartsWith("role: rolestest-words -> (none), because the role was deleted; held by olga@example.test",
                row("role assignment", "deleted", "olga@example.test").GetProperty("detail").GetString());
             StringAssert.StartsWith("permissions: view_queue,view_logs; description: 'reads logs and the queue'",
                row("role", "deleted", "rolestest-words").GetProperty("detail").GetString());
+            row("role", "deleted", "rolestest-unheld");
 
             Assert.IsFalse(rows.Any(e => e.GetProperty("detail").GetString().Contains("raaccountid") ||
                                          e.GetProperty("detail").GetString().Contains("raroleid") ||
                                          e.GetProperty("object").GetString().StartsWith("roleid") ||
                                          e.GetProperty("object").GetString().StartsWith("raid")),
                "A role change is on the record as the ids its row is made of. Trail: " + trail.body);
+
+            // No row for a change that changed nothing: the role taken from an
+            // account holding none, and the assignments of a role nobody held.
+            Assert.IsFalse(rows.Any(e => e.GetProperty("detail").GetString().Contains("(none) -> (none)") ||
+                                         e.GetProperty("object").GetString().Contains("nobody held it") ||
+                                         (e.GetProperty("object_type").GetString() == "role assignment" &&
+                                          e.GetProperty("detail").GetString().Contains("rolestest-unheld"))),
+               "A change that changed nothing is on the record. Trail: " + trail.body);
          }
 
          (int status, string body) verified = Admin("GET", "/api/v1/audit/verify");

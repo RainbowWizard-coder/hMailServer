@@ -235,6 +235,9 @@ namespace HM
       static std::vector<RoleAssignment> ListAssignments();
       static bool AssignmentForAccount(__int64 accountId, RoleAssignment &assignment);
       static bool Assign(__int64 accountId, const String &roleName, const String &domains, String &error);
+
+      // Takes the account's role away. True, and nothing written, for an
+      // account that holds none.
       static bool Unassign(__int64 accountId, String &error);
 
       // What an assignment with no list of domains reaches. serveradmin and
