@@ -259,9 +259,9 @@
 //      one row per domain whose rotation the server manages, holding the current,
 //      next and retiring selectors with their times and DNS check results; and seeds
 //      the dkim.rotation.stalled alert rule.
-// 6051 adds hm_bouncesuppressions, hm_bouncecounts and hm_bouncereportkeys: the
+// 6049 adds hm_bouncesuppressions, hm_bouncecounts and hm_bouncereportkeys: the
 //      per-domain suppression list, the per-address bounce counts it is fed from,
 //      and the register of delivered messages a delivery report is matched against.
 //      All three start empty and nothing writes to them until BounceProcessingEnabled
 //      is switched on, so an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6051
+#define REQUIRED_DB_VERSION            6049

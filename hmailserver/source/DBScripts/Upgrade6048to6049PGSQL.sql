@@ -1,6 +1,6 @@
 create table hm_bouncesuppressions
 (
-	bsid bigint auto_increment not null, primary key(`bsid`), unique(`bsid`),
+	bsid bigserial not null primary key,
 	bsdomainid int not null,
 	bsaddress varchar(255) not null,
 	bssource int not null,
@@ -16,7 +16,7 @@ CREATE UNIQUE INDEX idx_hm_bouncesuppressions_address ON hm_bouncesuppressions (
 
 create table hm_bouncecounts
 (
-	bcid bigint auto_increment not null, primary key(`bcid`), unique(`bcid`),
+	bcid bigserial not null primary key,
 	bcdomainid int not null,
 	bcaddress varchar(255) not null,
 	bchard int not null,
@@ -35,7 +35,7 @@ CREATE UNIQUE INDEX idx_hm_bouncecounts_address ON hm_bouncecounts (bcdomainid, 
 
 create table hm_bouncereportkeys
 (
-	brkid bigint auto_increment not null, primary key(`brkid`), unique(`brkid`),
+	brkid bigserial not null primary key,
 	brkdomainid int not null,
 	brkkey varchar(64) not null,
 	brksent varchar(32) not null,
@@ -49,16 +49,10 @@ CREATE INDEX idx_hm_bouncereportkeys_sent ON hm_bouncereportkeys (brksent);
 
 CREATE INDEX idx_hm_bouncereportkeys_address ON hm_bouncereportkeys (brkaddress);
 
-ALTER TABLE hm_bouncesuppressions ENGINE=InnoDB;
-
 ALTER TABLE hm_bouncesuppressions ADD CONSTRAINT fk_hm_bouncesuppressions_domain FOREIGN KEY (bsdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
-
-ALTER TABLE hm_bouncecounts ENGINE=InnoDB;
 
 ALTER TABLE hm_bouncecounts ADD CONSTRAINT fk_hm_bouncecounts_domain FOREIGN KEY (bcdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
-ALTER TABLE hm_bouncereportkeys ENGINE=InnoDB;
-
 ALTER TABLE hm_bouncereportkeys ADD CONSTRAINT fk_hm_bouncereportkeys_domain FOREIGN KEY (brkdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
-update hm_dbversion set value = 6051;
+update hm_dbversion set value = 6049;

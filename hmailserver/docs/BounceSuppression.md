@@ -382,7 +382,7 @@ changes nothing, because the rows are keyed by the domain's id.
 The three tables
 ----------------
 
-Schema 6051 adds them; nothing is written to any of them until processing is on.
+Schema 6049 adds them; nothing is written to any of them until processing is on.
 Every address is stored lower-cased and every date is a `YYYY-MM-DD HH:MM:SS` string
 in the server's local time.
 

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// The three tables behind bounces read and the suppression list (schema 6051):
+// The three tables behind bounces read and the suppression list (schema 6049):
 // hm_bouncesuppressions, the list itself; hm_bouncecounts, what it is fed from;
 // and hm_bouncereportkeys, the register a delivery report is matched against.
 //

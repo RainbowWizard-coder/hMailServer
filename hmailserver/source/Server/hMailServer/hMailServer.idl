@@ -877,22 +877,22 @@ interface IInterfaceSettings : IDispatch{
    // hm_settings, read at the moment they matter, so a change applies to the next
    // message. Off by default; with BounceProcessingEnabled off none of the other
    // seven is consulted.
-   [propget, id(118), helpstring("Classify bounces, count them per address, and keep a suppression list per sending domain. Off by default.")] HRESULT BounceProcessingEnabled([out, retval] VARIANT_BOOL *pVal);
-   [propput, id(118), helpstring("Classify bounces, count them per address, and keep a suppression list per sending domain. Off by default.")] HRESULT BounceProcessingEnabled([in] VARIANT_BOOL newVal);
-   [propget, id(119), helpstring("Hard bounces in a row, with no delivery between them, that put an address on the suppression list. 1 to 100.")] HRESULT BounceHardBounceThreshold([out, retval] long *pVal);
-   [propput, id(119), helpstring("Hard bounces in a row, with no delivery between them, that put an address on the suppression list. 1 to 100.")] HRESULT BounceHardBounceThreshold([in] long newVal);
-   [propget, id(120), helpstring("Count a full mailbox (X.2.2) as a hard bounce. Off by default.")] HRESULT BounceMailboxFullIsHard([out, retval] VARIANT_BOOL *pVal);
-   [propput, id(120), helpstring("Count a full mailbox (X.2.2) as a hard bounce. Off by default.")] HRESULT BounceMailboxFullIsHard([in] VARIANT_BOOL newVal);
-   [propget, id(121), helpstring("What happens to a listed recipient: 0 refuse it with a reason, 1 drop it silently, 2 deliver and only record it.")] HRESULT BounceSuppressionAction([out, retval] long *pVal);
-   [propput, id(121), helpstring("What happens to a listed recipient: 0 refuse it with a reason, 1 drop it silently, 2 deliver and only record it.")] HRESULT BounceSuppressionAction([in] long newVal);
-   [propget, id(122), helpstring("Days after which an entry made by a bounce or a report stops applying and is removed. 0 keeps entries until removed by hand; at most 3650.")] HRESULT BounceSuppressionExpiryDays([out, retval] long *pVal);
-   [propput, id(122), helpstring("Days after which an entry made by a bounce or a report stops applying and is removed. 0 keeps entries until removed by hand; at most 3650.")] HRESULT BounceSuppressionExpiryDays([in] long newVal);
-   [propget, id(123), helpstring("Read RFC 3464 delivery reports that arrive for this server's senders, and keep the register they are matched against. On by default, subordinate to BounceProcessingEnabled.")] HRESULT BounceReadDeliveryReports([out, retval] VARIANT_BOOL *pVal);
-   [propput, id(123), helpstring("Read RFC 3464 delivery reports that arrive for this server's senders, and keep the register they are matched against. On by default, subordinate to BounceProcessingEnabled.")] HRESULT BounceReadDeliveryReports([in] VARIANT_BOOL newVal);
-   [propget, id(124), helpstring("Days bounce counts are kept after an address last bounced and was last delivered to. 0 keeps them; at most 3650.")] HRESULT BounceCountRetentionDays([out, retval] long *pVal);
-   [propput, id(124), helpstring("Days bounce counts are kept after an address last bounced and was last delivered to. 0 keeps them; at most 3650.")] HRESULT BounceCountRetentionDays([in] long newVal);
-   [propget, id(125), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([out, retval] long *pVal);
-   [propput, id(125), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([in] long newVal);
+   [propget, id(126), helpstring("Classify bounces, count them per address, and keep a suppression list per sending domain. Off by default.")] HRESULT BounceProcessingEnabled([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(126), helpstring("Classify bounces, count them per address, and keep a suppression list per sending domain. Off by default.")] HRESULT BounceProcessingEnabled([in] VARIANT_BOOL newVal);
+   [propget, id(127), helpstring("Hard bounces in a row, with no delivery between them, that put an address on the suppression list. 1 to 100.")] HRESULT BounceHardBounceThreshold([out, retval] long *pVal);
+   [propput, id(127), helpstring("Hard bounces in a row, with no delivery between them, that put an address on the suppression list. 1 to 100.")] HRESULT BounceHardBounceThreshold([in] long newVal);
+   [propget, id(128), helpstring("Count a full mailbox (X.2.2) as a hard bounce. Off by default.")] HRESULT BounceMailboxFullIsHard([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(128), helpstring("Count a full mailbox (X.2.2) as a hard bounce. Off by default.")] HRESULT BounceMailboxFullIsHard([in] VARIANT_BOOL newVal);
+   [propget, id(129), helpstring("What happens to a listed recipient: 0 refuse it with a reason, 1 drop it silently, 2 deliver and only record it.")] HRESULT BounceSuppressionAction([out, retval] long *pVal);
+   [propput, id(129), helpstring("What happens to a listed recipient: 0 refuse it with a reason, 1 drop it silently, 2 deliver and only record it.")] HRESULT BounceSuppressionAction([in] long newVal);
+   [propget, id(130), helpstring("Days after which an entry made by a bounce or a report stops applying and is removed. 0 keeps entries until removed by hand; at most 3650.")] HRESULT BounceSuppressionExpiryDays([out, retval] long *pVal);
+   [propput, id(130), helpstring("Days after which an entry made by a bounce or a report stops applying and is removed. 0 keeps entries until removed by hand; at most 3650.")] HRESULT BounceSuppressionExpiryDays([in] long newVal);
+   [propget, id(131), helpstring("Read RFC 3464 delivery reports that arrive for this server's senders, and keep the register they are matched against. On by default, subordinate to BounceProcessingEnabled.")] HRESULT BounceReadDeliveryReports([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(131), helpstring("Read RFC 3464 delivery reports that arrive for this server's senders, and keep the register they are matched against. On by default, subordinate to BounceProcessingEnabled.")] HRESULT BounceReadDeliveryReports([in] VARIANT_BOOL newVal);
+   [propget, id(132), helpstring("Days bounce counts are kept after an address last bounced and was last delivered to. 0 keeps them; at most 3650.")] HRESULT BounceCountRetentionDays([out, retval] long *pVal);
+   [propput, id(132), helpstring("Days bounce counts are kept after an address last bounced and was last delivered to. 0 keeps them; at most 3650.")] HRESULT BounceCountRetentionDays([in] long newVal);
+   [propget, id(133), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([out, retval] long *pVal);
+   [propput, id(133), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([in] long newVal);
 
 };
 
@@ -1379,12 +1379,12 @@ interface IInterfaceUtilities : IDispatch{
    // interface - the same documents GET /api/v1/domains/{domain}/suppressions and
    // /bounces answer - so the Control Panel reaches them without a new interface to
    // register. The server administrator, or the domain administrator of that domain.
-   [id(31), helpstring("The suppression list of a domain as JSON: domain, processing_enabled, action, total, offset and items of {address, source, category, status, diagnostic, remote_mta, created, expires, expired}, newest first. Search is a substring of the address; MaxRows 1 to 1000.")] HRESULT GetSuppressionList([in] BSTR DomainName, [in] BSTR Search, [in] long MaxRows, [out, retval] BSTR *Json);
-   [id(32), helpstring("Puts an address on a domain's suppression list by hand, with a note and an expiry in days (0 for none, at most 3650). Returns False when it is listed already. Raises an error for an address that is not valid or that this server hosts.")] HRESULT AddSuppression([in] BSTR DomainName, [in] BSTR Address, [in] BSTR Note, [in] long ExpiresDays, [out, retval] VARIANT_BOOL *Added);
-   [id(33), helpstring("Removes an address from a domain's suppression list, and starts its run of hard bounces again. Returns False when it was not listed.")] HRESULT RemoveSuppression([in] BSTR DomainName, [in] BSTR Address, [out, retval] VARIANT_BOOL *Removed);
-   [id(34), helpstring("The bounce counts of a domain's recipients as JSON: domain, total, offset and items of {address, hard, soft, mailbox_full, policy, other, consecutive_hard, last_status, last_category, last_bounce, last_delivered, suppressed}, newest first.")] HRESULT GetBounceCounts([in] BSTR DomainName, [in] BSTR Search, [in] long MaxRows, [out, retval] BSTR *Json);
-   [id(35), helpstring("How a status and a diagnostic would be classified, as JSON {category, suppresses, trusted, status}. A bare status reads as a delivery report's Status field; a reply beginning with its three digits reads as a refusal met while delivering. Reads and writes nothing.")] HRESULT ClassifyBounce([in] BSTR Status, [in] BSTR Diagnostic, [out, retval] BSTR *Json);
-   [id(36), helpstring("Runs the suppression list's maintenance sweep now - expired entries, old counts, old report keys - and returns how many rows it removed. The scheduled task runs it hourly. Server administrators only.")] HRESULT RunBounceMaintenance([out, retval] long *Removed);
+   [id(32), helpstring("The suppression list of a domain as JSON: domain, processing_enabled, action, total, offset and items of {address, source, category, status, diagnostic, remote_mta, created, expires, expired}, newest first. Search is a substring of the address; MaxRows 1 to 1000.")] HRESULT GetSuppressionList([in] BSTR DomainName, [in] BSTR Search, [in] long MaxRows, [out, retval] BSTR *Json);
+   [id(33), helpstring("Puts an address on a domain's suppression list by hand, with a note and an expiry in days (0 for none, at most 3650). Returns False when it is listed already. Raises an error for an address that is not valid or that this server hosts.")] HRESULT AddSuppression([in] BSTR DomainName, [in] BSTR Address, [in] BSTR Note, [in] long ExpiresDays, [out, retval] VARIANT_BOOL *Added);
+   [id(34), helpstring("Removes an address from a domain's suppression list, and starts its run of hard bounces again. Returns False when it was not listed.")] HRESULT RemoveSuppression([in] BSTR DomainName, [in] BSTR Address, [out, retval] VARIANT_BOOL *Removed);
+   [id(35), helpstring("The bounce counts of a domain's recipients as JSON: domain, total, offset and items of {address, hard, soft, mailbox_full, policy, other, consecutive_hard, last_status, last_category, last_bounce, last_delivered, suppressed}, newest first.")] HRESULT GetBounceCounts([in] BSTR DomainName, [in] BSTR Search, [in] long MaxRows, [out, retval] BSTR *Json);
+   [id(36), helpstring("How a status and a diagnostic would be classified, as JSON {category, suppresses, trusted, status}. A bare status reads as a delivery report's Status field; a reply beginning with its three digits reads as a refusal met while delivering. Reads and writes nothing.")] HRESULT ClassifyBounce([in] BSTR Status, [in] BSTR Diagnostic, [out, retval] BSTR *Json);
+   [id(37), helpstring("Runs the suppression list's maintenance sweep now - expired entries, old counts, old report keys - and returns how many rows it removed. The scheduled task runs it hourly. Server administrators only.")] HRESULT RunBounceMaintenance([out, retval] long *Removed);
 };
 
 [

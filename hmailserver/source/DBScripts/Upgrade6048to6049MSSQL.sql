@@ -12,9 +12,9 @@ create table hm_bouncesuppressions
 	bsexpires nvarchar(32) not null
 )
 
-ALTER TABLE hm_bouncesuppressions ADD CONSTRAINT hm_bouncesuppressions_pk PRIMARY KEY (bsid)
+ALTER TABLE hm_bouncesuppressions ADD CONSTRAINT hm_bouncesuppressions_pk PRIMARY KEY NONCLUSTERED (bsid)
 
-CREATE UNIQUE INDEX idx_hm_bouncesuppressions_address ON hm_bouncesuppressions (bsdomainid, bsaddress)
+CREATE UNIQUE CLUSTERED INDEX idx_hm_bouncesuppressions_address ON hm_bouncesuppressions (bsdomainid, bsaddress)
 
 create table hm_bouncecounts
 (
@@ -33,9 +33,9 @@ create table hm_bouncecounts
 	bclastdelivered nvarchar(32) not null
 )
 
-ALTER TABLE hm_bouncecounts ADD CONSTRAINT hm_bouncecounts_pk PRIMARY KEY (bcid)
+ALTER TABLE hm_bouncecounts ADD CONSTRAINT hm_bouncecounts_pk PRIMARY KEY NONCLUSTERED (bcid)
 
-CREATE UNIQUE INDEX idx_hm_bouncecounts_address ON hm_bouncecounts (bcdomainid, bcaddress)
+CREATE UNIQUE CLUSTERED INDEX idx_hm_bouncecounts_address ON hm_bouncecounts (bcdomainid, bcaddress)
 
 create table hm_bouncereportkeys
 (
@@ -61,4 +61,4 @@ ALTER TABLE hm_bouncecounts ADD CONSTRAINT fk_hm_bouncecounts_domain FOREIGN KEY
 
 ALTER TABLE hm_bouncereportkeys ADD CONSTRAINT fk_hm_bouncereportkeys_domain FOREIGN KEY (brkdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-update hm_dbversion set value = 6051
+update hm_dbversion set value = 6049
