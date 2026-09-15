@@ -165,9 +165,9 @@ Where each role works
 | | Control Deck | REST API | Control Panel (COM) |
 |---|---|---|---|
 | `serveradmin` | Every view | Every route | Every page |
-| `domainadmin` | The dashboard, DANE / TLSA, domains, fetch accounts, lists and roles; not the settings, rules, routes, certificates, ports, IP ranges, backup, server messages, queue or logs, which are server-wide | Its domains' accounts, aliases, lists and mailboxes, the status, and who holds a role in its domains | Domains and Administrator roles, as a domain administrator always has |
+| `domainadmin` | The dashboard, DANE / TLSA, domains, fetch accounts, lists, roles and the reports for its domains; not the settings, rules, routes, remote domains, certificates, ports, IP ranges, groups, backup, server messages, queue, logs or audit trail, which are server-wide | Its domains' accounts, aliases, lists and mailboxes, the status, and who holds a role in its domains | Domains and Administrator roles, as a domain administrator always has |
 | `helpdesk` | Domains, fetch accounts and lists, with *Reset password* and *Unlock* on every account | The reset, the unlock, the account listings and the trace of an address in its domains | Welcome and About only — use the Deck. `Application.ResetPassword`, `UnlockAccount` and `GlobalObjects.MessageTrace` answer a script |
-| `auditor` | Every view that reads; no button that changes anything | Every read; every write refused | Welcome, About and Administrator roles. COM's settings objects answer only the server administrator, so an auditor reads the configuration through the Deck or REST |
+| `auditor` | Every view that reads, the audit trail and the reports included | Every read, the audit trail included (an API key is refused the trail whatever its role); every write refused | Welcome, About and Administrator roles. COM's settings objects answer only the server administrator, so an auditor reads the configuration through the Deck or REST |
 
 A page or a view a role may not use is left out rather than shown and refused, and so
 is a server-wide view for a role confined to named domains. That is
@@ -199,10 +199,16 @@ else. `build/check-role-choke-point.py` runs on every pull request and fails whe
 
 `--self-test` shows each rule firing on text written to break it.
 
-Every interface installs the acting credential — its identity and its role — as the
-thread's actor (`RoleManager::CurrentActor`) for the audit trail to record: the REST
-dispatcher for the length of a request, and COM on every authority question, since a
-COM call may arrive on a different thread from the one that authenticated.
+Every interface installs the acting credential as the thread's actor, twice over and
+from the one grant: `RoleManager::CurrentActor`, and the audit trail's own actor
+(see [AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)). The REST dispatcher installs
+both for the length of a request, and COM installs both on every authority question
+(`COMAuthentication::InstallActor_`), since a COM call may arrive on a different thread
+from the one that authenticated. What the audit trail records follows the role, not
+`AdminLevel`: an account holding `serveradmin` or `domainadmin` is an `administrator`,
+every other account is an `account`, and the role a change was made under ends its
+detail as `[role: helpdesk]`. A password a help desk resets is therefore on the record
+as the help desk's, over COM and over REST.
 
 Storage
 -------
@@ -212,3 +218,15 @@ Schema step 6047 adds `hm_roles` (`rolename`, `roledescription`, `rolebuiltin`,
 (`raaccountid`, `raroleid`, `radomains`; one role per account, removed with the
 account). Roles are data, not settings: nothing is added to `hm_settings` or to
 `hMailServer.ini`.
+
+Both tables are audited: a role created, changed or deleted, and a role given or taken
+away, is a row in the audit trail with the credential that did it.
+
+A backup carries each account's assignment with the account (`AccountStores`), with the
+role written by its name rather than its id, so that a restore onto another server
+finds that server's role of the same name. That matters in both directions: without
+it a restore would leave a help desk whose admin level is a normal user holding
+nothing, and would hand an account whose admin level is server administrator, but
+which had been narrowed to the help desk, the whole server back. A role the restoring
+server does not have is not guessed at: that assignment is left out and the backup log
+names the account and the role.

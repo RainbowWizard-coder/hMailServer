@@ -29,13 +29,13 @@ deleted, and every server setting written. One row per change, in `hm_audit`:
 |---|---|
 | `audittime` | When, in seconds since the epoch, UTC. |
 | `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. |
-| `auditactortype` | `administrator`, `account` or `apikey`. |
+| `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
 | `auditinterface` | `COM`, `REST` or `Deck`. |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
 | `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. |
 | `auditaction` | `created`, `updated` or `deleted`. |
-| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. |
+| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 ### What is never recorded
@@ -83,9 +83,12 @@ interface:
 
 * **REST and the Deck** — `RestApiServer::ProcessRequest_`, once, for the length
   of one authorised request.
-* **COM and the Control Panel** — `COMAuthentication::GetIsServerAdmin` and
-  `::GetIsDomainAdmin`, the authorisation questions a COM write asks before it
-  writes. They run on the thread that is about to do the writing, which matters:
+* **COM and the Control Panel** — `COMAuthentication::InstallActor_`, which every
+  authorisation question a COM write asks before it writes goes through:
+  `GetIsServerAdmin`, `GetIsDomainAdmin`, and the `Allows` questions a narrow
+  role's entry points ask (a help desk's `Application.ResetPassword`). It installs
+  the audit trail's actor and RoleManager's together, from the one grant. The
+  questions run on the thread that is about to do the writing, which matters:
   hMailServer's COM server is an out-of-process MTA and RPC dispatches each call
   on whichever pool thread is free, so an actor installed when the client
   authenticated would be sitting on a thread that never writes anything. The COM
@@ -138,9 +141,13 @@ with `total` for the whole filtered set.
 The Deck has an **Audit trail** page that reads it, with the filter, paging and
 a *Verify the chain* button.
 
-**Administrator credential only.** An API key of any scope is refused, and
-refused with a 401 rather than a 403 so that it learns nothing from asking. A
-key that could read who changed what could watch for its own footprints.
+**Refused to every API key.** An API key of any scope is refused, and refused
+with a 401 rather than a 403 so that it learns nothing from asking. A key that
+could read who changed what could watch for its own footprints. The
+administrator password reads it, and so does an account whose role holds
+`view_audit` — reading it is what the `auditor` role is for — unless that role is
+confined to named domains: the trail records every domain's changes, and a
+confined role is refused it.
 
 Switching recording off (`audit_trail_enabled`) is itself recorded, while
 recording is off. Otherwise the way to change something unobserved would be to
@@ -292,8 +299,12 @@ to every outbound request in this server.
 | `POST /api/v1/alerts/test` | Raise a condition on request, through exactly the path a real one takes. `{"condition":"disk.low","summary":"...","occurrence":false}`. |
 | `POST /api/v1/alerts/run` | Run one alerting pass now, instead of waiting for the scheduled one. |
 
-All five are administrator-only, for the reason the audit routes are: the rules
-hold the webhook secrets.
+All five are refused to every API key, for the reason the audit routes are: the
+rules decide where the alerting goes and whether it goes at all. The
+administrator password reaches them, and so does an account whose role holds the
+permission each needs — `view_configuration` to read the rules and the events,
+`manage_settings` to change a rule or raise a test alert, `manage_server` to run
+a pass — and reaches every domain.
 
 ### The settings
 

@@ -709,9 +709,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/accounts/{address}/password` | ? | `account`, `directory`, `password`, `reset_password`, `role`, `to` | yes |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
 | `POST /api/v1/accounts/{address}/unlock` | ? | `unlock_account` | yes |
-| `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `webhook_secret` | - |
-| `POST /api/v1/alerts/run` | ? | - | - |
-| `POST /api/v1/alerts/test` | ? | - | - |
+| `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |
+| `POST /api/v1/alerts/run` | ? | `manage_server` | - |
+| `POST /api/v1/alerts/test` | ? | `manage_settings` | - |
 | `POST /api/v1/apikeys` | - | - | - |
 | `POST /api/v1/archive/{id}/hold` | - | - | - |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
