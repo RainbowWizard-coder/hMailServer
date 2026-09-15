@@ -853,15 +853,15 @@ interface IInterfaceSettings : IDispatch{
    // password is chosen (Account.Password, AppPassword.SetPassword,
    // SetAdministratorPassword and the REST routes that do the same), never at
    // logon. Stored in hm_settings.
-   [propget, id(118), helpstring("Refuse a new password that appears in the published breach corpus. Off by default: it sends five characters of the password's SHA-1 to BreachCheckUrl.")] HRESULT BreachCheckEnabled([out, retval] VARIANT_BOOL *pVal);
-   [propput, id(118), helpstring("Refuse a new password that appears in the published breach corpus. Off by default: it sends five characters of the password's SHA-1 to BreachCheckUrl.")] HRESULT BreachCheckEnabled([in] VARIANT_BOOL newVal);
-   [propget, id(119), helpstring("The range endpoint the breach check asks: https, or plain http to this machine only. The prefix is appended, or put where {prefix} is. Defaults to https://api.pwnedpasswords.com/range/.")] HRESULT BreachCheckUrl([out, retval] BSTR *pVal);
-   [propput, id(119), helpstring("The range endpoint the breach check asks: https, or plain http to this machine only. The prefix is appended, or put where {prefix} is. Defaults to https://api.pwnedpasswords.com/range/.")] HRESULT BreachCheckUrl([in] BSTR newVal);
-   [propget, id(120), helpstring("How many times a password must appear in the corpus to be refused. 1 or more; 1 by default.")] HRESULT BreachCheckMinimumCount([out, retval] long *pVal);
-   [propput, id(120), helpstring("How many times a password must appear in the corpus to be refused. 1 or more; 1 by default.")] HRESULT BreachCheckMinimumCount([in] long newVal);
-   [propget, id(121), helpstring("What happens when the endpoint cannot be used: 0 lets the change through (the default), 1 refuses it. Both are recorded in the error log.")] HRESULT BreachCheckUnreachableAction([out, retval] long *pVal);
-   [propput, id(121), helpstring("What happens when the endpoint cannot be used: 0 lets the change through (the default), 1 refuses it. Both are recorded in the error log.")] HRESULT BreachCheckUnreachableAction([in] long newVal);
-   [id(122), helpstring("Asks the endpoint (empty for BreachCheckUrl) for the prefix 00000, which belongs to no password, and returns the number of entries it answered with. An endpoint that cannot be used is an error carrying the reason. Server administrators only.")] HRESULT TestBreachCheckEndpoint([in] BSTR Url, [out, retval] long *Entries);
+   [propget, id(120), helpstring("Refuse a new password that appears in the published breach corpus. Off by default: it sends five characters of the password's SHA-1 to BreachCheckUrl.")] HRESULT BreachCheckEnabled([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(120), helpstring("Refuse a new password that appears in the published breach corpus. Off by default: it sends five characters of the password's SHA-1 to BreachCheckUrl.")] HRESULT BreachCheckEnabled([in] VARIANT_BOOL newVal);
+   [propget, id(121), helpstring("The range endpoint the breach check asks: https, or plain http to this machine only. The prefix is appended, or put where {prefix} is. Defaults to https://api.pwnedpasswords.com/range/.")] HRESULT BreachCheckUrl([out, retval] BSTR *pVal);
+   [propput, id(121), helpstring("The range endpoint the breach check asks: https, or plain http to this machine only. The prefix is appended, or put where {prefix} is. Defaults to https://api.pwnedpasswords.com/range/.")] HRESULT BreachCheckUrl([in] BSTR newVal);
+   [propget, id(122), helpstring("How many times a password must appear in the corpus to be refused. 1 or more; 1 by default.")] HRESULT BreachCheckMinimumCount([out, retval] long *pVal);
+   [propput, id(122), helpstring("How many times a password must appear in the corpus to be refused. 1 or more; 1 by default.")] HRESULT BreachCheckMinimumCount([in] long newVal);
+   [propget, id(123), helpstring("What happens when the endpoint cannot be used: 0 lets the change through (the default), 1 refuses it. Both are recorded in the error log.")] HRESULT BreachCheckUnreachableAction([out, retval] long *pVal);
+   [propput, id(123), helpstring("What happens when the endpoint cannot be used: 0 lets the change through (the default), 1 refuses it. Both are recorded in the error log.")] HRESULT BreachCheckUnreachableAction([in] long newVal);
+   [id(124), helpstring("Asks the endpoint (empty for BreachCheckUrl) for the prefix 00000, which belongs to no password, and returns the number of entries it answered with. An endpoint that cannot be used is an error carrying the reason. Server administrators only.")] HRESULT TestBreachCheckEndpoint([in] BSTR Url, [out, retval] long *Entries);
 
 };
 
