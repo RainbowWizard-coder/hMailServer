@@ -147,6 +147,18 @@
     if (result.status === 429) { return 'Too many attempts; wait a minute and try again.'; }
     return fallback + ' (' + result.status + ')';
   };
+  // A refusal the server gives a reason word for, shown in the reader's language
+  // rather than in the server's English: the password breach check's two. Any
+  // other refusal is describe()'s, in the server's own words as before.
+  var REFUSALS = {
+    breached: K('This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one.'),
+    breach_check_unavailable: K('The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.')
+  };
+  var refusal = function (result, fallback) {
+    var reason = result.data && result.data.reason;
+    if (reason && Object.prototype.hasOwnProperty.call(REFUSALS, reason)) { return t(REFUSALS[reason]); }
+    return describe(result, fallback);
+  };
   var format = function (bytes) {
     if (bytes >= 1073741824) { return (bytes / 1073741824).toFixed(1) + ' GB'; }
     if (bytes >= 1048576) { return (bytes / 1048576).toFixed(1) + ' MB'; }
@@ -3960,7 +3972,7 @@
         return;
       }
       if (result.otp === 'required') { el('otp-row').hidden = false; say('password-status', t('Enter the code from your authenticator app.'), false); return; }
-      say('password-status', describe(result, t('Could not change the password')), false);
+      say('password-status', refusal(result, t('Could not change the password')), false);
     });
   });
   el('bulk-read').addEventListener('click', function () { eachSelected(function (id) { return call('PUT', '/api/v1/me/messages/' + id + '/flags', { seen: true }); }); });
