@@ -126,7 +126,7 @@ namespace HM
             return String(e.what());
 
          const boost::system::error_code code = systemError->code();
-         const std::string reason = code.message() + " [" + code.to_string() + "]";
+         const std::string reason = code.message() + " [" + code.category().name() + ":" + std::to_string(code.value()) + "]";
          return String(reason.c_str());
       }
 
