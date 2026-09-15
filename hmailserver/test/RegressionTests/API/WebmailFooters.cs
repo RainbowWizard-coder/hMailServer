@@ -482,7 +482,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A webmail send by an account on one domain carries that domain's disclaimer and not another hosted domain's, in both directions.")]
+      [Description("A webmail send carries the disclaimer of the domain of the address it is sent from and not another hosted domain's: each account its own domain's, in both directions, and an identity at the second domain - an alias of the first domain's account - the second domain's.")]
       public void EachSenderGetsTheirOwnDomainsDisclaimer()
       {
          const string partner = "partner@outside-two-domains.test";
@@ -507,6 +507,25 @@ namespace RegressionTests.API
          ClassicAssert.AreEqual(1, Occurrences(fromSecond, secondText), "The second domain's account gets the second domain's footer: " + fromSecond);
          StringAssert.DoesNotContain(DisclaimerText, fromSecond, "and not the first domain's: " + fromSecond);
          StringAssert.Contains(AppliedHeader + ": second-footers.test", fromSecond);
+
+         // The first domain's account again, now sending from an identity at the
+         // second domain. The domain whose footer applies is the sending address's,
+         // as MAIL FROM's is over SMTP - not the signed-in account's - so this one
+         // carries the second domain's footer, where the same account's own message
+         // above (the control) carried the first's. A footer chosen by the signed-in
+         // account's domain would fail here and pass everything above.
+         const string secondAlias = "sales@second-footers.test";
+         SingletonProvider<TestSetup>.Instance.AddAlias(second, secondAlias, Address);
+
+         string fromAlias = WebmailOutwards(outside, partner,
+            "{\"to\":\"" + partner + "\",\"from\":\"" + secondAlias + "\",\"subject\":\"From the second's alias\",\"text\":\"Three.\"}");
+         StringAssert.Contains(secondAlias, fromAlias, "The message must go from the alias at the second domain: " + fromAlias);
+         ClassicAssert.AreEqual(1, Occurrences(fromAlias, secondText),
+            "An identity at the second domain gets the second domain's footer, whoever is signed in: " + fromAlias);
+         StringAssert.DoesNotContain(DisclaimerText, fromAlias,
+            "and not the footer of the signed-in account's domain: " + fromAlias);
+         StringAssert.Contains(AppliedHeader + ": second-footers.test", fromAlias);
+         StringAssert.DoesNotContain(AppliedHeader + ": " + _domain.Name, fromAlias);
       }
 
       // ------------------------------------------------------------- drafts ---

@@ -234,13 +234,19 @@ it, by the same rules, because all three paths call the same function
 | The webmail's send (`POST /api/v1/me/messages`), which is also its reply, forward and phishing report | `RestApiServer::HandleMeMessageSend_` | the envelope sender's: the account, or the identity chosen in From |
 | The webmail's send-later | `ScheduledMailTask::SendDraft` | the envelope sender's, which is always the account |
 
-The sender's domain is resolved as `MAIL FROM` resolves it — the domain aliases
-applied, then the domain looked up by the address — so an account on one domain
-gets that domain's disclaimer and signature on every path, never another hosted
-domain's. (Which *account's* signature counts is below.) Until 15 September 2026 only the first path had either footer:
-the webmail wrote its messages into the queue itself, so a domain with the
-disclaimer on sent every browser-written message to a partner without it and
-logged nothing, and the domain signature had always had the same gap.
+The sender's domain is resolved from the address the message is sent from, as
+`MAIL FROM` resolves it — the domain aliases applied, then the domain looked up
+by the address. It is **the sending address's** domain, not the signed-in
+account's: an account's own message gets its own domain's disclaimer and
+signature, and a message it sends from an identity at another hosted domain — an
+alias there, or an address whose owner granted it the post right — gets that
+other domain's, exactly as the same message over SMTP with that address in
+`MAIL FROM` would. (Which *account's* signature counts is below.)
+
+Until 15 September 2026 only the first path had either footer: the webmail wrote
+its messages into the queue itself, so a domain with the disclaimer on sent every
+browser-written message to a partner without it and logged nothing, and the
+domain signature had always had the same gap.
 
 On the two webmail paths the footers go on after the message is written and
 before its size is taken, so the copy the webmail keeps in the folder designated
@@ -266,15 +272,37 @@ the account's signature exactly as over SMTP:
 * **Append to the account's signature** — the domain's, below the account's
   that the page wrote.
 * **Overwrite the account's signature** — the domain's, below the account's.
-  This is the one method the webmail cannot match: the page has already put
-  the account's signature in a body the person read and sent, and the server
-  does not take text out of a message. A domain that means to replace every
-  account's signature should also switch the accounts' own off.
+  This is the one method whose result the webmail cannot match: the page has
+  already put the account's signature in a body the person read and sent, and
+  the server does not take text out of a message. A domain that means to
+  replace every account's signature should also switch the accounts' own off.
 
 The account meant is the one signed in to the webmail, whichever identity the
 message is sent from, because that is whose signature the page wrote; its name
 fills the macros (`%User.FirstName%` and the rest). Over SMTP it is the account
 the `MAIL FROM` address belongs to, if any.
+
+Two consequences of leaving the account's signature to the page, both of which
+differ from SMTP:
+
+* **What the page did not write, the server does not add.** The account's
+  signature is in the body only when the compose box put it there — on a new
+  message, a reply and a forward. A draft opened again in the webmail keeps the
+  body it was saved with. A draft written in a desktop client and saved to Drafts
+  over IMAP is a draft like any other to the send-later route
+  (`POST /api/v1/me/drafts/{id}/schedule`), which does not ask who wrote it, so
+  when it is scheduled it goes out with **no account signature**, where the same
+  message sent over SMTP would have had one; so does anything else that posts to
+  `POST /api/v1/me/messages` without writing the signature into its text, which
+  that route's OpenAPI description says. The domain's part is added by its method
+  on all of these, as above.
+* **The account's signature follows the page, not the domain's two switches.**
+  The page puts it on a reply and on a note to a colleague whatever
+  `signature_add_to_replies` and `signature_add_to_local_mail` (the Control
+  Panel's "Add signature to replies" and "Add signature to local e-mail") say.
+  Those switches still govern what the server adds — with replies off, a webmail
+  reply gets no domain signature — but they cannot take out what the page wrote.
+  Over SMTP they keep both signatures off.
 
 A mail client over SMTP is unchanged: the server adds the account's signature and
 the domain's by the method, as it always has.
@@ -330,6 +358,6 @@ Where the code is
 | `SMTP/SMTPConnection.cpp` | Where the footers are applied to SMTP submission, and the outgoing half of the memory. |
 | `Common/Util/RestApiServer.cpp`, `Common/Application/ScheduledMailTask.cpp` | Where the footers are applied to the webmail's send and its send-later. |
 | `test/RegressionTests/SMTP/DomainTransforms.cs` | The delivery tests. |
-| `test/RegressionTests/API/WebmailFooters.cs` | The footers on the webmail's send and send-later, every exclusion, the account's signature and an identity, two domains kept apart, and a signed message on both paths. |
+| `test/RegressionTests/API/WebmailFooters.cs` | The footers on the webmail's send and send-later, every exclusion, the account's signature and an identity, two domains kept apart (an identity at the second domain taking the second's), and a signed message on both paths. |
 | `test/RegressionTests/API/RestApiDomains.cs` | The REST round trip. |
 | `test/RegressionTests/Infrastructure/BackupAccountStores.cs` | The memory through a backup and a restore. |
