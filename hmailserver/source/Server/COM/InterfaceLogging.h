@@ -13,6 +13,7 @@
 class ATL_NO_VTABLE InterfaceLogging : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceLogging, &CLSID_Logging>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceLogging, &IID_IInterfaceLogging, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -27,7 +28,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACELOGGING)
 BEGIN_COM_MAP(InterfaceLogging)
    COM_INTERFACE_ENTRY(IInterfaceLogging)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceLogging ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

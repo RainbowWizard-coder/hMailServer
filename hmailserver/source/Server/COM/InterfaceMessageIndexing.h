@@ -19,6 +19,7 @@
 class ATL_NO_VTABLE InterfaceMessageIndexing :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceMessageIndexing, &CLSID_MessageIndexing>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceMessageIndexing, &IID_IInterfaceMessageIndexing, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -31,7 +32,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEMESSAGEINDEXING)
 BEGIN_COM_MAP(InterfaceMessageIndexing)
    COM_INTERFACE_ENTRY(IInterfaceMessageIndexing)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceMessageIndexing ? S_OK : S_FALSE;
+   }
 
 
 

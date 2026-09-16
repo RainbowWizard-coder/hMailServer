@@ -14,6 +14,7 @@
 class ATL_NO_VTABLE InterfaceResult : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceResult, &CLSID_Result>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceResult, &IID_IInterfaceResult, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
@@ -27,7 +28,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACERESULT)
 BEGIN_COM_MAP(InterfaceResult)
    COM_INTERFACE_ENTRY(IInterfaceResult)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceResult ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

@@ -23,6 +23,7 @@ class ATL_NO_VTABLE InterfaceWhiteListAddress :
    public COMCollectionItem<HM::WhiteListAddress, HM::WhiteListAddresses>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceWhiteListAddress, &CLSID_WhiteListAddress>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceWhiteListAddress, &IID_IInterfaceWhiteListAddress, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -37,7 +38,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEWHITELISTADDRESS)
 BEGIN_COM_MAP(InterfaceWhiteListAddress)
    COM_INTERFACE_ENTRY(IInterfaceWhiteListAddress)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceWhiteListAddress ? S_OK : S_FALSE;
+   }
 
 
 

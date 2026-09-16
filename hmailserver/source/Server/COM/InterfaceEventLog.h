@@ -12,6 +12,7 @@
 class ATL_NO_VTABLE InterfaceEventLog : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceEventLog, &CLSID_EventLog>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceEventLog, &IID_IInterfaceEventLog, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
@@ -25,7 +26,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEEVENTLOG)
 BEGIN_COM_MAP(InterfaceEventLog)
    COM_INTERFACE_ENTRY(IInterfaceEventLog)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceEventLog ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

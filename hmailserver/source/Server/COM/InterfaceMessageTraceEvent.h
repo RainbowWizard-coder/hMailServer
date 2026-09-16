@@ -12,6 +12,7 @@
 class ATL_NO_VTABLE InterfaceMessageTraceEvent :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceMessageTraceEvent, &CLSID_MessageTraceEvent>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceMessageTraceEvent, &IID_IInterfaceMessageTraceEvent, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -25,7 +26,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEMESSAGETRACEEVENT)
 BEGIN_COM_MAP(InterfaceMessageTraceEvent)
    COM_INTERFACE_ENTRY(IInterfaceMessageTraceEvent)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceMessageTraceEvent ? S_OK : S_FALSE;
+   }
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()
 

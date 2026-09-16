@@ -16,6 +16,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceRuleActions : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceRuleActions, &CLSID_RuleActions>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceRuleActions, &IID_IInterfaceRuleActions, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -30,7 +31,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACERULEACTIONS)
 BEGIN_COM_MAP(InterfaceRuleActions)
    COM_INTERFACE_ENTRY(IInterfaceRuleActions)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceRuleActions ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

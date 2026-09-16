@@ -19,6 +19,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceDirectories :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceDirectories, &CLSID_Directories>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceDirectories, &IID_IInterfaceDirectories, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -36,7 +37,13 @@ public:
    BEGIN_COM_MAP(InterfaceDirectories)
       COM_INTERFACE_ENTRY(IInterfaceDirectories)
       COM_INTERFACE_ENTRY(IDispatch)
+      COM_INTERFACE_ENTRY(ISupportErrorInfo)
    END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceDirectories ? S_OK : S_FALSE;
+   }
 
 
 

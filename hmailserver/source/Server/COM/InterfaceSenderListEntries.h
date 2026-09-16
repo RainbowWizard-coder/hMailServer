@@ -30,6 +30,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceSenderListEntries :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceSenderListEntries, &CLSID_SenderListEntries>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceSenderListEntries, &IID_IInterfaceSenderListEntries, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -44,7 +45,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACESENDERLISTENTRIES)
 BEGIN_COM_MAP(InterfaceSenderListEntries)
    COM_INTERFACE_ENTRY(IInterfaceSenderListEntries)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceSenderListEntries ? S_OK : S_FALSE;
+   }
 
 
 

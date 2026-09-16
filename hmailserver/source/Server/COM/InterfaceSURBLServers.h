@@ -14,6 +14,7 @@
 class ATL_NO_VTABLE InterfaceSURBLServers :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceSURBLServers, &CLSID_SURBLServers>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceSURBLServers, &IID_IInterfaceSURBLServers, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -30,7 +31,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACESURBLSERVERS)
 BEGIN_COM_MAP(InterfaceSURBLServers)
    COM_INTERFACE_ENTRY(IInterfaceSURBLServers)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceSURBLServers ? S_OK : S_FALSE;
+   }
 
 
 

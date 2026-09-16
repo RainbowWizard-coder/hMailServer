@@ -20,6 +20,7 @@
 class ATL_NO_VTABLE InterfaceTCPIPPorts :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceTCPIPPorts, &CLSID_TCPIPPorts>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceTCPIPPorts, &IID_IInterfaceTCPIPPorts, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -34,7 +35,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACETCPIPPORTS)
 BEGIN_COM_MAP(InterfaceTCPIPPorts)
    COM_INTERFACE_ENTRY(IInterfaceTCPIPPorts)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceTCPIPPorts ? S_OK : S_FALSE;
+   }
 
 
 

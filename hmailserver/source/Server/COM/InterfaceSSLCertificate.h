@@ -26,6 +26,7 @@ class ATL_NO_VTABLE InterfaceSSLCertificate :
    public COMCollectionItem<HM::SSLCertificate, HM::SSLCertificates>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceSSLCertificate, &CLSID_SSLCertificate>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceSSLCertificate, &IID_IInterfaceSSLCertificate, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -40,7 +41,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACESSLCERTIFICATE)
 BEGIN_COM_MAP(InterfaceSSLCertificate)
    COM_INTERFACE_ENTRY(IInterfaceSSLCertificate)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceSSLCertificate ? S_OK : S_FALSE;
+   }
 
 
 

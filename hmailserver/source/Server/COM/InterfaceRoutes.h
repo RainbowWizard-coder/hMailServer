@@ -17,6 +17,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceRoutes : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceRoutes, &CLSID_Routes>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceRoutes, &IID_IInterfaceRoutes, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEROUTES)
 BEGIN_COM_MAP(InterfaceRoutes)
    COM_INTERFACE_ENTRY(IInterfaceRoutes)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceRoutes ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

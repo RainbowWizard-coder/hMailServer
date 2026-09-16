@@ -13,6 +13,7 @@
 class ATL_NO_VTABLE InterfaceSecurityRanges : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceSecurityRanges, &CLSID_SecurityRanges>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceSecurityRanges, &IID_IInterfaceSecurityRanges, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -29,7 +30,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACESECURITYRANGES)
 BEGIN_COM_MAP(InterfaceSecurityRanges)
    COM_INTERFACE_ENTRY(IInterfaceSecurityRanges)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceSecurityRanges ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

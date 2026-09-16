@@ -13,6 +13,7 @@
 class ATL_NO_VTABLE InterfaceLanguages :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceLanguages, &CLSID_Languages>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceLanguages, &IID_IInterfaceLanguages, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
@@ -26,7 +27,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACELANGUAGES)
 BEGIN_COM_MAP(InterfaceLanguages)
    COM_INTERFACE_ENTRY(IInterfaceLanguages)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceLanguages ? S_OK : S_FALSE;
+   }
 
 
 

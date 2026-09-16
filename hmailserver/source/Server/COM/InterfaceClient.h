@@ -19,6 +19,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceClient : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceClient, &CLSID_Client>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceClient, &IID_IInterfaceClient, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
@@ -32,7 +33,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACECLIENT)
 BEGIN_COM_MAP(InterfaceClient)
    COM_INTERFACE_ENTRY(IInterfaceClient)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceClient ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

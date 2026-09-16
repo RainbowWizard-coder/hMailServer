@@ -13,6 +13,7 @@
 class ATL_NO_VTABLE InterfaceAntiSpam :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceAntiSpam, &CLSID_AntiSpam>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceAntiSpam, &IID_IInterfaceAntiSpam, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -25,7 +26,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEANTISPAM)
 BEGIN_COM_MAP(InterfaceAntiSpam)
    COM_INTERFACE_ENTRY(IInterfaceAntiSpam)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceAntiSpam ? S_OK : S_FALSE;
+   }
 
 
 

@@ -17,6 +17,7 @@ class ATL_NO_VTABLE InterfaceRuleCriterias :
    
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceRuleCriterias, &CLSID_RuleCriterias>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceRuleCriterias, &IID_IInterfaceRuleCriterias, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -31,7 +32,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACERULECRITERIAS)
 BEGIN_COM_MAP(InterfaceRuleCriterias)
    COM_INTERFACE_ENTRY(IInterfaceRuleCriterias)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceRuleCriterias ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

@@ -21,6 +21,7 @@ class ATL_NO_VTABLE InterfaceDNSBlackList :
    public COMCollectionItem<HM::DNSBlackList, HM::DNSBlackLists>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceDNSBlackList, &CLSID_DNSBlackList>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceDNSBlackList, &IID_IInterfaceDNSBlackList, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -35,7 +36,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEDNSBLACKLIST)
 BEGIN_COM_MAP(InterfaceDNSBlackList)
    COM_INTERFACE_ENTRY(IInterfaceDNSBlackList)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceDNSBlackList ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

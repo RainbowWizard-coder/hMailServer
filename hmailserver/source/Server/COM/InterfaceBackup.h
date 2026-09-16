@@ -14,6 +14,7 @@
 class ATL_NO_VTABLE InterfaceBackup : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceBackup, &CLSID_Backup>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceBackup, &IID_IInterfaceBackup, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -28,7 +29,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEBACKUP)
 BEGIN_COM_MAP(InterfaceBackup)
    COM_INTERFACE_ENTRY(IInterfaceBackup)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceBackup ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

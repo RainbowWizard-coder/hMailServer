@@ -24,6 +24,7 @@ class ATL_NO_VTABLE InterfaceServerMessage :
    public COMCollectionItem<HM::ServerMessage, HM::ServerMessages>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceServerMessage, &CLSID_ServerMessage>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceServerMessage, &IID_IInterfaceServerMessage, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -38,7 +39,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACESERVERMESSAGE)
 BEGIN_COM_MAP(InterfaceServerMessage)
    COM_INTERFACE_ENTRY(IInterfaceServerMessage)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceServerMessage ? S_OK : S_FALSE;
+   }
 
 
 

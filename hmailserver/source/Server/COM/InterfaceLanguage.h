@@ -17,6 +17,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceLanguage : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceLanguage, &CLSID_Language>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceLanguage, &IID_IInterfaceLanguage, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -31,7 +32,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACELANGUAGE)
 BEGIN_COM_MAP(InterfaceLanguage)
    COM_INTERFACE_ENTRY(IInterfaceLanguage)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceLanguage ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

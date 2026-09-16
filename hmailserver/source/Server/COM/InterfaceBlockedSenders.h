@@ -24,6 +24,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceBlockedSenders :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceBlockedSenders, &CLSID_BlockedSenders>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceBlockedSenders, &IID_IInterfaceBlockedSenders, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -38,7 +39,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEBLOCKEDSENDERS)
 BEGIN_COM_MAP(InterfaceBlockedSenders)
    COM_INTERFACE_ENTRY(IInterfaceBlockedSenders)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceBlockedSenders ? S_OK : S_FALSE;
+   }
 
 
 

@@ -12,6 +12,7 @@
 class ATL_NO_VTABLE InterfaceQuarantinedMessage :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceQuarantinedMessage, &CLSID_QuarantinedMessage>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceQuarantinedMessage, &IID_IInterfaceQuarantinedMessage, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -25,7 +26,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEQUARANTINEDMESSAGE)
 BEGIN_COM_MAP(InterfaceQuarantinedMessage)
    COM_INTERFACE_ENTRY(IInterfaceQuarantinedMessage)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceQuarantinedMessage ? S_OK : S_FALSE;
+   }
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()
 

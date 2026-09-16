@@ -119,6 +119,17 @@ jobs:
       - name: Every folder-access decision is ACLManager's
         run: python3 build/check-authz-choke-point.py
 
+      # A refusal a caller cannot read is not a refusal. .NET reads the sentence
+      # COMError::GenerateError set only from an object that answers S_OK for
+      # ISupportErrorInfo; seventy-two classes did not, so every refusal they
+      # carried arrived as "Exception from HRESULT: 0x800403E9". The self-test
+      # breaks each rule in a copy, so a check that has stopped seeing the
+      # source fails too.
+      - name: Every COM refusal can be read by the caller
+        run: |
+          python3 build/check-com-error-info.py
+          python3 build/check-com-error-info.py --self-test
+
       # "Who changed what" is only an answer if the record has no holes. This
       # fails when a COM write installs no actor, when a recorder goes away, when
       # AuditTrail.cpp lists a table no create script defines, or when a new

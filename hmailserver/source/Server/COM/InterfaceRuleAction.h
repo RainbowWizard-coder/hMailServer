@@ -19,6 +19,7 @@ class ATL_NO_VTABLE InterfaceRuleAction :
    public COMCollectionItem<HM::RuleAction, HM::RuleActions>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceRuleAction, &CLSID_RuleAction>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceRuleAction, &IID_IInterfaceRuleAction, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACERULEACTION)
 BEGIN_COM_MAP(InterfaceRuleAction)
    COM_INTERFACE_ENTRY(IInterfaceRuleAction)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceRuleAction ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

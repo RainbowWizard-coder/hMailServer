@@ -19,6 +19,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceGroups :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceGroups, &CLSID_Groups>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceGroups, &IID_IInterfaceGroups, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEGROUPS)
 BEGIN_COM_MAP(InterfaceGroups)
    COM_INTERFACE_ENTRY(IInterfaceGroups)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceGroups ? S_OK : S_FALSE;
+   }
 
 
 

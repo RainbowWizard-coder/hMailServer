@@ -20,6 +20,7 @@
 class ATL_NO_VTABLE InterfaceDiagnostics :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceDiagnostics, &CLSID_Diagnostics>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceDiagnostics, &IID_IInterfaceDiagnostics, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -34,7 +35,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEDIAGNOSTICS)
 BEGIN_COM_MAP(InterfaceDiagnostics)
    COM_INTERFACE_ENTRY(IInterfaceDiagnostics)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceDiagnostics ? S_OK : S_FALSE;
+   }
 
 
 

@@ -19,6 +19,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceAliases : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceAliases, &CLSID_Aliases>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceAliases, &IID_IInterfaceAliases, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEALIASES)
 BEGIN_COM_MAP(InterfaceAliases)
    COM_INTERFACE_ENTRY(IInterfaceAliases)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceAliases ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

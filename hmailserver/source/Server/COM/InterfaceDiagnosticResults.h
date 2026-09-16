@@ -19,6 +19,7 @@
 class ATL_NO_VTABLE InterfaceDiagnosticResults :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceDiagnosticResults, &CLSID_DiagnosticResults>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceDiagnosticResults, &IID_IInterfaceDiagnosticResults, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEDIAGNOSTICRESULTS)
 BEGIN_COM_MAP(InterfaceDiagnosticResults)
    COM_INTERFACE_ENTRY(IInterfaceDiagnosticResults)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceDiagnosticResults ? S_OK : S_FALSE;
+   }
 
 
 

@@ -19,6 +19,7 @@
 class ATL_NO_VTABLE InterfaceLinks :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceLinks, &CLSID_Links>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceLinks, &IID_IInterfaceLinks, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACELINKS)
 BEGIN_COM_MAP(InterfaceLinks)
    COM_INTERFACE_ENTRY(IInterfaceLinks)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceLinks ? S_OK : S_FALSE;
+   }
 
 
 

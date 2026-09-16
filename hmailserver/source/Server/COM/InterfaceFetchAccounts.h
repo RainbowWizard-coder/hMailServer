@@ -14,6 +14,7 @@
 class ATL_NO_VTABLE InterfaceFetchAccounts : 
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceFetchAccounts, &CLSID_FetchAccounts>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceFetchAccounts, &IID_IInterfaceFetchAccounts, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 
@@ -29,7 +30,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEFETCHACCOUNTS)
 BEGIN_COM_MAP(InterfaceFetchAccounts)
    COM_INTERFACE_ENTRY(IInterfaceFetchAccounts)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceFetchAccounts ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

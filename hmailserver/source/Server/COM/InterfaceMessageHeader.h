@@ -22,6 +22,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceMessageHeader :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceMessageHeader, &CLSID_MessageHeader>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceMessageHeader, &IID_IInterfaceMessageHeader, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
@@ -35,7 +36,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEMESSAGEHEADER)
 BEGIN_COM_MAP(InterfaceMessageHeader)
    COM_INTERFACE_ENTRY(IInterfaceMessageHeader)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceMessageHeader ? S_OK : S_FALSE;
+   }
 
 
 

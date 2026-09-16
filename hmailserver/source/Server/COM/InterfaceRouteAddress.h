@@ -19,6 +19,7 @@ class ATL_NO_VTABLE InterfaceRouteAddress :
    public COMCollectionItem<HM::RouteAddress, HM::RouteAddresses>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceRouteAddress, &CLSID_RouteAddress>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceRouteAddress, &IID_IInterfaceRouteAddress, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEROUTEADDRESS)
 BEGIN_COM_MAP(InterfaceRouteAddress)
    COM_INTERFACE_ENTRY(IInterfaceRouteAddress)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceRouteAddress ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

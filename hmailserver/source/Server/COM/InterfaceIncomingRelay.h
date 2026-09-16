@@ -18,6 +18,7 @@ class ATL_NO_VTABLE InterfaceIncomingRelay :
    public COMCollectionItem<HM::IncomingRelay, HM::IncomingRelays>,
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceIncomingRelay, &CLSID_IncomingRelay>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceIncomingRelay, &IID_IInterfaceIncomingRelay, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -32,7 +33,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEINCOMINGRELAY)
 BEGIN_COM_MAP(InterfaceIncomingRelay)
    COM_INTERFACE_ENTRY(IInterfaceIncomingRelay)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceIncomingRelay ? S_OK : S_FALSE;
+   }
 
 
 

@@ -17,6 +17,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceRemoteDomainPolicies :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceRemoteDomainPolicies, &CLSID_RemoteDomainPolicies>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceRemoteDomainPolicies, &IID_IInterfaceRemoteDomainPolicies, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -33,7 +34,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEREMOTEDOMAINPOLICIES)
 BEGIN_COM_MAP(InterfaceRemoteDomainPolicies)
    COM_INTERFACE_ENTRY(IInterfaceRemoteDomainPolicies)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceRemoteDomainPolicies ? S_OK : S_FALSE;
+   }
 
 
    DECLARE_PROTECT_FINAL_CONSTRUCT()

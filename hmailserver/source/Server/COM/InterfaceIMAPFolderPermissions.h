@@ -23,6 +23,7 @@ namespace HM
 class ATL_NO_VTABLE InterfaceIMAPFolderPermissions :
    public CComObjectRootEx<CComSingleThreadModel>,
    public CComCoClass<InterfaceIMAPFolderPermissions, &CLSID_IMAPFolderPermissions>,
+   public ISupportErrorInfo,
    public IDispatchImpl<IInterfaceIMAPFolderPermissions, &IID_IInterfaceIMAPFolderPermissions, &LIBID_hMailServer, /*wMajor =*/ 1, /*wMinor =*/ 0>,
    public HM::COMAuthenticator
 {
@@ -41,7 +42,13 @@ DECLARE_REGISTRY_RESOURCEID(IDR_INTERFACEIMAPFOLDERPERMISSIONS)
 BEGIN_COM_MAP(InterfaceIMAPFolderPermissions)
    COM_INTERFACE_ENTRY(IInterfaceIMAPFolderPermissions)
    COM_INTERFACE_ENTRY(IDispatch)
+   COM_INTERFACE_ENTRY(ISupportErrorInfo)
 END_COM_MAP()
+
+   STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
+   {
+      return riid == IID_IInterfaceIMAPFolderPermissions ? S_OK : S_FALSE;
+   }
 
 
 
