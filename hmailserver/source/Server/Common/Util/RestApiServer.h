@@ -118,6 +118,13 @@ namespace HM
       // (RestApiFiles.cpp). Returns how many went.
       static int SweepExpiredFiles();
 
+      // Every browser session one client of an account holds, ended; the number
+      // that went. Public because the sessions are this listener's and the
+      // revocation is not: SignInStore::Revoke is the one place a device is
+      // revoked from, whichever interface asked, and this is the part of it that
+      // only this class can do. See SignInStore.h.
+      static int EndSessionsForDevice(__int64 accountId, const String &device);
+
       // One address the signed-in account may write as (RestApiIdentities.cpp).
       struct Identity
       {
@@ -264,6 +271,11 @@ namespace HM
          RouteMeSessions,
          RouteMeSessionsEnd,
          RouteMeSessionDelete,
+         // The clients that have signed in to the account (hm_signins, schema
+         // 6050), and the revoke that ends what one holds. The account's own,
+         // beside its sessions and its app passwords.
+         RouteMeDevices,
+         RouteMeDeviceDelete,
          RouteMeStorage,
          RouteMeSmime,
          RouteMeSmimeOwnPut,
@@ -448,6 +460,11 @@ namespace HM
          RouteAccountMessageDelete,
          RouteAccountMessageSource,
          RouteAccountAppPasswordUpdate,
+      // An account's devices, read and revoked by an administrator
+      // (RestApiAccountResources.cpp). Scoped to the address's domain in
+      // Authorize_ as the other routes under an address are.
+      RouteAccountDeviceList,
+      RouteAccountDeviceDelete,
          // The account groups (RestApiGroups.cpp): Settings.Groups, Group and
          // Group.Members over COM. A group holds accounts of any domain and is
          // an ACL principal, so the resource is server-wide and refused for
@@ -549,6 +566,15 @@ namespace HM
          RouteBounceCountList,
          RouteBounceClassify,
          RouteBounceExpire,
+         // The session policy in force for a domain's accounts, resolved from
+         // the server's four settings and the domain's own four columns
+         // (SessionPolicies). Scoped to the domain as the account routes are;
+         // what Utilities.GetSessionPolicy answers over COM, so that a script
+         // on Linux can ask the same question.
+         RouteDomainSessionPolicyGet,
+         // The same document for the server alone - what governs the
+         // administrator's own session and every domain that says nothing.
+         RouteSessionPolicyGet,
          RouteSettingsBouncesGet,
          RouteSettingsBouncesPut,
 
@@ -644,12 +670,22 @@ namespace HM
          bool via_session = false;
          AnsiString session_hash;
 
+         // The client the session belongs to: SignInStore's device key, so that a
+         // handler can mark the entry the reader is looking at as this one.
+         AnsiString session_device;
+
          // True when the password the request came in on - or the password
          // that started the session it came in on - was one of the account's
          // app passwords: a credential for a program, which reads and sends
          // mail as the account but does not mint or revoke credentials or
          // end the account holder's browser sessions.
          bool via_app_password = false;
+
+         // That app password's name, where one was used - the label its owner
+         // gave it, and nothing derived from the secret. Recorded against the
+         // client in the account's device list, so a person can see which of
+         // their credentials a client they do not recognise is using.
+         String credential_name;
          // Set when the session was opened by an administrator for support:
          // who, for the log line every request of it writes.
          AnsiString support_by;
@@ -837,6 +873,14 @@ namespace HM
       static HttpResponse HandleMeSessionsEnd_(const Caller &caller);
       static HttpResponse HandleMeSessionDelete_(const Caller &caller, const AnsiString &id);
 
+      // The clients that have signed in to the account, and the one press that
+      // ends one. The same two things an administrator reaches under an
+      // address in RestApiAccountResources.cpp; the answers are built by
+      // SignInStore so that the two listings cannot describe a device
+      // differently.
+      static HttpResponse HandleMeDevices_(const Caller &caller);
+      static HttpResponse HandleMeDeviceDelete_(const Caller &caller, const AnsiString &id, const AnsiString &query);
+
       // S/MIME (RestApiSmime.cpp): the key store, the chain check, the module, a page-built send.
       static HttpResponse HandleMeSmime_(const Caller &caller);
       static HttpResponse HandleMeSmimeOwnPut_(const Caller &caller, const AnsiString &requestBody);
@@ -895,7 +939,7 @@ namespace HM
       static AnsiString Utf8_(const char *value) { return AnsiString(value); }
       static bool DeleteOwnMessage_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, std::shared_ptr<IMAPFolder> folder);
       static bool AuthenticateSession_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
-      HttpResponse HandleSessionCreate_(const Caller &caller);
+      HttpResponse HandleSessionCreate_(const Caller &caller, const AnsiString &request);
       HttpResponse HandleSessionDelete_(const Caller &caller);
       static void RevokeSessionsForAccount_(__int64 accountId, const AnsiString &keepTokenHash);
       static void ClearBrowserSessions_();
@@ -908,7 +952,7 @@ namespace HM
       static AnsiString BrandingJson_(const String &domain);
       static HttpResponse HandlePortalBranding_(const AnsiString &query);
       static HttpResponse HandlePortalBrandingPut_(const AnsiString &requestBody);
-      HttpResponse HandleAccountSupportSession_(const Caller &caller, const AnsiString &address);
+      HttpResponse HandleAccountSupportSession_(const Caller &caller, const AnsiString &address, const AnsiString &request);
 
       // The webmail's catalogues (RestApiLanguages.cpp).
       static HttpResponse HandlePortalLanguage_(const AnsiString &code);
@@ -1271,6 +1315,8 @@ namespace HM
       // The suppression list, the bounce counts, classify and the sweep. In
       // RestApiBounces.cpp.
       HttpResponse HandleBounces_(const Route &route, const AnsiString &requestBody);
+      HttpResponse HandleDomainSessionPolicy_(const Route &route);
+      HttpResponse HandleSessionPolicy_();
       static AnsiString OpenApiBouncesPaths_();
 
       // The webhook subscriptions and their delivery queue. In

@@ -12,6 +12,7 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/SignInStore.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
 #include "../Common/Util/OAuth2TokenValidator.h"
@@ -4177,6 +4178,7 @@ namespace HM
 
       if (pAccount)
       {
+         RecordSignIn_(pAccount, SignInStore::CredentialSingleSignOn, String());
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
          return;
@@ -4469,6 +4471,7 @@ namespace HM
 
       if (pAccount)
       {
+         RecordSignIn_(pAccount, SignInStore::CredentialToken, String());
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
          return;
@@ -4526,6 +4529,7 @@ namespace HM
 
       if (pAccount)
       {
+         RecordSignIn_(pAccount, SignInStore::CredentialCertificate, String());
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
          return;
@@ -4573,7 +4577,10 @@ namespace HM
       bool disconnect;
      String sUsername = username_;
 
-      std::shared_ptr<const Account> pAccount = accountLogon.Logon(GetRemoteEndpointAddress(), username_, password_, disconnect);
+      bool viaAppPassword = false;
+      String appPasswordName;
+      std::shared_ptr<const Account> pAccount = accountLogon.Logon(GetRemoteEndpointAddress(), username_, password_, disconnect,
+         &viaAppPassword, &appPasswordName);
          
       if (disconnect)
       {
@@ -4589,6 +4596,7 @@ namespace HM
      
       if (pAccount)
       {
+         RecordSignIn_(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
       }
@@ -4609,6 +4617,23 @@ namespace HM
 
          RestartAuthentication_();
       }
+   }
+
+   void
+   SMTPConnection::RecordSignIn_(std::shared_ptr<const Account> account, int credential, const String &credentialName)
+   {
+      if (!account)
+         return;
+
+      // SMTP carries no user agent, so the client is the protocol and the
+      // address. A connection a trusted upstream vouched for over XCLIENT LOGIN=
+      // never reaches here: it authenticated nobody on this server and has no
+      // account object, which SignInStore.h says as well.
+      const String device = SignInStore::Record(account, SignInStore::ProtocolSmtp,
+         GetRemoteEndpointAddress(), String(), credential, credentialName);
+
+      if (!device.IsEmpty())
+         SignInStore::Attach(account->GetID(), device, shared_from_this());
    }
 
    void
@@ -4812,6 +4837,10 @@ namespace HM
       }
 
       isAuthenticated_ = true;
+
+      // SCRAM proves the account's own password: an app password cannot be used
+      // with it (see PasswordValidator).
+      RecordSignIn_(pAccount, SignInStore::CredentialPassword, String());
 
       // The name authenticated, so its failure counters go - the same clearing
       // AccountLogon::Logon performs on the PLAIN/LOGIN path. Without it a user

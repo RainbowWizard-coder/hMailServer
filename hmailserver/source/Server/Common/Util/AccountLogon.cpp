@@ -42,18 +42,20 @@ namespace HM
 
    std::shared_ptr<const Account>
    AccountLogon::Logon(const IPAddress &ipaddress, const String &username, const String &password, bool &disconnect,
-                       bool *matchedAppPassword)
+                       bool *matchedAppPassword, String *matchedAppPasswordName)
    {
-      return Logon(ipaddress, _T(""), username, password, disconnect, matchedAppPassword);
+      return Logon(ipaddress, _T(""), username, password, disconnect, matchedAppPassword, matchedAppPasswordName);
    }
 
    std::shared_ptr<const Account>
    AccountLogon::Logon(const IPAddress &ipaddress, const String &masqname, const String &username, const String &password, bool &disconnect,
-                       bool *matchedAppPassword)
+                       bool *matchedAppPassword, String *matchedAppPasswordName)
    {
       disconnect = false;
       if (matchedAppPassword)
          *matchedAppPassword = false;
+      if (matchedAppPasswordName)
+         *matchedAppPasswordName = String();
 
       // Per-name lockout, checked BEFORE the password: a locked name is refused
       // without spending an Argon2id verification on it, and the refusal is the
@@ -107,7 +109,7 @@ namespace HM
          return empty;
       }
 
-      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, matchedAppPassword);
+      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, matchedAppPassword, matchedAppPasswordName);
       if (account)
       {
          PersistentAccount::UpdateLastLogonTime(account);

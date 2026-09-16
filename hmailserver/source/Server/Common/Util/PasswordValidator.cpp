@@ -74,11 +74,13 @@ namespace HM
 
    std::shared_ptr<const Account>
    PasswordValidator::ValidatePassword(const String &sMasqname, const String &sUsername, const String &sPassword,
-                                       bool *matchedAppPassword)
+                                       bool *matchedAppPassword, String *matchedAppPasswordName)
    {
       std::shared_ptr<Account> pEmpty;
       if (matchedAppPassword)
          *matchedAppPassword = false;
+      if (matchedAppPasswordName)
+         *matchedAppPasswordName = String();
 
       // Apply domain name aliases to this domain name.
       std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
@@ -106,7 +108,7 @@ namespace HM
       if (!pDomain->GetIsActive())
          return pEmpty;
 
-      if (!ValidatePassword(pAccount, sPassword, false, matchedAppPassword))
+      if (!ValidatePassword(pAccount, sPassword, false, matchedAppPassword, matchedAppPasswordName))
          return pEmpty;
 
       if (sMasqname.GetLength() == 0)
@@ -146,10 +148,12 @@ namespace HM
 
    bool 
    PasswordValidator::ValidatePassword(std::shared_ptr<const Account> pAccount, const String &sPassword, bool secondFactorSatisfied,
-                                       bool *matchedAppPassword)
+                                       bool *matchedAppPassword, String *matchedAppPasswordName)
    {
       if (matchedAppPassword)
          *matchedAppPassword = false;
+      if (matchedAppPasswordName)
+         *matchedAppPasswordName = String();
 
       // Let a script override the password validation
       auto eventResult = Events::FireOnClientValidatePassword(pAccount, sPassword);
@@ -231,7 +235,7 @@ namespace HM
       // but an app password is local by definition, which is exactly what makes
       // second-factor policy possible for a directory account whose clients cannot
       // present a code.
-      const bool viaAppPassword = ValidateAppPassword_(pAccount, sPassword);
+      const bool viaAppPassword = ValidateAppPassword_(pAccount, sPassword, matchedAppPasswordName);
       if (viaAppPassword && matchedAppPassword)
          *matchedAppPassword = true;
       return viaAppPassword;
@@ -462,7 +466,8 @@ namespace HM
    }
 
    bool
-   PasswordValidator::ValidateAppPassword_(std::shared_ptr<const Account> pAccount, const String &sPassword)
+   PasswordValidator::ValidateAppPassword_(std::shared_ptr<const Account> pAccount, const String &sPassword,
+                                          String *matchedName)
    {
       // Nothing has ever issued one: answer without touching the database. This is
       // the case on essentially every server, so it is the case that has to be free.
@@ -531,6 +536,11 @@ namespace HM
 
          // Recorded after the match, and throttled - see PersistentAppPassword.
          PersistentAppPassword::RecordUse(password);
+
+         // The label, for the record of this sign-in. The name is the whole of
+         // what leaves this function: nothing derived from the secret does.
+         if (matchedName)
+            *matchedName = password->GetName();
 
          return true;
       }

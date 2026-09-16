@@ -9,6 +9,7 @@
 #include "../Common/BO/Message.h"
 #include "../Common/Util/File.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/SignInStore.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/Util/Pop3LoginDelay.h"
 #include "../Common/Util/ByteBuffer.h"
@@ -736,7 +737,9 @@ namespace HM
       AccountLogon accountLogon;
       bool disconnect = false;
       String sUsername = username_;
-      account_ = accountLogon.Logon(GetRemoteEndpointAddress(), username_, password_, disconnect);
+      bool viaAppPassword = false;
+      String appPasswordName;
+      account_ = accountLogon.Logon(GetRemoteEndpointAddress(), username_, password_, disconnect, &viaAppPassword, &appPasswordName);
 
       if (disconnect)
       {
@@ -769,11 +772,11 @@ namespace HM
          return ResultNormalResponse;
       }
 
-      return HandleSuccessfulLogin_();
+      return HandleSuccessfulLogin_(viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
    }
 
    POP3Connection::ParseResult
-   POP3Connection::HandleSuccessfulLogin_()
+   POP3Connection::HandleSuccessfulLogin_(int credential, const String &credentialName)
    {
       // RFC 2449 section 6.5. The credentials were correct; this account has simply
       // come back too soon.
@@ -839,6 +842,17 @@ namespace HM
       }
 
       ResetMailbox_();
+
+      // The client, recorded, and this connection registered against it, so that
+      // revoking the device drops the connection where it stands. Written here
+      // rather than at the password check because this is where the session
+      // begins: a logon refused by the login delay or by another session's lock
+      // opened nothing to revoke. POP3 carries no user agent.
+      const String device = SignInStore::Record(account_, SignInStore::ProtocolPop3,
+         GetRemoteEndpointAddress(), String(), credential, credentialName);
+
+      if (!device.IsEmpty())
+         SignInStore::Attach(account_->GetID(), device, shared_from_this());
 
       EnqueueWrite_("+OK Mailbox locked and ready" );
       current_state_ = TRANSACTION;
@@ -1113,7 +1127,7 @@ namespace HM
       }
 
       account_ = pAccount;
-      return HandleSuccessfulLogin_();
+      return HandleSuccessfulLogin_(SignInStore::CredentialToken, String());
    }
 
    POP3Connection::ParseResult
@@ -1150,7 +1164,7 @@ namespace HM
       }
 
       account_ = pAccount;
-      return HandleSuccessfulLogin_();
+      return HandleSuccessfulLogin_(SignInStore::CredentialCertificate, String());
    }
 
    // RFC 4752 over POP3 AUTH (RFC 5034): each client line is a token for the
@@ -1206,7 +1220,7 @@ namespace HM
       }
 
       account_ = pAccount;
-      return HandleSuccessfulLogin_();
+      return HandleSuccessfulLogin_(SignInStore::CredentialSingleSignOn, String());
    }
 
    POP3Connection::ParseResult
@@ -1331,7 +1345,9 @@ namespace HM
 
       FireOnClientLogon_(sUsername, true);
 
-      return HandleSuccessfulLogin_();
+      // SCRAM proves the account's own password: an app password cannot be used
+      // with it (see PasswordValidator).
+      return HandleSuccessfulLogin_(SignInStore::CredentialPassword, String());
    }
 
    POP3Connection::ParseResult

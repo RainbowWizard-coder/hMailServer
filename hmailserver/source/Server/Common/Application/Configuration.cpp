@@ -436,6 +436,54 @@ namespace HM
       return GetSettings()->GetString(PROPERTY_COUNTRY_POLICY_HTTP);
    }
 
+   void
+   Configuration::SetSessionIdleSeconds(int seconds)
+   {
+      GetSettings()->SetLong(PROPERTY_SESSION_IDLE_SECONDS, seconds);
+   }
+
+   int
+   Configuration::GetSessionIdleSeconds() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_SESSION_IDLE_SECONDS);
+   }
+
+   void
+   Configuration::SetSessionLifetimeSeconds(int seconds)
+   {
+      GetSettings()->SetLong(PROPERTY_SESSION_LIFETIME_SECONDS, seconds);
+   }
+
+   int
+   Configuration::GetSessionLifetimeSeconds() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_SESSION_LIFETIME_SECONDS);
+   }
+
+   void
+   Configuration::SetSessionOnePerDevice(bool value)
+   {
+      GetSettings()->SetLong(PROPERTY_SESSION_ONE_PER_DEVICE, value ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetSessionOnePerDevice() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SESSION_ONE_PER_DEVICE) != 0;
+   }
+
+   void
+   Configuration::SetSessionBindToAddress(bool value)
+   {
+      GetSettings()->SetLong(PROPERTY_SESSION_BIND_TO_ADDRESS, value ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetSessionBindToAddress() const
+   {
+      return GetSettings()->GetLong(PROPERTY_SESSION_BIND_TO_ADDRESS) != 0;
+   }
+
    bool
    Configuration::GetLogSMTPConversations() const
    {

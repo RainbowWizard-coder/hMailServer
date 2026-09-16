@@ -313,7 +313,11 @@ create table hm_domains (
 	domainopenpgpnewaccounts int not null default 0,
 	domainwebhooksenabled int not null default 1,
 	domainwebhooksubjects int not null default 0,
-	domaincountrypolicy nvarchar(255) not null default ''
+	domaincountrypolicy nvarchar(255) not null default '',
+	domainsessionidleseconds int not null default 0,
+	domainsessionlifetimeseconds int not null default 0,
+	domainsessiononeperdevice int not null default 0,
+	domainsessionbindaddress int not null default 0
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -1217,6 +1221,14 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Co
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyHTTP', '', 0)
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionIdleSeconds', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionLifetimeSeconds', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionOnePerDevice', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionBindToAddress', '', 0)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5)
@@ -1680,6 +1692,27 @@ insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) v
 
 ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
+create table hm_signins
+(
+	siid bigint identity(1,1) not null,
+	siaccountid int not null,
+	sidevice nvarchar(32) not null,
+	siprotocol int not null,
+	siaddress nvarchar(64) not null,
+	siagent nvarchar(255) not null,
+	sicredential int not null,
+	sicredentialname nvarchar(64) not null,
+	sifirstseen datetime not null,
+	silastseen datetime not null,
+	sicount int not null,
+	sirevoked tinyint not null,
+	sirevokedtime datetime null
+)
+
+ALTER TABLE hm_signins ADD CONSTRAINT hm_signins_pk PRIMARY KEY NONCLUSTERED (siid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_signins_device ON hm_signins (siaccountid, sidevice)
+
 create table hm_bouncesuppressions
 (
 	bsid bigint identity(1,1) not null,
@@ -1824,4 +1857,6 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7)
 
-insert into hm_dbversion values (6052)
+ALTER TABLE hm_signins ADD CONSTRAINT fk_hm_signins_account FOREIGN KEY (siaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+insert into hm_dbversion values (6053)

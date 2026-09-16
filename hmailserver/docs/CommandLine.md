@@ -87,6 +87,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `backup` | status, start | The server's own backup. |
 | `dkim` | status, rotate, check, switch, retire, cancel, run | A domain's DKIM key rotation and the records it needs published. The schedule is five keys of the domain: `domain update`. |
 | `app-password` | list, create, delete | Under an account's address. |
+| `device` | list, revoke | The clients that have signed in to an account - protocol, address, program, which credential, first and last seen - under its address. `revoke ID` ends what one holds now (its browser session, its live IMAP, POP3 and SMTP connections); `--credential` also turns off the app password it signed in with, `--forget` removes the entry ([DevicesAndSessions.md](DevicesAndSessions.md)). |
 | `match` | *(a criterion and a value)* | What a rule criterion would decide, without a rule. |
 | `accounts` | import, export | A CSV file, with a dry run. |
 | `report` | *(a section)* | What happened on this server, per domain and per day. `sections` first: it says what can be reported and what cannot. |
@@ -102,6 +103,10 @@ hmctl settings get antispam use_spf
 hmctl settings set antispam --set use_spf=true --set spam_mark_threshold=5
 hmctl settings set --set breach_check_enabled=true
 hmctl settings breach-test --endpoint https://mirror.example/range/
+hmctl settings set --set session_idle_seconds=900 --set session_bind_to_address=true
+hmctl domain update example.com --set session_lifetime_seconds=28800 --set session_one_per_device=1
+hmctl device ann@example.com list
+hmctl device ann@example.com revoke 0123456789abcdef0123456789abcdef --credential
 hmctl queue list --json | jq '.[] | select(.retry_count > 3)'
 hmctl match contains viagra "cheap viagra here"
 hmctl dkim status example.com

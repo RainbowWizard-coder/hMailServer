@@ -910,7 +910,41 @@ namespace DBUpdater
          // there is nothing for a probe to assert about them - a missing row
          // reads as the setting's default, which is off.
          new SchemaProbe(6052, "hm_domains.domaincountrypolicy",
-                         "update hm_domains set domaincountrypolicy = domaincountrypolicy where 1 = 0")
+                         "update hm_domains set domaincountrypolicy = domaincountrypolicy where 1 = 0"),
+         // Upgrade6052to6053* - the devices that have signed in (hm_signins) and the
+         // per-domain session policy. The identity column is never probed.
+         new SchemaProbe(6053, "hm_signins.siaccountid",
+                         "update hm_signins set siaccountid = siaccountid where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sidevice",
+                         "update hm_signins set sidevice = sidevice where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.siprotocol",
+                         "update hm_signins set siprotocol = siprotocol where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.siaddress",
+                         "update hm_signins set siaddress = siaddress where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.siagent",
+                         "update hm_signins set siagent = siagent where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sicredential",
+                         "update hm_signins set sicredential = sicredential where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sicredentialname",
+                         "update hm_signins set sicredentialname = sicredentialname where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sifirstseen",
+                         "update hm_signins set sifirstseen = sifirstseen where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.silastseen",
+                         "update hm_signins set silastseen = silastseen where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sicount",
+                         "update hm_signins set sicount = sicount where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sirevoked",
+                         "update hm_signins set sirevoked = sirevoked where 1 = 0"),
+         new SchemaProbe(6053, "hm_signins.sirevokedtime",
+                         "update hm_signins set sirevokedtime = sirevokedtime where 1 = 0"),
+         new SchemaProbe(6053, "hm_domains.domainsessionidleseconds",
+                         "update hm_domains set domainsessionidleseconds = domainsessionidleseconds where 1 = 0"),
+         new SchemaProbe(6053, "hm_domains.domainsessionlifetimeseconds",
+                         "update hm_domains set domainsessionlifetimeseconds = domainsessionlifetimeseconds where 1 = 0"),
+         new SchemaProbe(6053, "hm_domains.domainsessiononeperdevice",
+                         "update hm_domains set domainsessiononeperdevice = domainsessiononeperdevice where 1 = 0"),
+         new SchemaProbe(6053, "hm_domains.domainsessionbindaddress",
+                         "update hm_domains set domainsessionbindaddress = domainsessionbindaddress where 1 = 0")
       };
 
       /// <summary>

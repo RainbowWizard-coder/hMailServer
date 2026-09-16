@@ -33,6 +33,9 @@
 //    GET    /api/v1/accounts/{address}/messages/{id}/source       the file, message/rfc822
 //    POST   /api/v1/accounts/{address}/messages/{id}/copy         Message.Copy: the message into another folder of the account
 //
+//    GET    /api/v1/accounts/{address}/devices                the clients that have signed in to the account
+//    DELETE /api/v1/accounts/{address}/devices/{id}           revoke one: its sessions end and its connections are dropped
+//
 // Each handler does what the COM member does with the same persistence call
 // and the same checks. A create is InterfaceAppPasswords::Add, then
 // InterfaceAppPassword::Generate (or SetPassword, when the body chooses the
@@ -117,6 +120,7 @@
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PersistentAppPassword.h"
+#include "SignInStore.h"
 #include "../Persistence/PersistentACLPermission.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Tracking/ChangeNotification.h"
@@ -1415,12 +1419,59 @@ namespace
       return bridge.respond(200, "{\"deleted\":true}", "");
    }
 
+   // The clients that have signed in to this account, newest use first. The
+   // same rows the account's own GET /api/v1/me/devices shows it, built by the
+   // same code, so an administrator and the account holder are never looking
+   // at two different lists. No 'current' here: an administrator reading
+   // somebody else's list is not one of the clients on it.
+   HttpResponse ListDevices(const Bridge &bridge, std::shared_ptr<Account> account)
+   {
+      const std::vector<SignInRecord> records = SignInStore::List(account->GetID());
+
+      AnsiString json = "{\"devices\":";
+      json += SignInStore::ToJson(records);
+      json += "}";
+
+      return bridge.respond(200, json, "");
+   }
+
+   // One client revoked. credential=revoke also deactivates the app password
+   // it signed in with, which is what an administrator wants when the answer
+   // to "my phone was stolen" has to hold after the thief reconnects;
+   // forget=true removes the entry rather than marking it.
+   HttpResponse RevokeDevice(const Bridge &bridge, std::shared_ptr<Account> account, const AnsiString &device, const AnsiString &query)
+   {
+      int connections = 0;
+      int sessions = 0;
+      bool credentialDisabled = false;
+
+      const bool revokeCredential = query.Find("credential=revoke") >= 0;
+      const bool forget = query.Find("forget=true") >= 0;
+
+      const bool found = forget
+         ? SignInStore::Forget(account->GetID(), String(device), connections, sessions)
+         : SignInStore::Revoke(account->GetID(), String(device), revokeCredential, connections, sessions, credentialDisabled);
+
+      if (!found)
+         return Refusal(bridge, 404, "no such device of this account");
+
+      LOG_APPLICATION("REST API: a device of " + account->GetAddress() + " was revoked by an administrator.");
+
+      AnsiString json;
+      json.Format("{\"revoked\":true,\"forgotten\":%hs,\"sessions_ended\":%d,\"connections_dropped\":%d,\"credential_disabled\":%hs}",
+         forget ? "true" : "false", sessions, connections, credentialDisabled ? "true" : "false");
+
+      return bridge.respond(200, json, "");
+   }
+
    // ------------------------------------------------------------------------
    // The OpenAPI entries, each beginning with a comma as HandleOpenApi_ asks.
    // ------------------------------------------------------------------------
 
    const char *AccountResourcesPaths =
-      ",\"/api/v1/accounts/{address}/app-passwords\":{"
+      ",\"/api/v1/accounts/{address}/devices\":{\"get\":{\"summary\":\"The clients that have signed in to an account (administrator)\",\"description\":\"The same entries the account's own GET /api/v1/me/devices shows it, newest use first: id, protocol, address, agent, credential, credential_name, first_seen, last_seen, sign_ins, revoked and revoked_at. Never a password and never anything derived from one. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"devices\"},\"404\":{\"description\":\"No such account\"}}}},"
+      "\"/api/v1/accounts/{address}/devices/{id}\":{\"delete\":{\"summary\":\"Revoke a client of an account (administrator)\",\"description\":\"What the account holder's own revoke does: the browser session that client holds is ended and its live IMAP, POP3 and SMTP connections are dropped. credential=revoke in the query also deactivates the app password it signed in with, which is the answer to a phone that has been stolen; forget=true removes the entry. A revoke is not a ban - the entry stays, marked, and a later sign-in with a credential that still works clears the mark. Answers sessions_ended, connections_dropped and credential_disabled.\",\"responses\":{\"200\":{\"description\":\"revoked, forgotten, sessions_ended, connections_dropped, credential_disabled\"},\"404\":{\"description\":\"No such account, or no device with that id on it\"}}}},"
+      "\"/api/v1/accounts/{address}/app-passwords\":{"
       "\"get\":{\"summary\":\"An account's app passwords (administrator)\",\"description\":\"What Account.AppPasswords lists over COM: id, name, created, last_used, active - never the password. The same entries the account's own GET /api/v1/me/app-passwords shows. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"app_passwords\"},\"404\":{\"description\":\"No such account\"}}},"
       "\"post\":{\"summary\":\"Make an app password for an account (administrator)\",\"description\":\"Body: name (required: what the password is for), password (optional: a chosen secret of at least 12 characters that the password policy and the breach check accept, as InterfaceAppPassword.SetPassword requires; left out, one is generated as Generate does) and active (default true). Saved as InterfaceAppPassword.Save saves it: the store judges the name, the hash and the ceiling of twenty per account, and its sentence is the 400. The answer carries the password in clear text, the only time it exists outside the caller. No account password is asked for - the administrator credential is the proof - and the issue is logged with the account's address.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"id, name, created, last_used, active, password\"},\"400\":{\"description\":\"No name, a chosen password the policy or the floor of twelve refuses or one found in the published breach corpus (reason: breached), an unknown field, or twenty already\"},\"404\":{\"description\":\"No such account\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
       "\"/api/v1/accounts/{address}/app-passwords/{id}\":{"
@@ -1455,6 +1506,30 @@ namespace HM
    bool
    RestApiServer::ParseAccountResourceRoute_(const AnsiString &method, const AnsiString &tail, Route &route)
    {
+      const AnsiString devices = "/devices";
+
+      if (tail == devices)
+      {
+         if (method == "GET")
+            route.kind = RouteAccountDeviceList;
+
+         return route.kind != RouteUnknown;
+      }
+
+      if (tail.StartsWith(devices + "/"))
+      {
+         // A device is named by its key: thirty-two hex characters, as the
+         // listing shows it and as SignInStore::DeviceKey makes it.
+         AnsiString rest = tail.Mid(devices.GetLength() + 1);
+         if (method == "DELETE" && rest.Find("/") < 0 && rest.GetLength() == 32)
+         {
+            route.kind = RouteAccountDeviceDelete;
+            route.name = rest;
+         }
+
+         return route.kind != RouteUnknown;
+      }
+
       const AnsiString appPasswords = "/app-passwords";
 
       if (tail == appPasswords)
@@ -1681,6 +1756,11 @@ namespace HM
          return MessageSource(bridge, account, route.message_id);
       case RouteAccountMessageCopy:
          return CopyMessage(bridge, account, route.message_id, requestBody);
+
+      case RouteAccountDeviceList:
+         return ListDevices(bridge, account);
+      case RouteAccountDeviceDelete:
+         return RevokeDevice(bridge, account, route.name, route.query);
       default:
          break;
       }

@@ -12,6 +12,7 @@
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/SignInStore.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/Util/Crypt.h"
 #include "../Common/Util/Hashing/ScramSha256.h"
@@ -178,7 +179,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "Invalid authentication token.");
          }
 
-         pConnection->Login(pAccount);
+         pConnection->Login(pAccount, SignInStore::CredentialToken, String());
 
          String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";
          pConnection->SendAsciiData(sResponse);
@@ -253,7 +254,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "The client certificate does not identify an account.");
          }
 
-         pConnection->Login(pAccount);
+         pConnection->Login(pAccount, SignInStore::CredentialCertificate, String());
 
          String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";
          pConnection->SendAsciiData(sResponse);
@@ -360,7 +361,10 @@ namespace HM
 
       AccountLogon accountLogon;
       bool disconnect = false;
-      std::shared_ptr<const Account> pAccount = accountLogon.Logon(pConnection->GetRemoteEndpointAddress(), authzid, authcid, password, disconnect);
+      bool viaAppPassword = false;
+      String appPasswordName;
+      std::shared_ptr<const Account> pAccount = accountLogon.Logon(pConnection->GetRemoteEndpointAddress(), authzid, authcid, password, disconnect,
+         &viaAppPassword, &appPasswordName);
 
       if (disconnect)
       {
@@ -388,7 +392,7 @@ namespace HM
       }
 
       // Load mail boxes
-      pConnection->Login(pAccount);
+      pConnection->Login(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
 
       String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";
 
@@ -482,7 +486,7 @@ namespace HM
          }
          return IMAPResult(IMAPResult::ResultNo, state == GssapiAcceptor::Done ? "The Kerberos principal does not identify an account." : "AUTHENTICATE failed.");
       }
-      pConnection->Login(pAccount);
+      pConnection->Login(pAccount, SignInStore::CredentialSingleSignOn, String());
       pConnection->SendAsciiData(pArgument->Tag() + " OK AUTHENTICATE completed\r\n");
       return IMAPResult();
    }
@@ -600,7 +604,10 @@ namespace HM
       // for ever, and one later slip locks them out.
       AccountLockout::Instance()->RecordSuccess(sUsername);
 
-      pConnection->Login(pAccount);
+      // SCRAM proves the ACCOUNT's own password - an app password cannot be used
+      // with it, because its hash is not one SCRAM can derive from (see
+      // PasswordValidator) - so the credential is never in doubt here.
+      pConnection->Login(pAccount, SignInStore::CredentialPassword, String());
 
       String sResponse = pArgument->Tag() + " OK AUTHENTICATE completed\r\n";
       pConnection->SendAsciiData(sResponse);

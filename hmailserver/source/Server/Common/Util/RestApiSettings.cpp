@@ -50,6 +50,7 @@
 #include "Unicode.h"
 #include "Utilities.h"
 #include "PasswordBreachCheck.h"
+#include "SessionPolicies.h"
 #include "../Application/IniSettingStore.h"
 #include "../Application/Backup.h"
 #include "../BO/ServerMessages.h"
@@ -629,6 +630,28 @@ namespace
       { "alert_recipient", KindString, ReadWrite, EffectNow, nullptr,
         "The address alerts and the daily digest are sent to. Empty means nothing is mailed, which is the default.",
         ROW_TEXT(Config()->GetAlertRecipient()), ROW_SET(Config()->SetAlertRecipient(v.text)), ROW_NO_CHECK },
+
+      // The session policies (SessionPolicies), server-wide. A domain's own row
+      // overrides each of these for the accounts of that domain, at
+      // PUT /api/v1/domains/{domain}; the administrator's own browser session
+      // belongs to no domain and is governed by these alone. Every one is 0 on a
+      // fresh install and after an upgrade, and 0 means the policy is not set -
+      // NOT that there is no limit: the ceilings this server has always enforced,
+      // thirty minutes idle and twelve hours in all, apply where nothing is set.
+      { "session_idle_seconds", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long a signed-in browser session - the webmail, the self-service portal, the Control Deck - may go unused before it ends, in seconds. 0 leaves the server's own ceiling of 1800 seconds in force. At most 2592000 (thirty days). A value under 60 is only useful for testing.",
+        ROW_NUMBER(Config()->GetSessionIdleSeconds()), ROW_SET(Config()->SetSessionIdleSeconds((int) v.number)),
+        [] (const Value &v) -> String { return SessionPolicies::CheckSeconds((int) v.number); } },
+      { "session_lifetime_seconds", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long a signed-in browser session may live at all, however busy it is, in seconds. 0 leaves the server's own ceiling of 43200 seconds - twelve hours - in force. At most 2592000 (thirty days).",
+        ROW_NUMBER(Config()->GetSessionLifetimeSeconds()), ROW_SET(Config()->SetSessionLifetimeSeconds((int) v.number)),
+        [] (const Value &v) -> String { return SessionPolicies::CheckSeconds((int) v.number); } },
+      { "session_one_per_device", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether signing in from a client that already has a session for that account ends the earlier one, so somebody who signs in on a shared machine and forgets leaves nothing behind the next time they sign in there. Off by default.",
+        ROW_FLAG(Config()->GetSessionOnePerDevice()), ROW_SET(Config()->SetSessionOnePerDevice(v.flag)), ROW_NO_CHECK },
+      { "session_bind_to_address", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a session is refused from any address but the one it began on, so a stolen cookie is of no use away from the victim's network. Off by default: an address that changes underneath somebody - a phone moving between wi-fi and a mobile network - ends their session while this is on.",
+        ROW_FLAG(Config()->GetSessionBindToAddress()), ROW_SET(Config()->SetSessionBindToAddress(v.flag)), ROW_NO_CHECK },
       { "alert_sender_address", KindString, ReadWrite, EffectNow, nullptr,
         "The address alerts are sent FROM. Empty means nothing is mailed, which is the default.",
         ROW_TEXT(Config()->GetAlertSenderAddress()), ROW_SET(Config()->SetAlertSenderAddress(v.text)), ROW_NO_CHECK },

@@ -230,7 +230,14 @@ namespace HM
 
       void SetDelayedChangeNotification(std::shared_ptr<ChangeNotification> pNotification);
 
-      void Login(std::shared_ptr<const Account> account);
+      // credential is a SignInStore::Credential - which of the account's
+      // credentials this connection authenticated with - and credentialName the
+      // app password's name where it was one. Taken as an int so that this
+      // header, which half the IMAP server includes, does not pull SignInStore
+      // in with it. Login is the one place an IMAP connection becomes
+      // authenticated, whichever mechanism did it, so it is where the client is
+      // recorded and where the connection is registered for revocation.
+      void Login(std::shared_ptr<const Account> account, int credential, const String &credentialName);
       void Logout(const String &goodbyeMessage);
 
       // RFC 8437: returns the session to the not-authenticated state without

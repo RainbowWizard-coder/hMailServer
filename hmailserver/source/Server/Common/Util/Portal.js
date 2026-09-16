@@ -3171,7 +3171,46 @@
       if (r.status === 200 && r.data) { say('session-status', (r.data.ended || 0) + t(' ended.'), true); loadSessions(); } else { say('session-status', describe(r, t('Could not end them')), false); }
     });
   });
-  var loadSecurity = function () { loadAppPasswords(); loadSessions(); loadSmime(); };
+  // Everything that has signed in as this person, whatever protocol it spoke.
+  // The list the server keeps is one row per client - the protocol, the address
+  // and the program where there is one - so a phone fetching mail and the same
+  // person's browser are two rows, which is what makes it possible to point at
+  // one and say 'not me'.
+  var loadDevices = function () {
+    return call('GET', '/api/v1/me/devices').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('device-status', describe(result, t('Could not read the devices')), false); return; }
+      var rows = el('device-rows');
+      clear(rows);
+      var list = result.data.devices || [];
+      list.forEach(function (d) {
+        var tr = document.createElement('tr');
+        var what = document.createElement('td');
+        what.appendChild(node('span', String(d.protocol || '')));
+        if (d.current) { what.appendChild(node('span', t('This browser'), 'badge info')); }
+        if (d.revoked) { what.appendChild(node('span', t('Revoked'), 'badge warn')); }
+        tr.appendChild(what);
+        tr.appendChild(node('td', d.address || ''));
+        tr.appendChild(node('td', d.agent || '-'));
+        tr.appendChild(node('td', (d.credential === 'app_password' && d.credential_name) ? d.credential_name : String(d.credential || '')));
+        tr.appendChild(node('td', d.last_seen || ''));
+        var actions = document.createElement('td');
+        var revoke = button(t('Revoke'));
+        revoke.addEventListener('click', function () {
+          var also = el('device-credential').checked ? '?credential=revoke' : '';
+          call('DELETE', '/api/v1/me/devices/' + encodeURIComponent(d.id) + also).then(function (r) {
+            if (r.status === 200) { say('device-status', t('Revoked. Anything it had open has been closed.'), true); loadDevices(); }
+            else { say('device-status', describe(r, t('Could not revoke it')), false); }
+          });
+        });
+        actions.appendChild(revoke);
+        tr.appendChild(actions);
+        rows.appendChild(tr);
+      });
+      el('device-empty').hidden = list.length > 0;
+      el('device-table').hidden = list.length === 0;
+    });
+  };
+  var loadSecurity = function () { loadAppPasswords(); loadSessions(); loadDevices(); loadSmime(); };
 
   // Focus follows a change of view to its title, unless the view put the
   // focus somewhere itself, so that a screen reader announces where it is.

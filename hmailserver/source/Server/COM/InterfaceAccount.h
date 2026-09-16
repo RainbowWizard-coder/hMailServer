@@ -172,6 +172,12 @@ public:
    STDMETHOD(get_SpamDeleteThreshold)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_SpamDeleteThreshold)(/*[in]*/ long newVal);
 
+   // The clients that have signed in to this account, and the one call that ends
+   // what one of them holds. A JSON document rather than a collection: see the
+   // IDL for why, and SignInStore.h for what a revoke does.
+   STDMETHOD(GetDevices)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(RevokeDevice)(/*[in]*/ BSTR DeviceID, /*[in]*/ VARIANT_BOOL RevokeCredential, /*[out, retval]*/ VARIANT_BOOL *Revoked);
+
 
 private:
 

@@ -17,9 +17,9 @@ namespace HM
       // matchedAppPassword, when given, says whether the password that logged
       // the account on was one of its app passwords (see PasswordValidator).
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sUsername, const String &sPassword, bool &disconnect,
-                                           bool *matchedAppPassword = nullptr);
+                                           bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr);
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sMasqname, const String &sUsername, const String &sPassword, bool &disconnect,
-                                           bool *matchedAppPassword = nullptr);
+                                           bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr);
 
       // Record a failed authentication attempt for auto-ban accounting. Sets
       // 'disconnect' to true when the connection should be dropped (and possibly the

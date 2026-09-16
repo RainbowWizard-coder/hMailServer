@@ -18,6 +18,7 @@
 #include "../Persistence/PersistentSecurityRange.h"
 #include "../Util/PasswordValidator.h"
 #include "../Util/AccountLogon.h"
+#include "../Util/SignInStore.h"
 #include "../Util/ServerStatus.h"
 #include "../Util/Parsing/StringParser.h"
 #include "../TCPIP/AcceptLoop.h"
@@ -1126,7 +1127,9 @@ namespace HM
       // accept-time check in IsConnectionAllowed_ then enforces.
       AccountLogon accountLogon;
       bool disconnect = false;
-      std::shared_ptr<const Account> account = accountLogon.Logon(client_address, username, password, disconnect);
+      bool viaAppPassword = false;
+      String appPasswordName;
+      std::shared_ptr<const Account> account = accountLogon.Logon(client_address, username, password, disconnect, &viaAppPassword, &appPasswordName);
 
       if (!account)
       {
@@ -1138,6 +1141,15 @@ namespace HM
 
       account_address = account->GetAddress();
       authentication_failures = 0;
+
+      // The client, recorded. ManageSieve carries no user agent, and its
+      // connection is this listener's own socket rather than a TCPConnection, so
+      // nothing is registered for revocation: a ManageSieve session is a few
+      // seconds long and re-authenticates, and revoking such a client is
+      // revoking the app password behind it.
+      SignInStore::Record(account, SignInStore::ProtocolManageSieve, client_address, String(),
+         viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
+
       Send_(connection, "OK \"Authentication successful.\"\r\n");
 
       return AuthenticationSucceeded;

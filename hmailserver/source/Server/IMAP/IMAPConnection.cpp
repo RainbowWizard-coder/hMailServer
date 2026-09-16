@@ -14,6 +14,7 @@
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/TimeoutCalculator.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/SignInStore.h"
 
 // Business data/storage
 #include "../Common/BO/Account.h"
@@ -584,9 +585,21 @@ namespace HM
    }
 
    void
-   IMAPConnection::Login(std::shared_ptr<const Account> account)
+   IMAPConnection::Login(std::shared_ptr<const Account> account, int credential, const String &credentialName)
    {
       account_ = account;
+
+      // The client, recorded, and this connection registered against it: a
+      // revoke of that device drops the connection where it stands rather than
+      // waiting for the client to reconnect. IMAP carries no user agent - the ID
+      // command is usually sent after LOGIN and is not a credential - so the
+      // client is the protocol and the address, which is what the roadmap row
+      // asks for.
+      const String device = SignInStore::Record(account, SignInStore::ProtocolImap,
+         GetRemoteEndpointAddress(), String(), credential, credentialName);
+
+      if (!device.IsEmpty())
+         SignInStore::Attach(account->GetID(), device, shared_from_this());
 
       RefreshIMAPFolders();
    }

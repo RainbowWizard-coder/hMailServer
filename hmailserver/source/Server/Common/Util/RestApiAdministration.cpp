@@ -40,6 +40,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "SessionPolicies.h"
 #include "CountryBlocking.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
@@ -279,7 +280,8 @@ namespace HM
          "quarantine_digest", "quarantine_digest_hour",
          "openpgp_publish", "openpgp_publish_new_accounts",
          "webhooks_enabled", "webhook_subjects",
-         "country_policy"
+         "country_policy",
+         "session_idle_seconds", "session_lifetime_seconds", "session_one_per_device", "session_bind_to_address"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -350,6 +352,15 @@ namespace HM
          long retention = domain->GetMessageRetentionDays(), relayPort = domain->GetRelayPort();
          long digestHour = domain->GetQuarantineDigestHour();
 
+         // The session policies. Both numbers are seconds, 0 meaning "take the
+         // server's answer"; both switches are 0 inherit, 1 on, 2 off. The bounds
+         // are SessionPolicies', so REST, COM and the command line refuse the same
+         // numbers in the same words.
+         long sessionIdle = domain->GetSessionIdleSeconds();
+         long sessionLifetime = domain->GetSessionLifetimeSeconds();
+         long sessionOnePerDevice = domain->GetSessionOnePerDevice();
+         long sessionBindToAddress = domain->GetSessionBindToAddress();
+
          if (!ReadInteger(body, "max_message_size_kb", 0, 2000000000L, maxMessageSize, error) ||
              !ReadInteger(body, "max_size_mb", 0, 2000000000L, maxSize, error) ||
              !ReadInteger(body, "max_account_size_mb", 0, 2000000000L, maxAccountSize, error) ||
@@ -358,7 +369,11 @@ namespace HM
              !ReadInteger(body, "max_lists", 0, 2000000000L, maxLists, error) ||
              !ReadInteger(body, "message_retention_days", 0, 100000, retention, error) ||
              !ReadInteger(body, "relay_port", 0, 65535, relayPort, error) ||
-             !ReadInteger(body, "quarantine_digest_hour", 0, 23, digestHour, error))
+             !ReadInteger(body, "quarantine_digest_hour", 0, 23, digestHour, error) ||
+             !ReadInteger(body, "session_idle_seconds", 0, SessionPolicies::MaximumSeconds, sessionIdle, error) ||
+             !ReadInteger(body, "session_lifetime_seconds", 0, SessionPolicies::MaximumSeconds, sessionLifetime, error) ||
+             !ReadInteger(body, "session_one_per_device", 0, 2, sessionOnePerDevice, error) ||
+             !ReadInteger(body, "session_bind_to_address", 0, 2, sessionBindToAddress, error))
             return false;
 
          // The rotation policy, in the ranges DkimRotationPlan::Policy::Validate
@@ -551,6 +566,10 @@ namespace HM
          domain->SetRelayPort(relayPort);
          domain->SetRelayRequiresAuth(relayAuth);
          domain->SetRelayUsername(relayUser);
+         domain->SetSessionIdleSeconds((int) sessionIdle);
+         domain->SetSessionLifetimeSeconds((int) sessionLifetime);
+         domain->SetSessionOnePerDevice((int) sessionOnePerDevice);
+         domain->SetSessionBindToAddress((int) sessionBindToAddress);
          domain->SetRelayPassword(relayPassword);
          domain->SetRelayConnectionSecurity(security);
          domain->SetVacationMessageIsOn(vacationOn);
@@ -617,6 +636,14 @@ namespace HM
          domain->GetRelayPort(),
          domain->GetQuarantineDigestHour());
       entry += limits;
+
+      AnsiString sessions;
+      sessions.Format(",\"session_idle_seconds\":%d,\"session_lifetime_seconds\":%d,\"session_one_per_device\":%d,\"session_bind_to_address\":%d",
+         domain->GetSessionIdleSeconds(),
+         domain->GetSessionLifetimeSeconds(),
+         domain->GetSessionOnePerDevice(),
+         domain->GetSessionBindToAddress());
+      entry += sessions;
 
       auto flag = [&entry](const char *name, bool value)
       {
@@ -1324,10 +1351,40 @@ namespace HM
       return BuildResponse_(200, IpRangeEntryJson_(range));
    }
 
+   // The session policy in force for a domain's accounts, as one document: what
+   // applies (in_force), what the server holds, the built-in ceilings that apply
+   // where nothing is set, and the domain's own row. The same JSON
+   // Utilities.GetSessionPolicy answers over COM, built by SessionPolicies so that
+   // the two cannot say different things.
+   HttpResponse
+   RestApiServer::HandleDomainSessionPolicy_(const Route &route)
+   {
+      // The name as the path carried it, as HandleDkim_ takes it: a domain name
+      // has nothing in it that needs decoding.
+      const SessionPolicy policy = SessionPolicies::ForDomain(String(route.identifier));
+      if (!policy.has_domain)
+         return BuildResponse_(404, "{\"error\":\"domain not found\"}");
+
+      return BuildResponse_(200, SessionPolicies::ToJson(policy));
+   }
+
+   HttpResponse
+   RestApiServer::HandleSessionPolicy_()
+   {
+      return BuildResponse_(200, SessionPolicies::ToJson(SessionPolicies::ServerWide()));
+   }
+
    AnsiString
    RestApiServer::OpenApiAdministrationPaths_()
    {
       static const char *paths =
+         ",\"/api/v1/domains/{domain}/session-policy\":{\"get\":{\"summary\":\"The session policy in force for a domain's accounts\","
+         "\"description\":\"One document: in_force (idle_seconds, lifetime_seconds, one_per_device, bind_to_address - what a signed-in browser session of this domain's accounts is held to), server (the same four as stored server-wide, 0 and false where unset), defaults (the ceilings that apply where nothing is set: 1800 and 43200 seconds) and domain_policy (the domain's own four fields: 0 takes the server's answer; for the two switches 1 is on and 2 is off). The same document Utilities.GetSessionPolicy answers over COM. To change the domain's row, PUT the four session_* fields of the domain; to change the server's, PUT the four session_* keys of the settings group.\","
+         "\"parameters\":[{\"name\":\"domain\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
+         "\"responses\":{\"200\":{\"description\":\"domain, in_force, server, defaults, domain_policy\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
+         "\"/api/v1/session-policy\":{\"get\":{\"summary\":\"The session policy in force server-wide\","
+         "\"description\":\"The same document as a domain's, without domain_policy: what governs the administrator's own browser session and the accounts of every domain that has set nothing of its own. Server-wide; refused for domain-restricted keys, which read their domain's.\","
+         "\"responses\":{\"200\":{\"description\":\"in_force, server, defaults\"}}}}"
          ",\"/api/v1/domains/{domain}/domain-aliases\":{"
          "\"get\":{\"summary\":\"The domain's aliases - other names the domain answers to\",\"description\":\"Each entry: id, name. A key restricted to named domains reaches its own domains only.\",\"responses\":{\"200\":{\"description\":\"Array of domain aliases\"},\"404\":{\"description\":\"Unknown domain\"}}},"
          "\"post\":{\"summary\":\"Add a domain alias\",\"description\":\"Body: name. What DomainAliases.Add and Save do over COM, with the same refusal when the name is already a domain or an alias; in effect for the next RCPT TO.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: id, name\"},\"400\":{\"description\":\"name missing, or refused (error says why)\"},\"404\":{\"description\":\"Unknown domain\"}}}},"

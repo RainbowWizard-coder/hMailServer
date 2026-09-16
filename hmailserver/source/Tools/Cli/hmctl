@@ -692,6 +692,35 @@ def apppassword_command(client, arguments):
     return EXIT_OK
 
 
+def device_command(client, arguments):
+    """The clients that have signed in to an account, and the one call that ends
+    what one of them holds. The list is the account holder's own (GET
+    /api/v1/me/devices) read under the account's address by an administrator;
+    revoking ends the client's browser session and drops its live IMAP, POP3 and
+    SMTP connections, and with --credential deactivates the app password it
+    signed in with, which is what stops a stolen phone signing in again."""
+    base = "/api/v1/accounts/%s/devices" % urllib.parse.quote(arguments.address, safe="@")
+    if arguments.verb == "list":
+        render(collection(client.request("GET", base), "devices"), arguments.json,
+               ["id", "protocol", "address", "agent", "credential", "credential_name", "last_seen", "sign_ins", "revoked"])
+    elif arguments.verb == "revoke":
+        query = []
+        if getattr(arguments, "credential", False):
+            query.append("credential=revoke")
+        if getattr(arguments, "forget", False):
+            query.append("forget=true")
+        path = "%s/%s" % (base, arguments.id)
+        if query:
+            path += "?" + "&".join(query)
+        answer = client.request("DELETE", path)
+        render(answer, arguments.json)
+        if not arguments.json and isinstance(answer, dict):
+            print("%s session(s) ended, %s connection(s) dropped%s." % (
+                answer.get("sessions_ended", 0), answer.get("connections_dropped", 0),
+                ", the app password it used turned off" if answer.get("credential_disabled") else ""))
+    return EXIT_OK
+
+
 def member_command(client, arguments):
     base = "/api/v1/groups/%s/members" % arguments.group
     if arguments.verb == "list":
@@ -1854,6 +1883,17 @@ def build_parser():
     create.add_argument("name")
     delete = app_verbs.add_parser("delete", parents=[common])
     delete.add_argument("id")
+
+    device = commands.add_parser("device", help="the clients that have signed in to an account, and revoking one")
+    device.set_defaults(handler=device_command)
+    device.add_argument("address")
+    device_verbs = device.add_subparsers(dest="verb")
+    device_verbs.add_parser("list", parents=[common])
+    revoke = device_verbs.add_parser("revoke", parents=[common])
+    revoke.add_argument("id", help="the client's id, thirty-two hex characters from the list")
+    revoke.add_argument("--credential", action="store_true",
+                        help="also turn off the app password the client signed in with, where it used one")
+    revoke.add_argument("--forget", action="store_true", help="remove the entry rather than marking it revoked")
 
     member = commands.add_parser("member", help="the accounts in a group")
     member.set_defaults(handler=member_command)

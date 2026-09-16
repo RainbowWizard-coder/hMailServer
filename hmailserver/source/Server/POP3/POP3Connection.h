@@ -112,7 +112,13 @@ namespace HM
       ParseResult ProcessScramAck_();
       ParseResult ScramAuthFailed_();
       ParseResult FinishPasswordLogin_();
-      ParseResult HandleSuccessfulLogin_();
+      // The one place a POP3 connection becomes authenticated, whichever
+      // mechanism did it - so it is where the client is recorded and where the
+      // connection is registered for revocation. credential is a
+      // SignInStore::Credential, taken as an int so that this header does not
+      // pull SignInStore in with it; credentialName is the app password's name
+      // where one was used.
+      ParseResult HandleSuccessfulLogin_(int credential, const String &credentialName);
 
       // The logon tarpit (hMailServer.ini LogonTarpitSeconds): queues a pause on
       // the connection ahead of the refusal rather than sleeping.

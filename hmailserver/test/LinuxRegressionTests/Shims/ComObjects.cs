@@ -805,6 +805,36 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.Server, "create_default_special_use_folders", value); }
       }
 
+      // ---- The session policies: four keys of the server-wide group ----
+      // SessionPolicies: 0 in either number and false in either switch is "not
+      // set", and the server's own ceilings apply. The route refuses a number
+      // past the ceiling as the COM property does, so the COMException is the
+      // server's.
+
+      public int SessionIdleSeconds
+      {
+         get { return Num("session_idle_seconds"); }
+         set { SettingsApi.Put(SettingsApi.Server, "session_idle_seconds", value); }
+      }
+
+      public int SessionLifetimeSeconds
+      {
+         get { return Num("session_lifetime_seconds"); }
+         set { SettingsApi.Put(SettingsApi.Server, "session_lifetime_seconds", value); }
+      }
+
+      public bool SessionOnePerDevice
+      {
+         get { return Flag("session_one_per_device"); }
+         set { SettingsApi.Put(SettingsApi.Server, "session_one_per_device", value); }
+      }
+
+      public bool SessionBindToAddress
+      {
+         get { return Flag("session_bind_to_address"); }
+         set { SettingsApi.Put(SettingsApi.Server, "session_bind_to_address", value); }
+      }
+
       // ---- The password breach check: four keys of the server-wide group ----
 
       public bool BreachCheckEnabled
@@ -2163,6 +2193,54 @@ namespace hMailServer
       private const string SyntaxAccountAddress = "sieve-syntax@example.test";
       private const string SyntaxAccountPassword = "sieve-syntax-secret";
 
+      /// <summary>
+      ///    Utilities.GetSessionPolicy: GET /api/v1/domains/{domain}/session-policy for a
+      ///    domain, GET /api/v1/session-policy for the server alone - the document
+      ///    SessionPolicies::ToJson writes, which is what the COM method answers. A
+      ///    name this server does not host answers the server-wide document, as the
+      ///    COM method does.
+      /// </summary>
+      public string GetSessionPolicy(string domainName)
+      {
+         if (!string.IsNullOrEmpty(domainName))
+         {
+            var forDomain = ServerApi.Get("/api/v1/domains/" + Uri.EscapeDataString(domainName) + "/session-policy");
+            if (forDomain.Status != 404)
+               return forDomain.Expect(200, "GET /api/v1/domains/" + domainName + "/session-policy").Body;
+         }
+
+         return ServerApi.Get("/api/v1/session-policy").Expect(200, "GET /api/v1/session-policy").Body;
+      }
+
+      /// <summary>
+      ///    Utilities.SetDomainSessionPolicy: the four session_* fields of the domain
+      ///    over PUT /api/v1/domains/{domain}, which needs active beside them, so the
+      ///    domain is read first. False for a domain this server does not host; a
+      ///    refused value is the route's 400, raised as the COM method raises it.
+      /// </summary>
+      public bool SetDomainSessionPolicy(string domainName, int idleSeconds, int lifetimeSeconds, int onePerDevice, int bindToAddress)
+      {
+         var current = ServerApi.Get("/api/v1/domains/" + Uri.EscapeDataString(domainName));
+         if (current.Status == 404)
+            return false;
+         current.Expect(200, "GET /api/v1/domains/" + domainName);
+
+         bool active;
+         using (var document = JsonDocument.Parse(current.Body))
+            active = document.RootElement.GetProperty("active").GetBoolean();
+
+         string body = "{\"active\":" + (active ? "true" : "false") +
+                       ",\"session_idle_seconds\":" + idleSeconds +
+                       ",\"session_lifetime_seconds\":" + lifetimeSeconds +
+                       ",\"session_one_per_device\":" + onePerDevice +
+                       ",\"session_bind_to_address\":" + bindToAddress + "}";
+         var saved = ServerApi.Put("/api/v1/domains/" + Uri.EscapeDataString(domainName), body);
+         if (saved.Status == 400)
+            throw new System.Runtime.InteropServices.COMException(saved.Error);
+         saved.Expect(200, "PUT /api/v1/domains/" + domainName);
+         return true;
+      }
+
       public string CheckSieveSyntax(string script)
       {
          var setup = SingletonProvider<TestSetup>.Instance;
@@ -3233,6 +3311,34 @@ namespace hMailServer
 
       /// <summary>The account's app passwords, under its address on the API.</summary>
       public AppPasswords AppPasswords => new AppPasswords(this);
+
+      /// <summary>
+      ///    Account.GetDevices: the clients that have signed in, as the JSON array
+      ///    GET /api/v1/accounts/{address}/devices answers under "devices" - the same
+      ///    document the COM method hands back, built by the same code.
+      /// </summary>
+      public string GetDevices()
+      {
+         var answer = ServerApi.Get("/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/devices")
+            .Expect(200, "GET /api/v1/accounts/" + Address + "/devices");
+         using (var document = JsonDocument.Parse(answer.Body))
+            return document.RootElement.GetProperty("devices").GetRawText();
+      }
+
+      /// <summary>
+      ///    Account.RevokeDevice: DELETE /api/v1/accounts/{address}/devices/{id}, with
+      ///    credential=revoke where the app password behind the client is to go too.
+      ///    False for a client the account does not have, as the COM method answers.
+      /// </summary>
+      public bool RevokeDevice(string deviceId, bool revokeCredential)
+      {
+         var answer = ServerApi.Delete("/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/devices/" +
+                                       Uri.EscapeDataString(deviceId) + (revokeCredential ? "?credential=revoke" : ""));
+         if (answer.Status == 404)
+            return false;
+         answer.Expect(200, "DELETE /api/v1/accounts/" + Address + "/devices/" + deviceId);
+         return true;
+      }
 
       /// <summary>
       ///    Account.ValidatePassword: no route checks a password except by signing in

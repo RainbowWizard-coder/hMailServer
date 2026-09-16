@@ -208,6 +208,10 @@ create table hm_domains
 	domainwebhooksubjects int not null default 0,
 	domaincountrypolicy varchar(255) not null default '',
 	domaindkimrotationkeybits int not null default 2048
+	domainsessionidleseconds int not null default 0,
+	domainsessionlifetimeseconds int not null default 0,
+	domainsessiononeperdevice int not null default 0,
+	domainsessionbindaddress int not null default 0
 )  DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
@@ -1016,6 +1020,14 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Co
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyHTTP', '', 0);
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionIdleSeconds', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionLifetimeSeconds', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionOnePerDevice', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionBindToAddress', '', 0);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5);
@@ -1530,6 +1542,27 @@ insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) v
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('auditor', 'Reads everything and changes nothing, the audit trail included.', 1, 'view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit');
 
+create table hm_signins
+(
+	siid bigint auto_increment not null, primary key(`siid`), unique(`siid`),
+	siaccountid int not null,
+	sidevice varchar(32) not null,
+	siprotocol int not null,
+	siaddress varchar(64) not null,
+	siagent varchar(255) not null,
+	sicredential int not null,
+	sicredentialname varchar(64) not null,
+	sifirstseen datetime not null,
+	silastseen datetime not null,
+	sicount int not null,
+	sirevoked tinyint not null,
+	sirevokedtime datetime null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_signins_device ON hm_signins (siaccountid, sidevice);
+
+ALTER TABLE hm_signins ENGINE=InnoDB;
+
 create table hm_bouncesuppressions
 (
 	bsid bigint auto_increment not null, primary key(`bsid`), unique(`bsid`),
@@ -1668,4 +1701,6 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7);
 
-insert into hm_dbversion values (6052);
+ALTER TABLE hm_signins ADD CONSTRAINT fk_hm_signins_account FOREIGN KEY (siaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+insert into hm_dbversion values (6053);

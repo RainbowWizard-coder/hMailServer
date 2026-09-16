@@ -278,6 +278,11 @@ namespace HM
       { _T("hm_digesttokens"),
         _T("The one-shot capabilities a quarantine digest's links carry - release this entry, release everything listed, stop the digest - each good once and dead within QuarantineDigestLinkHours (72 by default, 720 at most). ")
         _T("Restoring one would bring back a link that was already spent or had expired, naming a quarantine entry by an id the restore does not carry; the next digest issues fresh ones.") },
+      { _T("hm_signins"),
+        _T("The clients that have signed in to the account - protocol, address, user agent, which credential, first and last seen (schema 6050). It describes the sessions of the ")
+        _T("installation that wrote it: the browser sessions it names live in memory and are gone when that server stopped, and the connections it names were dropped with it. ")
+        _T("Restoring it would show a person a list of clients none of whose sessions can be ended, because none of them exist any more. Nothing is lost that the next sign-in ")
+        _T("does not write again, and the decision a revoke can make that OUTLIVES a session - an app password deactivated - is a column of hm_apppasswords, which IS carried.") },
    };
 
    const int AccountStores::store_count_ = (int) (sizeof(stores_) / sizeof(stores_[0]));

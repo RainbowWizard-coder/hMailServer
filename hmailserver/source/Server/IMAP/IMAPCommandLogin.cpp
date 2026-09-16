@@ -8,6 +8,7 @@
 #include "IMAPSimpleCommandParser.h"
 
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/SignInStore.h"
 #include "../Common/BO/Account.h"
 #include "../Common/BO/SecurityRange.h"
 
@@ -49,7 +50,10 @@ namespace HM
 
       AccountLogon accountLogon;
       bool disconnect = false;
-      std::shared_ptr<const Account> pAccount = accountLogon.Logon(pConnection->GetRemoteEndpointAddress(), sUsername, sPassword, disconnect);
+      bool viaAppPassword = false;
+      String appPasswordName;
+      std::shared_ptr<const Account> pAccount = accountLogon.Logon(pConnection->GetRemoteEndpointAddress(), sUsername, sPassword, disconnect,
+         &viaAppPassword, &appPasswordName);
 
       if (disconnect)
       {
@@ -82,7 +86,7 @@ namespace HM
       }
 
       // Load mail boxes
-      pConnection->Login(pAccount);
+      pConnection->Login(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
 
       String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";
       pConnection->SendAsciiData(sResponse);   

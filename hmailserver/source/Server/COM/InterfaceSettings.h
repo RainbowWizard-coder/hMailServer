@@ -302,6 +302,17 @@ END_COM_MAP()
    STDMETHOD(get_WebhookRetentionDays)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_WebhookRetentionDays)(/*[in]*/ long newVal);
 
+   // The session policies, server-wide. See SessionPolicies: 0 in either of the
+   // numbers means the policy is not set, not that there is no limit.
+   STDMETHOD(get_SessionIdleSeconds)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SessionIdleSeconds)(/*[in]*/ long newVal);
+   STDMETHOD(get_SessionLifetimeSeconds)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SessionLifetimeSeconds)(/*[in]*/ long newVal);
+   STDMETHOD(get_SessionOnePerDevice)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_SessionOnePerDevice)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_SessionBindToAddress)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_SessionBindToAddress)(/*[in]*/ VARIANT_BOOL newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

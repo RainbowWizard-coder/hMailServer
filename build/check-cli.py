@@ -243,6 +243,17 @@ ANSWERS = {
     ("GET", "/api/v1/accounts/ann@example.com/app-passwords"): {"app_passwords": [
         {"id": 2, "name": "phone", "created": "2026-09-01T10:00:00Z", "last_used": None}]},
     ("POST", "/api/v1/accounts/ann@example.com/app-passwords"): {"id": 3, "name": "tablet", "password": "abcd-efgh-ijkl"},
+    # The clients that have signed in as ann: a phone on an app password and a
+    # browser. The shape SignInStore::ToJson writes.
+    ("GET", "/api/v1/accounts/ann@example.com/devices"): {"devices": [
+        {"id": "0123456789abcdef0123456789abcdef", "protocol": "imap", "address": "203.0.113.9", "agent": "",
+         "credential": "app_password", "credential_name": "phone", "first_seen": "2026-09-01 08:00:00",
+         "last_seen": "2026-09-16 07:30:00", "sign_ins": 412, "revoked": False, "revoked_at": ""},
+        {"id": "fedcba9876543210fedcba9876543210", "protocol": "web", "address": "198.51.100.4", "agent": "Mozilla/5.0",
+         "credential": "password", "credential_name": "", "first_seen": "2026-09-14 11:02:00",
+         "last_seen": "2026-09-16 09:15:00", "sign_ins": 6, "revoked": False, "revoked_at": ""}]},
+    ("DELETE", "/api/v1/accounts/ann@example.com/devices/0123456789abcdef0123456789abcdef"): {
+        "revoked": True, "forgotten": False, "sessions_ended": 0, "connections_dropped": 1, "credential_disabled": True},
     ("GET", "/api/v1/rules"): {"rules": [{"name": "Tag support", "active": True, "sort_order": 1}]},
     ("GET", "/api/v1/routes"): {"routes": [{"domain_name": "partner.test", "target_smtp_host": "mx.partner.test",
                                             "target_smtp_port": 25}]},
@@ -508,6 +519,11 @@ CASES = [
      "GET", "/api/v1/accounts/ann@example.com/app-passwords", None, ["phone"]),
     ("app password create", ["app-password", "ann@example.com", "create", "tablet"],
      "POST", "/api/v1/accounts/ann@example.com/app-passwords", {"name": "tablet"}, ["abcd-efgh-ijkl", "only time"]),
+    ("devices of an account", ["device", "ann@example.com", "list"],
+     "GET", "/api/v1/accounts/ann@example.com/devices", None, ["imap", "203.0.113.9", "phone", "fedcba9876543210fedcba9876543210"]),
+    ("device revoke", ["device", "ann@example.com", "revoke", "0123456789abcdef0123456789abcdef"],
+     "DELETE", "/api/v1/accounts/ann@example.com/devices/0123456789abcdef0123456789abcdef", None,
+     ["1 connection(s) dropped"]),
     ("ip ranges", ["iprange", "list"], "GET", "/api/v1/ipranges", None, ["My computer"]),
     ("report sections", ["report", "sections"], "GET", "/api/v1/reports", None,
      ["traffic", "NOT RECORDING", "cannot answer"]),
@@ -727,6 +743,11 @@ POWERSHELL_CASES = [
      "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812"]),
     ("Get-HmQueue", "Get-HmQueue | Select-Object -ExpandProperty to_address", "GET", "/api/v1/queue", None, ["far@away.test"]),
     ("Get-HmStatus", "Get-HmStatus | Select-Object -ExpandProperty version", "GET", "/api/v1/status", None, ["6.3.3"]),
+    ("Get-HmDevice", "Get-HmDevice -Address ann@example.com | ForEach-Object { $_.protocol + ' ' + $_.credential_name }",
+     "GET", "/api/v1/accounts/ann@example.com/devices", None, ["imap phone", "web "]),
+    ("Revoke-HmDevice",
+     "(Revoke-HmDevice -Address ann@example.com -DeviceId 0123456789abcdef0123456789abcdef -Confirm:$false).connections_dropped",
+     "DELETE", "/api/v1/accounts/ann@example.com/devices/0123456789abcdef0123456789abcdef", None, ["1"]),
     ("Invoke-HmApi", "Invoke-HmApi -Method GET -Path /api/v1/status | Select-Object -ExpandProperty database",
      "GET", "/api/v1/status", None, ["PostgreSQL"]),
     ("Get-HmDkimRotation", "Get-HmDkimRotation -Domain example.com | Select-Object -ExpandProperty phase",
@@ -1601,6 +1622,43 @@ def run_report_cases(url, tmp):
           % (completed.stdout, completed.stderr))
 
 
+def run_device_cases(url):
+    """A revoke's two options travel in the query string, which the path cases
+    strip: --credential is the one press that answers a stolen phone, and a
+    client that sends the path without it has revoked a session and left the
+    phone able to sign in again. So these assert what came after the "?", for
+    both clients."""
+    def run(command):
+        with Recorder.lock:
+            Recorder.requests = []
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=120)
+        with Recorder.lock:
+            sent = list(Recorder.requests)
+        return completed, (sent[-1]["path"] if sent else "")
+
+    completed, path = run([sys.executable, HMCTL, "--url", url, "--password", PASSWORD,
+                           "device", "ann@example.com", "revoke", "0123456789abcdef0123456789abcdef", "--credential", "--forget"])
+    check("credential=revoke" in path, "hmctl device revoke --credential must ask for the app password too, sent %s" % path)
+    check("forget=true" in path, "hmctl device revoke --forget must ask for the entry to go, sent %s" % path)
+    check("turned off" in completed.stdout, "hmctl device revoke must say the app password was turned off:\n%s" % completed.stdout)
+    check(completed.returncode == 0, "hmctl device revoke: exit %d - %s" % (completed.returncode, completed.stderr))
+
+    completed, path = run([sys.executable, HMCTL, "--url", url, "--password", PASSWORD,
+                           "device", "ann@example.com", "revoke", "0123456789abcdef0123456789abcdef"])
+    check("?" not in path, "hmctl device revoke without options must send a bare path, sent %s" % path)
+
+    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    if not pwsh or not os.path.exists(MODULE):
+        return
+    script = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
+              "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; "
+              "Revoke-HmDevice -Address ann@example.com -DeviceId 0123456789abcdef0123456789abcdef -Credential -Forget -Confirm:$false | Out-Null"
+              % (MODULE.replace("'", "''"), url, PASSWORD))
+    completed, path = run([pwsh, "-NoProfile", "-NonInteractive", "-Command", script])
+    check("credential=revoke" in path and "forget=true" in path,
+          "Revoke-HmDevice -Credential -Forget must send both options, sent %s (%s)" % (path, completed.stderr.strip()[:200]))
+
+
 ROUTE_SOURCE = os.path.join(ROOT, "hmailserver", "source", "Server", "Common", "Util", "RestApiSettings.cpp")
 
 
@@ -1668,6 +1726,7 @@ def main():
             run_import_cases(url, tmp)
             run_config_cases(url, tmp)
             run_report_cases(url, tmp)
+            run_device_cases(url)
         if not arguments.python:
             print("the PowerShell module against the same server")
             powershell_ran = run_powershell_cases(url, arguments.verbose)

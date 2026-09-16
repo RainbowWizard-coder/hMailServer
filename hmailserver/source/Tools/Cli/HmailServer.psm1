@@ -1372,6 +1372,64 @@ function Test-HmWebhook {
 }
 
 # ---------------------------------------------------------------------------
+# Devices: the clients that have signed in to an account
+# ---------------------------------------------------------------------------
+
+function Get-HmDevice {
+    <#
+    .SYNOPSIS
+        The clients that have signed in to an account - protocol, address, the
+        program where the protocol carries one, which credential each used and
+        when each was first and last seen - most recently used first.
+    .DESCRIPTION
+        The same entries the account holder sees on the webmail's Security page,
+        read under the account's address by an administrator. The id of an entry
+        is what Revoke-HmDevice takes.
+    .EXAMPLE
+        Get-HmDevice -Address ann@example.com | Format-Table protocol, address, credential, credential_name, last_seen
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Address
+    )
+    process {
+        Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path ("/api/v1/accounts/" + [uri]::EscapeDataString($Address) + "/devices")) -Key 'devices'
+    }
+}
+
+function Revoke-HmDevice {
+    <#
+    .SYNOPSIS
+        Ends what one client of an account holds now: its browser session, and
+        its live IMAP, POP3 and SMTP connections.
+    .DESCRIPTION
+        Not a ban: the entry stays, marked, and the client can sign in again with
+        a credential that still works. -Credential also turns off the app
+        password the client signed in with, which is the answer to a phone that
+        has been stolen. -Forget removes the entry rather than marking it.
+    .EXAMPLE
+        Revoke-HmDevice -Address ann@example.com -Id 0123456789abcdef0123456789abcdef -Credential
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Address,
+        [Parameter(Mandatory = $true, Position = 1, ValueFromPipelineByPropertyName = $true)] [Alias('id')] [string] $DeviceId,
+        [switch] $Credential,
+        [switch] $Forget
+    )
+    process {
+        $path = "/api/v1/accounts/" + [uri]::EscapeDataString($Address) + "/devices/" + [uri]::EscapeDataString($DeviceId)
+        $query = @()
+        if ($Credential) { $query += 'credential=revoke' }
+        if ($Forget) { $query += 'forget=true' }
+        if ($query.Count -gt 0) { $path += '?' + ($query -join '&') }
+        if ($PSCmdlet.ShouldProcess("$DeviceId of $Address", 'Revoke the client')) {
+            Invoke-HmApi -Method DELETE -Path $path
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
 # Accounts in bulk
 # ---------------------------------------------------------------------------
 
@@ -2126,6 +2184,7 @@ Register-ArgumentCompleter -CommandName Get-HmDkimRotation, Start-HmDkimRotation
 Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount -ParameterName Address -ScriptBlock $script:CompleterAddress
 
 Export-ModuleMember -Function @(
+    'Get-HmDevice', 'Revoke-HmDevice',
     'Connect-HmServer', 'Disconnect-HmServer', 'Get-HmSession', 'Invoke-HmApi', 'Get-HmCollection',
     'Get-HmStatus',
     'Get-HmDomain', 'New-HmDomain', 'Set-HmDomain', 'Remove-HmDomain',

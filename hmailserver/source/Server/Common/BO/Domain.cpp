@@ -21,6 +21,24 @@
 
 namespace HM
 {
+   namespace
+   {
+      // One numeric attribute of a restored domain, kept only when it is a number
+      // this server would have accepted at its interfaces. An attribute that is
+      // absent - every archive written before the attribute existed - leaves the
+      // field as the constructor set it.
+      void ReadPolicyAttribute_(XNode *node, const wchar_t *name, int lowest, int highest, int &target)
+      {
+         const String text = node->GetAttrValue(name);
+         if (text.IsEmpty())
+            return;
+
+         const int value = _ttoi(text);
+         if (value >= lowest && value <= highest)
+            target = value;
+      }
+   }
+
    Domain::Domain() :
       use_plus_addressing_(false),
       active_(0),
@@ -31,6 +49,10 @@ namespace HM
       message_retention_days_(0),
       quarantine_digest_(0),
       quarantine_digest_hour_(7),
+      session_idle_seconds_(0),
+      session_lifetime_seconds_(0),
+      session_one_per_device_(0),
+      session_bind_to_address_(0),
       webhooks_enabled_(true),
       webhook_subjects_(false),
       enable_signature_(false),
@@ -199,6 +221,11 @@ namespace HM
 
       pNode->AppendAttr(_T("CountryPolicy"), country_policy_);
 
+      pNode->AppendAttr(_T("SessionIdleSeconds"), StringParser::IntToString(session_idle_seconds_));
+      pNode->AppendAttr(_T("SessionLifetimeSeconds"), StringParser::IntToString(session_lifetime_seconds_));
+      pNode->AppendAttr(_T("SessionOnePerDevice"), StringParser::IntToString(session_one_per_device_));
+      pNode->AppendAttr(_T("SessionBindToAddress"), StringParser::IntToString(session_bind_to_address_));
+
       if (!GetDomainAliases()->XMLStore(pNode, iBackupOptions))
          return false;
 
@@ -343,6 +370,16 @@ namespace HM
       // no attribute and restores with no policy, which is every domain until an
       // administrator writes one.
       country_policy_ = pNode->GetAttrValue(_T("CountryPolicy"));
+
+      // The session policies, under the same rule: an archive written before
+      // schema 6050 carries none of these attributes and restores with all four at
+      // 0, which is the domain taking the server's answer - the state every domain
+      // is in until an administrator says otherwise. A number outside the range the
+      // interfaces accept is ignored rather than stored.
+      ReadPolicyAttribute_(pNode, _T("SessionIdleSeconds"), 0, 2592000, session_idle_seconds_);
+      ReadPolicyAttribute_(pNode, _T("SessionLifetimeSeconds"), 0, 2592000, session_lifetime_seconds_);
+      ReadPolicyAttribute_(pNode, _T("SessionOnePerDevice"), 0, 2, session_one_per_device_);
+      ReadPolicyAttribute_(pNode, _T("SessionBindToAddress"), 0, 2, session_bind_to_address_);
 
       return true;
    }

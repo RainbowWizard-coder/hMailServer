@@ -479,6 +479,10 @@ namespace HM
       pDomain->SetMessageRetentionDays(pRS->GetLongValue("domainmessageretentiondays"));
       pDomain->SetQuarantineDigest(pRS->GetLongValue("domainquarantinedigest") == 1);
       pDomain->SetQuarantineDigestHour(pRS->GetLongValue("domainquarantinedigesthour"));
+      pDomain->SetSessionIdleSeconds(pRS->GetLongValue("domainsessionidleseconds"));
+      pDomain->SetSessionLifetimeSeconds(pRS->GetLongValue("domainsessionlifetimeseconds"));
+      pDomain->SetSessionOnePerDevice(pRS->GetLongValue("domainsessiononeperdevice"));
+      pDomain->SetSessionBindToAddress(pRS->GetLongValue("domainsessionbindaddress"));
       pDomain->SetCountryPolicy(pRS->GetStringValue("domaincountrypolicy"));
       pDomain->SetWebhooksEnabled(pRS->GetLongValue("domainwebhooksenabled") == 1);
       pDomain->SetWebhookSubjects(pRS->GetLongValue("domainwebhooksubjects") == 1);
@@ -609,6 +613,10 @@ namespace HM
       SQLStatement oStatement;
       oStatement.AddColumn("domainname", pDomain->GetName());
       oStatement.AddColumn("domainactive", pDomain->GetIsActive());
+      oStatement.AddColumn("domainsessionidleseconds", (long) pDomain->GetSessionIdleSeconds());
+      oStatement.AddColumn("domainsessionlifetimeseconds", (long) pDomain->GetSessionLifetimeSeconds());
+      oStatement.AddColumn("domainsessiononeperdevice", (long) pDomain->GetSessionOnePerDevice());
+      oStatement.AddColumn("domainsessionbindaddress", (long) pDomain->GetSessionBindToAddress());
       oStatement.AddColumn("domainpostmaster", pDomain->GetPostmaster());
       oStatement.AddColumn("domaincountrypolicy", pDomain->GetCountryPolicy());
       oStatement.AddColumn("domainmaxsize", pDomain->GetMaxSizeMB());

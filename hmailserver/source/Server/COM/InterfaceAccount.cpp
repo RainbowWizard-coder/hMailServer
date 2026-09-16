@@ -19,6 +19,8 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/PasswordValidator.h"
+#include "../Common/Util/SignInStore.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/Util/OpenPgpKeyStore.h"
 #include "../Common/Util/Crypt.h"
 #include <set>
@@ -2069,6 +2071,88 @@ STDMETHODIMP InterfaceAccount::get_RolePermissions(BSTR *pVal)
       const HM::RoleGrant grant = HM::RoleManager::GrantForAccount(object_);
 
       *pVal = HM::String(HM::RoleManager::DescribeGrant(grant)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// The clients that have signed in to this account, as GET /api/v1/me/devices and
+// GET /api/v1/accounts/{address}/devices answer it - the same document, built by
+// SignInStore, so that COM and REST cannot describe a client differently.
+//
+// Reading it is the account's own administration, so the question is the one the
+// account's other administrative members ask: may this credential administer this
+// account's domain. Asking it is also what installs the audit actor.
+STDMETHODIMP InterfaceAccount::GetDevices(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->AllowsForDomain(HM::RolePermission::ViewAccounts, HM::StringParser::ExtractDomain(object_->GetAddress())))
+         return authentication_->GetAccessDenied();
+
+      const std::vector<HM::SignInRecord> records = HM::SignInStore::List(object_->GetID());
+
+      HM::String json;
+      HM::Unicode::MultiByteToWide(HM::SignInStore::ToJson(records), json);
+
+      *Json = json.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// Ends every session one client of this account holds now. What it does, and what
+// it deliberately does not do, is in SignInStore.h; the revoke itself is recorded
+// in the audit trail there, once, for every interface that asks.
+STDMETHODIMP InterfaceAccount::RevokeDevice(BSTR DeviceID, VARIANT_BOOL RevokeCredential, VARIANT_BOOL *Revoked)
+{
+   try
+   {
+      if (!Revoked)
+         return COMError::GenerateGenericMessage();
+
+      *Revoked = VARIANT_FALSE;
+
+      if (!object_)
+         return GetAccessDenied();
+
+      // Revoking a client can deactivate the app password behind it, which is a
+      // change to the account's credentials - so it asks what changing the account
+      // asks, not what reading it does.
+      if (!authentication_->AllowsForDomain(HM::RolePermission::ManageAccounts, HM::StringParser::ExtractDomain(object_->GetAddress())))
+         return authentication_->GetAccessDenied();
+
+      HM::String device = DeviceID;
+      device.Trim();
+
+      if (device.IsEmpty())
+         return COMError::GenerateError("A device id is required. Account.GetDevices lists them.");
+
+      int connections = 0;
+      int sessions = 0;
+      bool credentialDisabled = false;
+
+      if (!HM::SignInStore::Revoke(object_->GetID(), device, RevokeCredential == VARIANT_TRUE,
+             connections, sessions, credentialDisabled))
+         return S_OK;
+
+      *Revoked = VARIANT_TRUE;
+
+      LOG_APPLICATION("COM API: a device of " + object_->GetAddress() + " was revoked.");
+
       return S_OK;
    }
    catch (...)

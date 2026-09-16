@@ -477,6 +477,23 @@ function answer(method, path, body) {
    }
    if (path === '/api/v1/me/folders' && method === 'GET') { return json(200, folderTree()); }
    if (path === '/api/v1/me/quarantine') { return json(200, { enabled: true, messages: [] }); }
+   // The clients that have signed in as this person: a phone on an app password
+   // and this browser. Two rows, because a client is the protocol, the address
+   // and the program.
+   if (path === '/api/v1/me/devices' && method === 'GET') {
+      return json(200, { devices: [
+         { id: '0123456789abcdef0123456789abcdef', protocol: 'imap', address: '203.0.113.9', agent: '',
+           credential: 'app_password', credential_name: 'Phone', first_seen: '2026-09-01 08:00:00',
+           last_seen: '2026-09-16 07:30:00', sign_ins: 412, revoked: false, revoked_at: '', current: false },
+         { id: 'fedcba9876543210fedcba9876543210', protocol: 'web', address: '198.51.100.4',
+           agent: 'Mozilla/5.0', credential: 'password', credential_name: '', first_seen: '2026-09-14 11:02:00',
+           last_seen: '2026-09-16 09:15:00', sign_ins: 6, revoked: false, revoked_at: '', current: true }
+      ] });
+   }
+   if (/^\/api\/v1\/me\/devices\//.test(path) && method === 'DELETE') {
+      return json(200, { revoked: true, forgotten: false, sessions_ended: 1, connections_dropped: 2,
+         credential_disabled: path.indexOf('credential=revoke') >= 0 });
+   }
    // The reader's own safe and blocked senders. Kept as state, not a constant:
    // the page's whole contract is that a POST of a value already on the list
    // rewrites that row rather than adding a second, and a constant could not
@@ -2305,6 +2322,43 @@ async function main() {
       document.getElementById('tour-next').textContent + ' | ' + document.getElementById('tour-skip').textContent);
    document.getElementById('tour-skip').dispatchEvent(makeEvent('click'));
    await flush();
+
+   // ---- the devices card: every client that has signed in as this person, drawn
+   // in the reader's language, which the tour above left at German
+   location.hash = '#/security';
+   await flush();
+   const deviceRows = () => document.getElementById('device-rows').children;
+   check('the security view lists what has signed in, one row per client',
+      called(0, 'GET', '/api/v1/me/devices') && deviceRows().length === 2, deviceRows().length + ' rows');
+   check('a row names the protocol, the address, the program and the credential - the app password by its name',
+      deviceRows()[0].textContent.indexOf('imap') >= 0 && deviceRows()[0].textContent.indexOf('203.0.113.9') >= 0 &&
+      deviceRows()[0].textContent.indexOf('Phone') >= 0 && deviceRows()[0].textContent.indexOf('-') >= 0,
+      deviceRows()[0].textContent);
+   check('and the client this page is marked as this browser',
+      deviceRows()[1].textContent.indexOf(german['This browser']) >= 0 && deviceRows()[0].textContent.indexOf(german['This browser']) < 0,
+      deviceRows()[1].textContent);
+   check('the empty note is hidden while there are rows',
+      document.getElementById('device-empty').hidden === true && document.getElementById('device-table').hidden === false);
+   const beforeRevoke = requests.length;
+   deviceRows()[0].children[5].children[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   const revokeCall = since(beforeRevoke).filter((r) => r.method === 'DELETE')[0];
+   check('revoking a client asks for that client by its id, and for nothing else',
+      !!revokeCall && revokeCall.path === '/api/v1/me/devices/0123456789abcdef0123456789abcdef',
+      revokeCall ? revokeCall.path : 'no DELETE');
+   check('with the header a change on a session carries', !!revokeCall && revokeCall.headers['X-Requested-With'] === 'hMailServer');
+   check('says what it did, and reads the list again',
+      document.getElementById('device-status').textContent === german['Revoked. Anything it had open has been closed.'] && called(beforeRevoke, 'GET', '/api/v1/me/devices'),
+      document.getElementById('device-status').textContent);
+   document.getElementById('device-credential').checked = true;
+   const beforeCredential = requests.length;
+   deviceRows()[0].children[5].children[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   const credentialCall = since(beforeCredential).filter((r) => r.method === 'DELETE')[0];
+   check('with the box ticked the revoke asks for the app password behind the client too',
+      !!credentialCall && credentialCall.path === '/api/v1/me/devices/0123456789abcdef0123456789abcdef?credential=revoke',
+      credentialCall ? credentialCall.path : 'no DELETE');
+   document.getElementById('device-credential').checked = false;
 
    // ---- signing out ends the session and stops the probe
    const beforeOut = requests.length;

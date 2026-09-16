@@ -94,6 +94,12 @@ public:
    STDMETHOD(GetWebhookSubscriptions)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(SaveWebhookSubscription)(/*[in]*/ BSTR Json, /*[out, retval]*/ BSTR *Json2);
 
+   // The per-domain half of the session policies. The server-wide half is four
+   // properties of Settings; SessionPolicies resolves the two into one answer.
+   STDMETHOD(GetSessionPolicy)(/*[in]*/ BSTR DomainName, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(SetDomainSessionPolicy)(/*[in]*/ BSTR DomainName, /*[in]*/ long IdleSeconds, /*[in]*/ long LifetimeSeconds,
+                                     /*[in]*/ long OnePerDevice, /*[in]*/ long BindToAddress, /*[out, retval]*/ VARIANT_BOOL *Saved);
+
 private:
    // The server administrator, or the domain administrator of this domain. Asks
    // the authorisation question, which is also what installs the audit actor.

@@ -928,6 +928,20 @@ interface IInterfaceSettings : IDispatch{
    [propget, id(164), helpstring("The country policy of one listener family - Protocol is smtp, imap, pop3 or http (the REST API and the web services share one). Empty is off; otherwise allow:GB,IE or block:CN,RU. Applied when a connection is accepted, before the greeting. An allow list refuses an address whose country the database does not know; a block list allows it.")] HRESULT CountryPolicy([in] BSTR Protocol, [out, retval] BSTR *pVal);
    [propput, id(164), helpstring("The country policy of one listener family - Protocol is smtp, imap, pop3 or http (the REST API and the web services share one). Empty is off; otherwise allow:GB,IE or block:CN,RU. Applied when a connection is accepted, before the greeting. An allow list refuses an address whose country the database does not know; a block list allows it.")] HRESULT CountryPolicy([in] BSTR Protocol, [in] BSTR newVal);
 
+   // The session policies, server-wide (schema 6050). A domain's own row
+   // overrides each of them for the accounts of that domain; see
+   // Utilities.GetSessionPolicy and Utilities.SetDomainSessionPolicy. 0 in either
+   // of the numbers means the policy is not set, and the ceilings this server has
+   // always enforced - 1800 seconds idle, 43200 in all - apply.
+   [propget, id(165), helpstring("How long a signed-in browser session (the webmail, the self-service portal, the Control Deck) may go unused before it ends, in seconds. 0 leaves the server's own ceiling of 1800 in force; at most 2592000. A value under 60 is only useful for testing.")] HRESULT SessionIdleSeconds([out, retval] long *pVal);
+   [propput, id(165), helpstring("How long a signed-in browser session may go unused before it ends, in seconds. 0 leaves the server's own ceiling of 1800 in force; at most 2592000.")] HRESULT SessionIdleSeconds([in] long newVal);
+   [propget, id(166), helpstring("How long a signed-in browser session may live at all, however busy it is, in seconds. 0 leaves the server's own ceiling of 43200 - twelve hours - in force; at most 2592000.")] HRESULT SessionLifetimeSeconds([out, retval] long *pVal);
+   [propput, id(166), helpstring("How long a signed-in browser session may live at all, in seconds. 0 leaves the server's own ceiling of 43200 in force; at most 2592000.")] HRESULT SessionLifetimeSeconds([in] long newVal);
+   [propget, id(167), helpstring("Whether signing in from a client that already has a session for that account ends the earlier one. Off by default.")] HRESULT SessionOnePerDevice([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(167), helpstring("Whether signing in from a client that already has a session for that account ends the earlier one. Off by default.")] HRESULT SessionOnePerDevice([in] VARIANT_BOOL newVal);
+   [propget, id(168), helpstring("Whether a session is refused from any address but the one it began on, so a stolen cookie is of no use away from the victim's network. Off by default: an address that changes underneath somebody ends their session while this is on.")] HRESULT SessionBindToAddress([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(168), helpstring("Whether a session is refused from any address but the one it began on. Off by default.")] HRESULT SessionBindToAddress([in] VARIANT_BOOL newVal);
+
 };
 
 
@@ -1227,6 +1241,15 @@ interface IInterfaceAccount : IDispatch
    [propget, id(49), helpstring("Per-account spam delete threshold, applied at delivery to this account's copy only. -1 or 0 disables it. The copy is removed (quarantined instead when the quarantine store is enabled) only when its score provably reached the value, which means the score header this server recorded - never a guess. Requires 'add reason to header' to be on; with it off no score is provable and this override does nothing. The global delete threshold continues to govern refusal during the SMTP conversation, for all recipients alike.")] HRESULT SpamDeleteThreshold([out, retval] long *pVal);
    [propput, id(49), helpstring("Per-account spam delete threshold.")] HRESULT SpamDeleteThreshold([in] long newVal);
 
+   // The clients that have signed in to this account (hm_signins, schema 6050),
+   // as a JSON document rather than a collection: a collection would be two new
+   // interfaces and two new coclasses to register, and what a caller does with
+   // this is read it or hand it to a page. The same document the REST routes
+   // answer, built by SignInStore, so the two cannot describe a client
+   // differently.
+   [id(59), helpstring("The clients that have signed in to this account as a JSON array, most recently used first: {id, protocol, address, agent, credential, credential_name, first_seen, last_seen, sign_ins, revoked, revoked_at}. id is the thirty-two hex characters RevokeDevice takes. Never a password and never anything derived from one.")] HRESULT GetDevices([out, retval] BSTR *Json);
+   [id(60), helpstring("Ends every session a client of this account holds now: its browser session's token is invalidated and its live IMAP, POP3 and SMTP connections are dropped. RevokeCredential also deactivates the app password it signed in with, where it used one - which is what stops a stolen client signing in again. Not a ban: the entry stays, marked, and a later sign-in with a credential that still works clears the mark. Returns False when this account has no client with that id. Recorded in the audit trail.")] HRESULT RevokeDevice([in] BSTR DeviceID, [in] VARIANT_BOOL RevokeCredential, [out, retval] VARIANT_BOOL *Revoked);
+
    // Appended - and anything added later must be appended here too, below this
    // note. A dual interface's vtable follows DECLARATION order, not id(), so a
    // member inserted higher up silently shifts every slot beneath it while the
@@ -1419,6 +1442,12 @@ interface IInterfaceUtilities : IDispatch{
    // RFC 8460 permits (a day may be covered by more than one report). Requires
    // server-admin rights, and refuses - preserving the collected statistics -
    // when TlsRptFromAddress is not configured, because running anyway could only
+
+   // The per-domain half of the session policies, on this existing interface so
+   // that the Control Panel and any script reach it without a new interface to
+   // register. The server-wide half is four properties of Settings.
+   [id(56), helpstring("The session policy in force for a domain as JSON: in_force (idle_seconds, lifetime_seconds, one_per_device, bind_to_address), server (the same four as stored server-wide), defaults (the ceilings that apply where nothing is set) and, when the name is a domain this server hosts, domain_policy - that domain's own row. An empty name answers the server-wide policy alone.")] HRESULT GetSessionPolicy([in] BSTR DomainName, [out, retval] BSTR *Json);
+   [id(57), helpstring("Sets a domain's own session policy and saves the domain. IdleSeconds and LifetimeSeconds are seconds, 0 to take the server-wide value, at most 2592000; OnePerDevice and BindToAddress are 0 to take the server-wide answer, 1 for on and 2 for off, because a domain must be able to say 'not here' about a server-wide policy as well as 'here too'. Returns False for a domain this server does not host.")] HRESULT SetDomainSessionPolicy([in] BSTR DomainName, [in] long IdleSeconds, [in] long LifetimeSeconds, [in] long OnePerDevice, [in] long BindToAddress, [out, retval] VARIANT_BOOL *Saved);
    // discard the data it was asked to send.
    [id(23), helpstring("Sends the aggregate SMTP TLS reports (RFC 8460) collected so far to the domains that request them, rather than waiting for the hourly schedule. Set IncludeCurrentDay to also report today's still-accumulating statistics. Returns the number of reports submitted. Raises an error when TlsRptFromAddress is not configured; requires server administrator rights.")] HRESULT SendTlsRptReports([in] VARIANT_BOOL IncludeCurrentDay, [out, retval] long *ReportCount);
    // Country blocking, read-only: what the configured geographic database says

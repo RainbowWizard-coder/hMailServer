@@ -24,7 +24,8 @@ namespace HM
       // the password may be tried at all.
       static std::shared_ptr<const Account> LookupAccount(const String &sUsername);
       static std::shared_ptr<const Account> ValidatePassword(const String &sMasqname, const String &sUsername, const String &sPassword,
-                                                             bool *matchedAppPassword = nullptr);
+                                                             bool *matchedAppPassword = nullptr,
+                                                             String *matchedAppPasswordName = nullptr);
 
       // The account's own password and nothing else: never an app password,
       // whatever credential the request that carries it came in on. For a
@@ -47,8 +48,16 @@ namespace HM
       // account's app passwords that matched rather than the account's own -
       // a caller that must treat the two differently learns it here, from
       // the one comparison, instead of paying for a second.
+      //
+      // matchedAppPasswordName, when given, is that app password's NAME - the
+      // label its owner gave it. Only the name: never the hash and never
+      // anything derived from the secret. It exists so that the record of a
+      // sign-in can say which of the account's credentials a client is using,
+      // which is the question somebody looking at a client they do not
+      // recognise actually has.
       static bool ValidatePassword(std::shared_ptr<const Account> pAccount, const String &sPassword,
-                                   bool secondFactorSatisfied = false, bool *matchedAppPassword = nullptr);
+                                   bool secondFactorSatisfied = false, bool *matchedAppPassword = nullptr,
+                                   String *matchedAppPasswordName = nullptr);
 
       // Validates the user password. Return true if the password is correct.
 
@@ -63,7 +72,8 @@ namespace HM
       // Any of the account's app passwords. Only ever called after the account's own
       // password has failed, and it returns false immediately - without a database
       // query - on a server where none has been issued.
-      static bool ValidateAppPassword_(std::shared_ptr<const Account> pAccount, const String &sPassword);
+      static bool ValidateAppPassword_(std::shared_ptr<const Account> pAccount, const String &sPassword,
+                                       String *matchedName = nullptr);
 
       // Throttles the diagnostic for a stored app password whose hash scheme this
       // server could not have written. True the first time each row is seen.

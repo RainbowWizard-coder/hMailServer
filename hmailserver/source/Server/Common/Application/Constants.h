@@ -174,6 +174,17 @@
 #define PROPERTY_COUNTRY_POLICY_IMAP            _T("CountryPolicyIMAP")
 #define PROPERTY_COUNTRY_POLICY_POP3            _T("CountryPolicyPOP3")
 #define PROPERTY_COUNTRY_POLICY_HTTP            _T("CountryPolicyHTTP")
+// The session policies (schema 6050). Every one is 0 on a fresh install and after
+// an upgrade, and 0 means THE POLICY IS NOT SET rather than "no limit": the idle
+// and lifetime ceilings the browser sessions have always had - thirty minutes and
+// twelve hours - apply, and the two switches are off. A domain's own row
+// (hm_domains.domainsession*) overrides these for the accounts of that domain; the
+// administrator's own session has no domain and is governed by these alone.
+// SessionPolicies is where the three are resolved into one answer.
+#define PROPERTY_SESSION_IDLE_SECONDS           _T("SessionIdleSeconds")
+#define PROPERTY_SESSION_LIFETIME_SECONDS       _T("SessionLifetimeSeconds")
+#define PROPERTY_SESSION_ONE_PER_DEVICE         _T("SessionOnePerDevice")
+#define PROPERTY_SESSION_BIND_TO_ADDRESS        _T("SessionBindToAddress")
 
 // The audit trail. Recording is on by default: a server nobody has configured
 // still answers "who changed this", and the cost is one row per administrative
@@ -314,11 +325,14 @@
 //      and the register of delivered messages a delivery report is matched against.
 //      All three start empty and nothing writes to them until BounceProcessingEnabled
 //      is switched on, so an upgraded database behaves exactly as it did.
-// 6050 adds hm_domains.domaincountrypolicy - the country policy applied when an
-//      account of the domain signs in, empty on every existing domain - and seeds
-//      seven hm_settings rows for country blocking: GeoIpDatabaseFile (''),
-//      GeoIpDatabaseMaxAgeDays (45), CountryBlockingExemptRanges (the loopback and
-//      private ranges), and CountryPolicySMTP, CountryPolicyIMAP, CountryPolicyPOP3
-//      and CountryPolicyHTTP (all ''). With no database file named nothing is
-//      judged by country at all, so an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6052
+// 6050 adds hm_signins - one row per client that has signed in to an account, by
+//      protocol, address and user agent, with when it was first and last seen, the
+//      kind of credential it used and whether it has been revoked - four int columns
+//      to hm_domains (domainsessionidleseconds, domainsessionlifetimeseconds,
+//      domainsessiononeperdevice and domainsessionbindaddress, the per-domain session
+//      policy) and four hm_settings rows (SessionIdleSeconds, SessionLifetimeSeconds,
+//      SessionOnePerDevice, SessionBindToAddress). Every one of the eight is 0, which
+//      means the policy is not set: an upgraded server keeps the ceilings it always
+//      had (thirty minutes idle, twelve hours in all) and refuses nobody it did not
+//      refuse before. hm_signins starts empty and fills as people sign in.
+#define REQUIRED_DB_VERSION            6053

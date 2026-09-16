@@ -121,6 +121,23 @@ namespace HM
       String GetCountryPolicy() const { return country_policy_; }
       void SetCountryPolicy(const String &newVal) { country_policy_ = newVal; }
 
+      // The session policies for the accounts of this domain (schema 6050). The
+      // two numbers are seconds, and 0 means "take the server's answer"; the two
+      // switches are 0 to take the server's answer, 1 for on and 2 for off, because
+      // a domain must be able to say "not here" about a server-wide policy as well
+      // as "here too". Resolved in one place: SessionPolicies.
+      int GetSessionIdleSeconds() const { return session_idle_seconds_; }
+      void SetSessionIdleSeconds(int newVal) { session_idle_seconds_ = newVal; }
+
+      int GetSessionLifetimeSeconds() const { return session_lifetime_seconds_; }
+      void SetSessionLifetimeSeconds(int newVal) { session_lifetime_seconds_ = newVal; }
+
+      int GetSessionOnePerDevice() const { return session_one_per_device_; }
+      void SetSessionOnePerDevice(int newVal) { session_one_per_device_ = newVal; }
+
+      int GetSessionBindToAddress() const { return session_bind_to_address_; }
+      void SetSessionBindToAddress(int newVal) { session_bind_to_address_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bNewVal);
 
@@ -389,6 +406,10 @@ namespace HM
 
       bool use_plus_addressing_;
       String plus_addressing_char_;
+      int session_idle_seconds_;
+      int session_lifetime_seconds_;
+      int session_one_per_device_;
+      int session_bind_to_address_;
       String country_policy_;
 
       bool enable_signature_;

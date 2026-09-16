@@ -581,6 +581,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\Registry.cpp" />
     <ClCompile Include="..\Common\Util\RegularExpression.cpp" />
     <ClCompile Include="..\Common\Util\ServerInfo.cpp" />
+    <ClCompile Include="..\Common\Util\SessionPolicies.cpp" />
+    <ClCompile Include="..\Common\Util\SignInStore.cpp" />
     <ClCompile Include="..\Common\Util\ServerStatus.cpp" />
     <ClCompile Include="..\Common\Util\AcmeClient.cpp" />
     <ClCompile Include="..\Common\Util\MetricsServer.cpp" />
@@ -1425,6 +1427,8 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AuditTrail.h" />
     <ClInclude Include="..\Common\Util\AlertManager.h" />
     <ClInclude Include="..\Common\Util\WebhookManager.h" />
+    <ClInclude Include="..\Common\Util\SessionPolicies.h" />
+    <ClInclude Include="..\Common\Util\SignInStore.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />

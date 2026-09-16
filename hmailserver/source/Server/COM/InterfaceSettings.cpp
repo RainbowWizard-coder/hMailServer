@@ -18,6 +18,7 @@
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/PasswordBreachCheck.h"
+#include "../Common/Util/SessionPolicies.h"
 #include "../Common/LDAP/LdapClient.h"
 #include "../Common/LDAP/LdapSettings.h"
 #include "../Common/LDAP/DirectorySync.h"
@@ -4445,6 +4446,160 @@ STDMETHODIMP InterfaceSettings::put_WebhookRetentionDays(long newVal)
          return COMError::GenerateError("WebhookRetentionDays must be between 0 (keep everything) and 3650.");
 
       config_->SetWebhookRetentionDays((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SessionIdleSeconds(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSessionIdleSeconds();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SessionIdleSeconds(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Refused rather than clamped, in SessionPolicies' own words, so that REST,
+      // COM and the command line refuse the same numbers for the same reason.
+      const HM::String refusal = HM::SessionPolicies::CheckSeconds((int) newVal);
+      if (!refusal.IsEmpty())
+         return COMError::GenerateError(refusal);
+
+      config_->SetSessionIdleSeconds((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SessionLifetimeSeconds(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSessionLifetimeSeconds();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SessionLifetimeSeconds(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      const HM::String refusal = HM::SessionPolicies::CheckSeconds((int) newVal);
+      if (!refusal.IsEmpty())
+         return COMError::GenerateError(refusal);
+
+      config_->SetSessionLifetimeSeconds((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SessionOnePerDevice(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSessionOnePerDevice() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SessionOnePerDevice(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetSessionOnePerDevice(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SessionBindToAddress(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSessionBindToAddress() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SessionBindToAddress(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetSessionBindToAddress(newVal == VARIANT_TRUE);
 
       return S_OK;
    }

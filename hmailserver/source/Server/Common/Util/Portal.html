@@ -1140,6 +1140,14 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="row"><button class="btn ghost sm danger" id="sessions-end-others" type="button">End every other session</button></div>
 <div id="session-status" class="status" aria-live="polite"></div>
 </div>
+<div class="card">
+<h2>Devices</h2>
+<p class="note">Everything that has signed in as you, whatever it was: a mail program fetching over IMAP or POP3, one sending over SMTP, a calendar or address book, this page. Revoking one ends what it holds now - its session here, and any mail connection it has open - and can turn off the app password it was using, which is what to do about a phone you no longer have. It is not a block: anything with a password that still works can sign in again.</p>
+<table class="list" id="device-table" hidden><thead><tr><th>What</th><th>Where from</th><th>Program</th><th>Signing in with</th><th>Last used</th><th></th></tr></thead><tbody id="device-rows"></tbody></table>
+<div id="device-empty" class="hint">Nothing has signed in as you yet.</div>
+<label class="inline"><input id="device-credential" type="checkbox"> Also turn off the app password it was using</label>
+<div id="device-status" class="status" aria-live="polite"></div>
+</div>
 </section>
 
 <section id="password-section" class="view page" hidden>

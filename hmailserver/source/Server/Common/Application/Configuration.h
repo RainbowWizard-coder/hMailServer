@@ -191,6 +191,22 @@ namespace HM
       String GetCountryPolicyHTTP() const;
       void SetCountryPolicyHTTP(const String &policy);
 
+      // The session policies (schema 6050), server-wide; a domain's own row
+      // overrides them. 0 in either of the numbers means the policy is not set and
+      // the built-in ceiling applies - see SessionPolicies, which is the only place
+      // the three levels are resolved into one answer.
+      int GetSessionIdleSeconds() const;
+      void SetSessionIdleSeconds(int seconds);
+
+      int GetSessionLifetimeSeconds() const;
+      void SetSessionLifetimeSeconds(int seconds);
+
+      bool GetSessionOnePerDevice() const;
+      void SetSessionOnePerDevice(bool value);
+
+      bool GetSessionBindToAddress() const;
+      void SetSessionBindToAddress(bool value);
+
 
       // BACKUP OPTIONS
       String GetBackupDestination() const;

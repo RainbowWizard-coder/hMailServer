@@ -493,6 +493,19 @@ const CERT_PROPS = {
 // The domain's keys as ApplyDomainBody in RestApiAdministration.cpp reads
 // them, and its description, which names three keys in the schema and the
 // rest in prose.
+/* Two clients of one account: a phone fetching mail over IMAP on an app
+   password, and the same person's browser on the account's own password. Two
+   rows, because a client is the protocol, the address and the user agent. */
+const devices = [
+   { id: '0123456789abcdef0123456789abcdef', protocol: 'imap', address: '203.0.113.9', agent: '',
+     credential: 'app_password', credential_name: 'Phone', first_seen: '2026-09-01 08:00:00',
+     last_seen: '2026-09-16 07:30:00', sign_ins: 412, revoked: false, revoked_at: '' },
+   { id: 'fedcba9876543210fedcba9876543210', protocol: 'web', address: '198.51.100.4',
+     agent: 'Mozilla/5.0 (X11; Linux x86_64)', credential: 'password', credential_name: '',
+     first_seen: '2026-09-14 11:02:00', last_seen: '2026-09-16 09:15:00', sign_ins: 6,
+     revoked: false, revoked_at: '' }
+];
+
 const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max_size_mb', 'max_account_size_mb',
    'max_accounts', 'max_aliases', 'max_lists', 'max_accounts_enabled', 'max_aliases_enabled', 'max_lists_enabled',
    'plus_addressing_enabled', 'plus_addressing_character', 'use_greylisting',
@@ -505,8 +518,8 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour',
-   'openpgp_publish', 'openpgp_publish_new_accounts', 'country_policy'];
-const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with), country_policy (which countries may sign in to the accounts of the domain: empty judges nothing, allow:GB,IE admits only those countries, block:CN,RU refuses those). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
+   'openpgp_publish', 'openpgp_publish_new_accounts', 'country_policy', 'session_idle_seconds', 'session_lifetime_seconds', 'session_one_per_device', 'session_bind_to_address'];
+const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with), country_policy (which countries may sign in to the accounts of the domain: empty judges nothing, allow:GB,IE admits only those countries, block:CN,RU refuses those), session_idle_seconds, session_lifetime_seconds, session_one_per_device and session_bind_to_address (the session policy for the accounts of this domain). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
 // The account's update schema as RestApiRoutes.cpp emits it - every field
@@ -1785,6 +1798,23 @@ function answer(method, path, headers, raw) {
    if (path === '/api/v1/roles' && method === 'GET') {
       return json(200, { count: ROLE_CATALOGUE.length, roles: ROLE_CATALOGUE, permissions: ['view_configuration', 'view_accounts'] });
    }
+   // The clients that have signed in to an account, and the revoke that ends
+   // what one of them holds. Two clients, so the view can show that two sign-ins
+   // are listed separately; the revoke answers what it ended.
+   if (/^\/api\/v1\/accounts\/[^/]+\/devices$/.test(path) && method === 'GET') {
+      const who = decodeURIComponent(path.split('/')[4]);
+      if (who !== 'anna@example.com') { return json(404, { error: 'account not found' }); }
+      return json(200, { devices: devices.slice() });
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/devices\/[0-9a-f]{32}/.test(path) && method === 'DELETE') {
+      const id = path.split('/')[6].split('?')[0];
+      const found = devices.filter((d) => d.id === id)[0];
+      if (!found) { return json(404, { error: 'no such device of this account' }); }
+      found.revoked = true;
+      return json(200, { revoked: true, forgotten: false, sessions_ended: 1, connections_dropped: 2,
+         credential_disabled: path.indexOf('credential=revoke') >= 0 });
+   }
+
    if (path === '/api/v1/role-assignments' && method === 'GET') {
       return json(200, { count: state.assignments.length, assignments: state.assignments });
    }
@@ -4353,6 +4383,46 @@ async function main() {
    check('once nobody holds it the role is deleted, gone from the listing, with no refusal left showing',
       called(before, 'DELETE', '/api/v1/roles/logreader').length === 1 && content().textContent.indexOf('Reads the logs.') < 0 &&
       $('#err_roles').textContent === '', paths(before) + ' ' + $('#err_roles').textContent);
+
+   /* -------------------------------------------------------------- devices */
+   await goTo('devices');
+   check('the devices view asks for an address before it asks the server for anything',
+      document.getElementById('devAddress') !== null && content().textContent.indexOf('Type an account address') >= 0);
+   before = requests.length;
+   setValue('devAddress', 'anna@example.com');
+   click(act('devshow'));
+   await flush();
+   check('Show reads the clients of the address that was typed',
+      called(before, 'GET', '/api/v1/accounts/anna%40example.com/devices').length === 1, paths(before));
+   check('two clients of one account are two rows', rows().length === 2, String(rows().length));
+   check('each row names the protocol, the address, the client and which credential it used',
+      content().textContent.indexOf('imap') >= 0 && content().textContent.indexOf('203.0.113.9') >= 0 &&
+      content().textContent.indexOf('app_password') >= 0 && content().textContent.indexOf('Phone') >= 0 &&
+      content().textContent.indexOf('Mozilla/5.0 (X11; Linux x86_64)') >= 0, content().textContent.slice(-600));
+
+   before = requests.length;
+   click(act('devrevoke', { id: '0123456789abcdef0123456789abcdef' }));
+   await flush();
+   check('revoking names the client in the path and asks for nothing else by default',
+      called(before, 'DELETE', '/api/v1/accounts/anna%40example.com/devices/0123456789abcdef0123456789abcdef').length === 1, paths(before));
+   check('and the page says what the revoke ended, in the server\'s numbers',
+      toastText().indexOf('1') >= 0 && toastText().indexOf('2') >= 0, toastText());
+   check('the client is listed as revoked afterwards', content().textContent.indexOf('Revoked') >= 0);
+
+   before = requests.length;
+   setChecked('devCredential', true);
+   click(act('devrevoke', { id: 'fedcba9876543210fedcba9876543210' }));
+   await flush();
+   check('with the box ticked the revoke asks for the app password to be disabled too',
+      called(before, 'DELETE', /devices\/fedcba9876543210fedcba9876543210\?credential=revoke$/).length === 1, paths(before));
+
+   before = requests.length;
+   setValue('devAddress', 'nobody@example.com');
+   click(act('devshow'));
+   await flush();
+   check('an address the server does not know is the server\'s own refusal, not an empty table',
+      document.getElementById('err_devices').textContent.indexOf('account not found') >= 0,
+      document.getElementById('err_devices').textContent);
 
    /* A page a role may not use is not shown. The Deck is not the boundary - the
       server refuses the request whatever this page draws - but showing a view

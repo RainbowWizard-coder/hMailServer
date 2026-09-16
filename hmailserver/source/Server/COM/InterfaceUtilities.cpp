@@ -29,6 +29,11 @@
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/Maintenance/Maintenance.h"
 #include "../Common/Util/Parsing/StringParser.h"
+#include "../Common/Util/SessionPolicies.h"
+#include "../Common/BO/Domain.h"
+#include "../Common/BO/Domains.h"
+#include "../Common/Persistence/PersistentDomain.h"
+#include "../Common/Cache/CacheContainer.h"
 #include "../Common/Sieve/SieveScript.h"
 #include "COMError.h"
 #include "../Common/AntiSpam/DKIM/DkimRotation.h"
@@ -1465,6 +1470,118 @@ STDMETHODIMP InterfaceUtilities::GeoIpDatabaseStatus(BSTR *Json)
          return authentication_->GetAccessDenied();
 
       *Json = WideFromUtf8(HM::CountryBlocking::Instance()->StatusJson()).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// The session policy in force for a domain, and where each part of it came from.
+// Built by SessionPolicies, which is also what the sessions themselves are judged
+// by, so this cannot report a policy the server is not applying.
+STDMETHODIMP InterfaceUtilities::GetSessionPolicy(BSTR DomainName, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      HM::String name = DomainName;
+      name.Trim();
+
+      // A named domain is that domain administrator's to read; the server-wide
+      // policy alone is the server administrator's. Asking is also what installs
+      // the audit actor on this thread.
+      if (name.IsEmpty())
+      {
+         if (!authentication_->GetIsServerAdmin())
+            return authentication_->GetAccessDenied();
+      }
+      else
+      {
+         std::shared_ptr<const HM::Domain> domain = HM::CacheContainer::Instance()->GetDomain(name);
+         if (!domain)
+            return COMError::GenerateError("No such domain.");
+
+         if (!MayAdministerDomain_(domain->GetID()))
+            return authentication_->GetAccessDenied();
+      }
+
+      const HM::SessionPolicy policy = name.IsEmpty()
+         ? HM::SessionPolicies::ServerWide()
+         : HM::SessionPolicies::ForDomain(name);
+
+      HM::String json;
+      HM::Unicode::MultiByteToWide(HM::SessionPolicies::ToJson(policy), json);
+
+      *Json = json.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// A domain's own session policy, saved. The numbers and the two three-state
+// switches are checked in SessionPolicies' own words, so COM, REST and the
+// command line refuse the same values for the same reason.
+STDMETHODIMP InterfaceUtilities::SetDomainSessionPolicy(BSTR DomainName, long IdleSeconds, long LifetimeSeconds,
+                                                        long OnePerDevice, long BindToAddress, VARIANT_BOOL *Saved)
+{
+   try
+   {
+      if (!Saved)
+         return COMError::GenerateGenericMessage();
+
+      *Saved = VARIANT_FALSE;
+
+      HM::String name = DomainName;
+      name.Trim();
+
+      if (name.IsEmpty())
+         return COMError::GenerateError("A domain name is required. The server-wide policy is on Settings.");
+
+      HM::Domains domains;
+      domains.Refresh();
+
+      std::shared_ptr<HM::Domain> domain = domains.GetItemByName(name);
+      if (!domain)
+         return S_OK;
+
+      if (!MayAdministerDomain_(domain->GetID()))
+         return authentication_->GetAccessDenied();
+
+      // Who is making this change, on the thread that is about to make it - the
+      // domain row it writes is an audited table, and the trail records whoever the
+      // scope names.
+      HM::AuditScope auditScope(authentication_->GetAuditActor());
+
+      HM::String refusal = HM::SessionPolicies::CheckSeconds((int) IdleSeconds);
+      if (refusal.IsEmpty())
+         refusal = HM::SessionPolicies::CheckSeconds((int) LifetimeSeconds);
+      if (refusal.IsEmpty())
+         refusal = HM::SessionPolicies::CheckSwitch((int) OnePerDevice);
+      if (refusal.IsEmpty())
+         refusal = HM::SessionPolicies::CheckSwitch((int) BindToAddress);
+
+      if (!refusal.IsEmpty())
+         return COMError::GenerateError(refusal);
+
+      domain->SetSessionIdleSeconds((int) IdleSeconds);
+      domain->SetSessionLifetimeSeconds((int) LifetimeSeconds);
+      domain->SetSessionOnePerDevice((int) OnePerDevice);
+      domain->SetSessionBindToAddress((int) BindToAddress);
+
+      HM::String result;
+      if (!HM::PersistentDomain::SaveObject(domain, result, HM::PersistenceModeNormal))
+         return COMError::GenerateError(result.IsEmpty() ? HM::String("The domain could not be saved.") : result);
+
+      *Saved = VARIANT_TRUE;
 
       return S_OK;
    }

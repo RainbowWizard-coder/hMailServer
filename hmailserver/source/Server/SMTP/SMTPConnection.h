@@ -253,6 +253,15 @@ namespace HM
       void TarpitRecipient_();
 
       void FireOnClientLogon_(const String &sUsername, bool isAuthenticated);
+
+      // The client that has just authenticated, recorded in the account's device
+      // list, and this connection registered against it so that revoking the
+      // device drops it. Called from each of the five mechanisms that can
+      // authenticate a submission - SMTP has no single point at which a
+      // connection becomes authenticated, because it keeps a name and a flag
+      // rather than the account object. credential is a SignInStore::Credential,
+      // taken as an int so that this header does not pull SignInStore in with it.
+      void RecordSignIn_(std::shared_ptr<const Account> account, int credential, const String &credentialName);
       // Fires the OnClientLogon script event (shared by the password and SCRAM paths).
 
       void Authenticate_();

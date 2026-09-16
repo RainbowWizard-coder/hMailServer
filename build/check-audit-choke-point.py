@@ -123,6 +123,7 @@ ALLOWED = {
       "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
+      "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -175,6 +176,9 @@ REQUIRED = [
    ("COM/InterfaceSettings.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("logon failures"), _T("every recorded failure"), _T("cleared"),',
     "the logon-failure list cleared over COM is no longer recorded - hm_logon_failures is traffic, so the statement chokepoint does not record the delete"),
+   ("Common/Util/SignInStore.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("device"), record.device, _T("revoked"), detail);',
+    "a device revoked is no longer recorded - hm_signins is not an audited table (a sign-in would be recorded on every authentication) and the sessions and connections a revoke ends leave no row at all, so the strongest thing anybody can do about a client they do not recognise would be the one thing the trail did not hold"),
    ("Common/Util/RestApiServer.cpp",
     "AuditScope auditScope(AuditActorFor_(caller));",
     "REST no longer says who is making a change"),
@@ -317,6 +321,7 @@ NOT_AUDITED = {
                       "bounces is a setting (hm_settings) or a suppression list entry (hm_bouncesuppressions), and both are audited.",
    "hm_bouncereportkeys": "the register of sent messages a delivery report is matched against, one row per message delivered to a "
                           "remote while reports are read, written by delivery and pruned by the sweep; traffic.",
+   "hm_signins": "which clients have signed in to each account and when, written by every authentication on every protocol - by far the busiest write this server would ever record. What an administrator DECIDES about a client is recorded: revoking one writes an audit event through AuditTrail::RecordEvent (the sessions and connections it ends leave no row of their own), and the app password a revoke can deactivate is a column of hm_apppasswords, which is audited.",
 }
 
 # Tables whose chokepoint is not the statement one, and which must therefore

@@ -25,6 +25,8 @@
 #include "Crypt.h"
 #include "Totp.h"
 #include "AccountLogon.h"
+#include "SignInStore.h"
+#include "SessionPolicies.h"
 #include "PasswordPolicy.h"
 #include "PasswordBreachCheck.h"
 #include "PasswordHistory.h"
@@ -378,16 +380,68 @@ namespace HM
          // Empty for the account's own sessions; the administrator's identity
          // when the session was opened for support.
          AnsiString support_by;
+
+         // The client this session belongs to - SignInStore's device key, made
+         // from the protocol, the address and the user agent - so that revoking
+         // a device in the account's list ends its browser session as well as
+         // dropping its mail connections, and so that the session list and the
+         // device list name the same thing.
+         AnsiString device;
+
+         // The address the session began on, for the bind-to-address policy, and
+         // the domain whose policy governs it (empty for the administrator's own
+         // session, which belongs to no domain).
+         AnsiString bound_address;
+         String domain;
+
+         // The policy as it stood when this session was last looked at. Written
+         // by ApplyPolicy_ when the session is made and again at each of its
+         // requests: an administrator who shortens an idle timeout means it for
+         // the sessions that exist, not only for the next ones.
+         ULONGLONG idle_milliseconds = 0;
+         ULONGLONG lifetime_milliseconds = 0;
+         bool bind_to_address = false;
       };
 
       const char *SessionCookieName = "hmailsession";
       const int SessionTokenBytes = 32;
-      const ULONGLONG SessionIdleMilliseconds = 30ULL * 60 * 1000;
-      const ULONGLONG SessionAbsoluteMilliseconds = 12ULL * 60 * 60 * 1000;
+
+      // The ceilings that apply where no policy has been set - which is every
+      // server until an administrator sets one, and what this listener has always
+      // enforced. Named once, in SessionPolicies, so that the policy resolution
+      // and the sessions themselves cannot disagree about what "unset" means.
+      const ULONGLONG SessionIdleMilliseconds = (ULONGLONG) SessionPolicies::DefaultIdleSeconds * 1000;
+      const ULONGLONG SessionAbsoluteMilliseconds = (ULONGLONG) SessionPolicies::DefaultLifetimeSeconds * 1000;
       const size_t MaxBrowserSessions = 1000;
 
       std::mutex browser_sessions_mutex;
       std::vector<BrowserSession> browser_sessions;
+
+      // The policy in force for one session, written onto it. Called under
+      // browser_sessions_mutex; the resolution itself reads the settings map and
+      // the domain cache, both in memory.
+      void ApplyPolicy_(BrowserSession &session)
+      {
+         const SessionPolicy policy = session.domain.IsEmpty()
+            ? SessionPolicies::ServerWide()
+            : SessionPolicies::ForDomain(session.domain);
+
+         session.idle_milliseconds = (ULONGLONG) policy.idle_seconds * 1000;
+         session.lifetime_milliseconds = (ULONGLONG) policy.lifetime_seconds * 1000;
+         session.bind_to_address = policy.bind_to_address;
+      }
+
+      // Whether a session has run out of time, by either of the two ceilings. A
+      // session whose policy has never been applied - which cannot happen, but
+      // would leave the fields at zero - falls back to the built-in ceilings
+      // rather than to "never expires".
+      bool HasExpired_(const BrowserSession &session, ULONGLONG now)
+      {
+         const ULONGLONG idle = session.idle_milliseconds > 0 ? session.idle_milliseconds : SessionIdleMilliseconds;
+         const ULONGLONG lifetime = session.lifetime_milliseconds > 0 ? session.lifetime_milliseconds : SessionAbsoluteMilliseconds;
+
+         return now - session.last_seen_at > idle || now - session.created_at > lifetime;
+      }
 
       bool IsSameAddress(const RefusedAddress &entry, int family, unsigned __int64 high, unsigned __int64 low)
       {
@@ -1798,6 +1852,10 @@ namespace HM
             return HandleSettings_();
          case RouteSettingsPut:
             return HandleSettingsPut_(GetRequestBody_(request));
+         case RouteDomainSessionPolicyGet:
+            return HandleDomainSessionPolicy_(route);
+         case RouteSessionPolicyGet:
+            return HandleSessionPolicy_();
          case RouteSettingsAntiSpamGet:
             return HandleSettingsAntiSpam_();
          case RouteSettingsAntiSpamPut:
@@ -2112,6 +2170,12 @@ namespace HM
          case RouteMeSessionDelete:
             return HandleMeSessionDelete_(caller, route.identifier);
 
+         case RouteMeDevices:
+            return HandleMeDevices_(caller);
+
+         case RouteMeDeviceDelete:
+            return HandleMeDeviceDelete_(caller, route.identifier, route.query);
+
          case RouteMeSmime:
             return HandleMeSmime_(caller);
 
@@ -2173,7 +2237,7 @@ namespace HM
             return HandlePortalBrandingPut_(GetRequestBody_(request));
 
          case RouteAccountSupportSession:
-            return HandleAccountSupportSession_(caller, route.identifier);
+            return HandleAccountSupportSession_(caller, route.identifier, request);
 
          case RouteMeFolderExport:
             return HandleMeFolderExport_(caller, route.folder_id);
@@ -2182,7 +2246,7 @@ namespace HM
             return HandleMeFolderImport_(caller, route.folder_id, GetRequestBody_(request));
 
          case RouteSessionCreate:
-            return HandleSessionCreate_(caller);
+            return HandleSessionCreate_(caller, request);
 
          case RouteSessionDelete:
             return HandleSessionDelete_(caller);
@@ -2205,6 +2269,8 @@ namespace HM
          case RouteAccountMessageSource:
          case RouteAccountAppPasswordUpdate:
          case RouteAccountMessageCopy:
+         case RouteAccountDeviceList:
+         case RouteAccountDeviceDelete:
             return HandleAccountResources_(route, GetRequestBody_(request));
 
          case RouteOpenApi:
@@ -2352,6 +2418,29 @@ namespace HM
          AnsiString rest = path.Mid(meAppPasswordsPath.GetLength() + 1);
          if (method == "DELETE" && ParseQueueId(rest, route.message_id))
             route.kind = RouteMeAppPasswordDelete;
+
+         return;
+      }
+
+      const AnsiString meDevicesPath = "/api/v1/me/devices";
+      if (path == meDevicesPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeDevices;
+
+         return;
+      }
+
+      if (path.StartsWith(meDevicesPath + "/"))
+      {
+         // A device is named by its key: thirty-two hex characters, which is
+         // what SignInStore::DeviceKey answers and what the listing shows.
+         AnsiString rest = path.Mid(meDevicesPath.GetLength() + 1);
+         if (method == "DELETE" && rest.GetLength() == 32)
+         {
+            route.identifier = rest;
+            route.kind = RouteMeDeviceDelete;
+         }
 
          return;
       }
@@ -3286,6 +3375,19 @@ namespace HM
          }
       }
 
+      if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/session-policy"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/session-policy").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = RouteDomainSessionPolicyGet;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
       if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/aliases"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -3894,6 +3996,12 @@ namespace HM
          return;
       }
 
+      if (method == "GET" && path == "/api/v1/session-policy")
+      {
+         route.kind = RouteSessionPolicyGet;
+         return;
+      }
+
       if (path == "/api/v1/settings/bounces" && (method == "GET" || method == "PUT"))
       {
          route.kind = method == "GET" ? RouteSettingsBouncesGet : RouteSettingsBouncesPut;
@@ -4202,6 +4310,7 @@ namespace HM
       case RouteMeAppPasswordDelete:
       case RouteMeSessionsEnd:
       case RouteMeSessionDelete:
+      case RouteMeDeviceDelete:
       case RouteMeFolderEmpty:
       case RouteMePreferencesPut:
       case RouteMeContactCreate:
@@ -4355,6 +4464,7 @@ namespace HM
       case RouteAccountMessageFlags:
       case RouteAccountMessageDelete:
       case RouteAccountAppPasswordUpdate:
+      case RouteAccountDeviceDelete:
       // The roles themselves, and the two the help-desk role exists for. Each
       // changes something, which is what keeps them out of an auditor's reach
       // and out of a read-only key's - see build/check-role-choke-point.py,
@@ -4506,6 +4616,8 @@ namespace HM
       case RouteUpdateGet:
       case RouteDkimGet:
       case RouteDkimRotationGet:
+      case RouteDomainSessionPolicyGet:
+      case RouteSessionPolicyGet:
       case RouteCertificateList:
       case RouteRuleList:
       case RouteSettingsGet:
@@ -4615,6 +4727,12 @@ namespace HM
       case RouteFetchAccountList:
       case RouteFetchAccountGet:
       case RouteAccountAppPasswordList:
+      // Which clients have signed in to an account. Not its mail and not its
+      // credentials: protocol, address, user agent and the NAME of the app
+      // password each used. A help desk answering "something is signing in as
+      // me" needs exactly this, which is why it sits with the names rather
+      // than with the mailbox.
+      case RouteAccountDeviceList:
       case RouteGroupList:
       case RouteGroupGet:
       case RouteGroupMemberList:
@@ -4728,6 +4846,10 @@ namespace HM
       case RouteAccountAppPasswordCreate:
       case RouteAccountAppPasswordUpdate:
       case RouteAccountAppPasswordDelete:
+      // Revoking a client ends its sessions and can deactivate the app
+      // password behind it, which is a change to the account's credentials -
+      // so it sits with issuing one rather than with reading the list.
+      case RouteAccountDeviceDelete:
       // A domain's own allow and block list is a property of the domain, as
       // its limits and its aliases are, and COM's Domain.SenderList answers a
       // domain administrator; the server's list is ManageSettings's, below.
@@ -4976,6 +5098,9 @@ namespace HM
       case RouteDkimRotationSwitch:
       case RouteDkimRotationRetire:
       case RouteDkimRotationCancel:
+      // The policy in force for one domain's sessions: left out, a confined
+      // credential could read another domain's.
+      case RouteDomainSessionPolicyGet:
       case RouteDomainAliasList:
       case RouteDomainAliasCreate:
       case RouteDomainAliasDelete:
@@ -5029,6 +5154,8 @@ namespace HM
       case RouteAccountMessageSource:
       case RouteAccountAppPasswordUpdate:
       case RouteAccountMessageCopy:
+      case RouteAccountDeviceList:
+      case RouteAccountDeviceDelete:
       case RouteAccountSupportSession:
       // The account's keys are named by an address in the path and nothing
       // else. Without this, a credential issued for one domain could publish
@@ -5339,6 +5466,9 @@ namespace HM
       // same. hm_logon_failures records the ADDRESS a failure came from and its
       // time; it holds no account and no domain, so there is no per-domain form
       // of it to offer and clearing it resets the auto-ban counter for every
+      // The server-wide session policy is the settings group's four rows
+      // resolved; a confined credential reads its own domain's instead.
+      case RouteSessionPolicyGet:
       // domain on the server. A help desk confined to one of them lifts one
       // person's lockout with POST /api/v1/accounts/{address}/unlock instead.
       // Written down in docs/Roles.md, "The logon-failure list".
@@ -7664,7 +7794,8 @@ namespace HM
       // place for them to drift apart.
       bool disconnect = false;
       bool viaAppPassword = false;
-      std::shared_ptr<const Account> account = AccountLogon().Logon(peer_address, username, password, disconnect, &viaAppPassword);
+      String appPasswordName;
+      std::shared_ptr<const Account> account = AccountLogon().Logon(peer_address, username, password, disconnect, &viaAppPassword, &appPasswordName);
 
       if (!account)
       {
@@ -7683,6 +7814,7 @@ namespace HM
       caller.identity = AnsiString("account:") + AnsiString(account->GetAddress());
       caller.account = account;
       caller.via_app_password = viaAppPassword;
+      caller.credential_name = appPasswordName;
       ApplyAccountGrant_(caller);
 
       return true;
@@ -7713,6 +7845,8 @@ namespace HM
       case RouteMeSessions:
       case RouteMeSessionsEnd:
       case RouteMeSessionDelete:
+      case RouteMeDevices:
+      case RouteMeDeviceDelete:
       case RouteMeStorage:
       case RouteMeSmime:
       case RouteMeSmimeOwnPut:
@@ -8020,6 +8154,7 @@ namespace HM
       bool viaAppPassword = false;
       AnsiString credentialStamp;
       AnsiString supportBy;
+      AnsiString device;
       {
          std::lock_guard<std::mutex> guard(browser_sessions_mutex);
 
@@ -8030,13 +8165,31 @@ namespace HM
             if (!ConstantTimeEquals(presentedHash, it->token_hash))
                continue;
 
+            // The policy is re-read here rather than remembered from sign-in,
+            // so that shortening an idle timeout or turning a switch on reaches
+            // the sessions that already exist.
+            ApplyPolicy_(*it);
+
             // Two ceilings, both absolute in their own way: the session ends
-            // when it has been idle for SessionIdleMilliseconds, and it ends
-            // SessionAbsoluteMilliseconds after it was created whatever the
-            // user is doing - a captured cookie stays useful for a bounded
-            // time, not for as long as the victim keeps clicking.
-            if (now - it->last_seen_at > SessionIdleMilliseconds || now - it->created_at > SessionAbsoluteMilliseconds)
+            // when it has been idle for the policy's idle period, and it ends
+            // the policy's lifetime after it was created whatever the user is
+            // doing - a captured cookie stays useful for a bounded time, not
+            // for as long as the victim keeps clicking.
+            if (HasExpired_(*it, now))
             {
+               browser_sessions.erase(it);
+               return false;
+            }
+
+            // The session bound to the network it began on. Off unless an
+            // administrator asked for it, because an address that changes is
+            // ordinary - a phone moving from wi-fi to a mobile network - and
+            // the session ends when it does. With it on, a cookie taken from
+            // one machine is of no use from another.
+            if (it->bind_to_address && it->bound_address != AnsiString(peer_address.ToString()))
+            {
+               LOG_APPLICATION("REST API: a session that began at " + String(it->bound_address) + " was presented from " +
+                  String(peer_address.ToString()) + " and has been ended; SessionBindToAddress is on.");
                browser_sessions.erase(it);
                return false;
             }
@@ -8047,6 +8200,7 @@ namespace HM
             credentialStamp = it->credential_stamp;
             viaAppPassword = it->via_app_password;
             supportBy = it->support_by;
+            device = it->device;
             break;
          }
       }
@@ -8074,6 +8228,7 @@ namespace HM
          caller.identity = "administrator";
          caller.via_session = true;
          caller.session_hash = presentedHash;
+         caller.session_device = device;
          caller.grant = RoleManager::ServerAdministrator();
 
          return true;
@@ -8098,6 +8253,7 @@ namespace HM
       caller.account = account;
       caller.via_session = true;
       caller.session_hash = presentedHash;
+      caller.session_device = device;
       caller.via_app_password = viaAppPassword;
       ApplyAccountGrant_(caller);
 
@@ -8120,7 +8276,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleSessionCreate_(const Caller &caller)
+   RestApiServer::HandleSessionCreate_(const Caller &caller, const AnsiString &request)
    {
       if (caller.via_session)
          return BuildResponse_(403, "{\"error\":\"a session is started with a password, not with another session\"}");
@@ -8152,6 +8308,19 @@ namespace HM
       if (tokenHash.IsEmpty())
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
+      // The client this sign-in came from: the protocol, the address and the
+      // user agent, hashed into one key by SignInStore, which is what the
+      // account's device list names and what revoking a device ends.
+      const AnsiString peerAddress = caller.peer.ToString();
+      const AnsiString agent = GetHeader_(request, "user-agent");
+      String wideAgent;
+      Unicode::MultiByteToWide(agent, wideAgent);
+      const String device = SignInStore::DeviceKey(SignInStore::ProtocolWeb, String(peerAddress), wideAgent);
+
+      SessionPolicy policy = administrator
+         ? SessionPolicies::ServerWide()
+         : SessionPolicies::ForAddress(account->GetAddress());
+
       {
          std::lock_guard<std::mutex> guard(browser_sessions_mutex);
 
@@ -8164,9 +8333,29 @@ namespace HM
             std::remove_if(browser_sessions.begin(), browser_sessions.end(),
                [now](const BrowserSession &session)
                {
-                  return now - session.last_seen_at > SessionIdleMilliseconds || now - session.created_at > SessionAbsoluteMilliseconds;
+                  return HasExpired_(session, now);
                }),
             browser_sessions.end());
+
+         // One session per device: signing in again from a client that already
+         // has a session for this account ends the earlier one, so somebody who
+         // signs in on a shared machine and forgets leaves nothing behind the
+         // next time they sign in there.
+         if (policy.one_per_device && !device.IsEmpty())
+         {
+            const __int64 owner = administrator ? 0 : account->GetID();
+            const bool wantAdministrator = administrator;
+            const AnsiString deviceKey = AnsiString(device);
+
+            browser_sessions.erase(
+               std::remove_if(browser_sessions.begin(), browser_sessions.end(),
+                  [&deviceKey, owner, wantAdministrator](const BrowserSession &session)
+                  {
+                     return session.administrator == wantAdministrator && session.account_id == owner &&
+                            session.device == deviceKey;
+                  }),
+               browser_sessions.end());
+         }
 
          if (browser_sessions.size() >= MaxBrowserSessions)
          {
@@ -8188,8 +8377,27 @@ namespace HM
          session.via_app_password = caller.via_app_password;
          session.created_at = now;
          session.last_seen_at = now;
+         session.device = AnsiString(device);
+         session.bound_address = peerAddress;
+         session.domain = administrator ? String() : StringParser::ExtractDomain(account->GetAddress());
+
+         ApplyPolicy_(session);
+         policy.idle_seconds = (int) (session.idle_milliseconds / 1000);
+         policy.lifetime_seconds = (int) (session.lifetime_milliseconds / 1000);
 
          browser_sessions.push_back(session);
+      }
+
+      // The device list is the account's, so only an account's sign-in writes
+      // one: the administrator password is not an account and has no mailbox to
+      // list devices for. A session started with an app password says so, and
+      // names the password, because which credential a client is using is the
+      // question the list exists to answer.
+      if (!administrator)
+      {
+         SignInStore::RecordFrom(account, SignInStore::ProtocolWeb, String(peerAddress), wideAgent,
+            caller.via_app_password ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword,
+            caller.credential_name);
       }
 
       // Braced: LOG_APPLICATION is a macro that carries its own if, and an
@@ -8210,19 +8418,24 @@ namespace HM
       // ceiling is shorter and is the server's to enforce.
       AnsiString cookie;
       cookie.Format("Set-Cookie: %hs=%hs; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d%hs\r\n",
-         SessionCookieName, token.c_str(), (int) (SessionAbsoluteMilliseconds / 1000), use_tls_ ? "; Secure" : "");
+         SessionCookieName, token.c_str(), policy.lifetime_seconds, use_tls_ ? "; Secure" : "");
 
       AnsiString body;
       if (administrator)
       {
-         body.Format("{\"administrator\":true,\"idle_seconds\":%d,\"lifetime_seconds\":%d}",
-            (int) (SessionIdleMilliseconds / 1000), (int) (SessionAbsoluteMilliseconds / 1000));
+         body.Format("{\"administrator\":true,\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs}",
+            policy.idle_seconds, policy.lifetime_seconds,
+            policy.one_per_device ? "true" : "false",
+            policy.bind_to_address ? "true" : "false");
       }
       else
       {
-         body.Format("{\"address\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d}",
+         body.Format("{\"address\":\"%hs\",\"device\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs}",
             JsonEscape_(Utf8_(account->GetAddress())).c_str(),
-            (int) (SessionIdleMilliseconds / 1000), (int) (SessionAbsoluteMilliseconds / 1000));
+            JsonEscape_(Utf8_(device)).c_str(),
+            policy.idle_seconds, policy.lifetime_seconds,
+            policy.one_per_device ? "true" : "false",
+            policy.bind_to_address ? "true" : "false");
       }
 
       return BuildResponse_(201, body, cookie);
@@ -8251,6 +8464,37 @@ namespace HM
          SessionCookieName, use_tls_ ? "; Secure" : "");
 
       return BuildResponse_(200, "{\"ended\":true}", cookie);
+   }
+
+   // Every browser session one client of an account holds, ended. Called by
+   // SignInStore::Revoke, which is the one place a device is revoked from,
+   // whichever interface asked - so a revoke over REST and a revoke over COM
+   // end the same things in the same order.
+   int
+   RestApiServer::EndSessionsForDevice(__int64 accountId, const String &device)
+   {
+      if (accountId == 0 || device.IsEmpty())
+         return 0;
+
+      const AnsiString wanted = AnsiString(device);
+      int ended = 0;
+
+      {
+         std::lock_guard<std::mutex> guard(browser_sessions_mutex);
+
+         for (std::vector<BrowserSession>::iterator it = browser_sessions.begin(); it != browser_sessions.end();)
+         {
+            if (!it->administrator && it->account_id == accountId && it->device == wanted)
+            {
+               it = browser_sessions.erase(it);
+               ended++;
+            }
+            else
+               ++it;
+         }
+      }
+
+      return ended;
    }
 
    void
@@ -10714,14 +10958,16 @@ namespace HM
          {
             if (it->administrator || it->account_id != account->GetID())
                continue;
-            if (now - it->last_seen_at > SessionIdleMilliseconds || now - it->created_at > SessionAbsoluteMilliseconds)
+            if (HasExpired_(*it, now))
                continue;
             if (!first)
                json += ",";
             first = false;
             AnsiString entry;
-            entry.Format("{\"id\":\"%hs\",\"created_seconds_ago\":%I64u,\"idle_seconds\":%I64u,\"current\":%hs,\"support\":%hs}",
+            entry.Format("{\"id\":\"%hs\",\"device\":\"%hs\",\"address\":\"%hs\",\"created_seconds_ago\":%I64u,\"idle_seconds\":%I64u,\"current\":%hs,\"support\":%hs}",
                it->token_hash.Mid(0, 12).c_str(),
+               JsonEscape_(it->device).c_str(),
+               JsonEscape_(it->bound_address).c_str(),
                (unsigned __int64) ((now - it->created_at) / 1000),
                (unsigned __int64) ((now - it->last_seen_at) / 1000),
                (caller.via_session && ConstantTimeEquals(it->token_hash, caller.session_hash)) ? "true" : "false",
@@ -10802,6 +11048,82 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"no such session\"}");
 
       return BuildResponse_(200, "{\"ended\":true}");
+   }
+
+   // The clients this account has signed in from - protocol, address, user
+   // agent, which credential each used, when each was first and last seen -
+   // and which of them this request came in on. The same rows an administrator
+   // reads under the account's address, built by the same code, so that the
+   // person and the administrator are never shown two different lists.
+   HttpResponse
+   RestApiServer::HandleMeDevices_(const Caller &caller)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      const std::vector<SignInRecord> records = SignInStore::List(account->GetID());
+
+      AnsiString json = "{\"devices\":[";
+
+      for (size_t index = 0; index < records.size(); index++)
+      {
+         if (index > 0)
+            json += ",";
+
+         // Current for the client this request came in on, and for nothing when
+         // the request carried a password rather than a session - exactly as the
+         // session listing answers.
+         const bool current = caller.via_session && !caller.session_device.IsEmpty() &&
+                              caller.session_device == AnsiString(records[index].device);
+
+         json += SignInStore::ToJson(records[index], AnsiString(current ? "\"current\":true" : "\"current\":false"));
+      }
+
+      json += "]}";
+
+      return BuildResponse_(200, json);
+   }
+
+   // One client revoked: its browser session ended, its live mail connections
+   // dropped and - with credential=revoke - the app password it signed in with
+   // deactivated. forget=true removes the entry as well, for somebody who wants
+   // a client they no longer own off the list rather than marked.
+   HttpResponse
+   RestApiServer::HandleMeDeviceDelete_(const Caller &caller, const AnsiString &id, const AnsiString &query)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      HttpResponse refusal;
+      if (RefuseAppPasswordCaller_(caller, "revoking one of the account's devices", refusal))
+         return refusal;
+
+      if (!IsLowerHex(id, 32))
+         return BuildResponse_(400, "{\"error\":\"a device id is thirty-two hex digits\"}");
+
+      const bool revokeCredential = QueryParameter_(query, "credential") == "revoke";
+      const bool forget = QueryParameter_(query, "forget") == "true";
+
+      int connections = 0;
+      int sessions = 0;
+      bool credentialDisabled = false;
+
+      const bool found = forget
+         ? SignInStore::Forget(account->GetID(), String(id), connections, sessions)
+         : SignInStore::Revoke(account->GetID(), String(id), revokeCredential, connections, sessions, credentialDisabled);
+
+      if (!found)
+         return BuildResponse_(404, "{\"error\":\"no such device of this account\"}");
+
+      LOG_APPLICATION("REST API: " + account->GetAddress() + " revoked a device from " + String(caller.peer.ToString()) + ".");
+
+      AnsiString json;
+      json.Format("{\"revoked\":true,\"forgotten\":%hs,\"sessions_ended\":%d,\"connections_dropped\":%d,\"credential_disabled\":%hs}",
+         forget ? "true" : "false", sessions, connections, credentialDisabled ? "true" : "false");
+
+      return BuildResponse_(200, json);
    }
 
    // What the mailbox holds: the quota, each of the account's own folders
@@ -10941,7 +11263,7 @@ namespace HM
    // of the session goes to the application log, and the user's own session
    // list shows it and can end it.
    HttpResponse
-   RestApiServer::HandleAccountSupportSession_(const Caller &caller, const AnsiString &address)
+   RestApiServer::HandleAccountSupportSession_(const Caller &caller, const AnsiString &address, const AnsiString &request)
    {
       String wanted;
       Unicode::MultiByteToWide(address, wanted);
@@ -10963,6 +11285,20 @@ namespace HM
       if (tokenHash.IsEmpty())
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
+      // A support session is a session of the ACCOUNT, opened from the
+      // administrator's own client, so the client it records is the
+      // administrator's and the policy that governs it is the account's domain's.
+      // The account's device list shows it with the support mark, and ending
+      // that device ends this session as it would any other.
+      const AnsiString supportAddress = caller.peer.ToString();
+      const AnsiString supportAgent = GetHeader_(request, "user-agent");
+      String supportWideAgent;
+      Unicode::MultiByteToWide(supportAgent, supportWideAgent);
+      const String supportDevice = SignInStore::DeviceKey(SignInStore::ProtocolWeb, String(supportAddress), supportWideAgent);
+
+      int idleSeconds = 0;
+      int lifetimeSeconds = 0;
+
       {
          std::lock_guard<std::mutex> guard(browser_sessions_mutex);
          const ULONGLONG now = GetTickCount64();
@@ -10975,6 +11311,12 @@ namespace HM
          session.support_by = caller.identity;
          session.created_at = now;
          session.last_seen_at = now;
+         session.device = AnsiString(supportDevice);
+         session.bound_address = supportAddress;
+         session.domain = StringParser::ExtractDomain(account->GetAddress());
+         ApplyPolicy_(session);
+         idleSeconds = (int) (session.idle_milliseconds / 1000);
+         lifetimeSeconds = (int) (session.lifetime_milliseconds / 1000);
          browser_sessions.push_back(session);
       }
 
@@ -10984,10 +11326,10 @@ namespace HM
 
       AnsiString cookie;
       cookie.Format("Set-Cookie: %hs=%hs; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d%hs\r\n",
-         SessionCookieName, token.c_str(), (int) (SessionAbsoluteMilliseconds / 1000), use_tls_ ? "; Secure" : "");
+         SessionCookieName, token.c_str(), lifetimeSeconds, use_tls_ ? "; Secure" : "");
       AnsiString body;
       body.Format("{\"support\":true,\"account\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d}",
-         JsonEscape_(Utf8_(account->GetAddress())).c_str(), (int) (SessionIdleMilliseconds / 1000), (int) (SessionAbsoluteMilliseconds / 1000));
+         JsonEscape_(Utf8_(account->GetAddress())).c_str(), idleSeconds, lifetimeSeconds);
       return BuildResponse_(201, body, cookie);
    }
 
@@ -12395,6 +12737,8 @@ namespace HM
          "\"/portal-smime.js\":{\"get\":{\"summary\":\"The webmail's S/MIME module\",\"description\":\"Unauthenticated. DER, X.509, PKCS#8 and PKCS#12, CMS SignedData and EnvelopedData and the MIME around them, on the Web Crypto API; what build/check-portal-smime.js runs against OpenSSL.\",\"responses\":{\"200\":{\"description\":\"The script\"}}}},"
          "\"/api/v1/me/sessions\":{\"get\":{\"summary\":\"The signed-in account's browser sessions\",\"description\":\"Each: id (twelve hex digits of the token's hash), created_seconds_ago, idle_seconds, current.\",\"responses\":{\"200\":{\"description\":\"sessions\"}}},\"delete\":{\"summary\":\"End every other session\",\"description\":\"The session asking stays; a caller on a password ends them all.\",\"responses\":{\"200\":{\"description\":\"ended (how many)\"}}}},"
          "\"/api/v1/me/sessions/{id}\":{\"delete\":{\"summary\":\"End one session\",\"responses\":{\"200\":{\"description\":\"Ended\"},\"404\":{\"description\":\"No such session of this account\"}}}},"
+         "\"/api/v1/me/devices\":{\"get\":{\"summary\":\"The clients that have signed in to the account\",\"description\":\"One entry per client, most recently used first: id (thirty-two hex characters, what a revoke names), protocol (smtp, pop3, imap, web, dav or managesieve), address, agent (the user agent where the protocol carries one, else empty), credential (password, app_password, token, certificate or single_sign_on), credential_name (the app password's name, where one was used), first_seen, last_seen, sign_ins, revoked, revoked_at and current - true for the client this request came in on, and for none when the request carried a password rather than a session. At most fifty are kept per account; the least recently seen goes when a fifty-first appears.\",\"responses\":{\"200\":{\"description\":\"devices\"}}}},"
+         "\"/api/v1/me/devices/{id}\":{\"delete\":{\"summary\":\"Revoke a client: end what it holds now\",\"description\":\"Its browser session is ended (the token is invalidated, so its next request is refused) and its live IMAP, POP3 and SMTP connections are dropped. credential=revoke in the query also deactivates the app password it signed in with, where it used one - which is what stops a stolen client simply signing in again; forget=true removes the entry rather than marking it revoked. A revoke is NOT a ban: the entry stays, marked, and a later sign-in from that client with a credential that still works clears the mark. Refused (403) to a request authenticated with an app password, or by a session started with one. Answers sessions_ended, connections_dropped and credential_disabled.\",\"responses\":{\"200\":{\"description\":\"revoked, forgotten, sessions_ended, connections_dropped, credential_disabled\"},\"400\":{\"description\":\"The id is not thirty-two hex characters\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No such device of this account\"}}}},"
          "\"/api/v1/me/storage\":{\"get\":{\"summary\":\"What the mailbox holds\",\"description\":\"used_bytes and limit_mb (0 = no limit); folders, each with id, path, messages and bytes; largest, the twenty biggest messages with id, folder_id, folder, subject, from, date and size.\",\"responses\":{\"200\":{\"description\":\"The storage view\"}}}},"
          "\"/api/v1/me/quarantine\":{\"get\":{\"summary\":\"The messages held as suspected spam for the signed-in account\",\"description\":\"Only the entries this address is a recipient of, without the other recipients. enabled says whether the server holds spam at all.\",\"responses\":{\"200\":{\"description\":\"enabled, messages (id, sender, subject, reason, score, size, created)\"}}}},"
          "\"/api/v1/me/quarantine/{id}/release\":{\"post\":{\"summary\":\"Deliver a held message to the signed-in account\",\"description\":\"Delivered to this address only; the entry stays for its other recipients and goes when this was the last. A message this address was not sent is 404.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
@@ -12434,7 +12778,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
-         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl), openpgp_publish (publish this domain's accounts' OpenPGP public keys in the Web Key Directory; the server setting and each account's own switch have to be on as well) and openpgp_publish_new_accounts (what an account CREATED in this domain from now on starts with; it never changes an account that already exists), webhooks_enabled (whether anything this domain's mail or accounts do raises an outbound webhook event at all - on by default, and an off switch a domain administrator holds whatever the subscriptions at /api/v1/webhooks ask for) and webhook_subjects (whether a webhook body about this domain may carry a message subject - OFF by default on every domain, because a subject line is what a message is about; a subject travels only where this and the subscription's include_subject both say so), and country_policy (the country policy applied when an account of this domain signs in, on any protocol: empty is off, allow:GB,IE admits only those countries, block:CN,RU refuses those; a refused sign-in is the ordinary invalid-credentials answer and is counted against neither the account nor the address). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
+         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl), openpgp_publish (publish this domain's accounts' OpenPGP public keys in the Web Key Directory; the server setting and each account's own switch have to be on as well) and openpgp_publish_new_accounts (what an account CREATED in this domain from now on starts with; it never changes an account that already exists), webhooks_enabled (whether anything this domain's mail or accounts do raises an outbound webhook event at all - on by default, and an off switch a domain administrator holds whatever the subscriptions at /api/v1/webhooks ask for) and webhook_subjects (whether a webhook body about this domain may carry a message subject - OFF by default on every domain, because a subject line is what a message is about; a subject travels only where this and the subscription's include_subject both say so), and country_policy (the country policy applied when an account of this domain signs in, on any protocol: empty is off, allow:GB,IE admits only those countries, block:CN,RU refuses those; a refused sign-in is the ordinary invalid-credentials answer and is counted against neither the account nor the address), session_idle_seconds and session_lifetime_seconds (how long a signed-in browser session of this domain's accounts may go unused, and live at all; 0 takes the server-wide value, at most 2592000), session_one_per_device and session_bind_to_address (0 takes the server-wide answer, 1 is on, 2 is off). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"

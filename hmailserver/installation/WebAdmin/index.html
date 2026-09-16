@@ -317,6 +317,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="certs" data-serverwide="1" data-needs="view_configuration" title="Certificates"><span class="ico">⚿</span><span>Certificates</span></button>
         <button data-view="ports" data-serverwide="1" data-needs="view_configuration" title="Ports"><span class="ico">⊞</span><span>Ports</span></button>
         <button data-view="roles" data-needs="view_configuration" title="Roles"><span class="ico">⚑</span><span>Roles</span></button>
+        <button data-view="devices" data-needs="view_accounts" title="Devices"><span class="ico">⌗</span><span>Devices</span></button>
         <button data-view="logs" data-serverwide="1" data-needs="view_logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
         <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
@@ -734,7 +735,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -756,6 +757,7 @@ async function render(silent){
     else if(view==="certs")await renderCerts();
     else if(view==="ports")await renderPorts();
     else if(view==="roles")await renderRoles();
+    else if(view==="devices")await renderDevices();
     else if(view==="reports")await renderReports();
     else if(view==="logs")await renderLogs();
     else if(view==="audit")await renderAudit();
@@ -1098,6 +1100,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
   else if(d.act==="auditverify")verifyAuditChain();
   else if(d.act==="rdnew")openRemoteDomain(0);
+  else if(d.act==="devshow")showDevices();
+  else if(d.act==="devrevoke")revokeDevice(d.id);
   else if(d.act==="rdedit")openRemoteDomain(Number(d.id));
   else if(d.act==="rddel")deleteRemoteDomain(Number(d.id),d.name);
   else if(d.act==="rdsave")saveRemoteDomain();
@@ -1484,6 +1488,11 @@ const DOMAIN_GROUPS=[
     disclaimer_enabled:{type:"boolean",description:K("Append the legal footer below to mail this domain sends outside the organisation. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never twice on a reply chain.")},
     disclaimer_plain_text:{type:"string",format:"multiline",description:K("The footer, as plain text.")},
     disclaimer_html:{type:"string",format:"multiline",description:K("The footer, as HTML. Empty means the plain text is used, with its line breaks turned into line breaks in HTML.")}}},
+  {title:K("Sessions"),props:{
+    session_idle_seconds:{type:"integer",description:K("How long a signed-in browser session of this domain's accounts - the webmail, the self-service portal - may go unused before it ends, in seconds. 0 takes the server-wide value, and where that is 0 too the server's own ceiling of 1800 seconds applies. At most 2592000, which is thirty days.")},
+    session_lifetime_seconds:{type:"integer",description:K("How long such a session may live at all, however busy it is, in seconds. 0 takes the server-wide value, and where that is 0 too the server's own ceiling of 43200 seconds - twelve hours - applies.")},
+    session_one_per_device:{type:"integer",description:K("Whether signing in again from a client that already has a session ends the earlier one: 0 takes the server-wide answer, 1 is on, 2 is off.")},
+    session_bind_to_address:{type:"integer",description:K("Whether a session is refused from any address but the one it began on: 0 takes the server-wide answer, 1 is on, 2 is off. With it on, somebody whose address changes underneath them - a phone moving between wi-fi and a mobile network - is signed out.")}}},
   {title:K("Quarantine digest"),props:{
     quarantine_digest:{type:"boolean",description:K("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default, and nothing is sent until the server's QuarantineDigestBaseUrl names the address those links point at.")},
     quarantine_digest_hour:{type:"integer",description:K("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")}}},
@@ -3876,6 +3885,63 @@ async function deleteRole(name){
     await api("/api/v1/roles/"+encodeURIComponent(name),{method:"DELETE"});
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_roles",e.message);}
+}
+
+/* ---------- Devices ----------
+   Every client that has signed in to an account, by protocol, address and last
+   use, and the one press that ends what one of them holds. The list is read for
+   an address the administrator types, because there is no server-wide listing:
+   a device belongs to an account, and a page that showed every client on the
+   server would be a page about traffic rather than about people. */
+var devicesFor="";
+async function renderDevices(){
+  const shown=escHtml(devicesFor);
+  const form=`<div class="card flat">
+    <p class="note">${t("Every client that has signed in to an account: what it speaks, where from, which of the account's credentials it used, and when it was first and last seen. Revoking one ends the session it holds now - its browser session, and its live IMAP, POP3 and SMTP connections - and can disable the app password behind it. It is not a ban: the client can sign in again with a credential that still works.")}</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <input id="devAddress" placeholder="${t("Account address")}" value="${shown}" style="flex:1 1 260px">
+      <button class="btn" data-act="devshow">${t("Show")}</button>
+    </div>
+    <div class="err" id="err_devices" style="margin-top:10px"></div>
+  </div>`;
+  if(!devicesFor){
+    $("#content").innerHTML=`<div class="view">${form}
+      <div class="card view" style="margin-top:14px"><div class="empty">${t("Type an account address and press Show. ✦")}</div></div></div>`;
+    return;
+  }
+  let list=[];
+  try{list=asList(await api("/api/v1/accounts/"+encodeURIComponent(devicesFor)+"/devices"),"devices");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+    $("#content").innerHTML=`<div class="view">${form}</div>`;setErr("err_devices",e.message);return;}
+  const rows=list.map(d=>`
+    <tr><td>${escHtml(d.protocol||"")}</td>
+        <td>${escHtml(d.address||"")}</td>
+        <td style="word-break:break-word">${escHtml(d.agent||"—")}</td>
+        <td>${escHtml(d.credential||"")}${d.credential_name?" <code class=\"ro\">"+escHtml(d.credential_name)+"</code>":""}</td>
+        <td>${escHtml(d.first_seen||"")}</td>
+        <td>${escHtml(d.last_seen||"")}</td>
+        <td>${Number(d.sign_ins||0)}</td>
+        <td>${d.revoked?'<span class="badge warn">'+t("Revoked")+"</span>":""}</td>
+        <td style="text-align:right;white-space:nowrap">${may("manage_accounts")?`<button class="btn danger sm" data-act="devrevoke" data-id="${escHtml(d.id)}">${t("Revoke")}</button>`:""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">${form}
+    <div class="card view" style="margin-top:14px">
+    ${may("manage_accounts")?`<label class="row" style="gap:8px;margin-bottom:10px"><input type="checkbox" id="devCredential"> <span>${t("Also disable the app password the client used")}</span></label>`:""}
+    <div class="tablewrap"><table><thead><tr><th>${t("Protocol")}</th><th>${t("Address")}</th><th>${t("Client")}</th><th>${t("Credential")}</th><th>${t("First seen")}</th><th>${t("Last seen")}</th><th>${t("Sign-ins")}</th><th></th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="9" class="empty">'+t("Nothing has signed in to this account yet. ✦")+"</td></tr>"}</tbody></table></div>
+    </div></div>`;
+}
+async function showDevices(){
+  devicesFor=(($("#devAddress")||{}).value||"").trim();
+  await render();
+}
+async function revokeDevice(id){
+  setErr("err_devices","");
+  const credential=(($("#devCredential")||{}).checked)?"?credential=revoke":"";
+  try{
+    const answer=await api("/api/v1/accounts/"+encodeURIComponent(devicesFor)+"/devices/"+encodeURIComponent(id)+credential,{method:"DELETE"});
+    toast(tf("Revoked: {0} session(s) ended, {1} connection(s) dropped.",Number(answer.sessions_ended||0),Number(answer.connections_dropped||0)));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_devices",e.message);}
 }
 
 async function renderLogs(){

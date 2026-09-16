@@ -11,6 +11,7 @@
 
 #include "DavSupport.h"
 #include "AccountLogon.h"
+#include "SignInStore.h"
 #include "Unicode.h"
 #include "Encoding/Base64.h"
 #include "../BO/Account.h"
@@ -279,7 +280,8 @@ namespace HM
          String password = Wide(decoded.Mid(separator + 1));
 
          bool viaAppPassword = false;
-         account = AccountLogon().Logon(request.peer, username, password, disconnect, &viaAppPassword);
+         String appPasswordName;
+         account = AccountLogon().Logon(request.peer, username, password, disconnect, &viaAppPassword, &appPasswordName);
          if (!account)
          {
             LOG_APPLICATION(String(service) + ": account authentication failed for " + LogSafe(username) + " from " + String(request.peer.ToString()) + ".");
@@ -292,6 +294,16 @@ namespace HM
             account.reset();
             return false;
          }
+
+         // The client, recorded. A CalDAV or CardDAV client sends a User-Agent,
+         // so this is the one mail-adjacent protocol whose entry can name the
+         // program. Nothing is registered for revocation: each request stands on
+         // its own connection and re-authenticates, so there is no session to
+         // drop - revoking such a client is revoking the app password behind it.
+         SignInStore::Record(account, SignInStore::ProtocolDav, request.peer,
+            Wide(request.Header("user-agent")),
+            viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword,
+            appPasswordName);
 
          return true;
       }
