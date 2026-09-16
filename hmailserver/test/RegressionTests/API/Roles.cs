@@ -570,14 +570,23 @@ namespace RegressionTests.API
             "{\"name\":\"rolestest-emptied\",\"description\":\"finds accounts\",\"permissions\":\"view_accounts\"}").status);
          Assign("narrowed@example.test", "rolestest-emptied", "");
 
-         // The row, edited the way a person would, or the way an upgrade that
-         // renamed a permission would leave it: it names nothing this version has.
+         // The listing reports what a role HOLDS, never the column as it stands:
+         // RoleManager::FindRole re-derives it through GrantForRole, which silently
+         // drops a token this version does not know. So the role holds view_accounts
+         // now...
+         StringAssert.Contains("\"permissions\":\"view_accounts\"", Admin("GET", "/api/v1/roles/rolestest-emptied").body,
+            "The role does not hold what it was created with, so the edit below would prove nothing.");
+
+         // ...and the row, edited the way a person would, or the way an upgrade that
+         // renamed a permission would leave it, names nothing this version has.
          // Neither editor saves a role like that, so the table is written directly,
-         // and another role is made so that the server reads the table again.
+         // and another role is made so that the server reads the table again. What
+         // comes back is the empty set the edited row parses to, and that is reachable
+         // only if the row was read: the cached one still re-derives view_accounts.
          _application.Database.ExecuteSQL("update hm_roles set rolepermissions = 'view_accounts_renamed' where rolename = 'rolestest-emptied'");
          Assert.AreEqual(201, Admin("POST", "/api/v1/roles", "{\"name\":\"rolestest-reload\",\"permissions\":\"view_logs\"}").status);
-         StringAssert.Contains("\"permissions\":\"view_accounts_renamed\"", Admin("GET", "/api/v1/roles/rolestest-emptied").body,
-            "The server did not read the edited row, so this test would prove nothing.");
+         StringAssert.Contains("\"permissions\":\"\"", Admin("GET", "/api/v1/roles/rolestest-emptied").body,
+            "The role still holds the permission it was created with, so the server did not read the edited row and this test would prove nothing.");
 
          (int status, string body) who = AsAccount("narrowed@example.test", "GET", "/api/v1/session");
          Assert.AreEqual(200, who.status, who.body);
@@ -1240,7 +1249,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Clearing the logon-failure list deletes rows of a table that is traffic, not configuration, and is on the audit trail all the same: over REST by the administrator and by a help desk, and over COM, each a row with the object type logon failures and the action cleared, under the credential and its role")]
+      [Description("Clearing the logon-failure list deletes rows of a table that is traffic, not configuration, and is on the audit trail all the same: over REST by the administrator and by a help desk given every domain, and over COM, each a row with the object type logon failures and the action cleared, under the credential and its role")]
       public void ClearingTheLogonFailureListIsOnTheAuditTrail()
       {
          SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "helen@example.test", AccountPassword);
@@ -1251,7 +1260,17 @@ namespace RegressionTests.API
          (int status, string body) overRest = Admin("POST", "/api/v1/settings/logon-failures/clear", "{}");
          Assert.AreEqual(200, overRest.status, overRest.body);
 
-         // The route is classified with the unlock, so a help desk reaches it.
+         // The route is classified with the unlock (PermissionFor_), which a help desk
+         // holds - but it clears EVERY address's failures, so it is server-wide and is
+         // refused to a credential confined to named domains, as the queue and the
+         // message trace are. An unlisted help desk is confined to its own domain.
+         (int status, string body) confined = AsAccount("helen@example.test", "POST", "/api/v1/settings/logon-failures/clear", "{}");
+         Assert.AreEqual(403, confined.status, confined.body);
+         StringAssert.Contains("restricted to named domains", confined.body);
+
+         // Given every domain, the same help desk reaches it, and is on the trail as
+         // itself: the star widens the assignment and changes nothing else about it.
+         Assign("helen@example.test", "helpdesk", "*");
          (int status, string body) byTheDesk = AsAccount("helen@example.test", "POST", "/api/v1/settings/logon-failures/clear", "{}");
          Assert.AreEqual(200, byTheDesk.status, byTheDesk.body);
 
