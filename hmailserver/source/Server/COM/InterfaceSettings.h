@@ -282,6 +282,15 @@ END_COM_MAP()
    STDMETHOD(get_BounceReportWindowDays)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_BounceReportWindowDays)(/*[in]*/ long newVal);
 
+   STDMETHOD(get_OpenPGPWebKeyDirectoryEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_OpenPGPWebKeyDirectoryEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_OpenPGPKeyMaximumBytes)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_OpenPGPKeyMaximumBytes)(/*[in]*/ long newVal);
+   STDMETHOD(get_OpenPGPKeysPerAccount)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_OpenPGPKeysPerAccount)(/*[in]*/ long newVal);
+   STDMETHOD(get_OpenPGPRequireAddressInUserId)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_OpenPGPRequireAddressInUserId)(/*[in]*/ VARIANT_BOOL newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

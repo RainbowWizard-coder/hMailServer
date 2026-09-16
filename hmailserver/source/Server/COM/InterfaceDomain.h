@@ -232,6 +232,11 @@ END_COM_MAP()
    STDMETHOD(DKIMRotationRetire)(/*[out, retval]*/ BSTR *Status);
    STDMETHOD(DKIMRotationCancel)(/*[out, retval]*/ BSTR *Status);
 
+   STDMETHOD(get_OpenPGPPublishKeys)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_OpenPGPPublishKeys)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_OpenPGPPublishNewAccounts)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_OpenPGPPublishNewAccounts)(/*[in]*/ VARIANT_BOOL newVal);
+
    // dkim end.
 private:
    

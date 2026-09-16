@@ -504,8 +504,9 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'vacation_enabled', 'vacation_subject', 'vacation_message',
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
-   'quarantine_digest', 'quarantine_digest_hour'];
-const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour. A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
+   'quarantine_digest', 'quarantine_digest_hour',
+   'openpgp_publish', 'openpgp_publish_new_accounts'];
+const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
 // The account's update schema as RestApiRoutes.cpp emits it - every field
@@ -520,16 +521,17 @@ const ACCOUNT_PROPS = {
    forward_abort_spam_flagged: { type: 'boolean' }, message_retention_days: { type: 'integer' },
    vacation_enabled: { type: 'boolean' }, vacation_subject: { type: 'string' }, vacation_message: { type: 'string' },
    vacation_expires: { type: 'boolean' }, vacation_expires_date: { type: 'string' }, vacation_begin_date: { type: 'string' }, vacation_abort_spam_flagged: { type: 'boolean' },
-   ad_enabled: { type: 'boolean' }, ad_domain: { type: 'string' }, ad_username: { type: 'string' }, sieve_script: { type: 'string' }
+   ad_enabled: { type: 'boolean' }, ad_domain: { type: 'string' }, ad_username: { type: 'string' }, sieve_script: { type: 'string' },
+   openpgp_publish: { type: 'boolean' }
 };
-const ACCOUNT_PUT = 'Any subset of active, password, max_size_mb, first_name, last_name, forward_enabled, forward_address, forward_keep_original, signature_enabled, signature_plain_text, signature_html, admin_level (user, domain or server), antispam_enabled, spam_mark_threshold and spam_delete_threshold (-1 is the server\'s own value), forward_abort_spam_flagged, message_retention_days (-1 keeps forever, 0 follows the domain), vacation_enabled, vacation_subject, vacation_message, vacation_expires, vacation_expires_date and vacation_begin_date (YYYY-MM-DD; empty means today, as the Control Panel takes them), vacation_abort_spam_flagged, ad_enabled, ad_domain, ad_username and sieve_script; a field the body does not name is left as it is, and an unknown field is refused by name. Scoped to the address\'s domain.';
+const ACCOUNT_PUT = 'Any subset of active, password, max_size_mb, first_name, last_name, forward_enabled, forward_address, forward_keep_original, signature_enabled, signature_plain_text, signature_html, admin_level (user, domain or server), antispam_enabled, spam_mark_threshold and spam_delete_threshold (-1 is the server\'s own value), forward_abort_spam_flagged, message_retention_days (-1 keeps forever, 0 follows the domain), vacation_enabled, vacation_subject, vacation_message, vacation_expires, vacation_expires_date and vacation_begin_date (YYYY-MM-DD; empty means today, as the Control Panel takes them), vacation_abort_spam_flagged, ad_enabled, ad_domain, ad_username, sieve_script and openpgp_publish (publish this account\'s OpenPGP public keys in the Web Key Directory); a field the body does not name is left as it is, and an unknown field is refused by name. Scoped to the address\'s domain.';
 // An account as AccountEntryJson answers it: every field, never the password.
 function accountRecord(address, active) {
    return { address, active, max_size_mb: 0, first_name: '', last_name: '', forward_enabled: false, forward_address: '', forward_keep_original: false,
       signature_enabled: false, signature_plain_text: '', signature_html: '', vacation_enabled: false, vacation_subject: '', vacation_message: '',
       vacation_expires: false, vacation_expires_date: '', message_retention_days: 0, admin_level: 'user', antispam_enabled: true,
       spam_mark_threshold: -1, spam_delete_threshold: -1, forward_abort_spam_flagged: false, vacation_begin_date: '', vacation_abort_spam_flagged: false,
-      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '' };
+      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false };
 }
 
 // The distribution list's schemas and descriptions as RestApiServer.cpp emits
@@ -675,7 +677,8 @@ function domainRecord(name, active, postmaster) {
       vacation_enabled: false, vacation_subject: '', vacation_message: '',
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
-      quarantine_digest: false, quarantine_digest_hour: 7 };
+      quarantine_digest: false, quarantine_digest_hour: 7,
+      openpgp_publish: false, openpgp_publish_new_accounts: false };
 }
 
 const SUPPRESSIONS_POST = 'Body: address (required), note (kept as the entry\'s diagnostic) and expires_days (0, the default, for an entry that stays until it is removed; at most 3650). An address this server hosts is refused.';
@@ -776,6 +779,16 @@ const SETTING_GROUPS = {
       },
       values: { processing_enabled: false, hard_bounce_threshold: 1, mailbox_full_is_hard: false, suppression_action: 'refuse', suppression_expiry_days: 0,
          read_delivery_reports: true, count_retention_days: 90, report_window_days: 7 }
+   },
+   // The Web Key Directory: a group like the others, off by default.
+   '/api/v1/settings/openpgp': {
+      props: {
+         web_key_directory_enabled: { type: 'boolean', description: 'The master switch: publish this server\'s accounts\' OpenPGP public keys under /.well-known/openpgpkey on the web services listener.' },
+         key_maximum_bytes: { type: 'integer', description: 'The largest OpenPGP key this server will accept, in bytes of the key itself. 1024 to 1048576; 65536 by default.' },
+         keys_per_account: { type: 'integer', description: 'How many OpenPGP keys one account may hold at once. 1 to 64; 8 by default.' },
+         require_address_in_user_id: { type: 'boolean', description: 'Refuse a key whose user ids do not carry the account\'s own address.' }
+      },
+      values: { web_key_directory_enabled: true, key_maximum_bytes: 65536, keys_per_account: 8, require_address_in_user_id: true }
    },
    '/api/v1/settings/backup': {
       props: {
@@ -911,6 +924,15 @@ const spec = {
       '/api/v1/groups/{id}/members/{account_id}': { delete: { summary: 'Remove an account from a group', description: 'By the account\'s id, as the membership is the pair.' } },
       '/api/v1/settings/backup': settingsPath('/api/v1/settings/backup'),
       '/api/v1/settings/bounces': settingsPath('/api/v1/settings/bounces'),
+      '/api/v1/settings/openpgp': settingsPath('/api/v1/settings/openpgp'),
+      '/api/v1/domains/{domain}/openpgp': { get: { summary: 'Every OpenPGP key held for a domain\'s accounts (administrator)',
+         description: 'domain, server_enabled, domain_enabled, publish_new_accounts, total and keys - each the key\'s row with the account\'s address, its hashed_local_part, advanced_url and direct_url, and published: whether this key is actually being served.' } },
+      '/api/v1/accounts/{address}/openpgp': {
+         get: { summary: 'An account\'s OpenPGP public keys (administrator)', description: 'The same document the account\'s own GET /api/v1/me/openpgp answers.' },
+         put: { summary: 'Upload an OpenPGP public key for an account (administrator)',
+            description: 'Body: key (required), allow_address_mismatch and publish. A SECRET key is refused here as everywhere.',
+            requestBody: body({ key: { type: 'string' }, allow_address_mismatch: { type: 'boolean' }, publish: { type: 'boolean' } }, ['key']) } },
+      '/api/v1/accounts/{address}/openpgp/{fingerprint}': { delete: { summary: 'Remove an account\'s OpenPGP key (administrator)', description: 'By fingerprint, through the account.' } },
       '/api/v1/bounces/expire': { post: { summary: 'Run the suppression list\'s maintenance sweep now', description: 'What the hourly task does: expired entries, old counts and old report keys are removed.' } },
       '/api/v1/domains/{domain}/suppressions': {
          get: { summary: 'The suppression list of a domain', description: 'Addresses this domain no longer sends to because mail to them bounced, or because an administrator put them there.' },
@@ -1021,6 +1043,14 @@ const state = {
    },
    suppressions: {
       'example.com': [suppressionRecord('gone@remote.test', 'bounce', 'hard', '5.1.1')]
+   },
+   // One published key, as OpenPgpKeyStore::RowJson emits it with the address.
+   openPgpKeys: {
+      'example.com': [{ id: 1, address: 'anna@example.com', fingerprint: 'c29b6cce361e73ba13724cb8bbee452b9b0a0bb7', version: 4,
+         algorithm: 22, algorithm_name: 'EdDSA', bits: 256, user_id: 'Anna <anna@example.com>', created: 1789526547, expires: 0,
+         bytes: 413, uploaded: 1789526600, uploaded_by: 'administrator', hashed_local_part: 'ftnwpzeeynpbixr6qyd8grpy8xuzcqwt',
+         advanced_url: 'https://openpgpkey.example.com/.well-known/openpgpkey/example.com/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=anna',
+         direct_url: 'https://example.com/.well-known/openpgpkey/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=anna', published: true }]
    },
    bounceCounts: {
       'example.com': [{ address: 'gone@remote.test', hard: 2, soft: 1, mailbox_full: 0, policy: 0, other: 0, consecutive_hard: 2, last_status: '5.1.1', last_category: 'hard',
@@ -1630,6 +1660,45 @@ function answer(method, path, headers, raw) {
       list.splice(at, 1);
       return json(200, { removed: true });
    }
+   // The OpenPGP key directory: a domain's whole listing, and one account's keys.
+   if (/^\/api\/v1\/domains\/[^/]+\/openpgp$/.test(path) && method === 'GET') {
+      const domain = segment(path, 4);
+      const keys = state.openPgpKeys[domain] || [];
+      const record = state.domains.filter((d) => d.name === domain)[0];
+      const serverEnabled = SETTING_GROUPS['/api/v1/settings/openpgp'].values.web_key_directory_enabled;
+      const domainEnabled = !!(record && record.active && record.openpgp_publish);
+      return json(200, { domain, server_enabled: serverEnabled, domain_enabled: domainEnabled,
+         publish_new_accounts: !!(record && record.openpgp_publish_new_accounts), total: keys.length,
+         keys: keys.map((k) => Object.assign({}, k, { published: serverEnabled && domainEnabled && k.published })) });
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/openpgp$/.test(path) && method === 'PUT') {
+      const address = segment(path, 4);
+      for (const key of Object.keys(parsed || {})) { if (['key', 'allow_address_mismatch', 'publish'].indexOf(key) < 0) { return json(400, { error: 'unknown field: ' + key }); } }
+      const text = String((parsed || {}).key || '');
+      if (text.indexOf('PRIVATE KEY') >= 0 || text.indexOf('SECRET KEY') >= 0) {
+         return json(400, { error: 'This is a SECRET key, and this server never holds one. Export the public half of it - gpg --export, not gpg --export-secret-keys - and upload that.' });
+      }
+      const domain = address.split('@')[1];
+      state.openPgpKeys[domain] = state.openPgpKeys[domain] || [];
+      const record = { id: state.openPgpKeys[domain].length + 1, address, fingerprint: '800b26ccc36e0e3b4a61a26b19fe7a2fe905df20', version: 4,
+         algorithm: 1, algorithm_name: 'RSA', bits: 2048, user_id: 'Bob <' + address + '>', created: 1789526561, expires: 0,
+         bytes: 1030, uploaded: 1789526700, uploaded_by: 'administrator', hashed_local_part: 'wtuqgy9r3oi71mesdjqd3fwj4qwjbwuu',
+         advanced_url: 'https://openpgpkey.' + domain + '/.well-known/openpgpkey/' + domain + '/hu/wtuqgy9r3oi71mesdjqd3fwj4qwjbwuu',
+         direct_url: 'https://' + domain + '/.well-known/openpgpkey/hu/wtuqgy9r3oi71mesdjqd3fwj4qwjbwuu', published: !!(parsed || {}).publish };
+      state.openPgpKeys[domain].push(record);
+      return json(201, record);
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/openpgp\/[^/]+$/.test(path) && method === 'DELETE') {
+      const address = segment(path, 4);
+      const fingerprint = segment(path, 6);
+      const domain = address.split('@')[1];
+      const list = state.openPgpKeys[domain] || [];
+      const at = list.findIndex((k) => k.address === address && k.fingerprint === fingerprint);
+      if (at < 0) { return json(404, { error: 'this account holds no key with that fingerprint' }); }
+      list.splice(at, 1);
+      return json(200, { removed: true });
+   }
+
    if (path === '/api/v1/bounces/expire' && method === 'POST') { state.bounceSweeps += 1; return json(200, { suppressions_expired: 0, counts_pruned: 0, report_keys_pruned: 0 }); }
 
    if (path === '/api/v1/tlsa') { return json(200, state.tlsa); }
@@ -2311,6 +2380,64 @@ async function main() {
    click(act('suppdel', { address: 'gone@remote.test' }));
    await flush();
    check('a refused removal is the server\'s sentence above the table', document.getElementById('err_supp').textContent === 'The entry could not be removed.', document.getElementById('err_supp').textContent);
+
+   // ---- the OpenPGP key directory of a domain
+   click(act('domains'));
+   await flush();
+   check('each domain row carries a way to its OpenPGP keys', act('openpgp', { domain: 'example.com' }) !== null && act('openpgp', { domain: 'second.example' }) !== null);
+   before = requests.length;
+   click(act('openpgp', { domain: 'example.com' }));
+   await flush();
+   check('OpenPGP reads the keys held for the domain', called(before, 'GET', '/api/v1/domains/example.com/openpgp').length === 1, paths(before));
+   check('a key shows whose it is, its user id, its fingerprint, its algorithm and where a client looks',
+      rows().length === 1 && rows()[0].textContent.indexOf('anna@example.com') >= 0 && rows()[0].textContent.indexOf('Anna <anna@example.com>') >= 0 &&
+      rows()[0].textContent.indexOf('c29b6cce361e73ba13724cb8bbee452b9b0a0bb7') >= 0 && rows()[0].textContent.indexOf('EdDSA 256') >= 0 &&
+      rows()[0].textContent.indexOf('/.well-known/openpgpkey/example.com/hu/') >= 0 && rows()[0].textContent.indexOf('Never') >= 0,
+      rows().length ? rows()[0].textContent : 'no rows');
+   check('the domain publishes nothing, so the key is marked not published and the page says which switch is in the way',
+      rows()[0].textContent.indexOf('Not published') >= 0 && content().textContent.indexOf('This domain does not publish keys') >= 0, content().textContent.slice(0, 300));
+   const drawnPgp = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('pgpnew_') === 0).map((id) => id.slice(7)).sort();
+   check('the upload form has every key the route takes, and nothing else', JSON.stringify(drawnPgp) === '["allow_address_mismatch","key","publish"]', JSON.stringify(drawnPgp));
+   before = requests.length;
+   click(act('pgpnew'));
+   await flush();
+   check('an upload with no address is refused by the page', called(before, 'PUT', /openpgp/).length === 0 &&
+      document.getElementById('err_pgpnew').textContent === 'An account address is required.');
+   setValue('pgpAddress', 'bob@example.com');
+   before = requests.length;
+   click(act('pgpnew'));
+   await flush();
+   check('and an upload with no key is refused by the page as well', called(before, 'PUT', /openpgp/).length === 0 &&
+      document.getElementById('err_pgpnew').textContent === 'A key is required.');
+   setValue('pgpnew_key', '-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nAAAA\n-----END PGP PRIVATE KEY BLOCK-----');
+   before = requests.length;
+   click(act('pgpnew'));
+   await flush();
+   check('a SECRET key is refused by the server and its sentence is beside the form',
+      document.getElementById('err_pgpnew').textContent.indexOf('SECRET key') >= 0, document.getElementById('err_pgpnew').textContent);
+   setValue('pgpnew_key', '-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nAAAA\n-----END PGP PUBLIC KEY BLOCK-----');
+   setChecked('pgpnew_publish', true);
+   before = requests.length;
+   click(act('pgpnew'));
+   await flush();
+   posted = lastBody(before, 'PUT', '/api/v1/accounts/bob%40example.com/openpgp');
+   check('storing sends the key to the account named in the path, with publish', !!posted && posted.key.indexOf('PUBLIC KEY BLOCK') >= 0 && posted.publish === true, JSON.stringify(posted));
+   check('and the listing is read again with the new key in it', called(before, 'GET', '/api/v1/domains/example.com/openpgp').length === 1 &&
+      rows().length === 2 && content().textContent.indexOf('bob@example.com') >= 0 && toastText() === 'Stored an OpenPGP key for bob@example.com', toastText());
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('pgpdel', { address: 'bob@example.com', fingerprint: '800b26ccc36e0e3b4a61a26b19fe7a2fe905df20' }));
+   await flush();
+   check('removing a key asks first, naming the address and what stops working', called(before, 'DELETE', /openpgp/).length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('bob@example.com') >= 0 && confirmations[confirmations.length - 1].indexOf('stop finding it') >= 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('pgpdel', { address: 'bob@example.com', fingerprint: '800b26ccc36e0e3b4a61a26b19fe7a2fe905df20' }));
+   await flush();
+   check('yes removes it by fingerprint through the account and the listing is read again without it',
+      called(before, 'DELETE', '/api/v1/accounts/bob%40example.com/openpgp/800b26ccc36e0e3b4a61a26b19fe7a2fe905df20').length === 1 &&
+      rows().length === 1 && content().textContent.indexOf('bob@example.com') < 0 &&
+      toastText() === 'Removed the OpenPGP key of bob@example.com', toastText());
 
    // ---- the aliases of a domain
    click(act('domains'));

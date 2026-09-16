@@ -2524,6 +2524,89 @@ namespace
    }
 }
 
+// The domain's half of the Web Key Directory (docs/OpenPGP.md). Saved with the
+// domain, like every other property here; a domain administrator may set it for
+// their own domain, which is the same rule the DKIM rotation policy follows.
+
+STDMETHODIMP InterfaceDomain::get_OpenPGPPublishKeys(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetOpenPGPPublish() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_OpenPGPPublishKeys(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      object_->SetOpenPGPPublish(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_OpenPGPPublishNewAccounts(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetOpenPGPPublishNewAccounts() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_OpenPGPPublishNewAccounts(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // Only what an account CREATED from now on starts with. Nothing here
+      // touches an account that already exists, which is what keeps an
+      // administrator's change of a default from publishing anybody's key.
+      object_->SetOpenPGPPublishNewAccounts(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceDomain::get_DKIMRotationEnabled(VARIANT_BOOL *pVal)
 {
    try

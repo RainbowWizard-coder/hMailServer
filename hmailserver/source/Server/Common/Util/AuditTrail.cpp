@@ -113,6 +113,13 @@ namespace HM
          // adds are the server's own writes, which have no actor and so are never
          // recorded - the list itself says where each of those came from.
          { L"hm_bouncesuppressions",          L"suppression list entry" },
+         // An OpenPGP public key held for an account, which this server may publish
+         // to the whole internet from its Web Key Directory. Who put a key under
+         // somebody's address, and who took one away, is the question that matters
+         // about a key directory: the account itself is the actor when it uploads
+         // its own, and an administrator is the actor when they upload one for
+         // somebody. Only public keys are ever stored, so a row holds no secret.
+         { L"hm_pgpkeys",                     L"OpenPGP key" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a

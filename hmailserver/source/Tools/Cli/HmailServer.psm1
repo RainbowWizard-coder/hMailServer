@@ -660,7 +660,7 @@ function Get-HmSetting {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories', 'openpgp')]
         [string] $Group = 'settings',
 
         [Parameter(Position = 1)]
@@ -693,7 +693,7 @@ function Set-HmSetting {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories', 'openpgp')]
         [string] $Group = 'settings',
 
         [Parameter(Mandatory = $true)]
@@ -1217,6 +1217,104 @@ function Invoke-HmBounceMaintenance {
 # is made. The same list and the same rules as hmctl's CSV_FIELDS;
 # build/check-cli.py holds the two to the same requests.
 $script:AccountCsvColumns = @('address', 'password', 'first_name', 'last_name', 'active', 'max_size_mb', 'admin_level')
+
+function Get-HmOpenPgpKey {
+    <#
+    .SYNOPSIS
+        The OpenPGP PUBLIC keys this server holds: a whole domain's, or one
+        account's. A domain's listing carries the keys that are NOT being served
+        as well as the ones that are, which is what the published column says.
+    .EXAMPLE
+        Get-HmOpenPgpKey -Domain example.com | Format-Table address, fingerprint, algorithm_name, published
+    .EXAMPLE
+        Get-HmOpenPgpKey -Account ann@example.com
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Domain')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Domain')] [string] $Domain,
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Account', ValueFromPipelineByPropertyName = $true)] [string] $Account
+    )
+    process {
+        if ($PSCmdlet.ParameterSetName -eq 'Account') {
+            Invoke-HmApi -Method GET -Path ('/api/v1/accounts/' + [uri]::EscapeDataString($Account) + '/openpgp')
+        }
+        else {
+            $answer = Invoke-HmApi -Method GET -Path ('/api/v1/domains/' + [uri]::EscapeDataString($Domain) + '/openpgp')
+            Get-HmCollection -Answer $answer -Key 'keys'
+        }
+    }
+}
+
+function Set-HmOpenPgpKey {
+    <#
+    .SYNOPSIS
+        Stores an OpenPGP PUBLIC key for an account, from a file or from a
+        string. A SECRET key is refused by the server with a sentence saying so;
+        this server never holds one.
+    .DESCRIPTION
+        -Publish switches the account's own publishing on in the same request.
+        -AllowAddressMismatch waives the rule that the key's user ids carry the
+        account's own address, and is a server administrator's decision.
+    .EXAMPLE
+        Set-HmOpenPgpKey -Account ann@example.com -Path .\ann.asc -Publish
+    .EXAMPLE
+        gpg --armor --export ann@example.com | Out-String | Set-HmOpenPgpKey -Account ann@example.com -Key { $_ }
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Path')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Account,
+        [Parameter(Mandatory = $true, Position = 1, ParameterSetName = 'Path')] [string] $Path,
+        [Parameter(Mandatory = $true, ParameterSetName = 'Key')] [string] $Key,
+        [switch] $Publish,
+        [switch] $AllowAddressMismatch
+    )
+    $text = if ($PSCmdlet.ParameterSetName -eq 'Path') { Get-Content -Path $Path -Raw } else { $Key }
+    if (-not $text -or -not $text.Trim()) { throw 'There is no key here: the upload is empty.' }
+    $body = @{ key = $text }
+    if ($Publish) { $body['publish'] = $true }
+    if ($AllowAddressMismatch) { $body['allow_address_mismatch'] = $true }
+    if ($PSCmdlet.ShouldProcess($Account, 'Store an OpenPGP public key')) {
+        Invoke-HmApi -Method PUT -Path ('/api/v1/accounts/' + [uri]::EscapeDataString($Account) + '/openpgp') -Body $body
+    }
+}
+
+function Remove-HmOpenPgpKey {
+    <#
+    .SYNOPSIS
+        Removes one OpenPGP key from an account by its fingerprint. Anybody who
+        looks that address up in the Web Key Directory stops finding it.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Account,
+        [Parameter(Mandatory = $true, Position = 1, ValueFromPipelineByPropertyName = $true)] [string] $Fingerprint
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess("$Fingerprint of $Account", 'Remove the OpenPGP key')) {
+            Invoke-HmApi -Method DELETE -Path ('/api/v1/accounts/' + [uri]::EscapeDataString($Account) + '/openpgp/' + [uri]::EscapeDataString($Fingerprint)) | Out-Null
+        }
+    }
+}
+
+function Set-HmOpenPgpPublish {
+    <#
+    .SYNOPSIS
+        Publishes an account's OpenPGP keys in the Web Key Directory, or stops.
+        The server setting and the domain's own switch have to be on as well.
+    .EXAMPLE
+        Set-HmOpenPgpPublish -Account ann@example.com -Enabled $true
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Account,
+        [Parameter(Mandatory = $true, Position = 1)] [bool] $Enabled
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Account, $(if ($Enabled) { 'Publish the OpenPGP keys' } else { 'Stop publishing the OpenPGP keys' }))) {
+            Invoke-HmApi -Method PUT -Path ('/api/v1/accounts/' + [uri]::EscapeDataString($Account)) -Body @{ openpgp_publish = $Enabled }
+        }
+    }
+}
 
 function Read-HmAccountCsv {
     # The file's records as ordered column -> cell dictionaries, the column
@@ -1876,6 +1974,7 @@ Export-ModuleMember -Function @(
     'Remove-HmDkimRetiringKey', 'Stop-HmDkimRotation', 'Invoke-HmDkimRotation',
     'Get-HmSuppression', 'Add-HmSuppression', 'Remove-HmSuppression', 'Get-HmBounceCount',
     'Test-HmBounceStatus', 'Invoke-HmBounceMaintenance',
+    'Get-HmOpenPgpKey', 'Set-HmOpenPgpKey', 'Remove-HmOpenPgpKey', 'Set-HmOpenPgpPublish',
     'Import-HmAccount', 'Export-HmAccount',
     'Export-HmConfiguration', 'Compare-HmConfiguration', 'Import-HmConfiguration',
     'ConvertTo-HmConfigurationRow', 'Get-HmSettingPath'

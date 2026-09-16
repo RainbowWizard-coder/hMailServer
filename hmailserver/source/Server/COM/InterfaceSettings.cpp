@@ -3938,3 +3938,158 @@ STDMETHODIMP InterfaceSettings::put_BounceReportWindowDays(long newVal)
       return COMError::GenerateGenericMessage();
    }
 }
+
+// The Web Key Directory (docs/OpenPGP.md). The switch is off on a server that has
+// never been told otherwise, and a domain and an account each have to say yes as
+// well before one key is served. The three numbers below are refused rather than
+// clamped for the reason above.
+
+STDMETHODIMP InterfaceSettings::get_OpenPGPWebKeyDirectoryEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetOpenPGPWebKeyDirectoryEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_OpenPGPWebKeyDirectoryEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetOpenPGPWebKeyDirectoryEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_OpenPGPKeyMaximumBytes(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetOpenPGPKeyMaximumBytes();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_OpenPGPKeyMaximumBytes(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1024 || newVal > 1048576)
+         return COMError::GenerateError("OpenPGPKeyMaximumBytes must be between 1024 and 1048576.");
+
+      config_->SetOpenPGPKeyMaximumBytes((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_OpenPGPKeysPerAccount(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetOpenPGPKeysPerAccount();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_OpenPGPKeysPerAccount(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 64)
+         return COMError::GenerateError("OpenPGPKeysPerAccount must be between 1 and 64.");
+
+      config_->SetOpenPGPKeysPerAccount((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_OpenPGPRequireAddressInUserId(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetOpenPGPRequireAddressInUserId() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_OpenPGPRequireAddressInUserId(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetOpenPGPRequireAddressInUserId(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

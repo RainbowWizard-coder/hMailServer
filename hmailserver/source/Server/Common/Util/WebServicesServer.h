@@ -29,6 +29,16 @@
 //   - security.txt (RFC 9116): serves /.well-known/security.txt for a
 //     local domain that has a postmaster address configured. Generated,
 //     so the mandatory Expires field is always in the future.
+//   - The OpenPGP Web Key Directory (draft-koch-openpgp-webkey-service):
+//     /.well-known/openpgpkey/<domain>/hu/<hashed local part> and its
+//     policy file (the advanced method, served under openpgpkey.<domain>),
+//     and /.well-known/openpgpkey/hu/<hashed local part> and its policy
+//     file (the direct method, on the domain itself). Off at the server
+//     until OpenPGPWebKeyDirectoryEnabled is set, then off for every
+//     domain and every account until each says otherwise; see
+//     docs/OpenPGP.md and OpenPgpKeyStore.h. Over HTTPS only, and every
+//     refusal is the same 404, so the directory cannot be used to find
+//     out who has an account here.
 //
 // Disabled by default. Enable with WebServicesHttpPort / WebServicesHttpsPort
 // in hMailServer.ini. The HTTPS listener uses WebServicesCertificateFile /
@@ -128,6 +138,18 @@ namespace HM
       static HttpResponse HandleAutoconfig_(const AnsiString &host, const AnsiString &query);
       static HttpResponse HandleAutodiscover_(const AnsiString &body);
       static HttpResponse HandleSecurityTxt_(const AnsiString &host);
+
+      // The OpenPGP Web Key Directory. path is what followed
+      // /.well-known/openpgpkey/ - either "policy", "hu/<hash>", or a
+      // domain followed by one of those. over_https is the answer
+      // RequestArrivedOverHttps_ gave for this request.
+      static HttpResponse HandleWebKeyDirectory_(const AnsiString &rest, const AnsiString &host, bool over_https);
+
+      // The one answer every refusal gives: 404, the same body, the same
+      // headers. A different answer for "no such account" and for "that
+      // account publishes no key" would make the directory a way of asking
+      // whether an address exists here, which is what a spammer wants from it.
+      static HttpResponse WebKeyDirectoryNotFound_();
 
       // Apple .mobileconfig configuration profile, built from the same
       // GetClientAccessSettings_ data the two XML handlers use.

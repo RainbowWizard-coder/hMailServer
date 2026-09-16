@@ -19,6 +19,7 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/PasswordValidator.h"
+#include "../Common/Util/OpenPgpKeyStore.h"
 #include "../Common/Util/Crypt.h"
 #include <set>
 #include "../Common/Util/FileUtilities.h"
@@ -1995,6 +1996,61 @@ STDMETHODIMP InterfaceAccount::put_RoleDomains(BSTR newVal)
       if (!HM::RoleManager::Assign(object_->GetID(), existing.role_name, HM::String(newVal), error))
          return COMError::GenerateError(error);
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// The account's half of the Web Key Directory (docs/OpenPGP.md). Holding a key
+// so that a mail client can find it is not the same decision as telling the whole
+// internet about it, so the switch is the person's own and is off until it is set.
+// The key list is read-only here: keys go in and out through
+// Utilities.ImportOpenPGPKey and RemoveOpenPGPKey, which is where the parsing,
+// the limits and the audit row are.
+
+STDMETHODIMP InterfaceAccount::get_OpenPGPPublish(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = object_->GetOpenPGPPublish() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_OpenPGPPublish(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      object_->SetOpenPGPPublish(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_OpenPGPKeys(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = HM::String(HM::OpenPgpKeyStore::AccountJson(object_)).AllocSysString();
       return S_OK;
    }
    catch (...)

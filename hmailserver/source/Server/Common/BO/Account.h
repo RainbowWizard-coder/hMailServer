@@ -170,6 +170,17 @@ namespace HM
       int GetSpamDeleteThreshold() const { return spam_delete_threshold_; }
       void SetSpamDeleteThreshold(int newVal) { spam_delete_threshold_ = newVal; }
 
+      // Whether this account's OpenPGP public keys are published in the Web Key
+      // Directory (docs/OpenPGP.md). Off on every account that already exists,
+      // and a new account starts from its domain's OpenPGPPublishNewAccounts.
+      // It is the person's own switch, changed over /api/v1/me/openpgp/publish
+      // as well as by an administrator: holding a key so that a mail client can
+      // find it is not the same decision as telling the whole internet about it.
+      // The server setting and the domain's switch still have to be on for
+      // anything to be served.
+      bool GetOpenPGPPublish() const { return openpgp_publish_; }
+      void SetOpenPGPPublish(bool newVal) { openpgp_publish_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bEnabled);
 
@@ -226,6 +237,7 @@ namespace HM
       bool anti_spam_enabled_;
       int spam_mark_threshold_;
       int spam_delete_threshold_;
+      bool openpgp_publish_;
       bool active_;
       bool is_ad_;
       bool vacation_message_is_on_;

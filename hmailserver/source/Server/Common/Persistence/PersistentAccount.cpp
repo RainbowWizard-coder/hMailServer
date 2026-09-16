@@ -19,6 +19,8 @@
 #include "PersistentMessage.h"
 #include "PersistentGroupMember.h"
 #include "PersistentAppPassword.h"
+#include "PersistentDomain.h"
+#include "../BO/Domain.h"
 #include "../Util/PasswordHistory.h"
 #include "PersistenceMode.h"
 
@@ -272,6 +274,7 @@ namespace HM
       pAccount->SetAntiSpamEnabled(pRS->GetLongValue("accountantispamenabled") ? true : false);
       pAccount->SetSpamMarkThreshold(pRS->GetLongValue("accountspammarkthreshold"));
       pAccount->SetSpamDeleteThreshold(pRS->GetLongValue("accountspamdeletethreshold"));
+      pAccount->SetOpenPGPPublish(pRS->GetLongValue("accountopenpgppublish") == 1);
 
       pAccount->SetPasswordEncryption(pRS->GetLongValue("accountpwencryption"));
 
@@ -437,6 +440,27 @@ namespace HM
          }
       }
 
+      if (iID == 0 && mode != PersistenceModeRestore)
+      {
+         // A new account starts published or not according to the domain it is
+         // being created in (hm_domains.domainopenpgpnewaccounts). The caller may
+         // have set the switch itself - the REST account create and the COM
+         // Account.OpenPGPPublish both can - and a caller that said yes is not
+         // overruled by a domain that says no by default. Read here, at the one
+         // place every way of creating an account passes through, rather than in
+         // each of them; an account that already exists is never touched, which
+         // is what keeps an upgrade from publishing anybody. A RESTORE is not a
+         // creation for this purpose and is excluded: the archive already says
+         // what each account chose, and an account that had turned publishing off
+         // must not come back with it on because its domain's default is on.
+         if (!pAccount->GetOpenPGPPublish())
+         {
+            std::shared_ptr<Domain> domain = std::shared_ptr<Domain>(new Domain());
+            if (PersistentDomain::ReadObject(domain, pAccount->GetDomainID()) && domain->GetOpenPGPPublishNewAccounts())
+               pAccount->SetOpenPGPPublish(true);
+         }
+      }
+
       SQLStatement oStatement;
       oStatement.AddColumnInt64("accountdomainid", pAccount->GetDomainID());
       oStatement.AddColumn("accountaddress", pAccount->GetAddress());
@@ -474,6 +498,7 @@ namespace HM
       oStatement.AddColumn("accountantispamenabled", pAccount->GetAntiSpamEnabled());
       oStatement.AddColumn("accountspammarkthreshold", pAccount->GetSpamMarkThreshold());
       oStatement.AddColumn("accountspamdeletethreshold", pAccount->GetSpamDeleteThreshold());
+      oStatement.AddColumn("accountopenpgppublish", pAccount->GetOpenPGPPublish() ? 1 : 0);
 
       oStatement.AddColumn("accountenablesignature", pAccount->GetEnableSignature());
       oStatement.AddColumn("accountsignatureplaintext", pAccount->GetSignaturePlainText());

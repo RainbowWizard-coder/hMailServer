@@ -76,9 +76,10 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `suppression` | list, create, delete | A domain's suppression list, under `--domain`; `list` takes `--search`, and an entry is deleted by its address. |
 | `bounce` | list | The bounce counts behind a domain's suppression list, under `--domain`, with `--search`. |
 | `bounces` | classify, expire | How the server would read a status or a reply, and the list's hourly sweep run now. |
+| `openpgp` | list, show, store, remove, publish | The OpenPGP PUBLIC keys this server publishes ([OpenPGP.md](OpenPGP.md)): a domain's whole listing, one account's document, a key stored from a file or from standard input, one removed by fingerprint, and an account's own publishing switched on or off. |
 | `queue` | list, retry, delete | |
 | `quarantine` | list, release, delete | |
-| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `directories`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
+| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `directories`, `openpgp`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
 | `ini` | list, get, set, delete | The server settings that were the `[Settings]` section of `hMailServer.ini` - stored in the database since schema 6042, under the names they have always had. `list` shows a secret as `(set)`; `get` reads it. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
@@ -204,6 +205,31 @@ rule that matters is the server's: a code a remote did not send itself - a bare
 trusted. Deleting an entry sends the next message to the address and starts its
 run of hard bounces again. [BounceSuppression.md](BounceSuppression.md) is the
 whole of it.
+
+OpenPGP keys
+------------
+
+```bash
+hmctl settings set openpgp --set web_key_directory_enabled=true
+gpg --armor --export ann@example.com | hmctl openpgp store ann@example.com - --publish
+hmctl openpgp list example.com
+hmctl openpgp show ann@example.com
+hmctl openpgp publish ann@example.com off
+hmctl openpgp remove ann@example.com 866ac3a0785f51afd5eada4635efb5d13db90a11
+```
+
+```powershell
+Set-HmOpenPgpKey -Account ann@example.com -Path .\ann.asc -Publish
+Get-HmOpenPgpKey -Domain example.com | Format-Table address, fingerprint, algorithm_name, published
+Set-HmOpenPgpPublish -Account ann@example.com -Enabled $false
+```
+
+`store` reads the key from a file, or from standard input with `-`, because a key
+is thousands of characters and a command line is not where it belongs. Only the
+PUBLIC half is ever accepted: a secret key is refused with a sentence saying so,
+here and at every other door. A domain listing that is not being served says
+which of the three switches is in the way before it prints the table.
+[OpenPGP.md](OpenPGP.md) is the whole of it.
 
 Accounts from a spreadsheet
 ---------------------------
@@ -369,6 +395,7 @@ Get-HmSuppression -Domain example.com | Where-Object category -eq 'hard' | Forma
 Add-HmSuppression -Domain example.com -Address gone@elsewhere.test -Note 'old export' -ExpiresDays 90
 Get-HmBounceCount -Domain example.com | Sort-Object consecutive_hard -Descending | Select-Object -First 10
 Test-HmBounceStatus -Status '550 5.2.2 Mailbox full'
+Get-HmOpenPgpKey -Domain example.com | Where-Object published -eq $false
 Import-HmAccount -Path .\new-people.csv -WhatIf
 ```
 

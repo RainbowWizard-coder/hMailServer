@@ -141,7 +141,8 @@ create table hm_accounts
 	accountpasswordchanged timestamp not null default '2000-01-01',
 	accountantispamenabled smallint not null default 1,
 	accountspammarkthreshold int not null default -1,
-	accountspamdeletethreshold int not null default -1
+	accountspamdeletethreshold int not null default -1,
+	accountopenpgppublish int not null default 0
 );
 
 
@@ -212,7 +213,9 @@ create table hm_domains
 	domaindkimrotationintervaldays int not null default 180,
 	domaindkimrotationpropagationhours int not null default 72,
 	domaindkimrotationretentiondays int not null default 7,
-	domaindkimrotationkeybits int not null default 2048
+	domaindkimrotationkeybits int not null default 2048,
+	domainopenpgppublish int not null default 0,
+	domainopenpgpnewaccounts int not null default 0
 );
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
@@ -1493,4 +1496,35 @@ ALTER TABLE hm_bouncecounts ADD CONSTRAINT fk_hm_bouncecounts_domain FOREIGN KEY
 
 ALTER TABLE hm_bouncereportkeys ADD CONSTRAINT fk_hm_bouncereportkeys_domain FOREIGN KEY (brkdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6049);
+create table hm_pgpkeys
+(
+	pgpkid serial not null primary key,
+	pgpkaccountid int not null,
+	pgpkfingerprint varchar(64) not null,
+	pgpkversion int not null,
+	pgpkalgorithm int not null,
+	pgpkbits int not null,
+	pgpkuserid varchar(255) not null,
+	pgpkcreated bigint not null,
+	pgpkexpires bigint not null,
+	pgpkbytes int not null,
+	pgpkkey text not null,
+	pgpkuploaded bigint not null,
+	pgpkuploadedby varchar(255) not null
+);
+
+CREATE INDEX idx_hm_pgpkeys_account ON hm_pgpkeys (pgpkaccountid);
+
+CREATE UNIQUE INDEX idx_hm_pgpkeys_entry ON hm_pgpkeys (pgpkaccountid, pgpkfingerprint);
+
+ALTER TABLE hm_pgpkeys ADD CONSTRAINT fk_hm_pgpkeys_account FOREIGN KEY (pgpkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeysPerAccount', '', 8);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPRequireAddressInUserId', '', 1);
+
+insert into hm_dbversion values (6050);

@@ -824,7 +824,41 @@ namespace DBUpdater
          new SchemaProbe(6049, "hm_bouncereportkeys.brkaddress",
                          "update hm_bouncereportkeys set brkaddress = brkaddress where 1 = 0"),
          new SchemaProbe(6049, "hm_bouncereportkeys.brkrun",
-                         "update hm_bouncereportkeys set brkrun = brkrun where 1 = 0")
+                         "update hm_bouncereportkeys set brkrun = brkrun where 1 = 0"),
+
+         // Upgrade6049to6050* - the OpenPGP key store (hm_pgpkeys) this server
+         // publishes a Web Key Directory from, and the three switches that decide
+         // whether anything is served. The identity column is never probed.
+         new SchemaProbe(6050, "hm_domains.domainopenpgppublish",
+                         "update hm_domains set domainopenpgppublish = domainopenpgppublish where 1 = 0"),
+         new SchemaProbe(6050, "hm_domains.domainopenpgpnewaccounts",
+                         "update hm_domains set domainopenpgpnewaccounts = domainopenpgpnewaccounts where 1 = 0"),
+         new SchemaProbe(6050, "hm_accounts.accountopenpgppublish",
+                         "update hm_accounts set accountopenpgppublish = accountopenpgppublish where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkaccountid",
+                         "update hm_pgpkeys set pgpkaccountid = pgpkaccountid where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkfingerprint",
+                         "update hm_pgpkeys set pgpkfingerprint = pgpkfingerprint where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkversion",
+                         "update hm_pgpkeys set pgpkversion = pgpkversion where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkalgorithm",
+                         "update hm_pgpkeys set pgpkalgorithm = pgpkalgorithm where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkbits",
+                         "update hm_pgpkeys set pgpkbits = pgpkbits where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkuserid",
+                         "update hm_pgpkeys set pgpkuserid = pgpkuserid where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkcreated",
+                         "update hm_pgpkeys set pgpkcreated = pgpkcreated where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkexpires",
+                         "update hm_pgpkeys set pgpkexpires = pgpkexpires where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkbytes",
+                         "update hm_pgpkeys set pgpkbytes = pgpkbytes where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkkey",
+                         "update hm_pgpkeys set pgpkkey = pgpkkey where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkuploaded",
+                         "update hm_pgpkeys set pgpkuploaded = pgpkuploaded where 1 = 0"),
+         new SchemaProbe(6050, "hm_pgpkeys.pgpkuploadedby",
+                         "update hm_pgpkeys set pgpkuploadedby = pgpkuploadedby where 1 = 0")
       };
 
       /// <summary>

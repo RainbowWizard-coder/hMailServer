@@ -46,6 +46,8 @@ namespace HM
       dkim_rotation_propagation_hours_(72),
       dkim_rotation_retention_days_(7),
       dkim_rotation_key_bits_(2048),
+      openpgp_publish_(false),
+      openpgp_publish_new_accounts_(false),
       relay_requires_auth_(false),
       relay_connection_security_(CSNone),
       vacation_message_on_(false),
@@ -169,6 +171,9 @@ namespace HM
       pNode->AppendAttr(_T("DKIMRotationRetentionDays"), StringParser::IntToString(dkim_rotation_retention_days_));
       pNode->AppendAttr(_T("DKIMRotationKeyBits"), StringParser::IntToString(dkim_rotation_key_bits_));
 
+      pNode->AppendAttr(_T("OpenPGPPublish"), openpgp_publish_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("OpenPGPPublishNewAccounts"), openpgp_publish_new_accounts_ ? _T("1") : _T("0"));
+
       pNode->AppendAttr(_T("VacationMessageOn"), vacation_message_on_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("VacationSubject"), vacation_subject_);
       pNode->AppendAttr(_T("VacationMessage"), vacation_message_);
@@ -263,6 +268,12 @@ namespace HM
       dkim_rotation_propagation_hours_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationPropagationHours")));
       dkim_rotation_retention_days_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationRetentionDays")));
       dkim_rotation_key_bits_ = _ttoi(pNode->GetAttrValue(_T("DKIMRotationKeyBits")));
+
+      // A backup taken before the Web Key Directory existed carries neither
+      // attribute, and both restore as off - which is what every domain in such
+      // a backup had. A restore never starts publishing a key.
+      openpgp_publish_ = pNode->GetAttrValue(_T("OpenPGPPublish")) == _T("1");
+      openpgp_publish_new_accounts_ = pNode->GetAttrValue(_T("OpenPGPPublishNewAccounts")) == _T("1");
 
       if (dkim_rotation_interval_days_ <= 0)
          dkim_rotation_interval_days_ = 180;

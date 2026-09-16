@@ -1480,6 +1480,33 @@ namespace HM
          return route.kind != RouteUnknown;
       }
 
+      // /openpgp and /openpgp/<fingerprint>: the account's OpenPGP public keys,
+      // administered under its address. The handlers are in RestApiOpenPgp.cpp;
+      // the parsing is here because this is where the address has been split off.
+      const AnsiString openPgp = "/openpgp";
+
+      if (tail == openPgp)
+      {
+         if (method == "GET")
+            route.kind = RouteAccountOpenPgpList;
+         else if (method == "PUT")
+            route.kind = RouteAccountOpenPgpPut;
+
+         return route.kind != RouteUnknown;
+      }
+
+      if (tail.StartsWith(openPgp + "/"))
+      {
+         AnsiString fingerprint = tail.Mid(openPgp.GetLength() + 1);
+         if (method == "DELETE" && !fingerprint.IsEmpty() && fingerprint.Find("/") < 0)
+         {
+            route.kind = RouteAccountOpenPgpDelete;
+            route.name = fingerprint;
+         }
+
+         return route.kind != RouteUnknown;
+      }
+
       // /folders, /folders/<id>/permissions and /folders/<id>/permissions/<pid>.
       const AnsiString folders = "/folders";
 

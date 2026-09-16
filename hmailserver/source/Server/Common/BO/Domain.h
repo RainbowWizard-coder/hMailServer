@@ -190,6 +190,19 @@ namespace HM
       int GetDKIMRotationKeyBits() const { return dkim_rotation_key_bits_; }
       void SetDKIMRotationKeyBits(int newValue) { dkim_rotation_key_bits_ = newValue; }
 
+      // Whether this domain's accounts are published in the Web Key Directory
+      // (docs/OpenPGP.md). Off on every domain until somebody switches it on,
+      // and with it off no key of this domain is served whatever the server
+      // setting and whatever each account says. The second switch is what a
+      // NEW account in this domain starts with: a domain that wants everybody
+      // published sets it, and a domain where publishing is a personal choice
+      // leaves it off. Neither ever changes an account that already exists.
+      bool GetOpenPGPPublish() const { return openpgp_publish_; }
+      void SetOpenPGPPublish(bool newValue) { openpgp_publish_ = newValue; }
+
+      bool GetOpenPGPPublishNewAccounts() const { return openpgp_publish_new_accounts_; }
+      void SetOpenPGPPublishNewAccounts(bool newValue) { openpgp_publish_new_accounts_ = newValue; }
+
       // An outbound relay chosen by the SENDING domain, which is a different
       // question from the one routes answer. A route says "mail addressed to this
       // domain goes to that host"; this says "mail FROM this domain leaves through
@@ -379,6 +392,9 @@ namespace HM
       int dkim_rotation_propagation_hours_;
       int dkim_rotation_retention_days_;
       int dkim_rotation_key_bits_;
+
+      bool openpgp_publish_;
+      bool openpgp_publish_new_accounts_;
 
       String relay_host_;
       long relay_port_;

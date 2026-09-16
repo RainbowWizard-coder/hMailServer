@@ -288,6 +288,41 @@ namespace RegressionTests.Infrastructure
          StringAssert.Contains("\"not_after\":2000000000", listed.Body);
       }
 
+      // ------------------------------------------------------------ hm_pgpkeys
+
+      [Test]
+      [Description("hm_pgpkeys: the OpenPGP public keys this server publishes for the account survive a backup "
+                   + "and a restore, with the publishing switch the account chose")]
+      public void TheOpenPgpKeyStoreComesBack()
+      {
+         // Stored by an administrator with the address check waived: the vector is
+         // a real GnuPG key whose user id names its own address and not this
+         // fixture's, and what is under test is the store rather than the rule.
+         Response stored = Rest("PUT", "/api/v1/accounts/" + _address + "/openpgp",
+            BasicAuth("Administrator", AdminPassword),
+            "{\"key\":\"" + OpenPgpTestSupport.SuiteKeyBase64 + "\",\"allow_address_mismatch\":true,\"publish\":true}");
+         Assert.AreEqual(201, stored.Status, "Body: " + stored.Body);
+
+         BackupDeleteAndRestore();
+
+         Response listed = Rest("GET", "/api/v1/accounts/" + _address + "/openpgp",
+            BasicAuth("Administrator", AdminPassword));
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+
+         // The key itself, by the fingerprint GnuPG prints for it. Nothing here is
+         // a secret - that is the whole promise of the feature - which is exactly
+         // why losing it in a restore would be quiet: the account would keep
+         // reading its mail while every correspondent who looked the address up in
+         // the Web Key Directory got a 404 and fell back to sending in clear.
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.SuiteKeyFingerprint + "\"", listed.Body);
+         StringAssert.Contains("\"version\":4", listed.Body);
+         StringAssert.Contains("\"user_id\":\"Suite Key <pgp@example.test>\"", listed.Body);
+
+         // And the account's own decision to be published, which is a column of
+         // hm_accounts rather than of the store, and would be just as quiet to lose.
+         StringAssert.Contains("\"publish\":true", listed.Body);
+      }
+
       // ---------------------------------------------- hm_calendars/-objects
 
       [Test]

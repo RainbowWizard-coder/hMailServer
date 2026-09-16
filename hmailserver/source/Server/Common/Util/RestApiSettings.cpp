@@ -1133,6 +1133,28 @@ namespace
         [] (const Value &v) { return (v.number < 1 || v.number > 30) ? String(_T("report_window_days must be between 1 and 30.")) : String(); } },
    };
 
+   // The Web Key Directory (docs/OpenPGP.md). The switch is off, and a domain and
+   // an account each have to say yes as well before one key is served, so nothing
+   // here alone publishes anybody. Through the same Configuration setters the COM
+   // properties call, with the ranges refused in the sentences InterfaceSettings uses.
+   const Row OpenPgpRows[] =
+   {
+      { "web_key_directory_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "The master switch: publish this server's accounts' OpenPGP public keys under /.well-known/openpgpkey on the web services listener. Off by default, and with it off nothing is served whatever a domain or an account says.",
+        ROW_FLAG(Config()->GetOpenPGPWebKeyDirectoryEnabled()), ROW_SET(Config()->SetOpenPGPWebKeyDirectoryEnabled(v.flag)), ROW_NO_CHECK },
+      { "key_maximum_bytes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The largest OpenPGP key this server will accept, in bytes of the key itself rather than of its armour. 1024 to 1048576; 65536 by default, which is a key with a very large number of third-party certifications on it.",
+        ROW_NUMBER(Config()->GetOpenPGPKeyMaximumBytes()), ROW_SET(Config()->SetOpenPGPKeyMaximumBytes((int) v.number)),
+        [] (const Value &v) { return (v.number < 1024 || v.number > 1048576) ? String(_T("key_maximum_bytes must be between 1024 and 1048576.")) : String(); } },
+      { "keys_per_account", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many OpenPGP keys one account may hold at once, so that a key being rotated and the key replacing it are both findable while correspondents catch up. 1 to 64; 8 by default.",
+        ROW_NUMBER(Config()->GetOpenPGPKeysPerAccount()), ROW_SET(Config()->SetOpenPGPKeysPerAccount((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 64) ? String(_T("keys_per_account must be between 1 and 64.")) : String(); } },
+      { "require_address_in_user_id", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Refuse a key whose user ids do not carry the account's own address. On by default: a key published under an address it does not name is a key every correspondent will encrypt to and its owner cannot read. A server administrator can waive it for one upload.",
+        ROW_FLAG(Config()->GetOpenPGPRequireAddressInUserId()), ROW_SET(Config()->SetOpenPGPRequireAddressInUserId(v.flag)), ROW_NO_CHECK },
+   };
+
 #undef ROW_TEXT
 #undef ROW_NUMBER
 #undef ROW_FLAG
@@ -1149,6 +1171,7 @@ namespace
    const Group CacheGroup = { "cache", "/api/v1/settings/cache", CacheRows, sizeof(CacheRows) / sizeof(CacheRows[0]) };
    const Group IndexingGroup = { "indexing", "/api/v1/settings/indexing", IndexingRows, sizeof(IndexingRows) / sizeof(IndexingRows[0]) };
    const Group BounceGroup = { "bounces", "/api/v1/settings/bounces", BounceRows, sizeof(BounceRows) / sizeof(BounceRows[0]) };
+   const Group OpenPgpGroup = { "openpgp", "/api/v1/settings/openpgp", OpenPgpRows, sizeof(OpenPgpRows) / sizeof(OpenPgpRows[0]) };
 
    // ---------------------------------------------------------------------
    // The two private helpers of RestApiServer these functions need, handed
@@ -2003,6 +2026,7 @@ namespace HM
       paths += CacheAndIndexingPaths;
       paths += BreachCheckTestPath;
       paths += OpenApiPath(BounceGroup, "The bounce and suppression list settings", "Change the bounce and suppression list settings", bridge);
+      paths += OpenApiPath(OpenPgpGroup, "The OpenPGP Web Key Directory settings", "Change the OpenPGP Web Key Directory settings", bridge);
       return paths;
    }
 
@@ -2267,6 +2291,20 @@ namespace HM
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       return GroupPut(BounceGroup, requestBody, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsOpenPgp_()
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupGet(OpenPgpGroup, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsOpenPgpPut_(const AnsiString &requestBody)
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupPut(OpenPgpGroup, requestBody, bridge);
    }
 
    HttpResponse

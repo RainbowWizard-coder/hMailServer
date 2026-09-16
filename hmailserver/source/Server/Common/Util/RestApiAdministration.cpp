@@ -275,7 +275,8 @@ namespace HM
          "ad_domain_name",
          "external_tag_subject", "external_tag_header", "external_tag_text", "first_contact_tip",
          "disclaimer_enabled", "disclaimer_plain_text", "disclaimer_html",
-         "quarantine_digest", "quarantine_digest_hour"
+         "quarantine_digest", "quarantine_digest_hour",
+         "openpgp_publish", "openpgp_publish_new_accounts"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -377,6 +378,8 @@ namespace HM
          bool externalTagSubject = domain->GetExternalTagSubject(), externalTagHeader = domain->GetExternalTagHeader();
          bool firstContactTip = domain->GetFirstContactTip(), disclaimerEnabled = domain->GetDisclaimerEnabled();
          bool quarantineDigest = domain->GetQuarantineDigest();
+         bool openPgpPublish = domain->GetOpenPGPPublish();
+         bool openPgpPublishNewAccounts = domain->GetOpenPGPPublishNewAccounts();
          bool dkimRotationEnabled = domain->GetDKIMRotationEnabled();
 
          if (!ReadBool(body, "active", active, error) ||
@@ -398,7 +401,9 @@ namespace HM
              !ReadBool(body, "external_tag_header", externalTagHeader, error) ||
              !ReadBool(body, "first_contact_tip", firstContactTip, error) ||
              !ReadBool(body, "disclaimer_enabled", disclaimerEnabled, error) ||
-             !ReadBool(body, "quarantine_digest", quarantineDigest, error))
+             !ReadBool(body, "quarantine_digest", quarantineDigest, error) ||
+             !ReadBool(body, "openpgp_publish", openPgpPublish, error) ||
+             !ReadBool(body, "openpgp_publish_new_accounts", openPgpPublishNewAccounts, error))
             return false;
 
          // The two canonicalisation methods, as put_DKIMHeaderCanonicalizationMethod
@@ -532,6 +537,8 @@ namespace HM
          domain->SetVacationInternalMessage(vacationInternalMessage);
          domain->SetVacationExternalOverride(vacationExternalOverride);
          domain->SetQuarantineDigest(quarantineDigest);
+         domain->SetOpenPGPPublish(openPgpPublish);
+         domain->SetOpenPGPPublishNewAccounts(openPgpPublishNewAccounts);
          domain->SetQuarantineDigestHour((int) digestHour);
          domain->SetADDomainName(adDomainName);
          domain->SetExternalTagSubject(externalTagSubject);
@@ -641,6 +648,8 @@ namespace HM
       text("vacation_internal_message", domain->GetVacationInternalMessage());
       flag("vacation_external_override", domain->GetVacationExternalOverride());
       flag("quarantine_digest", domain->GetQuarantineDigest());
+      flag("openpgp_publish", domain->GetOpenPGPPublish());
+      flag("openpgp_publish_new_accounts", domain->GetOpenPGPPublishNewAccounts());
       text("ad_domain_name", domain->GetADDomainName());
       flag("external_tag_subject", domain->GetExternalTagSubject());
       flag("external_tag_header", domain->GetExternalTagHeader());

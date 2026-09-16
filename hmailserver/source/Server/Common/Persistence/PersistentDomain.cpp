@@ -507,6 +507,8 @@ namespace HM
       // shipped periods, so a domain that predates them reads back as one whose
       // key has never been rotated by the server.
       pDomain->SetDKIMRotationEnabled(pRS->GetLongValue("domaindkimrotationenabled") == 1);
+      pDomain->SetOpenPGPPublish(pRS->GetLongValue("domainopenpgppublish") == 1);
+      pDomain->SetOpenPGPPublishNewAccounts(pRS->GetLongValue("domainopenpgpnewaccounts") == 1);
       pDomain->SetDKIMRotationIntervalDays(pRS->GetLongValue("domaindkimrotationintervaldays"));
       pDomain->SetDKIMRotationPropagationHours(pRS->GetLongValue("domaindkimrotationpropagationhours"));
       pDomain->SetDKIMRotationRetentionDays(pRS->GetLongValue("domaindkimrotationretentiondays"));
@@ -634,6 +636,8 @@ namespace HM
       oStatement.AddColumn("domaindkimsecondaryselector", pDomain->GetDKIMSecondarySelector());
       oStatement.AddColumn("domaindkimsecondaryprivatekeyfile", pDomain->GetDKIMSecondaryPrivateKeyFile());
       oStatement.AddColumn("domaindkimrotationenabled", pDomain->GetDKIMRotationEnabled() ? 1 : 0);
+      oStatement.AddColumn("domainopenpgppublish", pDomain->GetOpenPGPPublish() ? 1 : 0);
+      oStatement.AddColumn("domainopenpgpnewaccounts", pDomain->GetOpenPGPPublishNewAccounts() ? 1 : 0);
       oStatement.AddColumn("domaindkimrotationintervaldays", pDomain->GetDKIMRotationIntervalDays());
       oStatement.AddColumn("domaindkimrotationpropagationhours", pDomain->GetDKIMRotationPropagationHours());
       oStatement.AddColumn("domaindkimrotationretentiondays", pDomain->GetDKIMRotationRetentionDays());

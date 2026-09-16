@@ -62,6 +62,16 @@ namespace HM
       // the account can never read its own encrypted mail again.
       { _T("hm_smimekeys"), 0 },
 
+      // The OpenPGP public keys this server publishes for the account (schema
+      // 6050). Public keys only - a secret key is refused at every entry point -
+      // so nothing here is a secret, and that is exactly why losing it in a
+      // restore would be quiet: the account would keep receiving encrypted mail
+      // it can still read, while every correspondent who looked the address up in
+      // the Web Key Directory would get a 404 and fall back to sending in clear.
+      // The switches that decide whether a key is served are columns of
+      // hm_accounts and hm_domains, which the archive already carries.
+      { _T("hm_pgpkeys"), 0 },
+
       // The password reuse history (schema 6019). Hashes, like the account
       // password beside them. A restore that dropped these would silently let
       // every account go back to a password it had been made to change.
@@ -154,6 +164,20 @@ namespace HM
       { _T("hm_smimekeys"), _T("smimekey"),          AccountStores::RoleText },
       { _T("hm_smimekeys"), _T("smimenotafter"),     AccountStores::RoleNumber },
       { _T("hm_smimekeys"), _T("smimecreated"),      AccountStores::RoleNumber },
+
+      { _T("hm_pgpkeys"), _T("pgpkid"),              AccountStores::RoleIdentity },
+      { _T("hm_pgpkeys"), _T("pgpkaccountid"),       AccountStores::RoleAccount },
+      { _T("hm_pgpkeys"), _T("pgpkfingerprint"),     AccountStores::RoleText },
+      { _T("hm_pgpkeys"), _T("pgpkversion"),         AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkalgorithm"),       AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkbits"),            AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkuserid"),          AccountStores::RoleText },
+      { _T("hm_pgpkeys"), _T("pgpkcreated"),         AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkexpires"),         AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkbytes"),           AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkkey"),             AccountStores::RoleText },
+      { _T("hm_pgpkeys"), _T("pgpkuploaded"),        AccountStores::RoleNumber },
+      { _T("hm_pgpkeys"), _T("pgpkuploadedby"),      AccountStores::RoleText },
 
       { _T("hm_passwordhistory"), _T("phid"),        AccountStores::RoleIdentity },
       { _T("hm_passwordhistory"), _T("phaccountid"), AccountStores::RoleAccount },

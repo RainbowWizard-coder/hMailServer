@@ -9,6 +9,7 @@
 #include "StdAfx.h"
 
 #include "WebServicesServer.h"
+#include "OpenPgpKeyStore.h"
 #include "HttpServer.h"
 #include "AcmeClient.h"
 #include "FileUtilities.h"
@@ -19,6 +20,7 @@
 
 #include "../BO/Domains.h"
 #include "../BO/Domain.h"
+#include "../Cache/CacheContainer.h"
 #include "../BO/TCPIPPort.h"
 #include "../BO/TCPIPPorts.h"
 #include "../BO/SSLCertificate.h"
@@ -684,6 +686,22 @@ namespace HM
          if (method == "GET" && (path == "/.well-known/security.txt" || path == "/security.txt"))
             return HandleSecurityTxt_(host);
 
+         // The OpenPGP Web Key Directory. Both methods of
+         // draft-koch-openpgp-webkey-service live under one prefix: the advanced
+         // one names the domain in the path, the direct one does not. Not
+         // restricted to GET here - every other method is refused inside, with
+         // the same answer as a key that is not there, so that the shape of the
+         // refusal says nothing either way.
+         AnsiString webKeyPrefix = "/.well-known/openpgpkey/";
+         if (path.StartsWith(webKeyPrefix))
+         {
+            bool overHttps = RequestArrivedOverHttps_(request, over_tls, httpRequest.peer);
+            if (method != "GET")
+               return WebKeyDirectoryNotFound_();
+
+            return HandleWebKeyDirectory_(path.Mid(webKeyPrefix.GetLength()), host, overHttps);
+         }
+
          // CalDAV / CardDAV service discovery (RFC 6764). Deliberately not
          // restricted to GET: section 6 has clients issuing PROPFIND straight
          // at the well-known URI, and a client that gets 404 for its PROPFIND
@@ -1085,6 +1103,101 @@ namespace HM
       }
 
       return false;
+   }
+
+   HttpResponse
+   WebServicesServer::WebKeyDirectoryNotFound_()
+   {
+      // The CORS header goes on the refusal as well as on the answer, and the
+      // body and the content type are the same, so that a client - or anybody
+      // watching one - cannot tell a 404 for an address nobody has from a 404
+      // for an address whose owner has not published a key. BuildResponse_ adds
+      // the same Cache-Control: no-store to both for the same reason.
+      return BuildResponse_(404, "text/plain", "not found", "Access-Control-Allow-Origin: *\r\n");
+   }
+
+   HttpResponse
+   WebServicesServer::HandleWebKeyDirectory_(const AnsiString &rest, const AnsiString &host, bool over_https)
+   {
+      // Over HTTPS only. A public key fetched over plain HTTP can be replaced on
+      // the way by anybody on the path, and a replaced key is mail encrypted to
+      // somebody else - the one outcome a key directory exists to prevent. The
+      // reason goes in the debug log rather than in the answer, because the
+      // answer has to be the same for every refusal.
+      if (!over_https)
+      {
+         LOG_DEBUG("WebServices: An OpenPGP Web Key Directory request arrived over plain HTTP and was refused. The directory is served over HTTPS only; set WebServicesHttpsPort, or put a TLS-terminating proxy in front of the plain listener that sets X-Forwarded-Proto: https.");
+         return WebKeyDirectoryNotFound_();
+      }
+
+      AnsiString path = rest;
+      AnsiString domainName;
+      AnsiString resource;
+
+      int slash = path.Find("/");
+      if (path == "policy" || path.StartsWith("hu/"))
+      {
+         // The direct method: the domain is the host the client asked. A request
+         // that arrived at openpgpkey.<domain> with a direct path is answered
+         // for <domain>, because a deployment that has published the advanced
+         // host and points both at this listener is not a misconfiguration worth
+         // a 404.
+         domainName = host;
+         resource = path;
+      }
+      else if (slash > 0)
+      {
+         domainName = path.Mid(0, slash);
+         resource = path.Mid(slash + 1);
+      }
+      else
+         return WebKeyDirectoryNotFound_();
+
+      domainName.MakeLower();
+      domainName.Trim();
+
+      if (domainName.IsEmpty() || (resource != "policy" && !resource.StartsWith("hu/")))
+         return WebKeyDirectoryNotFound_();
+
+      // The domain from the cache, by name: one indexed read for a name the
+      // cache has not seen and none for one it has, instead of the whole domain
+      // table per request. This is an unauthenticated endpoint the internet can
+      // reach, and the cost of a refusal is what somebody hammering it pays for.
+      // The name is the domain's own; a domain alias is not resolved, and
+      // docs/OpenPGP.md says so.
+      std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(String(domainName));
+      if (!domain && domainName.StartsWith("openpgpkey."))
+         domain = CacheContainer::Instance()->GetDomain(String(domainName.Mid(11)));
+
+      if (!OpenPgpKeyStore::PublishingAllowed(domain))
+         return WebKeyDirectoryNotFound_();
+
+      // The policy file. The draft requires it to exist for the method to be
+      // used at all, and it is empty on purpose: every flag it can carry -
+      // mailbox-only, dane-only, auth-submit, submission-address - is about a
+      // Web Key SERVICE that accepts key submissions over mail, and this server
+      // has none. A flag here that nothing implements would be a lie told to
+      // every client that reads it.
+      if (resource == "policy")
+         return BuildResponse_(200, "text/plain", "", "Access-Control-Allow-Origin: *\r\n");
+
+      AnsiString hashedLocalPart = resource.Mid(3);
+      int query = hashedLocalPart.Find("?");
+      if (query >= 0)
+         hashedLocalPart = hashedLocalPart.Mid(0, query);
+
+      // The ?l=<local part> the draft allows has already been split off by the
+      // request parser. It is advisory - the hash is what finds the key - and it
+      // is deliberately not consulted, so that two requests for the same hash
+      // cannot be told apart by what they claim the address was.
+      AnsiString keyBytes;
+      if (!OpenPgpKeyStore::Lookup(domain, hashedLocalPart, keyBytes))
+         return WebKeyDirectoryNotFound_();
+
+      // Binary, not armoured, as the draft requires. The bytes are the ones that
+      // were uploaded: this server does not re-serialise a key, because a key it
+      // cannot re-sign is a key it must not rewrite.
+      return BuildResponse_(200, "application/octet-stream", keyBytes, "Access-Control-Allow-Origin: *\r\n");
    }
 
    HttpResponse

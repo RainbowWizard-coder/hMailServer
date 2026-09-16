@@ -1847,6 +1847,18 @@ namespace HM
             return HandleSettingsBounces_();
          case RouteSettingsBouncesPut:
             return HandleSettingsBouncesPut_(GetRequestBody_(request));
+         case RouteSettingsOpenPgpGet:
+            return HandleSettingsOpenPgp_();
+         case RouteSettingsOpenPgpPut:
+            return HandleSettingsOpenPgpPut_(GetRequestBody_(request));
+         case RouteAccountOpenPgpList:
+            return HandleAccountOpenPgp_(route.identifier);
+         case RouteAccountOpenPgpPut:
+            return HandleAccountOpenPgpPut_(caller, route.identifier, GetRequestBody_(request));
+         case RouteAccountOpenPgpDelete:
+            return HandleAccountOpenPgpDelete_(route.identifier, route.name);
+         case RouteDomainOpenPgpList:
+            return HandleDomainOpenPgpList_(route.identifier);
          case RouteSuppressionList:
          case RouteSuppressionCreate:
          case RouteSuppressionDelete:
@@ -2101,6 +2113,18 @@ namespace HM
 
          case RouteMeSmimeChain:
             return HandleMeSmimeChain_(GetRequestBody_(request));
+
+         case RouteMeOpenPgp:
+            return HandleMeOpenPgp_(caller);
+
+         case RouteMeOpenPgpPut:
+            return HandleMeOpenPgpPut_(caller, GetRequestBody_(request));
+
+         case RouteMeOpenPgpDelete:
+            return HandleMeOpenPgpDelete_(caller, route.identifier);
+
+         case RouteMeOpenPgpPublish:
+            return HandleMeOpenPgpPublish_(caller, GetRequestBody_(request));
 
          case RouteMeStorage:
             return HandleMeStorage_(caller);
@@ -2370,6 +2394,33 @@ namespace HM
          {
             route.identifier = rest.Mid(11);
             route.kind = RouteMeSmimeRecipientDelete;
+         }
+
+         return;
+      }
+
+      // The account's own OpenPGP public keys, and the switch that decides
+      // whether the Web Key Directory serves them.
+      const AnsiString meOpenPgpPath = "/api/v1/me/openpgp";
+      if (path == meOpenPgpPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeOpenPgp;
+         else if (method == "PUT")
+            route.kind = RouteMeOpenPgpPut;
+
+         return;
+      }
+
+      if (path.StartsWith(meOpenPgpPath + "/"))
+      {
+         AnsiString rest = path.Mid(meOpenPgpPath.GetLength() + 1);
+         if (rest == "publish" && method == "PUT")
+            route.kind = RouteMeOpenPgpPublish;
+         else if (method == "DELETE" && rest.Find("/") < 0 && !rest.IsEmpty())
+         {
+            route.identifier = rest;
+            route.kind = RouteMeOpenPgpDelete;
          }
 
          return;
@@ -3192,6 +3243,20 @@ namespace HM
          }
       }
 
+      // Every OpenPGP key held for the accounts of one domain.
+      if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/openpgp"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/openpgp").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = RouteDomainOpenPgpList;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
       if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/bounces"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -3819,6 +3884,12 @@ namespace HM
          return;
       }
 
+      if (path == "/api/v1/settings/openpgp" && (method == "GET" || method == "PUT"))
+      {
+         route.kind = method == "GET" ? RouteSettingsOpenPgpGet : RouteSettingsOpenPgpPut;
+         return;
+      }
+
       if (method == "POST" && path == "/api/v1/bounces/classify")
       {
          route.kind = RouteBounceClassify;
@@ -4154,6 +4225,15 @@ namespace HM
       case RouteSuppressionDelete:
       case RouteBounceExpire:
       case RouteSettingsBouncesPut:
+      // A key uploaded or removed changes what the whole internet is told
+      // this server's users' keys are, and the switches decide whether it is
+      // told anything at all.
+      case RouteMeOpenPgpPut:
+      case RouteMeOpenPgpDelete:
+      case RouteMeOpenPgpPublish:
+      case RouteSettingsOpenPgpPut:
+      case RouteAccountOpenPgpPut:
+      case RouteAccountOpenPgpDelete:
       // An update check changes the recorded verdict and makes the server call
       // out, neither of which a read-only credential should be able to cause;
       // a download writes a file the next part will run; an install runs it.
@@ -4350,6 +4430,13 @@ namespace HM
       case RouteScriptingCheck:
       case RouteSettingsBackupGet:
       case RouteSettingsBouncesGet:
+      // The Web Key Directory's settings, one account's keys and one
+      // domain's. A key here is a PUBLIC key and never a secret, so reading
+      // one is reading configuration; the domain and the account routes are
+      // scoped to their domain below.
+      case RouteSettingsOpenPgpGet:
+      case RouteAccountOpenPgpList:
+      case RouteDomainOpenPgpList:
       case RouteBackupStatus:
       case RouteSettingsCacheGet:
       case RouteSettingsIndexingGet:
@@ -4568,6 +4655,14 @@ namespace HM
       // that domain's administrator.
       case RouteSuppressionCreate:
       case RouteSuppressionDelete:
+      // A key stored for an account, or taken away from it. The address it is
+      // published under is the account's, so this is administering that account
+      // in that domain, as COM's Utilities.ImportOpenPGPKey answers that domain's
+      // administrator. Publishing a key under somebody's address is what every
+      // correspondent of theirs would then encrypt to, so it is never a
+      // help-desk's or an auditor's.
+      case RouteAccountOpenPgpPut:
+      case RouteAccountOpenPgpDelete:
          return RolePermission::ManageAccounts;
 
       // Setting somebody's password, as a route of its own rather than as a
@@ -4595,6 +4690,9 @@ namespace HM
       case RouteSettingsScriptingPut:
       case RouteSettingsBackupPut:
       case RouteSettingsBouncesPut:
+      // The Web Key Directory's own switch and its limits: server-wide, like
+      // the backup and the bounce settings beside it.
+      case RouteSettingsOpenPgpPut:
       case RouteSettingsCachePut:
       case RouteSettingsIndexingPut:
       case RouteServerMessagePut:
@@ -4777,6 +4875,10 @@ namespace HM
       case RouteSuppressionCreate:
       case RouteSuppressionDelete:
       case RouteBounceCountList:
+      // Every key held for a domain's accounts. Left out of this list it
+      // would name no domain, and a credential confined to one domain could
+      // read another domain's.
+      case RouteDomainOpenPgpList:
       // A report names the domain it is about in ?domain=, which ParseRoute_
       // puts in identifier; a report that names none names nothing, and the
       // handler confines it to the credential's domains.
@@ -4813,6 +4915,14 @@ namespace HM
       case RouteAccountAppPasswordUpdate:
       case RouteAccountMessageCopy:
       case RouteAccountSupportSession:
+      // The account's keys are named by an address in the path and nothing
+      // else. Without this, a credential issued for one domain could publish
+      // a key under an address in another by editing one path segment - and
+      // a key published under somebody's address is what every correspondent
+      // of theirs would then encrypt to.
+      case RouteAccountOpenPgpList:
+      case RouteAccountOpenPgpPut:
+      case RouteAccountOpenPgpDelete:
       // The reset and the unlock name an address in the path exactly as the
       // account routes do, and are the two a help-desk role reaches: without
       // this, a role issued for one domain could reset a password in another
@@ -5129,6 +5239,9 @@ namespace HM
       case RouteSettingsBouncesGet:
       case RouteSettingsBouncesPut:
       case RouteBounceExpire:
+      // The Web Key Directory's own settings apply to every domain.
+      case RouteSettingsOpenPgpGet:
+      case RouteSettingsOpenPgpPut:
       case RouteServerMessageList:
       case RouteServerMessagePut:
       case RouteSieveEvaluate:
@@ -7473,6 +7586,10 @@ namespace HM
       case RouteMeSmimeRecipientPut:
       case RouteMeSmimeRecipientDelete:
       case RouteMeSmimeChain:
+      case RouteMeOpenPgp:
+      case RouteMeOpenPgpPut:
+      case RouteMeOpenPgpDelete:
+      case RouteMeOpenPgpPublish:
       case RouteMeFolderEmpty:
       case RouteMeMessageSource:
       case RouteMeMessageHtml:
@@ -12183,7 +12300,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
-         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
+         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl), openpgp_publish (publish this domain's accounts' OpenPGP public keys in the Web Key Directory; the server setting and each account's own switch have to be on as well) and openpgp_publish_new_accounts (what an account CREATED in this domain from now on starts with; it never changes an account that already exists). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
@@ -12260,6 +12377,7 @@ namespace HM
       openApiJson += OpenApiBouncesPaths_();
       openApiJson += OpenApiReportsPaths_();
       openApiJson += OpenApiRolesPaths_();
+      openApiJson += OpenApiOpenPgpPaths_();
       openApiJson += openApiTail;
 
       // The same bytes for every caller, built on every call: compressed once.

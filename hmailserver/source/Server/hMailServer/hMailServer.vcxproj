@@ -633,6 +633,9 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRoles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDkimRotation.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />
+    <ClCompile Include="..\Common\Util\OpenPgpKeyStore.cpp" />
+    <ClCompile Include="..\Common\Util\OpenPgpKey.cpp" />
     <ClCompile Include="..\Common\AntiSpam\QuarantineStore.cpp" />
     <ClCompile Include="..\Common\AntiSpam\QuarantineDigest.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SenderPattern.cpp" />
@@ -1397,6 +1400,8 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ICalendar.h" />
     <ClInclude Include="..\Common\Util\CalendarStore.h" />
     <ClInclude Include="..\Common\Util\CalDavServer.h" />
+    <ClInclude Include="..\Common\Util\OpenPgpKeyStore.h" />
+    <ClInclude Include="..\Common\Util\OpenPgpKey.h" />
     <ClInclude Include="..\Common\AntiSpam\QuarantineStore.h" />
     <ClInclude Include="..\Common\AntiSpam\QuarantineDigest.h" />
     <ClInclude Include="..\Common\AntiSpam\SenderPattern.h" />

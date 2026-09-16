@@ -504,6 +504,9 @@
     <Compile Include="API\Unicode.cs" />
     <Compile Include="Infrastructure\BackupRestore.cs" />
     <Compile Include="Infrastructure\BackupAccountStores.cs" />
+    <Compile Include="API\RestApiOpenPgp.cs" />
+    <Compile Include="Security\OpenPgpWebKeyDirectory.cs" />
+    <Compile Include="Shared\OpenPgpTestSupport.cs" />
     <Compile Include="Shared\TcpServer.cs" />
   </ItemGroup>
   <ItemGroup>

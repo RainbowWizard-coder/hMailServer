@@ -84,11 +84,14 @@ public:
    STDMETHOD(GetBounceCounts)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(ClassifyBounce)(/*[in]*/ BSTR Status, /*[in]*/ BSTR Diagnostic, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(RunBounceMaintenance)(/*[out, retval]*/ long *Removed);
+   STDMETHOD(ImportOpenPGPKey)(/*[in]*/ BSTR AccountAddress, /*[in]*/ BSTR Key, /*[in]*/ VARIANT_BOOL AllowAddressMismatch, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(RemoveOpenPGPKey)(/*[in]*/ BSTR AccountAddress, /*[in]*/ BSTR Fingerprint, /*[out, retval]*/ VARIANT_BOOL *Removed);
 
 private:
    // The server administrator, or the domain administrator of this domain. Asks
    // the authorisation question, which is also what installs the audit actor.
    bool MayAdministerDomain_(__int64 domainID) const;
+   bool MayAdministerAddress_(const HM::String &address) const;
 public:
 };
 

@@ -153,6 +153,12 @@ changed:
 * A documented security policy and private disclosure route
   ([SECURITY.md](../../.github/SECURITY.md)), plus a machine-readable `security.txt`
   (RFC 9116) served at `/.well-known/security.txt` by the web services listener.
+  The same listener serves the other well-known paths this server answers:
+  `/.well-known/acme-challenge/`, `/.well-known/mta-sts.txt`,
+  `/.well-known/caldav` and `/.well-known/carddav`, and
+  `/.well-known/openpgpkey/` - the OpenPGP Web Key Directory, which publishes
+  public keys only and is off until an administrator, a domain and an account
+  each say otherwise ([OpenPGP.md](OpenPGP.md)).
 * Static analysis, CodeQL and OpenSSF Scorecard in CI; a full regression suite
   gating every release.
 * Release notes that name unfixed known issues rather than omitting them.

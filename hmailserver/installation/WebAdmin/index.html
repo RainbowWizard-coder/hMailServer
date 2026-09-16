@@ -1020,6 +1020,9 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="listsave")saveList();
   else if(d.act==="listdel")deleteList(d.address,d.domain);
   else if(d.act==="suppressions")showSuppressions(d.domain,"",0);
+  else if(d.act==="openpgp")showOpenPgp(d.domain);
+  else if(d.act==="pgpnew")storeOpenPgpKey();
+  else if(d.act==="pgpdel")removeOpenPgpKey(d.address,d.fingerprint);
   else if(d.act==="suppsearch")showSuppressions(suppressionView.domain,($("#suppSearch")||{}).value||"",0);
   else if(d.act==="supppage")showSuppressions(suppressionView.domain,suppressionView.search,Math.max(0,suppressionView.offset+Number(d.by)));
   else if(d.act==="suppnew")addSuppression();
@@ -1474,6 +1477,9 @@ const DOMAIN_GROUPS=[
   {title:K("Quarantine digest"),props:{
     quarantine_digest:{type:"boolean",description:K("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default, and nothing is sent until the server's QuarantineDigestBaseUrl names the address those links point at.")},
     quarantine_digest_hour:{type:"integer",description:K("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")}}},
+  {title:K("Web Key Directory"),props:{
+    openpgp_publish:{type:"boolean",description:K("Publish this domain's accounts' OpenPGP public keys, so that anybody on the internet can find a key from the address alone. Off by default; the server setting and each account's own switch have to be on as well, and only public keys are ever held.")},
+    openpgp_publish_new_accounts:{type:"boolean",description:K("What an account CREATED in this domain from now on starts with. It never changes an account that already exists, so switching it on publishes nobody who is already here.")}}},
   {title:K("DKIM"),props:{
     dkim_enabled:{type:"boolean",description:K("Sign outgoing mail from this domain.")},
     dkim_selector:{type:"string",description:K("The selector, which names the DNS record the public key is published under.")},
@@ -1503,6 +1509,7 @@ async function renderDomains(){
           <button class="btn ghost sm" data-act="aliases" data-domain="${escHtml(x.name)}">${t("Aliases ›")}</button>
           <button class="btn ghost sm" data-act="lists" data-domain="${escHtml(x.name)}">${t("Lists ›")}</button>
           <button class="btn ghost sm" data-act="suppressions" data-domain="${escHtml(x.name)}">${t("Suppressions ›")}</button>
+          <button class="btn ghost sm" data-act="openpgp" data-domain="${escHtml(x.name)}">${t("OpenPGP ›")}</button>
           <button class="btn ghost sm" data-act="domainedit" data-name="${escHtml(x.name)}">${t("Edit")}</button>
           <button class="btn danger sm" data-act="domaindel" data-name="${escHtml(x.name)}">${t("Delete")}</button>
           <div class="err" id="err_domain_${escHtml(x.name)}"></div></td></tr>`).join("");
@@ -1918,7 +1925,8 @@ const ACCOUNT_GROUPS=[
   {title:K("Spam"),keys:["antispam_enabled","spam_mark_threshold","spam_delete_threshold"]},
   {title:K("Signature"),keys:["signature_enabled","signature_plain_text","signature_html"]},
   {title:K("Sieve"),keys:["sieve_script"]},
-  {title:K("Directory"),keys:["ad_enabled","ad_domain","ad_username"]}
+  {title:K("Directory"),keys:["ad_enabled","ad_domain","ad_username"]},
+  {title:K("OpenPGP"),keys:["openpgp_publish"]}
 ];
 const ACCOUNT_HINTS={
   active:K("Account enabled: it receives mail and can sign in."),first_name:K("The person's first name."),last_name:K("The person's last name."),
@@ -1935,7 +1943,8 @@ const ACCOUNT_HINTS={
   spam_delete_threshold:K("The score at which a message is deleted; -1 is the server's own value."),
   signature_enabled:K("Add a signature to outgoing messages."),signature_plain_text:K("The plain-text signature."),signature_html:K("The HTML signature."),
   sieve_script:K("The account's active Sieve filter, parsed before it is stored as the portal and ManageSieve parse one; empty removes it."),
-  ad_enabled:K("Check this password against Windows (Active Directory, or a local Windows account)."),ad_domain:K("The Windows domain."),ad_username:K("The Windows user name.")
+  ad_enabled:K("Check this password against Windows (Active Directory, or a local Windows account)."),ad_domain:K("The Windows domain."),ad_username:K("The Windows user name."),
+  openpgp_publish:K("Publish this account's OpenPGP public keys in the Web Key Directory, so that anybody who has the address can find the key. The keys themselves are on the domain's OpenPGP page.")
 };
 const ACCOUNT_LONG=["signature_plain_text","signature_html","vacation_message","sieve_script"];
 function accountProps(){
@@ -2286,6 +2295,103 @@ async function removeSuppression(address){
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_supp",e.message);}
 }
 
+/* ---------- OpenPGP keys ----------
+   Every OpenPGP PUBLIC key this server holds for a domain's accounts, and the
+   Web Key Directory that publishes them - GET /api/v1/domains/{domain}/openpgp,
+   and PUT and DELETE under /api/v1/accounts/{address}/openpgp. Reached from a
+   domain's row, as its suppression list is.
+
+   Keys that are NOT being served are listed beside the ones that are, because
+   "why does this person's key not answer" is the question this page is opened
+   to settle, and the two banners above the table say which switch is in the way.
+   The upload form is the route's own schema plus the address, which the route
+   takes in its path and not in its body. No secret key is ever held, so none is
+   ever shown; the page says so where somebody is about to paste one. */
+let openPgpView={domain:""};
+const OPENPGP_HINTS={
+  key:K("The OpenPGP PUBLIC key: an armoured PGP PUBLIC KEY BLOCK, or base64 of its bytes. A SECRET key is refused here and everywhere else."),
+  allow_address_mismatch:K("Store a key whose user ids do not carry the account's own address. A server administrator's decision, and the wrong answer for an ordinary mailbox."),
+  publish:K("Publish this account's keys as well as storing this one.")
+};
+function openPgpProps(){
+  const props=properties("/api/v1/accounts/{address}/openpgp","put"),out={};
+  Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&OPENPGP_HINTS[k])out[k].description=OPENPGP_HINTS[k];});
+  return out;
+}
+function pgpKeyName(x){
+  const bits=Number(x.bits)||0;
+  return escHtml(String(x.algorithm_name||("v"+x.version)))+(bits?" "+bits:"");
+}
+async function showOpenPgp(domain){
+  editing=null;
+  openPgpView={domain:domain};
+  await loadSpec();
+  let list;
+  try{list=await api("/api/v1/domains/"+encodeURIComponent(domain)+"/openpgp");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}toast(e.message);return;}
+  const keys=asList(list,"keys");
+  const rows=keys.map(x=>`
+    <tr><td><b>${escHtml(x.address)}</b>${x.user_id?'<div class="hint muted">'+escHtml(x.user_id)+'</div>':""}</td>
+        <td><code>${escHtml(x.fingerprint||"")}</code></td>
+        <td>${pgpKeyName(x)} <span class="muted">v${escHtml(x.version)}</span></td>
+        <td>${escHtml(x.created||"")}</td>
+        <td>${x.expires?escHtml(x.expires):t("Never")}</td>
+        <td>${x.published?'<span class="badge good">'+t("Published")+'</span>':'<span class="badge warn">'+t("Not published")+'</span>'}
+            ${x.advanced_url?'<div class="hint muted">'+escHtml(x.advanced_url)+'</div>':""}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn ghost sm" data-act="pgpdel" data-address="${escHtml(x.address)}" data-fingerprint="${escHtml(x.fingerprint)}">${t("Remove")}</button></td></tr>`).join("");
+  const props=openPgpProps();
+  let banner="";
+  if(!list.server_enabled)banner='<p class="note"><span class="badge warn">'+t("Off")+'</span> '+t("The Web Key Directory is off at the server: no key of any domain is served. Settings has the switch.")+'</p>';
+  else if(!list.domain_enabled)banner='<p class="note"><span class="badge warn">'+t("Off")+'</span> '+t("This domain does not publish keys, so nothing of it is served whatever an account says. Edit the domain to turn it on.")+'</p>';
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
+    <div class="sect"><h2>${tf("{0} — OpenPGP keys",escHtml(domain))}</h2>
+      <div class="card flat">
+        ${banner}
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/openpgp","get").description||"")}</p>
+        <div class="err" id="err_pgp"></div>
+        <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Fingerprint")}</th><th>${t("Key")}</th><th>${t("Created")}</th><th>${t("Expires")}</th><th>${t("Published")}</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("No OpenPGP keys are held for this domain's accounts.")+'</td></tr>'}</tbody></table></div>
+      </div></div>
+    <div class="sect"><h2>${t("Store a key for an account")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/accounts/{address}/openpgp","put").description||"")}</p>
+        <div class="row" style="margin-bottom:12px">
+          <input id="pgpAddress" placeholder="${t("Account address")}" aria-label="${t("Account address")}" style="flex:1;min-width:220px">
+        </div>
+        <div class="form">${formHtml("pgpnew",props,documentedDefaults("/api/v1/accounts/{address}/openpgp","put",props),{required:requiredOf("/api/v1/accounts/{address}/openpgp","put")})}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" data-act="pgpnew">${t("Store the key")}</button>
+          <div class="err" id="err_pgpnew"></div>
+        </div>
+      </div></div></div>`;
+}
+async function storeOpenPgpKey(){
+  setErr("err_pgpnew","");
+  const props=openPgpProps();
+  const address=String(($("#pgpAddress")||{}).value||"").trim();
+  if(!address){setErr("err_pgpnew",t("An account address is required."));return;}
+  let body;
+  try{body=readForm("pgpnew",props,{});}catch(e){setErr("err_pgpnew",e.message);return;}
+  if(!String(body.key||"").trim()){setErr("err_pgpnew",t("A key is required."));return;}
+  Object.keys(body).forEach(k=>{if(body[k]===undefined)delete body[k];});
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/openpgp",{method:"PUT",body:JSON.stringify(body)});
+    toast(tf("Stored an OpenPGP key for {0}",address));
+    await showOpenPgp(openPgpView.domain);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_pgpnew",e.message);}
+}
+async function removeOpenPgpKey(address,fingerprint){
+  if(!confirm(tf("Remove this key from {0}? Anybody who looks that address up will stop finding it.",address)))return;
+  setErr("err_pgp","");
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/openpgp/"+encodeURIComponent(fingerprint),{method:"DELETE"});
+    toast(tf("Removed the OpenPGP key of {0}",address));
+    await showOpenPgp(openPgpView.domain);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_pgp",e.message);}
+}
+
 /* ---------- Groups ----------
    A group is a named set of accounts that a folder permission can name as one
    principal - Settings.Groups, Group and Group.Members over COM, the desktop
@@ -2476,7 +2582,8 @@ const SETTING_GROUPS=[
   {id:"index",path:"/api/v1/settings/indexing", title:K("Message indexing"),save:K("Save message indexing settings"),
     verbs:[{path:"/api/v1/settings/indexing/index",label:K("Index now")},{path:"/api/v1/settings/indexing/clear",label:K("Empty the index")}]},
   {id:"bounce",path:"/api/v1/settings/bounces", title:K("Bounces and suppression"),save:K("Save bounce settings"),
-    verbs:[{path:"/api/v1/bounces/expire",label:K("Expire and prune now")}]}
+    verbs:[{path:"/api/v1/bounces/expire",label:K("Expire and prune now")}]},
+  {id:"pgp",  path:"/api/v1/settings/openpgp", title:K("OpenPGP key directory"),save:K("Save OpenPGP settings")}
 ];
 function verbButtonsHtml(g){
   return (g.verbs||[]).map(v=>`<button class="btn ghost" data-act="setpost" data-group="${g.id}" data-path="${escHtml(v.path)}" data-label="${escHtml(t(v.label))}" title="${escHtml(operation(v.path,"post").summary||"")}">${escHtml(t(v.label))}</button>`).join("");

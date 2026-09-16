@@ -136,6 +136,17 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_BOUNCE_READ_REPORTS, 1);
       property_set_->EnsureLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, 90);
       property_set_->EnsureLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, 7);
+
+      // The Web Key Directory. Off, which is the server as it has always been: no
+      // key of anybody's is served until an administrator switches this on AND the
+      // domain's switch is on AND the account's is. The other three are the limits
+      // a key upload is judged against: 64 KiB of key, eight keys an account, and a
+      // key whose user ids do not carry the account's own address is refused unless
+      // an administrator says otherwise for that one upload.
+      property_set_->EnsureLong(PROPERTY_OPENPGP_WKD_ENABLED, 0);
+      property_set_->EnsureLong(PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES, 65536);
+      property_set_->EnsureLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT, 8);
+      property_set_->EnsureLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, 1);
    }
 
    void
@@ -1164,6 +1175,54 @@ namespace HM
    Configuration::SetBounceReportWindowDays(int days)
    {
       GetSettings()->SetLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, ClampSetting(days, 1, 30));
+   }
+
+   bool
+   Configuration::GetOpenPGPWebKeyDirectoryEnabled()
+   {
+      return GetSettings()->GetLong(PROPERTY_OPENPGP_WKD_ENABLED) == 1;
+   }
+
+   void
+   Configuration::SetOpenPGPWebKeyDirectoryEnabled(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_WKD_ENABLED, enabled ? 1 : 0);
+   }
+
+   int
+   Configuration::GetOpenPGPKeyMaximumBytes()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES), 1024, 1048576);
+   }
+
+   void
+   Configuration::SetOpenPGPKeyMaximumBytes(int bytes)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES, ClampSetting(bytes, 1024, 1048576));
+   }
+
+   int
+   Configuration::GetOpenPGPKeysPerAccount()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT), 1, 64);
+   }
+
+   void
+   Configuration::SetOpenPGPKeysPerAccount(int keys)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT, ClampSetting(keys, 1, 64));
+   }
+
+   bool
+   Configuration::GetOpenPGPRequireAddressInUserId()
+   {
+      return GetSettings()->GetLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS) == 1;
+   }
+
+   void
+   Configuration::SetOpenPGPRequireAddressInUserId(bool required)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, required ? 1 : 0);
    }
 
    int

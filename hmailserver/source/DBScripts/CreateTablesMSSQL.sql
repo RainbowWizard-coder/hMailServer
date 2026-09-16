@@ -16,6 +16,7 @@ if exists (select * from sysobjects where id = object_id('hm_contacts') and obje
 if exists (select * from sysobjects where id = object_id('hm_accountprefs') and objectproperty(id, 'isusertable') = 1) drop table hm_accountprefs
 if exists (select * from sysobjects where id = object_id('hm_scheduled') and objectproperty(id, 'isusertable') = 1) drop table hm_scheduled
 if exists (select * from sysobjects where id = object_id('hm_files') and objectproperty(id, 'isusertable') = 1) drop table hm_files
+if exists (select * from sysobjects where id = object_id('hm_pgpkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_pgpkeys
 if exists (select * from sysobjects where id = object_id('hm_smimekeys') and objectproperty(id, 'isusertable') = 1) drop table hm_smimekeys
 if exists (select * from sysobjects where id = object_id('hm_accounts') and objectproperty(id, 'isusertable') = 1) drop table hm_accounts 
 
@@ -229,7 +230,8 @@ create table hm_accounts (
 	accountpasswordchanged datetime not null,
 	accountantispamenabled tinyint not null,
 	accountspammarkthreshold int not null,
-	accountspamdeletethreshold int not null
+	accountspamdeletethreshold int not null,
+	accountopenpgppublish int not null default 0
 ) 
 
 ALTER TABLE hm_accounts ADD CONSTRAINT hm_accounts_pk PRIMARY KEY NONCLUSTERED (accountid) 
@@ -304,7 +306,9 @@ create table hm_domains (
 	domaindkimrotationintervaldays int not null default 180,
 	domaindkimrotationpropagationhours int not null default 72,
 	domaindkimrotationretentiondays int not null default 7,
-	domaindkimrotationkeybits int not null default 2048
+	domaindkimrotationkeybits int not null default 2048,
+	domainopenpgppublish int not null default 0,
+	domainopenpgpnewaccounts int not null default 0
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -1720,4 +1724,37 @@ ALTER TABLE hm_bouncecounts ADD CONSTRAINT fk_hm_bouncecounts_domain FOREIGN KEY
 
 ALTER TABLE hm_bouncereportkeys ADD CONSTRAINT fk_hm_bouncereportkeys_domain FOREIGN KEY (brkdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6049)
+create table hm_pgpkeys
+(
+	pgpkid int identity(1,1) not null,
+	pgpkaccountid int not null,
+	pgpkfingerprint nvarchar(64) not null,
+	pgpkversion int not null,
+	pgpkalgorithm int not null,
+	pgpkbits int not null,
+	pgpkuserid nvarchar(255) not null,
+	pgpkcreated bigint not null,
+	pgpkexpires bigint not null,
+	pgpkbytes int not null,
+	pgpkkey ntext not null,
+	pgpkuploaded bigint not null,
+	pgpkuploadedby nvarchar(255) not null
+)
+
+ALTER TABLE hm_pgpkeys ADD CONSTRAINT hm_pgpkeys_pk PRIMARY KEY NONCLUSTERED (pgpkid)
+
+CREATE CLUSTERED INDEX idx_hm_pgpkeys_account ON hm_pgpkeys (pgpkaccountid)
+
+CREATE UNIQUE INDEX idx_hm_pgpkeys_entry ON hm_pgpkeys (pgpkaccountid, pgpkfingerprint)
+
+ALTER TABLE hm_pgpkeys ADD CONSTRAINT fk_hm_pgpkeys_account FOREIGN KEY (pgpkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeysPerAccount', '', 8)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPRequireAddressInUserId', '', 1)
+
+insert into hm_dbversion values (6050)

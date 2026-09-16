@@ -271,6 +271,13 @@ namespace HM
          RouteMeSmimeRecipientPut,
          RouteMeSmimeRecipientDelete,
          RouteMeSmimeChain,
+
+         // The account's own OpenPGP public keys and its publishing switch
+         // (RestApiOpenPgp.cpp). Self-service: the roles do not reach them.
+         RouteMeOpenPgp,
+         RouteMeOpenPgpPut,
+         RouteMeOpenPgpDelete,
+         RouteMeOpenPgpPublish,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
          RouteMeDraftSchedule,
@@ -531,6 +538,15 @@ namespace HM
          RouteBounceExpire,
          RouteSettingsBouncesGet,
          RouteSettingsBouncesPut,
+
+         // The Web Key Directory: the server's settings, one account's keys
+         // and one domain's (RestApiOpenPgp.cpp).
+         RouteSettingsOpenPgpGet,
+         RouteSettingsOpenPgpPut,
+         RouteAccountOpenPgpList,
+         RouteAccountOpenPgpPut,
+         RouteAccountOpenPgpDelete,
+         RouteDomainOpenPgpList,
          RouteOpenApi
       };
 
@@ -819,6 +835,20 @@ namespace HM
       static int WriteMimeEntity_(std::shared_ptr<const Account> account, const String &fromHeader, const String &toHeader, const String &ccHeader, const AnsiString &requestBody, const String &entityText, const String &fileName, AnsiString &problem);
       static HttpResponse HandleMeStorage_(const Caller &caller);
 
+      // OpenPGP public keys (RestApiOpenPgp.cpp): the account's own, an
+      // administrator's for any account, and a domain's whole listing. The
+      // serving of them is on the web services listener, not here.
+      static HttpResponse HandleMeOpenPgp_(const Caller &caller);
+      static HttpResponse HandleMeOpenPgpPut_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeOpenPgpDelete_(const Caller &caller, const AnsiString &fingerprint);
+      static HttpResponse HandleMeOpenPgpPublish_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleAccountOpenPgp_(const AnsiString &address);
+      static HttpResponse HandleAccountOpenPgpPut_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
+      static HttpResponse HandleAccountOpenPgpDelete_(const AnsiString &address, const AnsiString &fingerprint);
+      static HttpResponse HandleDomainOpenPgpList_(const AnsiString &domainName);
+      static bool SetAccountOpenPgpPublish_(__int64 accountId, bool publish, AnsiString &problem);
+      static AnsiString OpenApiOpenPgpPaths_();
+
       // A read receipt for a message that asked for one, an unsubscribe by the
       // list's own method, and the queueing they share (RestApiMessageReplies.cpp).
       static HttpResponse HandleMeMessageReceipt_(const Caller &caller, __int64 messageId);
@@ -1062,6 +1092,8 @@ namespace HM
       HttpResponse HandleSettingsBackupPut_(const AnsiString &requestBody);
       HttpResponse HandleSettingsBounces_();
       HttpResponse HandleSettingsBouncesPut_(const AnsiString &requestBody);
+      HttpResponse HandleSettingsOpenPgp_();
+      HttpResponse HandleSettingsOpenPgpPut_(const AnsiString &requestBody);
       HttpResponse HandleServerMessageList_();
       HttpResponse HandleServerMessagePut_(const AnsiString &name, const AnsiString &requestBody);
       HttpResponse HandleSieveEvaluate_(const AnsiString &requestBody);

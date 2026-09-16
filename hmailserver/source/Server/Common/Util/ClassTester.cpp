@@ -17,6 +17,7 @@
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
 #include "../Util/SealedMessage.h"
+#include "../Util/OpenPgpKey.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "../../SMTP/BounceTracker.h"
@@ -189,6 +190,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the bounce report key\n"));
       BounceKeyTester bounceKeyTester;
       bounceKeyTester.Test();
+
+      // The OpenPGP key reader the Web Key Directory stands on: the packet
+      // framing, the fingerprint of each key version against vectors GnuPG and
+      // hashlib produced, the refusal of a secret key, and the hashed local part
+      // against the example in draft-koch-openpgp-webkey-service.
+      OutputDebugString(_T("hMailServer: Testing OpenPgpKey\n"));
+      OpenPgpKeyTester openPgpKeyTester;
+      openPgpKeyTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

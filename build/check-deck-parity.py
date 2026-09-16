@@ -120,6 +120,12 @@ PATH_SCOPE = {
     # properties and have no resource of their own.
     'bounces': ['Settings'],
     'suppressions': [],
+    # The OpenPGP key directory: /api/v1/settings/openpgp is the Settings
+    # interface's four OpenPGP properties, and the keys themselves
+    # (/api/v1/accounts/{address}/openpgp, /api/v1/domains/{domain}/openpgp) are
+    # reached through Account.OpenPGPKeys and the two Utilities methods, which
+    # are not properties and have no resource of their own.
+    'openpgp': ['Settings'],
     'backup': ['BackupSettings', 'Backup'],
     'messages': ['ServerMessage'],
     'dkim': ['Domain'],

@@ -225,6 +225,25 @@
 #define PROPERTY_BOUNCE_COUNT_RETENTION_DAYS    _T("BounceCountRetentionDays")
 #define PROPERTY_BOUNCE_REPORT_WINDOW_DAYS      _T("BounceReportWindowDays")
 
+// The Web Key Directory: this server publishing its users' OpenPGP public keys
+// (docs/OpenPGP.md). In hm_settings by the rule of 15 September 2026, with rows
+// created at start by EnsureLong when a database has none and seeded by the
+// 6049 to 6050 step. Publishing is OFF, which is the server as it has always
+// been: an upgrade must not start publishing anybody's key, and it does not -
+// the domain switch and the account switch are 0 on every existing row as well.
+//
+// The other three are the limits an administrator can move: the size of a key
+// this server will take (64 KiB, which is a key with a very large number of
+// certifications on it), how many keys one account may hold at once (8, so that
+// a key being rotated and the key it replaces can both be published), and
+// whether a key whose user ids do not carry the account's own address is
+// refused. An administrator can override the last one for one upload; nobody
+// else can.
+#define PROPERTY_OPENPGP_WKD_ENABLED            _T("OpenPGPWebKeyDirectoryEnabled")
+#define PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES      _T("OpenPGPKeyMaximumBytes")
+#define PROPERTY_OPENPGP_KEYS_PER_ACCOUNT       _T("OpenPGPKeysPerAccount")
+#define PROPERTY_OPENPGP_REQUIRE_ADDRESS        _T("OpenPGPRequireAddressInUserId")
+
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
 //      hm_domains.domaindkimsecondaryprivatekeyfile, the staged half of a DKIM key
@@ -264,4 +283,13 @@
 //      and the register of delivered messages a delivery report is matched against.
 //      All three start empty and nothing writes to them until BounceProcessingEnabled
 //      is switched on, so an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6049
+// 6050 adds hm_pgpkeys - the OpenPGP public keys this server publishes for an
+//      account, one row per key, holding the transferable public key as base64 with
+//      its fingerprint, version, algorithm, primary user id, creation and expiry,
+//      and who uploaded it and when - and the three switches that decide whether any
+//      of it is served: hm_domains.domainopenpgppublish and .domainopenpgpnewaccounts
+//      and hm_accounts.accountopenpgppublish, with the server's own
+//      OpenPGPWebKeyDirectoryEnabled row beside them. Every one of them is 0, so an
+//      upgraded database publishes nothing and behaves exactly as it did. The store
+//      starts empty; only a secret key is refused, never held.
+#define REQUIRED_DB_VERSION            6050

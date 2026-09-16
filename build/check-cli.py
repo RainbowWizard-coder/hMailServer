@@ -40,6 +40,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -48,6 +49,17 @@ HMCTL = os.path.join(ROOT, "hmailserver", "source", "Tools", "Cli", "hmctl")
 MODULE = os.path.join(ROOT, "hmailserver", "source", "Tools", "Cli", "HmailServer.psm1")
 
 PASSWORD = "bench-password"
+
+# An armoured block for the two store cases. Its contents are never parsed
+# here - the recorded server answers whatever it is handed - so what this
+# proves is that the clients read a FILE and send its text as the key.
+KEY_FILE = os.path.join(tempfile.gettempdir(), "hmctl-openpgp-case.asc")
+KEY_TEXT = ("-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n"
+            "mDMEaqoCExYJKwYBBAHaRw8BAQdA1BnI224Vt/ATv5Bz3LFdMeQvJKTMb+poSTbQ\n"
+            "-----END PGP PUBLIC KEY BLOCK-----\n")
+with open(KEY_FILE, "w", encoding="utf-8", newline="") as _key_handle:
+    _key_handle.write(KEY_TEXT)
+
 EXPECTED_BASIC = "Basic " + base64.b64encode(("Administrator:" + PASSWORD).encode("utf-8")).decode("ascii")
 
 # A domain's DKIM key rotation part way through: the current key kept, the next key
@@ -176,6 +188,35 @@ ANSWERS = {
         "diagnostic": "old export", "remote_mta": "", "created": "2026-09-15 09:00:00",
         "expires": "2026-12-14 09:00:00", "expired": False},
     ("DELETE", "/api/v1/domains/example.com/suppressions/gone@elsewhere.test"): {"removed": True},
+    # The OpenPGP key directory: a domain's listing, one account's document,
+    # the store and the removal. Only public keys are ever held, so nothing
+    # here carries a secret.
+    ("GET", "/api/v1/settings/openpgp"): {"web_key_directory_enabled": True, "key_maximum_bytes": 65536,
+                                          "keys_per_account": 8, "require_address_in_user_id": True},
+    ("PUT", "/api/v1/settings/openpgp"): {"web_key_directory_enabled": True, "keys_per_account": 4},
+    ("GET", "/api/v1/domains/example.com/openpgp"): {
+        "domain": "example.com", "server_enabled": True, "domain_enabled": True, "publish_new_accounts": False,
+        "total": 1, "keys": [{"id": 1, "address": "ann@example.com",
+                              "fingerprint": "c29b6cce361e73ba13724cb8bbee452b9b0a0bb7", "version": 4,
+                              "algorithm": 22, "algorithm_name": "EdDSA", "bits": 256,
+                              "user_id": "Ann <ann@example.com>", "created": 1789526547, "expires": 0,
+                              "bytes": 413, "uploaded": 1789526600, "uploaded_by": "administrator",
+                              "hashed_local_part": "ftnwpzeeynpbixr6qyd8grpy8xuzcqwt",
+                              "advanced_url": "https://openpgpkey.example.com/.well-known/openpgpkey/example.com/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=ann",
+                              "direct_url": "https://example.com/.well-known/openpgpkey/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=ann",
+                              "published": True}]},
+    ("GET", "/api/v1/accounts/ann@example.com/openpgp"): {
+        "address": "ann@example.com", "publish": True, "server_enabled": True, "domain_enabled": True,
+        "published": True, "hashed_local_part": "ftnwpzeeynpbixr6qyd8grpy8xuzcqwt",
+        "advanced_url": "https://openpgpkey.example.com/.well-known/openpgpkey/example.com/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=ann",
+        "direct_url": "https://example.com/.well-known/openpgpkey/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=ann",
+        "limit": 8, "keys": []},
+    ("PUT", "/api/v1/accounts/ann@example.com/openpgp"): {
+        "id": 2, "fingerprint": "800b26ccc36e0e3b4a61a26b19fe7a2fe905df20", "version": 4, "algorithm": 1,
+        "bits": 2048, "user_id": "Ann <ann@example.com>", "created": 1789526561, "expires": 0, "bytes": 1030,
+        "uploaded": 1789526700, "uploaded_by": "administrator", "address": "ann@example.com",
+        "advanced_url": "https://openpgpkey.example.com/.well-known/openpgpkey/example.com/hu/ftnwpzeeynpbixr6qyd8grpy8xuzcqwt?l=ann"},
+    ("DELETE", "/api/v1/accounts/ann@example.com/openpgp/800b26ccc36e0e3b4a61a26b19fe7a2fe905df20"): {"removed": True},
     ("GET", "/api/v1/domains/example.com/bounces"): {
         "domain": "example.com", "total": 1, "offset": 0,
         "items": [{"address": "gone@elsewhere.test", "hard": 2, "soft": 1, "mailbox_full": 0, "policy": 0, "other": 0,
@@ -454,6 +495,24 @@ CASES = [
      {"address": "old@elsewhere.test", "note": "old export", "expires_days": 90}, ["old@elsewhere.test"]),
     ("suppression delete", ["suppression", "delete", "gone@elsewhere.test", "--domain", "example.com"],
      "DELETE", "/api/v1/domains/example.com/suppressions/gone@elsewhere.test", None, ["deleted"]),
+    ("openpgp list", ["openpgp", "list", "example.com"],
+     "GET", "/api/v1/domains/example.com/openpgp", None,
+     ["ann@example.com", "c29b6cce361e73ba13724cb8bbee452b9b0a0bb7", "EdDSA"]),
+    ("openpgp show", ["openpgp", "show", "ann@example.com"],
+     "GET", "/api/v1/accounts/ann@example.com/openpgp", None, ["hashed_local_part", "ftnwpzeeynpbixr6qyd8grpy8xuzcqwt"]),
+    ("openpgp store", ["openpgp", "store", "ann@example.com", KEY_FILE, "--publish"],
+     "PUT", "/api/v1/accounts/ann@example.com/openpgp", {"key": KEY_TEXT, "publish": True},
+     ["stored 800b26ccc36e0e3b4a61a26b19fe7a2fe905df20", "published", "/.well-known/openpgpkey/"]),
+    ("openpgp remove", ["openpgp", "remove", "ann@example.com", "800b26ccc36e0e3b4a61a26b19fe7a2fe905df20"],
+     "DELETE", "/api/v1/accounts/ann@example.com/openpgp/800b26ccc36e0e3b4a61a26b19fe7a2fe905df20", None,
+     ["removed 800b26ccc36e0e3b4a61a26b19fe7a2fe905df20"]),
+    ("openpgp publish", ["openpgp", "publish", "ann@example.com", "on"],
+     "PUT", "/api/v1/accounts/ann@example.com", {"openpgp_publish": True}, ["ann@example.com"]),
+    ("settings get openpgp", ["settings", "get", "openpgp"], "GET", "/api/v1/settings/openpgp", None,
+     ["web_key_directory_enabled"]),
+    ("settings set openpgp", ["settings", "set", "openpgp", "--set", "web_key_directory_enabled=true",
+                              "--set", "keys_per_account=4"],
+     "PUT", "/api/v1/settings/openpgp", {"web_key_directory_enabled": True, "keys_per_account": 4}, []),
     ("bounce counts", ["bounce", "list", "--domain", "example.com"],
      "GET", "/api/v1/domains/example.com/bounces", None, ["gone@elsewhere.test", "CONSECUTIVE_HARD"]),
     ("bounces classify", ["bounces", "classify", "550 <gone@elsewhere.test>"],
@@ -655,6 +714,19 @@ POWERSHELL_CASES = [
      "POST", "/api/v1/bounces/expire", None, ["40"]),
     ("Get-HmSetting -Group bounces", "Get-HmSetting -Group bounces -Name suppression_action",
      "GET", "/api/v1/settings/bounces", None, ["refuse"]),
+    ("Get-HmOpenPgpKey -Domain", "Get-HmOpenPgpKey -Domain example.com | Select-Object -ExpandProperty fingerprint",
+     "GET", "/api/v1/domains/example.com/openpgp", None, ["c29b6cce361e73ba13724cb8bbee452b9b0a0bb7"]),
+    ("Get-HmOpenPgpKey -Account", "(Get-HmOpenPgpKey -Account ann@example.com).hashed_local_part",
+     "GET", "/api/v1/accounts/ann@example.com/openpgp", None, ["ftnwpzeeynpbixr6qyd8grpy8xuzcqwt"]),
+    ("Set-HmOpenPgpKey", "(Set-HmOpenPgpKey -Account ann@example.com -Path '" + KEY_FILE.replace("\\", "\\\\") + "' -Publish -Confirm:$false).fingerprint",
+     "PUT", "/api/v1/accounts/ann@example.com/openpgp", {"key": KEY_TEXT, "publish": True},
+     ["800b26ccc36e0e3b4a61a26b19fe7a2fe905df20"]),
+    ("Remove-HmOpenPgpKey", "Remove-HmOpenPgpKey -Account ann@example.com -Fingerprint 800b26ccc36e0e3b4a61a26b19fe7a2fe905df20 -Confirm:$false; 'removed'",
+     "DELETE", "/api/v1/accounts/ann@example.com/openpgp/800b26ccc36e0e3b4a61a26b19fe7a2fe905df20", None, ["removed"]),
+    ("Set-HmOpenPgpPublish", "(Set-HmOpenPgpPublish -Account ann@example.com -Enabled $true -Confirm:$false).address",
+     "PUT", "/api/v1/accounts/ann@example.com", {"openpgp_publish": True}, ["ann@example.com"]),
+    ("Get-HmSetting -Group openpgp", "Get-HmSetting -Group openpgp -Name keys_per_account",
+     "GET", "/api/v1/settings/openpgp", None, ["8"]),
 ]
 
 

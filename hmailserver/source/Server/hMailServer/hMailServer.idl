@@ -894,6 +894,19 @@ interface IInterfaceSettings : IDispatch{
    [propget, id(133), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([out, retval] long *pVal);
    [propput, id(133), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([in] long newVal);
 
+   // The Web Key Directory: this server publishing its users' OpenPGP public keys
+   // (docs/OpenPGP.md). Publishing is off, and stays off for every domain and every
+   // account until each of those says otherwise; the other three are the limits an
+   // upload is judged against. Nothing here holds or accepts a secret key.
+   [propget, id(153), helpstring("Publish this server's accounts' OpenPGP public keys as a Web Key Directory. Off by default, and with it off nothing is served whatever a domain or an account says.")] HRESULT OpenPGPWebKeyDirectoryEnabled([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(153), helpstring("Publish this server's accounts' OpenPGP public keys as a Web Key Directory. Off by default, and with it off nothing is served whatever a domain or an account says.")] HRESULT OpenPGPWebKeyDirectoryEnabled([in] VARIANT_BOOL newVal);
+   [propget, id(154), helpstring("The largest OpenPGP key this server will accept, in bytes of the key itself. 1024 to 1048576; default 65536.")] HRESULT OpenPGPKeyMaximumBytes([out, retval] long *pVal);
+   [propput, id(154), helpstring("The largest OpenPGP key this server will accept, in bytes of the key itself. 1024 to 1048576; default 65536.")] HRESULT OpenPGPKeyMaximumBytes([in] long newVal);
+   [propget, id(155), helpstring("How many OpenPGP keys one account may hold at once, so that a key being rotated and the key replacing it are both published. 1 to 64; default 8.")] HRESULT OpenPGPKeysPerAccount([out, retval] long *pVal);
+   [propput, id(155), helpstring("How many OpenPGP keys one account may hold at once, so that a key being rotated and the key replacing it are both published. 1 to 64; default 8.")] HRESULT OpenPGPKeysPerAccount([in] long newVal);
+   [propget, id(156), helpstring("Refuse a key whose user ids do not carry the account's own address. On by default; an administrator can override it for one upload with Utilities.ImportOpenPGPKey.")] HRESULT OpenPGPRequireAddressInUserId([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(156), helpstring("Refuse a key whose user ids do not carry the account's own address. On by default; an administrator can override it for one upload with Utilities.ImportOpenPGPKey.")] HRESULT OpenPGPRequireAddressInUserId([in] VARIANT_BOOL newVal);
+
 };
 
 
@@ -1061,6 +1074,13 @@ interface IInterfaceDomain : IDispatch
       [id(76), helpstring("Retires the old selector now rather than at the end of the retention period; a key file the rotation generated is removed. Returns the status document.")] HRESULT DKIMRotationRetire([out, retval] BSTR *Status);
       [id(77), helpstring("Cancels the next key: the secondary selector is emptied and a key file the rotation generated for it is removed. Signing is unchanged. Returns the status document.")] HRESULT DKIMRotationCancel([out, retval] BSTR *Status);
 
+      // The domain's half of the Web Key Directory. Off on every domain, and with
+      // it off no account of this domain is published whatever the account says.
+      [propget, id(81), helpstring("Publish this domain's accounts' OpenPGP public keys in the Web Key Directory. Off by default. The server setting and the account's own switch have to be on as well.")] HRESULT OpenPGPPublishKeys([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(81), helpstring("Publish this domain's accounts' OpenPGP public keys in the Web Key Directory. Off by default. The server setting and the account's own switch have to be on as well.")] HRESULT OpenPGPPublishKeys([in] VARIANT_BOOL newVal);
+      [propget, id(82), helpstring("Whether an account CREATED in this domain from now on starts with publishing switched on. Off by default, and it never changes an account that already exists.")] HRESULT OpenPGPPublishNewAccounts([out, retval] VARIANT_BOOL *pVal);
+      [propput, id(82), helpstring("Whether an account CREATED in this domain from now on starts with publishing switched on. Off by default, and it never changes an account that already exists.")] HRESULT OpenPGPPublishNewAccounts([in] VARIANT_BOOL newVal);
+
 };
 [
    object,
@@ -1192,6 +1212,14 @@ interface IInterfaceAccount : IDispatch
    [propget, id(52), helpstring("The domains the account's role reaches, comma-separated. * is every domain; empty means every domain for serveradmin and auditor, and the account's own domain for every other role.")] HRESULT RoleDomains([out, retval] BSTR *pVal);
    [propput, id(52), helpstring("The domains the account's role reaches, comma-separated. Saved at once, with the role.")] HRESULT RoleDomains([in] BSTR newVal);
    [propget, id(53), helpstring("The permissions this account's role holds, comma-separated, as the server resolves them - the role's, or the ones AdminLevel gives it when it holds no role. Read-only: a permission is a property of a role, never of an account.")] HRESULT RolePermissions([out, retval] BSTR *pVal);
+
+   // The account's half of the Web Key Directory. Holding a key so that a mail
+   // client can find it is not the same decision as telling the whole internet
+   // about it, which is why this switch is the person's own and is off until it
+   // is set. Saved with the account, like every other property here.
+   [propget, id(57), helpstring("Publish this account's OpenPGP public keys in the Web Key Directory. Off by default; the server setting and the domain's switch have to be on as well. Saved by Save().")] HRESULT OpenPGPPublish([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(57), helpstring("Publish this account's OpenPGP public keys in the Web Key Directory. Off by default; the server setting and the domain's switch have to be on as well. Saved by Save().")] HRESULT OpenPGPPublish([in] VARIANT_BOOL newVal);
+   [propget, id(58), helpstring("The OpenPGP public keys this account holds, as a JSON document: publish, published (whether anything is actually served, all three switches together), address, hashed_local_part, advanced_url, direct_url, limit, and keys of {id, fingerprint, version, algorithm, bits, user_id, created, expires, bytes, uploaded, uploaded_by}. Read-only; Utilities.ImportOpenPGPKey and RemoveOpenPGPKey change it. No secret key is ever held, so none is ever reported.")] HRESULT OpenPGPKeys([out, retval] BSTR *pVal);
 };
 
 
@@ -1385,6 +1413,12 @@ interface IInterfaceUtilities : IDispatch{
    [id(35), helpstring("The bounce counts of a domain's recipients as JSON: domain, total, offset and items of {address, hard, soft, mailbox_full, policy, other, consecutive_hard, last_status, last_category, last_bounce, last_delivered, suppressed}, newest first.")] HRESULT GetBounceCounts([in] BSTR DomainName, [in] BSTR Search, [in] long MaxRows, [out, retval] BSTR *Json);
    [id(36), helpstring("How a status and a diagnostic would be classified, as JSON {category, suppresses, trusted, status}. A bare status reads as a delivery report's Status field; a reply beginning with its three digits reads as a refusal met while delivering. Reads and writes nothing.")] HRESULT ClassifyBounce([in] BSTR Status, [in] BSTR Diagnostic, [out, retval] BSTR *Json);
    [id(37), helpstring("Runs the suppression list's maintenance sweep now - expired entries, old counts, old report keys - and returns how many rows it removed. The scheduled task runs it hourly. Server administrators only.")] HRESULT RunBounceMaintenance([out, retval] long *Removed);
+
+   // An account's OpenPGP public keys, for an administrator. The account's own
+   // switch and its key list are on IInterfaceAccount; these two are the upload and
+   // the removal, which need the address rather than the account object.
+   [id(50), helpstring("Stores an OpenPGP PUBLIC key for an account, given as an armoured PGP PUBLIC KEY BLOCK or as base64 of the key's bytes. A SECRET key is refused. A key the account already holds by that fingerprint is replaced. AllowAddressMismatch waives the rule that the key must name the account's own address, and is the server administrator's alone. Returns the stored key as JSON: fingerprint, version, algorithm, bits, user_id, created, expires, bytes, uploaded, uploaded_by, address, hashed_local_part and the two directory URLs.")] HRESULT ImportOpenPGPKey([in] BSTR AccountAddress, [in] BSTR Key, [in] VARIANT_BOOL AllowAddressMismatch, [out, retval] BSTR *Json);
+   [id(51), helpstring("Removes one OpenPGP key from an account by its fingerprint. Returns False when the account does not hold that key.")] HRESULT RemoveOpenPGPKey([in] BSTR AccountAddress, [in] BSTR Fingerprint, [out, retval] VARIANT_BOOL *Removed);
 };
 
 [

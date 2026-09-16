@@ -226,6 +226,7 @@ SETTING_GROUPS = [
     "scripting",
     "bounces",
     "directories",
+    "openpgp",
 ]
 
 
@@ -1573,6 +1574,72 @@ def bounces_command(client, arguments):
     raise ApiError(0, "bounces takes classify or expire")
 
 
+def openpgp_command(client, arguments):
+    """The OpenPGP public keys this server publishes, and the Web Key Directory.
+
+    A domain's listing shows the keys that are NOT being served beside the ones
+    that are, which is the question this is usually run to answer. Only public
+    keys are ever stored: a secret key is refused by the server with a sentence
+    saying so, whether it arrives here, over COM or from the webmail.
+    """
+    if arguments.verb == "list":
+        answer = client.request("GET", "/api/v1/domains/%s/openpgp" % arguments.domain) or {}
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        if not answer.get("server_enabled"):
+            print("The Web Key Directory is off at the server (settings openpgp web_key_directory_enabled).")
+        elif not answer.get("domain_enabled"):
+            print("%s does not publish keys (domain openpgp_publish)." % arguments.domain)
+        render(collection(answer, "keys"), False,
+               ["address", "fingerprint", "algorithm_name", "bits", "user_id", "published"])
+        return EXIT_OK
+
+    if arguments.verb == "show":
+        render(client.request("GET", "/api/v1/accounts/%s/openpgp" % arguments.account), arguments.json)
+        return EXIT_OK
+
+    if arguments.verb == "store":
+        # From a file, because a key is thousands of characters and a command
+        # line is not where it belongs. "-" is standard input, so a key can be
+        # piped straight out of gpg --armor --export.
+        if arguments.file == "-":
+            text = sys.stdin.read()
+        else:
+            with open(arguments.file, "r", encoding="utf-8", errors="replace") as handle:
+                text = handle.read()
+        if not text.strip():
+            raise ApiError(0, "%s holds no key" % arguments.file)
+        body = {"key": text}
+        if arguments.allow_address_mismatch:
+            body["allow_address_mismatch"] = True
+        if arguments.publish:
+            body["publish"] = True
+        answer = client.request("PUT", "/api/v1/accounts/%s/openpgp" % arguments.account, body=body) or {}
+        if arguments.json:
+            render(answer, True)
+        else:
+            print("stored %s for %s%s" % (answer.get("fingerprint", ""), arguments.account,
+                                          "; published" if arguments.publish else ""))
+            if answer.get("advanced_url"):
+                print(answer["advanced_url"])
+        return EXIT_OK
+
+    if arguments.verb == "remove":
+        client.request("DELETE", "/api/v1/accounts/%s/openpgp/%s" % (arguments.account, arguments.fingerprint))
+        print("removed %s from %s" % (arguments.fingerprint, arguments.account))
+        return EXIT_OK
+
+    if arguments.verb == "publish":
+        body = {"openpgp_publish": arguments.state == "on"}
+        answer = client.request("PUT", "/api/v1/accounts/%s" % arguments.account, body=body) or {}
+        render(answer if arguments.json else {"address": arguments.account, "openpgp_publish": body["openpgp_publish"]},
+               arguments.json)
+        return EXIT_OK
+
+    raise ApiError(0, "unknown openpgp verb")
+
+
 def api_command(client, arguments):
     body = None
     if arguments.body:
@@ -1751,6 +1818,26 @@ def build_parser():
     run.add_argument("--seconds-ahead", type=int, default=0,
                      help="move the clock forward for this pass (tests only: a switch or retire it makes is real "
                           "and early, and the times it records stay recorded; server administrators)")
+
+    openpgp = commands.add_parser("openpgp", help="the OpenPGP public keys this server publishes (Web Key Directory)")
+    openpgp.set_defaults(handler=openpgp_command)
+    openpgp_verbs = openpgp.add_subparsers(dest="verb")
+    pgp_list = openpgp_verbs.add_parser("list", parents=[common], help="every key held for a domain's accounts")
+    pgp_list.add_argument("domain")
+    pgp_show = openpgp_verbs.add_parser("show", parents=[common], help="one account's keys and where a client looks for them")
+    pgp_show.add_argument("account")
+    pgp_store = openpgp_verbs.add_parser("store", parents=[common], help="store a PUBLIC key for an account from a file")
+    pgp_store.add_argument("account")
+    pgp_store.add_argument("file", help="the armoured key, or - for standard input (gpg --armor --export)")
+    pgp_store.add_argument("--publish", action="store_true", help="switch this account's publishing on as well")
+    pgp_store.add_argument("--allow-address-mismatch", action="store_true",
+                           help="store a key whose user ids do not carry the account's own address (server administrators)")
+    pgp_remove = openpgp_verbs.add_parser("remove", parents=[common], help="remove one key from an account")
+    pgp_remove.add_argument("account")
+    pgp_remove.add_argument("fingerprint")
+    pgp_publish = openpgp_verbs.add_parser("publish", parents=[common], help="publish an account's keys, or stop")
+    pgp_publish.add_argument("account")
+    pgp_publish.add_argument("state", choices=["on", "off"])
 
     accounts = commands.add_parser("accounts", help="accounts in bulk, from and to a CSV file")
     accounts_verbs = accounts.add_subparsers(dest="verb")

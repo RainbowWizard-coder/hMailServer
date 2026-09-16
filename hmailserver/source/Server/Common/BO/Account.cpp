@@ -44,7 +44,8 @@ namespace HM
       forward_abort_spam_flagged_(false),
       anti_spam_enabled_(true),
       spam_mark_threshold_(-1),
-      spam_delete_threshold_(-1)
+      spam_delete_threshold_(-1),
+      openpgp_publish_(false)
    {
       Initialize();
    }
@@ -67,7 +68,8 @@ namespace HM
       forward_abort_spam_flagged_(false),
       anti_spam_enabled_(true),
       spam_mark_threshold_(-1),
-      spam_delete_threshold_(-1)
+      spam_delete_threshold_(-1),
+      openpgp_publish_(false)
    {
       Initialize();
    }
@@ -113,6 +115,7 @@ namespace HM
       anti_spam_enabled_ = oldAccount.anti_spam_enabled_;
       spam_mark_threshold_ = oldAccount.spam_mark_threshold_;
       spam_delete_threshold_ = oldAccount.spam_delete_threshold_;
+      openpgp_publish_ = oldAccount.openpgp_publish_;
       active_ = oldAccount.active_;
       is_ad_ = oldAccount.is_ad_;
       vacation_message_is_on_ = oldAccount.vacation_message_is_on_;
@@ -335,6 +338,7 @@ namespace HM
       pNode->AppendAttr(_T("AntiSpamEnabled"), anti_spam_enabled_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("SpamMarkThreshold"), StringParser::IntToString(spam_mark_threshold_));
       pNode->AppendAttr(_T("SpamDeleteThreshold"), StringParser::IntToString(spam_delete_threshold_));
+      pNode->AppendAttr(_T("OpenPGPPublish"), openpgp_publish_ ? _T("1") : _T("0"));
 
       pNode->AppendAttr(_T("EnableSignature"), enable_signature_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("SignaturePlainText"), signature_plain_text_);
@@ -466,6 +470,10 @@ namespace HM
 
       String sSpamDeleteThreshold = pAccountNode->GetAttrValue(_T("SpamDeleteThreshold"));
       spam_delete_threshold_ = sSpamDeleteThreshold.IsEmpty() ? -1 : _ttoi(sSpamDeleteThreshold);
+
+      // A backup taken before the Web Key Directory existed has no attribute
+      // here, and the account restores as not published - which is what it was.
+      openpgp_publish_ = pAccountNode->GetAttrValue(_T("OpenPGPPublish")) == _T("1");
 
       signature_plain_text_ = pAccountNode->GetAttrValue(_T("SignaturePlainText"));
       signature_html_ = pAccountNode->GetAttrValue(_T("SignatureHTML"));

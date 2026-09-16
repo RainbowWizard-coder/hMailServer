@@ -30,6 +30,10 @@
 #include "../Common/Sieve/SieveScript.h"
 #include "COMError.h"
 #include "../Common/AntiSpam/DKIM/DkimRotation.h"
+#include "../Common/Util/OpenPgpKeyStore.h"
+#include "../Common/Cache/CacheContainer.h"
+#include "../Common/BO/Domain.h"
+#include "../Common/BO/Account.h"
 
 #include <ctime>
 
@@ -823,6 +827,32 @@ InterfaceUtilities::MayAdministerDomain_(__int64 domainID) const
    return authentication_->GetIsDomainAdmin() && authentication_->GetDomainID() == domainID;
 }
 
+// Whether the caller may administer the domain an address names, whether or not
+// the address is an account. This is what a refusal for a missing account has
+// to be behind: if the question were only "is a domain administrator", a domain
+// administrator of one domain could ask about an address in another and read
+// from the two different answers - "no account of that address" against
+// access-denied - whether that address exists.
+bool
+InterfaceUtilities::MayAdministerAddress_(const HM::String &address) const
+{
+   if (authentication_->GetIsServerAdmin())
+      return true;
+
+   if (!authentication_->GetIsDomainAdmin())
+      return false;
+
+   HM::String domainName = HM::StringParser::ExtractDomain(address);
+   if (domainName.IsEmpty())
+      return false;
+
+   std::shared_ptr<const HM::Domain> domain = HM::CacheContainer::Instance()->GetDomain(domainName);
+   if (!domain)
+      return false;
+
+   return MayAdministerDomain_(domain->GetID());
+}
+
 STDMETHODIMP InterfaceUtilities::GetSuppressionList(BSTR DomainName, BSTR Search, long MaxRows, BSTR *Json)
 {
    try
@@ -833,7 +863,11 @@ STDMETHODIMP InterfaceUtilities::GetSuppressionList(BSTR DomainName, BSTR Search
       const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
       if (domainID <= 0)
       {
-         if (!authentication_->GetIsDomainAdmin())
+         // Only a server administrator is told that a domain does not exist. A
+         // domain administrator gets the same access-denied for a name that is
+         // not theirs whether it is hosted here or not, so the answer says
+         // nothing about which domains this server has.
+         if (!authentication_->GetIsServerAdmin())
             return authentication_->GetAccessDenied();
 
          return COMError::GenerateError("No domain of that name exists.");
@@ -867,7 +901,11 @@ STDMETHODIMP InterfaceUtilities::AddSuppression(BSTR DomainName, BSTR Address, B
       const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
       if (domainID <= 0)
       {
-         if (!authentication_->GetIsDomainAdmin())
+         // Only a server administrator is told that a domain does not exist. A
+         // domain administrator gets the same access-denied for a name that is
+         // not theirs whether it is hosted here or not, so the answer says
+         // nothing about which domains this server has.
+         if (!authentication_->GetIsServerAdmin())
             return authentication_->GetAccessDenied();
 
          return COMError::GenerateError("No domain of that name exists.");
@@ -913,7 +951,11 @@ STDMETHODIMP InterfaceUtilities::RemoveSuppression(BSTR DomainName, BSTR Address
       const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
       if (domainID <= 0)
       {
-         if (!authentication_->GetIsDomainAdmin())
+         // Only a server administrator is told that a domain does not exist. A
+         // domain administrator gets the same access-denied for a name that is
+         // not theirs whether it is hosted here or not, so the answer says
+         // nothing about which domains this server has.
+         if (!authentication_->GetIsServerAdmin())
             return authentication_->GetAccessDenied();
 
          return COMError::GenerateError("No domain of that name exists.");
@@ -948,7 +990,11 @@ STDMETHODIMP InterfaceUtilities::GetBounceCounts(BSTR DomainName, BSTR Search, l
       const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
       if (domainID <= 0)
       {
-         if (!authentication_->GetIsDomainAdmin())
+         // Only a server administrator is told that a domain does not exist. A
+         // domain administrator gets the same access-denied for a name that is
+         // not theirs whether it is hosted here or not, so the answer says
+         // nothing about which domains this server has.
+         if (!authentication_->GetIsServerAdmin())
             return authentication_->GetAccessDenied();
 
          return COMError::GenerateError("No domain of that name exists.");
@@ -984,6 +1030,110 @@ STDMETHODIMP InterfaceUtilities::ClassifyBounce(BSTR Status, BSTR Diagnostic, BS
       status.Trim();
 
       *Json = WideFromUtf8(HM::BounceTracker::ClassifyJson(status, Diagnostic)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// An account's OpenPGP public keys, for an administrator: the upload and the
+// removal. The account's own switch and its key list are properties of
+// IInterfaceAccount; these two are here because they name an account by address
+// and because a key upload is a piece of work rather than a property.
+//
+// Only public keys, ever. OpenPgpKeyStore::Store parses the bytes and refuses a
+// secret key with a sentence saying so; there is no path through this interface,
+// or any other, that stores one.
+
+STDMETHODIMP InterfaceUtilities::ImportOpenPGPKey(BSTR AccountAddress, BSTR Key, VARIANT_BOOL AllowAddressMismatch, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      HM::String address = AccountAddress;
+      address.Trim();
+      address.ToLower();
+
+      std::shared_ptr<const HM::Account> account = HM::CacheContainer::Instance()->GetAccount(address);
+      if (!account)
+      {
+         // The refusal is behind the authorisation question, so that a caller who
+         // may administer nothing, or only another domain, cannot use this to find
+         // out which addresses exist: a domain administrator is told about a
+         // missing address only in a domain they administer, and gets the same
+         // access-denied for any other, whether the address is there or not.
+         if (!MayAdministerAddress_(address))
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No account of that address exists.");
+      }
+
+      if (!MayAdministerDomain_(account->GetDomainID()))
+         return authentication_->GetAccessDenied();
+
+      // Waiving the rule that the key names the account's own address is the
+      // server administrator's. A domain administrator publishing a key that does
+      // not name the person it is published for is the mistake the rule catches.
+      const bool allowMismatch = AllowAddressMismatch == VARIANT_TRUE;
+      if (allowMismatch && !authentication_->GetIsServerAdmin())
+         return COMError::GenerateError("Only a server administrator may store a key whose user ids do not carry the account's own address.");
+
+      HM::AuditScope auditScope(authentication_->GetAuditActor());
+
+      HM::OpenPgpKeyStore::Row row;
+      bool replaced = false;
+      HM::AnsiString problem;
+      if (!HM::OpenPgpKeyStore::Store(account, HM::AnsiString(HM::String(Key)), allowMismatch,
+                                      authentication_->GetAuditActor().name, row, replaced, problem))
+         return COMError::GenerateError(HM::String(problem));
+
+      *Json = HM::String(HM::OpenPgpKeyStore::RowJson(row, account->GetAddress(), false)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RemoveOpenPGPKey(BSTR AccountAddress, BSTR Fingerprint, VARIANT_BOOL *Removed)
+{
+   try
+   {
+      if (!Removed)
+         return COMError::GenerateGenericMessage();
+
+      *Removed = VARIANT_FALSE;
+
+      HM::String address = AccountAddress;
+      address.Trim();
+      address.ToLower();
+
+      std::shared_ptr<const HM::Account> account = HM::CacheContainer::Instance()->GetAccount(address);
+      if (!account)
+      {
+         // As in ImportOpenPGPKey: the same refusal whether the address exists.
+         if (!MayAdministerAddress_(address))
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No account of that address exists.");
+      }
+
+      if (!MayAdministerDomain_(account->GetDomainID()))
+         return authentication_->GetAccessDenied();
+
+      HM::AuditScope auditScope(authentication_->GetAuditActor());
+
+      HM::String fingerprint = Fingerprint;
+      fingerprint.Trim();
+
+      if (HM::OpenPgpKeyStore::Remove(account->GetID(), HM::AnsiString(fingerprint)))
+         *Removed = VARIANT_TRUE;
+
       return S_OK;
    }
    catch (...)

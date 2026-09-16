@@ -270,6 +270,18 @@ namespace HM
       int GetBounceReportWindowDays();             // 1 to 30
       void SetBounceReportWindowDays(int days);
 
+      // The Web Key Directory (docs/OpenPGP.md). All four live in hm_settings, and
+      // the getters clamp, so a hand-edited row cannot make the size cap 0 - which
+      // would refuse every key - or let one account fill the store.
+      bool GetOpenPGPWebKeyDirectoryEnabled();
+      void SetOpenPGPWebKeyDirectoryEnabled(bool enabled);
+      int GetOpenPGPKeyMaximumBytes();             // 1 KB to 1 MB
+      void SetOpenPGPKeyMaximumBytes(int bytes);
+      int GetOpenPGPKeysPerAccount();              // 1 to 64
+      void SetOpenPGPKeysPerAccount(int keys);
+      bool GetOpenPGPRequireAddressInUserId();
+      void SetOpenPGPRequireAddressInUserId(bool required);
+
       int GetCrashSimulationMode() const;
       void SetCrashSimulationMode(int mode);
 
