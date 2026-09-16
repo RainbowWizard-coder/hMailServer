@@ -10,6 +10,8 @@
 #include "InterfaceRules.h"
 #include "InterfaceIMAPFolders.h"
 
+#include "../Common/Persistence/MailboxMove.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/BO/Accounts.h"
 #include "../Common/Util/Math.h"
@@ -704,6 +706,142 @@ STDMETHODIMP InterfaceAccount::UnlockMailbox()
             _T("the POP3 mailbox lock was cleared"));
       }
    
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+namespace
+{
+   // The JSON MailboxMove builds is UTF-8; a BSTR is wide. InterfaceUtilities
+   // has the same two lines beside its own JSON-returning members.
+   HM::String WideFromUtf8(const HM::AnsiString &utf8)
+   {
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(utf8, wide);
+      return wide;
+   }
+}
+
+// Renaming a mailbox, and moving one to another domain on this server, are one
+// operation, and it is done when MoveTo returns: there is no Save() for it,
+// because half of what it does is on disk and in rows the account object does
+// not carry. MailboxMove refuses everything that cannot be done safely before
+// changing anything, and records the move as one entry on the audit trail.
+STDMETHODIMP InterfaceAccount::MoveTo(BSTR NewAddress, VARIANT_BOOL KeepOldAddressAsAlias, BSTR *Summary)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!Summary)
+         return COMError::GenerateGenericMessage();
+
+      *Summary = 0;
+
+      if (object_->GetID() <= 0)
+         return COMError::GenerateError("The account must be saved before it can be moved.");
+
+      const HM::String newAddress = HM::String(NewAddress).Trim();
+
+      // The account as the DATABASE has it, read before anything is decided.
+      // The address on the object in hand is whatever the caller last assigned
+      // to it, saved or not, and both questions below are about the account
+      // that exists: which domain it is in now, and what authority it holds.
+      std::shared_ptr<HM::Account> stored = std::shared_ptr<HM::Account>(new HM::Account());
+
+      if (!HM::PersistentAccount::ReadObject(stored, object_->GetID()) || stored->GetID() <= 0)
+         return COMError::GenerateError("The account could not be read. It may have been deleted.");
+
+      // The authority to administer accounts, asked of BOTH domains: the one the
+      // mailbox is leaving and the one it is going to. Without the second, a
+      // credential confined to one domain could move a mailbox out of it into a
+      // domain it has no authority over - which is the whole of somebody else's
+      // mail arriving in a place they administer. The first is asked of the
+      // STORED address, so that assigning Account.Address before calling this
+      // cannot name a domain the credential does have authority over and move a
+      // mailbox out of one it does not.
+      if (!authentication_->AllowsForDomain(HM::RolePermission::ManageAccounts,
+                                            HM::StringParser::ExtractDomain(stored->GetAddress())))
+      {
+         return authentication_->GetAccessDenied();
+      }
+
+      if (!authentication_->AllowsForDomain(HM::RolePermission::ManageAccounts,
+                                            HM::StringParser::ExtractDomain(newAddress)))
+      {
+         return authentication_->GetAccessDenied();
+      }
+
+      // The same question Save asks: a credential may not take over an account
+      // whose administrative authority it does not itself hold, and moving one is
+      // taking it over.
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(stored)))
+         return COMError::GenerateError("You do not have access to move this account. It holds administrative authority that this credential does not.");
+
+      HM::MailboxMoveOutcome outcome;
+      HM::String errorMessage;
+
+      if (!HM::MailboxMove::Move(object_, newAddress, KeepOldAddressAsAlias == VARIANT_TRUE, outcome, errorMessage))
+         return COMError::GenerateError(errorMessage);
+
+      *Summary = WideFromUtf8(HM::MailboxMove::OutcomeJson(outcome)).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_InUseReason(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      // Readable by anyone who may read the account. It says whether a move
+      // would be refused and why, which is what a page needs to disable a
+      // button, and it names nothing the caller could not already see.
+      *pVal = HM::MailboxMove::InUseReason(object_).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_LastMove(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      HM::MailboxMoveRecord record;
+
+      if (object_->GetID() <= 0 || !HM::MailboxMove::Newest(object_->GetID(), record))
+      {
+         *pVal = HM::String().AllocSysString();
+         return S_OK;
+      }
+
+      *pVal = WideFromUtf8(HM::MailboxMove::RecordJson(record)).AllocSysString();
+
       return S_OK;
    }
    catch (...)

@@ -27,6 +27,10 @@
 #include "../SMTP/DeliveryQueue.h"
 #include "../SMTP/TlsRptReporterTask.h"
 #include "../SMTP/DmarcRptReporterTask.h"
+#include "../Common/Persistence/MailboxMove.h"
+#include "../Common/Persistence/PersistentAccount.h"
+#include "../Common/Application/RoleManager.h"
+#include "../Common/BO/Account.h"
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/Maintenance/Maintenance.h"
 #include "../Common/Util/Parsing/StringParser.h"
@@ -1710,6 +1714,101 @@ STDMETHODIMP InterfaceUtilities::GetComplaintRates(BSTR *Json)
          return COMError::GenerateError("The complaint rates could not be read from the database.");
 
       *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// A mailbox renamed or moved, reached by address. The same operation
+// Account.MoveTo performs, and the same refusals: this is a second door, not a
+// second implementation.
+STDMETHODIMP InterfaceUtilities::MoveMailbox(BSTR Address, BSTR NewAddress, VARIANT_BOOL KeepOldAddressAsAlias, BSTR *Summary)
+{
+   try
+   {
+      if (!Summary)
+         return COMError::GenerateGenericMessage();
+
+      *Summary = 0;
+
+      const HM::String address = HM::String(Address).Trim();
+      const HM::String newAddress = HM::String(NewAddress).Trim();
+
+      // The authority first, and for the domain named in the request rather than
+      // for the account that was found: asking after the lookup would let a
+      // credential with no authority anywhere learn which addresses exist by
+      // reading which of two refusals it got.
+      if (!authentication_->AllowsForDomain(HM::RolePermission::ManageAccounts, HM::StringParser::ExtractDomain(address)))
+         return authentication_->GetAccessDenied();
+
+      if (!authentication_->AllowsForDomain(HM::RolePermission::ManageAccounts, HM::StringParser::ExtractDomain(newAddress)))
+         return authentication_->GetAccessDenied();
+
+      std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+      if (!HM::PersistentAccount::ReadObject(account, address) || account->GetID() <= 0)
+         return COMError::GenerateError("There is no account at that address.");
+
+      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(account)))
+         return COMError::GenerateError("You do not have access to move this account. It holds administrative authority that this credential does not.");
+
+      HM::MailboxMoveOutcome outcome;
+      HM::String errorMessage;
+
+      if (!HM::MailboxMove::Move(account, newAddress, KeepOldAddressAsAlias == VARIANT_TRUE, outcome, errorMessage))
+         return COMError::GenerateError(errorMessage);
+
+      *Summary = WideFromUtf8(HM::MailboxMove::OutcomeJson(outcome)).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetMailboxMoves(BSTR Address, long MaxRows, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      const HM::String address = HM::String(Address).Trim();
+
+      __int64 accountID = 0;
+
+      if (address.IsEmpty())
+      {
+         // Every mailbox on the server, which is a list of who was moved where
+         // across every domain - so it is the server administrator's.
+         if (!authentication_->GetIsServerAdmin())
+            return authentication_->GetAccessDenied();
+      }
+      else
+      {
+         if (!authentication_->AllowsForDomain(HM::RolePermission::ViewAccounts, HM::StringParser::ExtractDomain(address)))
+            return authentication_->GetAccessDenied();
+
+         std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
+
+         if (!HM::PersistentAccount::ReadObject(account, address) || account->GetID() <= 0)
+            return COMError::GenerateError("There is no account at that address.");
+
+         accountID = account->GetID();
+      }
+
+      std::vector<HM::MailboxMoveRecord> rows;
+
+      if (!HM::MailboxMove::List(accountID, MaxRows <= 0 ? 100 : MaxRows, rows))
+         return COMError::GenerateError("The mailbox move journal could not be read from the database.");
+
+      *Json = WideFromUtf8(HM::MailboxMove::RecordsJson(rows)).AllocSysString();
+
       return S_OK;
    }
    catch (...)

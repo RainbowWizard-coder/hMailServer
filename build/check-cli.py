@@ -136,6 +136,23 @@ ANSWERS = {
          "last_name": "", "admin_level": "user"},
     ],
     ("POST", "/api/v1/domains/example.com/accounts"): {"address": "new@example.com", "created": True},
+    # Renaming a mailbox, and moving one to another domain. The GET says whether
+    # a move would be refused now and what this mailbox has been through; the
+    # POST answers the document MailboxMove::OutcomeJson builds, which is also
+    # what Account.MoveTo answers over COM.
+    ("GET", "/api/v1/accounts/ann@example.com/move"): {
+        "address": "ann@example.com", "in_use": False, "in_use_reason": "",
+        "last_move": {"id": 4, "account_id": 12, "old_address": "anne@example.com",
+                      "new_address": "ann@example.com", "stage": 4, "stage_name": "complete",
+                      "complete": True, "keep_alias": True, "messages": 812,
+                      "started": "2026-09-16 01:59:58", "finished": "2026-09-16 02:00:03",
+                      "detail": "anne@example.com moved to ann@example.com"}},
+    ("POST", "/api/v1/accounts/ann@example.com/move"): {
+        "old_address": "ann@example.com", "new_address": "ann@example.net",
+        "old_domain": "example.com", "new_domain": "example.net", "account_id": 12,
+        "alias_kept": True, "store_moved": True, "messages": 812, "folders": 9,
+        "aliases_repointed": 2, "list_memberships": 1, "queued_recipients": 0,
+        "quarantine_entries": 3, "journal_id": 5},
     # A domain that is not in the domain listing, so the configuration cases
     # never read it: the export and the round trip of the spreadsheet, with a
     # name outside ASCII and a comma inside a cell.
@@ -511,6 +528,19 @@ CASES = [
     ("account update by address", ["account", "update", "ann@example.com", "--set", "active=false"],
      "PUT", "/api/v1/accounts/ann@example.com", {"active": False}, []),
     ("account delete by address", ["account", "delete", "bob@example.com"], "DELETE", "/api/v1/accounts/bob@example.com", None, ["deleted"]),
+    ("mailbox status", ["mailbox", "status", "ann@example.com"],
+     "GET", "/api/v1/accounts/ann@example.com/move", None,
+     ["ann@example.com", "anne@example.com -> ann@example.com", "complete"]),
+    ("mailbox move keeps the old address unless told not to",
+     ["mailbox", "move", "ann@example.com", "ann@example.net"],
+     "POST", "/api/v1/accounts/ann@example.com/move",
+     {"new_address": "ann@example.net", "keep_alias": True},
+     ["ann@example.com moved to ann@example.net", "812 message(s) in 9 folder(s)",
+      "2 alias(es) re-pointed", "The old address is kept as an alias"]),
+    ("mailbox move --drop-alias",
+     ["mailbox", "move", "ann@example.com", "ann@example.net", "--drop-alias"],
+     "POST", "/api/v1/accounts/ann@example.com/move",
+     {"new_address": "ann@example.net", "keep_alias": False}, ["moved to ann@example.net"]),
     ("alias list under its domain", ["alias", "list", "--domain", "example.com"],
      "GET", "/api/v1/domains/example.com/aliases", None, ["sales@example.com"]),
     ("group list", ["group", "list"], "GET", "/api/v1/groups", None, ["support"]),
@@ -781,6 +811,19 @@ POWERSHELL_CASES = [
      "POST", "/api/v1/domains/example.com/accounts", {"address": "new@example.com", "password": "secret"}, ["new@example.com"]),
     ("Set-HmAccount", "Set-HmAccount -Address ann@example.com -Property @{active=$false} | Out-String",
      "PUT", "/api/v1/accounts/ann@example.com", {"active": False}, []),
+    ("Get-HmMailboxMove", "Get-HmMailboxMove -Address ann@example.com | Select-Object -ExpandProperty in_use",
+     "GET", "/api/v1/accounts/ann@example.com/move", None, ["False"]),
+    ("Move-HmMailbox", "(Move-HmMailbox -Address ann@example.com -NewAddress ann@example.net -Confirm:$false).new_address",
+     "POST", "/api/v1/accounts/ann@example.com/move",
+     {"new_address": "ann@example.net", "keep_alias": True}, ["ann@example.net"]),
+    ("Move-HmMailbox -DropAlias", "(Move-HmMailbox -Address ann@example.com -NewAddress ann@example.net -DropAlias -Confirm:$false).new_address",
+     "POST", "/api/v1/accounts/ann@example.com/move",
+     {"new_address": "ann@example.net", "keep_alias": False}, ["ann@example.net"]),
+    # -WhatIf must send nothing at all, which is asserted by the read before it
+    # still being the last request the server saw.
+    ("Move-HmMailbox -WhatIf sends nothing",
+     "Get-HmMailboxMove -Address ann@example.com | Out-Null; Move-HmMailbox -Address ann@example.com -NewAddress ann@example.net -WhatIf; 'nothing was sent'",
+     "GET", "/api/v1/accounts/ann@example.com/move", None, ["nothing was sent"]),
     ("Get-HmSetting", "Get-HmSetting | Select-Object -ExpandProperty max_message_size_kb",
      "GET", "/api/v1/settings", None, ["20480"]),
     ("Get-HmIniSetting", "Get-HmIniSetting | ForEach-Object { $_.name + '=' + $_.value }",

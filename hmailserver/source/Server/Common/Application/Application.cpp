@@ -63,6 +63,7 @@
 
 #include "../BO/Message.h"
 #include "../BO/Domain.h"
+#include "../Persistence/MailboxMove.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentDomain.h"
 #include "RemoveExpiredRecords.h"
@@ -623,6 +624,12 @@ namespace HM
          manage_sieve_server_ = std::shared_ptr<ManageSieveServer>(new ManageSieveServer());
          manage_sieve_server_->Start(IniFileSettings::Instance()->GetManageSieveServerBindAddress(), manageSievePort);
       }
+
+      // A mailbox rename or move that was interrupted - the process killed
+      // between the store being moved and the account row being written - is
+      // visible in hm_mailboxmoves and nowhere else, so it is said here, once
+      // per process, rather than waiting for somebody to go looking.
+      MailboxMove::ReportInterrupted();
 
       LOG_APPLICATION("Servers started.")
 

@@ -75,6 +75,7 @@ Not in the archive, deliberately
 | Per-message and per-mailbox annotations (RFC 5257, RFC 5464) | Keyed on ids a restore reassigns. Recorded as a gap in `Roadmap2.md` rather than silently dropped |
 | The expunge log a QRESYNC client is answered from | Restoring it would tell a client that messages the restore has just put back are gone |
 | Quarantine, message trace, metric history, the archive index | Server-wide operational records rather than an account's data. Back the database up if you need them |
+| The journal of mailbox moves (`hm_mailboxmoves`) | A record of what this installation did to its own store, not part of a mailbox. A restore is not a moment in a move: the account comes back at the address the archive holds, so a carried row would describe a move this store has no trace of. The audit trail is the record a person reads - see [MailboxMove.md](MailboxMove.md) |
 | The links in quarantine digests already sent (`hm_digesttokens`) | Each is good once and expires within `QuarantineDigestLinkHours`, and names a quarantine entry the archive does not hold. The next digest issues new ones |
 
 

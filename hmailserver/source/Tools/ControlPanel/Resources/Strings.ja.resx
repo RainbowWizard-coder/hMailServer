@@ -470,6 +470,9 @@
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>hMailServer 向けの最新の管理アプリケーションです。リアルタイムのダッシュボード、ドメインとアカウント、配信キュー、ログのストリーミング、サーバー設定のすべて、そして 6.x の転送セキュリティ機能 (DANE、MTA-STS、ARC、TLS-RPT、ACME) を備えています。</value>
   </data>
+  <data name="A new address is required." xml:space="preserve">
+    <value>新しいアドレスが必要です。</value>
+  </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>新しい鍵を生成して準備しました。そのレコードを公開してください。</value>
   </data>
@@ -4645,6 +4648,9 @@
   <data name="Mirroring" xml:space="preserve">
     <value>ミラーリング</value>
   </data>
+  <data name="Mo_ve or rename..." xml:space="preserve">
+    <value>移動または名前の変更...(_V)</value>
+  </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>mode と max_age は、このコンピューターの hMailServer.INI から読み取りました。</value>
   </data>
@@ -4666,11 +4672,17 @@
   <data name="Move _up" xml:space="preserve">
     <value>上へ移動(_U)</value>
   </data>
+  <data name="Move or rename {0}" xml:space="preserve">
+    <value>{0} の移動または名前の変更</value>
+  </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>{0} の署名を今すぐ次の鍵に切り替えますか？</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>メッセージ ファイルをコピーする代わりに SpamAssassin に移動する (再起動が必要)</value>
+  </data>
+  <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
+    <value>このメールボックスを別のドメインに移動するか、名前を変更して古いアドレスを残す</value>
   </data>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>IMAP フォルダーに移動</value>
@@ -8174,6 +8186,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>書き込まれるそばからのログを、プロトコルでフィルターして表示します。1 通のメッセージに何が起きたかを見る最速の方法です。</value>
   </data>
+  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
+    <value>メールボックスを移動できませんでした。{0}</value>
+  </data>
+  <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
+    <value>メールボックス、そのメッセージ、アカウントに紐づくすべてが一緒に移動します。ルール、フィルター、フォルダーとその権限、アプリパスワード、二要素、連絡先、カレンダー、設定、パスワード履歴、送信者リスト、グループのメンバーシップ、ロール。</value>
+  </data>
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>hMailServer の主管理パスワードです。このコントロールパネル、REST API、そして COM API 経由で接続するあらゆるスクリプトが使用し、hMailServer.ini にハッシュ化されて保存されます。これを変更してもメールボックスのパスワードには影響しません。</value>
   </data>
@@ -8589,6 +8607,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>この鍵ファイルは暗号化されています (パスフレーズで保護)。追加する前に下のボックスにパスフレーズを入力してください。そうしないと鍵は読み込まれず (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
+  </data>
+  <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
+    <value>このメールボックスは現在移動できません: {0}</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>このページはかつて、行き場のないすべての hMailServer.INI 値を集めていました。つまり、値が何をするかではなく、どこに保存されているかで分類されていたのです。値がどこに保存されているかは、知る必要がまったくない唯一の事柄です。これらはそれぞれ、今は自身の機能の他の設定と一緒に置かれています。何も削除されておらず、値も変わっていません。編集するページが変わっただけです。</value>
@@ -9568,6 +9589,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Keep original message" xml:space="preserve">
     <value>元のメッセージを残す(_K)</value>
   </data>
+  <data name="_Keep the old address as an alias" xml:space="preserve">
+    <value>古いアドレスをエイリアスとして残す(_K)</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>言語(_L)</value>
   </data>
@@ -9610,8 +9634,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>モデレーター (空 = モデレーションなし)(_M)</value>
   </data>
+  <data name="_Move" xml:space="preserve">
+    <value>移動(_M)</value>
+  </data>
   <data name="_Name" xml:space="preserve">
     <value>名前(_N)</value>
+  </data>
+  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
+    <value>新しいアドレス (このサーバーが保持するどのドメインでも可)(_N)</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>メモ(_N)</value>
@@ -10719,6 +10749,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} 件は期限切れで、現在は拒否されます</value>
+  </data>
+  <data name="{0} has been moved to {1}." xml:space="preserve">
+    <value>{0} を {1} に移動しました。</value>
   </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} には postmaster アドレスが設定されておらず、このページが勝手にメールボックスを作り出すことはありません。レポートを受け取るべきアドレスを入力してください。入力されるまで、コピーできるレコードはありません。</value>

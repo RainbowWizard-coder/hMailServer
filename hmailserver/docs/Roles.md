@@ -40,7 +40,7 @@ domains is refused them whatever it holds.
 | `administer_server` | Everything, including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
 | `administer_domain` | Every COM gate that has always asked "is this a domain administrator?" | ✅ | ✅ | | |
 | `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation, the bounce settings *(server-wide)* and how a bounce would be classifiedand complaint settings, how a bounce would be classified, and every domain's complaint rate — never a secret | ✅ | ✅ | | ✅ |
-| `view_accounts` | Domains, accounts, aliases, lists, groups *(server-wide)*, fetch accounts, the OpenAPI document | ✅ | ✅ | ✅ | ✅ |
+| `view_accounts` | Domains, accounts, aliases, lists, groups *(server-wide)*, fetch accounts, the OpenAPI document, and whether a mailbox could be moved now and what it has been through | ✅ | ✅ | ✅ | ✅ |
 | `view_mailbox` | Another account's folders and messages | ✅ | ✅ | | ✅ |
 | `view_queue` | The delivery queue *(server-wide)* | ✅ | | | ✅ |
 | `view_quarantine` | The quarantine *(server-wide)* | ✅ | ✅ | | ✅ |
@@ -48,7 +48,7 @@ domains is refused them whatever it holds.
 | `view_logs` | The logs *(server-wide)* | ✅ | | | ✅ |
 | `view_message_trace` | The message trace — see below — and, with `view_configuration`, the reports and a domain's suppression list and bounce cou, a domain's suppression list and bounce counts, and a domain's complaints | ✅ | ✅ | ✅ | ✅ |
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
-| `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, a domain's own allow and block list, a domain's DKIM key rotation (rotate, check, switch, retire and cancel now), a domain's suppression list (an address added or removed by hand), and an account's OpenPGP public keys (stored or removed) | ✅ | ✅ | | |
+| `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, a domain's own allow and block list, a domain's DKIM key rotation (rotate, check, switch, retire and cancel now), a domain's suppression list (an address added or removed by hand), and an account's OpenPGP public keys (stored or removed domain's suppression list (an address added or removed by hand), and renaming a mailbox or moving one to another domain - which needs the permission in **both** domains, the one the mailbox leaves and the one it goes to ([MailboxMove.md](MailboxMove.md)) | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
 | `unlock_account` | `POST /api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` (both locks), `Account.UnlockMailbox` (the POP3 mailbox lock alone; an account's own is its own to clear) - each on the audit trail as `unlocked` - and clearing the logon-failure list (`POST /api/v1/settings/logon-failures/clear` *(server-wide)*; `Settings.ClearLogonFailureList` answers the server administrator only), on it as `logon failures` / `cleared`. See [The logon-failure list](#the-logon-failure-list) for what a confined help desk does instead | ✅ | ✅ | ✅ | |
 | `manage_mailbox` | Another account's folders, messages and folder rights, and a support session | ✅ | ✅ | | |

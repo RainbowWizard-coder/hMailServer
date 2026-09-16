@@ -470,6 +470,9 @@
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Современное приложение администрирования для hMailServer: живая панель мониторинга, домены и учётные записи, очередь доставки, потоковый просмотр журналов, полный набор параметров сервера и функции транспортной безопасности версии 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new address is required." xml:space="preserve">
+    <value>Требуется новый адрес.</value>
+  </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>Новый ключ создан и подготовлен. Опубликуйте его запись.</value>
   </data>
@@ -4645,6 +4648,9 @@ Control Panel может читать файлы сообщений только
   <data name="Mirroring" xml:space="preserve">
     <value>Зеркалирование</value>
   </data>
+  <data name="Mo_ve or rename..." xml:space="preserve">
+    <value>Перенести или переимено_вать...</value>
+  </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Режим и max_age прочитаны из hMailServer.INI на этом компьютере.</value>
   </data>
@@ -4666,11 +4672,17 @@ Control Panel может читать файлы сообщений только
   <data name="Move _up" xml:space="preserve">
     <value>Переместить в_верх</value>
   </data>
+  <data name="Move or rename {0}" xml:space="preserve">
+    <value>Перенести или переименовать {0}</value>
+  </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>Перевести подпись домена {0} на следующий ключ сейчас?</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Перемещать файл сообщения в SpamAssassin вместо копирования (требуется перезапуск)</value>
+  </data>
+  <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
+    <value>Перенести этот ящик в другой домен или переименовать его, сохранив старый адрес</value>
   </data>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Переместить в папку IMAP</value>
@@ -8174,6 +8186,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Журнал по мере записи, с фильтром по протоколу - самый быстрый способ увидеть, что случилось с одним сообщением.</value>
   </data>
+  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
+    <value>Не удалось перенести ящик. {0}</value>
+  </data>
+  <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
+    <value>Ящик, его письма и всё, что привязано к учётной записи, переезжают вместе с ним: правила, фильтры, папки и права на них, пароли приложений, второй фактор, контакты, календари, настройки, история паролей, списки отправителей, членство в группах и роль.</value>
+  </data>
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Основной пароль администрирования hMailServer. Его используют этот Control Panel, REST API и любой скрипт, подключающийся через COM API; он хранится в hMailServer.ini в виде хеша. Его изменение не влияет на пароли почтовых ящиков.</value>
   </data>
@@ -8589,6 +8607,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Этот файл ключа зашифрован (защищён парольной фразой). Введите его парольную фразу в поле ниже перед добавлением, иначе ключ не загрузится (ошибка сервера 6170), и порты TLS, использующие этот сертификат, не запустятся.</value>
+  </data>
+  <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
+    <value>Этот ящик сейчас нельзя перенести: {0}</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Раньше эта страница собирала каждое значение hMailServer.INI, у которого не было своего места, - то есть раскладывала их по тому, где значение хранится, а не по тому, что оно делает; а где хранится значение - единственное, что вам никогда не нужно знать. Теперь каждое из них лежит вместе с остальной частью своей функции. Ничего не убрано и ни одно значение не изменено; изменилась только страница, на которой оно редактируется.</value>
@@ -9568,6 +9589,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Keep original message" xml:space="preserve">
     <value>_Сохранять исходное сообщение</value>
   </data>
+  <data name="_Keep the old address as an alias" xml:space="preserve">
+    <value>_Оставить старый адрес как псевдоним</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>_Язык</value>
   </data>
@@ -9610,8 +9634,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Модератор (пусто — без модерации)</value>
   </data>
+  <data name="_Move" xml:space="preserve">
+    <value>_Перенести</value>
+  </data>
   <data name="_Name" xml:space="preserve">
     <value>_Имя</value>
+  </data>
+  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
+    <value>_Новый адрес (он может быть в любом домене этого сервера)</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Примечание</value>
@@ -10719,6 +10749,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} с истёкшим сроком действия, теперь отклоняются</value>
+  </data>
+  <data name="{0} has been moved to {1}." xml:space="preserve">
+    <value>{0} перенесён на {1}.</value>
   </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Для {0} не настроен адрес postmaster, а эта страница не станет придумывать почтовый ящик — укажите адрес, который должен получать отчёты. Пока он не указан, копировать нечего.</value>

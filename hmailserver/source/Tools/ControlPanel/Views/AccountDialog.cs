@@ -175,6 +175,22 @@ namespace hMailServer.ControlPanel.Views
          addressRow_ = Label(L("_Address (changing it renames the mailbox; it must stay in this domain)"), addressBox_);
          panel.Children.Add(addressRow_);
 
+         // The other half of changing an address, and the one that can do
+         // everything: moving the mailbox to another domain on this server, and
+         // leaving the old address behind as an alias. The box above can do
+         // neither - the account's domain is the domain it is listed under, and
+         // saving it never leaves an alias - so the two are separate rather than
+         // one box that sometimes means something larger.
+         var moveButton = new Wpf.Ui.Controls.Button
+         {
+            Content = L("Mo_ve or rename..."),
+            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm)
+         };
+         AutomationProperties.SetAutomationId(moveButton, "AccountMove");
+         AutomationProperties.SetName(moveButton, L("Move this mailbox to another domain, or rename it and keep the old address"));
+         moveButton.Click += (s, e) => MoveMailbox();
+         panel.Children.Add(moveButton);
+
          panel.Children.Add(Label(L("Ad_ministration level"), adminLevel_));
 
          quotaRow_ = Label(L("_Quota (MB, 0 = unlimited)"), quota_);
@@ -895,6 +911,21 @@ namespace hMailServer.ControlPanel.Views
       /// every box on the account editor announced as a bare "edit". Same helper
       /// as RuleActionDialog and RuleCriteriaDialog.
       /// </summary>
+      /// <summary>
+      /// The whole move, in a dialog of its own. The account dialog closes when
+      /// it succeeds, because the address it was opened with is no longer an
+      /// address: everything on the eleven tabs was read for a mailbox that is
+      /// now somewhere else, and saving any of it would be saving it against a
+      /// name the server no longer has.
+      /// </summary>
+      private void MoveMailbox()
+      {
+         var dialog = new MailboxMoveDialog(this, address_);
+
+         if (dialog.ShowDialog() == true)
+            Close();
+      }
+
       private static FieldRow Label(string text, FrameworkElement editor) => DialogFields.Field(text, editor);
    }
 }

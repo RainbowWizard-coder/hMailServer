@@ -26,10 +26,12 @@ Every **administrative change** made over COM, REST or the Deck, with the
 exceptions listed under *What this does not do* at the end of this page: a
 configuration row created, changed or deleted; every server setting written
 — both kinds, the settings in `hm_settings` and the `[Settings]` keys that moved
-from `hMailServer.ini` into `hm_inisettings` at schema 6042; and a lockout lifted
+from `hMailServer.ini` into `hm_inisettings` at schema 6042; a lockout lifted
 in any of its forms - an account unlocked, a POP3 mailbox lock cleared, the
 logon-failure list cleared - which change no audited row and no setting, and so
-are recorded where they are made. One row per change, in `hm_audit`:
+are recorded where they are made; and a mailbox renamed or moved to another
+domain, which is the opposite shape - so many rows, and so plainly one act, that
+recording each would bury it. One row per change, in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
@@ -40,7 +42,7 @@ are recorded where they are made. One row per change, in `hm_audit`:
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
 | `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. For a greylisting white address it is the address as it was typed (`10.78.0.?`), because the column holds the SQL `LIKE` pattern that was made of it (`10.78.0._`) and that is an address no other surface shows; the detail still carries the stored pattern. |
-| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list. |
+| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list; `moved` for a mailbox renamed or moved to another domain, and `move failed` for one that failed and could not be put back. |
 | `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
@@ -174,6 +176,20 @@ rows of `hm_logon_failures`, which is traffic and not an audited table. Each is 
 explicitly, through `AuditTrail::RecordEvent`, at the call site that makes it - object
 type `account`, the address, action `unlocked`; or object type `logon failures`, action
 `cleared` - under the same actor and with the same `[role: ...]` as any other row.
+
+A mailbox renamed, or moved to another domain, is the other shape of the same
+problem. It writes the account row, an alias, a row per distribution list
+membership, a row per queued recipient and a row per quarantined message, and
+every one of those is part of ONE thing an administrator did once. Left to the
+statement chokepoint the trail would carry four or five entries, none of which
+names both addresses. So the writing runs with no actor on the thread - an
+`AuditScope` carrying an absent actor, exactly as a script's boundary does - and
+the move is recorded once afterwards: object type `account`, the address it took,
+action `moved`, and a detail naming the address it left, the messages and folders
+it carried, what was re-pointed and whether the old address was kept. A move that
+failed and could **not** be put back is recorded as `move failed`, with what was
+left where; a move that failed and was put back is not recorded, because nothing
+changed. [MailboxMove.md](MailboxMove.md) is the walk.
 
 Who made the change is a thread-local actor, installed at one place per
 interface:

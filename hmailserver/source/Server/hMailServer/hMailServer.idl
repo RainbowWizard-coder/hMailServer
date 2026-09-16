@@ -1192,6 +1192,13 @@ interface IInterfaceAccount : IDispatch
    [propput, id(6), helpstring("The account is connected to Active Directory.")] HRESULT IsAD([in] VARIANT_BOOL newVal);
    [propget, id(7), helpstring("The password of the account.")] HRESULT Password([out, retval] BSTR *pVal);
    [propput, id(7), helpstring("The password of the account.")] HRESULT Password([in] BSTR newVal);
+
+   // Renaming a mailbox, and moving one to another domain on this server, as
+   // one operation. Appended below the note above, as everything added later
+   // must be.
+   [id(54), helpstring("Renames this account, or moves it to another domain on this server - NewAddress carries the domain, so the two are one call. Everything keyed on the account follows it: its rules, folders, subscriptions, folder permissions, application passwords, second factor, contacts, calendars, preferences, known senders, password history, sender lists, group memberships and role. The message store and the Sieve tree are moved, and the aliases pointing at the account, its distribution list memberships, the recipients of mail still in the queue and its quarantined messages are rewritten. With KeepOldAddressAsAlias the old address is left behind as an alias to the new one, which is what keeps mail to it flowing. Refuses, changing nothing, an address that already exists as an account, alias or list, a domain this server does not hold or that is not active, and a mailbox in use (see InUseReason). Returns a JSON summary: old_address, new_address, old_domain, new_domain, account_id, alias_kept, store_moved, messages, folders, aliases_repointed, list_memberships, queued_recipients, quarantine_entries, journal_id. Requires manage-accounts authority in both domains. There is no Save() for this - it is done when it returns.")] HRESULT MoveTo([in] BSTR NewAddress, [in] VARIANT_BOOL KeepOldAddressAsAlias, [out, retval] BSTR *Summary);
+   [propget, id(55), helpstring("Why this mailbox cannot be moved at this moment, in a sentence, or an empty string when nothing holds it. A POP3 session holds the mailbox from authentication until its socket closes; an IMAP session holds it while it has one of the account's folders selected. Reads and changes nothing.")] HRESULT InUseReason([out, retval] BSTR *pVal);
+   [propget, id(56), helpstring("The most recent move of this mailbox as JSON - id, account_id, old_address, new_address, stage, stage_name, complete, keep_alias, messages, started, finished, detail - or an empty string when it has never been moved. A record whose complete is false is a move that was interrupted; hmailserver/docs/MailboxMove.md says what each stage leaves behind.")] HRESULT LastMove([out, retval] BSTR *pVal);
    [propget, id(8), helpstring("The size of the account.")] HRESULT Size([out, retval] float *pVal);
    [id(9), helpstring("Saves the account in the database.")] HRESULT Save();
    [propget, id(10), helpstring("Name of the active directory user account.")] HRESULT ADUsername([out, retval] BSTR *pVal);
@@ -1385,6 +1392,7 @@ interface IInterfaceMessage : IDispatch
    [propget, id(25), helpstring("The number of this delivery attempt.")] HRESULT DeliveryAttempt([out, retval] long *pVal);
    [propget, id(26), helpstring("The main character set of the email.")] HRESULT Charset([out, retval] BSTR *pVal);
    [propput, id(26), helpstring("The main character set of the email.")] HRESULT Charset([in] BSTR newVal);
+
    [id(27), helpstring("Copies the message to the specified IMAP folder")] HRESULT Copy([in] long iDestinationFolderID);
    [propget, id(28), helpstring("The mailbox-unique identifier for the e-mail.")] HRESULT UID([out, retval] long *pVal);
 };
@@ -1532,6 +1540,12 @@ interface IInterfaceUtilities : IDispatch{
    // asserts nothing about what it carried. Neither reads or writes anything.
    [id(58), helpstring("A fresh P-256 key pair of the kind a browser makes when it subscribes, as JSON {public_key, private_key} in base64url. For a caller that has to stand in for a browser; the server keeps nothing.")] HRESULT GenerateWebPushKeyPair([out, retval] BSTR *Json);
    [id(59), helpstring("Opens an RFC 8291 push message body (base64url of the aes128gcm bytes) with a subscription private key and auth secret, and returns the plain text. Raises an error when the body does not open. Reads and writes nothing.")] HRESULT WebPushDecrypt([in] BSTR BodyBase64Url, [in] BSTR PrivateKey, [in] BSTR AuthSecret, [out, retval] BSTR *PlainText);
+   // A mailbox renamed or moved, reached by address rather than through an
+   // Account object, and the journal of what has been moved - so a script, the
+   // Control Panel and a support session can do and read the same thing without
+   // first walking a domain's accounts.
+   [id(46), helpstring("Renames the mailbox at Address, or moves it to another domain on this server, exactly as Account.MoveTo does - the same operation, reached by address. Returns the same JSON summary. Requires manage-accounts authority in the domain the mailbox is leaving and in the one it is going to.")] HRESULT MoveMailbox([in] BSTR Address, [in] BSTR NewAddress, [in] VARIANT_BOOL KeepOldAddressAsAlias, [out, retval] BSTR *Summary);
+   [id(47), helpstring("The journal of mailbox moves as JSON {moves:[...]}, newest first: one entry per rename or move with both addresses, the stage it reached and what it carried. Address names one mailbox (its current address); an empty Address is every mailbox on the server and requires server administrator rights. MaxRows 1 to 1000, 100 by default.")] HRESULT GetMailboxMoves([in] BSTR Address, [in] long MaxRows, [out, retval] BSTR *Json);
 };
 
 [

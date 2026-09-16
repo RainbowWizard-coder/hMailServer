@@ -88,6 +88,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
 | `dkim` | status, rotate, check, switch, retire, cancel, run | A domain's DKIM key rotation and the records it needs published. The schedule is five keys of the domain: `domain update`. |
+| `mailbox` | status, move | Renaming a mailbox, or moving it to another domain on this server. `status` says whether anything is holding it and what it has been through; `move` takes the address it is to have. [MailboxMove.md](MailboxMove.md). |
 | `app-password` | list, create, delete | Under an account's address. |
 | `device` | list, revoke | The clients that have signed in to an account - protocol, address, program, which credential, first and last seen - under its address. `revoke ID` ends what one holds now (its browser session, its live IMAP, POP3 and SMTP connections); `--credential` also turns off the app password it signed in with, `--forget` removes the entry ([DevicesAndSessions.md](DevicesAndSessions.md)). |
 | `match` | *(a criterion and a value)* | What a rule criterion would decide, without a rule. |
@@ -286,6 +287,33 @@ denominator are the server's, and a second implementation of them would drift
 from the one the `complaints.rate.high` alert fires on. A domain that has sent too
 little is said to be so rather than given a rate.
 [Complaints.md](Complaints.md) is the whole of it.
+
+Renaming a mailbox, and moving one to another domain
+----------------------------------------------------
+
+```bash
+hmctl mailbox status ann@example.com
+hmctl mailbox move ann@example.com anne@example.com
+hmctl mailbox move ann@example.com ann@example.net
+hmctl mailbox move ann@example.com anne@example.com --drop-alias
+```
+
+The new address carries the domain, so a rename and a move to another domain on
+this server are the same command. The account keeps its identity: its messages,
+folders, rules, filters, application passwords, second factor, contacts,
+calendars, preferences, password history, sender lists, group memberships and
+role all follow it, which is what a second account and a copy could never do.
+
+The old address is left behind as an alias unless `--drop-alias` says otherwise,
+because a correspondent's address book, a list somebody signed up to and a
+printer configured three years ago all still hold it. `status` first: a mailbox a
+POP3 or IMAP session is holding cannot be moved, and it says which.
+
+In PowerShell, `Get-HmMailboxMove` and `Move-HmMailbox`. `Move-HmMailbox` asks
+before it moves anything and `-WhatIf` sends nothing at all.
+
+[MailboxMove.md](MailboxMove.md) says what moves, what deliberately does not, and
+what an interrupted move leaves behind.
 
 Accounts from a spreadsheet
 ---------------------------

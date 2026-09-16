@@ -470,6 +470,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Une application d'administration moderne pour hMailServer : tableau de bord en direct, domaines et comptes, file de livraison, flux de journaux, tous les réglages du serveur et les fonctions de sécurité de transport de la 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new address is required." xml:space="preserve">
+    <value>Une nouvelle adresse est requise.</value>
+  </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>Une nouvelle clé a été générée et préparée. Publiez son enregistrement.</value>
   </data>
@@ -4645,6 +4648,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Mirroring" xml:space="preserve">
     <value>Mise en miroir</value>
   </data>
+  <data name="Mo_ve or rename..." xml:space="preserve">
+    <value>Déplacer ou renomme_r...</value>
+  </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Mode et max_age lus depuis hMailServer.INI sur cette machine.</value>
   </data>
@@ -4666,11 +4672,17 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Move _up" xml:space="preserve">
     <value>_Monter</value>
   </data>
+  <data name="Move or rename {0}" xml:space="preserve">
+    <value>Déplacer ou renommer {0}</value>
+  </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>Basculer maintenant la signature de {0} vers la clé suivante ?</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Déplacer le fichier de message vers SpamAssassin au lieu de le copier (redémarrage requis)</value>
+  </data>
+  <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
+    <value>Déplacer cette boîte aux lettres vers un autre domaine, ou la renommer en gardant l'ancienne adresse</value>
   </data>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Déplacer vers un dossier IMAP</value>
@@ -8174,6 +8186,12 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Le journal tel qu'il est écrit, filtré par protocole - le moyen le plus rapide de voir ce qui est arrivé à un message.</value>
   </data>
+  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
+    <value>La boîte aux lettres n'a pas pu être déplacée. {0}</value>
+  </data>
+  <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
+    <value>La boîte aux lettres, ses messages et tout ce qui tient au compte la suivent : ses règles, ses filtres, ses dossiers et leurs permissions, les mots de passe d'application, le second facteur, les contacts, les calendriers, les préférences, l'historique des mots de passe, les listes d'expéditeurs, les appartenances aux groupes et son rôle.</value>
+  </data>
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Le mot de passe principal d'administration de hMailServer. Il est utilisé par ce Control Panel, l'API REST et tout script qui se connecte via l'API COM, et il est stocké sous forme de hachage dans hMailServer.ini. Le changer n'affecte pas les mots de passe des boîtes.</value>
   </data>
@@ -8589,6 +8607,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Ce fichier de clé est chiffré (protégé par une phrase secrète). Saisissez sa phrase secrète dans la case ci-dessous avant l'ajout, sinon la clé ne se chargera pas (erreur serveur 6170) et les ports TLS utilisant ce certificat ne démarreront pas.</value>
+  </data>
+  <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
+    <value>Cette boîte aux lettres ne peut pas être déplacée pour le moment : {0}</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Cette page rassemblait autrefois toutes les valeurs de hMailServer.INI sans domicile, ce qui voulait dire qu'elles étaient classées selon l'endroit où la valeur est stockée plutôt que selon ce qu'elle fait - et l'endroit où une valeur est stockée est la seule chose que vous n'avez jamais besoin de savoir. Chacune d'elles se trouve maintenant avec le reste de sa propre fonction. Rien n'a été retiré et aucune valeur n'a changé ; seule la page sur laquelle elle se modifie.</value>
@@ -9568,6 +9589,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Conserver le message d'origine</value>
   </data>
+  <data name="_Keep the old address as an alias" xml:space="preserve">
+    <value>_Conserver l'ancienne adresse comme alias</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>_Langue</value>
   </data>
@@ -9610,8 +9634,14 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Modérateur (vide = pas de modération)</value>
   </data>
+  <data name="_Move" xml:space="preserve">
+    <value>_Déplacer</value>
+  </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nom</value>
+  </data>
+  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
+    <value>_Nouvelle adresse (elle peut être dans n'importe quel domaine de ce serveur)</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Note</value>
@@ -10719,6 +10749,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} expiré(s) et désormais refusé(s)</value>
+  </data>
+  <data name="{0} has been moved to {1}." xml:space="preserve">
+    <value>{0} a été déplacé vers {1}.</value>
   </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} n'a pas d'adresse postmaster configurée, et cette page n'inventera pas de boîte - saisissez l'adresse qui doit recevoir les rapports. Tant qu'aucune n'est saisie, il n'y a pas d'enregistrement à copier.</value>

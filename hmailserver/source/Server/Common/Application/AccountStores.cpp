@@ -314,6 +314,11 @@ namespace HM
       { _T("hm_complaints"),
         _T("An abuse report a feedback loop sent about mail this installation put out. Its account id says whose mail drew it, which makes it look like a per-account store, but it is not the account's: it is what somebody outside said, it is pruned on ComplaintRetentionDays rather than kept, and what it does - the complaint count and the suppression list entry - belongs to the DOMAIN and travels with the domain. ")
         _T("Restoring it under an account would bring back complaints that had already aged out, and the rate they feed is a moving seven-day window a restore cannot honestly reconstruct.") },
+      { _T("hm_mailboxmoves"),
+        _T("The journal of a mailbox rename or move (schema 6050): which account went from which address to which, how far it got, and whether the old address was kept as an alias. ")
+        _T("It is a record of what this installation did to its own store, not part of the mailbox, and a restore is not a moment in a move: the account it names comes back at the address the archive holds, ")
+        _T("so a carried row would describe a move that this store has no trace of and, at a stage short of complete, would name a half-move that is not there to finish. The audit trail keeps the record a person reads.") },
+
       { _T("hm_digesttokens"),
         _T("The one-shot capabilities a quarantine digest's links carry - release this entry, release everything listed, stop the digest - each good once and dead within QuarantineDigestLinkHours (72 by default, 720 at most). ")
         _T("Restoring one would bring back a link that was already spent or had expired, naming a quarantine entry by an id the restore does not carry; the next digest issues fresh ones.") },

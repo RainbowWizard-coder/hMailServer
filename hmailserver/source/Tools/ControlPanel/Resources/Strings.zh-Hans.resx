@@ -470,6 +470,9 @@
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>面向 hMailServer 的现代管理应用：实时仪表板、域与账户、投递队列、日志流、完整的服务器设置，以及 6.x 的传输安全功能（DANE、MTA-STS、ARC、TLS-RPT、ACME）。</value>
   </data>
+  <data name="A new address is required." xml:space="preserve">
+    <value>需要新地址。</value>
+  </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>已生成并准备好新密钥。请发布它的记录。</value>
   </data>
@@ -4645,6 +4648,9 @@
   <data name="Mirroring" xml:space="preserve">
     <value>镜像</value>
   </data>
+  <data name="Mo_ve or rename..." xml:space="preserve">
+    <value>迁移或重命名...(_V)</value>
+  </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>mode 和 max_age 读取自本机上的 hMailServer.INI。</value>
   </data>
@@ -4666,11 +4672,17 @@
   <data name="Move _up" xml:space="preserve">
     <value>上移(_U)</value>
   </data>
+  <data name="Move or rename {0}" xml:space="preserve">
+    <value>迁移或重命名 {0}</value>
+  </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>要立即将 {0} 的签名切换到下一个密钥吗？</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>把邮件文件移动到 SpamAssassin 而不是复制（需要重启）</value>
+  </data>
+  <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
+    <value>将此邮箱迁移到其他域，或重命名并保留旧地址</value>
   </data>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>移动到 IMAP 文件夹</value>
@@ -8174,6 +8186,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>按写入时序显示的日志，按协议筛选 - 这是查看某一封邮件遭遇了什么的最快方法。</value>
   </data>
+  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
+    <value>无法迁移此邮箱。{0}</value>
+  </data>
+  <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
+    <value>邮箱、它的邮件以及一切以账户为键的内容都会随之迁移：规则、过滤器、文件夹及其权限、应用密码、第二因素、联系人、日历、首选项、密码历史、发件人列表、组成员身份和角色。</value>
+  </data>
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>hMailServer 的主管理密码。此控制面板、REST API 以及任何通过 COM API 连接的脚本都使用它，它以哈希形式存储在 hMailServer.ini 中。更改它不会影响邮箱密码。</value>
   </data>
@@ -8589,6 +8607,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>此密钥文件已加密 (受密码短语保护)。添加之前请在下面的框中输入其密码短语，否则密钥不会加载 (服务器错误 6170)，使用此证书的 TLS 端口也不会启动。</value>
+  </data>
+  <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
+    <value>此邮箱当前无法迁移：{0}</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>本页以前收集所有没有归属的 hMailServer.INI 值，也就是说它们是按值存放在哪里归档的，而不是按它们做什么 - 而值存放在哪里恰恰是您永远不需要知道的事。现在每一项都和它自己的功能放在一起。没有移除任何内容，也没有更改任何值；只有编辑它的页面变了。</value>
@@ -9568,6 +9589,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Keep original message" xml:space="preserve">
     <value>保留原始邮件(_K)</value>
   </data>
+  <data name="_Keep the old address as an alias" xml:space="preserve">
+    <value>将旧地址保留为别名(_K)</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>语言(_L)</value>
   </data>
@@ -9610,8 +9634,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>审核人(_M)（留空 = 不审核）</value>
   </data>
+  <data name="_Move" xml:space="preserve">
+    <value>迁移(_M)</value>
+  </data>
   <data name="_Name" xml:space="preserve">
     <value>名称(_N)</value>
+  </data>
+  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
+    <value>新地址（可以是此服务器持有的任何域）(_N)</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>备注(_N)</value>
@@ -10719,6 +10749,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} 已过期，现在会被拒绝</value>
+  </data>
+  <data name="{0} has been moved to {1}." xml:space="preserve">
+    <value>{0} 已迁移到 {1}。</value>
   </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} 没有配置 postmaster 地址，而本页不会凭空编造一个邮箱 - 请输入应当接收这些报告的地址。在输入之前，没有可复制的记录。</value>

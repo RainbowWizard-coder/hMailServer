@@ -372,4 +372,11 @@
 //      the complaints.rate.high alert rule. Nothing is written to any of them until
 //      ComplaintProcessingEnabled is switched on and a complaint mailbox is named,
 //      so an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6055
+// 6050 adds hm_mailboxmoves, the journal of a mailbox rename or move: one row per
+//      move, naming the account, the address it left, the address it took, how far
+//      the move got and whether the old address was kept as an alias. Nothing reads
+//      it to decide anything - a move is decided from the account and the domains -
+//      so an upgraded database behaves exactly as it did; what it buys is that an
+//      interrupted move is visible afterwards instead of being guessed at from the
+//      store. The table starts empty and cascades away with its account.
+#define REQUIRED_DB_VERSION            6056

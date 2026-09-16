@@ -523,6 +523,12 @@ namespace HM
          // about and nobody else's.
          RouteMessageTraceRecent,
          RouteMessageTraceAddress,
+         // Renaming a mailbox, and moving one to another domain on this server
+         // (RestApiMailboxMove.cpp). Both are scoped by the address in the path
+         // as every account route is; the POST also judges the domain in its
+         // BODY, which no generic authorisation can see.
+         RouteMailboxMoveGet,
+         RouteMailboxMove,
          // Complaints read, the feedback loops (RestApiComplaints.cpp). The
          // listing under a domain is scoped to it in Authorize_ as the
          // suppression list is; the rates, the settings group and the sweep are
@@ -741,6 +747,11 @@ namespace HM
       HttpResponse ProcessRequest_(const AnsiString &request, const IPAddress &peer_address);
 
       static void ParseRoute_(const AnsiString &method, const AnsiString &path, Route &route);
+
+      // One path segment as the client sent it, with %XX turned back into the
+      // character it stands for - except a separator, which is never decoded.
+      // See the note beside the call for both halves of that.
+      static AnsiString DecodePathSegment_(const AnsiString &raw);
 
       // The single authorisation choke point. Every route passes through this
       // and nothing else decides access.
@@ -1317,6 +1328,11 @@ namespace HM
       HttpResponse HandleAccountPasswordReset_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
       HttpResponse HandleAccountUnlock_(const Caller &caller, const AnsiString &address);
       HttpResponse HandleMessageTrace_(const Caller &caller, RouteKind kind, const AnsiString &identifier);
+      // A mailbox renamed or moved to another domain (RestApiMailboxMove.cpp):
+      // what Account.MoveTo does over COM.
+      HttpResponse HandleMailboxMoveGet_(const AnsiString &address);
+      HttpResponse HandleMailboxMove_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody);
+      static AnsiString OpenApiMailboxMovePaths_();
       static AnsiString RoleJson_(const RoleRecord &record);
       static AnsiString OpenApiRolesPaths_();
       // A rule criterion tried against a value (RestApiRules.cpp): what

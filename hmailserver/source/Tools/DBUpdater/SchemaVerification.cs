@@ -1027,7 +1027,27 @@ namespace DBUpdater
          new SchemaProbe(6055, "hm_complaintvolume.cvsent",
                          "update hm_complaintvolume set cvsent = cvsent where 1 = 0"),
          new SchemaProbe(6055, "hm_complaintvolume.cvcomplaints",
-                         "update hm_complaintvolume set cvcomplaints = cvcomplaints where 1 = 0")
+                         "update hm_complaintvolume set cvcomplaints = cvcomplaints where 1 = 0"),
+
+         // Upgrade6055to6056* - the journal of a mailbox rename or move.
+         new SchemaProbe(6056, "hm_mailboxmoves.mmaccountid",
+                         "update hm_mailboxmoves set mmaccountid = mmaccountid where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmoldaddress",
+                         "update hm_mailboxmoves set mmoldaddress = mmoldaddress where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmnewaddress",
+                         "update hm_mailboxmoves set mmnewaddress = mmnewaddress where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmstage",
+                         "update hm_mailboxmoves set mmstage = mmstage where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmkeepalias",
+                         "update hm_mailboxmoves set mmkeepalias = mmkeepalias where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmmessages",
+                         "update hm_mailboxmoves set mmmessages = mmmessages where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmstarted",
+                         "update hm_mailboxmoves set mmstarted = mmstarted where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmfinished",
+                         "update hm_mailboxmoves set mmfinished = mmfinished where 1 = 0"),
+         new SchemaProbe(6056, "hm_mailboxmoves.mmdetail",
+                         "update hm_mailboxmoves set mmdetail = mmdetail where 1 = 0")
       };
 
       /// <summary>

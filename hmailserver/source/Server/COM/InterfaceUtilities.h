@@ -84,6 +84,8 @@ public:
    STDMETHOD(GetBounceCounts)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(ClassifyBounce)(/*[in]*/ BSTR Status, /*[in]*/ BSTR Diagnostic, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(RunBounceMaintenance)(/*[out, retval]*/ long *Removed);
+   STDMETHOD(MoveMailbox)(/*[in]*/ BSTR Address, /*[in]*/ BSTR NewAddress, /*[in]*/ VARIANT_BOOL KeepOldAddressAsAlias, /*[out, retval]*/ BSTR *Summary);
+   STDMETHOD(GetMailboxMoves)(/*[in]*/ BSTR Address, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(GetComplaints)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(GetComplaintRates)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(LookupCountry)(/*[in]*/ BSTR IPAddress, /*[out, retval]*/ BSTR *Country);

@@ -470,6 +470,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>hMailServer için modern bir yönetim uygulaması: canlı pano, etki alanları ve hesaplar, teslim kuyruğu, günlük akışı, eksiksiz sunucu ayarları ve 6.x aktarım güvenliği özellikleri (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new address is required." xml:space="preserve">
+    <value>Yeni bir adres gerekli.</value>
+  </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>Yeni bir anahtar oluşturuldu ve hazırlandı. Kaydını yayımlayın.</value>
   </data>
@@ -4645,6 +4648,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mirroring" xml:space="preserve">
     <value>Yansılama</value>
   </data>
+  <data name="Mo_ve or rename..." xml:space="preserve">
+    <value>Taşı veya yeniden adlandı_r...</value>
+  </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Kip ve max_age bu makinedeki hMailServer.INI'den okundu.</value>
   </data>
@@ -4666,11 +4672,17 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Move _up" xml:space="preserve">
     <value>_Yukarı taşı</value>
   </data>
+  <data name="Move or rename {0}" xml:space="preserve">
+    <value>{0} posta kutusunu taşı veya yeniden adlandır</value>
+  </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>{0} için imzalama şimdi sonraki anahtara geçirilsin mi?</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>İleti dosyasını SpamAssassin'e kopyalamak yerine taşı (yeniden başlatma gerekir)</value>
+  </data>
+  <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
+    <value>Bu posta kutusunu başka bir etki alanına taşı veya yeniden adlandırıp eski adresi koru</value>
   </data>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>IMAP klasörüne taşı</value>
@@ -8174,6 +8186,12 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Günlük yazıldığı hâliyle, protokole göre süzülmüş - tek bir iletiye ne olduğunu görmenin en hızlı yolu.</value>
   </data>
+  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
+    <value>Posta kutusu taşınamadı. {0}</value>
+  </data>
+  <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
+    <value>Posta kutusu, iletileri ve hesaba bağlı olan her şey onunla birlikte taşınır: kurallar, süzgeçler, klasörler ve izinleri, uygulama parolaları, ikinci etken, kişiler, takvimler, tercihler, parola geçmişi, gönderen listeleri, grup üyelikleri ve rolü.</value>
+  </data>
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Ana hMailServer yönetim parolası. Bu Denetim Masası, REST API ve COM API üzerinden bağlanan her betik tarafından kullanılır ve hMailServer.ini içinde karma olarak saklanır. Değiştirmek posta kutusu parolalarını etkilemez.</value>
   </data>
@@ -8589,6 +8607,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Bu anahtar dosyası şifreli (parola ifadesiyle korunuyor). Eklemeden önce parola ifadesini aşağıdaki kutuya girin; yoksa anahtar yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan TLS portları başlamaz.</value>
+  </data>
+  <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
+    <value>Bu posta kutusu şu anda taşınamaz: {0}</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Bu sayfa eskiden yuvası olmayan her hMailServer.INI değerini toplardı; bu da değerin ne yaptığına göre değil, nerede saklandığına göre dosyalandığı anlamına geliyordu - ve bir değerin nerede saklandığı, bilmenize hiç gerek olmayan tek şeydir. Bunların her biri artık kendi özelliğinin geri kalanıyla birlikte duruyor. Hiçbir şey kaldırılmadı ve hiçbir değer değişmedi; yalnızca düzenlendiği sayfa değişti.</value>
@@ -9568,6 +9589,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Keep original message" xml:space="preserve">
     <value>Özgün iletiyi _koru</value>
   </data>
+  <data name="_Keep the old address as an alias" xml:space="preserve">
+    <value>Eski adresi diğer ad olarak _koru</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>_Dil</value>
   </data>
@@ -9610,8 +9634,14 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Moderatör (boş = moderasyon yok)</value>
   </data>
+  <data name="_Move" xml:space="preserve">
+    <value>_Taşı</value>
+  </data>
   <data name="_Name" xml:space="preserve">
     <value>_Ad</value>
+  </data>
+  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
+    <value>_Yeni adres (bu sunucunun tuttuğu herhangi bir etki alanında olabilir)</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Not</value>
@@ -10719,6 +10749,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} süresi dolmuş ve artık reddediliyor</value>
+  </data>
+  <data name="{0} has been moved to {1}." xml:space="preserve">
+    <value>{0} posta kutusu {1} adresine taşındı.</value>
   </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} için yapılandırılmış bir postmaster adresi yok ve bu sayfa bir posta kutusu uydurmaz - raporları alması gereken adresi girin. Biri girilene kadar kopyalanacak kayıt yoktur.</value>

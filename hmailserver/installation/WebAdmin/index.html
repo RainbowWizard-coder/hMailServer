@@ -1015,6 +1015,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="memberdel")deleteGroupMember(Number(d.account),d.address);
   else if(d.act==="accountedit")openAccount(d.address,d.domain);
   else if(d.act==="accountsave")saveAccount();
+  else if(d.act==="accountmove")moveAccount();
   else if(d.act==="aliases")showAliases(d.domain);
   else if(d.act==="aliasnew")createAlias(d.domain);
   else if(d.act==="aliasdel")deleteAlias(d.name,d.domain);
@@ -1997,7 +1998,11 @@ async function openAccount(address,domain){
   let record;
   try{record=await api("/api/v1/accounts/"+encodeURIComponent(address));}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_account",e.message);return;}
-  editing={kind:"account",address:address,domain:domain,values:record};
+  editing={kind:"account",address:address,domain:domain,values:record,move:null};
+  // Whether a move would be refused at this moment, and what this mailbox has
+  // been through. Its own route, and its own try: a role that may read an
+  // account but not this is answered 403, and that must not empty the editor.
+  try{editing.move=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/move");}catch(e){editing.move=null;}
   renderAccountEditor();
 }
 function renderAccountEditor(){
@@ -2010,6 +2015,7 @@ function renderAccountEditor(){
     <div class="sect"><h2>${tf("Account {0}",escHtml(editing.address))}</h2>
       <div class="card flat"><p class="note">${escHtml(operation("/api/v1/accounts/{address}","put").description||"")}</p></div></div>
     ${cards}
+    ${may("manage_accounts")?moveCardHtml():""}
     <div class="sect"><div class="row">
       <button class="btn" data-act="accountsave">${t("Save account")}</button>
       <button class="btn ghost" data-act="accounts" data-domain="${escHtml(editing.domain)}">${t("Cancel")}</button>
@@ -2017,6 +2023,45 @@ function renderAccountEditor(){
       <div class="err" id="err_accountedit"></div>
     </div></div>
   </div>`;
+}
+/* Renaming a mailbox, and moving it to another domain on this server, are one
+   operation and one route: POST /api/v1/accounts/{address}/move. It is here
+   rather than in the account's form because the address is not a field that is
+   saved with the others - the mailbox on disk moves with it - and because the
+   GET beside it says whether it would be refused right now. */
+function moveCardHtml(){
+  const m=editing.move||{},blocked=!!m.in_use,last=m.last_move||null;
+  const notes=[];
+  if(blocked)notes.push(`<p class="note">${escHtml(tf("This mailbox cannot be moved at the moment: {0}",m.in_use_reason||""))}</p>`);
+  if(last&&last.complete)notes.push(`<p class="note">${escHtml(tf("Last moved from {0} to {1} on {2}.",last.old_address,last.new_address,last.finished||last.started||""))}</p>`);
+  if(last&&!last.complete)notes.push(`<p class="note">${escHtml(t("The last move of this mailbox did not finish. The server's application log says what it left behind."))}</p>`);
+  return `<div class="sect"><h2>${t("Move or rename")}</h2>
+    <div class="card" data-enter="accountmove">
+      <p class="note">${t("The mailbox keeps everything it is: its messages, folders, rules, filters and settings move with it. The new address may be at any domain this server holds.")}</p>
+      ${notes.join("")}
+      <div class="row" style="gap:12px;flex-wrap:wrap;align-items:center">
+        <input id="moveAddr" placeholder="${t("New address")}" aria-label="${t("New address")}" style="flex:1;min-width:220px">
+        <label class="row" style="gap:6px;align-items:center"><input id="moveAlias" type="checkbox" checked> ${t("Keep the old address as an alias")}</label>
+        <button class="btn" data-act="accountmove"${blocked?" disabled":""}>${t("Move mailbox")}</button>
+      </div>
+      <div class="err" id="err_accountmove"></div>
+    </div></div>`;
+}
+async function moveAccount(){
+  setErr("err_accountmove","");
+  const box=$("#moveAddr");if(!box)return;
+  const to=(box.value||"").trim();
+  if(!to){setErr("err_accountmove",t("A new address is required."));return;}
+  const keep=$("#moveAlias")?$("#moveAlias").checked:true;
+  const from=editing.address;
+  try{
+    const done=await api("/api/v1/accounts/"+encodeURIComponent(from)+"/move",
+      {method:"POST",body:JSON.stringify({new_address:to,keep_alias:keep})});
+    toast(tf("Moved {0} to {1}",from,done.new_address||to));
+    // The account is at a new address, and possibly in another domain, so the
+    // editor's own address is stale: go back to the list the mailbox is in now.
+    showAccounts(done.new_domain||editing.domain);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountmove",refusalText(e));}
 }
 async function saveAccount(){
   setErr("err_accountedit","");

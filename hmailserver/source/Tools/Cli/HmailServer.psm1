@@ -1588,6 +1588,59 @@ function Set-HmOpenPgpPublish {
     }
 }
 
+function Get-HmMailboxMovePath {
+    param([Parameter(Mandatory = $true)] [string] $Address)
+    return '/api/v1/accounts/' + [uri]::EscapeDataString($Address) + '/move'
+}
+
+function Get-HmMailboxMove {
+    <#
+    .SYNOPSIS
+        Whether a mailbox could be moved at this moment, and what it has been
+        through: address, in_use, in_use_reason and last_move. A POP3 session
+        holds a mailbox from authentication until its socket closes, an IMAP
+        session while it has one of the account's folders selected; while
+        something holds it, Move-HmMailbox is refused.
+    .EXAMPLE
+        Get-HmMailboxMove -Address ann@example.com
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Address
+    )
+    process {
+        Invoke-HmApi -Method GET -Path (Get-HmMailboxMovePath -Address $Address)
+    }
+}
+
+function Move-HmMailbox {
+    <#
+    .SYNOPSIS
+        Renames a mailbox, or moves it to another domain on this server -
+        NewAddress carries the domain, so the two are one command. Everything
+        keyed on the account goes with it: its messages, folders, rules,
+        filters, application passwords, second factor, contacts, calendars,
+        preferences, password history, sender lists, group memberships and
+        role. The old address is kept as an alias unless -DropAlias is given.
+    .EXAMPLE
+        Move-HmMailbox -Address ann@example.com -NewAddress anne@example.com
+    .EXAMPLE
+        Move-HmMailbox -Address ann@example.com -NewAddress ann@example.net -DropAlias -Confirm:$false
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Address,
+        [Parameter(Mandatory = $true, Position = 1)] [string] $NewAddress,
+        [switch] $DropAlias
+    )
+    process {
+        $body = @{ new_address = $NewAddress; keep_alias = (-not $DropAlias.IsPresent) }
+        if ($PSCmdlet.ShouldProcess($Address, "Move to $NewAddress")) {
+            Invoke-HmApi -Method POST -Path (Get-HmMailboxMovePath -Address $Address) -Body $body
+        }
+    }
+}
+
 function Read-HmAccountCsv {
     # The file's records as ordered column -> cell dictionaries, the column
     # names trimmed and lower-cased, each with Extra set when the record has
@@ -2229,7 +2282,7 @@ $script:CompleterAddress = {
 Register-ArgumentCompleter -CommandName Get-HmAccount, New-HmAccount, Get-HmAlias, New-HmAlias, Export-HmAccount, Get-HmDomain, Set-HmDomain, Remove-HmDomain -ParameterName Domain -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmDomain, Set-HmDomain, Remove-HmDomain -ParameterName Name -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmDkimRotation, Start-HmDkimRotation, Test-HmDkimRotation, Complete-HmDkimRotation, Remove-HmDkimRetiringKey, Stop-HmDkimRotation -ParameterName Domain -ScriptBlock $script:CompleterDomain
-Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount -ParameterName Address -ScriptBlock $script:CompleterAddress
+Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount, Get-HmMailboxMove, Move-HmMailbox -ParameterName Address -ScriptBlock $script:CompleterAddress
 
 Export-ModuleMember -Function @(
     'Get-HmComplaint', 'Get-HmComplaintRate', 'Invoke-HmComplaintMaintenance',
@@ -2252,6 +2305,7 @@ Export-ModuleMember -Function @(
     'Get-HmWebhookDelivery', 'Invoke-HmWebhookDelivery', 'Test-HmWebhook',
     'Get-HmOpenPgpKey', 'Set-HmOpenPgpKey', 'Remove-HmOpenPgpKey', 'Set-HmOpenPgpPublish',
     'Import-HmAccount', 'Export-HmAccount',
+    'Get-HmMailboxMove', 'Move-HmMailbox',
     'Export-HmConfiguration', 'Compare-HmConfiguration', 'Import-HmConfiguration',
     'ConvertTo-HmConfigurationRow', 'Get-HmSettingPath'
 )

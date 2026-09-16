@@ -864,6 +864,67 @@ def dkim_command(client, arguments):
 
 
 # ---------------------------------------------------------------------------
+# Renaming a mailbox, and moving one to another domain
+
+
+def print_mailbox_move(status):
+    """What GET /api/v1/accounts/<address>/move answers, as sentences."""
+    print("address       %s" % status.get("address", ""))
+    if status.get("in_use"):
+        print("in use        yes: %s" % status.get("in_use_reason", ""))
+    else:
+        print("in use        no")
+
+    last = status.get("last_move")
+    if not isinstance(last, dict):
+        print("last move     never moved")
+        return
+
+    print("last move     %s -> %s" % (last.get("old_address", ""), last.get("new_address", "")))
+    print("              %s, %s" % (last.get("stage_name", ""), last.get("finished") or last.get("started") or ""))
+    if not last.get("complete"):
+        # A row short of the last stage is a move that was interrupted, and the
+        # server's application log says which half of the store to look at.
+        print("              this move did not finish; see the server's application log")
+
+
+def mailbox_command(client, arguments):
+    base = "/api/v1/accounts/%s/move" % urllib.parse.quote(arguments.address, safe="@")
+
+    if arguments.verb == "status":
+        answer = client.request("GET", base)
+        if arguments.json:
+            render(answer, True)
+        else:
+            print_mailbox_move(answer)
+        return EXIT_OK
+
+    body = {"new_address": arguments.new_address, "keep_alias": not arguments.drop_alias}
+    answer = client.request("POST", base, body=body)
+
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+
+    print("%s moved to %s." % (answer.get("old_address", arguments.address), answer.get("new_address", arguments.new_address)))
+    print("  %s message(s) in %s folder(s)." % (answer.get("messages", 0), answer.get("folders", 0)))
+    print("  %s alias(es) re-pointed, %s list membership(s), %s queued recipient(s), %s quarantined message(s)."
+          % (answer.get("aliases_repointed", 0), answer.get("list_memberships", 0),
+             answer.get("queued_recipients", 0), answer.get("quarantine_entries", 0)))
+    if answer.get("alias_kept"):
+        print("  The old address is kept as an alias.")
+    else:
+        print("  The old address is not kept: mail to it will be refused.")
+
+    # A rewrite that failed writes nothing and so counts nothing: without this
+    # line, "0 alias(es) re-pointed" reads as a move that had no aliases to
+    # re-point rather than one whose aliases are still naming the old address.
+    if answer.get("references_incomplete"):
+        print("  Some references to the old address could not be rewritten. The server's application log says which.")
+    return EXIT_OK
+
+
+# ---------------------------------------------------------------------------
 # Accounts from a spreadsheet
 # ---------------------------------------------------------------------------
 
@@ -1996,6 +2057,20 @@ def build_parser():
     pgp_publish = openpgp_verbs.add_parser("publish", parents=[common], help="publish an account's keys, or stop")
     pgp_publish.add_argument("account")
     pgp_publish.add_argument("state", choices=["on", "off"])
+
+    mailbox = commands.add_parser("mailbox", help="rename a mailbox, or move it to another domain on this server")
+    mailbox.set_defaults(handler=mailbox_command)
+    mailbox_verbs = mailbox.add_subparsers(dest="verb")
+    status_parser = mailbox_verbs.add_parser("status", parents=[common],
+                                             help="whether the mailbox can be moved now, and what it has been through")
+    status_parser.add_argument("address")
+    move = mailbox_verbs.add_parser("move", parents=[common],
+                                    help="rename it, or move it to another domain; the mailbox, its messages and everything keyed on the account go with it")
+    move.add_argument("address")
+    move.add_argument("new_address", metavar="new-address",
+                      help="the address it takes; the domain in it may be any domain this server holds")
+    move.add_argument("--drop-alias", action="store_true",
+                      help="do not keep the old address as an alias; mail to it is refused from then on")
 
     accounts = commands.add_parser("accounts", help="accounts in bulk, from and to a CSV file")
     accounts_verbs = accounts.add_subparsers(dest="verb")

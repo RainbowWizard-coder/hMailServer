@@ -34,6 +34,7 @@
 #include "../Application/Configuration.h"
 #include "../../IMAP/IMAPSpecialUse.h"
 
+#include "MailboxMove.h"
 #include "NameChanger.h"
 
 #include "../Cache/AccountSizeCache.h"
@@ -430,13 +431,41 @@ namespace HM
                return false;
             }
 
-            // Name has been changed. Rename all sub objects first.
-            NameChanger nameChanger;
-            if (!nameChanger.RenameAccount(tempAccount->GetAddress(), pAccount, sErrorMessage))
-               return false;
+            const String previousAddress = tempAccount->GetAddress();
+
+            // The address has changed, so this save IS a mailbox move, and it
+            // goes through the one implementation of that - which carries the
+            // store, the Sieve tree, the aliases that point at the account, its
+            // distribution list memberships, the recipients of mail still in the
+            // queue and its quarantined messages, journals what it did and puts
+            // itself back if a step fails. Until 16 September 2026 this called
+            // NameChanger::RenameAccount, which moved the mailbox directory and
+            // the Sieve tree and nothing else: every alias pointing at the
+            // account went on naming an address that no longer existed.
+            //
+            // tempAccount is the STORED account, so it still carries the old
+            // address, which is what the move needs; pAccount already carries
+            // the new one and is written out below as usual.
+            //
+            // PersistenceModeRename is the domain rename's cascade
+            // (NameChanger::RenameDomain), which has already moved the whole
+            // domain's tree and is walking its accounts to write the new domain
+            // into each address. That is not a move of one mailbox and must not
+            // be treated as one, so it keeps the path it has always taken.
+            if (mode == PersistenceModeRename || mode == PersistenceModeRestore)
+            {
+               NameChanger nameChanger;
+               if (!nameChanger.RenameAccount(previousAddress, pAccount, sErrorMessage))
+                  return false;
+            }
+            else
+            {
+               if (!MailboxMove::Rename(tempAccount, pAccount->GetAddress(), sErrorMessage))
+                  return false;
+            }
 
             // Remove the old account from the cache.
-            Cache<Account>::Instance()->RemoveObject(tempAccount->GetAddress());
+            Cache<Account>::Instance()->RemoveObject(previousAddress);
          }
       }
 

@@ -1606,6 +1606,25 @@ namespace HM
          route.query = query;
          ParseRoute_(method, path, route);
 
+         // The two segments a route names a thing by, decoded once, here -
+         // before Authorize_ scopes the request by the domain in the identifier
+         // and before any handler looks the identifier up. A client that
+         // percent-encodes a path segment is doing the ordinary thing (the
+         // Control Deck and the PowerShell module encode every address they put
+         // in a path), and "bob%40example.test" is not an address anything in
+         // this server can find: the route parses, the authorisation scopes it
+         // to an empty domain, and the handler answers 404 for an account that
+         // is there.
+         //
+         // A separator is deliberately NOT decoded. The route has already been
+         // split on "/" and several routes refuse an identifier that contains
+         // one, so decoding %2F or %5C here would let a segment gain a
+         // separator the parse rejected - which is how an identifier that is
+         // used to name a file becomes a path. Everything else decodes; the log
+         // route's own allow-list still decides what a log name may be.
+         route.identifier = DecodePathSegment_(route.identifier);
+         route.name = DecodePathSegment_(route.name);
+
          // The single authorisation choke point. Every route is decided here,
          // by kind, before any handler runs - so a handler cannot be reached by
          // a credential that was never checked against it, and a new endpoint
@@ -1690,6 +1709,12 @@ namespace HM
 
          case RouteAccountPushRemove:
             return HandleAccountPushRemove_(caller, route.identifier);
+
+         case RouteMailboxMoveGet:
+            return HandleMailboxMoveGet_(route.identifier);
+
+         case RouteMailboxMove:
+            return HandleMailboxMove_(caller, route.identifier, GetRequestBody_(request));
 
          case RouteDomainList:
             return HandleListDomains_(caller.domains);
@@ -2321,6 +2346,44 @@ namespace HM
       {
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
       }
+   }
+
+   AnsiString
+   RestApiServer::DecodePathSegment_(const AnsiString &raw)
+   {
+      if (raw.Find("%") < 0)
+         return raw;
+
+      AnsiString value;
+
+      for (int i = 0; i < raw.GetLength(); i++)
+      {
+         const char c = raw.GetAt(i);
+
+         if (c == '%' && i + 2 < raw.GetLength() &&
+             isxdigit((unsigned char) raw.GetAt(i + 1)) && isxdigit((unsigned char) raw.GetAt(i + 2)))
+         {
+            const char hex[3] = { raw.GetAt(i + 1), raw.GetAt(i + 2), 0 };
+            const char decoded = (char) strtol(hex, nullptr, 16);
+
+            // A separator, or a NUL that would end a narrow string early, is
+            // left as it was written. See the note at the call. The backslash
+            // is written as its code so that no reader has to count escapes.
+            if (decoded == '/' || decoded == (char) 92 || decoded == 0)
+            {
+               value += c;
+               continue;
+            }
+
+            value += decoded;
+            i += 2;
+            continue;
+         }
+
+         value += c;
+      }
+
+      return value;
    }
 
    void
@@ -3121,6 +3184,21 @@ namespace HM
          if (!address.IsEmpty() && address.Find("/") < 0)
          {
             route.kind = method == "GET" ? RouteAccountPushGet : RouteAccountPushRemove;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      // A mailbox renamed, or moved to another domain on this server. Its own
+      // route rather than a field of the account update, for the reason the
+      // reset and the unlock are: it is one operation with its own refusals, and
+      // a permission can name it.
+      if ((method == "GET" || method == "POST") && path.StartsWith(accountsPrefix) && path.EndsWith("/move"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/move").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteMailboxMoveGet : RouteMailboxMove;
             route.identifier = address;
             return;
          }
@@ -4437,6 +4515,9 @@ namespace HM
       case RouteMeAppPasswordCreate:
       case RouteMeAppPasswordDelete:
       case RouteMeSessionsEnd:
+      // A mailbox moved: rows in seven tables and a directory tree on disk. The
+      // GET beside it only reports, so it is not here.
+      case RouteMailboxMove:
       case RouteMeSessionDelete:
       case RouteMeDeviceDelete:
       case RouteMeFolderEmpty:
@@ -4887,6 +4968,12 @@ namespace HM
       case RouteGroupList:
       case RouteGroupGet:
       case RouteGroupMemberList:
+      // Whether a mailbox could be moved right now, and what it has been
+      // through. It reads the account and the move journal and changes nothing,
+      // so it sits with the other reads of an account - which is also what
+      // keeps an auditor able to see it while the move itself stays out of
+      // reach.
+      case RouteMailboxMoveGet:
       // The OpenAPI document is the map every Control Deck form is drawn from,
       // not the server's state, and it holds nothing a caller could not learn
       // by reading the source. It sits with the lowest read every built-in
@@ -5020,6 +5107,11 @@ namespace HM
       case RouteDkimRotationSwitch:
       case RouteDkimRotationRetire:
       case RouteDkimRotationCancel:
+      // Renaming a mailbox or moving it to another domain is an account change,
+      // and the largest one there is, so it takes the permission every other
+      // account change takes - in both domains, which HandleMailboxMove_ asks
+      // about the one in the body.
+      case RouteMailboxMove:
       // A domain's suppression list changed by hand: an address put on it,
       // which stops the domain's mail to that address, or taken off, which lets
       // it through again. The list is the domain's, as its own allow and block
@@ -5344,6 +5436,11 @@ namespace HM
       // by editing one path segment.
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
+      // The mailbox move names the address it is moving FROM in the path, and
+      // the one it is moving TO in its body; this scopes the first, and
+      // HandleMailboxMove_ judges the second, which nothing here can see.
+      case RouteMailboxMoveGet:
+      case RouteMailboxMove:
       // One address's trace, scoped to that address's domain.
       case RouteMessageTraceAddress:
       // An assignment names the account it is for, and giving somebody a role
@@ -13054,6 +13151,7 @@ namespace HM
       openApiJson += OpenApiRolesPaths_();
       openApiJson += OpenApiOpenPgpPaths_();
       openApiJson += OpenApiWebhooksPaths_();
+      openApiJson += OpenApiMailboxMovePaths_();
       openApiJson += openApiTail;
 
       // The same bytes for every caller, built on every call: compressed once.

@@ -17,8 +17,8 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 4 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
-| desktop pages read | 60 |
-| REST routes (path and method) | 325, 147 of them writes |
+| desktop pages read | 61 |
+| REST routes (path and method) | 327, 148 of them writes |
 | Deck views | 22 |
 
 ## Missing over REST, by interface
@@ -210,7 +210,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `ADDomain` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ADUsername` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `Active` | AccountDialog, DomainsView | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | domains, webhooks |
-| `Address` | AccountDialog, DomainsView | `PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, webhooks |
+| `Address` | AccountDialog, DomainsView | `POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, webhooks |
 | `AdminLevel` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `AntiSpamEnabled` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown)<br>`PUT /api/v1/settings/push` (words, loose, scope unknown) | backup, domains, settings, webhooks |
 | `ForwardAbortSpamFlagged` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
@@ -220,7 +220,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `IsAD` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `MaxSize` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `MessageRetentionDays` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
-| `Password` | AccountDialog, DomainsView | `POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, webhooks |
+| `Password` | AccountDialog, DomainsView | `POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, webhooks |
 | `PersonFirstName` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `PersonLastName` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `SieveScript` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
@@ -278,7 +278,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | DistributionListDialog, DomainsView | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | domains, webhooks |
-| `Address` | DistributionListDialog, DomainsView | `PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, webhooks |
+| `Address` | DistributionListDialog, DomainsView | `POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, webhooks |
 | `BounceAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `Mode` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `ModeratorAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
@@ -289,7 +289,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `RecipientAddress` | RecipientsDialog | `POST /api/v1/groups/{id}/members` (words, loose)<br>`POST /api/v1/domains/{domain}/lists` (array members)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | domains, groups, webhooks |
+| `RecipientAddress` | RecipientsDialog | `POST /api/v1/groups/{id}/members` (words, loose)<br>`POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (array members)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | domains, groups, webhooks |
 
 ### SecurityRange
 
@@ -387,7 +387,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | RouteDialog | `PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/routes` (words)<br>`PUT /api/v1/routes/{id}` (words)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, routes, webhooks |
+| `Address` | RouteDialog | `POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/routes` (words)<br>`PUT /api/v1/routes/{id}` (words)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, routes, webhooks |
 
 ### FetchAccount
 
@@ -399,7 +399,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `MinutesBetweenFetch` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `MirrorFolders` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `Name` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | fetch, roles, webhooks |
-| `Password` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, fetch, webhooks |
+| `Password` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, fetch, webhooks |
 | `Port` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | fetch, webhooks |
 | `ServerAddress` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `ServerType` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
@@ -458,7 +458,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `RouteID` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 | `ScriptFunction` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 | `Subject` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, rules, settings, webhooks |
-| `To` | RuleActionDialog | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/calendar/expand` (name, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, roles, rules, webhooks |
+| `To` | RuleActionDialog | `POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/calendar/expand` (name, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, roles, rules, webhooks |
 | `Type` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 | `Value` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
 
@@ -480,8 +480,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `BackupDomains` | BackupView | `PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (words, loose, scope unknown)<br>`POST /api/v1/calendar/expand` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, domains, roles, settings, webhooks |
-| `BackupMessages` | BackupView | `POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, settings, webhooks |
+| `BackupDomains` | BackupView | `POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (words, loose, scope unknown)<br>`POST /api/v1/calendar/expand` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, domains, roles, settings, webhooks |
+| `BackupMessages` | BackupView | `POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, domains, settings, webhooks |
 | `BackupSettings` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
 | `CompressDestinationFiles` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
 | `Destination` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
@@ -560,7 +560,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, ports, roles, webhooks |
+| `Address` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, ports, roles, webhooks |
 | `ClientCertificateCAFile` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `ClientCertificatePolicy` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `ConnectionSecurity` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
@@ -581,7 +581,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, lists, roles, settings, webhooks |
+| `Address` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, lists, roles, settings, webhooks |
 | `Description` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown) | lists, settings |
 | `Score` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter) | lists, settings |
 
@@ -663,6 +663,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Account | `DeleteMessages` | AccountDialog | - |
 | Account | `DisableTOTP` | AccountTwoFactorPanel | - |
 | Account | `EnrolTOTP` | AccountTwoFactorPanel | - |
+| Account | `MoveTo` | MailboxMoveDialog | `POST /api/v1/accounts/{address}/move` |
 | Account | `UnlockMailbox` | AccountDialog | `POST /api/v1/accounts/{address}/unlock` |
 | Aliases | `Add` | DomainsView | - |
 | Utilities | `AddSuppression` | SuppressionListView | - |
@@ -671,7 +672,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Utilities | `GetMetricHistory` | DashboardView | - |
 | Utilities | `GetSuppressionList` | SuppressionListView | - |
 | Utilities | `PerformMaintenance` | ServerSettingsView | - |
-| Utilities | `RemoveSuppression` | SuppressionListView | - |
+| Utilities | `RemoveSuppression` | SuppressionListView | `POST /api/v1/accounts/{address}/move` |
 | Utilities | `ResolveMXRecords` | UtilityViews | - |
 | DistributionLists | `Add` | DomainsView | - |
 | DistributionListRecipients | `Add` | RecipientsDialog | - |
@@ -698,17 +699,17 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Scripting | `CheckSyntax` | ScriptsView | `POST /api/v1/update/check`<br>`POST /api/v1/settings/scripting/check` |
 | Scripting | `Reload` | ScriptsView, ServerSettingsView | `POST /api/v1/settings/scripting/reload` |
 | Rules | `Add` | RulesView | - |
-| Rule | `MoveDown` | RulesView | - |
-| Rule | `MoveUp` | RulesView | - |
+| Rule | `MoveDown` | RulesView | `POST /api/v1/accounts/{address}/move` |
+| Rule | `MoveUp` | RulesView | `POST /api/v1/accounts/{address}/move` |
 | RuleCriterias | `Add` | RuleCriteriaDialog | - |
 | RuleCriterias | `DeleteByDBID` | RulesView | - |
-| RuleAction | `MoveDown` | RulesView | - |
-| RuleAction | `MoveUp` | RulesView | - |
+| RuleAction | `MoveDown` | RulesView | `POST /api/v1/accounts/{address}/move` |
+| RuleAction | `MoveUp` | RulesView | `POST /api/v1/accounts/{address}/move` |
 | RuleActions | `Add` | RuleActionDialog, RulesView | - |
 | RuleActions | `DeleteByDBID` | RulesView | - |
 | BackupManager | `LoadBackup` | BackupView | - |
 | BackupManager | `StartBackup` | BackupView | - |
-| DeliveryQueue | `Remove` | QueueView | - |
+| DeliveryQueue | `Remove` | QueueView | `POST /api/v1/accounts/{address}/move` |
 | DeliveryQueue | `ResetDeliveryTime` | QueueView | - |
 | DeliveryQueue | `StartDelivery` | QueueView | - |
 | IMAPFolders | `Add` | AccountDialog, PublicFoldersView | - |
@@ -743,6 +744,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` | IMAPFolderPermission | `account`, `account_id`, `administer`, `body`, `create`, `delete_mailbox`, `expunge`, `field`, `folder`, `force`, `group`, `group_id`, `insert`, `lookup`, `name`, `new`, `post`, `read`, `rights`, `to`, `type`, `value`, `write_deleted`, `write_others`, `write_seen` | - |
 | `PUT /api/v1/accounts/{address}/messages/{id}` | ServerMessage | `answered`, `deleted`, `draft`, `flagged`, `folder`, `seen`, `value` | - |
 | `POST /api/v1/accounts/{address}/messages/{id}/copy` | ServerMessage | `account`, `destination`, `folder`, `folder_id`, `to` | - |
+| `POST /api/v1/accounts/{address}/move` | ? | `account`, `addresses`, `domain`, `folder`, `group`, `keep_alias`, `mailbox`, `manage_accounts`, `message`, `new`, `new_address`, `password`, `permissions`, `role`, `sender`, `senders`, `to` | yes |
 | `PUT /api/v1/accounts/{address}/openpgp` | Settings | `account`, `allow_address_mismatch`, `domains`, `key`, `publish`, `to` | yes |
 | `POST /api/v1/accounts/{address}/password` | ? | `account`, `breach_check_enabled`, `breach_check_unavailable`, `directory`, `domain`, `password`, `reason`, `reset_password`, `role`, `to` | yes |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
@@ -885,7 +887,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | View | Routes called |
 |---|---|
 | `dash` | `GET /api/v1/status` |
-| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json` |
+| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |
 | `fetch` | `GET /api/v1/accounts/{}/fetch-accounts`, `POST /api/v1/accounts/{}/fetch-accounts`, `DELETE /api/v1/accounts/{}/fetch-accounts/{}`, `PUT /api/v1/accounts/{}/fetch-accounts/{}`, `POST /api/v1/accounts/{}/fetch-accounts/{}/download`, `GET /api/v1/domains`, `GET /api/v1/domains/{}/accounts`, `GET /api/v1/openapi.json` |

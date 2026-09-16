@@ -441,6 +441,10 @@ let nextRefusal = null;
 // A refusal with a status and a body of its own, for the ones that carry a
 // reason word beside the sentence: the breach check's 400 and 503.
 let nextRefusalAnswer = null;
+// Why a mailbox cannot be moved at this moment, or nothing: the server's own
+// answer to GET /api/v1/accounts/{address}/move, which the page greys the
+// button out for.
+let moveBlockedReason = null;
 let restartProbes = 0;
 let nextId = 100;
 // The language route's two failure shapes: a server without the catalogues
@@ -966,6 +970,12 @@ const spec = {
          put: { summary: 'Change an IP range', description: RANGE_PUT, requestBody: body({}) },
          delete: { summary: 'Delete an IP range' }
       },
+      '/api/v1/accounts/{address}/move': {
+         get: { summary: 'Whether this mailbox can be moved now, and what it has been through' },
+         post: { summary: 'Rename a mailbox, or move it to another domain on this server',
+            requestBody: { content: { 'application/json': { schema: { type: 'object', required: ['new_address'],
+               properties: { new_address: { type: 'string' }, keep_alias: { type: 'boolean' } } } } } } },
+      },
       '/api/v1/accounts/{address}/fetch-accounts': {
          get: { summary: 'The account\'s external (fetch) accounts', description: FETCH_GET },
          post: { summary: 'Create an external (fetch) account', description: FETCH_POST, requestBody: body(FETCH_PROPS, ['name', 'server_address', 'port']) }
@@ -1080,6 +1090,8 @@ function rotationDoc(domain, current, retiring) {
 }
 
 const state = {
+   // The newest journal row per address, written by a move.
+   moves: {},
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
    domains: [
@@ -1525,6 +1537,43 @@ function answer(method, path, headers, raw) {
       if (method === 'POST') {
          state.accounts[domain].push(accountRecord(parsed.address, true));
          return json(201, { address: parsed.address, active: true });
+      }
+   }
+   // Renaming a mailbox, and moving one to another domain: the GET says whether
+   // it would be refused now and what this mailbox has been through, the POST
+   // does it. The state carries the refusal so a test can ask for one.
+   if (/^\/api\/v1\/accounts\/[^/]+\/move$/.test(path)) {
+      const address = segment(path, 4);
+      const domain = Object.keys(state.accounts).filter((d) => state.accounts[d].some((a) => a.address === address))[0];
+      if (!domain) { return json(404, { error: 'no such account' }); }
+      if (method === 'GET') {
+         return json(200, { address: address, in_use: !!moveBlockedReason, in_use_reason: moveBlockedReason || '',
+            last_move: state.moves[address] || null });
+      }
+      if (method === 'POST') {
+         const to = String((parsed && parsed.new_address) || '').trim();
+         if (!to) { return json(400, { error: 'new_address is required' }); }
+         if (moveBlockedReason) { return json(409, { error: moveBlockedReason }); }
+         const newDomain = to.split('@')[1] || '';
+         if (!state.domains.some((d) => d.name === newDomain)) { return json(400, { error: 'This server does not hold the domain ' + newDomain + '.' }); }
+         if (Object.keys(state.accounts).some((d) => state.accounts[d].some((a) => a.address === to))) { return json(409, { error: 'An account already exists at ' + to + '.' }); }
+         const keep = parsed.keep_alias !== false;
+         const record = state.accounts[domain].filter((a) => a.address === address)[0];
+         state.accounts[domain] = state.accounts[domain].filter((a) => a.address !== address);
+         record.address = to;
+         state.accounts[newDomain] = state.accounts[newDomain] || [];
+         state.accounts[newDomain].push(record);
+         // Kept in address order, which is the order a listing has had all
+         // along: a move back must not leave the mailbox at the end of the
+         // list it came from.
+         state.accounts[newDomain].sort((a, b) => (a.address < b.address ? -1 : 1));
+         if (keep) { (state.aliases[domain] = state.aliases[domain] || []).push({ name: address, value: to, active: true }); }
+         const done = { old_address: address, new_address: to, old_domain: domain, new_domain: newDomain, account_id: 7,
+            alias_kept: keep, store_moved: true, messages: 3, folders: 2, aliases_repointed: 0, list_memberships: 0,
+            queued_recipients: 0, quarantine_entries: 0, journal_id: 11 };
+         state.moves[to] = { id: 11, account_id: 7, old_address: address, new_address: to, stage: 4, stage_name: 'complete',
+            complete: true, keep_alias: keep, messages: 3, started: '2026-09-16 02:00:00', finished: '2026-09-16 02:00:04', detail: '' };
+         return json(200, done);
       }
    }
    if (/^\/api\/v1\/accounts\/[^/]+$/.test(path)) {
@@ -2432,6 +2481,70 @@ async function main() {
    click(act('accounts', { domain: 'example.com' }));
    await flush();
    check('the way back re-reads the accounts of the domain', called(before, 'GET', '/api/v1/domains/example.com/accounts').length === 1 && rows().length === 2 && act('accountedit', { address: 'carla@example.com' }) !== null);
+
+   // ---- renaming a mailbox, and moving one to another domain
+   moveBlockedReason = 'A POP3 session is holding the mailbox of anna@example.com.';
+   before = requests.length;
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   check('the editor asks whether the mailbox could be moved now', called(before, 'GET', '/api/v1/accounts/anna%40example.com/move').length === 1, paths(before));
+   check('a mailbox in use says why and the button is disabled',
+      content().textContent.indexOf('cannot be moved at the moment') >= 0 &&
+      content().textContent.indexOf('A POP3 session is holding the mailbox') >= 0 &&
+      act('accountmove').attributes.disabled !== undefined,
+      content().textContent.slice(0, 200));
+   moveBlockedReason = null;
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   check('with nothing holding it the card offers a new address, the alias switch on, and an enabled button',
+      document.getElementById('moveAddr') !== null && document.getElementById('moveAlias').checked === true &&
+      act('accountmove').attributes.disabled === undefined);
+   before = requests.length;
+   click(act('accountmove'));
+   await flush();
+   check('an empty address is refused by the page', called(before, 'POST', /move/).length === 0 &&
+      document.getElementById('err_accountmove').textContent === 'A new address is required.',
+      document.getElementById('err_accountmove').textContent);
+   setValue('moveAddr', 'anna@nowhere.example');
+   before = requests.length;
+   click(act('accountmove'));
+   await flush();
+   check('a domain the server does not hold is shown in the server\'s own words',
+      document.getElementById('err_accountmove').textContent === 'This server does not hold the domain nowhere.example.',
+      document.getElementById('err_accountmove').textContent);
+   setValue('moveAddr', 'anna@second.example');
+   setChecked('moveAlias', false);
+   before = requests.length;
+   click(act('accountmove'));
+   await flush();
+   put = lastBody(before, 'POST', '/api/v1/accounts/anna%40example.com/move');
+   check('the move sends the new address and the alias switch', JSON.stringify(put) === '{"new_address":"anna@second.example","keep_alias":false}', JSON.stringify(put));
+   check('and the page goes to the accounts of the domain the mailbox is in now',
+      called(before, 'GET', '/api/v1/domains/second.example/accounts').length === 1 &&
+      toastText() === 'Moved anna@example.com to anna@second.example' &&
+      rows().some((r) => r.textContent.indexOf('anna@second.example') >= 0), toastText());
+   before = requests.length;
+   click(act('accountedit', { address: 'anna@second.example', domain: 'second.example' }));
+   await flush();
+   check('the moved mailbox now says when it was last moved and from where',
+      content().textContent.indexOf('Last moved from anna@example.com to anna@second.example') >= 0,
+      content().textContent.slice(0, 300));
+   // Moved back, so that the rest of this walk finds the mailbox where it left
+   // it - and so that moving one twice is exercised.
+   setValue('moveAddr', 'anna@example.com');
+   setChecked('moveAlias', false);
+   before = requests.length;
+   click(act('accountmove'));
+   await flush();
+   put = lastBody(before, 'POST', '/api/v1/accounts/anna%40second.example/move');
+   check('a mailbox moves back the same way', JSON.stringify(put) === '{"new_address":"anna@example.com","keep_alias":false}' &&
+      called(before, 'GET', '/api/v1/domains/example.com/accounts').length === 1, JSON.stringify(put));
+   click(act('domains'));
+   await flush();
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
 
    // ---- the distribution lists of a domain
    click(act('domains'));

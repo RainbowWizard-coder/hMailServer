@@ -94,7 +94,8 @@ ALLOWED = {
         "Common/Util/RestApiRoles.cpp",      # the assignment and the password reset
         "Common/Util/RestApiRoutes.cpp",     # the account update
         "COM/InterfaceApplication.cpp",      # AssignRole and ResetPassword
-        "COM/InterfaceAccount.cpp",          # RoleName and Save
+        "COM/InterfaceAccount.cpp",          # RoleName, Save and MoveTo
+        "COM/InterfaceUtilities.cpp",        # MoveMailbox, which is Account.MoveTo reached by address
     },
     # The historical level. A grant is DERIVED from it in RoleManager; every
     # other reader either stores it, reports it or applies the one rule that

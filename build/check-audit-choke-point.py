@@ -25,8 +25,12 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               and over COM, a POP3 mailbox lock cleared over COM, and the
               logon-failure list cleared over REST and over COM - and the two
               ways an administrator stops Web Push on every device of an
-              account, whose rows are the person's own and not audited - and
-              every one of those calls must be there.
+              account, whose rows are the person's own and not audited - and by
+              MailboxMove, which is the other shape: a change that IS rows, so
+              many of them and so plainly one act that recording each would
+              bury it. It writes them with no actor on the thread and records
+              the move once, naming both addresses. Every one of these calls
+              must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -120,6 +124,7 @@ ALLOWED = {
    "RecordEvent(": {
       "Common/Util/AuditTrail.cpp",
       "Common/Util/AuditTrail.h",
+      "Common/Persistence/MailboxMove.cpp",         # a mailbox renamed or moved, as one entry naming both addresses
       "Common/Util/RestApiRoles.cpp",               # POST /api/v1/accounts/{address}/unlock
       "COM/InterfaceApplication.cpp",               # Application.UnlockAccount
       "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox, Account.RemovePushSubscriptions
@@ -282,6 +287,7 @@ NOT_AUDITED = {
    "hm_inisettings": "recorded by IniSettingStore with the value it had; listing it would record every change twice.",
    "hm_audit": "the trail itself, written by AuditTrail alone (rule 'table').",
    "hm_dbversion": "the schema version, written by the upgrade scripts and nobody else.",
+   "hm_mailboxmoves": "the journal of a mailbox rename or move, written by MailboxMove as the move runs and by nothing else. The move itself IS on the trail, as one RecordEvent naming both addresses, which is why the journal is not: listing the table would record the row opened before the move starts and the row closed after it, under the same actor, for one change.",
    "hm_messages": "messages are traffic.",
    "hm_messagerecipients": "the recipients of a message in the queue; traffic.",
    "hm_message_metadata": "per-message metadata the IMAP server keeps; traffic.",

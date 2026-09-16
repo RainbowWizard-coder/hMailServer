@@ -334,6 +334,7 @@
     <Compile Include="Domains\DomainDeleteCascade.cs" />
     <Compile Include="Domains\DomainLimitEnableFlags.cs" />
     <Compile Include="Domains\DomainRenameCascade.cs" />
+    <Compile Include="Domains\MailboxMove.cs" />
     <Compile Include="ExternalAccounts\HostileRemoteServer.cs" />
     <Compile Include="ExternalAccounts\ImapFetch.cs" />
     <Compile Include="ExternalAccounts\ImapMirror.cs" />
@@ -750,6 +751,7 @@
     <Compile Include="API\RestApiFolderPermissions.cs" />
     <Compile Include="API\RestApiAccountMessages.cs" />
     <Compile Include="API\RestApiGroups.cs" />
+    <Compile Include="API\RestApiMailboxMove.cs" />
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
     <Compile Include="API\RestApiWebhooks.cs" />

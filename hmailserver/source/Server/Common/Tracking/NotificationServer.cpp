@@ -158,6 +158,23 @@ namespace HM
       }
    }     
 
+   bool
+   NotificationServer::HasMessageSubscribers(__int64 accountID)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      for (const auto &entry : message_change_subscribers_)
+      {
+         if (entry.first.first != accountID)
+            continue;
+
+         if (entry.second && entry.second->GetSubscribedClient().lock())
+            return true;
+      }
+
+      return false;
+   }
+
    __int64
    NotificationServer::SubscribeFolderListChanges(__int64 accountID, std::shared_ptr<NotificationClient> pChangeClient)
    {

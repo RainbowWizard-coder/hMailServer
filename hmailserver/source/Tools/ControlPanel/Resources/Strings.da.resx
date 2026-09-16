@@ -470,6 +470,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>En moderne administrationsapp til hMailServer: live-dashboard, domæner og konti, leveringskø, log-streaming, alle serverindstillinger og transportsikkerhedsfunktionerne i 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A new address is required." xml:space="preserve">
+    <value>Der kræves en ny adresse.</value>
+  </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>En ny nøgle er genereret og gjort klar. Udgiv dens post.</value>
   </data>
@@ -4645,6 +4648,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Mirroring" xml:space="preserve">
     <value>Spejling</value>
   </data>
+  <data name="Mo_ve or rename..." xml:space="preserve">
+    <value>Fly_t eller omdøb...</value>
+  </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Tilstand og max_age læst fra hMailServer.INI på denne maskine.</value>
   </data>
@@ -4666,11 +4672,17 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Move _up" xml:space="preserve">
     <value>Flyt _op</value>
   </data>
+  <data name="Move or rename {0}" xml:space="preserve">
+    <value>Flyt eller omdøb {0}</value>
+  </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>Skifte signeringen for {0} til den næste nøgle nu?</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Flyt meddelelsesfilen til SpamAssassin i stedet for at kopiere den (genstart kræves)</value>
+  </data>
+  <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
+    <value>Flyt denne postkasse til et andet domæne, eller omdøb den og behold den gamle adresse</value>
   </data>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Flyt til IMAP-mappe</value>
@@ -8174,6 +8186,12 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Loggen, som den skrives, filtreret efter protokol - den hurtigste måde at se, hvad der skete med én meddelelse.</value>
   </data>
+  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
+    <value>Postkassen kunne ikke flyttes. {0}</value>
+  </data>
+  <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
+    <value>Postkassen, dens meddelelser og alt, der hænger på kontoen, flytter med: regler, filtre, mapper og deres rettigheder, programadgangskoder, anden faktor, kontakter, kalendere, indstillinger, adgangskodehistorik, afsenderlister, gruppemedlemskaber og rollen.</value>
+  </data>
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Hovedadgangskoden til administration af hMailServer. Den bruges af dette Control Panel, REST API'et og ethvert script, der forbinder gennem COM API'et, og gemmes hashet i hMailServer.ini. At ændre den påvirker ikke postkasseadgangskoder.</value>
   </data>
@@ -8589,6 +8607,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Denne nøglefil er krypteret (beskyttet med adgangssætning). Indtast dens adgangssætning i feltet nedenfor, før du tilføjer, ellers indlæses nøglen ikke (serverfejl 6170), og de TLS-porte, der bruger dette certifikat, starter ikke.</value>
+  </data>
+  <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
+    <value>Denne postkasse kan ikke flyttes lige nu: {0}</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Denne side samlede tidligere enhver hMailServer.INI-værdi uden et hjem, hvilket betød, at den blev sorteret efter, hvor værdien gemmes, i stedet for efter, hvad den gør - og hvor en værdi gemmes, er det ene, du aldrig behøver at vide. Hver af dem sidder nu sammen med resten af sin egen funktion. Intet blev fjernet, og ingen værdi ændrede sig; kun den side, den redigeres på.</value>
@@ -9568,6 +9589,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Behold den oprindelige meddelelse</value>
   </data>
+  <data name="_Keep the old address as an alias" xml:space="preserve">
+    <value>_Behold den gamle adresse som alias</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>_Sprog</value>
   </data>
@@ -9610,8 +9634,14 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Moderator (tomt = ingen moderation)</value>
   </data>
+  <data name="_Move" xml:space="preserve">
+    <value>_Flyt</value>
+  </data>
   <data name="_Name" xml:space="preserve">
     <value>_Navn</value>
+  </data>
+  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
+    <value>_Ny adresse (den må ligge i et hvilket som helst domæne, denne server har)</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Note</value>
@@ -10719,6 +10749,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} udløbet og afvises nu</value>
+  </data>
+  <data name="{0} has been moved to {1}." xml:space="preserve">
+    <value>{0} er blevet flyttet til {1}.</value>
   </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} har ingen postmaster-adresse konfigureret, og denne side opfinder ikke en postkasse - indtast den adresse, der skal modtage rapporterne. Indtil der er indtastet en, er der ingen post at kopiere.</value>

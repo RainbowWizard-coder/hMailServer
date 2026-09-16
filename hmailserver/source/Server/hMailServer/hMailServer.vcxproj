@@ -403,6 +403,7 @@ EXIT 0
     <ClCompile Include="..\Common\Mime\MimeTester.cpp" />
     <ClCompile Include="..\Common\Mime\MimeType.cpp" />
     <ClCompile Include="..\Common\Persistence\Maintenance\Maintenance.cpp" />
+    <ClCompile Include="..\Common\Persistence\MailboxMove.cpp" />
     <ClCompile Include="..\Common\Persistence\NameChanger.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentAccount.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentACLPermission.cpp" />
@@ -616,6 +617,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRemoteDomains.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRoutes.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailbox.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiMailboxMove.cpp" />
     <ClCompile Include="..\Common\Util\RestApiContacts.cpp" />
     <ClCompile Include="..\Common\Util\ContactStore.cpp" />
     <ClCompile Include="..\Common\Util\VCard.cpp" />
@@ -1215,6 +1217,7 @@ EXIT 0
     <ClInclude Include="..\Common\Mime\MimeCode.h" />
     <ClInclude Include="..\Common\Mime\MimeTester.h" />
     <ClInclude Include="..\Common\Persistence\Maintenance\Maintenance.h" />
+    <ClInclude Include="..\Common\Persistence\MailboxMove.h" />
     <ClInclude Include="..\Common\Persistence\NameChanger.h" />
     <ClInclude Include="..\Common\Persistence\PersistenceMode.h" />
     <ClInclude Include="..\Common\Persistence\PersistentAccount.h" />
