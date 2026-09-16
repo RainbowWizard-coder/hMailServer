@@ -585,7 +585,7 @@ namespace HM
       subscription.quiet_offset = 120;
 
       // 1788934400 is 2026-09-09 06:13:20 UTC, which is 08:13 on the device: awake.
-      // (1788934400, which this read before, is 00:26 UTC on the 10th - 02:26 on
+      // (1789000000, which this read before, is 00:26 UTC on the 10th - 02:26 on
       // the device, inside the window - and the self-test failed on its own sum.)
       if (PushSubscriptions::IsQuiet(subscription, 1788934400))
          throw std::logic_error("08:13 on the device is not inside quiet hours of 22:00 to 07:00.");
