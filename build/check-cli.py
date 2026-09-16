@@ -178,6 +178,12 @@ ANSWERS = {
                                           "suppression_action": "refuse"},
     ("PUT", "/api/v1/settings/bounces"): {"processing_enabled": True, "hard_bounce_threshold": 1,
                                           "suppression_action": "observe"},
+    # Web Push: the private key is write-only, so a GET never carries it and an
+    # export cannot either.
+    ("GET", "/api/v1/settings/push"): {"enabled": False, "subject": "", "time_to_live_seconds": 86400,
+                                       "max_devices_per_account": 10, "max_attempts": 5, "vapid_public_key": ""},
+    ("PUT", "/api/v1/settings/push"): {"enabled": True, "subject": "", "time_to_live_seconds": 86400,
+                                       "max_devices_per_account": 10, "max_attempts": 5, "vapid_public_key": ""},
     ("GET", "/api/v1/domains/example.com/suppressions"): {
         "domain": "example.com", "processing_enabled": True, "action": "refuse", "total": 1, "offset": 0,
         "items": [{"address": "gone@elsewhere.test", "source": "bounce", "category": "hard", "status": "5.1.1",
@@ -478,6 +484,10 @@ CASES = [
     ("account create under its domain",
      ["account", "create", "--domain", "example.com", "--set", "address=new@example.com", "--set", "password=secret"],
      "POST", "/api/v1/domains/example.com/accounts", {"address": "new@example.com", "password": "secret"}, ["new@example.com"]),
+    ("settings get push", ["settings", "get", "push"], "GET", "/api/v1/settings/push", None,
+     ["max_devices_per_account"]),
+    ("settings set push", ["settings", "set", "push", "--set", "enabled=true"],
+     "PUT", "/api/v1/settings/push", {"enabled": True}, []),
     ("account get by address", ["account", "get", "ann@example.com"], "GET", "/api/v1/accounts/ann@example.com", None, ["vacation_message"]),
     ("account update by address", ["account", "update", "ann@example.com", "--set", "active=false"],
      "PUT", "/api/v1/accounts/ann@example.com", {"active": False}, []),

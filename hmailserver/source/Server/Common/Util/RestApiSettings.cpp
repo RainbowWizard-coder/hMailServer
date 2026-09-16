@@ -49,6 +49,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "Utilities.h"
+#include "WebPush.h"
 #include "PasswordBreachCheck.h"
 #include "SessionPolicies.h"
 #include "../Application/IniSettingStore.h"
@@ -204,6 +205,15 @@ namespace
    Outcome Applied() { return Outcome(); }
 
    Outcome Refused(const char *sentence)
+   {
+      Outcome o;
+      o.status = 400;
+      o.message = sentence;
+      return o;
+   }
+
+   // The same, for a refusal the setter was handed rather than one written here.
+   Outcome RefusedText(const String &sentence)
    {
       Outcome o;
       o.status = 400;
@@ -1276,11 +1286,64 @@ namespace
         ROW_FLAG(Config()->GetOpenPGPRequireAddressInUserId()), ROW_SET(Config()->SetOpenPGPRequireAddressInUserId(v.flag)), ROW_NO_CHECK },
    };
 
+   // Web Push (Common/Util/WebPush.h). Seven rows in hm_settings, read at the
+   // moment they matter so that every one is in force for the next push.
+   //
+   // The two keys are the reason this group has both an access kind that is never
+   // emitted and one that is never accepted. The public key is READ-ONLY here: it
+   // is derived from the private one and never set on its own, because a pair
+   // whose halves disagree is a feature that fails silently at a push service. The
+   // private key is WRITE-ONLY: it is accepted so that an administrator can carry
+   // an installation to another machine, and it is never emitted by this group, by
+   // the COM interface, by the configuration export or by the audit trail.
+   const Row PushRows[] =
+   {
+      { "enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "The master switch. Off by default, and with it off nothing is queued, nothing is signed and no push service is ever reached - whatever subscriptions exist.",
+        ROW_FLAG(Config()->GetWebPushEnabled()), ROW_SET(Config()->SetWebPushEnabled(v.flag)), ROW_NO_CHECK },
+      { "subject", KindString, ReadWrite, EffectNow, nullptr,
+        "The contact a push service may use when this server's subscriptions are failing: a mailto: or https: URI, sent as the sub claim of every VAPID token. Empty means mailto:postmaster@ the server's host name.",
+        ROW_TEXT(Config()->GetWebPushSubject()), ROW_SET(Config()->SetWebPushSubject(v.text)),
+        [] (const Value &v) { String s = v.text; s.Trim(); s.MakeLower();
+                              return (!s.IsEmpty() && !s.StartsWith(_T("mailto:")) && !s.StartsWith(_T("https://")))
+                                 ? String(_T("subject is a mailto: or https: address, or empty.")) : String(); } },
+      { "time_to_live_seconds", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long a push service should hold a notification for a device that is offline. 0 means deliver it now or not at all; 86400 by default; at most 2419200 (four weeks).",
+        ROW_NUMBER(Config()->GetWebPushTimeToLiveSeconds()), ROW_SET(Config()->SetWebPushTimeToLiveSeconds((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 2419200) ? String(_T("time_to_live_seconds must be between 0 and 2419200.")) : String(); } },
+      { "max_devices_per_account", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many devices one account may have notifications on at once. 1 to 50; 10 by default.",
+        ROW_NUMBER(Config()->GetWebPushMaxPerAccount()), ROW_SET(Config()->SetWebPushMaxPerAccount((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 50) ? String(_T("max_devices_per_account must be between 1 and 50.")) : String(); } },
+      { "max_attempts", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many times a push to one device is attempted before that device is dead-lettered. 1 to 20; 5 by default, as the alert webhooks are.",
+        ROW_NUMBER(Config()->GetWebPushMaxAttempts()), ROW_SET(Config()->SetWebPushMaxAttempts((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 20) ? String(_T("max_attempts must be between 1 and 20.")) : String(); } },
+      { "vapid_public_key", KindString, ReadOnly, EffectNow, nullptr,
+        "The public half of this server's VAPID key pair, base64url. Every page that subscribes needs it, so it is public by construction. Derived from the private half; POST /api/v1/settings/push/vapid makes a new pair.",
+        ROW_TEXT(Config()->GetWebPushVapidPublicKey()), nullptr, ROW_NO_CHECK },
+      { "vapid_private_key", KindString, WriteOnly, EffectNow, nullptr,
+        "The private half, base64url of the 32-octet P-256 scalar. Accepted here so an installation can be carried to another machine, and never emitted by anything. Setting it derives the public half; setting it empty clears both and stops every existing subscription working.",
+        nullptr,
+        [] (const Value &v) { String refusal; String key = v.text;
+                              return Config()->SetWebPushVapidKeys(key, refusal) ? Applied() : RefusedText(refusal); },
+        [] (const Value &v) { String key = v.text; key.Trim();
+                              if (key.IsEmpty()) return String();
+                              AnsiString derived; String error;
+                              return WebPush::PublicKeyOf(AnsiString(key), derived, error) ? String() : error; } },
+   };
+
 #undef ROW_TEXT
 #undef ROW_NUMBER
 #undef ROW_FLAG
 #undef ROW_SET
 #undef ROW_NO_CHECK
+
+   // The one Web Push route that is not a settings group: making a key pair.
+   const char *PushVapidPath =
+      ",\"/api/v1/settings/push/vapid\":{\"post\":{\"summary\":\"Make a new VAPID key pair\","
+      "\"description\":\"Generates a fresh P-256 key pair for Web Push and stores both halves. The answer carries vapid_public_key; the private half never leaves the server, and is not readable over any interface. Every subscription made under the previous pair stops working at once and each device must be asked again, so this is not a routine operation - it is what to do when the private key may have been copied. Server-wide; refused for domain-restricted keys.\","
+      "\"responses\":{\"200\":{\"description\":\"vapid_public_key\"},\"500\":{\"description\":\"The key pair could not be generated\"}}}}";
 
    const Group ServerGroup = { "server", "/api/v1/settings", ServerRows, sizeof(ServerRows) / sizeof(ServerRows[0]) };
    const Group AntiSpamGroup = { "antispam", "/api/v1/settings/antispam", AntiSpamRows, sizeof(AntiSpamRows) / sizeof(AntiSpamRows[0]) };
@@ -1292,6 +1355,7 @@ namespace
    const Group CacheGroup = { "cache", "/api/v1/settings/cache", CacheRows, sizeof(CacheRows) / sizeof(CacheRows[0]) };
    const Group IndexingGroup = { "indexing", "/api/v1/settings/indexing", IndexingRows, sizeof(IndexingRows) / sizeof(IndexingRows[0]) };
    const Group BounceGroup = { "bounces", "/api/v1/settings/bounces", BounceRows, sizeof(BounceRows) / sizeof(BounceRows[0]) };
+   const Group PushGroup = { "push", "/api/v1/settings/push", PushRows, sizeof(PushRows) / sizeof(PushRows[0]) };
    const Group OpenPgpGroup = { "openpgp", "/api/v1/settings/openpgp", OpenPgpRows, sizeof(OpenPgpRows) / sizeof(OpenPgpRows[0]) };
 
    // ---------------------------------------------------------------------
@@ -2146,6 +2210,8 @@ namespace HM
       paths += OpenApiPath(IndexingGroup, "The message indexing settings and counts", "Change the indexing settings", bridge);
       paths += CacheAndIndexingPaths;
       paths += BreachCheckTestPath;
+      paths += OpenApiPath(PushGroup, "The Web Push settings", "Change the Web Push settings", bridge);
+      paths += PushVapidPath;
       paths += OpenApiPath(BounceGroup, "The bounce and suppression list settings", "Change the bounce and suppression list settings", bridge);
       paths += OpenApiPath(OpenPgpGroup, "The OpenPGP Web Key Directory settings", "Change the OpenPGP Web Key Directory settings", bridge);
       return paths;
@@ -2426,6 +2492,42 @@ namespace HM
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       return GroupPut(OpenPgpGroup, requestBody, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsPush_()
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupGet(PushGroup, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsPushPut_(const AnsiString &requestBody)
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupPut(PushGroup, requestBody, bridge);
+   }
+
+   /*
+      A fresh VAPID key pair. The answer carries the PUBLIC half only - the
+      private half never leaves this process - and the log line says what the
+      administrator has just done, because the consequence is not obvious from the
+      button: every subscription made under the old pair stops working, and every
+      device has to be asked again.
+   */
+   HttpResponse
+   RestApiServer::HandleSettingsPushVapid_()
+   {
+      String refusal;
+      if (!Configuration::Instance()->GenerateWebPushVapidKeys(refusal))
+         return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(refusal)) + "\"}");
+
+      LOG_APPLICATION("RestApi: a new Web Push VAPID key pair was generated. Every existing subscription is now invalid and each device must subscribe again.");
+
+      AnsiString json = "{\"vapid_public_key\":\"" +
+         JsonEscape_(Utf8_(Configuration::Instance()->GetWebPushVapidPublicKey())) + "\"}";
+
+      return BuildResponse_(200, json);
    }
 
    HttpResponse

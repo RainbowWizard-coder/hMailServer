@@ -82,6 +82,7 @@
 #include "BounceMaintenanceTask.h"
 #include "../Util/DiskSpace.h"
 #include "../Util/AlertManager.h"
+#include "../Util/PushNotifier.h"
 #include "../Util/WebhookManager.h"
 #include "DkimRotationTask.h"
 #include "BackupScheduleTask.h"
@@ -888,6 +889,17 @@ namespace HM
       // down is looked at straight away, and every fifteen minutes after. A pass
       // with no domain's schedule on and nothing in flight is two selects - see
       // DkimRotationTask.
+      // Web Push. Registered unconditionally and every minute, like the alerts, and
+      // for the same reason: it is the only thing that sends. Delivery notes that
+      // mail arrived and returns, and a drain is posted to the asynchronous queue
+      // at once, so this minute is the floor that catches retries and anything the
+      // drain could not do - with the feature off, each pass is one property read
+      // and nothing else. See Common/Util/PushNotifier.h.
+      std::shared_ptr<PushTask> pushTask = std::shared_ptr<PushTask>(new PushTask);
+      pushTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      pushTask->SetMinutesBetweenRun(1);
+      scheduler_->ScheduleTask(pushTask);
+
       std::shared_ptr<DkimRotationTask> dkimRotationStartupTask = std::shared_ptr<DkimRotationTask>(new DkimRotationTask);
       dkimRotationStartupTask->SetReoccurance(ScheduledTask::RunOnce);
       scheduler_->ScheduleTask(dkimRotationStartupTask);

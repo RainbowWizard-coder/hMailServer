@@ -28,6 +28,7 @@ namespace RegressionTests.Shared
    {
       private readonly TcpListener _listener;
       private readonly List<string> _requests = new List<string>();
+      private readonly List<byte[]> _bodies = new List<byte[]>();
       private readonly object _lock = new object();
       private volatile bool _stopping;
       private int _statusCode;
@@ -98,6 +99,20 @@ namespace RegressionTests.Shared
          {
             lock (_lock)
                return new List<string>(_requests);
+         }
+      }
+
+      /// <summary>
+      ///    The body of every request, as the bytes that arrived, in the same order
+      ///    as Requests. Requests decodes as ASCII, which is what a signature over a
+      ///    JSON body needs and what an encrypted Web Push body is destroyed by.
+      /// </summary>
+      public List<byte[]> RequestBodies
+      {
+         get
+         {
+            lock (_lock)
+               return new List<byte[]>(_bodies);
          }
       }
 
@@ -179,6 +194,7 @@ namespace RegressionTests.Shared
       private void Handle(NetworkStream stream)
       {
          var request = new StringBuilder();
+         var raw = new MemoryStream();
          var buffer = new byte[4096];
          int headerEnd = -1;
          while (headerEnd < 0)
@@ -187,6 +203,7 @@ namespace RegressionTests.Shared
             if (read <= 0)
                return;
             request.Append(Encoding.ASCII.GetString(buffer, 0, read));
+            raw.Write(buffer, 0, read);
             headerEnd = request.ToString().IndexOf("\r\n\r\n", StringComparison.Ordinal);
          }
 
@@ -203,8 +220,16 @@ namespace RegressionTests.Shared
             if (read <= 0)
                break;
             request.Append(Encoding.ASCII.GetString(buffer, 0, read));
+            raw.Write(buffer, 0, read);
          }
          var text = request.ToString();
+
+         // ASCII decoding is one char per byte, so the header's end in the text is
+         // its end in the bytes.
+         byte[] rawBytes = raw.ToArray();
+         int bodyStart = Math.Min(headerEnd + 4, rawBytes.Length);
+         var bodyBytes2 = new byte[rawBytes.Length - bodyStart];
+         Array.Copy(rawBytes, bodyStart, bodyBytes2, 0, bodyBytes2.Length);
 
          int status;
          byte[] bodyBytes;
@@ -214,6 +239,7 @@ namespace RegressionTests.Shared
          lock (_lock)
          {
             _requests.Add(text);
+            _bodies.Add(bodyBytes2);
             Route route;
             if (requestPath != null && _routes.TryGetValue(requestPath, out route))
             {

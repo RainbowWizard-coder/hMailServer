@@ -821,6 +821,20 @@ const SETTING_GROUPS = {
       },
       values: { web_key_directory_enabled: true, key_maximum_bytes: 65536, keys_per_account: 8, require_address_in_user_id: true }
    },
+   // Web Push: a switch and limits, a read-only public key that a verb makes
+   // afresh, and a write-only private key for carrying an installation.
+   '/api/v1/settings/push': {
+      props: {
+         enabled: { type: 'boolean', description: 'The master switch. Off by default, and with it off nothing is queued, nothing is signed and no push service is ever reached.' },
+         subject: { type: 'string', description: 'The contact a push service may use when this server\'s subscriptions are failing: a mailto: or https: URI.' },
+         time_to_live_seconds: { type: 'integer', description: 'How long a push service should hold a notification for a device that is offline.' },
+         max_devices_per_account: { type: 'integer', description: 'How many devices one account may have notifications on at once. 1 to 50; 10 by default.' },
+         max_attempts: { type: 'integer', description: 'How many times a push to one device is attempted before that device is dead-lettered.' },
+         vapid_public_key: { type: 'string', description: 'The public half of this server\'s VAPID key pair, base64url. Derived from the private half.', readOnly: true },
+         vapid_private_key: { type: 'string', description: 'The private half, base64url. Accepted so an installation can be carried to another machine, and never emitted by anything.', writeOnly: true }
+      },
+      values: { enabled: false, subject: '', time_to_live_seconds: 86400, max_devices_per_account: 10, max_attempts: 5, vapid_public_key: '' }
+   },
    '/api/v1/settings/backup': {
       props: {
          destination: { type: 'string', description: 'The directory a backup is written to.' },
@@ -954,6 +968,12 @@ const spec = {
       '/api/v1/groups': {
          get: { summary: 'List the account groups', description: GROUPS_GET },
          post: { summary: 'Create a group', description: GROUPS_POST, requestBody: body({ name: { type: 'string' } }, ['name']) }
+      },
+      '/api/v1/settings/push': settingsPath('/api/v1/settings/push'),
+      '/api/v1/settings/push/vapid': { post: { summary: 'Make a new VAPID key pair', description: 'Generates a fresh P-256 key pair for Web Push and stores both halves. Every existing subscription stops working and each device must be asked again.' } },
+      '/api/v1/accounts/{address}/push': {
+         get: { summary: 'The Web Push devices of an account (administrator)', description: 'count, and subscriptions. The endpoint and the two keys are never in it.' },
+         delete: { summary: 'Stop Web Push on every device of an account (administrator)', description: 'What a lost phone needs: every subscription of the account is removed.' }
       },
       '/api/v1/groups/{id}': {
          get: { summary: 'One group' },
@@ -1777,6 +1797,10 @@ function answer(method, path, headers, raw) {
    if (method === 'POST' && path === '/api/v1/settings/indexing/index') { SETTING_GROUPS['/api/v1/settings/indexing'].values.total_indexed_count = 45; return json(200, { started: true }); }
    if (method === 'POST' && path === '/api/v1/settings/indexing/clear') { SETTING_GROUPS['/api/v1/settings/indexing'].values.total_indexed_count = 0; return json(200, { cleared: true }); }
 
+   if (method === 'POST' && path === '/api/v1/settings/push/vapid') {
+      SETTING_GROUPS['/api/v1/settings/push'].values.vapid_public_key = 'BNewPublicKeyOfTheServer';
+      return json(200, { vapid_public_key: 'BNewPublicKeyOfTheServer' });
+   }
    if (path in SETTING_GROUPS) {
       const group = SETTING_GROUPS[path];
       if (method === 'GET') { return json(200, group.values); }
@@ -1836,6 +1860,7 @@ function answer(method, path, headers, raw) {
       return json(200, { reset: true });
    }
    if (/^\/api\/v1\/accounts\/[^/]+\/unlock$/.test(path) && method === 'POST') { return json(200, { unlocked: true }); }
+   if (/^\/api\/v1\/accounts\/[^/]+\/push$/.test(path) && method === 'DELETE') { return json(200, { removed: 2 }); }
    if (path.indexOf('/api/v1/role-assignments/') === 0) {
       const address = decodeURIComponent(path.slice('/api/v1/role-assignments/'.length));
       if (method === 'PUT') {
@@ -2295,6 +2320,14 @@ async function main() {
    await flush();
    check('yes deletes by address', called(before, 'DELETE', '/api/v1/accounts/bob%40example.com').length === 1, paths(before));
    check('and the listing is read again without the account', rows().length === 2 && rows().every((r) => r.textContent.indexOf('bob@') < 0));
+
+   // A lost phone: the row's Stop notifications removes every Web Push
+   // subscription of the account and says how many devices that was.
+   before = requests.length;
+   click(act('stoppush', { address: 'anna@example.com' }));
+   await flush();
+   check('Stop notifications deletes the account\'s Web Push subscriptions by address and says how many devices',
+      called(before, 'DELETE', '/api/v1/accounts/anna%40example.com/push').length === 1 && toastText().indexOf('2 device(s) of anna@example.com') >= 0, toastText() + ' ' + paths(before));
 
    // ---- the account editor: every key of the update, as the desktop dialog groups them
    before = requests.length;
@@ -3259,6 +3292,15 @@ async function main() {
    await flush();
    check('Empty the caches posts to the verb and re-reads the group, so the counters follow', called(before, 'POST', '/api/v1/settings/cache/clear').length === 1 && called(before, 'GET', '/api/v1/settings/cache').length === 1 &&
       toastText() === 'Empty the caches: done' && $$('.fr').filter((r) => r.textContent.indexOf('domain_hit_rate') >= 0)[0].textContent.indexOf('97') < 0, toastText());
+   check('the Web Push group is drawn from its schema, with the private key a field to write and the public key a fact to read',
+      document.getElementById('err_set_push') !== null && $$('.fr').some((r) => r.textContent.indexOf('vapid_private_key') >= 0) &&
+      $$('.fr').some((r) => r.textContent.indexOf('vapid_public_key') >= 0), $$('.fr').map((r) => r.textContent.slice(0, 40)).join('|'));
+   before = requests.length;
+   click(act('setpost', { group: 'push', path: '/api/v1/settings/push/vapid' }));
+   await flush();
+   check('Make a new VAPID key pair posts to the verb and re-reads the group, so the public key follows',
+      called(before, 'POST', '/api/v1/settings/push/vapid').length === 1 && called(before, 'GET', '/api/v1/settings/push').length === 1 &&
+      $$('.fr').filter((r) => r.textContent.indexOf('vapid_public_key') >= 0)[0].textContent.indexOf('BNewPublicKeyOfTheServer') >= 0, toastText());
    state.scriptProblem = 'Line 12: expected end of statement';
    before = requests.length;
    click(act('setpost', { group: 'script', path: '/api/v1/settings/scripting/check' }));
@@ -4476,6 +4518,7 @@ async function main() {
       content().querySelectorAll('button[data-act="unlock"]').length === helpAddresses.length, helpDomain + ' ' + JSON.stringify(helpAddresses));
    check('and neither a delete nor a new-account form, which it may not use',
       content().querySelectorAll('button[data-act="del"]').length === 0 && !document.getElementById('newAddr'));
+   check('nor Stop notifications, which is manage_accounts', content().querySelectorAll('button[data-act="stoppush"]').length === 0);
 
    click(act('resetpick', { address: helpAddresses[0] }));
    await flush();

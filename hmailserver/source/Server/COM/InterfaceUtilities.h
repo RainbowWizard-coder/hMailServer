@@ -100,6 +100,12 @@ public:
    STDMETHOD(SetDomainSessionPolicy)(/*[in]*/ BSTR DomainName, /*[in]*/ long IdleSeconds, /*[in]*/ long LifetimeSeconds,
                                      /*[in]*/ long OnePerDevice, /*[in]*/ long BindToAddress, /*[out, retval]*/ VARIANT_BOOL *Saved);
 
+   // Web Push, for a caller standing in for a browser. See the comment on the
+   // implementations: the regression suite cannot open an aes128gcm record for
+   // itself, because .NET Framework has no AES-GCM.
+   STDMETHOD(GenerateWebPushKeyPair)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(WebPushDecrypt)(/*[in]*/ BSTR BodyBase64Url, /*[in]*/ BSTR PrivateKey, /*[in]*/ BSTR AuthSecret, /*[out, retval]*/ BSTR *PlainText);
+
 private:
    // The server administrator, or the domain administrator of this domain. Asks
    // the authorisation question, which is also what installs the audit actor.

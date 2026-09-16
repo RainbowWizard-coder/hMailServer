@@ -660,7 +660,7 @@ function Get-HmSetting {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories', 'openpgp')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'push', 'directories', 'openpgp')]
         [string] $Group = 'settings',
 
         [Parameter(Position = 1)]
@@ -693,7 +693,7 @@ function Set-HmSetting {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories', 'openpgp')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'push', 'directories', 'openpgp')]
         [string] $Group = 'settings',
 
         [Parameter(Mandatory = $true)]

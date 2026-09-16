@@ -28,8 +28,10 @@ namespace RegressionTests.Infrastructure
    ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects), the
    ///    memory of who has written to it before (hm_knownsenders), whether it asked
    ///    for the quarantine digest to stop (hm_digeststate), its own safe and
-   ///    blocked senders (hm_senderlist) and the administrative role it has been
-   ///    given (hm_roleassignments) - and, on each message, the keywords the
+   ///    blocked senders (hm_senderlist), the devices it asked to be told about
+   ///    new mail on and what each may be told (hm_pushsubscriptions) and the
+   ///    administrative role it has been given (hm_roleassignments) - and, on
+   ///    each message, the keywords the
    ///    webmail calls labels.
    ///
    ///    Until 15 September 2026 not one of those was in the archive, and because
@@ -97,6 +99,7 @@ namespace RegressionTests.Infrastructure
       {
          TurnTheFirstContactNoteOff();
          TurnTheDigestAddressOff();
+         TurnWebPushOff();
 
          IniFileSetting.Write("WebServicesHttpPort", "0");
          // Put back whatever a test turned on, whether it reached its own last line
@@ -501,6 +504,57 @@ namespace RegressionTests.Infrastructure
          // would go to somebody who had said to stop.
          StringAssert.Contains("\"enabled\":false", read.Body,
             "The restored account is being sent the digest again, so its opt-out did not come back. Body: " + read.Body);
+      }
+
+      // ------------------------------------------------------ hm_pushsubscriptions
+
+      [Test]
+      [Description("hm_pushsubscriptions: a device the account asked to be told about new mail on, with what it may be told, "
+                   + "which senders it is for and its quiet hours, is still there after a backup and a restore that deleted the domain")]
+      public void TheWebPushDeviceComesBack()
+      {
+         string admin = BasicAuth("Administrator", AdminPassword);
+
+         Response on = Rest("PUT", "/api/v1/settings/push", admin, "{\"enabled\":true}");
+         Assert.AreEqual(200, on.Status, "Body: " + on.Body);
+         Response pair = Rest("POST", "/api/v1/settings/push/vapid", admin, "{}");
+         Assert.AreEqual(200, pair.Status, "Body: " + pair.Body);
+
+         // The browser's half: a P-256 key pair and sixteen octets of auth secret.
+         // dynamic because the test project's interop may predate the method.
+         dynamic utilities = _application.Utilities;
+         string keys = utilities.GenerateWebPushKeyPair();
+         string publicKey = Regex.Match(keys, "\"public_key\":\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsNotEmpty(publicKey, keys);
+         string auth = Convert.ToBase64String(new byte[16]).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+         Response made = Rest("POST", "/api/v1/me/push/subscriptions", User(),
+            "{\"endpoint\":\"https://push.example.net/device/restored\",\"keys\":{\"p256dh\":\"" + publicKey + "\",\"auth\":\"" + auth + "\"}," +
+            "\"device\":\"The phone\",\"detail\":2,\"senders\":\"@work.test\",\"labels\":\"urgent\"," +
+            "\"quiet_from\":1320,\"quiet_to\":420,\"quiet_offset\":60}");
+         Assert.AreEqual(201, made.Status, "Body: " + made.Body);
+
+         BackupDeleteAndRestore();
+
+         Response read = Rest("GET", "/api/v1/me/push", User());
+         Assert.AreEqual(200, read.Status, "Body: " + read.Body);
+
+         // On a build whose archive has no hm_pushsubscriptions the restored account
+         // has no devices, and the person's phone has gone quiet without a word.
+         StringAssert.Contains("\"device\":\"The phone\"", read.Body,
+            "The device did not come back, so AccountStores does not carry hm_pushsubscriptions. Body: " + read.Body);
+
+         // And the choices, which are the reason the table is carried at all: a
+         // device restored to "everything, at any hour" is the failure people notice
+         // at two in the morning.
+         StringAssert.Contains("\"detail\":2", read.Body, read.Body);
+         StringAssert.Contains("\"senders\":\"@work.test\"", read.Body, read.Body);
+         StringAssert.Contains("\"labels\":\"urgent\"", read.Body, read.Body);
+         StringAssert.Contains("\"quiet_from\":1320", read.Body, read.Body);
+         StringAssert.Contains("\"quiet_to\":420", read.Body, read.Body);
+         StringAssert.Contains("\"quiet_offset\":60", read.Body, read.Body);
+         StringAssert.Contains("\"state\":\"active\"", read.Body, read.Body);
+         StringAssert.DoesNotContain("device/restored", read.Body, "The listing carried the endpoint: " + read.Body);
       }
 
       // -------------------------------------------------------- hm_senderlist
@@ -1105,6 +1159,22 @@ namespace RegressionTests.Infrastructure
       ///    leaves alone, so it is put back here rather than left to the next SetUp,
       ///    which replaces the domain and nothing else.
       /// </summary>
+      private void TurnWebPushOff()
+      {
+         try
+         {
+            // The switch and the key pair are hm_settings rows the restore does not
+            // touch; cleared here so nothing after this fixture can send.
+            Rest("PUT", "/api/v1/settings/push", BasicAuth("Administrator", AdminPassword),
+               "{\"enabled\":false,\"vapid_private_key\":\"\"}");
+         }
+         catch (Exception tidying) when (!ExceptionPolicy.IsFatal(tidying))
+         {
+            // The listener may already be down; the next fixture's SetUp reads the
+            // rows as they are, and a push with the feature off is nothing.
+         }
+      }
+
       private void TurnTheDigestAddressOff()
       {
          try

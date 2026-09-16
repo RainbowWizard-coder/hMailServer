@@ -68,6 +68,7 @@
 #include "HttpServer.h"
 #include "../Application/RoleManager.h"
 #include "AuditTrail.h"
+#include "PushSubscriptions.h"
 
 namespace HM
 {
@@ -508,6 +509,13 @@ namespace HM
          // only be that narrow when the route is.
          RouteAccountPasswordReset,
          RouteAccountUnlock,
+         // An account's Web Push devices, seen and stopped by an administrator
+         // (RestApiPush.cpp): what a lost phone needs, and Account.
+         // PushSubscriptionCount and RemovePushSubscriptions over COM. The
+         // listing is the same safe one the account itself gets - never the
+         // endpoint or a key.
+         RouteAccountPushGet,
+         RouteAccountPushRemove,
          // The message trace (RestApiRoles.cpp): Application.GlobalObjects.
          // MessageTrace over COM. The recent events and one queued message's
          // story are server-wide; one address's events are scoped to its domain,
@@ -555,6 +563,19 @@ namespace HM
          RouteWebhookTest,
          // the reason the delivery queue is - the counters are the server's
          // and there is no honest way to narrow them to one domain.
+
+         // Web Push (Common/Util/WebPush.h). The five under /api/v1/me are the
+         // account's own devices - self-service, so they are classified in
+         // IsSelfServiceRoute_ and the roles do not reach them; the three under
+         // /api/v1/settings are the administrator's switch, limits and key pair.
+         RouteMePush,
+         RouteMePushSubscribe,
+         RouteMePushUpdate,
+         RouteMePushDelete,
+         RouteMePushTest,
+         RouteSettingsPushGet,
+         RouteSettingsPushPut,
+         RouteSettingsPushVapid,
          RouteReport,
          // Bounces read, and the suppression list (RestApiBounces.cpp). The four
          // under a domain are scoped to it in Authorize_ as the account routes are;
@@ -838,6 +859,25 @@ namespace HM
       // The account's preferences, a key/value store (RestApiPreferences.cpp).
       static HttpResponse HandleMePreferences_(const Caller &caller);
       static HttpResponse HandleMePreferencesPut_(const Caller &caller, const AnsiString &requestBody);
+
+      // Web Push, in RestApiPush.cpp: the account's own devices. The listing
+      // never carries the endpoint or either key - see the comment at the top of
+      // that file for why that is a rule and not a convenience.
+      static AnsiString PushSubscriptionJson_(const PushSubscriptions::Subscription &subscription);
+      static AnsiString PushStateJson_(__int64 accountId);
+      static HttpResponse HandleMePush_(const Caller &caller);
+      static HttpResponse HandleMePushSubscribe_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMePushUpdate_(const Caller &caller, __int64 id, const AnsiString &requestBody);
+      static HttpResponse HandleMePushDelete_(const Caller &caller, __int64 id);
+      static HttpResponse HandleMePushTest_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleAccountPush_(const Caller &caller, const AnsiString &address);
+      static HttpResponse HandleAccountPushRemove_(const Caller &caller, const AnsiString &address);
+
+      // And the administrator's half, in RestApiSettings.cpp beside the other
+      // settings groups.
+      static HttpResponse HandleSettingsPush_();
+      static HttpResponse HandleSettingsPushPut_(const AnsiString &requestBody);
+      static HttpResponse HandleSettingsPushVapid_();
       static AnsiString PreferencesJson_(__int64 accountId);
 
       // Archive, Junk and Trash as actions: a designated folder made on demand,

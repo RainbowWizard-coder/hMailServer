@@ -13,6 +13,9 @@
 #include "../Util/MessageUtilities.h"
 #include "../Util/MessageOrigin.h"
 #include "../Util/PasswordBreachCheck.h"
+#include "../Util/WebPush.h"
+#include "../Util/PushSubscriptions.h"
+#include "../Util/PushNotifier.h"
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
@@ -246,6 +249,24 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SHA256\n"));
       HashCreatorTester tester;
       tester.Test();
+
+      // Web Push, against the worked example of RFC 8291 section 5 and appendix A:
+      // the salt, both key pairs, the auth secret and the plaintext are the RFC's,
+      // so the encryption is proved against the specification rather than against
+      // another copy of itself. Then the person's own choices - the sender list,
+      // the labels and the quiet hours - and the payload each level of detail is
+      // allowed to carry.
+      OutputDebugString(_T("hMailServer: Testing Web Push against RFC 8291 and RFC 8292\n"));
+      {
+         WebPushTester webPushTester;
+         webPushTester.Test();
+
+         PushSubscriptionsTester pushSubscriptionsTester;
+         pushSubscriptionsTester.Test();
+
+         PushNotifierTester pushNotifierTester;
+         pushNotifierTester.Test();
+      }
 
       OutputDebugString(_T("hMailServer: Testing password hash dispatch (Crypt)\n"));
       {

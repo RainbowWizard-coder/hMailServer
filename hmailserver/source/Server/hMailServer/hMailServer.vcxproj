@@ -598,6 +598,10 @@ EXIT 0
     <ClCompile Include="..\Common\Util\AuditTrail.cpp" />
     <ClCompile Include="..\Common\Util\AlertManager.cpp" />
     <ClCompile Include="..\Common\Util\WebhookManager.cpp" />
+    <ClCompile Include="..\Common\Util\WebPush.cpp" />
+    <ClCompile Include="..\Common\Util\PushSubscriptions.cpp" />
+    <ClCompile Include="..\Common\Util\PushNotifier.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiPush.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCertificates.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAdministration.cpp" />
@@ -1429,6 +1433,9 @@ EXIT 0
     <ClInclude Include="..\Common\Util\WebhookManager.h" />
     <ClInclude Include="..\Common\Util\SessionPolicies.h" />
     <ClInclude Include="..\Common\Util\SignInStore.h" />
+    <ClInclude Include="..\Common\Util\WebPush.h" />
+    <ClInclude Include="..\Common\Util\PushSubscriptions.h" />
+    <ClInclude Include="..\Common\Util\PushNotifier.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />

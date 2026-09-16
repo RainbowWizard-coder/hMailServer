@@ -24,6 +24,7 @@
 #include "../Cache/CacheConfiguration.h"
 #include "../Util/AWStats.h"
 #include "../Util/PasswordBreachCheck.h"
+#include "../Util/WebPush.h"
 
 // BACKUP
 #include "../BO/Rules.h"
@@ -136,6 +137,19 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_BOUNCE_READ_REPORTS, 1);
       property_set_->EnsureLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, 90);
       property_set_->EnsureLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, 7);
+
+      // Web Push. Off, with no keys and no contact: a server that has never been
+      // configured for it queues nothing and reaches no push service. A day's time
+      // to live so that a phone that was off overnight is still told; ten devices
+      // an account, which is more than anybody has; five attempts, the alert
+      // webhook's number.
+      property_set_->EnsureLong(PROPERTY_WEB_PUSH_ENABLED, 0);
+      property_set_->EnsureString(PROPERTY_WEB_PUSH_SUBJECT, _T(""));
+      property_set_->EnsureLong(PROPERTY_WEB_PUSH_TTL_SECONDS, 86400);
+      property_set_->EnsureLong(PROPERTY_WEB_PUSH_MAX_PER_ACCOUNT, 10);
+      property_set_->EnsureLong(PROPERTY_WEB_PUSH_MAX_ATTEMPTS, 5);
+      property_set_->EnsureString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, _T(""));
+      property_set_->EnsureString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, _T(""));
 
       // The Web Key Directory. Off, which is the server as it has always been: no
       // key of anybody's is served until an administrator switches this on AND the
@@ -1450,6 +1464,166 @@ namespace HM
    Configuration::SetOpenPGPRequireAddressInUserId(bool required)
    {
       GetSettings()->SetLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, required ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetWebPushEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_WEB_PUSH_ENABLED);
+   }
+
+   void
+   Configuration::SetWebPushEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_WEB_PUSH_ENABLED, enabled);
+   }
+
+   String
+   Configuration::GetWebPushSubject()
+   {
+      return GetSettings()->GetString(PROPERTY_WEB_PUSH_SUBJECT);
+   }
+
+   void
+   Configuration::SetWebPushSubject(const String &subject)
+   {
+      GetSettings()->SetString(PROPERTY_WEB_PUSH_SUBJECT, subject);
+   }
+
+   int
+   Configuration::GetWebPushTimeToLiveSeconds()
+   {
+      int seconds = GetSettings()->GetLong(PROPERTY_WEB_PUSH_TTL_SECONDS);
+
+      // 0 is a real choice - "deliver it now or not at all" - so it is kept, and
+      // only a value outside the range a push service would accept is replaced.
+      if (seconds < 0 || seconds > 2419200)
+         return 86400;
+
+      return seconds;
+   }
+
+   void
+   Configuration::SetWebPushTimeToLiveSeconds(int seconds)
+   {
+      GetSettings()->SetLong(PROPERTY_WEB_PUSH_TTL_SECONDS, (seconds < 0 || seconds > 2419200) ? 86400 : seconds);
+   }
+
+   int
+   Configuration::GetWebPushMaxPerAccount()
+   {
+      int maximum = GetSettings()->GetLong(PROPERTY_WEB_PUSH_MAX_PER_ACCOUNT);
+
+      if (maximum <= 0)
+         return 10;
+      if (maximum > 50)
+         return 50;
+
+      return maximum;
+   }
+
+   void
+   Configuration::SetWebPushMaxPerAccount(int maximum)
+   {
+      if (maximum <= 0)
+         maximum = 10;
+      if (maximum > 50)
+         maximum = 50;
+
+      GetSettings()->SetLong(PROPERTY_WEB_PUSH_MAX_PER_ACCOUNT, maximum);
+   }
+
+   int
+   Configuration::GetWebPushMaxAttempts()
+   {
+      int attempts = GetSettings()->GetLong(PROPERTY_WEB_PUSH_MAX_ATTEMPTS);
+
+      if (attempts <= 0)
+         return 5;
+      if (attempts > 20)
+         return 20;
+
+      return attempts;
+   }
+
+   void
+   Configuration::SetWebPushMaxAttempts(int attempts)
+   {
+      if (attempts <= 0)
+         attempts = 5;
+      if (attempts > 20)
+         attempts = 20;
+
+      GetSettings()->SetLong(PROPERTY_WEB_PUSH_MAX_ATTEMPTS, attempts);
+   }
+
+   String
+   Configuration::GetWebPushVapidPublicKey()
+   {
+      return GetSettings()->GetString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY);
+   }
+
+   String
+   Configuration::GetWebPushVapidPrivateKey()
+   {
+      return GetSettings()->GetString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY);
+   }
+
+   /*
+      The public half is DERIVED rather than taken, so the pair can never
+      disagree: a server given a private key alone - which is what an
+      administrator moving an installation has, and what every other Web Push
+      implementation asks for - ends up with the public key that belongs to it,
+      and a page that subscribes under that key is subscribing to this server.
+   */
+   bool
+   Configuration::SetWebPushVapidKeys(const String &privateKey, String &refusal)
+   {
+      refusal.Empty();
+
+      String trimmed = privateKey;
+      trimmed.Trim();
+
+      if (trimmed.IsEmpty())
+      {
+         // Clearing both halves is how an administrator turns the feature off for
+         // good: every existing subscription stops working, which is the point.
+         GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, _T(""));
+         GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, _T(""));
+         return true;
+      }
+
+      AnsiString publicKey;
+      String error;
+      if (!WebPush::PublicKeyOf(AnsiString(trimmed), publicKey, error))
+      {
+         refusal = error;
+         return false;
+      }
+
+      GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, trimmed);
+      GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, String(publicKey));
+      return true;
+   }
+
+   bool
+   Configuration::GenerateWebPushVapidKeys(String &refusal)
+   {
+      refusal.Empty();
+
+      AnsiString publicKey;
+      AnsiString privateKey;
+      String error;
+
+      if (!WebPush::GenerateKeyPair(publicKey, privateKey, error))
+      {
+         refusal = error;
+         return false;
+      }
+
+      GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, String(privateKey));
+      GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, String(publicKey));
+      return true;
    }
 
    int

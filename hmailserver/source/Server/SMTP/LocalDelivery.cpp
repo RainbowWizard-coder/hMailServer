@@ -35,6 +35,7 @@
 #include "../Common/Util/AWStats.h"
 #include "../Common/Util/TraceHeaderWriter.h"
 #include "../Common/Util/MessageUtilities.h"
+#include "../Common/Util/PushNotifier.h"
 #include "../Common/Util/FileUtilities.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Util/Parsing/StringParser.h"
@@ -390,6 +391,14 @@ namespace HM
       std::shared_ptr<ChangeNotification> changeNotification = 
          std::shared_ptr<ChangeNotification>(new ChangeNotification(accountLevelMessage->GetAccountID(), accountLevelMessage->GetFolderID(), ChangeNotification::NotificationMessageAdded));
       Application::Instance()->GetNotificationServer()->SendNotification(changeNotification);
+
+      // And the person's own devices, if any of them asked to be told. This is the
+      // one place Web Push is told that mail has arrived, and it is deliberately
+      // the place where the mail HAS arrived: a note taken before the save above
+      // would announce a message that was never written. Note() takes a lock and
+      // appends to a list - nothing is signed and no push service is reached on
+      // this thread. See Common/Util/PushNotifier.h.
+      PushNotifier::Instance()->Note(account->GetID(), accountLevelMessage);
 
       AWStats::LogDeliverySuccess(_sendersIP, "127.0.0.1", accountLevelMessage, account->GetAddress());
    }

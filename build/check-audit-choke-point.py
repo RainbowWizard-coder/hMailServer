@@ -23,8 +23,10 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               row nor a setting, is called only where such a change is made -
               the five ways a lockout is lifted: an account unlocked over REST
               and over COM, a POP3 mailbox lock cleared over COM, and the
-              logon-failure list cleared over REST and over COM - and every one
-              of those calls must be there.
+              logon-failure list cleared over REST and over COM - and the two
+              ways an administrator stops Web Push on every device of an
+              account, whose rows are the person's own and not audited - and
+              every one of those calls must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -120,7 +122,8 @@ ALLOWED = {
       "Common/Util/AuditTrail.h",
       "Common/Util/RestApiRoles.cpp",               # POST /api/v1/accounts/{address}/unlock
       "COM/InterfaceApplication.cpp",               # Application.UnlockAccount
-      "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox
+      "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox, Account.RemovePushSubscriptions
+      "Common/Util/RestApiPush.cpp",                # DELETE /api/v1/accounts/{address}/push
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
@@ -167,6 +170,12 @@ REQUIRED = [
    ("COM/InterfaceAccount.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("unlocked"),',
     "a POP3 mailbox lock cleared through Account.UnlockMailbox is no longer recorded - the lock is in memory, so no chokepoint sees it"),
+   ("Common/Util/RestApiPush.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("push-subscriptions-removed"),',
+    "an account's Web Push devices stopped over REST is no longer recorded - hm_pushsubscriptions is the person's own and is not audited, so the statement chokepoint does not record the delete"),
+   ("COM/InterfaceAccount.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("push-subscriptions-removed"),',
+    "an account's Web Push devices stopped over COM is no longer recorded - hm_pushsubscriptions is the person's own and is not audited, so the statement chokepoint does not record the delete"),
    ("COM/InterfaceAccount.cpp",
     "authentication_->AllowsForDomain(HM::RolePermission::UnlockAccount, HM::StringParser::ExtractDomain(object_->GetAddress()))",
     "Account.UnlockMailbox no longer asks the permission an unlock needs, so anybody holding an account object clears its lock and installs no actor"),
@@ -316,6 +325,12 @@ NOT_AUDITED = {
                        "it each update the selector and key file columns of hm_domains, which are audited with the pass's actor or "
                        "the caller. A retire changes only this row and the key file, and is NOT recorded: "
                        "docs/DkimKeyRotation.md says so, and the application log has a line for it.",
+   "hm_pushsubscriptions": "the browsers and phones an account asked to be told about its own mail on, written by that account in the "
+                           "webmail and by the push sender when a push service says a device is gone. An administrator's only reach "
+                           "into it is stopping every device of an account - Account.RemovePushSubscriptions over COM and DELETE "
+                           "/api/v1/accounts/{address}/push over REST - and each of those records an event, push-subscriptions-removed, "
+                           "under the actor; the switch, the limits and the VAPID key pair are hm_settings rows, and every change to "
+                           "those is already recorded with the value it had.",
    "hm_bouncecounts": "how often each address outside the server bounced a domain's mail and when it was last delivered to, written by "
                       "delivery and by the delivery reports that arrive, with no actor; traffic. What an administrator decides about "
                       "bounces is a setting (hm_settings) or a suppression list entry (hm_bouncesuppressions), and both are audited.",

@@ -178,6 +178,9 @@ public:
    STDMETHOD(GetDevices)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(RevokeDevice)(/*[in]*/ BSTR DeviceID, /*[in]*/ VARIANT_BOOL RevokeCredential, /*[out, retval]*/ VARIANT_BOOL *Revoked);
 
+   STDMETHOD(get_PushSubscriptionCount)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(RemovePushSubscriptions)(/*[out, retval]*/ long *RemovedCount);
+
 
 private:
 

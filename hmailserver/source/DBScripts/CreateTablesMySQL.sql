@@ -24,6 +24,8 @@ drop table if exists hm_calendars;
 
 drop table if exists hm_contacts;
 
+drop table if exists hm_pushsubscriptions;
+
 drop table if exists hm_accountprefs;
 
 drop table if exists hm_scheduled;
@@ -1703,4 +1705,33 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 ALTER TABLE hm_signins ADD CONSTRAINT fk_hm_signins_account FOREIGN KEY (siaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6053);
+create table hm_pushsubscriptions
+(
+	psid bigint auto_increment not null, primary key(`psid`), unique(`psid`),
+	psaccountid int not null,
+	psendpointhash varchar(64) not null,
+	psendpoint varchar(1000) not null,
+	pskeyp256dh varchar(128) not null,
+	pskeyauth varchar(32) not null,
+	psdevice varchar(64) not null,
+	pscreated bigint not null,
+	pslastsent bigint not null,
+	psstate int not null,
+	psfailures int not null,
+	psnextattempt bigint not null,
+	pslastdetail varchar(255) not null,
+	psdetail int not null,
+	pssenders varchar(255) not null,
+	pslabels varchar(255) not null,
+	psquietfrom int not null,
+	psquietto int not null,
+	psquietoffset int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_pushsubscriptions_endpoint ON hm_pushsubscriptions (psaccountid, psendpointhash);
+
+ALTER TABLE hm_pushsubscriptions ENGINE=InnoDB;
+
+ALTER TABLE hm_pushsubscriptions ADD CONSTRAINT fk_hm_pushsubscriptions_account FOREIGN KEY (psaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+insert into hm_dbversion values (6054);

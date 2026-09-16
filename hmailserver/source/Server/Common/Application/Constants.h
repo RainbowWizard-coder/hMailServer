@@ -2,6 +2,12 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+// The Web Key Directory: this server publishing its users' OpenPGP public keys
+// (docs/OpenPGP.md). In hm_settings by the rule of 15 September 2026, with rows
+// created at start by EnsureLong when a database has none and seeded by the
+// 6049 to 6050 step. Publishing is OFF, which is the server as it has always
+// been: an upgrade must not start publishing anybody's key, and it does not -
+// the domain switch and the account switch are 0 on every existing row as well.
 #define PROPERTY_MAXPOP3CONNECTIONS             _T("maxpop3connections")
 #define PROPERTY_MAXSMTPCONNECTIONS             _T("maxsmtpconnections")
 #define PROPERTY_MIRROREMAILADDRESS             _T("mirroremailaddress")
@@ -210,6 +216,17 @@
 // switch is what an administrator reaches for when a receiver has to be
 // silenced at once without deleting the subscriptions that name it.
 //
+// The other three are the limits an administrator can move: the size of a key
+// this server will take (64 KiB, which is a key with a very large number of
+// certifications on it), how many keys one account may hold at once (8, so that
+// a key being rotated and the key it replaces can both be published), and
+// whether a key whose user ids do not carry the account's own address is
+// refused. An administrator can override the last one for one upload; nobody
+// else can.
+#define PROPERTY_OPENPGP_WKD_ENABLED            _T("OpenPGPWebKeyDirectoryEnabled")
+#define PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES      _T("OpenPGPKeyMaximumBytes")
+#define PROPERTY_OPENPGP_KEYS_PER_ACCOUNT       _T("OpenPGPKeysPerAccount")
+#define PROPERTY_OPENPGP_REQUIRE_ADDRESS        _T("OpenPGPRequireAddressInUserId")
 // WebhookMaxPerMinute is the ceiling a subscription that names no ceiling of
 // its own is held to. Past it events are DROPPED rather than queued, and the
 // count of what was dropped is reported: a queue that grows without bound is
@@ -267,24 +284,24 @@
 #define PROPERTY_BOUNCE_COUNT_RETENTION_DAYS    _T("BounceCountRetentionDays")
 #define PROPERTY_BOUNCE_REPORT_WINDOW_DAYS      _T("BounceReportWindowDays")
 
-// The Web Key Directory: this server publishing its users' OpenPGP public keys
-// (docs/OpenPGP.md). In hm_settings by the rule of 15 September 2026, with rows
-// created at start by EnsureLong when a database has none and seeded by the
-// 6049 to 6050 step. Publishing is OFF, which is the server as it has always
-// been: an upgrade must not start publishing anybody's key, and it does not -
-// the domain switch and the account switch are 0 on every existing row as well.
+// Web Push (Common/Util/WebPush.h). In hm_settings, by the rule of 15 September
+// 2026, with rows created at start by EnsureSettingDefaults_ and seeded by the
+// 6050 upgrade step. Off by default: with WebPushEnabled 0 nothing is queued,
+// nothing is signed and no push service is ever reached.
 //
-// The other three are the limits an administrator can move: the size of a key
-// this server will take (64 KiB, which is a key with a very large number of
-// certifications on it), how many keys one account may hold at once (8, so that
-// a key being rotated and the key it replaces can both be published), and
-// whether a key whose user ids do not carry the account's own address is
-// refused. An administrator can override the last one for one upload; nobody
-// else can.
-#define PROPERTY_OPENPGP_WKD_ENABLED            _T("OpenPGPWebKeyDirectoryEnabled")
-#define PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES      _T("OpenPGPKeyMaximumBytes")
-#define PROPERTY_OPENPGP_KEYS_PER_ACCOUNT       _T("OpenPGPKeysPerAccount")
-#define PROPERTY_OPENPGP_REQUIRE_ADDRESS        _T("OpenPGPRequireAddressInUserId")
+// The private key's NAME carries "privatekey" on purpose, so that
+// AuditTrail::IsSecretName records a change to it as "(changed)" rather than
+// writing the key into the audit trail; PropertySet::IsCryptedProperty_ protects
+// it at rest as it does the relayer password. The public key is public by
+// definition and is named so that nothing masks it - the page needs it to
+// subscribe at all.
+#define PROPERTY_WEB_PUSH_ENABLED               _T("WebPushEnabled")
+#define PROPERTY_WEB_PUSH_SUBJECT               _T("WebPushSubject")
+#define PROPERTY_WEB_PUSH_TTL_SECONDS           _T("WebPushTimeToLiveSeconds")
+#define PROPERTY_WEB_PUSH_MAX_PER_ACCOUNT       _T("WebPushMaxPerAccount")
+#define PROPERTY_WEB_PUSH_MAX_ATTEMPTS          _T("WebPushMaxAttempts")
+#define PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY      _T("WebPushVapidPublicKey")
+#define PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY     _T("WebPushVapidPrivateKey")
 
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
@@ -335,4 +352,11 @@
 //      means the policy is not set: an upgraded server keeps the ceilings it always
 //      had (thirty minutes idle, twelve hours in all) and refuses nobody it did not
 //      refuse before. hm_signins starts empty and fills as people sign in.
-#define REQUIRED_DB_VERSION            6053
+// 6050 adds hm_pushsubscriptions, one row per browser or phone an account asked to
+//      be told on: the push service's endpoint (and a hash of it, because SQL Server
+//      Compact will not compare a long nvarchar parameter with a column), the two
+//      keys RFC 8291 encrypts to, what the person allowed a push to carry, which
+//      senders and labels it is for, and the quiet hours; and seeds the seven
+//      WebPush* settings rows. The table starts empty and WebPushEnabled is 0, so
+//      an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6054

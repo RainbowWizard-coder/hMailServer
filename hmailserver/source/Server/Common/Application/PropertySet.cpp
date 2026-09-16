@@ -235,6 +235,13 @@ namespace HM
       if (sPropertyName == PROPERTY_SMTPRELAYER_PASSWORD)
          return true;
 
+      // The VAPID private key. Protected at rest for the same reason the relayer
+      // password is: a database dump carried off the machine must not carry with
+      // it the key that lets whoever has it send a notification to every phone
+      // subscribed to this server.
+      if (sPropertyName == PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY)
+         return true;
+
       return false;
    }
 

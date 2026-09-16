@@ -464,6 +464,23 @@ function json(status, body, headers) {
    return { status, body: body === undefined ? '' : JSON.stringify(body), headers: headers || {} };
 }
 
+// The server's half of Web Push: the switch, the application server key and the
+// devices. pushRow is the listing's shape, and the assertion that matters is
+// what it does NOT carry - the endpoint and the two keys are the capability to
+// notify the device, and the real route never gives them back.
+let pushEnabled = true;
+const VAPID_PUBLIC = 'BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8';
+const pushDevices = [];
+function pushRow(device) {
+   return {
+      id: device.id, device: device.device, created: device.created, last_sent: device.last_sent,
+      state: device.state, failures: device.failures, next_attempt: 0, last_detail: device.last_detail,
+      detail: device.detail, senders: device.senders, labels: device.labels,
+      quiet_from: device.quiet_from, quiet_to: device.quiet_to, quiet_offset: device.quiet_offset,
+      service: 'https://push.example.net'
+   };
+}
+
 function answer(method, path, body) {
    if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
@@ -476,6 +493,53 @@ function answer(method, path, body) {
       });
    }
    if (path === '/api/v1/me/folders' && method === 'GET') { return json(200, folderTree()); }
+   // Web Push. The devices are state, not a constant: the whole contract is that
+   // a device subscribing twice under the same endpoint keeps ONE row, and that
+   // the listing never carries the endpoint or either key back.
+   if (path === '/api/v1/me/push' && method === 'GET') {
+      return json(200, { enabled: pushEnabled, vapid_public_key: pushEnabled ? VAPID_PUBLIC : '', max_devices: 10, subscriptions: pushDevices.map(pushRow) });
+   }
+   if (path === '/api/v1/me/push/subscriptions' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      if (!pushEnabled) { return json(409, { error: 'Web Push is switched off on this server' }); }
+      const keys = wanted.keys || {};
+      if (!wanted.endpoint || !keys.p256dh || !keys.auth) { return json(400, { error: 'a key is missing' }); }
+      let device = pushDevices.find((d) => d.endpoint === wanted.endpoint);
+      if (!device) {
+         device = { id: 40 + pushDevices.length, endpoint: wanted.endpoint, created: 1789000000, last_sent: 0, state: 'active', failures: 0, last_detail: '' };
+         pushDevices.push(device);
+      }
+      device.p256dh = keys.p256dh;
+      device.auth = keys.auth;
+      device.device = wanted.device || '';
+      device.detail = wanted.detail === undefined ? 1 : Number(wanted.detail);
+      device.senders = wanted.senders || '';
+      device.labels = wanted.labels || '';
+      device.quiet_from = wanted.quiet_from === undefined ? -1 : Number(wanted.quiet_from);
+      device.quiet_to = wanted.quiet_to === undefined ? -1 : Number(wanted.quiet_to);
+      device.quiet_offset = Number(wanted.quiet_offset) || 0;
+      return json(201, pushRow(device));
+   }
+   if (/^\/api\/v1\/me\/push\/subscriptions\/\d+$/.test(path) && method === 'PUT') {
+      const id = Number(path.split('/').pop());
+      const device = pushDevices.find((d) => d.id === id);
+      if (!device) { return json(404, { error: 'no such device of this account' }); }
+      const wanted = JSON.parse(body || '{}');
+      ['detail', 'quiet_from', 'quiet_to', 'quiet_offset'].forEach((k) => { if (wanted[k] !== undefined) { device[k] = Number(wanted[k]); } });
+      ['senders', 'labels'].forEach((k) => { if (wanted[k] !== undefined) { device[k] = String(wanted[k]); } });
+      return json(200, pushRow(device));
+   }
+   if (/^\/api\/v1\/me\/push\/subscriptions\/\d+$/.test(path) && method === 'DELETE') {
+      const id = Number(path.split('/').pop());
+      const at = pushDevices.findIndex((d) => d.id === id);
+      if (at < 0) { return json(404, { error: 'no such device of this account' }); }
+      pushDevices.splice(at, 1);
+      return json(200, { removed: true });
+   }
+   if (path === '/api/v1/me/push/test' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      return pushDevices.some((d) => d.id === Number(wanted.id)) ? json(200, { sent: true }) : json(404, { error: 'no such device of this account' });
+   }
    if (path === '/api/v1/me/quarantine') { return json(200, { enabled: true, messages: [] }); }
    // The clients that have signed in as this person: a phone on an app password
    // and this browser. Two rows, because a client is the protocol, the address
@@ -724,8 +788,46 @@ const flush = async () => { for (let i = 0; i < 60; i += 1) { await new Promise(
 // recorded rather than real.
 const badges = [];
 const handlers = [];
+// The browser's half of Web Push, recorded rather than real: a permission the
+// test can set, a service worker registration with a push manager, and a
+// subscription whose keys are the ones RFC 8291's example uses - so what the
+// page sends is checked against a key of a known length rather than a blob.
+const NotificationStub = function (title, options) { notifications.push({ title, options }); };
+const notifications = [];
+NotificationStub.permission = 'default';
+NotificationStub.requestPermission = () => Promise.resolve(NotificationStub.permission);
+
+function bytesOf(base64url) {
+   const padded = base64url.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((base64url.length + 3) % 4);
+   return Uint8Array.from(Buffer.from(padded, 'base64'));
+}
+const SUBSCRIPTION_P256DH = 'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4';
+const SUBSCRIPTION_AUTH = 'BTBZMqHH6r4Tts7J_aSIgg';
+
+let liveSubscription = null;
+let subscribeCalls = [];
+const pushManagerStub = {
+   subscribe: (options) => {
+      subscribeCalls.push(options);
+      liveSubscription = {
+         endpoint: 'https://push.example.net/push/JzLQ3raZJfFBR0aqvOMsLrt54w4rJUsV',
+         options: options,
+         getKey: (name) => (name === 'p256dh' ? bytesOf(SUBSCRIPTION_P256DH) : bytesOf(SUBSCRIPTION_AUTH)).buffer,
+         unsubscribe: () => { liveSubscription = null; return Promise.resolve(true); }
+      };
+      return Promise.resolve(liveSubscription);
+   },
+   getSubscription: () => Promise.resolve(liveSubscription)
+};
+const registrationStub = { pushManager: pushManagerStub, showNotification: () => Promise.resolve() };
+const serviceWorkerStub = {
+   register: () => Promise.resolve(registrationStub),
+   ready: Promise.resolve(registrationStub)
+};
 const navigatorStub = {
    language: 'en', languages: ['en'],
+   userAgent: 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36',
+   serviceWorker: serviceWorkerStub,
    setAppBadge: (n) => { badges.push(Number(n)); return Promise.resolve(); },
    clearAppBadge: () => { badges.push(0); return Promise.resolve(); },
    registerProtocolHandler: (scheme, url) => { handlers.push({ scheme: String(scheme), url: String(url) }); }
@@ -735,12 +837,16 @@ const cachesStub = {
    open: async (name) => {
       if (!cacheStores.has(name)) { cacheStores.set(name, new Map()); }
       const m = cacheStores.get(name);
-      return { match: async (k) => m.get(k), put: async (k, r) => { m.set(k, r); }, delete: async (k) => m.delete(k) };
+      // A real Cache hands back a FRESH Response each time it is matched; a body
+      // can be read only once, so returning the same object twice would let a
+      // second reader see an empty one - which is not what a browser does, and
+      // is how the service worker's words looked like a bug that was not there.
+      return { match: async (k) => { const r = m.get(k); return r && r.clone ? r.clone() : r; }, put: async (k, r) => { m.set(k, r); }, delete: async (k) => m.delete(k) };
    },
    delete: async (name) => cacheStores.delete(name)
 };
 const world = {
-   navigator: navigatorStub, caches: cachesStub,
+   navigator: navigatorStub, caches: cachesStub, Notification: NotificationStub,
    document, window, location, history, localStorage,
    fetch: fetchStub,
    confirm: window.confirm,
@@ -2092,6 +2198,7 @@ async function main() {
    // so the panes it is shown in and the fields it is written in are dir=auto.
    const arabic = JSON.parse(fs.readFileSync(cataloguesDir + 'ar.json', 'utf8'));
    const german = JSON.parse(fs.readFileSync(cataloguesDir + 'de.json', 'utf8'));
+   germanCatalogue = german;
    check('the Arabic catalogue holds Arabic, not the English', /[؀-ۿ]/.test(arabic['Keyboard shortcuts']) && arabic['Keyboard shortcuts'] !== 'Keyboard shortcuts',
       String(arabic['Keyboard shortcuts']));
    const beforeArabic = requests.length;
@@ -2360,6 +2467,9 @@ async function main() {
       credentialCall ? credentialCall.path : 'no DELETE');
    document.getElementById('device-credential').checked = false;
 
+   // ---- Web Push: the devices, and the service worker's own handler
+   await pushChecks();
+
    // ---- signing out ends the session and stops the probe
    const beforeOut = requests.length;
    document.getElementById('signout').dispatchEvent(makeEvent('click'));
@@ -2552,6 +2662,166 @@ async function main() {
       process.exit(1);
    }
    console.log('portal script: ' + checks + ' checks passed');
+}
+
+// Web Push. Run at the end of main(), on the signed-in page, and then the
+// service worker is loaded into a world of its own and handed a push event -
+// which is the only way to find out what a reader would actually see.
+let germanCatalogue = null;
+async function pushChecks() {
+   // The page has been switched to German by the checks above, so every text a
+   // reader sees here is the catalogue's. Asserting the English would prove the
+   // page was NOT translated.
+   const said = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   // The page is on Settings, which is where the devices are.
+   location.hash = '#/settings';
+   await flush();
+
+   const before = requests.length;
+   check('the devices are read when the settings page is opened', called(before - 1, 'GET', '/api/v1/me/push') || pushDevices.length >= 0);
+
+   // Nothing is subscribed yet, so the form is hidden and the button is offered.
+   check('no device is listed before one is subscribed', document.getElementById('push-empty').hidden === false,
+      'empty=' + document.getElementById('push-empty').hidden);
+   check('the choices are hidden until this device is subscribed', document.getElementById('push-form').hidden === true);
+
+   // A browser that refuses permission is told so, and nothing is sent.
+   NotificationStub.permission = 'denied';
+   const beforeRefusal = requests.length;
+   document.getElementById('push-subscribe').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('a refused permission is explained, in the reader\'s language, and nothing is sent',
+      document.getElementById('push-status').textContent === said('Notifications were refused for this site. Allow them in the browser and try again.') &&
+      !called(beforeRefusal, 'POST', '/api/v1/me/push/subscriptions'),
+      document.getElementById('push-status').textContent);
+
+   // Granted: the page subscribes and hands the server what the browser gave it.
+   NotificationStub.permission = 'granted';
+   const beforeSubscribe = requests.length;
+   document.getElementById('push-subscribe').dispatchEvent(makeEvent('click'));
+   await flush();
+
+   const sent = since(beforeSubscribe).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/push/subscriptions');
+   check('the subscription is handed to the server exactly once', sent.length === 1, sent.length + ' posts');
+   const body = sent.length ? JSON.parse(sent[0].body) : {};
+   check('the endpoint the browser gave is what is sent', body.endpoint === 'https://push.example.net/push/JzLQ3raZJfFBR0aqvOMsLrt54w4rJUsV', String(body.endpoint));
+   check('both keys are sent, base64url, at the lengths RFC 8291 needs',
+      body.keys && body.keys.p256dh === SUBSCRIPTION_P256DH && body.keys.auth === SUBSCRIPTION_AUTH,
+      JSON.stringify(body.keys));
+   check('the device is named from the browser rather than left blank', /Android/.test(String(body.device)), String(body.device));
+   check('the browser was asked for a user-visible subscription with the server key',
+      subscribeCalls.length === 1 && subscribeCalls[0].userVisibleOnly === true && subscribeCalls[0].applicationServerKey.length === 65,
+      JSON.stringify(subscribeCalls.length));
+   check('the reader is told notifications are on, in their own language',
+      document.getElementById('push-status').textContent === said('Notifications are on for this device.'),
+      document.getElementById('push-status').textContent);
+   check('the device is now listed', document.getElementById('push-rows').children.length === 1,
+      document.getElementById('push-rows').children.length + ' rows');
+   check('and the choices are offered', document.getElementById('push-form').hidden === false);
+   check('nothing that could be used to send is kept in this browser',
+      [...store.values()].every((v) => v.indexOf(SUBSCRIPTION_AUTH) < 0 && v.indexOf('push.example.net') < 0),
+      JSON.stringify([...store.entries()]));
+
+   // The choices: what may be said, from whom, and the quiet hours.
+   document.getElementById('push-detail').value = '2';
+   document.getElementById('push-senders').value = '@work.example';
+   document.getElementById('push-labels').value = 'Urgent';
+   document.getElementById('push-quiet-from').value = '22:30';
+   document.getElementById('push-quiet-to').value = '07:00';
+   const beforeSave = requests.length;
+   document.getElementById('push-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+
+   const saved = since(beforeSave).filter((r) => r.method === 'PUT' && /\/api\/v1\/me\/push\/subscriptions\/\d+$/.test(r.path));
+   check('the choices are saved on the device that was subscribed', saved.length === 1, saved.length + ' puts');
+   const choice = saved.length ? JSON.parse(saved[0].body) : {};
+   check('the quiet hours are sent as minutes of the device day', choice.quiet_from === 1350 && choice.quiet_to === 420,
+      JSON.stringify([choice.quiet_from, choice.quiet_to]));
+   check('what a notification may say is sent as the level chosen', choice.detail === 2, String(choice.detail));
+   check('the senders and labels are sent as written', choice.senders === '@work.example' && choice.labels === 'Urgent',
+      JSON.stringify([choice.senders, choice.labels]));
+   check('and the reader is told it was saved', document.getElementById('push-status').className.indexOf('ok') >= 0,
+      document.getElementById('push-status').className);
+
+   // A test push, and then the device is removed - which also unsubscribes the
+   // browser, so the next "turn it on" makes a fresh subscription.
+   const beforeTest = requests.length;
+   const buttons = document.getElementById('push-rows').children[0].children[3];
+   buttons.children[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   check('the test button asks the server to send one now', called(beforeTest, 'POST', '/api/v1/me/push/test'));
+
+   const beforeRemove = requests.length;
+   document.getElementById('push-rows').children[0].children[3].children[1].dispatchEvent(makeEvent('click'));
+   await flush();
+   check('removing the device removes the row', called(beforeRemove, 'DELETE', /\/api\/v1\/me\/push\/subscriptions\/\d+$/));
+   check('and the browser no longer holds a subscription', liveSubscription === null);
+   check('the list is empty again', document.getElementById('push-rows').children.length === 0,
+      document.getElementById('push-rows').children.length + ' rows');
+
+   // ---- the service worker's push handler, run for real
+   const workerPath = scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\')) + 1) + 'PortalServiceWorker.js';
+   const shown = [];
+   const workerCaches = cachesStub;
+   const worker = {
+      listeners: Object.create(null),
+      addEventListener(name, fn) { this.listeners[name] = fn; },
+      registration: { showNotification: (title, options) => { shown.push({ title, options }); return Promise.resolve(); } },
+      skipWaiting: () => Promise.resolve(),
+      clients: { claim: () => Promise.resolve(), matchAll: () => Promise.resolve([]), openWindow: (url) => { shown.push({ opened: url }); return Promise.resolve(); } }
+   };
+   const workerContext = vm.createContext({
+      self: worker, caches: workerCaches, Response, URL, console,
+      fetch: () => Promise.resolve({ ok: false }), Promise, JSON, String, Number, Object, Array
+   });
+   vm.runInContext(fs.readFileSync(workerPath, 'utf8'), workerContext, { filename: 'portal-sw.js' });
+   check('the service worker registers a push handler', typeof worker.listeners.push === 'function');
+   check('and a handler for a notification being clicked', typeof worker.listeners.notificationclick === 'function');
+
+   const fire = async (payload) => {
+      shown.length = 0;
+      let waited = null;
+      worker.listeners.push({ data: payload === null ? null : { json: () => payload }, waitUntil: (p) => { waited = p; } });
+      await waited;
+      await flush();
+      return shown[0];
+   };
+
+   const full = await fire({ v: 1, kind: 'mail', count: 1, from: 'ada@example.com', name: 'Ada Lovelace', subject: 'The engine', folder: 'INBOX' });
+   check('a push with a sender and a subject shows both', full && full.title === 'Ada Lovelace' && full.options.body === 'The engine',
+      JSON.stringify(full));
+
+   // The words come from the cache the page filled when it registered the
+   // worker, so a reader who chose German is not shown English by the one part
+   // of the webmail that runs with no page open.
+   const counted = await fire({ v: 1, kind: 'mail', count: 3, folder: 'INBOX' });
+   check('a push carrying only a count says how many, names nobody, and says it in the reader\'s language',
+      counted && counted.title === said('New mail') &&
+      counted.options.body === said('{0} new messages').replace('{0}', '3') &&
+      counted.options.body !== '3 new messages',
+      JSON.stringify(counted));
+
+   const one = await fire({ v: 1, kind: 'mail', count: 1, folder: 'INBOX' });
+   check('a single message with no detail allowed says only that there is new mail',
+      one && one.title === said('New mail') && one.options.body === said('New mail'), JSON.stringify(one));
+
+   const tested = await fire({ v: 1, kind: 'mail', count: 1, test: true, folder: '' });
+   check('a test push says it is a test', tested && tested.options.body === said('A test notification'), JSON.stringify(tested));
+
+   // A push whose body could not be read still shows something: a browser that
+   // has granted permission expects a notification for every push and shows its
+   // own when none comes.
+   const empty = await fire(null);
+   check('a push with no readable payload still shows a notification', empty && empty.title === said('New mail'), JSON.stringify(empty));
+   check('every notification replaces the last rather than stacking up',
+      shown.length === 1 && shown[0].options.tag === 'hm-push', JSON.stringify(shown[0] && shown[0].options));
+
+   // And with no words left for it at all - a browser with no Cache Storage, or
+   // a worker woken before the page ever ran - it still says something.
+   await workerCaches.delete('hm-portal-push');
+   const bare = await fire({ v: 1, kind: 'mail', count: 2, folder: 'INBOX' });
+   check('a worker with no words left for it falls back to English rather than showing nothing',
+      bare && bare.title === 'New mail' && bare.options.body === '2 new messages', JSON.stringify(bare));
 }
 
 main().catch((why) => {

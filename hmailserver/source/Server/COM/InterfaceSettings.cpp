@@ -16,6 +16,7 @@
 #include "../Common/Application/Application.h"
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/IniSettingStore.h"
+#include "../Common/Application/Logger.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/PasswordBreachCheck.h"
 #include "../Common/Util/SessionPolicies.h"
@@ -4600,6 +4601,137 @@ STDMETHODIMP InterfaceSettings::put_SessionBindToAddress(VARIANT_BOOL newVal)
          return NotLoaded_();
 
       config_->SetSessionBindToAddress(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_WebPushEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebPushEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_WebPushEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetWebPushEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_WebPushSubject(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebPushSubject().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_WebPushSubject(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String subject = newVal;
+      subject.Trim();
+
+      HM::String lower = subject;
+      lower.MakeLower();
+
+      // A push service is told this so that it can reach a person when this
+      // server's subscriptions are failing. Anything that is not an address a
+      // person can be reached at would be worse than leaving it empty, which is
+      // itself allowed and means postmaster at this server's host name.
+      if (!subject.IsEmpty() && !lower.StartsWith(_T("mailto:")) && !lower.StartsWith(_T("https://")))
+         return COMError::GenerateError("WebPushSubject is a mailto: or https: address, or empty.");
+
+      config_->SetWebPushSubject(subject);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_WebPushVapidPublicKey(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebPushVapidPublicKey().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::GenerateWebPushKeys(BSTR *PublicKey)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String refusal;
+      if (!config_->GenerateWebPushVapidKeys(refusal))
+         return COMError::GenerateError(refusal);
+
+      {
+         // This unit sits outside namespace HM, where the logging macro does not resolve.
+         using namespace HM;
+         LOG_APPLICATION("COM: a new Web Push VAPID key pair was generated. Every existing subscription is now invalid and each device must subscribe again.");
+      }
+
+      *PublicKey = config_->GetWebPushVapidPublicKey().AllocSysString();
 
       return S_OK;
    }

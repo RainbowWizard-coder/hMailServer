@@ -334,6 +334,7 @@
     <Compile Include="..\RegressionTests\API\RestApiWebhooks.cs" Link="API\RestApiWebhooks.cs" />
     <Compile Include="..\RegressionTests\API\RestApiFolderPermissions.cs" Link="API\RestApiFolderPermissions.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountMessages.cs" Link="API\RestApiAccountMessages.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiWebPush.cs" Link="API\RestApiWebPush.cs" />
     <Compile Include="..\RegressionTests\Security\AppPasswords.cs" Link="Security\AppPasswords.cs" />
   </ItemGroup>
 

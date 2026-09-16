@@ -42,6 +42,9 @@
 
 #include "../Common/Application/RoleManager.h"
 #include "COMError.h"
+#include "../Common/Util/PushSubscriptions.h"
+#include "../Common/Util/AuditTrail.h"
+#include "../Common/Application/Logger.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -2153,6 +2156,69 @@ STDMETHODIMP InterfaceAccount::RevokeDevice(BSTR DeviceID, VARIANT_BOOL RevokeCr
 
       LOG_APPLICATION("COM API: a device of " + object_->GetAddress() + " was revoked.");
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_PushSubscriptionCount(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) HM::PushSubscriptions::CountForAccount(object_->GetID());
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+/*
+   Every device of this account, stopped. What a lost phone needs: the
+   subscription is the capability to send that device a notification, and the
+   person cannot remove it from a device they no longer have.
+*/
+STDMETHODIMP InterfaceAccount::RemovePushSubscriptions(long *RemovedCount)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!object_)
+         return GetAccessDenied();
+
+      std::vector<HM::PushSubscriptions::Subscription> subscriptions;
+      HM::PushSubscriptions::ForAccount(object_->GetID(), subscriptions);
+
+      long removed = 0;
+      for (const HM::PushSubscriptions::Subscription &subscription : subscriptions)
+      {
+         if (HM::PushSubscriptions::Remove(object_->GetID(), subscription.id))
+            removed++;
+      }
+
+      if (removed > 0)
+      {
+         // The rows are the person's own and their table is not audited, so the
+         // administrator's act is recorded here as an event, under the actor the
+         // scope above installed: a lost phone's notifications being stopped is
+         // exactly the kind of change somebody later asks who made.
+         HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("push-subscriptions-removed"),
+            HM::Formatter::Format(_T("Web Push notifications were stopped on all {0} device(s)"), removed));
+
+         // This unit sits outside namespace HM, where the logging macro does not resolve.
+         using namespace HM;
+         LOG_APPLICATION(HM::Formatter::Format("COM: Web Push notifications were stopped for all {0} device(s) of {1}.", removed, object_->GetAddress()));
+      }
+
+      *RemovedCount = removed;
       return S_OK;
    }
    catch (...)

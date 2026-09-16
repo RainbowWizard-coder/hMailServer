@@ -104,6 +104,22 @@ namespace HM
       // last digest was sent is new whatever its id.
       { _T("hm_digeststate"), 0 },
 
+      // The devices the account asked to be told about new mail on (schema 6050),
+      // and what each of them is allowed to be told. Carried, and the decision is
+      // less obvious than the others: a subscription is a capability issued by a
+      // browser vendor's push service, and one restored onto a machine whose VAPID
+      // key pair is a different one will simply be refused and dead-lettered.
+      //
+      // It is carried because of the half that is not the keys. "Only from work,
+      // and nothing after ten at night" is a person's decision about their own
+      // attention, made once per device, and a restore that dropped it would put
+      // every device back to being told about everything - which is the failure
+      // people notice at two in the morning. The keys are carried with it because
+      // the common restore is the same machine with the same key pair, where they
+      // go on working; where they do not, a device that subscribes again replaces
+      // its own row and nothing is left behind.
+      { _T("hm_pushsubscriptions"), 0 },
+
       // The administrative role the account has been given (schema 6047), and the
       // domains it reaches. Not carrying it is not neutral: an account with no
       // assignment holds the authority its AdminLevel gives it, and AdminLevel IS
@@ -236,6 +252,26 @@ namespace HM
       { _T("hm_roleassignments"), _T("raaccountid"), AccountStores::RoleAccount },
       { _T("hm_roleassignments"), _T("raroleid"),    AccountStores::RoleAdministrativeRole },
       { _T("hm_roleassignments"), _T("radomains"),   AccountStores::RoleText },
+
+      { _T("hm_pushsubscriptions"), _T("psid"),            AccountStores::RoleIdentity },
+      { _T("hm_pushsubscriptions"), _T("psaccountid"),     AccountStores::RoleAccount },
+      { _T("hm_pushsubscriptions"), _T("psendpointhash"),  AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("psendpoint"),      AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("pskeyp256dh"),     AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("pskeyauth"),       AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("psdevice"),        AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("pscreated"),       AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("pslastsent"),      AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("psstate"),         AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("psfailures"),      AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("psnextattempt"),   AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("pslastdetail"),    AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("psdetail"),        AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("pssenders"),       AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("pslabels"),        AccountStores::RoleText },
+      { _T("hm_pushsubscriptions"), _T("psquietfrom"),     AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("psquietto"),       AccountStores::RoleNumber },
+      { _T("hm_pushsubscriptions"), _T("psquietoffset"),   AccountStores::RoleNumber },
    };
 
    // Per-account tables this file does NOT carry, and why. Every one of them is

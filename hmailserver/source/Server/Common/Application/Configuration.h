@@ -335,6 +335,34 @@ namespace HM
       bool GetOpenPGPRequireAddressInUserId();
       void SetOpenPGPRequireAddressInUserId(bool required);
 
+      // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
+      // getters clamp, so a hand-edited row cannot make a time to live of a year
+      // or an attempt count of none.
+      bool GetWebPushEnabled();
+      void SetWebPushEnabled(bool enabled);
+      String GetWebPushSubject();
+      void SetWebPushSubject(const String &subject);
+      int GetWebPushTimeToLiveSeconds();           // 0 to 2419200 (four weeks)
+      void SetWebPushTimeToLiveSeconds(int seconds);
+      int GetWebPushMaxPerAccount();               // 1 to 50
+      void SetWebPushMaxPerAccount(int maximum);
+      int GetWebPushMaxAttempts();                 // 1 to 20
+      void SetWebPushMaxAttempts(int attempts);
+
+      // The public half of the VAPID key pair, which every page needs to
+      // subscribe at all, and which is therefore emitted freely.
+      String GetWebPushVapidPublicKey();
+
+      // The private half. There is no getter on any interface: it is read here,
+      // by the one class that signs with it, and by nothing else. Setting it also
+      // derives and stores the public half, so the two can never disagree.
+      String GetWebPushVapidPrivateKey();
+      bool SetWebPushVapidKeys(const String &privateKey, String &refusal);
+
+      // A fresh pair. Replacing a pair invalidates every subscription made under
+      // the old one, which is why nothing does this on its own.
+      bool GenerateWebPushVapidKeys(String &refusal);
+
       int GetCrashSimulationMode() const;
       void SetCrashSimulationMode(int mode);
 

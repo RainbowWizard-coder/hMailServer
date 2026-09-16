@@ -962,6 +962,25 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </form>
 </div>
 <div class="card">
+<h2>Notifications on this device</h2>
+<p class="note">A notification can reach this phone or browser even when the page is closed. What it may say is your choice, and each device is asked separately.</p>
+<div class="row"><button class="btn" type="button" id="push-subscribe">Turn notifications on for this device</button></div>
+<form id="push-form" class="form" hidden>
+<div class="row">
+<div style="flex:1;min-width:12rem"><label for="push-detail">What a notification may say</label><select id="push-detail"><option value="0">Only that there is new mail</option><option value="1">Who it is from</option><option value="2">Who it is from, and the subject</option></select></div>
+<div style="flex:1;min-width:12rem"><label for="push-senders">Only from these senders</label><input id="push-senders" type="text" maxlength="255" autocomplete="off" placeholder="Anyone"></div>
+<div style="flex:1;min-width:12rem"><label for="push-labels">Only with these labels</label><input id="push-labels" type="text" maxlength="255" autocomplete="off" placeholder="Any label"></div>
+</div>
+<div class="row">
+<div style="flex:1;min-width:12rem"><label for="push-quiet-from">Quiet hours</label><div class="row"><input id="push-quiet-from" type="time" aria-label="Start of quiet hours"><input id="push-quiet-to" type="time" aria-label="End of quiet hours"></div></div>
+</div>
+<div><button class="btn" type="submit">Save</button></div>
+</form>
+<div id="push-status" class="status" aria-live="polite"></div>
+<table class="list" id="push-table" hidden><thead><tr><th>Name</th><th>Created</th><th>Last used</th><th></th></tr></thead><tbody id="push-rows"></tbody></table>
+<div id="push-empty" class="hint">No device is being notified yet.</div>
+</div>
+<div class="card">
 <h2>Templates</h2>
 <p class="note">Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.</p>
 <table class="list" id="template-table"><thead><tr><th>Name</th><th>Subject</th><th></th></tr></thead><tbody id="template-rows"></tbody></table>

@@ -36,6 +36,8 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Sieve/SieveScript.h"
 #include "COMError.h"
+#include "../Common/Util/WebPush.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/AntiSpam/DKIM/DkimRotation.h"
 #include "../Common/Util/WebhookManager.h"
 #include "../Common/Util/JsonDocument.h"
@@ -651,6 +653,73 @@ InterfaceUtilities::EmailAllAccounts(BSTR sRecipientWildcard, BSTR sFromAddress,
       HM::EmailAllUsers oEmailAllUsers;
       *bIsSuccessful = oEmailAllUsers.Start(sRecipientWildcard, sFromAddress, sFromName, sSubject, sBody) ? VARIANT_TRUE : VARIANT_FALSE;
    
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+/*
+   A subscription key pair, and the reverse of the push encryption. Neither
+   belongs to the running server: they exist so that a caller standing in for a
+   browser - the regression suite's fake push service - can open a push message
+   and assert what it carried. .NET Framework has no AES-GCM, so there is no way
+   for that caller to do it for itself, and a test that asserts only that a push
+   was sent asserts nothing about what left the building.
+*/
+STDMETHODIMP InterfaceUtilities::GenerateWebPushKeyPair(BSTR *Json)
+{
+   try
+   {
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString publicKey;
+      HM::AnsiString privateKey;
+      HM::String error;
+
+      if (!HM::WebPush::GenerateKeyPair(publicKey, privateKey, error))
+         return COMError::GenerateError(error);
+
+      HM::AnsiString json = "{\"public_key\":\"" + publicKey + "\",\"private_key\":\"" + privateKey + "\"}";
+
+      *Json = HM::String(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::WebPushDecrypt(BSTR BodyBase64Url, BSTR PrivateKey, BSTR AuthSecret, BSTR *PlainText)
+{
+   try
+   {
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      std::vector<unsigned char> body;
+      if (!HM::WebPush::Base64UrlDecode(HM::AnsiString(HM::String(BodyBase64Url)), body) || body.empty())
+         return COMError::GenerateError("The body is not base64url, or is empty.");
+
+      HM::AnsiString bytes;
+      bytes.append((const char*) body.data(), body.size());
+
+      HM::AnsiString plainText;
+      HM::String error;
+
+      if (!HM::WebPush::Decrypt(bytes, HM::AnsiString(HM::String(PrivateKey)), HM::AnsiString(HM::String(AuthSecret)), plainText, error))
+         return COMError::GenerateError(error);
+
+      // The payload is UTF-8; a BSTR is UTF-16, so it is widened rather than
+      // copied byte for byte, or a subject outside ASCII would come back mangled.
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(plainText, wide);
+
+      *PlainText = wide.AllocSysString();
       return S_OK;
    }
    catch (...)

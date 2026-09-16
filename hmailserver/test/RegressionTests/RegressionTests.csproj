@@ -756,6 +756,7 @@
     <Compile Include="API\RestApiBounces.cs" />
     <Compile Include="API\RestApiCompression.cs" />
     <Compile Include="API\RestApiDevices.cs" />
+    <Compile Include="API\RestApiWebPush.cs" />
     <Compile Include="Shared\RestRequest.cs" />
     <Compile Include="Shared\BounceTestSupport.cs" />
   </ItemGroup>

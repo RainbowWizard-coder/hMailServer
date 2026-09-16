@@ -1685,6 +1685,12 @@ namespace HM
          case RouteAccountUnlock:
             return HandleAccountUnlock_(caller, route.identifier);
 
+         case RouteAccountPushGet:
+            return HandleAccountPush_(caller, route.identifier);
+
+         case RouteAccountPushRemove:
+            return HandleAccountPushRemove_(caller, route.identifier);
+
          case RouteDomainList:
             return HandleListDomains_(caller.domains);
 
@@ -1908,6 +1914,22 @@ namespace HM
             return HandleSettingsBackup_();
          case RouteSettingsBackupPut:
             return HandleSettingsBackupPut_(GetRequestBody_(request));
+         case RouteMePush:
+            return HandleMePush_(caller);
+         case RouteMePushSubscribe:
+            return HandleMePushSubscribe_(caller, GetRequestBody_(request));
+         case RouteMePushUpdate:
+            return HandleMePushUpdate_(caller, route.message_id, GetRequestBody_(request));
+         case RouteMePushDelete:
+            return HandleMePushDelete_(caller, route.message_id);
+         case RouteMePushTest:
+            return HandleMePushTest_(caller, GetRequestBody_(request));
+         case RouteSettingsPushGet:
+            return HandleSettingsPush_();
+         case RouteSettingsPushPut:
+            return HandleSettingsPushPut_(GetRequestBody_(request));
+         case RouteSettingsPushVapid:
+            return HandleSettingsPushVapid_();
          case RouteSettingsBouncesGet:
             return HandleSettingsBounces_();
          case RouteSettingsBouncesPut:
@@ -2594,6 +2616,47 @@ namespace HM
          return;
       }
 
+      // The account's own Web Push devices. Matched before the quarantine block
+      // for the same reason the digest is: nothing below would recognise it.
+      if (path == "/api/v1/me/push")
+      {
+         if (method == "GET")
+            route.kind = RouteMePush;
+
+         return;
+      }
+
+      if (path == "/api/v1/me/push/test")
+      {
+         if (method == "POST")
+            route.kind = RouteMePushTest;
+
+         return;
+      }
+
+      const AnsiString mePushPath = "/api/v1/me/push/subscriptions";
+      if (path == mePushPath)
+      {
+         if (method == "POST")
+            route.kind = RouteMePushSubscribe;
+
+         return;
+      }
+
+      if (path.StartsWith(mePushPath + "/"))
+      {
+         AnsiString rest = path.Mid(mePushPath.GetLength() + 1);
+         if (ParseQueueId(rest, route.message_id))
+         {
+            if (method == "PUT")
+               route.kind = RouteMePushUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteMePushDelete;
+         }
+
+         return;
+      }
+
       // Before the quarantine block below, because "/api/v1/me/quarantine-digest"
       // does not begin with "/api/v1/me/quarantine/" and would otherwise fall
       // through to the unknown route - but the next reader looking at these two
@@ -3037,6 +3100,19 @@ namespace HM
          if (!address.IsEmpty() && address.Find("/") < 0)
          {
             route.kind = RouteAccountUnlock;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      // An account's Web Push devices, for the administrator: seen, or all of
+      // them stopped, which is what a lost phone needs.
+      if ((method == "GET" || method == "DELETE") && path.StartsWith(accountsPrefix) && path.EndsWith("/push"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/push").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteAccountPushGet : RouteAccountPushRemove;
             route.identifier = address;
             return;
          }
@@ -4014,6 +4090,18 @@ namespace HM
          return;
       }
 
+      if (method == "POST" && path == "/api/v1/settings/push/vapid")
+      {
+         route.kind = RouteSettingsPushVapid;
+         return;
+      }
+
+      if (path == "/api/v1/settings/push" && (method == "GET" || method == "PUT"))
+      {
+         route.kind = method == "GET" ? RouteSettingsPushGet : RouteSettingsPushPut;
+         return;
+      }
+
       if (method == "POST" && path == "/api/v1/bounces/classify")
       {
          route.kind = RouteBounceClassify;
@@ -4313,6 +4401,12 @@ namespace HM
       case RouteMeDeviceDelete:
       case RouteMeFolderEmpty:
       case RouteMePreferencesPut:
+      case RouteMePushSubscribe:
+      case RouteMePushUpdate:
+      case RouteMePushDelete:
+      case RouteMePushTest:
+      case RouteSettingsPushPut:
+      case RouteSettingsPushVapid:
       case RouteMeContactCreate:
       case RouteMeContactUpdate:
       case RouteMeContactDelete:
@@ -4476,6 +4570,7 @@ namespace HM
       case RouteRoleUnassign:
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
+      case RouteAccountPushRemove:
       // A check writes what it found and starts a propagation clock; the rest move
       // keys, and the run moves every domain's rotation.
       case RouteDkimRotationStart:
@@ -4629,6 +4724,7 @@ namespace HM
       case RouteIniSettingGet:
       case RouteSettingsScriptingGet:
       case RouteScriptingCheck:
+      case RouteSettingsPushGet:
       case RouteSettingsBackupGet:
       case RouteSettingsBouncesGet:
       // The Web Key Directory's settings, one account's keys and one
@@ -4711,6 +4807,9 @@ namespace HM
       // (IsApiKeyRoute_): the record of who changed what is the thing a
       // stolen key must not be able to read. An account that holds the
       // auditor role is not a key, and reading it is the whole of that role.
+      // How many devices an account is notified on, and which: the names and the
+      // person's choices, never the endpoint or a key.
+      case RouteAccountPushGet:
       case RouteAuditList:
       case RouteAuditVerify:
          return RolePermission::ViewAudit;
@@ -4824,6 +4923,9 @@ namespace HM
       // somebody else's account is quieter than resetting their password and
       // reaches further.
       case RouteDomainUpdate:
+      // Stopping Web Push on every device of an account - a lost phone - is
+      // changing that account, as revoking its app passwords is.
+      case RouteAccountPushRemove:
       case RouteAccountCreate:
       case RouteAccountDelete:
       case RouteAccountUpdate:
@@ -4874,6 +4976,10 @@ namespace HM
       case RouteSuppressionCreate:
       case RouteSuppressionDelete:
       // A key stored for an account, or taken away from it. The address it is
+      case RouteSettingsPushPut:
+      // Making a new VAPID key pair is a change to the server's configuration and
+      // nothing narrower: it invalidates every subscription on every account.
+      case RouteSettingsPushVapid:
       // published under is the account's, so this is administering that account
       // in that domain, as COM's Utilities.ImportOpenPGPKey answers that domain's
       // administrator. Publishing a key under somebody's address is what every
@@ -5092,6 +5198,8 @@ namespace HM
       case RouteDkimGet:
       // Left out of this list, a rotation route would name no domain, and a
       // credential confined to one domain could then switch another domain's key.
+      case RouteAccountPushGet:
+      case RouteAccountPushRemove:
       case RouteDkimRotationGet:
       case RouteDkimRotationStart:
       case RouteDkimRotationCheck:
@@ -5401,6 +5509,12 @@ namespace HM
       // exist, so creating one - or deleting one, with every mailbox in it -
       // needs a credential that was never narrowed to domains. Changing a
       // domain's active flag is scoped to that domain further down, as the
+      // The Web Push settings and the key pair are the server's, and the key pair
+      // is every account's: a credential narrowed to one domain must not be able
+      // to replace it and silence every other domain's devices.
+      case RouteSettingsPushGet:
+      case RouteSettingsPushPut:
+      case RouteSettingsPushVapid:
       // account routes are.
       case RouteDomainCreate:
       case RouteDomainDelete:
@@ -7864,6 +7978,11 @@ namespace HM
       case RouteMeIdentities:
       case RouteMePreferences:
       case RouteMePreferencesPut:
+      case RouteMePush:
+      case RouteMePushSubscribe:
+      case RouteMePushUpdate:
+      case RouteMePushDelete:
+      case RouteMePushTest:
       case RouteMeContacts:
       case RouteMeContactCreate:
       case RouteMeContactUpdate:
@@ -12726,6 +12845,10 @@ namespace HM
          "\"/api/v1/me/contacts/{id}\":{\"put\":{\"summary\":\"Change a contact's name or address\",\"description\":\"Body: name and/or address. Another account's contact is 404.\",\"responses\":{\"200\":{\"description\":\"The contact\"},\"404\":{\"description\":\"No such contact\"},\"409\":{\"description\":\"The new address is already a contact\"}}},\"delete\":{\"summary\":\"Remove a contact\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such contact\"}}}},"
          "\"/api/v1/me/identities\":{\"get\":{\"summary\":\"The addresses the signed-in account may write as\",\"description\":\"The account's own address (kind account), every active alias that resolves to it (alias), and every account whose INBOX grants this one the post right (granted) - the rule SMTP submission applies to MAIL FROM. Each carries the From header the page would send. A send or a draft names one in its from field; anything else is refused with 403.\",\"responses\":{\"200\":{\"description\":\"identities (address, name, kind, header)\"}}}},"
          "\"/api/v1/me/preferences\":{\"get\":{\"summary\":\"The signed-in account's preferences\",\"description\":\"A key/value store the webmail keeps its choices in (theme, density, undo-send delay, notifications) so they follow the account between browsers. The server attaches no meaning to a key.\",\"responses\":{\"200\":{\"description\":\"preferences: an object of string values\"}}},\"put\":{\"summary\":\"Change preferences\",\"description\":\"Body: an object. Each string member is written, each null member removed, anything else refused. Keys are 1-64 letters, digits, dots, dashes or underscores; values at most 4000 characters; at most 100 keys per account.\",\"responses\":{\"200\":{\"description\":\"The preferences after the change\"},\"400\":{\"description\":\"Not an object of strings, a bad key, a long value, or too many keys\"}}}},"
+         "\"/api/v1/me/push\":{\"get\":{\"summary\":\"The signed-in account's Web Push devices\",\"description\":\"enabled: whether the server has Web Push switched on at all. vapid_public_key: the application server key a browser needs for pushManager.subscribe; empty when the administrator has not generated a key pair, and a page must say so rather than subscribing. max_devices: how many devices this account may have at once. subscriptions: one object per device with id, device (the name the person gave it), service (the origin of the push service, so a row can be recognised), created, last_sent, state (active or dead-lettered), failures, next_attempt, last_detail (why the last attempt failed), and the person's own choices - detail (0 a count only, 1 and the sender, 2 and the subject), senders, labels, quiet_from, quiet_to and quiet_offset. The endpoint and the two keys are NEVER in this answer: together they are the capability to send a notification to that device, and echoing them would put it in every log and cache this route touches.\",\"responses\":{\"200\":{\"description\":\"enabled, vapid_public_key, max_devices, subscriptions\"}}}},"
+         "\"/api/v1/me/push/subscriptions\":{\"post\":{\"summary\":\"Tell this account's device about new mail\",\"description\":\"Body: endpoint (the https address pushManager.subscribe returned), keys: {p256dh, auth} as the browser gave them (also accepted at the top level), device (a name for this browser or phone, at most 64 characters), and optionally the choices - detail (0 a count only, 1 and the sender, 2 and the subject; 1 by default), senders (a comma-separated list of addresses and @domain suffixes, empty for anyone), labels (a comma-separated list of IMAP keywords the message must carry, empty for any), quiet_from and quiet_to (minutes past midnight in the device's own time, -1 for no quiet hours) and quiet_offset (the minutes that device's clock is ahead of UTC). A device subscribing again under the same endpoint replaces its own row. Refused with 409 when the server has Web Push off or no key pair, and with 400 when the account already has max_devices devices or a key is not the length RFC 8291 needs.\",\"responses\":{\"201\":{\"description\":\"The device, as the listing gives it\"},\"400\":{\"description\":\"A key of the wrong shape, a bad choice, or too many devices\"},\"409\":{\"description\":\"Web Push is off on this server, or it has no key pair\"},\"413\":{\"description\":\"The body is too large\"}}}},"
+         "\"/api/v1/me/push/subscriptions/{id}\":{\"put\":{\"summary\":\"Change what one device is told\",\"description\":\"Body: any of detail, senders, labels, quiet_from, quiet_to, quiet_offset. Each member left out keeps the value it had. The endpoint and the keys cannot be changed here: a device that has a new endpoint subscribes again.\",\"responses\":{\"200\":{\"description\":\"The device after the change\"},\"400\":{\"description\":\"A choice outside its range\"},\"404\":{\"description\":\"No such device of this account\"}}},\"delete\":{\"summary\":\"Stop telling one device\",\"description\":\"The row is removed. The browser's own subscription is the browser's to remove; this server simply stops sending to it.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such device of this account\"}}}},"
+         "\"/api/v1/me/push/test\":{\"post\":{\"summary\":\"Send one push to a device now\",\"description\":\"Body: id, the device. Sends a notification at once, marked test, so a person can find out whether their device is reachable before they rely on it. Neither the quiet hours nor the sender list applies - this is a button being pressed, not mail arriving. A push service that answers 404 or 410 means the subscription is gone, and the device is removed. 502 carries the push service's own refusal.\",\"responses\":{\"200\":{\"description\":\"sent\"},\"400\":{\"description\":\"No device named\"},\"404\":{\"description\":\"No such device of this account\"},\"502\":{\"description\":\"The push service refused it, or the subscription is gone\"}}}},"
          "\"/api/v1/me/app-passwords\":{\"get\":{\"summary\":\"The signed-in account's app passwords\",\"description\":\"id, name, created, last_used, active - never the password.\",\"responses\":{\"200\":{\"description\":\"app_passwords\"}}},\"post\":{\"summary\":\"Make an app password\",\"description\":\"Body: name (what it is for) and password - the account's own password, proving it is the account holder asking; never an app password. An account with a second factor enrolled sends the code in X-hMailServer-OTP, and the 401 that asks for it says X-hMailServer-OTP: required. Refused (403) to a request that was itself authenticated with an app password, or by a session started with one. The answer carries the password in clear text, the only time it exists outside the caller; at most 20 per account. Logged, with the caller's address.\",\"responses\":{\"201\":{\"description\":\"id, name, created, active, password\"},\"400\":{\"description\":\"No name, no password, or twenty already\"},\"401\":{\"description\":\"The one-time code is missing or wrong\"},\"403\":{\"description\":\"The password is not the account's own, or the request came in on an app password\"}}}},"
          "\"/api/v1/me/app-passwords/{id}\":{\"delete\":{\"summary\":\"Remove an app password\",\"description\":\"Refused to a request authenticated with an app password. Logged, with the caller's address.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No such app password of this account\"}}}},"
          "\"/api/v1/me/smime\":{\"get\":{\"summary\":\"The account's S/MIME key store\",\"description\":\"own: the account's certificates, each with its chain and its private key as the page wrapped it (AES-256-GCM under a PBKDF2 key from the account password; this server cannot open it); recipients: the certificates of correspondents. Each carries address, name, fingerprint (SHA-256, hex), certificate (base64 DER), not_after and created (Unix seconds). limits: how many of each.\",\"responses\":{\"200\":{\"description\":\"own, recipients, limits\"}}}},"
@@ -12761,6 +12884,7 @@ namespace HM
          "\"/deck-lang/{code}.json\":{\"get\":{\"summary\":\"The Control Deck's texts in one language\",\"description\":\"Unauthenticated, as the page at / is. An object, English to translation, read from WebAdmin/languages/{code}.json beside the page - the file the packages install - for one of the languages the page's switch offers; the page fetches it for the language the browser prefers or the administrator chose, and shows English for a text the catalogue lacks. Not cached, as the page is not.\",\"responses\":{\"200\":{\"description\":\"The catalogue\"},\"404\":{\"description\":\"No such language, or the catalogues are not installed\"}}}},"
          "\"/api/v1/portal/branding\":{\"get\":{\"summary\":\"What the webmail says it is\",\"description\":\"Unauthenticated, so the sign-in page can ask: name, logo (an inline image), announcement - the domain's own when domain= names one that has some, else the server's.\",\"responses\":{\"200\":{\"description\":\"name, logo, announcement, domain\"}}},\"put\":{\"summary\":\"Set the branding (administrator)\",\"description\":\"Body: name (100), logo (an inline data:image/ under 3,900 characters), announcement (1,000), each written when given and removed when given empty; domain, when given, sets the domain's own instead of the server's.\",\"responses\":{\"200\":{\"description\":\"The branding as it now stands\"},\"400\":{\"description\":\"A value refused\"}}}},"
          "\"/api/v1/accounts/{address}/support-session\":{\"post\":{\"summary\":\"Open a mailbox as its user, for support (administrator)\",\"description\":\"Refused with 403 unless the user has turned on support access under Security. Answers a session cookie for the account; the moment and the administrator are recorded where the user sees them, every request of the session is written to the application log, and the user's session list shows it and can end it.\",\"responses\":{\"201\":{\"description\":\"support, account, idle_seconds, lifetime_seconds, with the cookie\"},\"403\":{\"description\":\"Not allowed by the user\"},\"404\":{\"description\":\"No such account\"}}}},"
+         "\"/api/v1/accounts/{address}/push\":{\"get\":{\"summary\":\"The Web Push devices of an account (administrator)\",\"description\":\"count, and subscriptions: the same listing GET /api/v1/me/push gives the account itself - id, device, service, created, last_sent, state, failures, next_attempt, last_detail and the person's own choices. The endpoint and the two keys are never in it: together they are the capability to notify that device. Account.PushSubscriptionCount over COM.\",\"responses\":{\"200\":{\"description\":\"count, subscriptions\"},\"404\":{\"description\":\"No such account\"}}},\"delete\":{\"summary\":\"Stop Web Push on every device of an account (administrator)\",\"description\":\"What a lost phone needs: every subscription of the account is removed, so nothing more is sent to any of its devices, and the person turns notifications on again on the devices they still have. Recorded in the audit trail as push-subscriptions-removed. Account.RemovePushSubscriptions over COM.\",\"responses\":{\"200\":{\"description\":\"removed: how many devices\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/me/drafts/{id}/schedule\":{\"post\":{\"summary\":\"Send a draft later\",\"description\":\"Body: send_at, YYYY-MM-DD HH:MM in the server's local time, within a year. At that minute the draft is sent as the account would have sent it - its To, Cc and Bcc under the checks a send makes, a copy in the Sent folder - and the draft goes. One schedule per draft; a new one replaces it.\",\"responses\":{\"201\":{\"description\":\"id, message_id, send_at\"},\"400\":{\"description\":\"Not a draft, not a time, in the past or too far\"}}},\"delete\":{\"summary\":\"Do not send it later after all\",\"responses\":{\"200\":{\"description\":\"cancelled\"},\"404\":{\"description\":\"Nothing scheduled for it\"}}}},"
          "\"/api/v1/me/messages/{id}/snooze\":{\"post\":{\"summary\":\"Snooze a message\",\"description\":\"Body: until, YYYY-MM-DD HH:MM. The message waits in a folder named Snoozed, made when the account has none, and comes back to the folder it left - or the inbox - unread, at that minute.\",\"responses\":{\"200\":{\"description\":\"id, message_id (its new id), until, folder_id (Snoozed)\"},\"400\":{\"description\":\"Not a time, in the past, too far, or snoozed already\"}}}},"
          "\"/api/v1/me/scheduled\":{\"get\":{\"summary\":\"What the signed-in account has put off\",\"responses\":{\"200\":{\"description\":\"scheduled: id, action (send | return), message_id, at, folder_id, subject\"}}}},"

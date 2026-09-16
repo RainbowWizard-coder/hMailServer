@@ -2390,6 +2390,110 @@ namespace hMailServer
       {
          throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
       }
+
+      // ---- Web Push: the browser's half, done here rather than asked of the server ----
+      //
+      // On Windows these two exist on Utilities because .NET Framework has no
+      // AES-GCM. .NET 10 has every primitive RFC 8291 needs, so the shim IS the
+      // browser: it makes the subscription's key pair and opens a push body with
+      // it, which is also a second, independent implementation of the RFC's
+      // derivation that the server's must agree with.
+
+      public string GenerateWebPushKeyPair()
+      {
+         using var key = System.Security.Cryptography.ECDiffieHellman.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+         var parameters = key.ExportParameters(true);
+         return "{\"public_key\":\"" + WebPushBase64Url(WebPushPoint(parameters)) + "\",\"private_key\":\"" + WebPushBase64Url(parameters.D!) + "\"}";
+      }
+
+      public string WebPushDecrypt(string bodyBase64Url, string privateKey, string authSecret)
+      {
+         byte[] body = WebPushBytes(bodyBase64Url);
+         if (body.Length < 21 + 65 + 16)
+            throw new System.Runtime.InteropServices.COMException("the body is shorter than an aes128gcm header, a 65-octet key id and a tag");
+
+         // RFC 8188: salt (16), record size (4, big-endian), key id length (1), key
+         // id - which RFC 8291 makes the sender's public key - then one record.
+         byte[] salt = body[..16];
+         int idLength = body[20];
+         if (idLength != 65)
+            throw new System.Runtime.InteropServices.COMException("the key id is not a 65-octet P-256 point");
+         byte[] senderPoint = body[21..(21 + idLength)];
+         byte[] record = body[(21 + idLength)..];
+
+         using var receiver = System.Security.Cryptography.ECDiffieHellman.Create();
+         receiver.ImportECPrivateKey(WebPushSec1(WebPushBytes(privateKey)), out _);
+         byte[] receiverPoint = WebPushPoint(receiver.ExportParameters(false));
+
+         using var sender = System.Security.Cryptography.ECDiffieHellman.Create(new System.Security.Cryptography.ECParameters
+         {
+            Curve = System.Security.Cryptography.ECCurve.NamedCurves.nistP256,
+            Q = new System.Security.Cryptography.ECPoint { X = senderPoint[1..33], Y = senderPoint[33..65] }
+         });
+         byte[] shared = receiver.DeriveRawSecretAgreement(sender.PublicKey);
+
+         // RFC 8291 section 3.3 and 3.4: IKM from the ECDH secret and the auth
+         // secret, then the content key and the nonce from IKM and the salt.
+         byte[] info = System.Text.Encoding.ASCII.GetBytes("WebPush: info\0").Concat(receiverPoint).Concat(senderPoint).ToArray();
+         byte[] ikm = System.Security.Cryptography.HKDF.DeriveKey(System.Security.Cryptography.HashAlgorithmName.SHA256, shared, 32, WebPushBytes(authSecret), info);
+         byte[] contentKey = System.Security.Cryptography.HKDF.DeriveKey(System.Security.Cryptography.HashAlgorithmName.SHA256, ikm, 16, salt, System.Text.Encoding.ASCII.GetBytes("Content-Encoding: aes128gcm\0"));
+         byte[] nonce = System.Security.Cryptography.HKDF.DeriveKey(System.Security.Cryptography.HashAlgorithmName.SHA256, ikm, 12, salt, System.Text.Encoding.ASCII.GetBytes("Content-Encoding: nonce\0"));
+
+         // One record, sequence number zero, so the nonce is used as derived.
+         byte[] cipher = record[..^16];
+         byte[] tag = record[^16..];
+         byte[] plain = new byte[cipher.Length];
+         using (var aes = new System.Security.Cryptography.AesGcm(contentKey, 16))
+            aes.Decrypt(nonce, cipher, tag, plain);
+
+         // The padding: a delimiter octet, 2 for the last record, then zeros.
+         int end = plain.Length - 1;
+         while (end >= 0 && plain[end] == 0)
+            end--;
+         if (end < 0 || (plain[end] != 2 && plain[end] != 1))
+            throw new System.Runtime.InteropServices.COMException("the record has no padding delimiter, so it did not decrypt");
+
+         return System.Text.Encoding.UTF8.GetString(plain, 0, end);
+      }
+
+      private static byte[] WebPushPoint(System.Security.Cryptography.ECParameters parameters)
+      {
+         var point = new byte[65];
+         point[0] = 4;
+         Array.Copy(parameters.Q.X!, 0, point, 1, 32);
+         Array.Copy(parameters.Q.Y!, 0, point, 33, 32);
+         return point;
+      }
+
+      // SEC 1 ECPrivateKey with the curve named and no public key, so the import
+      // computes the public point from the scalar - the one form .NET takes a bare
+      // private scalar in.
+      private static byte[] WebPushSec1(byte[] scalar)
+      {
+         var writer = new System.Formats.Asn1.AsnWriter(System.Formats.Asn1.AsnEncodingRules.DER);
+         using (writer.PushSequence())
+         {
+            writer.WriteInteger(1);
+            writer.WriteOctetString(scalar);
+            var curve = new System.Formats.Asn1.Asn1Tag(System.Formats.Asn1.TagClass.ContextSpecific, 0);
+            using (writer.PushSequence(curve))
+               writer.WriteObjectIdentifier("1.2.840.10045.3.1.7");
+         }
+         return writer.Encode();
+      }
+
+      private static string WebPushBase64Url(byte[] data)
+      {
+         return Convert.ToBase64String(data).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+      }
+
+      private static byte[] WebPushBytes(string text)
+      {
+         string padded = (text ?? string.Empty).Replace('-', '+').Replace('_', '/');
+         while (padded.Length % 4 != 0)
+            padded += "=";
+         return Convert.FromBase64String(padded);
+      }
    }
 
    /// <summary>
@@ -3311,6 +3415,29 @@ namespace hMailServer
 
       /// <summary>The account's app passwords, under its address on the API.</summary>
       public AppPasswords AppPasswords => new AppPasswords(this);
+
+      // ---- Web Push: the two things an administrator may do about a person's devices ----
+
+      public int PushSubscriptionCount
+      {
+         get
+         {
+            if (!ServerApi.HasRoute("/api/v1/accounts/{address}/push", "get"))
+               NotOnThisServer.Ignore("needs GET /api/v1/accounts/{address}/push, an account's Web Push devices");
+
+            var answer = ServerApi.Get("/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/push").Expect(200, "GET /api/v1/accounts/{address}/push");
+            return answer.Json!.Value.GetProperty("count").GetInt32();
+         }
+      }
+
+      public int RemovePushSubscriptions()
+      {
+         if (!ServerApi.HasRoute("/api/v1/accounts/{address}/push", "delete"))
+            NotOnThisServer.Ignore("needs DELETE /api/v1/accounts/{address}/push, every Web Push device of an account stopped");
+
+         var answer = ServerApi.Delete("/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/push").Expect(200, "DELETE /api/v1/accounts/{address}/push");
+         return answer.Json!.Value.GetProperty("removed").GetInt32();
+      }
 
       /// <summary>
       ///    Account.GetDevices: the clients that have signed in, as the JSON array

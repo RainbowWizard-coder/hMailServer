@@ -334,6 +334,14 @@ END_COM_MAP()
    STDMETHOD(get_QuarantineDigestLinkHours)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_QuarantineDigestLinkHours)(/*[in]*/ long newVal);
 
+   // Web Push. No getter for the private key, here or anywhere.
+   STDMETHOD(get_WebPushEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_WebPushEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_WebPushSubject)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_WebPushSubject)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_WebPushVapidPublicKey)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(GenerateWebPushKeys)(/*[out, retval]*/ BSTR *PublicKey);
+
    STDMETHOD(TestLdapDirectory)(/*[in]*/ long MaxUsers, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);
 
    STDMETHOD(PreviewDirectorySync)(/*[in]*/ BSTR DomainName, /*[in]*/ VARIANT_BOOL DisableMissing, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);

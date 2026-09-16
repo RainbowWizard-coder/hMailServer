@@ -1094,6 +1094,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="resetpick")pickReset(d.address);
   else if(d.act==="resetpass")resetPassword(d.domain);
   else if(d.act==="unlock")unlockAccount(d.address);
+  else if(d.act==="stoppush")stopPush(d.address);
   else if(d.act==="assign")assignRole();
   else if(d.act==="unassign")unassignRole(d.address);
   else if(d.act==="roledel")deleteRole(d.name);
@@ -1849,6 +1850,7 @@ async function showAccounts(domain){
         <td style="text-align:right;white-space:nowrap">
           ${may("reset_password")?`<button class="btn ghost sm" data-act="resetpick" data-address="${escHtml(x.address)}">${t("Reset password")}</button>`:""}
           ${may("unlock_account")?`<button class="btn ghost sm" data-act="unlock" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Unlock")}</button>`:""}
+          ${may("manage_accounts")?`<button class="btn ghost sm" data-act="stoppush" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Stop notifications")}</button>`:""}
           ${may("view_accounts")?`<button class="btn ghost sm" data-act="accountedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>`:""}
           ${may("manage_accounts")?`<button class="btn danger sm" data-act="del" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`
@@ -1901,6 +1903,17 @@ async function unlockAccount(address){
   try{
     await api("/api/v1/accounts/"+encodeURIComponent(address)+"/unlock",{method:"POST"});
     toast(tf("Unlocked: {0}",address));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountrow",e.message);}
+}
+
+/* A lost phone: every Web Push subscription of the account removed, so nothing
+   more reaches any of its devices; the person turns notifications on again on
+   the devices they still have. Reversible by them, so no confirmation. */
+async function stopPush(address){
+  setErr("err_accountrow","");
+  try{
+    const r=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/push",{method:"DELETE"});
+    toast(tf("Notifications stopped on {0} device(s) of {1}",r.removed,address));
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountrow",e.message);}
 }
 
@@ -2602,7 +2615,12 @@ const SETTING_GROUPS=[
     verbs:[{path:"/api/v1/settings/indexing/index",label:K("Index now")},{path:"/api/v1/settings/indexing/clear",label:K("Empty the index")}]},
   {id:"bounce",path:"/api/v1/settings/bounces", title:K("Bounces and suppression"),save:K("Save bounce settings"),
     verbs:[{path:"/api/v1/bounces/expire",label:K("Expire and prune now")}]},
-  {id:"pgp",  path:"/api/v1/settings/openpgp", title:K("OpenPGP key directory"),save:K("Save OpenPGP settings")}
+  {id:"pgp",  path:"/api/v1/settings/openpgp", title:K("OpenPGP key directory"),save:K("Save OpenPGP settings")},
+  // Web Push: the switch, the limits, the public key (read-only, derived) and
+  // the private key (write-only, for carrying an installation); the verb makes
+  // a fresh pair, after which every device has to be asked again.
+  {id:"push", path:"/api/v1/settings/push",    title:K("Web Push"),save:K("Save Web Push settings"),
+    verbs:[{path:"/api/v1/settings/push/vapid",label:K("Make a new VAPID key pair")}]}
 ];
 function verbButtonsHtml(g){
   return (g.verbs||[]).map(v=>`<button class="btn ghost" data-act="setpost" data-group="${g.id}" data-path="${escHtml(v.path)}" data-label="${escHtml(t(v.label))}" title="${escHtml(operation(v.path,"post").summary||"")}">${escHtml(t(v.label))}</button>`).join("");

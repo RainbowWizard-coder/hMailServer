@@ -15,6 +15,7 @@ if exists (select * from sysobjects where id = object_id('hm_dkimrotations') and
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
 if exists (select * from sysobjects where id = object_id('hm_contacts') and objectproperty(id, 'isusertable') = 1) drop table hm_contacts
+if exists (select * from sysobjects where id = object_id('hm_pushsubscriptions') and objectproperty(id, 'isusertable') = 1) drop table hm_pushsubscriptions
 if exists (select * from sysobjects where id = object_id('hm_accountprefs') and objectproperty(id, 'isusertable') = 1) drop table hm_accountprefs
 if exists (select * from sysobjects where id = object_id('hm_scheduled') and objectproperty(id, 'isusertable') = 1) drop table hm_scheduled
 if exists (select * from sysobjects where id = object_id('hm_files') and objectproperty(id, 'isusertable') = 1) drop table hm_files
@@ -1859,4 +1860,33 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 ALTER TABLE hm_signins ADD CONSTRAINT fk_hm_signins_account FOREIGN KEY (siaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6053)
+create table hm_pushsubscriptions
+(
+	psid bigint identity(1,1) not null,
+	psaccountid int not null,
+	psendpointhash nvarchar(64) not null,
+	psendpoint nvarchar(1000) not null,
+	pskeyp256dh nvarchar(128) not null,
+	pskeyauth nvarchar(32) not null,
+	psdevice nvarchar(64) not null,
+	pscreated bigint not null,
+	pslastsent bigint not null,
+	psstate int not null,
+	psfailures int not null,
+	psnextattempt bigint not null,
+	pslastdetail nvarchar(255) not null,
+	psdetail int not null,
+	pssenders nvarchar(255) not null,
+	pslabels nvarchar(255) not null,
+	psquietfrom int not null,
+	psquietto int not null,
+	psquietoffset int not null
+)
+
+ALTER TABLE hm_pushsubscriptions ADD CONSTRAINT hm_pushsubscriptions_pk PRIMARY KEY NONCLUSTERED (psid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_pushsubscriptions_endpoint ON hm_pushsubscriptions (psaccountid, psendpointhash)
+
+ALTER TABLE hm_pushsubscriptions ADD CONSTRAINT fk_hm_pushsubscriptions_account FOREIGN KEY (psaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+insert into hm_dbversion values (6054)

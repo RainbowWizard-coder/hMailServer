@@ -893,6 +893,17 @@ interface IInterfaceSettings : IDispatch{
    [propput, id(132), helpstring("Days bounce counts are kept after an address last bounced and was last delivered to. 0 keeps them; at most 3650.")] HRESULT BounceCountRetentionDays([in] long newVal);
    [propget, id(133), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([out, retval] long *pVal);
    [propput, id(133), helpstring("Days after a message is sent that a delivery report about it is still matched. 1 to 30.")] HRESULT BounceReportWindowDays([in] long newVal);
+   // Web Push (Common/Util/WebPush.h). There is deliberately no getter for the
+   // VAPID private key on this interface or on any other: the only way to put one
+   // there is to generate it, and the only thing that reads it is the class that
+   // signs with it. An administrator carrying an installation to another machine
+   // uses PUT /api/v1/settings/push, whose vapid_private_key is write-only.
+   [propget, id(169), helpstring("Whether Web Push notifications are sent at all. Off by default; with it off nothing is queued, nothing is signed and no push service is reached, whatever subscriptions exist.")] HRESULT WebPushEnabled([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(169), helpstring("Whether Web Push notifications are sent at all. Off by default; with it off nothing is queued, nothing is signed and no push service is reached, whatever subscriptions exist.")] HRESULT WebPushEnabled([in] VARIANT_BOOL newVal);
+   [propget, id(170), helpstring("The contact a push service may use when this server's subscriptions are failing: a mailto: or https: address, sent as the sub claim of every VAPID token. Empty means mailto:postmaster@ the server's host name.")] HRESULT WebPushSubject([out, retval] BSTR *pVal);
+   [propput, id(170), helpstring("The contact a push service may use when this server's subscriptions are failing: a mailto: or https: address. Empty means mailto:postmaster@ the server's host name.")] HRESULT WebPushSubject([in] BSTR newVal);
+   [propget, id(171), helpstring("The public half of this server's VAPID key pair, base64url. Every page that subscribes needs it, so it is public by construction. Empty until GenerateWebPushKeys has been called.")] HRESULT WebPushVapidPublicKey([out, retval] BSTR *pVal);
+   [id(172), helpstring("Generates a fresh VAPID key pair and stores both halves, returning the public one. Every subscription made under the previous pair stops working at once and each device must be asked again, so this is not routine: it is what to do when the private key may have been copied. Server administrators only.")] HRESULT GenerateWebPushKeys([out, retval] BSTR *PublicKey);
 
    // The Web Key Directory: this server publishing its users' OpenPGP public keys
    // (docs/OpenPGP.md). Publishing is off, and stays off for every domain and every
@@ -1192,6 +1203,12 @@ interface IInterfaceAccount : IDispatch
    [id(23), helpstring("Unlocks the POP3 mailbox.")] HRESULT UnlockMailbox();
    [propget, id(24), helpstring("The IMAP folders belonging to this account.")] HRESULT IMAPFolders([out, retval] IInterfaceIMAPFolders** pVal);
    [propget, id(25), helpstring("Percentage of quota used (0-100).")] HRESULT QuotaUsed([out, retval] long *pVal);
+   // Web Push. An administrator can see how many devices an account is being
+   // notified on and can revoke them all - which is what a lost phone needs, and
+   // the only thing about a subscription an administrator has any business with.
+   // The endpoint and the keys are not readable here or anywhere else.
+   [propget, id(61), helpstring("How many devices this account has Web Push notifications on, including any that have been dead-lettered.")] HRESULT PushSubscriptionCount([out, retval] long *pVal);
+   [id(62), helpstring("Stops notifying every device of this account and returns how many were removed. What to do about a lost phone; the person turns notifications on again on the devices they still have.")] HRESULT RemovePushSubscriptions([out, retval] long *RemovedCount);
 
    [propget, id(26), helpstring("Forwarding for this account is enabled.")] HRESULT ForwardEnabled([out, retval] VARIANT_BOOL *pVal);
    [propput, id(26), helpstring("Forwarding for this account is enabled.")] HRESULT ForwardEnabled([in] VARIANT_BOOL newVal);
@@ -1488,6 +1505,13 @@ interface IInterfaceUtilities : IDispatch{
    // the removal, which need the address rather than the account object.
    [id(50), helpstring("Stores an OpenPGP PUBLIC key for an account, given as an armoured PGP PUBLIC KEY BLOCK or as base64 of the key's bytes. A SECRET key is refused. A key the account already holds by that fingerprint is replaced. AllowAddressMismatch waives the rule that the key must name the account's own address, and is the server administrator's alone. Returns the stored key as JSON: fingerprint, version, algorithm, bits, user_id, created, expires, bytes, uploaded, uploaded_by, address, hashed_local_part and the two directory URLs.")] HRESULT ImportOpenPGPKey([in] BSTR AccountAddress, [in] BSTR Key, [in] VARIANT_BOOL AllowAddressMismatch, [out, retval] BSTR *Json);
    [id(51), helpstring("Removes one OpenPGP key from an account by its fingerprint. Returns False when the account does not hold that key.")] HRESULT RemoveOpenPGPKey([in] BSTR AccountAddress, [in] BSTR Fingerprint, [out, retval] VARIANT_BOOL *Removed);
+   // Web Push, for a caller that has to stand in for a browser: a subscription key
+   // pair, and the reverse of the encryption. Both exist because .NET Framework
+   // has no AES-GCM, so the regression suite's fake push service cannot open a
+   // push message for itself - and a test that asserts only that a push was SENT
+   // asserts nothing about what it carried. Neither reads or writes anything.
+   [id(58), helpstring("A fresh P-256 key pair of the kind a browser makes when it subscribes, as JSON {public_key, private_key} in base64url. For a caller that has to stand in for a browser; the server keeps nothing.")] HRESULT GenerateWebPushKeyPair([out, retval] BSTR *Json);
+   [id(59), helpstring("Opens an RFC 8291 push message body (base64url of the aes128gcm bytes) with a subscription private key and auth secret, and returns the plain text. Raises an error when the body does not open. Reads and writes nothing.")] HRESULT WebPushDecrypt([in] BSTR BodyBase64Url, [in] BSTR PrivateKey, [in] BSTR AuthSecret, [out, retval] BSTR *PlainText);
 };
 
 [

@@ -1800,7 +1800,7 @@
     }
     if (head === 'held') { showPanel('quarantine-section', 'Held as suspected spam'); markNav('/held'); loadQuarantine(); return; }
     if (head === 'folders') { showPanel('folders-section', 'Manage folders'); markNav('/folders'); renderFolderAdmin(); return; }
-    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); return; }
+    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); return; }
     if (head === 'filters') { showPanel('filter-section', 'Filters'); markNav('/filters'); renderColourRules(); return; }
     if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadContacts(); return; }
     if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
@@ -3944,7 +3944,7 @@
   window.addEventListener('online', function () { offlineNote(false); outboxFlush(); });
   window.addEventListener('offline', function () { offlineNote(true); });
   if (typeof navigator !== 'undefined' && navigator.serviceWorker && navigator.serviceWorker.register) {
-    navigator.serviceWorker.register('/portal-sw.js').catch(function () { /* the page works without it */ });
+    navigator.serviceWorker.register('/portal-sw.js').then(function () { pushWords(); }).catch(function () { /* the page works without it */ });
   }
   var setTimeout0 = function (fn) { if (typeof window.requestAnimationFrame === 'function') { window.requestAnimationFrame(fn); } };
 
@@ -4398,6 +4398,224 @@
       try { new Notification('New mail in ' + (g.folder.name || g.folder.path), { body: g.added + ' new, ' + g.unseen + ' unread', tag: 'hm-folder-' + g.folder.id }); } catch (e) { /* a browser without notifications is still a browser */ }
     });
   };
+  // ---- Web Push: a notification with the page closed --------------------------
+  //
+  // The browser makes the subscription and this page hands it to the server; the
+  // server never gives it back, because the endpoint and the two keys together
+  // are the capability to notify this device. So which row is THIS device is
+  // remembered here, by id, and recovered by subscribing again - which the server
+  // treats as the same device, since it is the same endpoint.
+  var PUSH_ID = 'hmPortalPushId';
+  var pushState = { enabled: false, key: '', list: [] };
+  var pushIdRead = function () { try { return Number(localStorage.getItem(PUSH_ID)) || 0; } catch (e) { return 0; } };
+  var pushIdWrite = function (id) { try { localStorage.setItem(PUSH_ID, String(id)); } catch (e) { /* a browser that keeps nothing */ } };
+  var pushIdForget = function () { try { localStorage.removeItem(PUSH_ID); } catch (e) { /* nothing to forget */ } };
+  var pushKeyBytes = function (value) {
+    var padded = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+    while (padded.length % 4) { padded += '='; }
+    var raw = atob(padded);
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) { bytes[i] = raw.charCodeAt(i); }
+    return bytes;
+  };
+  var pushB64 = function (buffer) {
+    var bytes = new Uint8Array(buffer);
+    var text = '';
+    for (var i = 0; i < bytes.length; i++) { text += String.fromCharCode(bytes[i]); }
+    return btoa(text).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  // "22:30" -> 1350, and back. -1 is "no quiet hours", which is an empty field.
+  var pushMinutes = function (value) {
+    var parts = /^(\d{1,2}):(\d{2})$/.exec(String(value || ''));
+    if (!parts) { return -1; }
+    var minutes = Number(parts[1]) * 60 + Number(parts[2]);
+    return minutes >= 0 && minutes < 1440 ? minutes : -1;
+  };
+  var pushClock = function (minutes) {
+    var n = Number(minutes);
+    if (isNaN(n) || n < 0) { return ''; }
+    return pad2(Math.floor(n / 60)) + ':' + pad2(n % 60);
+  };
+  // The three words the service worker shows, in the reader's language, left
+  // where a worker can read them: a worker has no localStorage and cannot ask the
+  // page anything while the page is closed, and the Cache Storage it already
+  // uses for a share is shared with it.
+  var pushWords = function () {
+    if (typeof caches === 'undefined' || !caches.open) { return Promise.resolve(); }
+    var words = { mail: t('New mail'), messages: tf('{0} new messages', '{0}'), test: t('A test notification') };
+    return caches.open('hm-portal-push').then(function (c) {
+      return c.put('/portal/push-words', new Response(JSON.stringify(words), { headers: { 'Content-Type': 'application/json' } }));
+    }).catch(function () { /* a browser without Cache Storage still shows English */ });
+  };
+  var pushMine = function () {
+    var id = pushIdRead();
+    for (var i = 0; i < pushState.list.length; i++) { if (pushState.list[i].id === id) { return pushState.list[i]; } }
+    return null;
+  };
+  // A name the person will recognise without being asked for one. The platform
+  // and the browser family, which is what distinguishes a phone from a desktop.
+  var pushDeviceName = function () {
+    var agent = (navigator && navigator.userAgent) || '';
+    var platform = /Android/i.test(agent) ? 'Android' : /iPhone|iPad|iPod/i.test(agent) ? 'iOS' :
+      /Mac OS X/i.test(agent) ? 'Mac' : /Windows/i.test(agent) ? 'Windows' : /Linux/i.test(agent) ? 'Linux' : '';
+    var browser = /Edg\//i.test(agent) ? 'Edge' : /OPR\//i.test(agent) ? 'Opera' : /Firefox\//i.test(agent) ? 'Firefox' :
+      /Chrome\//i.test(agent) ? 'Chrome' : /Safari\//i.test(agent) ? 'Safari' : 'Browser';
+    return (platform ? platform + ' ' : '') + browser;
+  };
+  var renderPush = function () {
+    var rows = el('push-rows');
+    if (!rows) { return; }
+    clear(rows);
+    pushState.list.forEach(function (s) {
+      var tr = document.createElement('tr');
+      tr.appendChild(node('td', s.device || ''));
+      tr.appendChild(node('td', s.created ? new Date(s.created * 1000).toLocaleString() : ''));
+      var last = document.createElement('td');
+      last.textContent = s.last_sent ? new Date(s.last_sent * 1000).toLocaleString() : '';
+      // A device nothing is reaching says so where a person will look, with the
+      // push service's own reason: a phone that went quiet is otherwise a
+      // mystery, and the row is kept for exactly that.
+      if (s.state === 'dead-lettered') { last.appendChild(node('div', tf('Not being delivered: {0}', s.last_detail || ''), 'hint')); }
+      tr.appendChild(last);
+      var actions = document.createElement('td');
+      var test = button(t('Test'));
+      test.addEventListener('click', function () {
+        call('POST', '/api/v1/me/push/test', { id: s.id }).then(function (r) {
+          if (r.status === 200) { say('push-status', t('A test notification has been sent.'), true); }
+          else { say('push-status', describe(r, t('Could not send a test notification')), false); }
+          loadPush();
+        });
+      });
+      var remove = button(t('Remove'));
+      remove.addEventListener('click', function () { pushRemove(s.id); });
+      actions.appendChild(test);
+      actions.appendChild(remove);
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('push-table').hidden = pushState.list.length === 0;
+    el('push-empty').hidden = pushState.list.length > 0;
+
+    var mine = pushMine();
+    el('push-form').hidden = !mine;
+    el('push-subscribe').hidden = !!mine;
+    if (mine) {
+      el('push-detail').value = String(mine.detail);
+      el('push-senders').value = mine.senders || '';
+      el('push-labels').value = mine.labels || '';
+      el('push-quiet-from').value = pushClock(mine.quiet_from);
+      el('push-quiet-to').value = pushClock(mine.quiet_to);
+    }
+  };
+  var loadPush = function () {
+    if (!el('push-rows') || el('account').hidden) { return Promise.resolve(); }
+    return call('GET', '/api/v1/me/push').then(function (result) {
+      if (result.status !== 200 || !result.data) { return; }
+      pushState.enabled = !!result.data.enabled;
+      pushState.key = result.data.vapid_public_key || '';
+      pushState.list = result.data.subscriptions || [];
+      renderPush();
+      // A subscription this browser still holds whose row this page has lost
+      // track of - a different browser profile, cleared storage - is handed back
+      // to the server, which recognises the endpoint and answers with its id.
+      if (!pushMine() && pushState.enabled && pushState.key) { pushRecover(); }
+    });
+  };
+  var pushRegistration = function () {
+    if (typeof navigator === 'undefined' || !navigator.serviceWorker || !navigator.serviceWorker.ready) { return Promise.resolve(null); }
+    return navigator.serviceWorker.ready.catch(function () { return null; });
+  };
+  var pushSend = function (subscription, quiet) {
+    var body = {
+      endpoint: subscription.endpoint,
+      keys: { p256dh: pushB64(subscription.getKey('p256dh')), auth: pushB64(subscription.getKey('auth')) },
+      device: pushDeviceName(),
+      quiet_offset: -new Date().getTimezoneOffset()
+    };
+    return call('POST', '/api/v1/me/push/subscriptions', body).then(function (r) {
+      if (r.status === 201 && r.data && r.data.id) {
+        pushIdWrite(r.data.id);
+        if (!quiet) { say('push-status', t('Notifications are on for this device.'), true); }
+        return loadPush();
+      }
+      if (!quiet) { say('push-status', describe(r, t('Could not turn notifications on')), false); }
+      return null;
+    });
+  };
+  var pushRecover = function () {
+    return pushRegistration().then(function (registration) {
+      if (!registration || !registration.pushManager) { return null; }
+      return registration.pushManager.getSubscription();
+    }).then(function (subscription) {
+      return subscription ? pushSend(subscription, true) : null;
+    }).catch(function () { /* nothing to recover */ });
+  };
+  var pushSubscribe = function () {
+    say('push-status', '', true);
+    if (typeof Notification === 'undefined' || typeof navigator === 'undefined' || !navigator.serviceWorker) {
+      say('push-status', t('This browser cannot show notifications.'), false);
+      return Promise.resolve();
+    }
+    if (!pushState.enabled) { say('push-status', t('Notifications are switched off on this server.'), false); return Promise.resolve(); }
+    if (!pushState.key) { say('push-status', t('This server has no notification key yet. Ask your administrator to make one.'), false); return Promise.resolve(); }
+    return Promise.resolve(Notification.requestPermission()).then(function (permission) {
+      if (permission !== 'granted') {
+        say('push-status', t('Notifications were refused for this site. Allow them in the browser and try again.'), false);
+        return null;
+      }
+      return pushRegistration().then(function (registration) {
+        if (!registration || !registration.pushManager) {
+          say('push-status', t('This browser cannot show notifications.'), false);
+          return null;
+        }
+        return registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pushKeyBytes(pushState.key) });
+      });
+    }).then(function (subscription) {
+      if (!subscription) { return null; }
+      return pushWords().then(function () { return pushSend(subscription, false); });
+    }).catch(function () {
+      say('push-status', t('Could not turn notifications on'), false);
+    });
+  };
+  var pushRemove = function (id) {
+    return call('DELETE', '/api/v1/me/push/subscriptions/' + id).then(function (r) {
+      if (r.status !== 200) { say('push-status', describe(r, t('Could not remove it')), false); return null; }
+      if (id === pushIdRead()) {
+        pushIdForget();
+        say('push-status', t('This device will not be notified any more.'), true);
+        // And the browser's own subscription, so that the next "turn it on"
+        // makes a fresh one rather than handing back the one just removed.
+        return pushRegistration().then(function (registration) {
+          if (!registration || !registration.pushManager) { return null; }
+          return registration.pushManager.getSubscription();
+        }).then(function (subscription) { return subscription ? subscription.unsubscribe() : null; })
+          .catch(function () { /* the row is gone either way */ })
+          .then(function () { return loadPush(); });
+      }
+      return loadPush();
+    });
+  };
+  if (el('push-subscribe')) {
+    el('push-subscribe').addEventListener('click', function () { pushSubscribe(); });
+    el('push-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var mine = pushMine();
+      if (!mine) { return; }
+      var body = {
+        detail: Number(el('push-detail').value),
+        senders: el('push-senders').value,
+        labels: el('push-labels').value,
+        quiet_from: pushMinutes(el('push-quiet-from').value),
+        quiet_to: pushMinutes(el('push-quiet-to').value),
+        quiet_offset: -new Date().getTimezoneOffset()
+      };
+      call('PUT', '/api/v1/me/push/subscriptions/' + mine.id, body).then(function (r) {
+        if (r.status === 200) { say('push-status', t('Saved.'), true); loadPush(); }
+        else { say('push-status', describe(r, t('Could not save what this device is told')), false); }
+      });
+    });
+  }
+
   var baseTitle = document.title || 'hMailServer - my account';
   var updateTitle = function () {
     var total = 0;
