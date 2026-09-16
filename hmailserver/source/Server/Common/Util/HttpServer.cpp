@@ -43,6 +43,7 @@
 #include "StdAfx.h"
 
 #include "HttpServer.h"
+#include "HttpCompression.h"
 
 #include <algorithm>
 #include <chrono>
@@ -306,6 +307,11 @@ namespace HM
             // reads the documentation, a stranger measuring it learns nothing.
             if (error == boost::asio::error::not_found)
             {
+               // On a kept-alive connection request_ still holds the request
+               // before this one, and Write_ negotiates the refusal's coding
+               // against whatever request_ holds; the refusal must not be
+               // encoded on an Accept-Encoding this request never sent.
+               request_ = HttpRequest();
                Fail_(413, "request too large");
                return;
             }
@@ -559,9 +565,17 @@ namespace HM
          Write_(response);
       }
 
-      void Write_(const HttpResponse &response)
+      void Write_(HttpResponse &response)
       {
          std::shared_ptr<HttpConnection> self = shared_from_this();
+
+         // The last thing done to an answer before it becomes bytes, and the
+         // only place it is done: every response of both listeners - a
+         // handler's, and the server's own refusals from Fail_ - passes through
+         // here, and Serialize below takes Content-Length from whatever body it
+         // is handed, so the framing follows the coding without being told.
+         if (limits_.compression)
+            HttpCompression::Apply(request_, response);
 
          out_ = HttpServer::Serialize(response, keep_alive_);
 

@@ -748,6 +748,7 @@
     <Compile Include="API\RestApiAlerts.cs" />
     <Compile Include="API\RestApiAccountImport.cs" />
     <Compile Include="API\RestApiBounces.cs" />
+    <Compile Include="API\RestApiCompression.cs" />
     <Compile Include="Shared\RestRequest.cs" />
     <Compile Include="Shared\BounceTestSupport.cs" />
   </ItemGroup>

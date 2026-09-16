@@ -71,6 +71,14 @@
 
 namespace HM
 {
+   class HttpCompressedCache;
+
+   // The cache RestApiServer.cpp holds the compressed forms of its per-request
+   // documents in - the webmail's page per language, the catalogues, the
+   // OpenAPI description - for the handlers in the other RestApi*.cpp files
+   // that serve one of them. See HttpCompression.h.
+   HttpCompressedCache &PortalPageCache();
+
    class MimeHeader;
    class JsonValue;
 

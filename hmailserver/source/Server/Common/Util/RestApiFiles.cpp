@@ -809,6 +809,11 @@ namespace HM
       response.status = 200;
       response.content_type = SafeType(row.type);
       response.body = AnsiString(bytes);
+      // Never compressed, for the reason the attachment route gives: the type
+      // is the one the sender declared, the bytes are whatever they uploaded,
+      // and a file sent as a link is by definition one too large to have gone
+      // in the message.
+      response.no_compress = true;
       response.extra_headers =
          "Content-Disposition: attachment; filename=\"" + AsciiName(row.name) + "\"; filename*=UTF-8''" + PercentEncode(row.name) + "\r\n"
          "X-Content-Type-Options: nosniff\r\n"

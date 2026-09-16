@@ -49,7 +49,9 @@ namespace HM
    // What a handler returns. The server writes the status line, the two
    // framing headers and the connection header; extra_headers are complete
    // "Name: value\r\n" lines whose values the builder has already checked for
-   // CR and LF.
+   // CR and LF. It may add two more of its own on the way out - Vary and
+   // Content-Encoding - for a client that asked for a content coding; see
+   // HttpCompression.cpp for when, and for when it does not.
    struct HttpResponse
    {
       int status = 200;
@@ -61,6 +63,20 @@ namespace HM
       // size or a malformed request sets this: the connection's framing can no
       // longer be trusted.
       bool close = false;
+
+      // The same body already compressed, for a handler whose body never
+      // changes: the server hands one of these over rather than compressing
+      // half a megabyte of webmail again for every cold page load. Filled by
+      // HttpStaticBody::Fill; empty means the server compresses `body` itself
+      // when the media type and the size are worth it.
+      AnsiString gzip_body;
+      AnsiString deflate_body;
+
+      // Never compress this response, whatever its media type and size. Set by
+      // a handler serving bytes whose type somebody else chose - an
+      // attachment, a file sent as a link - where a media type saying "text"
+      // proves nothing about what is under it. See HttpCompression.cpp.
+      bool no_compress = false;
    };
 
    // Every ceiling is absolute - a deadline from a fixed moment - rather than
@@ -100,6 +116,12 @@ namespace HM
       // from the mail protocols' IOService so a request storm here cannot
       // starve SMTP accept.
       unsigned worker_threads = 4;
+
+      // Whether a response may be compressed for a client that asked for a
+      // content coding. What that then means - which media types, which sizes,
+      // which responses are exempt - is HttpCompression's policy, not this
+      // listener's; this is the one switch that turns the whole of it off.
+      bool compression = true;
    };
 
    class HttpServer : public std::enable_shared_from_this<HttpServer>

@@ -11,6 +11,7 @@
 #include "AuditTrail.h"
 #include "../Application/RoleManager.h"
 #include "HttpServer.h"
+#include "HttpCompression.h"
 #include "JsonDocument.h"
 #include "Encoding/ModifiedUTF7.h"
 #include <boost/thread/thread.hpp>
@@ -621,6 +622,55 @@ namespace HM
 
    }
 
+   namespace
+   {
+      // The answers this listener lets HttpCompression compress: the documents
+      // the server itself holds, which are the same bytes for every reader -
+      // the webmail's page (its branding and catalogue are admin-set and
+      // served to anyone), its script, its S/MIME module, its manifest, its
+      // service worker and its language catalogues; the Deck's page and
+      // catalogues; the OpenAPI description. Nothing built from the database:
+      // not a mailbox listing, not a message, not a report, not an
+      // administrator's trace. That is the BREACH line, argued at the top of
+      // HttpCompression.cpp - text an attacker chose (a subject they sent)
+      // compressed beside what the reader would keep from them (every other
+      // subject in the listing), fetched again by the webmail on its own each
+      // time a message arrives. Drawn here, once, rather than route by route,
+      // so a route added later is plain until it is named.
+      bool CompressibleRoute_(const AnsiString &target)
+      {
+         AnsiString path = target;
+         const int query = path.Find("?");
+         if (query >= 0)
+            path = path.Mid(0, query);
+
+         if (path == "/" || path == "/index.html")
+            return true;
+         if (path.StartsWith("/deck-lang/"))
+            return true;
+         if (path == "/portal" || path == "/portal.js" || path == "/portal-smime.js" ||
+             path == "/portal.webmanifest" || path == "/portal-sw.js")
+            return true;
+         if (path.StartsWith("/portal-lang/"))
+            return true;
+         return path == "/api/v1/openapi.json";
+      }
+
+      // The per-request documents among those, compressed once per distinct
+      // body and held: the webmail's page in each language, the Deck's page
+      // and its catalogues from disk, the OpenAPI description. Capacity for
+      // the page in every language the portal has and every catalogue of
+      // both, with room over; at most some ten megabytes if every one is
+      // asked for, and nothing until it is.
+      HttpCompressedCache pageCache_(96);
+   }
+
+   HttpCompressedCache &
+   PortalPageCache()
+   {
+      return pageCache_;
+   }
+
    RestApiServer::RestApiServer() :
       running_(false),
       use_tls_(false)
@@ -739,7 +789,15 @@ namespace HM
       std::shared_ptr<HttpServer> server(new HttpServer("RestApi", limits,
          [this](const HttpRequest &request)
          {
-            return ProcessRequest_(request.raw, request.peer);
+            HttpResponse response = ProcessRequest_(request.raw, request.peer);
+
+            // Compression is for the server's own documents and nothing
+            // built from the database: CompressibleRoute_ above says which,
+            // and HttpCompression.cpp says why.
+            if (!CompressibleRoute_(request.target))
+               response.no_compress = true;
+
+            return response;
          },
          [](const IPAddress &peer)
          {
@@ -5947,6 +6005,10 @@ namespace HM
       HttpResponse response;
       response.content_type = "text/html; charset=utf-8";
       response.body = body;
+      // Read from disk on every request, compressed once per distinct file:
+      // the cache is keyed by the bytes, so an upgrade that replaces the file
+      // is a new entry, never a stale one.
+      pageCache_.Fill(response);
       // The same discipline the portal gets. This page has inline script and
       // style of its own, so those are allowed for it; what is refused is
       // anything from anywhere else, any frame, any form posted off this
@@ -5964,9 +6026,10 @@ namespace HM
    // <ProgramFolder>/WebAdmin/languages/<code>.json the packages install
    // beside the page. The page fetches it for the language the browser
    // prefers or the administrator chose in its header, and shows English for
-   // anything the catalogue lacks. Not cached, as the page is not: an upgrade
-   // replaces both, and a page with a stale catalogue would show its new
-   // texts in English until the cache let go.
+   // anything the catalogue lacks. Read from disk on every request, as the
+   // page is - an upgrade replaces both, and a page with a stale catalogue
+   // would show its new texts in English - and, like the page, compressed
+   // once per distinct file rather than once per request.
    HttpResponse
    RestApiServer::HandleWebAdminLanguage_(const AnsiString &code)
    {
@@ -5989,6 +6052,7 @@ namespace HM
       response.status = 200;
       response.content_type = "application/json; charset=utf-8";
       response.body = body;
+      pageCache_.Fill(response);
       response.extra_headers =
          "X-Content-Type-Options: nosniff\r\n"
          "Cache-Control: no-store\r\n";
@@ -11105,6 +11169,13 @@ namespace HM
       response.status = 200;
       response.content_type = SafeMediaType(attachment->GetContentType());
       response.body = bytes;
+      // Never compressed. The media type on this answer is the one the part
+      // declared, which is to say the one whoever sent the message chose: a
+      // JPEG, a PDF, a zip and a 7-Zip backup are all things DEFLATE would
+      // spend a worker thread making very slightly larger, and a part that says
+      // "text/plain" over thirty megabytes of anything is not a reason to
+      // believe it. A download is bytes to keep, not a document to render.
+      response.no_compress = true;
       response.extra_headers =
          "Content-Disposition: attachment; filename=\"" + AsciiFileName(name) + "\"; filename*=UTF-8''" + PercentEncodeUtf8(name) + "\r\n"
          "X-Content-Type-Options: nosniff\r\n"
@@ -11954,8 +12025,17 @@ namespace HM
          return into;
       }
 
-      AnsiString portalHtml_, portalScript_, portalManifest_, portalServiceWorker_;
-      std::once_flag portalHtmlOnce_, portalScriptOnce_, portalManifestOnce_, portalServiceWorkerOnce_;
+      AnsiString portalHtml_;
+      std::once_flag portalHtmlOnce_;
+
+      // The three that go out unchanged are joined AND compressed once, and
+      // held both ways for the life of the process. The page itself is not one
+      // of them: every copy of it differs, because the branding, the
+      // catalogue for the reader's language and the direction of the first
+      // paint are substituted into it below. It goes through pageCache_
+      // instead, which holds one compressed copy per distinct result - one
+      // per language, in practice, until the branding is saved again.
+      HttpStaticBody portalScript_, portalManifest_, portalServiceWorker_;
    }
 
    HttpResponse
@@ -11992,6 +12072,7 @@ namespace HM
          page.Replace("<html lang=\"en\" dir=\"ltr\">", tag.c_str());
       }
       response.body = page;
+      pageCache_.Fill(response);
       response.extra_headers = PortalHeaders;
       return response;
    }
@@ -12001,7 +12082,7 @@ namespace HM
    {
       HttpResponse response;
       response.content_type = "text/javascript; charset=utf-8";
-      response.body = Joined_(PortalScriptPieces, portalScript_, portalScriptOnce_);
+      portalScript_.Fill(response, PortalScriptPieces);
       response.extra_headers = PortalHeaders;
       return response;
    }
@@ -12011,7 +12092,7 @@ namespace HM
    {
       HttpResponse response;
       response.content_type = "application/manifest+json";
-      response.body = Joined_(PortalManifestPieces, portalManifest_, portalManifestOnce_);
+      portalManifest_.Fill(response, PortalManifestPieces);
       response.extra_headers = PortalHeaders;
       return response;
    }
@@ -12023,7 +12104,7 @@ namespace HM
    {
       HttpResponse response;
       response.content_type = "text/javascript; charset=utf-8";
-      response.body = Joined_(PortalServiceWorkerPieces, portalServiceWorker_, portalServiceWorkerOnce_);
+      portalServiceWorker_.Fill(response, PortalServiceWorkerPieces);
       response.extra_headers = AnsiString(PortalHeaders) + "Service-Worker-Allowed: /\r\n";
       return response;
    }
@@ -12181,7 +12262,10 @@ namespace HM
       openApiJson += OpenApiRolesPaths_();
       openApiJson += openApiTail;
 
-      return BuildResponse_(200, openApiJson);
+      // The same bytes for every caller, built on every call: compressed once.
+      HttpResponse response = BuildResponse_(200, openApiJson);
+      pageCache_.Fill(response);
+      return response;
    }
 
    HttpResponse

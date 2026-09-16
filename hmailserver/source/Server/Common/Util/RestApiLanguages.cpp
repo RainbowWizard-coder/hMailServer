@@ -13,6 +13,7 @@
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "HttpServer.h"
+#include "HttpCompression.h"
 #include "PortalLanguages.h"
 #include <algorithm>
 #include <cstdlib>
@@ -163,6 +164,9 @@ namespace HM
       response.status = 200;
       response.content_type = "application/json; charset=utf-8";
       response.body = json;
+      // Compressed once per language rather than once per request; the cache
+      // is RestApiServer.cpp's, shared with the page.
+      PortalPageCache().Fill(response);
       response.extra_headers = "Cache-Control: public, max-age=86400\r\nX-Content-Type-Options: nosniff\r\n";
       return response;
    }

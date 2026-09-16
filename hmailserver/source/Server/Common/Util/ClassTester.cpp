@@ -68,6 +68,7 @@ namespace
 #include "../Util/Hashing/HashCreator.h"
 #include "../Util/OAuth2TokenValidator.h"
 #include "../Util/EventTester.h"
+#include "../Util/HttpCompression.h"
 #include "../SQL/SQLStatement.h"
 #include <boost/pool/object_pool.hpp>
 
@@ -445,6 +446,16 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing Base64\n"));
       Base64Tester base64Tester;
       base64Tester.Test();
+
+      // What the HTTP listeners compress: the Accept-Encoding negotiation, the
+      // media-type policy, and the proof that what goes out under a
+      // Content-Encoding decodes to exactly the bytes that would have gone out
+      // without one. The regression fixture proves the same thing over a
+      // socket; this proves it at the byte, where a wrapper put on the wrong
+      // stream would show.
+      OutputDebugString(_T("hMailServer: Testing HttpCompression\n"));
+      HttpCompressionTester httpCompressionTester;
+      httpCompressionTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing the ACME TLSA record\n"));
       {

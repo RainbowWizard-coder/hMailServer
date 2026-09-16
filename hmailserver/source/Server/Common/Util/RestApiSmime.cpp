@@ -32,6 +32,7 @@
 
 #include "RestApiServer.h"
 #include "HttpServer.h"
+#include "HttpCompression.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "FileUtilities.h"
@@ -733,21 +734,16 @@ namespace HM
       return BuildResponse_(200, json);
    }
 
-   // The page's S/MIME module, joined from its pieces on first use.
+   // The page's S/MIME module, joined from its pieces - and compressed - on
+   // first use. It goes out unchanged on every request, so both are done once.
    HttpResponse
    RestApiServer::HandlePortalSmimeScript_()
    {
-      static AnsiString script;
-      static std::once_flag joined;
-      std::call_once(joined, []()
-      {
-         for (const char *const *piece = PortalSmimeScriptPieces; *piece; piece++)
-            script += *piece;
-      });
+      static HttpStaticBody script;
 
       HttpResponse response;
       response.content_type = "text/javascript; charset=utf-8";
-      response.body = script;
+      script.Fill(response, PortalSmimeScriptPieces);
       response.extra_headers = PortalHeaders;
       return response;
    }

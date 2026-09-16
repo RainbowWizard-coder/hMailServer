@@ -535,6 +535,13 @@ namespace HM
       limits.connection_seconds = ConnectionSeconds;
       limits.max_connections = MaxConnections;
       limits.worker_threads = WorkerThreads;
+      // Nothing this listener serves is worth compressing, and some of it must
+      // not be: its answers are small (a challenge, a policy, an
+      // autoconfiguration document, a profile) or are built from the database
+      // for a client that polls (CalDAV, CardDAV) - the shape BREACH needs,
+      // see HttpCompression.cpp. Off here, so that no route on this listener
+      // has to remember.
+      limits.compression = false;
 
       std::shared_ptr<HttpServer> server(new HttpServer("WebServices", limits,
          [](const HttpRequest &request)
