@@ -80,6 +80,13 @@ namespace HM
    //     </AccountStores>
    //   </Account>
    //
+   // Spaced as XMLite writes it, which is not quite how it is drawn above: the
+   // writer puts a space after every attribute, so what is really in the file is
+   // <Store Name="hm_contacts" > and <Row contactname="Ada" ... />. A matcher
+   // written from this comment - the backup fixtures edit the index the way a
+   // person with 7-Zip and a text editor would - has to allow that space before
+   // the closing bracket, or it matches nothing at all.
+   //
    // A value is written as an attribute verbatim when every character of it is safe
    // in one, and as base64 of its UTF-8 under the attribute name with ".base64"
    // appended when it is not. Most rows are therefore legible in the index the way

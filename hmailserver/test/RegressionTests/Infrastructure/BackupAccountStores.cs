@@ -956,7 +956,11 @@ namespace RegressionTests.Infrastructure
       {
          EditTheArchivedIndex(xml =>
          {
-            var store = new Regex("(<Store Name=[\"']hm_roleassignments[\"']>)(\\s*<Row\\b.*?</Row>)(\\s*</Store>)", RegexOptions.Singleline);
+            // \\s* before the closing bracket: XMLite writes a trailing space
+            // after every attribute (_tagXMLAttr::GetXML), so an element with attributes
+            // and children is emitted as <Store Name="..." > and one with no children as
+            // <Store Name="..." />. Anchored on <Store Name="...">, this matched nothing.
+            var store = new Regex("(<Store Name=[\"']hm_roleassignments[\"']\\s*>)(\\s*<Row\\b.*?</Row>)(\\s*</Store>)", RegexOptions.Singleline);
             Assert.AreEqual(1, store.Matches(xml).Count, "Expected exactly one archived assignment store in the index.");
 
             return store.Replace(xml, "${1}${2}${2}${3}");
