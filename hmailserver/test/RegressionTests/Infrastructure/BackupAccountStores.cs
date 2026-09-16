@@ -957,6 +957,13 @@ namespace RegressionTests.Infrastructure
 
          string startTime = _application.Status.StartTime;
 
+         // The restore is known to be over by Status.StartTime changing, and that
+         // stamp has one-second resolution: on a bench fast enough to back up,
+         // restore and reinitialise inside the second the previous test's
+         // reinitialisation fell in, the new stamp equals the old one and the wait
+         // below runs its minute out with nothing to see. Step past the second.
+         Thread.Sleep(1100);
+
          FileInfo[] archives = new DirectoryInfo(_backupDirectory).GetFiles("*.7z");
          Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + _backupDirectory);
 
