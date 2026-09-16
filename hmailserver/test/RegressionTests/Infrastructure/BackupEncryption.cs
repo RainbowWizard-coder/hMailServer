@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -195,7 +196,19 @@ namespace RegressionTests.Infrastructure
 
       private string ReadBackupLog()
       {
-         string logFile = _application.Settings.Backup.LogFile;
+         string logFile;
+
+         try
+         {
+            logFile = _application.Settings.Backup.LogFile;
+         }
+         catch (COMException exception)
+         {
+            // A restore reinitialises the server, and for a moment in the middle
+            // of that the database is closed: Settings answers "the connection to
+            // the database is not available" and the wait loop simply asks again.
+            return "(server reinitialising: " + exception.Message + ")";
+         }
 
          try
          {

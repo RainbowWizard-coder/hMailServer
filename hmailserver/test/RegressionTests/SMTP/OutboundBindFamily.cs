@@ -50,8 +50,9 @@ namespace RegressionTests.SMTP
          StringAssert.Contains("Not binding to ::1 for the connection to 127.0.0.1", log,
             "The skipped bind has to be in the log, or an administrator cannot tell why the setting was not honoured.");
 
-         string errors = LogHandler.ReadAndDeleteErrorLog();
-         StringAssert.DoesNotContain("Failed to bind", errors, "Skipping the bind is not an error.");
+         // Skipping the bind is not an error: no ERROR log at all is the expectation,
+         // and ReadAndDeleteErrorLog would fail on the file not being there.
+         CustomAsserts.AssertNoReportedError();
       }
 
       [Test]
