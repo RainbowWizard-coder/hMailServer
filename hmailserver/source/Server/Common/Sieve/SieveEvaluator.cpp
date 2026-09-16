@@ -12,6 +12,7 @@
 #include "../Application/Configuration.h"
 #include "../Util/Time.h"
 #include "../AntiSpam/AntiSpamConfiguration.h"
+#include "../Util/SealedMessage.h"
 #include "SieveScript.h"
 
 #ifdef _DEBUG
@@ -2152,6 +2153,29 @@ namespace HM
       if (source == ValueSource::Body)
       {
          values = message.GetBodyValues(set.bodyTransform, set.contentTypes);
+
+         // Recorded, not acted on. ":raw" is excluded because it sees the
+         // ciphertext exactly as it arrived and is therefore the transform that
+         // still works on an encrypted message; it is ":text" and ":content"
+         // that quietly come back empty. And only when they DID come back
+         // empty: a ":content \"application/octet-stream\"" test on an
+         // encrypted message is handed the ciphertext part and compares against
+         // it for real, and the log line says "compared against nothing", so
+         // it must not be written for that. It is IsOpaque rather than
+         // IsSealed: a multipart/signed message has a text part, the test read
+         // it, and there is nothing to report. See the comment on the flag in
+         // SieveEvaluator.h for why the evaluation is deliberately unchanged.
+         if (result_ != nullptr &&
+             values.empty() &&
+             set.bodyTransform.CompareNoCase(_T("raw")) != 0 &&
+             !result_->bodyTestOnSealedMessage)
+         {
+            std::vector<String> contentTypeHeader = message.GetHeaderValues(_T("content-type"));
+
+            if (!contentTypeHeader.empty() && SealedMessage::IsOpaqueContentType(contentTypeHeader[0]))
+               result_->bodyTestOnSealedMessage = true;
+         }
+
          return;
       }
 

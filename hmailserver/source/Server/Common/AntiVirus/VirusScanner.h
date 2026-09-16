@@ -67,7 +67,25 @@ namespace HM
       // as a scanner outage would hold ordinary mail. Nor for the max-size skip or
       // the scanner-slot give-up, which are policy and a wait respectively, not
       // failures.
+      //
+      // A message that is encrypted end to end is scanned as it stands - which
+      // is to say its ciphertext is scanned - and a clean result from that is
+      // not a verdict on the message. Scan says so in the application log, once
+      // the whole file and every part have come back clean, and deliberately
+      // does NOT set scannerFailed for it; see the comment at the point it is
+      // written, and hmailserver/docs/SealedMail.md. A signed message carries
+      // its text in the clear and a clean result on it is a verdict.
       static bool Scan(std::shared_ptr<Message> pMessage, String &virusName, bool *scannerFailed = nullptr);
+
+      // Replaces the content of every attachment whose file name matches the
+      // administrator's blocked-attachment list with a notice, and rewrites the
+      // message. Both outcomes - a message rewritten, and a message left alone
+      // because it is encrypted - are written to the application log, naming
+      // the message. An encrypted message is left alone: its ciphertext is an
+      // attachment by MIME type, so blocking would destroy it. A signed message
+      // is checked like any other, because nothing verifies the signature and a
+      // sender must not be able to opt out of the list with one header; the log
+      // line for it says the signature has been invalidated.
       static void BlockAttachments(std::shared_ptr<Message> message);
 
       static void ResetCounter();

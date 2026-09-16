@@ -42,7 +42,11 @@ namespace HM
       void ApplyAction_(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData, bool &bContinueRuleProcessing, RuleResult &ruleResult);
 
       // Check wether pMessage matches pCriteria.
-      bool MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData) const;
+      // sealedBodyDeclined is set when this criterion is a body criterion and the
+      // message is signed or encrypted end to end. The criterion then does not
+      // match, whatever the match type, because the body is unreadable rather
+      // than empty - and the caller writes one line per rule saying so.
+      bool MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined) const;
       
       // Actions
       void ApplyAction_Forward(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;

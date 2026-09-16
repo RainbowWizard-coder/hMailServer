@@ -22,6 +22,7 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/RegularExpression.h"
 #include "../Common/Rules/RuleGuard.h"
+#include "../Common/Util/SealedMessage.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
 
@@ -106,6 +107,12 @@ namespace HM
       bool bAllRequired = pRule->GetUseAND();
       bool bDoActions = false;
 
+      // One line per rule per message, however many body criteria the rule has.
+      // An administrator whose rule has stopped firing on encrypted mail needs
+      // to be able to find out why; an administrator with thirty rules does not
+      // need thirty lines about the same message.
+      bool sealedBodyLogged = false;
+
       std::shared_ptr<RuleCriterias> pCriterias = pRule->GetCriterias();
       for (int i = 0; i < pCriterias->GetCount(); i++)
       {
@@ -114,8 +121,21 @@ namespace HM
          if (!pCriteria)
             continue;
 
-         bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData);
-         
+         bool sealedBodyDeclined = false;
+         bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData, sealedBodyDeclined);
+
+         if (sealedBodyDeclined && !sealedBodyLogged)
+         {
+            sealedBodyLogged = true;
+
+            std::shared_ptr<Message> ruleMessage = pMsgData->GetMessage();
+
+            LOG_APPLICATION(Formatter::Format("RuleApplier - Message {0} is encrypted ({1}), so the body criterion of rule \"{2}\" could not be evaluated and did not match. The server cannot read the body of this message; it is unreadable rather than empty, and a rule that tested it for the absence of a word would otherwise have fired on every encrypted message.",
+               ruleMessage ? ruleMessage->GetID() : 0,
+               pMsgData->GetFieldValue(_T("Content-Type")),
+               pRule->GetName()));
+         }
+
          if (bAllRequired)
          {
             if (!bMatch)
@@ -502,7 +522,7 @@ namespace HM
    }
 
    bool
-   RuleApplier::MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData) const
+   RuleApplier::MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined) const
    {
       String sFieldValue;
       if (pCriteria->GetUsePredefined())
@@ -522,6 +542,39 @@ namespace HM
             sFieldValue = pMsgData->GetSubject();
             break;
          case RuleCriteria::FTBody:
+            // The body of a sealed message is not empty. It is unreadable, and
+            // those are different facts that this criterion used to state
+            // identically.
+            //
+            // GetBody() walks the MIME tree for a text/plain part and
+            // GetHTMLBody() for a text/html one; a multipart/encrypted message
+            // has neither, so the pair came back as "" - and an empty string is
+            // a perfectly good value to compare against. "Contains" then missed,
+            // harmlessly, while "NotContains" matched EVERY sealed message. A
+            // compliance rule of the shape "body does not contain our
+            // confidentiality notice -> hold" therefore held every encrypted
+            // message the organisation sent or received, silently, and the more
+            // seriously a company took encryption the more of its mail
+            // disappeared.
+            //
+            // This is the server's own rule engine rather than a standard, so
+            // the semantics are ours to choose: a criterion the server cannot
+            // evaluate does not match, whichever way round it is phrased. The
+            // rule's other criteria are still evaluated - a criterion declining
+            // is not the whole rule declining - so "From contains x OR body
+            // contains y" still fires on the From.
+            //
+            // IsOpaque and not IsSealed, on purpose. A multipart/signed message
+            // has its text in the clear, GetBody() reads it, and a rule on it
+            // has always evaluated honestly; declining there would switch off
+            // every body rule an organisation has on its own signed mail, which
+            // is the opposite of what this fix is for.
+            if (SealedMessage::IsOpaque(pMsgData))
+            {
+               sealedBodyDeclined = true;
+               return false;
+            }
+
             sFieldValue = pMsgData->GetBody() + pMsgData->GetHTMLBody();
             break;
          case RuleCriteria::FTMessageSize:

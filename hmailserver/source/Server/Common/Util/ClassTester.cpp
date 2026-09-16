@@ -16,6 +16,7 @@
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
+#include "../Util/SealedMessage.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "../../SMTP/BounceTracker.h"
@@ -146,6 +147,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;
       disclaimerAdderTester.Test();
+
+      // Which messages this server cannot read. Six parts of the server act on
+      // the answer - the footer, the signature, the blocked-attachment
+      // rewriter, the attachment stripper, the virus verdict and the rule
+      // engine - so a false positive here stops an ordinary message being
+      // filtered and a false negative destroys a sealed one.
+      OutputDebugString(_T("hMailServer: Testing SealedMessage\n"));
+      SealedMessageTester sealedMessageTester;
+      sealedMessageTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing InlineImageParts\n"));
       InlineImagePartsTester inlineImagePartsTester;

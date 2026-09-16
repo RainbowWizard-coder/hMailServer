@@ -651,6 +651,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ExternalSenderTagger.cpp" />
     <ClCompile Include="..\Common\Util\MessageOrigin.cpp" />
     <ClCompile Include="..\Common\Util\OutgoingFooters.cpp" />
+    <ClCompile Include="..\Common\Util\SealedMessage.cpp" />
     <ClCompile Include="..\Common\Util\SignatureAdder.cpp" />
     <ClCompile Include="..\Common\Util\SSPIValidation.cpp" />
     <ClCompile Include="..\Common\Util\Strings\FormatArgument.cpp" />
@@ -1417,6 +1418,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ExternalSenderTagger.h" />
     <ClInclude Include="..\Common\Util\MessageOrigin.h" />
     <ClInclude Include="..\Common\Util\OutgoingFooters.h" />
+    <ClInclude Include="..\Common\Util\SealedMessage.h" />
     <ClInclude Include="..\Common\Util\SignatureAdder.h" />
     <ClInclude Include="..\Common\Util\Singleton.h" />
     <ClInclude Include="..\Common\Util\SSPIValidation.h" />

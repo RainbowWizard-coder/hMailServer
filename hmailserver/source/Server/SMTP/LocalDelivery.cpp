@@ -724,6 +724,21 @@ namespace HM
          return;
       }
 
+      // Said once per message, and deliberately after the script has been let
+      // run to its own conclusion. A "body" test with ":text" or ":content"
+      // against a signed or encrypted message compares against nothing, because
+      // a sealed message has no text part to decode - which is what RFC 5173
+      // says should happen and is therefore left alone. What was missing was
+      // anyone being told: a script reading "if not body :contains \"[EXT]\"
+      // { fileinto \"Review\"; }" quietly files every encrypted message, and
+      // "if body :contains \"invoice\"" quietly files none of them, and both
+      // look from the outside like the script is wrong.
+      if (sieveResult.bodyTestOnSealedMessage)
+      {
+         LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: the Sieve script for {1} tested the body of a message that is encrypted end to end. An encrypted message has no readable text part, so the test compared against nothing and was false for every key - which is what RFC 5173 requires and is not changed here. Use \"body :raw\" to recognise such a message.",
+            original_message_->GetID(), account->GetAddress()));
+      }
+
       // The delivery decision is read from the structured result rather than parsed
       // back out of the ';'-joined summary string. Both were available before and this
       // used the summary, which was wrong twice over: a mailbox name containing a ';'

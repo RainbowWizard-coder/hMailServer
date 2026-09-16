@@ -270,6 +270,27 @@ namespace HM
             // The text-bearing attachments as well, in the same concatenation the
             // BODY scan reads: the index may only ever exclude, so it has to know
             // about every piece of text the scan would search.
+            //
+            // A sealed message needs no special case HERE, and that is a
+            // decision rather than an accident - say so, because the obvious
+            // "improvement" breaks the index's one invariant.
+            //
+            // S/MIME and PGP/MIME: GetBody() and GetHTMLBody() walk the MIME
+            // tree for a text/plain and a text/html part and a sealed message
+            // has neither, so only the header is indexed, which is exactly what
+            // the searcher can find in one. Nothing to do.
+            //
+            // Inline ("armoured in the body") OpenPGP: the message IS a
+            // text/plain part, so its base64 armour is tokenised here, and past
+            // IndexerFullTextMaxTokensPerMessage the overflow marker makes that
+            // message a candidate for every search from then on. That is
+            // wasteful and it is still correct, and skipping the armour would
+            // NOT be: the index is only ever allowed to say "cannot contain",
+            // and the searcher scans GetBody() - armour and all - so an index
+            // built from less than the searcher reads would exclude a message
+            // the searcher would have matched. If this is ever made cheaper,
+            // the searcher has to stop reading the armour in the same commit.
+            // See hmailserver/docs/SealedMail.md.
             String searchableText = messageData->GetHeader() + messageData->GetBody() + messageData->GetHTMLBody() + messageData->GetAttachmentText();
 
             PersistentMessageIndex::TokenizeForIndex(searchableText, maxTerms, terms, overflowed);

@@ -119,6 +119,26 @@ namespace HM
       // auto-submitted sender) applying unchanged.
       bool rejectGiven = false;
       String rejectReason;
+
+      // True when the script evaluated a "body" test with ":text" or ":content"
+      // against a message that is encrypted end to end - one whose content this
+      // server cannot read (SealedMessage::IsOpaque) - and the test found no
+      // part to compare against. A signed message has a text part and does not
+      // set this; nor does a ":content" test whose named type matched the
+      // ciphertext part, because that test compared against something.
+      //
+      // The evaluation itself is NOT changed by this, unlike the rule engine's
+      // body criterion. RFC 5173 defines those two transforms over the decoded
+      // MIME parts, a sealed message genuinely has no text part, and an empty
+      // set of values really is the correct answer - inventing a third truth
+      // value would make this server's Sieve disagree with every other
+      // implementation, and a script is portable or it is nothing. "body :raw"
+      // still sees the armour and is the one honest way a script can recognise
+      // a sealed message.
+      //
+      // So the flag exists only so that the delivery path can say, once per
+      // message, that this is what happened. See hmailserver/docs/SealedMail.md.
+      bool bodyTestOnSealedMessage = false;
    };
 
    // Evaluates a parsed Sieve AST against a message and produces the resulting

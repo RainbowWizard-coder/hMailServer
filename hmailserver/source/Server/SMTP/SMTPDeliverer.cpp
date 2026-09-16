@@ -787,12 +787,32 @@ namespace HM
       {
          std::shared_ptr<MessageAttachmentStripper> pStripper = std::shared_ptr<MessageAttachmentStripper>(new MessageAttachmentStripper());
 
-         pStripper->Strip(pMessage);
+         // The line says what the stripper did, not what it was asked to do.
+         // "Message attachments stripped" was written unconditionally, so a
+         // message the stripper had just declined (and said so, one line
+         // earlier) was recorded as stripped in the next.
+         switch (pStripper->Strip(pMessage))
+         {
+         case MessageAttachmentStripper::Result::Stripped:
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message attachments stripped (contained virus {1}).",
+               pMessage->GetID(), virusName));
+            break;
 
-         String logMessage = Formatter::Format("SMTPDeliverer - Message {0}: Message attachments stripped (contained virus {1}).", 
-            pMessage->GetID(), virusName);
+         case MessageAttachmentStripper::Result::NothingToStrip:
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered as it is with virus {1}: the message is a single part and has no attachments to strip.",
+               pMessage->GetID(), virusName));
+            break;
 
-         LOG_APPLICATION(logMessage);
+         case MessageAttachmentStripper::Result::LeftAloneEncrypted:
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered unstripped (encrypted end to end) with virus {1}. Set the anti-virus action to delete the message if such a message must not be delivered.",
+               pMessage->GetID(), virusName));
+            break;
+
+         case MessageAttachmentStripper::Result::LeftAloneUnreadable:
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered unstripped (the message could not be parsed) with virus {1}.",
+               pMessage->GetID(), virusName));
+            break;
+         }
 
          return true; // continue delivery
       }

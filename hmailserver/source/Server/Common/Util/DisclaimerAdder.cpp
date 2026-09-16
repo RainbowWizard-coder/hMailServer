@@ -6,6 +6,7 @@
 
 #include "DisclaimerAdder.h"
 #include "InlineImageParts.h"
+#include "SealedMessage.h"
 
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
@@ -118,21 +119,6 @@ namespace HM
          return result;
       }
 
-      // The media type of a Content-Type value, lower case, parameters removed.
-      String MediaTypeOf(const String &contentType)
-      {
-         String result = contentType;
-
-         int semicolon = result.Find(_T(";"));
-         if (semicolon >= 0)
-            result = result.Mid(0, semicolon);
-
-         result.TrimLeft();
-         result.TrimRight();
-         result.ToLower();
-         return result;
-      }
-
       bool IsList(std::shared_ptr<MessageData> messageData)
       {
          if (!messageData->GetFieldValue(_T("List-Id")).IsEmpty())
@@ -170,14 +156,12 @@ namespace HM
    bool
    DisclaimerAdder::IsProtectedContentType(const String &contentType)
    {
-      const String mediaType = MediaTypeOf(contentType);
-
-      return mediaType == _T("multipart/signed") ||
-             mediaType == _T("multipart/encrypted") ||
-             mediaType == _T("application/pkcs7-mime") ||
-             mediaType == _T("application/x-pkcs7-mime") ||
-             mediaType == _T("application/pgp-encrypted") ||
-             mediaType == _T("application/pgp-signature");
+      // The six types and the parameter stripping moved to SealedMessage on 16
+      // September 2026, unchanged, because five other parts of the server need
+      // the same answer and two of them were not asking the question at all.
+      // This stays as the name the footer and the signature have always called
+      // it by.
+      return SealedMessage::IsSealedContentType(contentType);
    }
 
    bool

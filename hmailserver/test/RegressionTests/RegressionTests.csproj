@@ -378,6 +378,7 @@
     <Compile Include="Infrastructure\MessageStoreDurability.cs" />
     <Compile Include="Infrastructure\ShutdownDrain.cs" />
     <Compile Include="Sieve\SieveBodyDelivery.cs" />
+    <Compile Include="Sieve\SieveSealedBody.cs" />
     <Compile Include="Sieve\SieveFlagDelivery.cs" />
     <Compile Include="Sieve\SieveDateDelivery.cs" />
     <Compile Include="Sieve\SieveDuplicateDelivery.cs" />
@@ -459,6 +460,7 @@
     <Compile Include="Shared\Pop3ClientSimulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rules\Rules.cs" />
+    <Compile Include="Rules\SealedMessageRules.cs" />
     <Compile Include="Shared\SingletonProvider.cs" />
     <Compile Include="SMTP\BareLineFeedEndOfData.cs" />
     <Compile Include="SMTP\AWStatsLoggingTests.cs" />
@@ -714,6 +716,7 @@
     <Compile Include="Security\TwoFactorAuthentication.cs" />
     <Compile Include="Security\AccountLockoutTests.cs" />
     <Compile Include="AntiVirus\ScannerFailurePolicy.cs" />
+    <Compile Include="AntiVirus\SealedMailSafety.cs" />
     <Compile Include="Security\AccountSendingLimits.cs" />
     <Compile Include="Security\PasswordHashFloor.cs" />
     <Compile Include="Security\PasswordHashUpgrade.cs" />

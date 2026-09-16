@@ -19,6 +19,7 @@
 #include "CustomVirusScanner.h"
 
 #include "../Util/MessageUtilities.h"
+#include "../Util/SealedMessage.h"
 
 // For attachment blocking
 
@@ -246,6 +247,10 @@ namespace HM
          return false;
       }
 
+      // Read once here, written up at the end: see the comment there.
+      const char *topLevelContentType = pMimeBody->GetContentType();
+      const bool opaqueMessage = topLevelContentType != nullptr && SealedMessage::IsOpaqueContentType(String(topLevelContentType));
+
       std::list<std::shared_ptr<MimeBody> > oList;
       pMimeBody->GetAttachmentList(pMimeBody, oList);
 
@@ -289,6 +294,33 @@ namespace HM
          iter++;
       }
 
+      // "No virus found" in a message this server cannot read means "nobody
+      // looked", and until now the two were written down identically - which is
+      // to say not at all. A scanner handed the ciphertext of an S/MIME or
+      // PGP/MIME message examines base64, finds nothing, and the message is
+      // delivered with a clean verdict that was never a verdict.
+      //
+      // Deliberately NOT routed to scannerFailed. That flag means an enabled
+      // scanner could not complete, and AVFailAction acts on it: setting it
+      // here would make an installation configured to hold unscannable mail
+      // hold every encrypted message it receives, which is not a decision this
+      // fix gets to take on an administrator's behalf. One line in the ordinary
+      // log, and a paragraph in hmailserver/docs/SealedMail.md saying that an
+      // encrypted message is not scanned and cannot be.
+      //
+      // Written here, after the whole file AND every part have been scanned, so
+      // that it is only written for a message that really was scanned and
+      // really did come back clean: a virus found in the covering parts returns
+      // true above and this line is never reached. And it asks IsOpaque, not
+      // IsSealed: a multipart/signed message carries its text in the clear and
+      // the scanner read it, so a clean verdict on one is a verdict, and saying
+      // otherwise would be the same lie in the other direction.
+      if (opaqueMessage)
+      {
+         LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} is encrypted ({1}), so its content COULD NOT BE EXAMINED for viruses. What was scanned was the ciphertext. A clean result here means nothing was found in bytes nobody can read, not that the message is clean.",
+            pMessage->GetID(), String(topLevelContentType)));
+      }
+
       return false;
    }
 
@@ -315,11 +347,60 @@ namespace HM
       const String file_name = PersistentMessage::GetFileName(message);
 
       std::shared_ptr<MessageData> message_data = std::shared_ptr<MessageData>(new MessageData());
-      message_data->LoadFromMessage(file_name, message);
+
+      // The result was discarded. A message that could not be read parses as no
+      // attachments, the loop below then does nothing and the file is left
+      // alone - so the outcome was accidentally safe rather than deliberately
+      // so, and silent either way. An administrator whose blocked-attachment
+      // list is not being applied to some messages has a right to know which.
+      if (!message_data->LoadFromMessage(file_name, message))
+      {
+         LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} could not be read, so it was not checked against the blocked-attachment list. It has been left exactly as it arrived.",
+            message->GetID()));
+         return;
+      }
+
+      // A message that is encrypted end to end is left alone.
+      //
+      // This is not a refinement. The ciphertext of an S/MIME message is a part
+      // named smime.p7m, and the ciphertext of a PGP/MIME one is usually named
+      // encrypted.asc or msg.asc - and MimeBody::IsAttachment calls any
+      // non-text, non-multipart part an attachment, so to the loop below they
+      // are ordinary attachments with ordinary file names. An administrator who
+      // blocks *.p7m, or *.asc, or the *.* that some do while chasing one
+      // extension, therefore had every encrypted message silently gutted: the
+      // ciphertext replaced with a notice, the file rewritten, no log line, no
+      // error, and nothing the recipient or the sender could do about it,
+      // because the plaintext existed nowhere else.
+      //
+      // Blocking exists to stop executable content reaching a reader. Encrypted
+      // content is not readable by anything on this server, the reader's client
+      // will not run it either, and the only thing the rewrite achieves is the
+      // destruction of a message. So: unchanged, delivered, and said out loud.
+      //
+      // IsOpaque and not IsSealed, and the difference is a security boundary.
+      // Nothing here verifies a signature, so "multipart/signed" at the top of
+      // a message is a claim any sender can make, and GetAttachmentList
+      // recurses into the signed part: a multipart/signed wrapping a
+      // multipart/mixed with invoice.exe in it must still be blocked, or the
+      // list is one header away from being switched off by the people it exists
+      // to stop. A signed message is therefore checked exactly as before. What
+      // changes is that the log says the rewrite invalidated the signature,
+      // which a client that checks will report as tampering - the honest
+      // outcome when the administrator's list and a sender's signature disagree.
+      if (SealedMessage::IsOpaque(message_data))
+      {
+         LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} from {1} is encrypted ({2}), so it was NOT checked against the blocked-attachment list: its ciphertext is one attachment by MIME type and replacing it would destroy the message beyond recovery. The message has been delivered exactly as it arrived.",
+            message->GetID(), message->GetFromAddress(), message_data->GetFieldValue(_T("Content-Type"))));
+         return;
+      }
+
+      const bool signedMessage = SealedMessage::IsSealed(message_data);
 
       std::shared_ptr<Attachments> pAttachments = message_data->GetAttachments();
 
       bool changes_made = false;
+      String blocked_names;
 
       for (auto attachment : pAttachments->GetVector())
       {
@@ -339,6 +420,10 @@ namespace HM
             // Replace macros.
             updated_message_body.Replace(_T("%MACRO_FILE%"), attachment->GetFileName());
 
+            if (!blocked_names.IsEmpty())
+               blocked_names += _T(", ");
+            blocked_names += attachment->GetFileName();
+
             // Add the new
             attachment->SetFileName(attachment->GetFileName() + ".txt");
             attachment->SetContent(updated_message_body);
@@ -354,6 +439,24 @@ namespace HM
 
          // Update the size of the message.
          message->SetSize(FileUtilities::FileSize(file_name));
+
+         // Said in the ordinary log, once, naming the message and every part
+         // whose content was replaced. This function has rewritten people's
+         // mail since the feature existed and left no record of having done it,
+         // so "where did my attachment go" could only be answered by comparing
+         // the delivered message against a copy the sender still had. The
+         // recipient is told inside the message; the administrator was told
+         // nowhere.
+         if (signedMessage)
+         {
+            LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} from {1} is signed ({2}); the attachment(s) {3} matched the blocked-attachment list and their content has been replaced with a notice, which invalidates the signature. The recipient's client will report the message as tampered with.",
+               message->GetID(), message->GetFromAddress(), message_data->GetFieldValue(_T("Content-Type")), blocked_names));
+         }
+         else
+         {
+            LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} from {1}: the attachment(s) {2} matched the blocked-attachment list. Their content has been replaced with a notice and the message rewritten.",
+               message->GetID(), message->GetFromAddress(), blocked_names));
+         }
       }
 
 
