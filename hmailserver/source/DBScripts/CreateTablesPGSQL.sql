@@ -228,7 +228,6 @@ create table hm_domains
 	domainwebhooksenabled int not null default 1,
 	domainwebhooksubjects int not null default 0,
 	domaincountrypolicy varchar(255) not null default '',
-	domaindkimrotationkeybits int not null default 2048
 	domainsessionidleseconds int not null default 0,
 	domainsessionlifetimeseconds int not null default 0,
 	domainsessiononeperdevice int not null default 0,
