@@ -980,6 +980,86 @@ function Start-HmBackup {
     }
 }
 
+function Restore-HmBackup {
+    <#
+    .SYNOPSIS
+        Puts a backup archive back. Destructive: it replaces the parts it
+        restores.
+    .DESCRIPTION
+        POST /api/v1/backup/restore. -Passphrase is the one the archive was
+        encrypted with; it is sent to the server for this one call and kept
+        nowhere. Everything that can be checked is checked before anything is
+        changed - a missing or wrong passphrase, a damaged archive, an archive
+        from a newer hMailServer, a part the archive does not hold - and the
+        restore then runs in the server. Get-HmBackup says how it went.
+    .EXAMPLE
+        Restore-HmBackup -File 'D:\backups\HMBackup 2026-09-15 020000.7z' -Domains -Messages -Passphrase (Read-Host -AsSecureString)
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $File,
+
+        [System.Security.SecureString] $Passphrase,
+
+        [switch] $Settings,
+        [switch] $Domains,
+        [switch] $Messages
+    )
+
+    if (-not ($Settings -or $Domains -or $Messages)) {
+        throw 'Choose what to restore: -Settings, -Domains, -Messages (messages only together with -Domains).'
+    }
+
+    $body = @{
+        file             = $File
+        restore_settings = [bool] $Settings
+        restore_domains  = [bool] $Domains
+        restore_messages = [bool] $Messages
+    }
+
+    if ($Passphrase) {
+        $body['passphrase'] = [System.Net.NetworkCredential]::new('', $Passphrase).Password
+    }
+
+    if ($PSCmdlet.ShouldProcess($File, 'Restore this archive over what is on the server')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/backup/restore' -Body $body
+    }
+}
+
+function Set-HmBackupPassphrase {
+    <#
+    .SYNOPSIS
+        The passphrase the backup archive is encrypted with: set it, or with
+        -Clear stop encrypting.
+    .DESCRIPTION
+        PUT /api/v1/settings/backup. Nothing ever reads the passphrase back -
+        Get-HmSetting -Group backup answers encryption_passphrase_set and never
+        the passphrase itself - so keep it somewhere other than beside the
+        backups. A restore asks for it, and an archive whose passphrase is lost
+        cannot be read by anybody, this server included.
+    .EXAMPLE
+        Set-HmBackupPassphrase -Passphrase (Read-Host -AsSecureString)
+    .EXAMPLE
+        Set-HmBackupPassphrase -Clear
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Set')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Set')]
+        [System.Security.SecureString] $Passphrase,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Clear')]
+        [switch] $Clear
+    )
+
+    $plain = if ($Clear) { '' } else { [System.Net.NetworkCredential]::new('', $Passphrase).Password }
+    $action = if ($Clear) { 'Stop encrypting the backup archive' } else { 'Set the backup passphrase' }
+
+    if ($PSCmdlet.ShouldProcess('the backup settings', $action)) {
+        Invoke-HmApi -Method PUT -Path '/api/v1/settings/backup' -Body @{ encryption_passphrase = $plain }
+    }
+}
+
 function Test-HmRuleCriterion {
     <#
     .SYNOPSIS
@@ -2492,7 +2572,8 @@ Export-ModuleMember -Function @(
     'Get-HmSetting', 'Set-HmSetting', 'Test-HmBreachCheckEndpoint', 'Get-HmIniSetting', 'Set-HmIniSetting',
     'Get-HmQueue', 'Start-HmQueueDelivery', 'Remove-HmQueueMessage',
     'Get-HmQuarantine', 'Restore-HmQuarantineMessage',
-    'Get-HmLog', 'Get-HmBackup', 'Start-HmBackup', 'Test-HmRuleCriterion',
+    'Get-HmLog', 'Get-HmBackup', 'Start-HmBackup', 'Restore-HmBackup', 'Set-HmBackupPassphrase',
+    'Test-HmRuleCriterion',
     'Get-HmDkimRotation', 'Start-HmDkimRotation', 'Test-HmDkimRotation', 'Complete-HmDkimRotation',
     'Get-HmReputation', 'Invoke-HmReputationCheck',
     'Remove-HmDkimRetiringKey', 'Stop-HmDkimRotation', 'Invoke-HmDkimRotation',

@@ -12,6 +12,13 @@
 #include "../Mime/Mime.h"
 #include "GUIDCreator.h"
 
+#ifdef HM_PLATFORM_POSIX
+// explicit_bzero, which is what SecureZeroMemory is on this platform. Named
+// rather than left to arrive through something else: a wipe that silently
+// became a memset would be optimised away, and nothing would say so.
+#include <string.h>
+#endif
+
 #include "../TCPIP/LocalIPAddresses.h"
 #include "../TCPIP/IPAddress.h"
 #include "../TCPIP/TCPServer.h"
@@ -38,10 +45,41 @@ namespace HM
 
    }
 
-   String 
+   String
    Utilities::GetUniqueTempDirectory()
    {
       return FileUtilities::Combine(IniFileSettings::Instance()->GetTempDirectory(), GUIDCreator::GetGUID());
+   }
+
+   void
+   Utilities::SecureWipe(String &value)
+   {
+      // See the header for what this buys and what it does not.
+      if (!value.empty())
+      {
+#ifdef HM_PLATFORM_POSIX
+         ::explicit_bzero(&value[0], value.size() * sizeof(wchar_t));
+#else
+         SecureZeroMemory(&value[0], value.size() * sizeof(wchar_t));
+#endif
+      }
+
+      value.Empty();
+   }
+
+   void
+   Utilities::SecureWipe(AnsiString &value)
+   {
+      if (!value.empty())
+      {
+#ifdef HM_PLATFORM_POSIX
+         ::explicit_bzero(&value[0], value.size());
+#else
+         SecureZeroMemory(&value[0], value.size());
+#endif
+      }
+
+      value.Empty();
    }
 
 

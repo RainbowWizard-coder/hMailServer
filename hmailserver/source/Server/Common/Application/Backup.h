@@ -23,6 +23,13 @@ namespace HM
       void SetBackupFile(const String &sBackupFile) {backup_file_ = sBackupFile; }
       String GetBackupFile() {return backup_file_; }
 
+      // The passphrase this archive is encrypted with, as whoever asked for the
+      // restore gave it. Held for the life of this object and nowhere else: it is
+      // never stored, never logged, and never part of the archive. Empty for an
+      // archive that is not encrypted.
+      void SetPassphrase(const String &passphrase) {passphrase_ = passphrase; }
+      String GetPassphrase() const {return passphrase_; }
+
       void SetContains(int iContains) {contains_ = iContains;}
       int GetContains() const {return contains_; }
 
@@ -45,5 +52,8 @@ namespace HM
 
       String backup_file_;
       // The path to the XML backup file.
+
+      String passphrase_;
+      // The passphrase the archive is encrypted with, or empty.
    };
 }

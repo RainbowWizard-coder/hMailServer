@@ -488,6 +488,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Der er allerede gemt en adgangssætning for '{0}'. Hvis du gemmer, erstattes den – den gamle kan ikke gendannes herfra. Vil du erstatte den?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>En adgangssætning er sat: arkivet krypteres, mens det skrives, filnavnene inklusive, og en gendannelse beder om adgangssætningen.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>Der er gemt en adgangssætning for dette certifikat. Den vises aldrig her – hvis du gemmer en ny, erstattes den. Om det er den RIGTIGE adgangssætning, bevises først, når serveren indlæser nøglen: kontrollér programmets fejllog efter næste genstart.</value>
   </data>
@@ -1289,6 +1292,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="At least " xml:space="preserve">
     <value>Mindst </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Mindst 12 printbare ASCII-tegn. Lad begge felter være tomme for at beholde den adgangssætning, der allerede er sat. Serveren giver den aldrig tilbage - hverken til dette program eller til nogen anden - så opbevar den et andet sted end ved siden af sikkerhedskopierne: en gendannelse beder om den, og intet i et arkiv, hvis adgangssætning er mistet, kan gendannes af nogen.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Højst én sikkerhedskopi pr. kalenderdag, taget ved den første kontrol på eller efter dette klokkeslæt (serverens lokale tid). Hvis der også er sat et interval nedenfor, vinder det daglige klokkeslæt.</value>
@@ -3068,6 +3074,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Aktiveres, når "Kontrollér" har bekræftet, at den offentliggjorte post bærer denne nøgles offentlige nøgle.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>K_rypter arkivet med en adgangssætning (AES-256, filnavnene inklusive)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Krypteret</value>
   </data>
@@ -3079,6 +3088,12 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Krypteret nøgle, ingen adgangssætning</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Kryptering</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Adgangssætning til kr_yptering</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motor-URL (tomt = ingen ekstern motor)</value>
@@ -3121,6 +3136,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Indtast udløbet som YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Angiv den adgangssætning, arkivet skal krypteres med, og skriv den igen nedenfor.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Indtast stien til sikkerhedskopiens XML-fil på serveren.</value>
@@ -4966,6 +4984,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ingen meddelelse scannes for virus. Blokering af vedhæftede filer fjerner stadig {0}, men intet undersøger indholdet af en meddelelse.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>Ingen adgangssætning er sat: arkivet er ikke krypteret, og enhver, der kan nå destinationsmappen, kan læse hver eneste postkasse i det.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Ingen adgangssætning nødvendig</value>
   </data>
@@ -5305,6 +5326,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Kun domæner med et Active Directory-domænenavn angivet vises - det felt er det, der knytter et maildomæne til et katalog. At tage ét domæne over ad gangen er den fornuftige måde at gøre det på første gang.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Kun til et arkiv, der er skrevet med en adgangssætning. Uden den rigtige kan arkivet slet ikke åbnes, og gendannelsen afvises, før noget på denne server røres.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Kun nødvendig for HS*-algoritmer</value>
   </data>
@@ -5586,6 +5610,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Adgangssætning gemt, nøglen er ikke krypteret</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Adgangssætning, hvis arkivet er kry_pteret</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Adgangskode</value>
@@ -8249,6 +8276,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Oversigten nævner de opsætninger, der stille ingenting gør - en tærskel på nul, en tærskel ingen aktiveret kontrol kan nå, en kontrol, der scorer nul.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>Adgangssætningen igen, så du er sikker på, at den blev skrevet ri_gtigt</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Adgangskoden kunne ikke kontrolleres mod offentliggjorte datalæk lige nu, og denne server er sat til at afvise en ændring, den ikke kan kontrollere. Prøv igen senere.</value>
   </data>
@@ -8500,6 +8530,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De to halvdele fejler forskelligt og har forskellige årsager. Find ud af, hvilken du har, før noget andet.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>De to adgangssætninger er ikke ens. Intet er blevet gemt.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Opdateringshjælperen er startet. Dette Control Panel lukker nu, så installationsprogrammet kan erstatte dets filer; åbn det igen om et minut for at se resultatet.</value>
@@ -9315,6 +9348,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>Med en moderator sat videresendes en afsender, reglerne ovenfor afviser, til moderatoren i stedet for at blive afvist. Moderatoren godkender ved at sende meddelelsen igen til listen fra en godkendt session.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>Med en adgangssætning sat og komprimering slået fra kopieres meddelelsesfilerne ved siden af arkivet i stedet for ind i det, hvor intet krypterer dem - og sikkerhedskopien nægter at køre. Slå komprimering til, eller ryd adgangssætningen.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>Med dette slået til skal MAIL FROM i en godkendt session være kontoens egen adresse, et alias, der slår op til den, eller en anden postkasse, hvis ejer har givet kontoen rettigheden post (p) på sin INBOX - hvilket er, hvordan Send som for en delt postkasse tildeles, fra enhver IMAP-klients ACL-editor (SETACL) eller over COM API'et. Alt andet afvises med 550 5.7.1, før en byte af meddelelsen accepteres, så én kompromitteret eller skødesløs konto ikke længere kan sende som alle andre. Slået fra som standard, fordi intet begrænsede dette før, og en installation kan afhænge af det; null-afsenderen er altid tilladt. Ugodkendte sessioner påvirkes ikke. Gælder efter genstart af tjenesten.</value>

@@ -42,13 +42,40 @@ namespace HM
       // break every fixture's clean-error-log assertion along the way.
       ScheduledBackupResult StartScheduledBackup();
 
-      std::shared_ptr<Backup> LoadBackup(const String &sZipFile) const;
-      // Loads a backup from an XML stream and returns
-      // an backup object that contains backup information.
+      // Opens an archive and reports what is in it, or nothing at all with the
+      // reason in failureReason. The passphrase is the one the caller was given
+      // for an encrypted archive, and is empty for an archive that is not
+      // encrypted; it is carried on the returned object so that the restore that
+      // follows opens the archive the same way, and is stored nowhere.
+      //
+      // The reason is returned rather than only logged because every caller shows
+      // it to somebody: an encrypted archive with no passphrase, a wrong
+      // passphrase, an archive from a newer version and a damaged file are four
+      // different things to do next, and "the backup could not be loaded" is none
+      // of them.
+      //
+      // archiveOpenTimeoutMilliseconds and openTimedOut are BackupRestorer::
+      // ReadArchiveIndex's, passed straight through: zero, the default, waits for
+      // the archiver however long it takes, which is right for every caller whose
+      // thread exists to do this and wrong for one serving an HTTP request.
+      std::shared_ptr<Backup> LoadBackup(const String &sZipFile, const String &passphrase, String &failureReason,
+                                         unsigned int archiveOpenTimeoutMilliseconds = 0, bool *openTimedOut = nullptr) const;
 
       bool StartRestore(std::shared_ptr<Backup> pBackup);
       // Starts a restore of the backup. Restors the part of the
       // backup specified by iRestoreMode.
+
+      // What a restore is about to do, in the words the audit trail records it
+      // with: which parts, and whether the archive is an encrypted one.
+      //
+      // One function for both ways in. The restore itself cannot be recorded -
+      // it runs on the maintenance work queue, where no actor is installed, so
+      // the deletes and inserts it makes reach the statement chokepoint with
+      // nobody to attribute them to - so what IS recorded is the request, by the
+      // caller, on the thread that knows who made it. Two call sites writing
+      // that row in two different sets of words would make a trail that reads as
+      // though COM and REST had done two different things.
+      static String DescribeRestore(std::shared_ptr<Backup> backup);
 
       void OnThreadStopped();
       // Called by backup/restore thread when operation has finished.

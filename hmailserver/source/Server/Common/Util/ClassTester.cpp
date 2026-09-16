@@ -1324,7 +1324,17 @@ namespace HM
    ClassTester::TestBackup_()
    {
       std::shared_ptr<BackupManager> pBackupManager = Application::Instance()->GetBackupManager();
-      std::shared_ptr<Backup> pBackup = pBackupManager->LoadBackup("C:\\Temp\\Backup\\HMBackup 2006-12-10 091555.zip");
+
+      // No passphrase: the archive this names is an old unencrypted one. An
+      // encrypted archive would be opened by passing the passphrase here, and
+      // would answer nothing at all without it - which is what failureReason
+      // would then say.
+      String failureReason;
+      std::shared_ptr<Backup> pBackup = pBackupManager->LoadBackup("C:\\Temp\\Backup\\HMBackup 2006-12-10 091555.zip", String(), failureReason);
+
+      if (!pBackup)
+         return;
+
       pBackup->SetRestoreOptions(1 | 2 | 4 | 8 | 16 | 32);
       pBackupManager->StartRestore(pBackup);
 

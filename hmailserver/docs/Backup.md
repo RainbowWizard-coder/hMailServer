@@ -127,6 +127,180 @@ explanation rather than failing a good backup. `BackupVerifyRestore=0` turns
 steps 3 and 4 off and says so in the log.
 
 
+An archive that is encrypted
+----------------------------
+
+Off until a passphrase is set, and then every archive is encrypted as it is
+written: **7-Zip AES-256, with the archive's headers encrypted too** (`-mhe=on`),
+so that an archive without its passphrase cannot even be *listed*. Whoever finds
+the file learns neither the mailboxes in it nor that it is an hMailServer backup.
+
+Set it in the Control Panel (**Backup & restore → Encryption**), in the Control
+Deck's Backup view, over REST (`encryption_passphrase` in
+`PUT /api/v1/settings/backup`), or with `hmctl backup passphrase set`. Clearing
+it — an empty passphrase — goes back to unencrypted archives.
+
+### What the passphrase is, and where it is not
+
+| | |
+|---|---|
+| Kept | In the database, as the `backupencryptionpassphrase` row of `hm_settings`, protected by the machine's secret store: a DPAPI envelope on Windows while `ProtectStoredSecretsWithDPAPI` is 1, the key file on Linux — the way the route and relay passwords are kept |
+| Never | On a command line (see below), in a log, in a COM or REST read, or **in the archive itself** |
+| Written to the archive | Nothing. The settings section the archive carries skips this one setting, as the stored `[Settings]` skip `PasswordPepper`. A key kept inside the lock it opens is not a key — and it also means a restore never overwrites the passphrase this server is using with one out of an archive |
+| Read back | Never. There is no getter over COM and none over REST. What can be asked is whether one is **set**: `Settings.Backup.EncryptionPassphraseSet`, `encryption_passphrase_set` |
+| If it is lost | **Everything in every archive written with it is lost.** Not recoverable by this server, by its author, or by anybody. Keep it somewhere other than beside the backups — a restore asks for it, and the day it is needed is the day the server it was stored on is gone |
+
+A passphrase is 12 to 256 **printable ASCII** characters and may not begin or end
+with a space. The ASCII rule is not fussiness: the passphrase reaches the
+archiver through its standard input and is decoded by whatever code page or
+locale that archiver runs under, which is not the same on the Windows machine
+that wrote the archive and the Linux machine somebody restores it on. Within
+ASCII there is no such difference, so the archive opens with the same passphrase
+in any 7-Zip anywhere.
+
+### Not on the command line
+
+Everything after a program's name is in the process list, which every user of the
+machine can read. So the passphrase is never an argument: 7-Zip is given `-p`
+with **no value**, which is its "ask for the password", and the server writes the
+passphrase into the process's standard input before the process starts
+(`ProcessLauncher::SetStandardInput`, `Compression::LaunchCommand_`). The same
+change also means an archive that asks for a passphrase nobody gave now reads the
+end of its input and fails, where before it would have waited for ever at a
+console prompt nobody could see.
+
+The archiver's own **output** is left where it was: on Linux it is the server's,
+so 7-Zip's account of a failure — an unsupported switch, a full disk, a refused
+path — still reaches the journal, which on that platform is the only explanation
+anybody gets beyond an exit code; on Windows it goes to the null device, because
+a service has no console for a child to write to either way.
+
+`hmctl` holds the same line: `hmctl backup passphrase set` and
+`hmctl backup restore` take `--passphrase-file FILE` (or `-` for standard input)
+or `--ask`, and never a passphrase as an argument.
+
+### The restore
+
+Every way in asks for it, and every one of them refuses **before anything on the
+server is touched** — the archive is opened, its version checked and what was
+asked for checked against what the archive holds, and only then is the
+destructive part begun:
+
+| Where | How |
+|---|---|
+| Control Panel | The **Restore** card's passphrase box |
+| COM | `BackupManager.LoadEncryptedBackup(file, passphrase)`, beside the old `LoadBackup(file)` |
+| REST | `POST /api/v1/backup/restore` with `file`, `passphrase` and the three parts — **the only restore a Linux server has**, since COM is Windows-only |
+| Control Deck | The Backup view's Restore card |
+| hmctl | `hmctl backup restore FILE --domains --messages --passphrase-file FILE` |
+
+The two failures are told apart, because the answers are different: *this archive
+is encrypted and you gave no passphrase* (find the passphrase) and *it could not
+be opened with the passphrase given: either it is not this archive's passphrase,
+or the archive is damaged* (find another archive). Which one it is comes from the
+archive's own header — `Compression::GetArchiveEncryption` reads the 7z signature
+header and the coder ids of the block it points at — so it costs nothing and
+needs no passphrase. `Utilities.BackupArchiveIsEncrypted` answers the same
+question over COM.
+
+The question that header answers is narrow, and worth stating exactly: **whether
+the archive's headers are encrypted**, which is how this server writes every
+encrypted archive (`-mhe=on`) and is what hides the file names. 7-Zip can also
+encrypt an archive's *contents* while leaving its names readable. This server
+never writes one, but an archive made elsewhere may be one, and it fails where a
+truncated archive fails rather than where an encrypted one does — so when an
+archive with readable names will not open and no passphrase was given, the
+refusal names both possibilities instead of calling it corrupt. The header is
+deliberately not searched for encryption of that kind: the AES method id sits
+among the coders of an unencrypted header too, and hunting for those four bytes
+in a header whose file names are arbitrary text would eventually call a good
+archive encrypted and send somebody looking for a passphrase that never existed.
+
+**An archive taken without a passphrase still restores without one**, and offering
+one for it is not an error either: whoever restores does not have to know which
+kind of archive they are holding.
+
+**A restore is recorded** — the request, not what it replaces. One audit row is
+written the moment one is asked for, by whoever asked, over COM or over REST:
+object type `backup`, the archive's path, action `restore started`, and which
+parts are being put back and whether the archive is an encrypted one. What the
+restore then does is not recorded, because it runs on the maintenance work queue
+where no actor exists to attribute it to; `docs/AlertsAndAuditTrail.md` says
+which half is which and why.
+
+One difference between the ways in, and it is about threads rather than archives.
+`POST /api/v1/backup/restore` does its checking on one of four HTTP worker
+threads, so the archiver run that reads the index is bounded at **two minutes**;
+past that the route answers **504**, starts nothing and says that the archive was
+not judged. Without the bound, an archive whose path leads to a drive that has
+stopped answering would hold that thread for as long as the drive stayed that
+way, and four such requests are the whole API. Nothing else has the bound or
+needs it — the Control Panel over COM and the backup's own verification each run
+on a thread whose only job is that one backup — so an archive too slow for the
+route still restores from the Control Panel, or after being copied to a local
+disk.
+
+### What it changes about a backup run
+
+* The verification extracts the archive with the passphrase, so what is verified
+  is that the archive opens **with the passphrase this server holds** — not with
+  one it used a moment ago.
+* After the archive is written it is read back and its header checked: an archive
+  that was meant to be encrypted and is not is discarded, not reported as a
+  successful backup.
+* A stored passphrase this machine cannot open — a database carried from another
+  installation, a key file that has gone — **fails the backup**. An unencrypted
+  copy of every mailbox is never written in place of an encrypted one.
+* **Compression must be on** when messages are backed up. Without it the message
+  files are copied into a `DataBackup` folder *beside* the archive, where nothing
+  encrypts them, so that combination is refused before anything is written.
+* **The staging moves off the destination.** Both halves of a backup are written
+  to a file before they are archived — the index (`hMailServerBackup.xml`, which
+  carries every account and the server's stored secrets) and a whole copy of the
+  message files in a `DataBackup` folder, because 7-Zip is handed a directory.
+  An unencrypted backup stages both in the destination; an encrypted one stages
+  them in a directory of its own under `TempDirectory` and removes it on every
+  way out, including the failures. Otherwise a plaintext copy of every mailbox
+  would sit in the destination — the share, the cloud mount whose sync client
+  uploads a file as it appears — for as long as the compression took, which is
+  the exposure the encryption exists to prevent. The archive's contents are
+  unchanged by this: 7-Zip names members from the last component of the path it
+  is given, so they are `DataBackup\…` either way and a restore cannot tell.
+* **So an encrypted backup needs room in the temp directory**, as much as the
+  message store plus a little. It is checked before the copy starts and the run
+  is refused with both numbers if it is not there. Point `TempDirectory` at a
+  disk with room, or take the backup unencrypted deliberately. (The verified
+  restore already needed the same room, and skipped itself without it; this
+  refuses, because staging in the destination instead would be writing the mail
+  where it was not to be written.)
+* Not every archiver can encrypt: `7zr`, the reduced p7zip build, cannot, and
+  fails the run. Install 7-Zip (`7zz`) or p7zip-full. The failure says so.
+* Changing the passphrase does not touch the archives already written. Each
+  archive needs the passphrase it was written with, which is a reason to write
+  the passphrase and its date down together.
+
+One thing encryption does **not** hide: the archive's own file name
+(`HMBackup <date> <time>.7z`), its size, and the fact that a backup ran. That is
+what a folder listing shows, and no archive format hides it.
+
+And one place the passphrase still exists in the clear, said plainly because
+"never in any read" is otherwise easy to over-read: **the server's own memory
+while it is using it**, and so a process dump taken at that moment. The copies
+are overwritten as soon as they are finished with — the bytes handed to 7-Zip go
+the moment they are in the pipe, and the passphrase a backup or a restore was
+given goes with the object that held it — but the settings store keeps the
+value for the life of the process, as it does the smart host's password, and a
+minidump written while a backup is running can contain it. Whoever can take a
+dump of a service running as `LocalSystem` can read that server's secrets by
+easier routes as well; this is a statement of what the feature does not claim,
+not a way in.
+
+And one thing it protects that is easy to miss: the settings section inside the
+archive carries the server's own stored secrets in the clear — the smart host's
+password among them — because a restore has to be able to put them back. An
+unencrypted archive hands those to whoever can read the destination folder.
+
+
 Versions
 --------
 

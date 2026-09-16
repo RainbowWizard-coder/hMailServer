@@ -1116,6 +1116,8 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('ba
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('backupdestination', '', 0) 
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('backupencryptionpassphrase', '', 0) 
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('defaultdomain', '', 0) 
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('avmaxmsgsize', '', 0) 
@@ -2030,4 +2032,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6058)
+insert into hm_dbversion values (6059)

@@ -1332,6 +1332,32 @@ namespace
       { "log_file", KindString, ReadOnly, EffectNow, nullptr,
         "The full path of the backup log, beside the other logs.",
         ROW_TEXT(BackupLogFile()), nullptr, ROW_NO_CHECK },
+      // Write-only, like the smart host's password above it: there is no read of
+      // this value anywhere in the server's interfaces. What can be read is
+      // whether one is set, which is the question an administrator actually has.
+      { "encryption_passphrase", KindString, WriteOnly, EffectNow, nullptr,
+        "The passphrase the backup archive is encrypted with (7-Zip AES-256, with the file names encrypted too). Accepted here and never emitted; an empty string clears it and the next backup is written unencrypted. At least 12 and at most 256 printable ASCII characters, not beginning or ending with a space. It is not kept in the archive or beside it, so a restore asks for it - and if it is lost, nothing in an archive written with it can be recovered by anybody.",
+        nullptr,
+        [] (const Value &v)
+        {
+           String failureReason;
+
+           if (!Config()->SetBackupEncryptionPassphrase(v.text, failureReason))
+           {
+              // Reached only for a passphrase the check below accepted and the
+              // machine's secret store then would not protect.
+              Outcome failed;
+              failed.status = 500;
+              failed.message = failureReason;
+              return failed;
+           }
+
+           return Applied();
+        },
+        [] (const Value &v) { return Configuration::CheckBackupEncryptionPassphrase(v.text); } },
+      { "encryption_passphrase_set", KindBoolean, ReadOnly, EffectNow, nullptr,
+        "Whether a backup passphrase is set, and so whether the next backup is encrypted. The passphrase itself is never read back.",
+        ROW_FLAG(Config()->GetBackupEncryptionPassphraseSet()), nullptr, ROW_NO_CHECK },
    };
 
    // Bounces read, and the suppression list (SMTP/BounceTracker.h). In hm_settings,

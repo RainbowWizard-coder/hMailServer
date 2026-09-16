@@ -488,6 +488,9 @@
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>'{0}' のパスフレーズはすでに保存されています。保存すると置き換えられ、古いパスフレーズはここからは復元できません。置き換えますか?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>パスフレーズが設定されています: アーカイブはファイル名も含めて書き込む時点で暗号化され、復元のときにパスフレーズを求められます。</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>この証明書のパスフレーズは保存されています。ここに表示されることはなく、新しいものを保存すると置き換えられます。それが正しいパスフレーズかどうかは、サーバーが鍵を読み込んだときにはじめて分かります。次回の再起動後に、アプリケーションのエラー ログを確認してください。</value>
   </data>
@@ -1289,6 +1292,9 @@
   </data>
   <data name="At least " xml:space="preserve">
     <value>少なくとも </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>印字可能な ASCII 文字で 12 文字以上。両方の欄を空のままにすると、すでに設定されているパスフレーズがそのまま残ります。サーバーはパスフレーズを返しません。このプログラムにも、ほかの誰にも返しません。バックアップの隣以外の場所に保管してください: 復元のときに必要になり、パスフレーズを失ったアーカイブからは誰も何も取り出せません。</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>1 暦日につきバックアップは最大 1 回で、この時刻 (サーバーのローカル時刻) 以降の最初のチェック時に取得されます。下で間隔も設定されている場合は、この毎日の時刻が優先されます。</value>
@@ -3068,6 +3074,9 @@
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>「確認」で、公開されているレコードにこの鍵の公開鍵が含まれることを確認すると有効になります。</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>パスフレーズでアーカイブを暗号化する(_Y) (AES-256、ファイル名も含む)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>暗号化済み</value>
   </data>
@@ -3079,6 +3088,12 @@
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>暗号化された鍵、パスフレーズなし</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>暗号化</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>暗号化のパスフレーズ(_P)</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>エンジン URL (空 = 外部エンジンなし)</value>
@@ -3121,6 +3136,9 @@
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>有効期限を YYYY-MM-DD HH:MM:SS の形式で入力してください。</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>アーカイブを暗号化するパスフレーズを入力し、下にもう一度入力してください。</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>サーバー上のバックアップ XML ファイルのパスを入力してください。</value>
@@ -4966,6 +4984,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き {0} を取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>パスフレーズは設定されていません: アーカイブは暗号化されず、宛先フォルダーに到達できる人は誰でも、その中のすべてのメールボックスを読めます。</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>パスフレーズは不要です</value>
   </data>
@@ -5305,6 +5326,9 @@
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>一覧に表示されるのは、Active Directory ドメイン名が設定されているドメインだけです。そのフィールドこそが、メール ドメインとディレクトリを結び付けるものです。初めて行う場合は、ドメインを 1 つずつ移していくのが賢明なやり方です。</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>パスフレーズを付けて書き込まれたアーカイブの場合のみ使います。正しいパスフレーズがなければアーカイブはまったく開けず、復元はこのサーバーに何も触れないうちに拒否されます。</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>HS* アルゴリズムの場合にのみ必要</value>
   </data>
@@ -5586,6 +5610,9 @@
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>パスフレーズは保存済みですが、鍵は暗号化されていません</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>アーカイブが暗号化されている場合のパスフレーズ(_I)</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>パスワード</value>
@@ -8249,6 +8276,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概要には、黙って何もしていない構成が挙げられます。ゼロのしきい値、有効なチェックのどれも到達できないしきい値、スコアがゼロのチェックなどです。</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>入力の誤りがないことを確かめるため、もう一度パスフレーズを(_W)</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>現在、公開されたデータ漏えいとパスワードを照合できませんでした。このサーバーは照合できない変更を拒否するように設定されています。しばらくしてからもう一度お試しください。</value>
   </data>
@@ -8500,6 +8530,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>2 つの半分は失敗の仕方も原因も異なります。まず、自分がどちらに該当するかを見極めてください。</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>ふたつのパスフレーズが一致しません。何も保存されていません。</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新ヘルパーが起動しました。インストーラーがファイルを置き換えられるように、このコントロールパネルは今すぐ閉じます。結果を確認するには、1 分ほど後にもう一度開いてください。</value>
@@ -9315,6 +9348,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>モデレーターが設定されている場合、上のルールで拒否される送信者は、拒否される代わりにモデレーターに転送されます。モデレーターは、認証済みセッションからメッセージをリストに再送信することで承認します。</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>パスフレーズが設定されていて圧縮が無効の場合、メッセージファイルはアーカイブの中ではなく隣にコピーされ、そこでは何も暗号化されません。そのためバックアップは実行を拒否します。圧縮を有効にするか、パスフレーズを消してください。</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>これをオンにすると、認証済みセッションの MAIL FROM は、アカウント自身のアドレス、そのアカウントに解決されるエイリアス、または所有者がそのアカウントに INBOX への投稿 (p) 権を付与した別のメールボックスでなければなりません。共有メールボックスの代理送信はこのように、任意の IMAP クライアントの ACL エディター (SETACL) または COM API 経由で付与されます。それ以外はメッセージの 1 バイトも受け入れられる前に 550 5.7.1 で拒否されるため、侵害された、または不注意な 1 つのアカウントが他のすべてのアカウントとして送信することはできなくなります。以前はこれを制約するものがなく、それに依存する環境があり得るため、既定ではオフです。null 送信者は常に許可されます。未認証セッションには影響しません。サービスの再起動後に適用されます。</value>

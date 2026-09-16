@@ -89,7 +89,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `complaints`, `directories`, `openpgp`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
 | `ini` | list, get, set, delete | The server settings that were the `[Settings]` section of `hMailServer.ini` - stored in the database since schema 6042, under the names they have always had. `list` shows a secret as `(set)`; `get` reads it. |
 | `log` | list, tail | |
-| `backup` | status, start | The server's own backup. |
+| `backup` | status, start, restore, passphrase | The server's own backup, and putting one back. `restore FILE --domains --messages` replaces what it restores and is refused before anything is touched when the archive cannot be opened; `passphrase set` and `passphrase clear` are the passphrase its archives are encrypted with. A passphrase is read from `--passphrase-file FILE` (or `-` for standard input) or asked for with `--ask`, never taken as an argument - the process list is public. See [Backup.md](Backup.md). |
 | `dkim` | status, rotate, check, switch, retire, cancel, run | A domain's DKIM key rotation and the records it needs published. The schedule is five keys of the domain: `domain update`. |
 | `mailbox` | status, move | Renaming a mailbox, or moving it to another domain on this server. `status` says whether anything is holding it and what it has been through; `move` takes the address it is to have. [MailboxMove.md](MailboxMove.md). |
 | `app-password` | list, create, delete | Under an account's address. |
@@ -555,8 +555,11 @@ What neither client does
 ------------------------
 
 * **It does not read or write the message store.** Mail is IMAP's business.
-* **It is not a backup tool.** `hmctl backup start` asks the server to run its
-  own backup, and that is all.
+* **It is not a backup tool of its own.** `hmctl backup start` asks the server to
+  run its own backup, `hmctl backup restore` asks it to put one back, and
+  `hmctl backup passphrase` sets the passphrase its archives are encrypted with.
+  The archive is written, read and restored by the server; nothing here touches
+  it.
 * **It sets no administrator password.** `hmailserver --set-admin-password` on
   the server does that, and the Control Panel does it on Windows.
 * **It cannot turn the REST listener on**, since both clients need it. On a

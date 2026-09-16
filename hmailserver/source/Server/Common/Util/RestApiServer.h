@@ -223,6 +223,7 @@ namespace HM
          RouteLogTail,
          RouteBackupStart,
          RouteBackupStatus,
+         RouteBackupRestore,
          RouteSettingsGet,
          RouteArchiveSearch,
          RouteArchiveGet,
@@ -1181,6 +1182,7 @@ namespace HM
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);
       HttpResponse HandleBackupStart_();
       HttpResponse HandleBackupStatus_();
+      HttpResponse HandleBackupRestore_(const AnsiString &requestBody);
       HttpResponse HandleSettings_();
       HttpResponse HandleServerReinitialize_();
       static void ReinitializeAfterTheAnswer_();

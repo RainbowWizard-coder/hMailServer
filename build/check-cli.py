@@ -32,6 +32,7 @@ Usage:
 """
 
 import argparse
+import atexit
 import base64
 import csv
 import json
@@ -39,6 +40,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import sys
 import tempfile
 import threading
@@ -61,6 +63,21 @@ with open(KEY_FILE, "w", encoding="utf-8", newline="") as _key_handle:
     _key_handle.write(KEY_TEXT)
 
 EXPECTED_BASIC = "Basic " + base64.b64encode(("Administrator:" + PASSWORD).encode("utf-8")).decode("ascii")
+
+# A backup passphrase in a file, because neither client will take one as an
+# argument: the process list is public, and this is the secret that opens every
+# mailbox on the server at once. The two backup cases below read it from here.
+#
+# The file is this run's own and goes away with it. A fixed name in the shared
+# temp directory would have been two runs on one machine writing each other's
+# file half way through, and one file left lying about afterwards with a
+# passphrase in it - which is a poor advertisement from the checker whose whole
+# subject is that a passphrase is never left where somebody can read it.
+BACKUP_PASSPHRASE = "correct horse battery staple"
+_passphrase_handle, BACKUP_PASSPHRASE_FILE = tempfile.mkstemp(prefix="hmctl-check-backup-passphrase-", suffix=".txt")
+with os.fdopen(_passphrase_handle, "w", encoding="utf-8") as _passphrase_file:
+    _passphrase_file.write(BACKUP_PASSPHRASE + "\n")
+atexit.register(lambda: os.path.exists(BACKUP_PASSPHRASE_FILE) and os.remove(BACKUP_PASSPHRASE_FILE))
 
 # A domain's DKIM key rotation part way through: the current key kept, the next key
 # published and propagating, an old selector retired whose record may go. The
@@ -301,6 +318,9 @@ ANSWERS = {
     ("GET", "/api/v1/logs/hmailserver_2026-09-15.log"): {"lines": ["\"SMTPD\" 1 \"04:00:00.001\" \"127.0.0.1\" \"EHLO\""]},
     ("GET", "/api/v1/backup"): {"state": "idle", "last_backup": "2026-09-14T02:00:00Z"},
     ("POST", "/api/v1/backup"): {"state": "running"},
+    ("POST", "/api/v1/backup/restore"): {"started": True, "encrypted": True,
+                                         "contains": {"settings": False, "domains": True, "messages": True}},
+    ("PUT", "/api/v1/settings/backup"): {"destination": "/var/backups", "encryption_passphrase_set": True},
     ("POST", "/api/v1/rules/match"): {"match": True},
     ("GET", "/api/v1/accounts/ann@example.com/app-passwords"): {"app_passwords": [
         {"id": 2, "name": "phone", "created": "2026-09-01T10:00:00Z", "last_used": None}]},
@@ -770,6 +790,17 @@ CASES = [
     ("dkim cancel", ["dkim", "cancel", "example.com"], "DELETE", "/api/v1/domains/example.com/dkim/rotation/next", None,
      ["example.com"]),
     ("dkim run", ["dkim", "run"], "POST", "/api/v1/dkim/rotation/run", {}, ["switched"]),
+    ("backup restore", ["backup", "restore", "/var/backups/one.7z", "--domains", "--messages",
+                        "--passphrase-file", BACKUP_PASSPHRASE_FILE],
+     "POST", "/api/v1/backup/restore",
+     {"file": "/var/backups/one.7z", "restore_settings": False, "restore_domains": True,
+      "restore_messages": True, "passphrase": BACKUP_PASSPHRASE},
+     ["restore started", "(encrypted)", "domains, messages"]),
+    ("backup passphrase set", ["backup", "passphrase", "set", "--passphrase-file", BACKUP_PASSPHRASE_FILE],
+     "PUT", "/api/v1/settings/backup", {"encryption_passphrase": BACKUP_PASSPHRASE},
+     ["passphrase is set", "cannot be read by anybody"]),
+    ("backup passphrase clear", ["backup", "passphrase", "clear"],
+     "PUT", "/api/v1/settings/backup", {"encryption_passphrase": ""}, ["cleared"]),
     ("dkim run --seconds-ahead", ["dkim", "run", "--seconds-ahead", "262800"],
      "POST", "/api/v1/dkim/rotation/run", {"seconds_ahead": 262800}, ["as_of"]),
     ("reputation status", ["reputation", "status"], "GET", "/api/v1/reputation", None,
@@ -844,6 +875,19 @@ def run_python_refusals(url):
     completed = run(["dkim", "rotate"])
     check(completed.returncode != 0 and "domain" in (completed.stderr + completed.stdout),
           "hmctl dkim rotate with no domain should say which argument is missing, said: %s%s"
+          % (completed.stdout, completed.stderr))
+
+    # A restore with nothing chosen, and a passphrase asked for as an argument:
+    # the two ways somebody reaches for this command and gets it wrong.
+    completed = run(["backup", "restore", "/var/backups/one.7z"])
+    check(completed.returncode != 0 and "--domains" in (completed.stdout + completed.stderr),
+          "hmctl backup restore with nothing chosen should say which flags to choose from, said: %s%s"
+          % (completed.stdout, completed.stderr))
+
+    completed = run(["backup", "passphrase", "set"])
+    check(completed.returncode != 0 and "--passphrase-file" in (completed.stdout + completed.stderr)
+          and "process list" in (completed.stdout + completed.stderr),
+          "hmctl backup passphrase set with no passphrase should say how to give one and why not as an argument, said: %s%s"
           % (completed.stdout, completed.stderr))
 
     completed = run(["domain", "get", "nothing.here"])
@@ -1085,6 +1129,19 @@ POWERSHELL_CASES = [
      "GET", "/api/v1/domains/example.com/spam-traps/hits", None, ["never-used@example.com"]),
     ("Clear-HmSpamTrapHit", "(Clear-HmSpamTrapHit -Confirm:$false).removed",
      "DELETE", "/api/v1/spam-traps/hits", None, ["1"]),
+    ("Restore-HmBackup",
+     "(Restore-HmBackup -File '/var/backups/one.7z' -Domains -Messages "
+     "-Passphrase (ConvertTo-SecureString '" + BACKUP_PASSPHRASE + "' -AsPlainText -Force) -Confirm:$false).started",
+     "POST", "/api/v1/backup/restore",
+     {"file": "/var/backups/one.7z", "restore_settings": False, "restore_domains": True,
+      "restore_messages": True, "passphrase": BACKUP_PASSPHRASE}, ["True"]),
+    ("Set-HmBackupPassphrase",
+     "Set-HmBackupPassphrase -Passphrase (ConvertTo-SecureString '" + BACKUP_PASSPHRASE + "' -AsPlainText -Force) "
+     "-Confirm:$false | Select-Object -ExpandProperty encryption_passphrase_set",
+     "PUT", "/api/v1/settings/backup", {"encryption_passphrase": BACKUP_PASSPHRASE}, ["True"]),
+    ("Set-HmBackupPassphrase -Clear",
+     "Set-HmBackupPassphrase -Clear -Confirm:$false | Select-Object -ExpandProperty destination",
+     "PUT", "/api/v1/settings/backup", {"encryption_passphrase": ""}, ["/var/backups"]),
 ]
 
 

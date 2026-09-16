@@ -77,7 +77,7 @@ namespace HM
    }
 
    static bool
-   ExtractIndex_(const String &archiveFile, const String &targetDirectory, String &failureReason)
+   ExtractIndex_(const String &archiveFile, const String &targetDirectory, const String &passphrase, unsigned int timeoutMilliseconds, String &failureReason, bool *timedOut)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Pulls hMailServerBackup.xml out of an archive into a directory of this run's
@@ -100,16 +100,84 @@ namespace HM
          return false;
       }
 
+      // Whether the archive is encrypted is read from the archive itself, before
+      // 7-Zip is asked to open it, so that the two ways it can fail are told
+      // apart. Otherwise both are one exit code and the administrator is told a
+      // perfectly good archive is corrupt when what is missing is the passphrase -
+      // on the day they are restoring a mail server, which is not the day to send
+      // somebody looking in the wrong place.
+      const Compression::ArchiveEncryption encryption = Compression::GetArchiveEncryption(archiveFile);
+
+      if (encryption == Compression::EncryptionHeaders && passphrase.IsEmpty())
+      {
+         failureReason = Formatter::Format("The backup archive {0} is encrypted, and no passphrase was given for it. Nothing in it - not even the names of the files - can be read without the passphrase it was written with. Give the passphrase where the restore is started. It is not in the archive and not beside it: if nobody has it, nothing in this archive can be recovered by anybody, including this server. Nothing has been changed on this server.",
+            archiveFile);
+         return false;
+      }
+
       Compression compression;
+
+      if (timeoutMilliseconds > 0)
+         compression.SetMaximumRunTime(timeoutMilliseconds);
 
       // Checked, unlike before. LoadBackup discarded this result and then read the
       // file it was meant to have produced, so a truncated or half-copied archive -
       // the exact case a restore has to survive - produced an empty read and a
       // Backup object that claimed to contain nothing at all, with no error
       // anywhere.
-      if (!compression.Uncompress(archiveFile, targetDirectory, BACKUP_INDEX_FILE_NAME))
+      if (!compression.UncompressMember(archiveFile, targetDirectory, BACKUP_INDEX_FILE_NAME, passphrase))
       {
-         failureReason = Formatter::Format("The backup archive {0} could not be read. 7za could not extract {1} from it, which is what a truncated, incomplete or corrupt archive looks like. Nothing has been changed on this server.",
+         if (compression.GetLastRunTimedOut())
+         {
+            // Stopped by the caller's ceiling rather than by anything about the
+            // archive, so it is said separately: nothing here is evidence that
+            // the archive is bad, and telling somebody their backup is unreadable
+            // because a network drive was slow would send them looking for another
+            // archive they do not need.
+            if (timedOut)
+               *timedOut = true;
+
+            failureReason = Formatter::Format("The backup archive {0} could not be read within the {1} seconds this way of asking allows. That is not a verdict on the archive - a large one on a slow or unresponsive network drive takes longer than that - but the check could not be finished, so nothing was started. Copy the archive to a local disk and try again, or restore it from the Control Panel, which waits as long as it takes. Nothing has been changed on this server.",
+               archiveFile, (int) (timeoutMilliseconds / 1000));
+            return false;
+         }
+
+         if (encryption == Compression::EncryptionHeaders)
+         {
+            // The passphrase was given and the archive still would not open. A
+            // wrong passphrase and a damaged archive look the same from here -
+            // the header is decrypted with the key the passphrase makes and then
+            // fails its checksum either way - so the sentence says both, in the
+            // order they are likely.
+            failureReason = Formatter::Format("The backup archive {0} could not be opened with the passphrase given: either it is not the passphrase this archive was written with, or the archive is damaged. Nothing has been changed on this server.",
+               archiveFile);
+            return false;
+         }
+
+         if (passphrase.IsEmpty())
+         {
+            // The file names in this archive are in the clear, so it is not one
+            // this server encrypted: every archive it encrypts is written with
+            // -mhe=on. That is not the same as "it needs no passphrase" - 7-Zip
+            // can also encrypt an archive's CONTENTS while leaving its names
+            // readable, and an archive like that, made somewhere else, fails
+            // exactly here.
+            //
+            // The header is not asked to tell those two apart, deliberately. The
+            // AES method id appears among the coders of a plain header too, but
+            // looking for those four bytes in a header whose file names are
+            // arbitrary UTF-16 would sooner or later call a perfectly good
+            // archive encrypted, and this is the one code path where being wrong
+            // sends somebody hunting for a passphrase that never existed. So the
+            // sentence names both possibilities instead of pretending to know,
+            // and GetArchiveEncryption keeps answering the narrow question it can
+            // answer: whether the HEADERS are encrypted.
+            failureReason = Formatter::Format("The backup archive {0} could not be read. 7za could not extract {1} from it, and no passphrase was given. That is what a truncated, incomplete or corrupt archive looks like - and also what an archive from somewhere else looks like when its contents are encrypted although its file names are not, which needs the passphrase it was written with. Nothing has been changed on this server.",
+               archiveFile, BACKUP_INDEX_FILE_NAME);
+            return false;
+         }
+
+         failureReason = Formatter::Format("The backup archive {0} could not be read, with the passphrase given or without one. 7za could not extract {1} from it, which is what a truncated, incomplete or corrupt archive looks like. Nothing has been changed on this server.",
             archiveFile, BACKUP_INDEX_FILE_NAME);
          return false;
       }
@@ -151,6 +219,10 @@ namespace HM
 
       if (!staging_directory_.IsEmpty())
          FileUtilities::DeleteDirectory(staging_directory_, true);
+
+      // And the passphrase this restore was given, overwritten rather than left
+      // in the freed block. See Utilities::SecureWipe.
+      Utilities::SecureWipe(passphrase_);
    }
 
    bool
@@ -206,8 +278,10 @@ namespace HM
    }
 
    bool
-   BackupRestorer::ReadIndex_(const String &archiveFile, String &failureReason)
+   BackupRestorer::ReadIndex_(const String &archiveFile, const String &passphrase, unsigned int archiveOpenTimeoutMilliseconds, String &failureReason, bool *openTimedOut)
    {
+      passphrase_ = passphrase;
+
       if (archiveFile.IsEmpty())
       {
          failureReason = "No backup file was specified.";
@@ -222,7 +296,7 @@ namespace HM
 
       index_directory_ = Utilities::GetUniqueTempDirectory();
 
-      if (!ExtractIndex_(archiveFile, index_directory_, failureReason))
+      if (!ExtractIndex_(archiveFile, index_directory_, passphrase, archiveOpenTimeoutMilliseconds, failureReason, openTimedOut))
          return false;
 
       String indexFile = FileUtilities::Combine(index_directory_, BACKUP_INDEX_FILE_NAME);
@@ -281,13 +355,17 @@ namespace HM
    }
 
    bool
-   BackupRestorer::ReadArchiveIndex(const String &archiveFile, int &archiveContents, String &archiveVersion, String &failureReason)
+   BackupRestorer::ReadArchiveIndex(const String &archiveFile, const String &passphrase, int &archiveContents, String &archiveVersion, String &failureReason,
+                                    unsigned int archiveOpenTimeoutMilliseconds, bool *openTimedOut)
    {
+      if (openTimedOut)
+         *openTimedOut = false;
+
       // A local instance so that the temporary directory this creates is removed by
       // its destructor on every exit path, including the failure ones.
       BackupRestorer reader;
 
-      if (!reader.ReadIndex_(archiveFile, failureReason))
+      if (!reader.ReadIndex_(archiveFile, passphrase, archiveOpenTimeoutMilliseconds, failureReason, openTimedOut))
          return false;
 
       archiveContents = reader.archive_contents_;
@@ -307,7 +385,10 @@ namespace HM
 
       String archiveFile = backup->GetBackupFile();
 
-      if (!ReadIndex_(archiveFile, failureReason))
+      // No bound: a restore runs on the maintenance queue, where the thread's only
+      // job is this restore and an archive that takes an hour to open is an
+      // archive that takes an hour to open.
+      if (!ReadIndex_(archiveFile, backup->GetPassphrase(), 0, failureReason, nullptr))
          return false;
 
       if (!VersionIsRestorable(archive_version_, failureReason))
@@ -315,9 +396,27 @@ namespace HM
 
       restore_options_ = backup->GetRestoreOptions();
 
+      if (!CheckSelection(archive_contents_, restore_options_, failureReason))
+         return false;
+
+      // BackupMessagesDBOnly restores the message rows out of the domain XML and
+      // never touches a file, so there is nothing to stage and no message store to
+      // require inside the archive.
+      if ((restore_options_ & Backup::BOMessages) && !IniFileSettings::Instance()->GetBackupMessagesDBOnly())
+      {
+         if (!StageMessageStore_(archiveFile, failureReason))
+            return false;
+      }
+
+      return true;
+   }
+
+   bool
+   BackupRestorer::CheckSelection(int archiveContents, int restoreOptions, String &failureReason)
+   {
       const int selectable = Backup::BOSettings | Backup::BODomains | Backup::BOMessages;
 
-      if ((restore_options_ & selectable) == 0)
+      if ((restoreOptions & selectable) == 0)
       {
          failureReason = "The restore was started with nothing selected to restore. Choose settings, domains or messages and start it again.";
          return false;
@@ -327,19 +426,19 @@ namespace HM
       // everything in a category and then find it had nothing to put back, because
       // Collection::XMLLoad cannot tell "this collection was empty when the backup
       // was taken" from "this archive does not contain this collection at all".
-      if ((restore_options_ & Backup::BODomains) && !(archive_contents_ & Backup::BODomains))
+      if ((restoreOptions & Backup::BODomains) && !(archiveContents & Backup::BODomains))
       {
          failureReason = "Restore refused: this backup does not contain any domains, so restoring domains from it would delete every domain, account and alias on this server and put nothing back. Clear the domains option, or use a backup that was taken with domains included. Nothing has been changed on this server.";
          return false;
       }
 
-      if ((restore_options_ & Backup::BOSettings) && !(archive_contents_ & Backup::BOSettings))
+      if ((restoreOptions & Backup::BOSettings) && !(archiveContents & Backup::BOSettings))
       {
          failureReason = "Restore refused: this backup does not contain the server settings, so restoring settings from it would delete the SSL certificates, TCP/IP ports, IP ranges, global rules, blocked attachments and anti-spam lists and put nothing back. Clear the settings option, or use a backup that was taken with settings included. Nothing has been changed on this server.";
          return false;
       }
 
-      if ((restore_options_ & Backup::BOMessages) && !(archive_contents_ & Backup::BOMessages))
+      if ((restoreOptions & Backup::BOMessages) && !(archiveContents & Backup::BOMessages))
       {
          failureReason = "Restore refused: this backup does not contain any messages. Clear the messages option, or use a backup that was taken with messages included. Nothing has been changed on this server.";
          return false;
@@ -349,19 +448,10 @@ namespace HM
       // restored as part of restoring domains. Asking for messages without domains
       // silently did nothing at all, which is the worst of the three possible
       // behaviours - the option looked as though it had worked.
-      if ((restore_options_ & Backup::BOMessages) && !(restore_options_ & Backup::BODomains))
+      if ((restoreOptions & Backup::BOMessages) && !(restoreOptions & Backup::BODomains))
       {
          failureReason = "Restore refused: messages can only be restored together with the domains they belong to. Select domains as well, or clear the messages option. Nothing has been changed on this server.";
          return false;
-      }
-
-      // BackupMessagesDBOnly restores the message rows out of the domain XML and
-      // never touches a file, so there is nothing to stage and no message store to
-      // require inside the archive.
-      if ((restore_options_ & Backup::BOMessages) && !IniFileSettings::Instance()->GetBackupMessagesDBOnly())
-      {
-         if (!StageMessageStore_(archiveFile, failureReason))
-            return false;
       }
 
       return true;
@@ -414,7 +504,7 @@ namespace HM
          }
 
          Compression compression;
-         if (!compression.Uncompress(archiveFile, staging_directory_))
+         if (!compression.UncompressAll(archiveFile, staging_directory_, passphrase_))
          {
             failureReason = "Restore refused: the messages could not be extracted from " + archiveFile + ". Nothing has been changed on this server.";
             return false;

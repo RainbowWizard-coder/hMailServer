@@ -102,6 +102,9 @@
 #include "../Persistence/PersistentDistributionListRecipient.h"
 #include "../Application/ObjectCache.h"
 #include "../Application/BackupManager.h"
+#include "../Application/Backup.h"
+#include "../Application/BackupRestorer.h"
+#include "Compression.h"
 #include "../Application/IniFileSettings.h"
 #include "../TCPIP/IPAddress.h"
 #include "../../SMTP/SMTPConfiguration.h"
@@ -1890,6 +1893,8 @@ namespace HM
             return HandleBackupStart_();
          case RouteBackupStatus:
             return HandleBackupStatus_();
+         case RouteBackupRestore:
+            return HandleBackupRestore_(GetRequestBody_(request));
          case RouteSettingsGet:
             return HandleSettings_();
          case RouteSettingsPut:
@@ -4145,6 +4150,11 @@ namespace HM
             return;
          }
       }
+      if (path == "/api/v1/backup/restore" && method == "POST")
+      {
+         route.kind = RouteBackupRestore;
+         return;
+      }
       if (path == "/api/v1/backup")
       {
          if (method == "POST")
@@ -4721,6 +4731,9 @@ namespace HM
       case RouteGroupMemberDelete:
       case RouteAccountMessageCopy:
       case RouteBackupStart:
+      // The most destructive thing this API can be asked to do: it deletes every
+      // domain, account and public folder and puts the archive's back.
+      case RouteBackupRestore:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamPut:
       case RouteSettingsAntiVirusPut:
@@ -5400,6 +5413,9 @@ namespace HM
       // things that act on the whole process.
       case RouteServerReinitialize:
       case RouteBackupStart:
+      // Restoring is the backup's other half and acts on the whole server, so it
+      // is the same permission - the one an auditor does not hold.
+      case RouteBackupRestore:
       case RouteScriptingReload:
       case RouteCacheClear:
       case RouteIndexingIndex:
@@ -5806,6 +5822,8 @@ namespace HM
       // The quarantine has the queue's shape exactly: one entry names a sender
       // and recipients in any number of domains, and releasing one delivers
       // mail. The same reasoning gives the same answer.
+      // An archive holds every domain on the server, so a credential confined to
+      // named domains is no more able to restore one than to take one.
       if (route.kind == RouteQuarantineList || route.kind == RouteQuarantineRelease || route.kind == RouteQuarantineDelete)
       {
          refusalReason = "this credential is restricted to named domains, and the quarantine is server-wide";
@@ -5904,6 +5922,7 @@ namespace HM
       case RouteMessageTraceRecent:
       case RouteMessageTraceQueue:
       case RouteBackupStart:
+      case RouteBackupRestore:
       case RouteBackupStatus:
       // The complaint settings apply to every domain, the rates are every
       // domain's, and the sweep prunes every domain's rows.
@@ -8011,6 +8030,172 @@ namespace HM
 
       LOG_APPLICATION("RestApi: Backup started.");
       return BuildResponse_(202, "{\"started\":true}");
+   }
+
+   // How long POST /api/v1/backup/restore waits for 7za to read the archive's
+   // index before it gives its worker thread back.
+   //
+   // Generous next to the work - the index is one small file - and deliberately
+   // longer than the listener's own 30-second request timeout, so a caller still
+   // holding the connection always gets the real answer rather than this one. It
+   // exists for the case where the archive's path leads somewhere that has
+   // stopped answering: there are four HTTP worker threads, and without a bound
+   // four such requests are the whole API, for as long as the drive stays that
+   // way. No other caller of LoadBackup has this problem or this bound.
+   const unsigned int RESTORE_ARCHIVE_OPEN_TIMEOUT_MS = 120000;
+
+   HttpResponse
+   RestApiServer::HandleBackupRestore_(const AnsiString &requestBody)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Restores an archive, and until this existed there was no way to restore one
+   // except the desktop Control Panel over COM - which is to say no way at all on
+   // Linux, where the backup runs and COM does not. The Deck and hmctl are this
+   // route.
+   //
+   // Everything that can be established is established HERE, while the request is
+   // still being answered: the archive is opened (with the passphrase, for an
+   // encrypted one), its version checked, and what was asked for checked against
+   // what the archive holds. A refusal is then a 400 with the reason in the
+   // administrator's hands, and nothing on the server has been touched.
+   //
+   // What must not happen is the alternative: queueing the restore and letting it
+   // discover the problem on the maintenance thread, where the only way it can
+   // report anything is OnBackupFailed - a critical entry in the error log and an
+   // alert to whoever the backup-failed rule mails - for a request that was
+   // simply wrong.
+   //---------------------------------------------------------------------------()
+   {
+      std::shared_ptr<BackupManager> manager = Application::Instance()->GetBackupManager();
+      if (!manager)
+         return BuildResponse_(503, "{\"error\":\"the backup manager is not running\"}");
+
+      auto refusal = [] (const AnsiString &reason)
+      {
+         AnsiString body;
+         body.Format("{\"error\":\"%hs\"}", JsonEscape_(reason).c_str());
+         return BuildResponse_(400, body);
+      };
+
+      JsonValue document;
+      std::string parseError;
+      if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.GetLength()), document, parseError) || !document.IsObject())
+         return refusal("the body must be a JSON object");
+
+      String file;
+      String passphrase;
+      int restoreOptions = 0;
+
+      const std::vector<std::pair<std::string, JsonValue> > &members = document.Members();
+
+      for (size_t i = 0; i < members.size(); i++)
+      {
+         const std::string &key = members[i].first;
+         const JsonValue &value = members[i].second;
+
+         if (key == "file" || key == "passphrase")
+         {
+            if (!value.IsString())
+               return refusal(AnsiString(key.c_str()) + " must be a string");
+
+            String text;
+            Unicode::MultiByteToWide(AnsiString(value.AsString().c_str()), text);
+
+            if (key == "file")
+               file = text;
+            else
+               passphrase = text;
+
+            continue;
+         }
+
+         int part = 0;
+
+         if (key == "restore_settings")
+            part = Backup::BOSettings;
+         else if (key == "restore_domains")
+            part = Backup::BODomains;
+         else if (key == "restore_messages")
+            part = Backup::BOMessages;
+         else
+            return refusal(AnsiString(key.c_str()) + " is not a field of a restore: the fields are file, passphrase, restore_settings, restore_domains and restore_messages");
+
+         if (!value.IsBool())
+            return refusal(AnsiString(key.c_str()) + " must be true or false");
+
+         if (value.AsBool())
+            restoreOptions |= part;
+      }
+
+      if (file.IsEmpty())
+         return refusal("file is required: the path of the backup archive on this server");
+
+      // Opening it is also what proves the passphrase: an encrypted archive
+      // cannot be read at all without the right one, so a restore that gets past
+      // this line cannot fail later for want of it.
+      // Bounded, unlike every other way of opening an archive, because of the
+      // thread this is on rather than the work it is doing: opening the archive
+      // runs 7za, and the Control Panel over COM and the backup's own
+      // verification each do it on a thread whose only job is that one backup.
+      // Here it is one of four HTTP workers. See RESTORE_ARCHIVE_OPEN_TIMEOUT_MS.
+      String failureReason;
+      bool openTimedOut = false;
+      std::shared_ptr<Backup> backup = manager->LoadBackup(file, passphrase, failureReason,
+         RESTORE_ARCHIVE_OPEN_TIMEOUT_MS, &openTimedOut);
+
+      if (!backup)
+      {
+         // 504 and not 400: the request was not wrong, and nothing was learned
+         // about the archive. A 400 would tell the administrator their backup is
+         // bad on the strength of a slow disk.
+         if (openTimedOut)
+         {
+            AnsiString timeout;
+            timeout.Format("{\"error\":\"%hs\"}", JsonEscape_(Utf8_(failureReason)).c_str());
+            return BuildResponse_(504, timeout);
+         }
+
+         return refusal(Utf8_(failureReason));
+      }
+
+      backup->SetRestoreOptions(restoreOptions);
+
+      if (!BackupRestorer::CheckSelection(backup->GetContains(), restoreOptions, failureReason))
+         return refusal(Utf8_(failureReason));
+
+      const bool encrypted = Compression::GetArchiveEncryption(file) == Compression::EncryptionHeaders;
+
+      if (!manager->StartRestore(backup))
+      {
+         AnsiString conflict;
+         conflict.Format("{\"error\":\"the restore did not start\",\"status\":\"%hs\"}",
+            JsonEscape_(Utf8_(manager->GetStatus())).c_str());
+         return BuildResponse_(409, conflict);
+      }
+
+      // The archive's path, and never the passphrase.
+      LOG_APPLICATION("RestApi: Restore started from " + file + ".");
+
+      // And the audit trail, on this thread, while the actor ProcessRequest_
+      // installed is still on it. Nothing the restore does afterwards can be
+      // recorded: it runs on the maintenance work queue, which no actor is ever
+      // installed on, so the deletes that empty every domain and the inserts that
+      // put an archive's back reach the statement chokepoint with nobody to
+      // attribute them to. What is recorded is therefore the request - who asked,
+      // for which archive, for which parts - which is the half that says whose
+      // decision this was. The same row, in the same words, as the COM path's; see
+      // BackupManager::DescribeRestore.
+      AuditTrail::Instance()->RecordEvent(_T("backup"), file, _T("restore started"),
+         BackupManager::DescribeRestore(backup));
+
+      AnsiString body;
+      body.Format("{\"started\":true,\"encrypted\":%hs,\"contains\":{\"settings\":%hs,\"domains\":%hs,\"messages\":%hs}}",
+         encrypted ? "true" : "false",
+         backup->GetContains(Backup::BOSettings) ? "true" : "false",
+         backup->GetContains(Backup::BODomains) ? "true" : "false",
+         backup->GetContains(Backup::BOMessages) ? "true" : "false");
+
+      return BuildResponse_(202, body);
    }
 
    HttpResponse
@@ -13295,6 +13480,8 @@ namespace HM
          "\"/api/v1/backup\":{"
          "\"get\":{\"summary\":\"The backup manager's status text and the last lines of the backup log\",\"responses\":{\"200\":{\"description\":\"status (the last failure reason, if any) and log (the backup log's tail, newest last)\"}}},"
          "\"post\":{\"summary\":\"Start a backup with the configured settings\",\"description\":\"Runs on the maintenance queue; poll GET for the outcome.\",\"responses\":{\"202\":{\"description\":\"Started\"},\"409\":{\"description\":\"A backup or restore is already running, or the backup is not configured\"}}}},"
+         "\"/api/v1/backup/restore\":{"
+         "\"post\":{\"summary\":\"Restore a backup archive\",\"description\":\"Body: file (the archive's path on this server, required), passphrase (the one the archive was encrypted with; accepted here and never stored, logged or returned), and restore_settings, restore_domains and restore_messages - at least one of them true, and messages only together with domains. The archive is opened and everything that can be checked is checked before anything is changed: an encrypted archive with no passphrase, a wrong passphrase, a damaged archive, a part the archive does not hold, or an archive from a newer hMailServer is refused with the reason and nothing on this server is touched. What follows is destructive - the restore deletes every domain, account and public folder it is replacing - and runs on the maintenance queue; poll GET /api/v1/backup for the outcome. The check itself is bounded at two minutes so that an archive on a drive that has stopped answering cannot hold a worker thread; that answers 504 and starts nothing, and the Control Panel, which waits as long as it takes, still restores such an archive. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"file\"],\"properties\":{\"file\":{\"type\":\"string\",\"description\":\"The archive's path on the server\"},\"passphrase\":{\"type\":\"string\",\"writeOnly\":true,\"description\":\"The passphrase an encrypted archive was written with\"},\"restore_settings\":{\"type\":\"boolean\"},\"restore_domains\":{\"type\":\"boolean\"},\"restore_messages\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"202\":{\"description\":\"Started: encrypted, and contains (settings, domains, messages)\"},\"400\":{\"description\":\"Refused before anything was changed; the reason is in error\"},\"409\":{\"description\":\"A backup or restore is already running\"},\"504\":{\"description\":\"The archive could not be read within the two minutes this route allows - a slow or unresponsive drive, not a verdict on the archive; nothing was started\"}}}},"
          "\"/api/v1/archive\":{\"get\":{\"summary\":\"Search the archive index\",\"description\":\"Query parameters: domain and mailbox (exact), sender, recipient and subject (contains), since and until (YYYY-MM-DD HH:MM:SS), hold=1 for held copies only, limit (1-1000, default 200). Newest first. A domain-restricted key must name one of its domains.\",\"responses\":{\"200\":{\"description\":\"Array of archive entries: id, time, domain, mailbox, direction, sender, recipients, subject, message_id, path, size, hold\"},\"403\":{\"description\":\"A domain-restricted key without a domain of its own\"}}}},"
          "\"/api/v1/archive/{id}\":{\"get\":{\"summary\":\"One archive entry\",\"responses\":{\"200\":{\"description\":\"The entry\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/archive/{id}/hold\":{"

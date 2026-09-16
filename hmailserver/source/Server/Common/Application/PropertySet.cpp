@@ -254,6 +254,11 @@ namespace HM
       if (sPropertyName == PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY)
          return true;
 
+      // The backup's own passphrase. Stored the way the relayer's password is
+      // stored, and left out of the backup by XMLStore below.
+      if (sPropertyName == PROPERTY_BACKUPENCRYPTIONPASSPHRASE)
+         return true;
+
       return false;
    }
 
@@ -266,6 +271,22 @@ namespace HM
       while (iterProperty != items_.end())
       {
          std::shared_ptr<Property> oProperty = (*iterProperty).second;
+
+         // THE ONE SETTING THAT IS NEVER IN THE BACKUP.
+         //
+         // This is the passphrase the archive being written is encrypted with, and
+         // the archive is the place it must never be: a key kept inside the lock it
+         // opens is not a key. It is left out of the settings section as
+         // PasswordPepper is left out of the stored [Settings] (IniSettingStore),
+         // and for the same reason - so a restore also never overwrites the
+         // passphrase this server is using with one from an archive, which would
+         // leave the next backup encrypted under a passphrase nobody was told
+         // about. Whoever restores enters the passphrase they hold.
+         if (String(oProperty->GetName()).CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
+         {
+            iterProperty++;
+            continue;
+         }
 
          XNode *pNode = pPropertiesNode->AppendChild(String(oProperty->GetName()));
 
@@ -289,6 +310,12 @@ namespace HM
       {
          XNode *pPropertyNode = pPropertiesNode->GetChild(i);
          String sName = pPropertyNode->name;
+
+         // XMLStore never writes it; an archive that carries one anyway was
+         // written by something else, and it does not get to set what this
+         // server's backups are encrypted with.
+         if (sName.CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
+            continue;
          String sStringValue = pPropertyNode->GetAttrValue(_T("StringValue"));
          int iLongValue = _ttoi(pPropertyNode->GetAttrValue(_T("LongValue")));
 

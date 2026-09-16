@@ -488,6 +488,9 @@
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>'{0}' 已存储了一个密码短语。保存会将其替换 - 旧的密码短语无法从此处恢复。是否替换？</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>已设置口令：存档在写入时就已加密，文件名也在内，还原时会要求输入口令。</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>此证书已存储了密码短语。它绝不会在此显示 - 保存新的会替换旧的。它是否为正确的密码短语，只有在服务器加载密钥时才能证明：请在下次重启之后查看应用程序错误日志。</value>
   </data>
@@ -1289,6 +1292,9 @@
   </data>
   <data name="At least " xml:space="preserve">
     <value>至少 </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>至少 12 个可打印的 ASCII 字符。两个框都留空则保留已经设置的口令。服务器不会把口令交还给任何人，本程序也不例外，因此请把它保存在备份旁边以外的地方：还原时需要它，口令一旦丢失，存档中的任何内容都无人能够恢复。</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>每个日历日最多一次备份，在到达或超过此时间的第一次检查时执行（服务器的本地时间）。如果下面同时设置了间隔，则以每日时间为准。</value>
@@ -3068,6 +3074,9 @@
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>在“检查”确认已发布的记录带有此密钥的公钥后启用。</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>用口令加密存档(_Y) (AES-256，文件名也在内)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>已加密</value>
   </data>
@@ -3079,6 +3088,12 @@
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>已加密的密钥，没有密码短语</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>加密</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>加密口令(_P)</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>引擎 URL（留空 = 无外部引擎）</value>
@@ -3121,6 +3136,9 @@
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>请以 YYYY-MM-DD HH:MM:SS 格式输入到期时间。</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>请输入用来加密存档的口令，并在下面再输入一次。</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>输入服务器上备份 XML 文件的路径。</value>
@@ -4966,6 +4984,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>没有任何邮件被扫描病毒。附件拦截仍在剥除 {0}，但没有任何东西检查邮件的内容。</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>未设置口令：存档不加密，任何能够访问目标文件夹的人都可以读取其中的每一个邮箱。</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>不需要密码短语</value>
   </data>
@@ -5305,6 +5326,9 @@
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>只列出设置了 Active Directory 域名的域 - 正是该字段把邮件域与目录关联起来。第一次做这件事时，一次只迁移一个域才是明智的做法。</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>仅适用于使用口令写入的存档。没有正确的口令，存档根本无法打开，还原会在本服务器上的任何内容被改动之前被拒绝。</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>仅 HS* 算法需要</value>
   </data>
@@ -5586,6 +5610,9 @@
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>已存储密码短语，密钥未加密</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>存档已加密时使用的口令(_I)</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>密码</value>
@@ -8249,6 +8276,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概览会指出那些悄悄不起作用的安排 - 为零的阈值、没有任何已启用检查能达到的阈值、评分为零的检查。</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>再输入一次口令，确认没有输错(_W)</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>目前无法将该密码与公开的数据泄露进行比对，而本服务器被设置为拒绝无法检查的更改。请稍后再试。</value>
   </data>
@@ -8500,6 +8530,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>这两半的失败方式和原因都不同。在做任何其他事之前，先弄清楚您遇到的是哪一种。</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>两个口令不一致。未保存任何内容。</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新助手已启动。为了让安装程序能够替换其文件，此控制面板现在将关闭；一分钟后请重新打开以查看结果。</value>
@@ -9315,6 +9348,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>设置了审核人时，被上面规则拒绝的发件人会被转给审核人而不是被拒绝。审核人通过从已验证的会话把邮件重新发送到列表来批准。</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>设置了口令而压缩处于关闭状态时，邮件文件会被复制到存档旁边而不是存档里面，那里没有任何东西为它们加密，因此备份会拒绝运行。请打开压缩，或者清除口令。</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>开启后，已验证会话中的 MAIL FROM 必须是账户自己的地址、解析到它的别名，或所有者已向该账户授予其 INBOX 上投递 (p) 权限的另一个邮箱 - 共享邮箱的“代表发送”就是这样授予的，可通过任何 IMAP 客户端的 ACL 编辑器 (SETACL) 或通过 COM API。其他任何情况都会在接受邮件的第一个字节之前以 550 5.7.1 拒绝，因此一个被攻陷或粗心的账户再也不能冒充所有其他账户发送。默认关闭，因为以前没有任何东西限制这一点，现有安装可能依赖它；空发件人始终允许。未验证的会话不受影响。服务重启后生效。</value>

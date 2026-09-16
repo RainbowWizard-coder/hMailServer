@@ -488,6 +488,9 @@
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Для «{0}» уже сохранена парольная фраза. Сохранение заменит её — прежнюю отсюда восстановить нельзя. Заменить?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>Парольная фраза задана: архив шифруется в момент записи, вместе с именами файлов, и восстановление запрашивает её.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>Для этого сертификата сохранена парольная фраза. Здесь она никогда не отображается — сохранение новой заменяет её. Правильна ли она, выясняется только тогда, когда сервер загружает ключ: после следующего перезапуска проверьте журнал ошибок приложения.</value>
   </data>
@@ -1289,6 +1292,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="At least " xml:space="preserve">
     <value>Не менее </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Не менее 12 печатных символов ASCII. Оставьте оба поля пустыми, чтобы сохранить уже заданную парольную фразу. Сервер никогда не возвращает её - ни этой программе, ни кому-либо ещё - поэтому храните её не рядом с резервными копиями: восстановление её запрашивает, и из архива с потерянной парольной фразой никто ничего не восстановит.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Не более одной резервной копии за календарный день, создаваемой при первой проверке в это время или после него (по местному времени сервера). Если ниже задан ещё и интервал, ежедневное время имеет приоритет.</value>
@@ -3068,6 +3074,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Становится доступно после того, как «Проверить» подтвердит, что опубликованная запись содержит открытый ключ именно этого ключа.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>Ш_ифровать архив парольной фразой (AES-256, вместе с именами файлов)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Зашифровано</value>
   </data>
@@ -3079,6 +3088,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Зашифрованный ключ без парольной фразы</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Шифрование</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Парольная фраза _шифрования</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL движка (пусто — внешнего движка нет)</value>
@@ -3121,6 +3136,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введите срок истечения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Укажите путь к XML-файлу резервной копии на сервере.</value>
@@ -4966,6 +4984,9 @@ Control Panel может читать файлы сообщений только
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет {0}, но содержимое сообщений не исследует ничто.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>Парольная фраза не задана: архив не шифруется, и любой, кто доберётся до папки назначения, прочитает в нём каждый почтовый ящик.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Парольная фраза не нужна</value>
   </data>
@@ -5305,6 +5326,9 @@ Control Panel может читать файлы сообщений только
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Здесь перечислены только домены, у которых задано имя домена Active Directory: именно это поле связывает почтовый домен с каталогом. В первый раз разумнее переносить по одному домену за раз.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Только для архива, записанного с парольной фразой. Без правильной фразы архив вообще не открывается, и восстановление отклоняется до того, как на этом сервере что-либо будет тронуто.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Требуется только для алгоритмов HS*</value>
   </data>
@@ -5586,6 +5610,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Парольная фраза сохранена, ключ не зашифрован</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Парольная фраза, _если архив зашифрован</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Пароль</value>
@@ -8249,6 +8276,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Обзор называет те сочетания, которые молча ничего не делают - нулевой порог, порог, недостижимый ни для одной включённой проверки, проверку с нулевой оценкой.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>Парольная фраза ещё раз, чтобы убедиться, что она набрана _верно</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Сейчас не удалось проверить пароль по опубликованным утечкам данных, а этот сервер настроен отклонять изменение, которое он не может проверить. Повторите попытку позже.</value>
   </data>
@@ -8500,6 +8530,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Две половины отказывают по-разному и по разным причинам. Прежде всего разберитесь, какая из них у вас.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>Две парольные фразы не совпадают. Ничего не сохранено.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Вспомогательная программа обновления запущена. Этот Control Panel сейчас закроется, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
@@ -9315,6 +9348,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>С заданным модератором отправитель, которого правила выше отклоняют, пересылается модератору вместо отказа. Модератор одобряет, отправив сообщение в список заново из аутентифицированной сессии.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>Если парольная фраза задана, а сжатие выключено, файлы сообщений копируются рядом с архивом, а не внутрь него, где их ничто не шифрует - и резервное копирование откажется работать. Включите сжатие или очистите парольную фразу.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>Если это включено, MAIL FROM в аутентифицированной сессии должен быть собственным адресом учётной записи, псевдонимом, который в неё разрешается, или другим почтовым ящиком, чей владелец предоставил учётной записи право отправки (p) на свой INBOX - именно так выдаётся «отправить от имени» для общего ящика, из редактора ACL любого клиента IMAP (SETACL) или через COM API. Всё остальное отклоняется с 550 5.7.1 до приёма первого байта сообщения, поэтому одна скомпрометированная или небрежная учётная запись больше не может отправлять от имени всех остальных. По умолчанию выключено, потому что раньше этого ничто не ограничивало, и установка может на это полагаться; пустой отправитель разрешён всегда. Неаутентифицированные сессии не затрагиваются. Применяется после перезапуска службы.</value>

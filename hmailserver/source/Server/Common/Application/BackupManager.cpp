@@ -245,8 +245,57 @@ namespace HM
       return true;
    }
 
+   String
+   BackupManager::DescribeRestore(std::shared_ptr<Backup> backup)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The sentence the audit trail records a restore request with. See the header
+   // for why the request is what gets recorded.
+   //
+   // The parts are named as what they replace rather than as the flags they are:
+   // whoever reads this row later is reading it because something is missing, and
+   // "the domains and accounts" is what was deleted and put back, where
+   // "restore_domains" is a field of a request body.
+   //---------------------------------------------------------------------------()
+   {
+      if (!backup)
+         return _T("nothing");
+
+      String parts;
+
+      auto add = [&parts] (const String &part)
+      {
+         if (!parts.IsEmpty())
+            parts += _T(", ");
+
+         parts += part;
+      };
+
+      if (backup->GetRestoreOption(Backup::BOSettings))
+         add(_T("the server settings"));
+
+      if (backup->GetRestoreOption(Backup::BODomains))
+         add(_T("the domains and accounts"));
+
+      if (backup->GetRestoreOption(Backup::BOMessages))
+         add(_T("the message files"));
+
+      if (parts.IsEmpty())
+         parts = _T("nothing");
+
+      // Read from the archive's own header, which costs a few bytes off the front
+      // of a file this thread has just opened. Worth the row carrying it: an
+      // encrypted archive is one somebody had the passphrase for, which is part of
+      // what the reader of this row wants to know about whoever made the request.
+      const bool encrypted = Compression::GetArchiveEncryption(backup->GetBackupFile()) == Compression::EncryptionHeaders;
+
+      return Formatter::Format("restoring {0} from {1}{2}", parts, backup->GetBackupFile(),
+         encrypted ? String(_T(", an encrypted archive")) : String());
+   }
+
    std::shared_ptr<Backup>
-   BackupManager::LoadBackup(const String &sZipFile) const
+   BackupManager::LoadBackup(const String &sZipFile, const String &passphrase, String &failureReason,
+                             unsigned int archiveOpenTimeoutMilliseconds, bool *openTimedOut) const
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Opens a backup archive and reports what is in it, or nothing at all if it is
@@ -282,9 +331,9 @@ namespace HM
 
       int archiveContents = 0;
       String archiveVersion;
-      String failureReason;
+      failureReason.Empty();
 
-      if (!BackupRestorer::ReadArchiveIndex(sZipFile, archiveContents, archiveVersion, failureReason))
+      if (!BackupRestorer::ReadArchiveIndex(sZipFile, passphrase, archiveContents, archiveVersion, failureReason, archiveOpenTimeoutMilliseconds, openTimedOut))
       {
          // LOG_APPLICATION and the backup log, not ReportError. Pointing this at a
          // file that is not a backup is an ordinary mistake made by hand at a
@@ -312,6 +361,7 @@ namespace HM
 
       pResult->SetBackupFile(sZipFile);
       pResult->SetContains(archiveContents);
+      pResult->SetPassphrase(passphrase);
 
       LOG_DEBUG("BackupManager::~LoadBackup - E2");
       return pResult;

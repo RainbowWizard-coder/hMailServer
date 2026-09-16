@@ -65,6 +65,13 @@
 
 #define PROPERTY_BACKUPOPTIONS                  _T("backupoptions")
 #define PROPERTY_BACKUPDESTINATION              _T("backupdestination")
+// The passphrase the backup archive is encrypted with. A crypted property: the
+// string is the passphrase, kept protected by the platform's secret store
+// (PropertySet::IsCryptedProperty_), and the integer says whether one is set -
+// which is not the same question, because a stored secret this machine cannot
+// open reads back empty, and a backup must fail rather than quietly write an
+// unencrypted archive. Never written into a backup's own settings section.
+#define PROPERTY_BACKUPENCRYPTIONPASSPHRASE     _T("backupencryptionpassphrase")
 
 #define PROPERTY_DEFAULTDOMAIN                  _T("defaultdomain")
 #define PROPERTY_AV_MAXMSGSIZE                  _T("avmaxmsgsize")
@@ -406,4 +413,8 @@
 //      and why not), and seeds hm_settings rows SpamTrapBanMinutes (1440),
 //      SpamTrapBlockDays (30), SpamTrapHitRetentionDays (90) and
 //      SpamTrapTeachSpamAssassin (0). No domain has a trap until one is declared.
-#define REQUIRED_DB_VERSION            6058
+// 6049 adds the hm_settings row backupencryptionpassphrase ('', 0): the passphrase
+//      the backup archive is encrypted with, protected by the platform's secret
+//      store, with the integer as "a passphrase is set". Empty on every existing
+//      installation, where backups go on being written unencrypted.
+#define REQUIRED_DB_VERSION            6059

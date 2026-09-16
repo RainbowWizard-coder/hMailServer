@@ -72,7 +72,28 @@ namespace HM
       // for an archive that cannot be restored, and the check
       // BackupExecuter::StartBackup makes on the archive it has just written,
       // before retention is allowed to delete an older one.
-      static bool ReadArchiveIndex(const String &archiveFile, int &archiveContents, String &archiveVersion, String &failureReason);
+      //
+      // archiveOpenTimeoutMilliseconds bounds the archiver run that reads the
+      // index out of the archive. Zero is no bound at all, which is what the two
+      // original callers need: both are on a thread whose whole job is this one
+      // backup, and 7za reading a large archive off a slow disk is not a fault.
+      // A caller on a thread that has to be given back - the REST route, on one
+      // of four HTTP workers - passes one, and openTimedOut then says whether
+      // that bound is the reason this returned false, because "it did not open in
+      // the time allowed" and "it did not open" send the reader to different
+      // places.
+      static bool ReadArchiveIndex(const String &archiveFile, const String &passphrase, int &archiveContents, String &archiveVersion, String &failureReason,
+                                   unsigned int archiveOpenTimeoutMilliseconds = 0, bool *openTimedOut = nullptr);
+
+      // Whether what the caller asked to restore is in the archive at all, and
+      // whether the parts asked for make sense together. False leaves the reason -
+      // the sentence the administrator is shown - in failureReason.
+      //
+      // Static and separate from Prepare because the answer is worth having before
+      // a restore is started at all: the REST route refuses the request with it,
+      // synchronously, rather than queueing a restore that will fail on the
+      // maintenance thread and report itself as a critical error.
+      static bool CheckSelection(int archiveContents, int restoreOptions, String &failureReason);
 
       // False, with a reason, when archiveVersion is a later hMailServer version
       // than the one running. An unrecognised or absent version is accepted: the
@@ -115,7 +136,7 @@ namespace HM
       BackupRestorer(const BackupRestorer &);
       BackupRestorer &operator=(const BackupRestorer &);
 
-      bool ReadIndex_(const String &archiveFile, String &failureReason);
+      bool ReadIndex_(const String &archiveFile, const String &passphrase, unsigned int archiveOpenTimeoutMilliseconds, String &failureReason, bool *openTimedOut);
       bool StageMessageStore_(const String &archiveFile, String &failureReason);
 
       XDoc document_;
@@ -125,6 +146,8 @@ namespace HM
       int restore_options_;
 
       String archive_version_;
+
+      String passphrase_;
 
       String index_directory_;
       String staging_directory_;

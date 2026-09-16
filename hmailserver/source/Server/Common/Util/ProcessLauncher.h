@@ -30,11 +30,57 @@ namespace HM
 
       void SetErrorLogTimeout(unsigned int milliseconds);
 
+      // A hard ceiling on the whole run, in milliseconds; zero (the default)
+      // leaves the policy above alone. Whichever of the two bounds is tighter is
+      // the one that applies.
+      //
+      // It is separate from SetErrorLogTimeout because it answers a different
+      // question. That one means "warn about this process if it is slow, and stop
+      // it at ExternalProcessTimeout" - a number an administrator may set to zero
+      // to mean "wait for my virus scanner however long it takes". This one is
+      // the CALLER's own limit, set because of where the calling thread came from
+      // rather than because of what the process is: a request-serving thread that
+      // must be given back, whatever the ini file says. Nothing that writes a
+      // backup sets it - 7za legitimately runs for hours over a large message
+      // store, and killing it would truncate the archive.
+      void SetMaximumRunTime(unsigned int milliseconds);
+
+      // Gives the process these bytes as its whole standard input - it reads
+      // them and then the end of the input.
+      //
+      // Its standard OUTPUT is left alone on Linux and sent to the null device on
+      // Windows, which is not an inconsistency but the same decision in two
+      // places: a Windows service has no console, so a child's output goes
+      // nowhere a person can read either way and the handle list has to name
+      // something; a Linux server's standard output and error are the journal's,
+      // where the archiver's own account of a failure - an unsupported switch, a
+      // full disk, a refused path - is the only explanation anybody gets beyond
+      // an exit code, and discarding it would make every failure quieter than it
+      // was before this class could redirect anything.
+      //
+      // Two uses, and both are the backup's. A secret handed to a program this
+      // way is not on its command line, which any user of the machine can read
+      // from the process list; the backup passphrase reaches 7-Zip like this
+      // and no other way. And a program that stops to ask a question - 7-Zip
+      // asking for the passphrase of an archive nobody gave one for - reads the
+      // end of the input and fails, instead of waiting for ever at a prompt.
+      //
+      // The bytes are written before the process is started and must fit in
+      // the pipe's buffer, so that nothing can wait on a reader: at most
+      // MaximumStandardInput bytes, and Launch refuses more.
+      void SetStandardInput(const AnsiString &input);
+
+      static const int MaximumStandardInput = 4096;
+
    private:
 
       unsigned int error_log_timeout_;
+      unsigned int maximum_run_time_;
 
       String command_line_;
       String working_directory_;
+
+      bool redirect_standard_input_;
+      AnsiString standard_input_;
    };
 }

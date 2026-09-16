@@ -28,6 +28,8 @@
 #include "../SMTP/TlsRptReporterTask.h"
 #include "../SMTP/DmarcRptReporterTask.h"
 #include "../Common/Persistence/MailboxMove.h"
+#include "../Common/Util/Compression.h"
+#include "../Common/Util/FileUtilities.h"
 #include "../Common/AntiSpam/SpamTrapMonitor.h"
 #include "../Common/BO/Domain.h"
 #include "../Common/Cache/CacheContainer.h"
@@ -1970,6 +1972,41 @@ STDMETHODIMP InterfaceUtilities::ClearSpamTrapHits(BSTR Domain, long *Removed)
 
       *Removed = (long) removed;
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::BackupArchiveIsEncrypted(BSTR File, VARIANT_BOOL *Encrypted)
+{
+   try
+   {
+      if (!Encrypted)
+         return COMError::GenerateGenericMessage();
+
+      // Reading an archive's header says nothing about its contents, but it does
+      // say whether a file on this server's disks exists and what it is, so it is
+      // the server administrator's as the rest of this interface is.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String file(File);
+
+      if (file.IsEmpty())
+         return COMError::GenerateError("No file was given.");
+
+      if (!HM::FileUtilities::Exists(file))
+         return COMError::GenerateError("The file " + file + " does not exist.");
+
+      const HM::Compression::ArchiveEncryption encryption = HM::Compression::GetArchiveEncryption(file);
+
+      if (encryption == HM::Compression::EncryptionUnknown)
+         return COMError::GenerateError("The file " + file + " is not a 7-Zip archive whose header could be read: it is not an archive, or it is cut short before the index at its end.");
+
+      *Encrypted = encryption == HM::Compression::EncryptionHeaders ? VARIANT_TRUE : VARIANT_FALSE;
       return S_OK;
    }
    catch (...)

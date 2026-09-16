@@ -64,5 +64,12 @@ namespace HM
       // Backup properties
       String destination_;
       String xmlfile_;
+
+      // Whether this run's archive is to be encrypted, and the passphrase it is
+      // encrypted with. Read once at the start of the run (LoadSettings_), so that
+      // a passphrase changed while a backup is running cannot leave one archive
+      // written under two of them.
+      bool encrypt_;
+      String passphrase_;
    };
 }

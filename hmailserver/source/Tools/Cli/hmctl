@@ -31,7 +31,11 @@ a remote host over a connection nobody checked is the failure this tool must not
 make easy.
 
 WHAT IT DOES NOT DO: it does not read or write the message store, and it is not
-a backup tool. `hmctl backup start` asks the server to run its own backup.
+a backup tool of its own. `hmctl backup start` asks the server to run its own
+backup, `hmctl backup restore` asks it to put one back, and `hmctl backup
+passphrase` sets the passphrase its archives are encrypted with. A passphrase is
+never taken as an argument - the process list is public - only from a file or
+from the terminal.
 
 Run `hmctl` with no arguments for the resources, `hmctl <resource> --help` for
 one resource's verbs, and `hmctl api` for the escape hatch - any method, any
@@ -782,9 +786,101 @@ def log_command(client, arguments):
     return EXIT_OK
 
 
+def read_backup_passphrase(arguments, confirm=False):
+    """The backup passphrase, from a file or from the terminal.
+
+    Never from the command line. Everything after the program name is in the
+    process list, which every user of the machine can read and which several
+    shells write to a history file as well - and this is the one secret that
+    opens every mailbox on the server at once.
+
+    None means none was offered, which is different from an empty one: an
+    archive that is not encrypted needs none, and an empty passphrase is how the
+    encryption is switched off.
+    """
+    if getattr(arguments, "passphrase_file", None):
+        if arguments.passphrase_file == "-":
+            line = sys.stdin.readline()
+        else:
+            with open(arguments.passphrase_file, encoding="utf-8") as handle:
+                line = handle.readline()
+        return line.rstrip("\r\n")
+
+    if not getattr(arguments, "ask_passphrase", False):
+        return None
+
+    try:
+        passphrase = getpass.getpass("Backup passphrase: ")
+        if confirm and passphrase != getpass.getpass("The same passphrase again: "):
+            raise ApiError(0, "the two passphrases are not the same; nothing has been changed")
+        return passphrase
+    except (EOFError, OSError):
+        raise ApiError(0, "there is no terminal here to ask for the passphrase on; use --passphrase-file FILE instead")
+
+
+def backup_restore_command(client, arguments):
+    parts = {
+        "restore_settings": bool(arguments.settings),
+        "restore_domains": bool(arguments.domains),
+        "restore_messages": bool(arguments.messages),
+    }
+
+    if not any(parts.values()):
+        raise ApiError(0, "choose what to restore: --settings, --domains, --messages "
+                          "(messages can only be restored together with --domains)")
+
+    body = {"file": arguments.file}
+    body.update(parts)
+
+    passphrase = read_backup_passphrase(arguments)
+    if passphrase is not None:
+        body["passphrase"] = passphrase
+
+    answer = client.request("POST", "/api/v1/backup/restore", body=body) or {}
+
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+
+    contains = answer.get("contains") or {}
+    held = ", ".join(name for name in ("settings", "domains", "messages") if contains.get(name))
+    print("restore started from %s%s; the archive holds %s." % (
+        arguments.file, " (encrypted)" if answer.get("encrypted") else "", held or "nothing"))
+    print("It runs in the server and replaces what it restores; `hmctl backup status` says how it went.")
+    return EXIT_OK
+
+
+def backup_passphrase_command(client, arguments):
+    if arguments.action == "clear":
+        client.request("PUT", "/api/v1/settings/backup", body={"encryption_passphrase": ""})
+        print("the backup passphrase is cleared: backups from now on are written unencrypted.")
+        return EXIT_OK
+
+    passphrase = read_backup_passphrase(arguments, confirm=True)
+
+    if passphrase is None:
+        raise ApiError(0, "give the passphrase in a file with --passphrase-file FILE (or - for standard input), "
+                          "or --ask to be asked for it here; it is never taken as an argument, where the process "
+                          "list would show it to every user of this machine")
+
+    if not passphrase:
+        raise ApiError(0, "an empty passphrase would switch encryption off; say `hmctl backup passphrase clear` "
+                          "if that is what you mean")
+
+    client.request("PUT", "/api/v1/settings/backup", body={"encryption_passphrase": passphrase})
+    print("the backup passphrase is set: backups from now on are encrypted with it, file names included.")
+    print("Keep it somewhere other than beside the backups. A restore asks for it, and an archive whose "
+          "passphrase is lost cannot be read by anybody - this server included.")
+    return EXIT_OK
+
+
 def backup_command(client, arguments):
     if arguments.verb == "start":
         render(client.request("POST", "/api/v1/backup", body={}), arguments.json)
+    elif arguments.verb == "restore":
+        return backup_restore_command(client, arguments)
+    elif arguments.verb == "passphrase":
+        return backup_passphrase_command(client, arguments)
     else:
         render(client.request("GET", "/api/v1/backup"), arguments.json)
     return EXIT_OK
@@ -2184,11 +2280,32 @@ def build_parser():
     tail.add_argument("name")
     tail.add_argument("--lines", type=int, default=50)
 
-    backup = commands.add_parser("backup", help="the server's own backup")
+    backup = commands.add_parser("backup", help="the server's own backup, and putting one back")
     backup.set_defaults(handler=backup_command)
     backup_verbs = backup.add_subparsers(dest="verb")
     backup_verbs.add_parser("status", parents=[common])
     backup_verbs.add_parser("start", parents=[common])
+
+    backup_restore = backup_verbs.add_parser(
+        "restore", parents=[common],
+        help="put an archive back - destructive: it replaces what it restores")
+    backup_restore.add_argument("file", help="the archive's path ON THE SERVER")
+    backup_restore.add_argument("--settings", action="store_true", help="restore the server settings")
+    backup_restore.add_argument("--domains", action="store_true", help="restore the domains, accounts and aliases")
+    backup_restore.add_argument("--messages", action="store_true", help="restore the message files (with --domains)")
+    backup_restore.add_argument("--passphrase-file", metavar="FILE",
+                                help="a file holding the archive's passphrase, or - for standard input")
+    backup_restore.add_argument("--ask", dest="ask_passphrase", action="store_true",
+                                help="ask for the archive's passphrase here, not echoed")
+
+    backup_passphrase = backup_verbs.add_parser(
+        "passphrase", parents=[common],
+        help="the passphrase the backup archive is encrypted with")
+    backup_passphrase.add_argument("action", choices=["set", "clear"])
+    backup_passphrase.add_argument("--passphrase-file", metavar="FILE",
+                                   help="a file holding the passphrase, or - for standard input")
+    backup_passphrase.add_argument("--ask", dest="ask_passphrase", action="store_true",
+                                   help="ask for the passphrase here, twice, not echoed")
 
     match = commands.add_parser("match", parents=[common], help="try a rule criterion against a value")
     match.set_defaults(handler=rule_match_command)

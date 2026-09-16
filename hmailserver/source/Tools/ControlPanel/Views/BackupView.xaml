@@ -47,6 +47,26 @@
                     </scaffold:FieldRow>
                     <CheckBox x:Name="CheckSettings" Content="{loc:L 'Back up _settings'}" Margin="0,0,0,12" />
                     <CheckBox x:Name="CheckCompress" Content="{loc:L '_Compress destination files (zip)'}" />
+
+                    <!-- The passphrase the archive is encrypted with. Written
+                         through the COM property, which is write-only: nothing
+                         reads one back, so the boxes are empty on every visit
+                         and leaving them empty keeps whatever is already set.
+                         The notice above them says which of the two states the
+                         server is in, since the boxes cannot show it. -->
+                    <scaffold:SettingsSection Heading="{loc:L 'Encryption'}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <scaffold:InlineNotice x:Name="EncryptionNotice" Margin="0,0,0,12" />
+                            <CheckBox x:Name="CheckEncrypt" Content="{loc:L 'Encr_ypt the archive with a passphrase (AES-256, file names included)'}" Margin="0,0,0,12" />
+                            <scaffold:FieldRow Label="{loc:L 'Encryption _passphrase'}"
+                                               Hint="{loc:L 'At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody.'}">
+                                <local:PasswordField x:Name="PassphraseBox" />
+                            </scaffold:FieldRow>
+                            <scaffold:FieldRow Label="{loc:L 'The passphrase again, to be sure it _was typed right'}">
+                                <local:PasswordField x:Name="PassphraseAgainBox" />
+                            </scaffold:FieldRow>
+                        </StackPanel>
+                    </scaffold:SettingsSection>
                 </StackPanel>
                 <scaffold:Card.Footer>
                     <StackPanel Orientation="Horizontal">
@@ -119,6 +139,10 @@
                     <CheckBox x:Name="RestoreDomains" Content="{loc:L 'Restore dom_ains'}" Margin="0,0,0,12" />
                     <CheckBox x:Name="RestoreMessages" Content="{loc:L 'Restore messa_ges'}" Margin="0,0,0,12" />
                     <CheckBox x:Name="RestoreSettings" Content="{loc:L 'Res_tore settings'}" />
+                    <scaffold:FieldRow Label="{loc:L 'Passphrase, _if the archive is encrypted'}" Margin="0,12,0,0"
+                                       Hint="{loc:L 'Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched.'}">
+                        <local:PasswordField x:Name="RestorePassphraseBox" />
+                    </scaffold:FieldRow>
                 </StackPanel>
                 <scaffold:Card.Footer>
                     <ui:Button Content="{loc:L 'Start _restore'}" Appearance="Danger" Click="StartRestore_Click" HorizontalAlignment="Left" />

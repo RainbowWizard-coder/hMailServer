@@ -488,6 +488,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Er is al een wachtwoordzin opgeslagen voor '{0}'. Opslaan vervangt die - de oude kan vanaf hier niet worden hersteld. Vervangen?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>Er is een wachtwoordzin ingesteld: het archief wordt tijdens het schrijven versleuteld, de bestandsnamen inbegrepen, en een herstel vraagt om de wachtwoordzin.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>Er is een wachtwoordzin opgeslagen voor dit certificaat. Die wordt hier nooit getoond - een nieuwe opslaan vervangt die. Of het de JUISTE wachtwoordzin is, blijkt pas wanneer de server de sleutel laadt: controleer na de volgende herstart het foutenlogboek van de toepassing.</value>
   </data>
@@ -1289,6 +1292,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="At least " xml:space="preserve">
     <value>Minstens</value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Minstens 12 afdrukbare ASCII-tekens. Laat beide vakken leeg om de wachtwoordzin te houden die al is ingesteld. De server geeft hem nooit terug - niet aan dit programma en niet aan iemand anders - bewaar hem dus ergens anders dan naast de back-ups: een herstel vraagt erom, en uit een archief waarvan de wachtwoordzin kwijt is haalt niemand nog iets.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Hooguit één back-up per kalenderdag, gemaakt bij de eerste controle op of na dit tijdstip (lokale tijd van de server). Als hieronder ook een interval is ingesteld, wint het dagelijkse tijdstip.</value>
@@ -3068,6 +3074,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Ingeschakeld zodra "Controleren" heeft bevestigd dat het gepubliceerde record de publieke sleutel van deze sleutel draagt.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>Het archief met een wachtwoordzin _versleutelen (AES-256, bestandsnamen inbegrepen)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Versleuteld</value>
   </data>
@@ -3079,6 +3088,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Versleutelde sleutel, geen wachtwoordzin</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Versleuteling</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Wachtwoordzin voor versleutelin_g</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Engine-URL (leeg = geen externe engine)</value>
@@ -3121,6 +3136,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Voer de vervaldatum in als YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Voer de wachtwoordzin in waarmee het archief versleuteld moet worden, en typ hem hieronder nog eens.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Voer het pad in van het XML-back-upbestand op de server.</value>
@@ -4966,6 +4984,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Geen enkel bericht wordt op virussen gescand. Bijlageblokkering verwijdert nog steeds {0}, maar niets onderzoekt de inhoud van een bericht.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>Er is geen wachtwoordzin ingesteld: het archief is niet versleuteld, en iedereen die bij de doelmap kan, kan elke mailbox erin lezen.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Geen wachtwoordzin nodig</value>
   </data>
@@ -5305,6 +5326,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Alleen domeinen waarvoor een Active Directory-domeinnaam is ingesteld worden vermeld - dat veld is wat een maildomein aan een directory koppelt. Eén domein tegelijk overzetten is de verstandige manier om dit de eerste keer te doen.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Alleen voor een archief dat met een wachtwoordzin is geschreven. Zonder de juiste gaat het archief helemaal niet open, en het herstel wordt geweigerd voordat er op deze server iets wordt aangeraakt.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Alleen nodig voor HS*-algoritmen</value>
   </data>
@@ -5586,6 +5610,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Wachtwoordzin opgeslagen, sleutel niet versleuteld</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Wachtwoordzin, als het archief versleuteld _is</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Wachtwoord</value>
@@ -8249,6 +8276,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Het overzicht noemt de opstellingen die stilzwijgend niets doen - een drempel van nul, een drempel die geen enkele ingeschakelde controle kan bereiken, een controle die nul scoort.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>De wachtwoordzin nog eens, om zeker te weten dat hij goed is ge_typt</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Het wachtwoord kon nu niet worden gecontroleerd tegen gepubliceerde datalekken, en deze server is ingesteld om een wijziging te weigeren die hij niet kan controleren. Probeer het later opnieuw.</value>
   </data>
@@ -8500,6 +8530,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De twee helften falen op verschillende manieren en hebben verschillende oorzaken. Stel eerst vast welke van de twee u hebt.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>De twee wachtwoordzinnen zijn niet gelijk. Er is niets opgeslagen.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>De updatehelper is gestart. Dit Control Panel sluit nu, zodat het installatieprogramma zijn bestanden kan vervangen; open het over een minuut opnieuw om de uitkomst te zien.</value>
@@ -9315,6 +9348,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>Met een ingestelde moderator wordt een afzender die de regels hierboven weigeren, naar de moderator doorgestuurd in plaats van afgewezen. De moderator keurt goed door het bericht vanuit een geauthenticeerde sessie opnieuw naar de lijst te sturen.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>Met een ingestelde wachtwoordzin en compressie uit worden de berichtbestanden naast het archief gekopieerd in plaats van erin, waar niets ze versleutelt - en de back-up weigert te draaien. Zet compressie aan, of wis de wachtwoordzin.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>Hiermee aan moet MAIL FROM in een geauthenticeerde sessie het eigen adres van het account zijn, een alias die daarnaar verwijst, of een ander postvak waarvan de eigenaar het account het post-recht (p) op zijn INBOX heeft verleend - zo wordt Send-As voor een gedeeld postvak verleend, vanuit de ACL-editor van elke IMAP-client (SETACL) of via de COM-API. Al het andere wordt geweigerd met 550 5.7.1 voordat er één byte van het bericht is geaccepteerd, zodat één gecompromitteerd of onzorgvuldig account niet langer als elk ander account kan versturen. Standaard uit, omdat hier voorheen niets aan gebonden was en een installatie daarvan kan afhangen; de lege afzender is altijd toegestaan. Niet-geauthenticeerde sessies blijven ongemoeid. Geldt na een herstart van de service.</value>

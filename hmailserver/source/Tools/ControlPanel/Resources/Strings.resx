@@ -488,6 +488,9 @@ Save this weak password anyway?</value>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log.</value>
   </data>
@@ -1289,6 +1292,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="At least " xml:space="preserve">
     <value>At least </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins.</value>
@@ -3068,6 +3074,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Enabled once "Check" has confirmed the published record carries this key's public key.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>Encr_ypt the archive with a passphrase (AES-256, file names included)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Encrypted</value>
   </data>
@@ -3079,6 +3088,12 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Encrypted key, no passphrase</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Encryption</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Encryption _passphrase</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Engine URL (empty = no external engine)</value>
@@ -3121,6 +3136,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Enter the expiry as YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Enter the passphrase the archive is to be encrypted with, and type it again below.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Enter the path of the backup XML file on the server.</value>
@@ -4966,6 +4984,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>No passphrase needed</value>
   </data>
@@ -5305,6 +5326,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Only needed for HS* algorithms</value>
   </data>
@@ -5586,6 +5610,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Passphrase stored, key not encrypted</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Passphrase, _if the archive is encrypted</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Password</value>
@@ -8249,6 +8276,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>The passphrase again, to be sure it _was typed right</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.</value>
   </data>
@@ -8500,6 +8530,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>The two halves fail differently and have different causes. Work out which one you have before anything else.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>The two passphrases are not the same. Nothing has been saved.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome.</value>
@@ -9315,6 +9348,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart.</value>

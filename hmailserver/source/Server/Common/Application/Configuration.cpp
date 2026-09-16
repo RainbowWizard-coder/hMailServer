@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "Configuration.h"
+#include "../Util/Crypt.h"
 
 #include "../BO/BlockedAttachments.h"
 #include "../BO/SecurityRanges.h"
@@ -1007,6 +1008,103 @@ namespace HM
 
       GetSettings()->SetLong(PROPERTY_BACKUPOPTIONS, iOption);
 
+   }
+
+   String
+   Configuration::GetBackupEncryptionPassphrase() const
+   {
+      return GetSettings()->GetString(PROPERTY_BACKUPENCRYPTIONPASSPHRASE);
+   }
+
+   bool
+   Configuration::GetBackupEncryptionPassphraseSet() const
+   {
+      return GetSettings()->GetLong(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) != 0;
+   }
+
+   String
+   Configuration::CheckBackupEncryptionPassphrase(const String &passphrase)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // What this server will store as a backup passphrase, and why the limits are
+   // where they are.
+   //
+   // Twelve characters because the archive is the one copy of the data that leaves
+   // the server, is kept for months, and can be attacked offline at whatever rate
+   // the attacker's hardware allows; 7-Zip's key derivation makes that slower, not
+   // impossible.
+   //
+   // Printable ASCII because the passphrase has to be typed back into a 7-Zip
+   // somewhere else on the worst day this server ever has. The bytes reach the
+   // archiver on its standard input and are decoded by whatever code page or
+   // locale that archiver is running under - which is not the same on the Windows
+   // machine that wrote the archive and the Linux machine somebody restores it on
+   // - and a character that decodes differently is a key that differs, on an
+   // archive nobody can then open. Within ASCII there is no such difference.
+   //
+   // No leading or trailing space, because it cannot be seen in the box it was
+   // typed into and is dropped by half the places it is ever pasted.
+   //---------------------------------------------------------------------------()
+   {
+      if (passphrase.IsEmpty())
+         return String();
+
+      const int minimumLength = 12;
+      const int maximumLength = 256;
+
+      if (passphrase.GetLength() < minimumLength)
+         return "The backup passphrase must be at least 12 characters long. It is the only thing between the backup archive - every mailbox on this server - and whoever can read the folder it is written to.";
+
+      if (passphrase.GetLength() > maximumLength)
+         return "The backup passphrase can be at most 256 characters long.";
+
+      for (int index = 0; index < passphrase.GetLength(); index++)
+      {
+         wchar_t character = passphrase.SafeGetAt((unsigned int) index);
+
+         if (character < 0x20 || character > 0x7E)
+            return "The backup passphrase can use only the printable ASCII characters: the letters A to Z and a to z, the digits, the space and the punctuation marks. A passphrase with other characters in it is read differently by a 7-Zip running under another language setting, which is how an archive ends up opening on the machine that wrote it and nowhere else.";
+      }
+
+      if (passphrase.SafeGetAt(0) == L' ' || passphrase.SafeGetAt((unsigned int) (passphrase.GetLength() - 1)) == L' ')
+         return "The backup passphrase cannot begin or end with a space: it cannot be seen in the box it was typed into, and it is lost wherever the passphrase is pasted or read from a file.";
+
+      return String();
+   }
+
+   bool
+   Configuration::SetBackupEncryptionPassphrase(const String &passphrase, String &failureReason)
+   {
+      failureReason = CheckBackupEncryptionPassphrase(passphrase);
+      if (!failureReason.IsEmpty())
+         return false;
+
+      if (passphrase.IsEmpty())
+      {
+         // The flag first: between these two writes the server must read "no
+         // passphrase", which is what clearing it asked for, rather than "a
+         // passphrase is set and cannot be read", which would fail every backup.
+         GetSettings()->SetLong(PROPERTY_BACKUPENCRYPTIONPASSPHRASE, 0);
+         GetSettings()->SetString(PROPERTY_BACKUPENCRYPTIONPASSPHRASE, _T(""));
+         return true;
+      }
+
+      // Asked before it is stored, because a secret store that cannot protect it
+      // must not end with a row that says a passphrase is set and a value nothing
+      // can read. On Windows this cannot fail (Crypt::ProtectSecret falls back to
+      // the legacy scheme rather than lose a secret); on Linux a missing key file
+      // does fail it, and says so in the error log.
+      if (Crypt::Instance()->ProtectSecret(passphrase).IsEmpty())
+      {
+         failureReason = "The backup passphrase was not stored: this server could not protect it with the machine's secret store, and the error log says why. Nothing has changed - backups go on as they were.";
+         return false;
+      }
+
+      // The value first here, for the same reason in the other direction.
+      GetSettings()->SetString(PROPERTY_BACKUPENCRYPTIONPASSPHRASE, passphrase);
+      GetSettings()->SetLong(PROPERTY_BACKUPENCRYPTIONPASSPHRASE, 1);
+
+      return true;
    }
 
    void 

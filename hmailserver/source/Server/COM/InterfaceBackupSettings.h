@@ -67,6 +67,11 @@ public:
    STDMETHOD(get_CompressDestinationFiles)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_CompressDestinationFiles)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // Write-only on purpose: there is no get_EncryptionPassphrase, here or over
+   // REST. What can be asked is whether one is set.
+   STDMETHOD(put_EncryptionPassphrase)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_EncryptionPassphraseSet)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+
 private:
 
    HM::Configuration* config_;

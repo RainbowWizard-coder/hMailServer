@@ -6,6 +6,8 @@
 
 #include "Backup.h"
 
+#include "../Util/Utilities.h"
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -21,7 +23,13 @@ namespace HM
 
    Backup::~Backup(void)
    {
-
+      // The passphrase goes with the object rather than being left in the freed
+      // block. This one is held for as long as whoever asked for the restore
+      // holds the object - over COM that is the Control Panel's Backup object,
+      // which lives until it is released - and the server writes minidumps on a
+      // crash by design. See Utilities::SecureWipe for what that does and does
+      // not claim.
+      Utilities::SecureWipe(passphrase_);
    }
 
    bool 

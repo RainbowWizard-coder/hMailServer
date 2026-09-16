@@ -857,9 +857,11 @@ const SETTING_GROUPS = {
          backup_messages: { type: 'boolean', description: 'Whether the message files are backed up.' },
          backup_settings: { type: 'boolean', description: 'Whether the server settings are backed up.' },
          compress: { type: 'boolean', description: 'Whether the backup is compressed into one file.' },
-         log_file: { type: 'string', description: 'The full path of the backup log, beside the other logs.', readOnly: true }
+         log_file: { type: 'string', description: 'The full path of the backup log, beside the other logs.', readOnly: true },
+         encryption_passphrase: { type: 'string', writeOnly: true, description: 'The passphrase the backup archive is encrypted with. Accepted here and never emitted.' },
+         encryption_passphrase_set: { type: 'boolean', readOnly: true, description: 'Whether a backup passphrase is set, and so whether the next backup is encrypted.' }
       },
-      values: { destination: '/var/backups/hmailserver', backup_domains: true, backup_messages: true, backup_settings: true, compress: false, log_file: '/var/log/hmailserver/hmailserver_backup.log' }
+      values: { destination: '/var/backups/hmailserver', backup_domains: true, backup_messages: true, backup_settings: true, compress: false, log_file: '/var/log/hmailserver/hmailserver_backup.log', encryption_passphrase_set: false }
    }
 };
 const secrets = {};
@@ -1053,6 +1055,19 @@ const spec = {
       '/api/v1/backup': {
          get: { summary: 'The backup manager\'s status text and the last lines of the backup log' },
          post: { summary: 'Start a backup with the configured settings', description: 'Runs on the maintenance queue; poll GET for the outcome.' }
+      },
+      '/api/v1/backup/restore': {
+         post: {
+            summary: 'Restore a backup archive',
+            description: 'Body: file (the archive\'s path on this server, required), passphrase (the one the archive was encrypted with), and restore_settings, restore_domains and restore_messages. Everything is checked before anything is changed.',
+            requestBody: body({
+               file: { type: 'string', description: 'The archive\'s path on the server' },
+               passphrase: { type: 'string', writeOnly: true, description: 'The passphrase an encrypted archive was written with' },
+               restore_settings: { type: 'boolean' },
+               restore_domains: { type: 'boolean' },
+               restore_messages: { type: 'boolean' }
+            }, ['file'])
+         }
       }
    }
 };
@@ -1787,6 +1802,21 @@ function answer(method, path, headers, raw) {
          state.backup.log.push('2026-09-14 11:00:00 Backup started.');
          return json(202, { started: true });
       }
+   }
+
+   // The restore, refusing as HandleBackupRestore_ refuses. The archive this
+   // names is an encrypted one, so without the passphrase it answers the
+   // server's own sentence and changes nothing.
+   if (path === '/api/v1/backup/restore' && method === 'POST') {
+      if (!parsed.file) { return json(400, { error: 'file is required: the path of the backup archive on this server' }); }
+      if (!parsed.passphrase) {
+         return json(400, { error: 'The backup archive ' + parsed.file + ' is encrypted, and no passphrase was given for it.' });
+      }
+      if (parsed.passphrase !== 'correct horse battery staple') {
+         return json(400, { error: 'The backup archive ' + parsed.file + ' could not be opened with the passphrase given: either it is not the passphrase this archive was written with, or the archive is damaged.' });
+      }
+      state.backup.log.push('2026-09-14 11:05:00 Restore started');
+      return json(202, { started: true, encrypted: true, contains: { settings: false, domains: true, messages: true } });
    }
 
    if (path === '/api/v1/ipranges' && method === 'GET') { return json(200, state.ranges); }
@@ -3732,6 +3762,91 @@ async function main() {
    await flush();
    check('Re-read status reads it again and shows the manager\'s last failure', called(before, 'GET', '/api/v1/backup').length === 1 && content().textContent.indexOf('The destination directory could not be written.') >= 0);
    state.backup.status = '';
+
+   // ---- the passphrase, and the restore that is the only one a Linux server has
+   check('the passphrase is a password box, the flag beside it is not drawn, and what losing it costs is said',
+      document.getElementById('set_backup_encryption_passphrase') !== null &&
+      document.getElementById('set_backup_encryption_passphrase').type === 'password' &&
+      document.getElementById('set_backup_encryption_passphrase_set') === null &&
+      content().textContent.indexOf('can be recovered, by anybody') >= 0);
+   check('and Stop encrypting is offered only once one is set', $$('[data-act="backupclearpass"]').length === 0);
+
+   setValue('set_backup_encryption_passphrase', 'correct horse battery staple');
+   before = requests.length;
+   click(act('setsave', { group: 'backup' }));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/settings/backup');
+   check('saving sends the passphrase that was typed, and nothing else', JSON.stringify(put) === '{"encryption_passphrase":"correct horse battery staple"}', JSON.stringify(put));
+
+   SETTING_GROUPS['/api/v1/settings/backup'].values.encryption_passphrase_set = true;
+   click(act('backupstatus'));
+   await flush();
+   check('once one is set, Stop encrypting appears', act('backupclearpass') !== null);
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('backupclearpass'));
+   await flush();
+   check('and asks before it clears anything', called(before, 'PUT', '/api/v1/settings/backup').length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('still need their passphrase') >= 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('backupclearpass'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/settings/backup');
+   check('a yes clears it with an empty passphrase', JSON.stringify(put) === '{"encryption_passphrase":""}', JSON.stringify(put));
+   SETTING_GROUPS['/api/v1/settings/backup'].values.encryption_passphrase_set = false;
+   click(act('backupstatus'));
+   await flush();
+
+   check('the restore form is drawn from the route\'s own schema', document.getElementById('restore_file') !== null &&
+      document.getElementById('restore_passphrase').type === 'password' && document.getElementById('restore_restore_domains') !== null);
+
+   before = requests.length;
+   click(act('backuprestore'));
+   await flush();
+   check('a restore with no archive named is refused by the page, without a request',
+      document.getElementById('err_backuprestore').textContent.indexOf('path of the archive') >= 0 &&
+      called(before, 'POST', '/api/v1/backup/restore').length === 0);
+
+   setValue('restore_file', '/var/backups/hmailserver/HMBackup 2026-09-15 020000.7z');
+   before = requests.length;
+   click(act('backuprestore'));
+   await flush();
+   check('nor with nothing chosen to restore', document.getElementById('err_backuprestore').textContent.indexOf('Choose what to restore') >= 0 &&
+      called(before, 'POST', '/api/v1/backup/restore').length === 0);
+
+   setChecked('restore_restore_domains', true);
+   setChecked('restore_restore_messages', true);
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('backuprestore'));
+   await flush();
+   check('a restore that is not confirmed sends nothing', called(before, 'POST', '/api/v1/backup/restore').length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('is replaced') >= 0);
+
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('backuprestore'));
+   await flush();
+   check('an encrypted archive with no passphrase shows the server\'s own sentence',
+      document.getElementById('err_backuprestore').textContent.indexOf('is encrypted, and no passphrase was given') >= 0);
+
+   setValue('restore_passphrase', 'not the passphrase');
+   before = requests.length;
+   click(act('backuprestore'));
+   await flush();
+   check('and a wrong one shows the server\'s sentence for that',
+      document.getElementById('err_backuprestore').textContent.indexOf('could not be opened with the passphrase given') >= 0);
+
+   setValue('restore_passphrase', 'correct horse battery staple');
+   before = requests.length;
+   click(act('backuprestore'));
+   await flush();
+   const restoreSent = lastBody(before, 'POST', '/api/v1/backup/restore');
+   check('and with it, the restore is sent as the route takes it', JSON.stringify(restoreSent) ===
+      '{"file":"/var/backups/hmailserver/HMBackup 2026-09-15 020000.7z","passphrase":"correct horse battery staple","restore_settings":false,"restore_domains":true,"restore_messages":true}',
+      JSON.stringify(restoreSent));
+   check('the page says so and reads the view again', toastText() === 'Restore started' && called(before, 'GET', '/api/v1/backup').length === 1, toastText());
 
    // ---- the server messages
    before = requests.length;

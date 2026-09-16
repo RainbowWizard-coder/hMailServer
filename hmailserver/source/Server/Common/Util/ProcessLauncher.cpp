@@ -141,25 +141,46 @@ namespace HM
    ProcessLauncher::ProcessLauncher(const String &commandLine, const String &workingDirectory) :
       command_line_(commandLine),
       working_directory_(workingDirectory),
-      error_log_timeout_(0)
+      error_log_timeout_(0),
+      maximum_run_time_(0)
    {
+      redirect_standard_input_ = false;
    }
 
    ProcessLauncher::ProcessLauncher(const String &commandLine) :
       command_line_(commandLine),
-      error_log_timeout_(0)
+      error_log_timeout_(0),
+      maximum_run_time_(0)
    {
       working_directory_ = IniFileSettings::Instance()->GetTempDirectory();
+      redirect_standard_input_ = false;
+   }
+
+   void
+   ProcessLauncher::SetStandardInput(const AnsiString &input)
+   {
+      redirect_standard_input_ = true;
+      standard_input_ = input;
    }
 
    ProcessLauncher::~ProcessLauncher(void)
    {
+      // The backstop for the wipe in Launch: a launcher that was given a standard
+      // input and never launched - a command line that was refused, an exception
+      // on the way - still had a secret in it.
+      Utilities::SecureWipe(standard_input_);
    }
 
    void
    ProcessLauncher::SetErrorLogTimeout(unsigned int milliseconds)
    {
       error_log_timeout_ = milliseconds;
+   }
+
+   void
+   ProcessLauncher::SetMaximumRunTime(unsigned int milliseconds)
+   {
+      maximum_run_time_ = milliseconds;
    }
 
    bool
@@ -209,10 +230,94 @@ namespace HM
 
       const AnsiString workingDirectory = AnsiString(working_directory_);
 
+      // The standard input, when the caller gave one: a pipe whose whole content
+      // is written, and whose writing end is closed, BEFORE the fork. Written
+      // first so that no write can meet a child that has already exited - which
+      // is a SIGPIPE, not an error code - and small enough (SetStandardInput) to
+      // fit in the pipe without a reader. O_CLOEXEC on both ends, so that a
+      // process another thread starts at the same moment inherits neither; the
+      // child gets its copy through dup2, which clears the flag on the copy.
+      //
+      // Standard output and error are deliberately left as this process's, which
+      // is where they went before this class could redirect anything: under
+      // systemd that is the journal, and the child's own account of a failure -
+      // an unsupported switch, a full disk, a refused path - is the only
+      // explanation anybody gets beyond an exit code. See SetStandardInput.
+      int inputPipe[2] = { -1, -1 };
+
+      if (redirect_standard_input_)
+      {
+         if (standard_input_.GetLength() > MaximumStandardInput)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6920, "ProcessLauncher::Launch",
+               "An external process was not started: the standard input it was to be given is larger than the launcher passes to a process.");
+
+            failureReason = FailureReason::StartFailed;
+            return false;
+         }
+
+         if (::pipe2(inputPipe, O_CLOEXEC) != 0)
+         {
+            const int pipeError = errno;
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6920, "ProcessLauncher::Launch",
+               Formatter::Format("An external process was not started: the pipe for its standard input could not be created. Error code: {0}", pipeError));
+
+            failureReason = FailureReason::StartFailed;
+            return false;
+         }
+
+         const char *remaining = standard_input_.c_str();
+         size_t left = (size_t) standard_input_.GetLength();
+         bool wroteAll = true;
+
+         while (left > 0)
+         {
+            const ssize_t written = ::write(inputPipe[1], remaining, left);
+
+            if (written < 0)
+            {
+               if (errno == EINTR)
+                  continue;
+
+               wroteAll = false;
+               break;
+            }
+
+            remaining += written;
+            left -= (size_t) written;
+         }
+
+         ::close(inputPipe[1]);
+         inputPipe[1] = -1;
+
+         // The bytes are in the pipe and nothing here reads them again, so the
+         // copy in this object goes now rather than when the launcher is
+         // destroyed - which for a backup archive is however long 7-Zip takes.
+         // What it holds is the backup passphrase, three times over; see the
+         // header, and Utilities::SecureWipe for what wiping does and does not
+         // claim.
+         Utilities::SecureWipe(standard_input_);
+
+         if (!wroteAll)
+         {
+            const int inputError = errno;
+            ::close(inputPipe[0]);
+
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6920, "ProcessLauncher::Launch",
+               Formatter::Format("An external process was not started: its standard input could not be prepared. Error code: {0}", inputError));
+
+            failureReason = FailureReason::StartFailed;
+            return false;
+         }
+      }
+
       int failurePipe[2] = { -1, -1 };
 
       if (::pipe(failurePipe) != 0)
       {
+         if (inputPipe[0] >= 0)
+            ::close(inputPipe[0]);
+
          String errorMessage = Formatter::Format("There was an error launching external process {0}. Process start failed. Error code: {1}", command_line_, (int) GetLastError());
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5401, "ProcessLauncher::Launch", errorMessage);
 
@@ -233,6 +338,9 @@ namespace HM
          ::close(failurePipe[0]);
          ::close(failurePipe[1]);
 
+         if (inputPipe[0] >= 0)
+            ::close(inputPipe[0]);
+
          String errorMessage = Formatter::Format("There was an error launching external process {0}. Process start failed. Error code: {1}", command_line_, forkError);
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5401, "ProcessLauncher::Launch", errorMessage);
 
@@ -249,6 +357,9 @@ namespace HM
          // takes a lock or reports an error through the server's own machinery -
          // it writes a number down the pipe and stops.
          ::close(failurePipe[0]);
+
+         if (inputPipe[0] >= 0)
+            ::dup2(inputPipe[0], 0);
 
          if (!workingDirectory.empty() && ::chdir(workingDirectory.c_str()) != 0)
          {
@@ -267,6 +378,10 @@ namespace HM
       }
 
       ::close(failurePipe[1]);
+
+      // The child has its copy; this was only ever for it.
+      if (inputPipe[0] >= 0)
+         ::close(inputPipe[0]);
 
       int childError = 0;
       ssize_t errorBytes = 0;
@@ -315,6 +430,20 @@ namespace HM
             (INFINITE - 1) : ((DWORD) processTimeoutSeconds * 1000);
       }
 
+      // And then the caller's own ceiling, when it set one. See SetMaximumRunTime:
+      // it is a fact about the calling thread rather than about the process, so it
+      // applies whatever ExternalProcessTimeout says - including when that is zero
+      // and means "no bound". The tighter of the two wins, and callerBound says
+      // which one the termination message should name.
+      bool callerBound = false;
+
+      if (maximum_run_time_ > 0 && (remainingTimeout == INFINITE || maximum_run_time_ < remainingTimeout))
+      {
+         remainingTimeout = maximum_run_time_;
+         processTimeoutSeconds = (int) (maximum_run_time_ / 1000);
+         callerBound = true;
+      }
+
       int status = 0;
       bool exited = false;
 
@@ -353,7 +482,8 @@ namespace HM
          // rather than SIGTERM for the same reason TerminateProcess is used on
          // Windows: this process has already been given the whole configured
          // timeout and has not finished, so asking it politely is one more wait.
-         String errorMessage = Formatter::Format("A launched process did not exit within the maximum allowed time and has been terminated. The command line is {0}. The maximum time is {1} seconds, configured using ExternalProcessTimeout in hMailServer.ini.", command_line_, processTimeoutSeconds);
+         String errorMessage = Formatter::Format("A launched process did not exit within the maximum allowed time and has been terminated. The command line is {0}. The maximum time is {1} seconds, {2}.", command_line_, processTimeoutSeconds,
+            callerBound ? String("the limit set by the operation that started it") : String("configured using ExternalProcessTimeout in hMailServer.ini"));
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5416, "ProcessLauncher::Launch", errorMessage);
 
          ::kill(child, SIGKILL);
@@ -383,10 +513,15 @@ namespace HM
 
       return true;
 #else
-      STARTUPINFO si;
+      // STARTUPINFOEX, so that a process given a standard input can also be given
+      // an explicit list of the handles it inherits. Without redirection it is
+      // used exactly as the plain STARTUPINFO was: the extended part stays zero
+      // and the flag that says it is there is not set.
+      STARTUPINFOEX siex;
+      STARTUPINFO &si = siex.StartupInfo;
       PROCESS_INFORMATION pi;
 
-      ZeroMemory( &si, sizeof(si) );
+      ZeroMemory( &siex, sizeof(siex) );
       si.cb = sizeof(si);
 
       si.dwFlags = STARTF_USESHOWWINDOW;
@@ -395,21 +530,146 @@ namespace HM
       ZeroMemory( &pi, sizeof(pi) );
 
       DWORD creationFlags = 0;
+      BOOL inheritHandles = FALSE;
+
+      // The standard input, when the caller gave one. The whole of it is written
+      // into an anonymous pipe and the writing end closed BEFORE the process
+      // exists, so the child reads those bytes and then the end of the input, and
+      // nothing in this process can wait on a child that never reads.
+      //
+      // Inheriting handles is what STARTF_USESTDHANDLES needs, and on its own it
+      // would hand the child every inheritable handle this server has open - so
+      // PROC_THREAD_ATTRIBUTE_HANDLE_LIST narrows that to exactly the two handles
+      // it is meant to have.
+      HANDLE inputRead = NULL;
+      HANDLE nullOutput = INVALID_HANDLE_VALUE;
+      HANDLE inheritList[2] = { NULL, NULL };
+      std::vector<BYTE> attributeBuffer;
+      LPPROC_THREAD_ATTRIBUTE_LIST attributeList = NULL;
+
+      if (redirect_standard_input_)
+      {
+         String inputFailure;
+
+         if (standard_input_.GetLength() > MaximumStandardInput)
+            inputFailure = "the standard input it was to be given is larger than the launcher passes to a process.";
+
+         SECURITY_ATTRIBUTES inheritable;
+         inheritable.nLength = sizeof(inheritable);
+         inheritable.bInheritHandle = TRUE;
+         inheritable.lpSecurityDescriptor = NULL;
+
+         HANDLE inputWrite = NULL;
+
+         if (inputFailure.IsEmpty() && !CreatePipe(&inputRead, &inputWrite, &inheritable, 65536))
+         {
+            inputRead = NULL;
+            inputWrite = NULL;
+            inputFailure = Formatter::Format("the pipe for its standard input could not be created. Windows error code: {0}", (int) GetLastError());
+         }
+
+         if (inputWrite)
+         {
+            // The writing end is this process's alone.
+            SetHandleInformation(inputWrite, HANDLE_FLAG_INHERIT, 0);
+
+            DWORD length = (DWORD) standard_input_.GetLength();
+            DWORD written = 0;
+
+            if (length > 0 && (!WriteFile(inputWrite, standard_input_.c_str(), length, &written, NULL) || written != length))
+               inputFailure = Formatter::Format("its standard input could not be written. Windows error code: {0}", (int) GetLastError());
+
+            CloseHandle(inputWrite);
+
+            // The bytes are in the pipe and nothing here reads them again, so the
+            // copy in this object goes now rather than when the launcher is
+            // destroyed - which for a backup archive is however long 7-Zip takes.
+            // What it holds is the backup passphrase, three times over; see the
+            // header, and Utilities::SecureWipe for what wiping does and does not
+            // claim.
+            Utilities::SecureWipe(standard_input_);
+         }
+
+         if (inputFailure.IsEmpty())
+         {
+            nullOutput = CreateFile(_T("NUL"), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &inheritable, OPEN_EXISTING, 0, NULL);
+            if (nullOutput == INVALID_HANDLE_VALUE)
+               inputFailure = Formatter::Format("the null device could not be opened for its output. Windows error code: {0}", (int) GetLastError());
+         }
+
+         if (inputFailure.IsEmpty())
+         {
+            SIZE_T attributeSize = 0;
+            InitializeProcThreadAttributeList(NULL, 1, 0, &attributeSize);
+            attributeBuffer.resize(attributeSize > 0 ? attributeSize : 1);
+            attributeList = (LPPROC_THREAD_ATTRIBUTE_LIST) &attributeBuffer[0];
+
+            inheritList[0] = inputRead;
+            inheritList[1] = nullOutput;
+
+            if (!InitializeProcThreadAttributeList(attributeList, 1, 0, &attributeSize))
+            {
+               attributeList = NULL;
+               inputFailure = Formatter::Format("the list of handles it may inherit could not be made. Windows error code: {0}", (int) GetLastError());
+            }
+            else if (!UpdateProcThreadAttribute(attributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, inheritList, sizeof(inheritList), NULL, NULL))
+            {
+               inputFailure = Formatter::Format("the list of handles it may inherit could not be made. Windows error code: {0}", (int) GetLastError());
+            }
+         }
+
+         if (!inputFailure.IsEmpty())
+         {
+            if (attributeList)
+               DeleteProcThreadAttributeList(attributeList);
+            if (inputRead)
+               CloseHandle(inputRead);
+            if (nullOutput != INVALID_HANDLE_VALUE)
+               CloseHandle(nullOutput);
+
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6920, "ProcessLauncher::Launch",
+               "An external process was not started: " + inputFailure);
+
+            failureReason = FailureReason::StartFailed;
+            return false;
+         }
+
+         siex.lpAttributeList = attributeList;
+         si.cb = sizeof(siex);
+         si.dwFlags |= STARTF_USESTDHANDLES;
+         si.hStdInput = inputRead;
+         si.hStdOutput = nullOutput;
+         si.hStdError = nullOutput;
+
+         inheritHandles = TRUE;
+         creationFlags |= EXTENDED_STARTUPINFO_PRESENT;
+      }
 
       // Start the child process. 
-      if ( !CreateProcess( NULL,    // No module name (use command line). 
+      BOOL started = CreateProcess( NULL,    // No module name (use command line). 
          command_line_.GetBuffer(0), // Command line. 
          NULL,                      // Process handle not inheritable. 
          NULL,                      // Thread handle not inheritable. 
-         FALSE,                     // Set handle inheritance to FALSE. 
-         creationFlags,                         // No creation flags. 
+         inheritHandles,            // Only the standard handles above, when there are any. 
+         creationFlags,             // EXTENDED_STARTUPINFO_PRESENT with them, none without. 
          NULL,                      // Use parent's environment block. 
          working_directory_.GetBuffer(0),        // Use parent's starting directory. 
-         &si,                       // Pointer to STARTUPINFO structure.
-         &pi )                      // Pointer to PROCESS_INFORMATION structure.
-         ) 
+         &si,                       // The STARTUPINFO, or the STARTUPINFOEX that begins with it.
+         &pi );                     // Pointer to PROCESS_INFORMATION structure.
+
+      DWORD startError = GetLastError();
+
+      // The child has its own copies of these now, or there is no child.
+      if (redirect_standard_input_)
       {
-         String errorMessage = Formatter::Format("There was an error launching external process {0}. Process start failed. Windows error code: {1}", command_line_, (int) GetLastError());
+         DeleteProcThreadAttributeList(attributeList);
+         CloseHandle(inputRead);
+         CloseHandle(nullOutput);
+      }
+
+      if (!started)
+      {
+         String errorMessage = Formatter::Format("There was an error launching external process {0}. Process start failed. Windows error code: {1}", command_line_, (int) startError);
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5401, "ProcessLauncher::Launch", errorMessage); 
          
          failureReason = FailureReason::StartFailed;
@@ -421,12 +681,14 @@ namespace HM
 
       // A value of zero means the administrator has asked for an unbounded wait.
       //
-      // The bound applies only to callers that set an error-log timeout, which is
+      // This bound applies only to callers that set an error-log timeout, which is
       // how the virus scanners mark themselves as running on a thread something
       // else is waiting behind. Compression deliberately does not: it is used to
       // build the backup archive, where 7za legitimately runs for far longer than
       // any per-message bound on a large message store, and killing it would
-      // truncate the archive.
+      // truncate the archive. Where an archiver runs on a thread that has to be
+      // given back - the REST restore's check, on an HTTP worker - the caller sets
+      // a ceiling of its own instead, below.
       int processTimeoutSeconds = error_log_timeout_ > 0
          ? IniFileSettings::Instance()->GetExternalProcessTimeout()
          : 0;
@@ -441,6 +703,20 @@ namespace HM
 
          remainingTimeout = ((DWORD) processTimeoutSeconds >= maxTimeoutSeconds) ?
             (INFINITE - 1) : ((DWORD) processTimeoutSeconds * 1000);
+      }
+
+      // The caller's own ceiling, when it set one. See SetMaximumRunTime: it is a
+      // fact about the calling thread rather than about the process, so it applies
+      // whatever ExternalProcessTimeout says - including when that is zero and
+      // means "no bound". The tighter of the two wins, and callerBound says which
+      // one the termination message should name.
+      bool callerBound = false;
+
+      if (maximum_run_time_ > 0 && (remainingTimeout == INFINITE || maximum_run_time_ < remainingTimeout))
+      {
+         remainingTimeout = maximum_run_time_;
+         processTimeoutSeconds = (int) (maximum_run_time_ / 1000);
+         callerBound = true;
       }
 
       DWORD waitResult = 0;
@@ -495,7 +771,8 @@ namespace HM
 
             // Holding the calling thread for the lifetime of a hung child costs a
             // delivery thread permanently, so the child is killed instead.
-            String errorMessage = Formatter::Format("A launched process did not exit within the maximum allowed time and has been terminated. The command line is {0}. The maximum time is {1} seconds, configured using ExternalProcessTimeout in hMailServer.ini.", command_line_, processTimeoutSeconds);
+            String errorMessage = Formatter::Format("A launched process did not exit within the maximum allowed time and has been terminated. The command line is {0}. The maximum time is {1} seconds, {2}.", command_line_, processTimeoutSeconds,
+               callerBound ? String("the limit set by the operation that started it") : String("configured using ExternalProcessTimeout in hMailServer.ini"));
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5416, "ProcessLauncher::Launch", errorMessage);
 
             TerminateProcess(pi.hProcess, TerminatedProcessExitCode);

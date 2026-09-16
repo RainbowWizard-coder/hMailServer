@@ -35,6 +35,28 @@ namespace HM
 
       bool IsValidIPAddress(const AnsiString string);
 
+      // Overwrites a string's characters and then empties it, for a string that
+      // held a secret.
+      //
+      // Empty() alone sets the length to zero and leaves the characters where
+      // they were, in a buffer that is then freed - and this build writes
+      // minidumps on a crash by design, so "freed" is not "gone". The backup
+      // passphrase is the reason this exists: it is write-only at every
+      // interface, which means the one read nobody plans for is a process dump,
+      // and the passphrase opens every archive this server has ever written.
+      //
+      // SecureZeroMemory (explicit_bzero on POSIX) rather than memset, because a
+      // compiler is entitled to delete a memset over storage nothing reads
+      // afterwards, which is exactly this case.
+      //
+      // What it does NOT claim: that the secret is gone from the process. A
+      // std::wstring that has been copied has been copied, and this reaches only
+      // the buffer it is given. It is worth doing where a copy is long-lived or
+      // is one of several - see ProcessLauncher::Launch, which holds three copies
+      // of the passphrase in the bytes it gives 7-Zip.
+      static void SecureWipe(String &value);
+      static void SecureWipe(AnsiString &value);
+
    private:
 
       

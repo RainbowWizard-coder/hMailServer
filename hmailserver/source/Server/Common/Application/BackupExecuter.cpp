@@ -391,6 +391,95 @@ namespace HM
       return true;
    }
 
+   static String
+   ArchiverEncryptionHint_(bool encrypting)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // What to add to a failure that happened while writing an ENCRYPTED archive.
+   // The archiver is the system's on Linux and whichever of four names was found
+   // on the path (Compression::GetExecutableFullPath_), and one of them - 7zr,
+   // p7zip's reduced build - has no encryption in it at all and fails every such
+   // run with an unhelpful exit code. Naming it costs one sentence and saves an
+   // administrator the afternoon it would otherwise take.
+   //---------------------------------------------------------------------------()
+   {
+      if (!encrypting)
+         return String();
+
+      return " This archive was to be encrypted, and not every archiver can encrypt: 7zr, the reduced p7zip build, cannot, and fails here. Install 7-Zip (7zz) or p7zip-full, or clear the backup passphrase.";
+   }
+
+   class StagingDirectoryGuard
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Removes the directory an encrypted backup stages its PLAINTEXT in, on every
+   // way out of StartBackup - the success, the twenty-odd refusals, and the
+   // exception that is not supposed to be able to get out of a work-queue task.
+   //
+   // It exists because of where that directory is. An unencrypted backup stages
+   // in the destination and its own code deletes it; an encrypted one cannot,
+   // because the destination is a share or a cloud mount somebody chose on the
+   // understanding that what lands there is unreadable - see StartBackup. So the
+   // staging moves to the temp directory, and a copy of every mailbox on the
+   // server left lying about in the temp directory because a backup failed on its
+   // way past is not a better outcome than the one that was being avoided. This
+   // makes the deletion the compiler's job rather than a reviewer's.
+   //---------------------------------------------------------------------------()
+   {
+   public:
+
+      StagingDirectoryGuard()
+      {
+      }
+
+      ~StagingDirectoryGuard()
+      {
+         Remove();
+      }
+
+      void Hold(const String &directory)
+      {
+         directory_ = directory;
+      }
+
+      void Remove()
+      {
+         if (directory_.IsEmpty())
+            return;
+
+         String directory = directory_;
+         directory_.Empty();
+
+         if (!FileUtilities::Exists(directory))
+            return;
+
+         // No exception may leave here: this runs from a destructor, and one that
+         // escapes a work-queue task terminates the service. DeleteDirectory is
+         // error_code-based throughout, and the catch is the backstop for that
+         // being true rather than a substitute for it.
+         try
+         {
+            if (FileUtilities::DeleteDirectory(directory, true))
+               return;
+         }
+         catch (...)
+         {
+         }
+
+         // Said in the backup log rather than swallowed: it names a directory
+         // that has a readable copy of the message store in it, and nothing else
+         // is going to mention it.
+         Logger::Instance()->LogBackup("The staging directory " + directory + " could not be removed. It holds an unencrypted copy of the message files this backup was working on - delete it by hand.");
+      }
+
+   private:
+
+      StagingDirectoryGuard(const StagingDirectoryGuard &);
+      StagingDirectoryGuard &operator=(const StagingDirectoryGuard &);
+
+      String directory_;
+   };
+
    static void
    DiscardIncompleteArchive_(const String &sZipFile, bool existedBeforeThisRun)
    //---------------------------------------------------------------------------()
@@ -435,13 +524,18 @@ namespace HM
    BackupExecuter::BackupExecuter() :
       backup_mode_(0),
       staged_files_(0),
-      staged_bytes_(0)
+      staged_bytes_(0),
+      encrypt_(false)
    {
    }
 
    BackupExecuter::~BackupExecuter(void)
    {
-
+      // The passphrase this run was given, overwritten rather than left in the
+      // freed block: a backup of a real message store runs for hours, and a
+      // minidump taken in that window is the one read nobody plans for. See
+      // Utilities::SecureWipe for what that does and does not claim.
+      Utilities::SecureWipe(passphrase_);
    }
 
    void
@@ -452,6 +546,9 @@ namespace HM
          destination_ = destination_.Left(destination_.GetLength() - 1);
 
       backup_mode_ = Configuration::Instance()->GetBackupOptions();
+
+      encrypt_ = Configuration::Instance()->GetBackupEncryptionPassphraseSet();
+      passphrase_ = Configuration::Instance()->GetBackupEncryptionPassphrase();
    }
 
    bool
@@ -479,6 +576,95 @@ namespace HM
          Application::Instance()->GetBackupManager()->OnBackupFailed("The specified backup directory is not accessible: " + destination_);
          return false;
       }
+
+      // THE THREE WAYS ENCRYPTION IS ASKED FOR AND CANNOT BE DELIVERED. All three
+      // refuse before anything is written, because the alternative in each case is
+      // an archive of every mailbox on the server written in a way somebody would
+      // not have chosen: in the clear, to a folder picked on the understanding
+      // that it would not be, or under a passphrase nobody has been told about.
+      if (encrypt_ && passphrase_.IsEmpty())
+      {
+         Application::Instance()->GetBackupManager()->OnBackupFailed(
+            "The backup is set to be encrypted, but the stored passphrase could not be read on this machine - a database carried over from another installation, or a secret store that has changed (the error log says which). No archive has been written: an unencrypted copy of every mailbox is not written in place of an encrypted one. Enter the backup passphrase again on this machine, or clear it to take unencrypted backups on purpose.");
+         return false;
+      }
+
+      // The same disagreement the other way round: the integer says no passphrase
+      // is set while the string still holds one. It is reachable, and once it
+      // happens it is permanent - clearing the passphrase is two writes, the flag
+      // first and the value second (Configuration::SetBackupEncryptionPassphrase),
+      // so a clear interrupted between them leaves exactly this and PropertySet
+      // reloads it at every start.
+      //
+      // It has to refuse rather than carry on, because what actually encrypts an
+      // archive is the passphrase and not the flag: Compression::Encryption-
+      // Switches_ adds -p -mhe=on whenever it is given a passphrase. So this run
+      // would write a fully encrypted archive while the line logged below said it
+      // was writing a plain one, and VerifyArchive_ would not catch the
+      // contradiction because its read-back check asks the flag as well. That is
+      // an archive nobody can open, recorded as one anybody can, produced on the
+      // day somebody decided the passphrase was no longer needed and may have
+      // thrown it away. Setting the passphrase again or clearing it again makes
+      // the two agree, and either is one write.
+      if (!encrypt_ && !passphrase_.IsEmpty())
+      {
+         Application::Instance()->GetBackupManager()->OnBackupFailed(
+            "The backup settings disagree about encryption: this server has no passphrase recorded as set, and a stored passphrase is still there - which is what a clear that was interrupted half way leaves behind. No archive has been written, because the archive that would have been written is encrypted with a passphrase this server has been told nobody is using. Set the backup passphrase again, or clear it again; either one makes the two agree.");
+         return false;
+      }
+
+      if (encrypt_ && (backup_mode_ & Backup::BOMessages) && !(backup_mode_ & Backup::BOCompression) && !bMessagesDBOnly)
+      {
+         Application::Instance()->GetBackupManager()->OnBackupFailed(
+            "The backup is set to be encrypted, but 'compress destination files' is off, which copies every message file into a DataBackup folder beside the archive instead of putting them inside it - and files beside the archive are not encrypted by anything. No archive has been written. Switch compression on to encrypt the messages too, or clear the backup passphrase.");
+         return false;
+      }
+
+      // The fourth: the plaintext has nowhere to go. An encrypted run stages the
+      // message files in the temp directory instead of in the destination (see
+      // where the staging directory is made, below), so the temp volume has to be
+      // able to hold the message store for as long as it takes 7-Zip to read it.
+      // Measured and refused here, before the copy starts, because the alternative
+      // is discovering it an hour in, out of space, with most of a plaintext copy
+      // of the store written and the backup failed anyway.
+      if (encrypt_ && (backup_mode_ & Backup::BODomains) && (backup_mode_ & Backup::BOMessages) && !bMessagesDBOnly)
+      {
+         String temporaryDirectory = IniFileSettings::Instance()->GetTempDirectory();
+
+         unsigned int storeFiles = 0;
+         unsigned __int64 storeBytes = 0;
+         String measureDetail;
+
+         if (!MeasureTree_(boost::filesystem::path(IniFileSettings::Instance()->GetDataDirectory().c_str()), storeFiles, storeBytes, 0, measureDetail))
+         {
+            // Not a refusal. The copy below reads the same tree and reports a real
+            // failure with the file that caused it, and refusing a backup because
+            // a directory could not be listed for a space estimate would be a
+            // backup lost to the estimate rather than to the problem.
+            Logger::Instance()->LogBackup("The message store could not be measured before staging, so the free space in the temp directory was not checked. Details: " + measureDetail);
+         }
+         else
+         {
+            boost::system::error_code spaceError;
+            boost::filesystem::space_info tempSpace = boost::filesystem::space(boost::filesystem::path(temporaryDirectory.c_str()), spaceError);
+
+            const unsigned __int64 margin = 64ull * 1024 * 1024;
+
+            if (!spaceError && tempSpace.available < storeBytes + margin)
+            {
+               Application::Instance()->GetBackupManager()->OnBackupFailed(Formatter::Format(
+                  "The backup is encrypted, so the message files are staged in the temp directory {0} rather than in the destination - the destination is where the encrypted archive goes, and a plaintext copy of every mailbox written there first would defeat the encryption for as long as it sat there. Staging needs {1} byte(s) and that directory has {2} byte(s) free, so nothing has been written. Free space there, point TempDirectory at a disk with room, or clear the backup passphrase to stage in the destination as an unencrypted backup does.",
+                  temporaryDirectory, storeBytes + margin, (unsigned __int64) tempSpace.available));
+
+               return false;
+            }
+         }
+      }
+
+      if (encrypt_)
+         Logger::Instance()->LogBackup("This archive will be encrypted: 7-Zip AES-256, with the file names encrypted as well, so that nothing in it - not even what it contains - can be read without the backup passphrase.");
+      else
+         Logger::Instance()->LogBackup("This archive will not be encrypted: no backup passphrase is set.");
 
       // Refuse, before writing anything, if the parts of the backup that come out
       // of the database cannot come out of the database.
@@ -541,11 +727,62 @@ namespace HM
       // somebody's backup.
       bool zipExistedBeforeThisRun = FileUtilities::Exists(sZipFile);
 
-      String sXMLFile = destination_ + FileUtilities::PathSeparator + _T("hMailServerBackup.xml");
+      // WHERE THE PLAINTEXT SITS WHILE THE ARCHIVE IS BEING WRITTEN, and why an
+      // encrypted backup cannot leave it in the destination.
+      //
+      // Both of the things that go into the archive are written to a file first.
+      // The index carries every domain, account and alias, and the server's own
+      // stored secrets with them; the message files are copied whole into a
+      // DataBackup folder, because 7-Zip is given a directory to archive. Both
+      // used to be written into the destination, archived from there and deleted -
+      // which for an unencrypted backup is unremarkable, since the archive beside
+      // them is readable too.
+      //
+      // For an encrypted one it is the hole the encryption exists to close. The
+      // destination is whatever an administrator typed: often a share, sometimes a
+      // cloud mount whose sync client uploads a file as it appears. A plaintext
+      // copy of every mailbox on the server, sitting there for the minutes or
+      // hours the compression takes, is the same exposure as an unencrypted
+      // backup - and on a failure it stays there.
+      //
+      // So an encrypted run stages in a directory of its own under TempDirectory,
+      // which is local and is already where the verified restore extracts to.
+      //
+      // The archive is unchanged by the move, which was measured rather than
+      // assumed: given an ABSOLUTE path, 7-Zip names members from the last
+      // component onwards and nothing before it. "7za a a.7z <abs>\DataBackup\ -r"
+      // stores DataBackup\one.txt and DataBackup\sub\two.txt wherever the parent
+      // is, and "7za a a.7z <abs>\hMailServerBackup.xml" stores the bare name -
+      // checked with the bundled 7za 19.00 against both paths. (Given a RELATIVE
+      // path it stores the path as given, which is why this is about absolute
+      // paths: both of these are, as the destination has always been.)
+      //
+      // The guard removes the directory on every exit path; the free space it
+      // needs was checked above.
+      String stagingRoot = destination_;
+      StagingDirectoryGuard stagingGuard;
+
+      if (encrypt_)
+      {
+         String encryptedStagingDirectory = Utilities::GetUniqueTempDirectory();
+
+         if (!FileUtilities::CreateDirectory(encryptedStagingDirectory))
+         {
+            Application::Instance()->GetBackupManager()->OnBackupFailed(
+               "The backup is encrypted and the directory it stages the message files and the index in, " + encryptedStagingDirectory + ", could not be created. Nothing has been written. The staging directory is under TempDirectory rather than in the destination, because what is staged is in the clear.");
+
+            return false;
+         }
+
+         stagingGuard.Hold(encryptedStagingDirectory);
+         stagingRoot = encryptedStagingDirectory;
+      }
+
+      String sXMLFile = stagingRoot + FileUtilities::PathSeparator + _T("hMailServerBackup.xml");
 
       // The name of the backup directory that
       // contains all the data files.
-      String sDataBackupDir = destination_ + FileUtilities::PathSeparator + "DataBackup";
+      String sDataBackupDir = stagingRoot + FileUtilities::PathSeparator + "DataBackup";
 
       // Backup all properties.
       XDoc oDoc;
@@ -664,7 +901,7 @@ namespace HM
       // an archive that could not be written must fail the backup, not be reported
       // as complete and then have the only other copy removed.
       Compression oComp;
-      bool xmlCompressed = oComp.AddFile(sZipFile, sXMLFile);
+      bool xmlCompressed = oComp.AddFile(sZipFile, sXMLFile, passphrase_);
 
       // Delete the XML file
       FileUtilities::DeleteFile(sXMLFile);
@@ -673,7 +910,7 @@ namespace HM
       {
          DiscardIncompleteArchive_(sZipFile, zipExistedBeforeThisRun);
 
-         Application::Instance()->GetBackupManager()->OnBackupFailed("Could not add the backup settings to the archive. The backup is incomplete.");
+         Application::Instance()->GetBackupManager()->OnBackupFailed("Could not add the backup settings to the archive. The backup is incomplete." + ArchiverEncryptionHint_(encrypt_));
          return false;
       }
 
@@ -689,11 +926,20 @@ namespace HM
          // successful backup.
          if (backup_mode_ & Backup::BOMessages)
          {
-            if (!oComp.AddDirectory(sZipFile, sDataBackupDir + FileUtilities::PathSeparator))
+            if (!oComp.AddDirectory(sZipFile, sDataBackupDir + FileUtilities::PathSeparator, passphrase_))
             {
                DiscardIncompleteArchive_(sZipFile, zipExistedBeforeThisRun);
 
-               Application::Instance()->GetBackupManager()->OnBackupFailed("Could not add the message files to the archive. The backup is incomplete; the staged message files have been left in " + sDataBackupDir + ".");
+               // An unencrypted run leaves the staged copy where it is and says
+               // where: it is in the destination, it is the same mail that is
+               // already there in the clear, and it is worth keeping while
+               // somebody works out what went wrong. An encrypted one cannot -
+               // the staged copy is plaintext and the guard removes it - so it
+               // says that instead, rather than naming a directory that will not
+               // be there.
+               Application::Instance()->GetBackupManager()->OnBackupFailed(encrypt_
+                  ? String("Could not add the message files to the archive. The backup is incomplete. The staged copy of the message files has been removed: this backup is encrypted, so it was staged in the clear under the temp directory and is not left lying about." + ArchiverEncryptionHint_(true))
+                  : String("Could not add the message files to the archive. The backup is incomplete; the staged message files have been left in " + sDataBackupDir + "."));
                return false;
             }
          }
@@ -706,7 +952,14 @@ namespace HM
             // left alone: this failure is about tidying up the staging folder, and
             // deleting a good archive because we could not delete a temporary
             // directory would be a far worse outcome than the untidy destination.
-            Application::Instance()->GetBackupManager()->OnBackupFailed("Could not delete files from the destination directory.");
+            //
+            // Which directory it is depends on the run, and it matters enough to
+            // say: an encrypted backup staged in the clear under the temp
+            // directory, and a staged copy that could not be deleted there is a
+            // readable copy of the mail the archive beside it is protecting.
+            Application::Instance()->GetBackupManager()->OnBackupFailed(encrypt_
+               ? String("The archive was written, but the staged copy of the message files in " + sDataBackupDir + " could not be deleted. That copy is not encrypted - this backup staged it under the temp directory so that it would never be written to the destination - so delete it by hand.")
+               : String("Could not delete files from the destination directory."));
             return false;
          }
        }
@@ -871,13 +1124,30 @@ namespace HM
       // than a private check of its own. A verification that passes where a restore
       // would fail is worth nothing, and the only way to keep the two honest is for
       // them to be one function.
-      if (!BackupRestorer::ReadArchiveIndex(sZipFile, archiveContents, archiveVersion, failureReason))
+      if (!BackupRestorer::ReadArchiveIndex(sZipFile, passphrase_, archiveContents, archiveVersion, failureReason))
       {
          Application::Instance()->GetBackupManager()->OnBackupFailed(
             "The backup was written but could not be read back afterwards, so it is not a usable backup. " + failureReason);
 
          return false;
       }
+
+      // Read back from the archive's own header rather than believed of the
+      // switches that were set. An archiver that took -mhe=on and did nothing with
+      // it, or a run that somehow added to an archive left from an unencrypted
+      // one, would otherwise pass every other check in this file and leave a
+      // readable copy of every mailbox in the destination, reported as a
+      // successful encrypted backup.
+      if (encrypt_ && Compression::GetArchiveEncryption(sZipFile) != Compression::EncryptionHeaders)
+      {
+         Application::Instance()->GetBackupManager()->OnBackupFailed(
+            "The backup was to be encrypted, but the archive reads back with its file names in the clear, so it is not encrypted. It is not the backup that was asked for and has been removed." + ArchiverEncryptionHint_(true));
+
+         return false;
+      }
+
+      if (encrypt_)
+         Logger::Instance()->LogBackup("The archive is encrypted: its contents cannot be listed, and nothing in it can be read, without the backup passphrase.");
 
       if (archiveContents != backup_mode_)
       {
@@ -945,6 +1215,13 @@ namespace HM
       std::shared_ptr<Backup> probe = std::shared_ptr<Backup>(new Backup);
       probe->SetBackupFile(sZipFile);
       probe->SetRestoreOptions(Backup::BODomains | Backup::BOMessages);
+
+      // The verification extracts the archive through the same code a restore
+      // uses, so on an encrypted archive it needs the passphrase exactly as a
+      // restore does. Which also makes this the check that the archive can be
+      // opened with the passphrase the server holds - not merely with one it used
+      // a moment ago.
+      probe->SetPassphrase(passphrase_);
 
       // The restorer removes the scratch directory when it goes out of scope. The
       // same Prepare a restore runs: the version check, the subset checks and the

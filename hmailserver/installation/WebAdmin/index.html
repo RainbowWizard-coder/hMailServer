@@ -1086,6 +1086,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="msgsave")saveMessage(d.name,Number(d.i));
   else if(d.act==="backupstart")startBackup();
   else if(d.act==="backupstatus")render();
+  else if(d.act==="backuprestore")startRestore();
+  else if(d.act==="backupclearpass")clearBackupPassphrase();
   else if(d.act==="add")addAccount(d.domain);
   else if(d.act==="del")delAccount(d.address,d.domain);
   else if(d.act==="retry")retryMsg(d.id);
@@ -3808,13 +3810,25 @@ async function deleteCollectionItem(collId,id,label){
    view - the form is the schema of PUT /api/v1/settings/backup, Save sends
    what changed and reads the group back - beside the backup manager's status
    and the tail of its log from GET /api/v1/backup, and the button that starts
-   a backup with those settings. The desktop page's other halves, the schedule
-   and a restore, are not on the API: the schedule is four keys of
-   hMailServer.ini, and the note says so. */
+   a backup with those settings. Since the archive can be encrypted, the group
+   also carries the passphrase (write-only: the form draws it as a password box
+   and sends it only when it is filled in) and a read-only flag saying whether
+   one is set. Emptying that box therefore changes nothing, and its hint is the
+   same "left unchanged unless filled" as every other password box on this page
+   rather than an invitation to clear it that way: Stop encrypting - which asks
+   first - is the only thing that clears it, because a passphrase dropped by a
+   form that was saved with an empty box is every future archive written in the
+   clear on the strength of a keystroke nobody meant.
+
+   The restore below is the other half, and on Linux it is the only one there
+   is: this page and the REST route are how a server with no Control Panel gets
+   its mail back. The schedule is still four keys of hMailServer.ini, and the
+   note says so. */
 async function renderBackup(){
   await loadSpec();
   const props=properties("/api/v1/settings/backup","put");
   const values=await api("/api/v1/settings/backup");
+  const restoreProps=properties("/api/v1/backup/restore","post");
   settingsState.backup={path:"/api/v1/settings/backup",props:props,values:values};
   let status=null,statusError="";
   try{status=await api("/api/v1/backup");}catch(e){if(e.message==="auth")throw e;statusError=e.message;}
@@ -3823,14 +3837,25 @@ async function renderBackup(){
     <div class="sect"><h2>${t("Backup")} <code class="muted">PUT /api/v1/settings/backup</code></h2>
       <div class="card flat">
         <p class="note">${escHtml(operation("/api/v1/settings/backup","put").description||"")}</p>
-        <div class="form">${formHtml("set_backup",props,values,{})}</div>
+        <div class="form">${formHtml("set_backup",props,values,{passwordHint:t("left unchanged unless filled")})}</div>
         <div class="row" style="margin-top:18px">
           <button class="btn" data-act="setsave" data-group="backup">${t("Save backup settings")}</button>
           <button class="btn ghost" data-act="backupstart">${t("Start backup now")}</button>
+          ${values.encryption_passphrase_set?`<button class="btn ghost" data-act="backupclearpass">${t("Stop encrypting")}</button>`:""}
           <div class="err" id="err_set_backup"></div>
           <div class="err" id="err_backupstart"></div>
         </div>
-        <p class="note" style="margin-top:12px">${escHtml(operation("/api/v1/backup","post").summary||"")}. ${escHtml(operation("/api/v1/backup","post").description||"")} ${t("The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays) and a restore is not on the API; both are the desktop Control Panel's.")}</p>
+        <p class="note" style="margin-top:12px">${t("An encrypted archive is encrypted as it is written, file names included, and the passphrase is kept nowhere but in this server's own settings - never in the archive and never beside it. A restore asks for it. If it is lost, nothing in an archive written with it can be recovered, by anybody.")}</p>
+        <p class="note" style="margin-top:12px">${escHtml(operation("/api/v1/backup","post").summary||"")}. ${escHtml(operation("/api/v1/backup","post").description||"")} ${t("The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.")}</p>
+      </div></div>
+    <div class="sect"><h2>${t("Restore")} <code class="muted">POST /api/v1/backup/restore</code></h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/backup/restore","post").description||"")}</p>
+        <div class="form">${formHtml("restore",restoreProps,{},{required:requiredOf("/api/v1/backup/restore","post"),passwordHint:t("only for an encrypted archive")})}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn danger" data-act="backuprestore">${t("Start restore")}</button>
+          <div class="err" id="err_backuprestore"></div>
+        </div>
       </div></div>
     <div class="sect"><h2>${t("Status")} <code class="muted">GET /api/v1/backup</code></h2>
       <div class="card flat">
@@ -3844,6 +3869,30 @@ async function startBackup(){
   setErr("err_backupstart","");
   try{await api("/api/v1/backup",{method:"POST"});toast(t("Backup started"));await render();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_backupstart",e.message);}
+}
+/* The two refusals this page makes itself - no archive named, nothing chosen -
+   are the ones that would otherwise cost a round trip to be told the same
+   thing. Everything else is the server's own sentence, shown as it is: an
+   encrypted archive with no passphrase, a wrong passphrase, a part the archive
+   does not hold. */
+async function startRestore(){
+  setErr("err_backuprestore","");
+  let body;
+  try{body=readForm("restore",properties("/api/v1/backup/restore","post"),{});}
+  catch(e){setErr("err_backuprestore",e.message);return;}
+  if(!body.file){setErr("err_backuprestore",t("Give the path of the archive on the server."));return;}
+  if(!body.restore_settings&&!body.restore_domains&&!body.restore_messages){
+    setErr("err_backuprestore",t("Choose what to restore: the settings, the domains, or the messages with them."));return;}
+  if(!confirm(t("Restore this archive over what is on this server now? Everything it restores is replaced."))) return;
+  try{await api("/api/v1/backup/restore",{method:"POST",body:JSON.stringify(body)});toast(t("Restore started"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_backuprestore",e.message);}
+}
+async function clearBackupPassphrase(){
+  setErr("err_set_backup","");
+  if(!confirm(t("Stop encrypting the backup? The archives already written stay encrypted and still need their passphrase."))) return;
+  try{await api("/api/v1/settings/backup",{method:"PUT",body:JSON.stringify({encryption_passphrase:""})});
+    toast(t("Backups from now on are not encrypted"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_set_backup",e.message);}
 }
 
 /* ---------- Server messages ----------

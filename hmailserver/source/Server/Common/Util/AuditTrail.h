@@ -41,11 +41,17 @@
 //             Called where each change is made - POST
 //             /api/v1/accounts/{address}/unlock and Application.UnlockAccount,
 //             Account.UnlockMailbox, and POST /api/v1/settings/logon-failures/clear
-//             and Settings.ClearLogonFailureList.
+//             and Settings.ClearLogonFailureList. And a restore asked for:
+//             Backup.StartRestore and POST /api/v1/backup/restore, each on the
+//             thread that knows who asked.
 //
-// A RESTORE IS NOT RECORDED. It runs on the maintenance work queue, which no
-// actor is ever installed on, so none of the places above writes a row
-// for anything a restore changes. docs/AlertsAndAuditTrail.md says so.
+// WHAT A RESTORE RECORDS. The request, and not what it replaces. The work runs
+// on the maintenance work queue, which no actor is ever installed on, so every
+// delete and insert it makes reaches the statement chokepoint with nobody to
+// attribute it to and none of the places above writes a row for it. So the two
+// callers write one row each for the request itself - who asked, which archive,
+// which parts - before the queue takes it, and that is the half that says whose
+// decision this was. docs/AlertsAndAuditTrail.md says which half is which.
 //
 // Nothing else may call Record*: build/check-audit-choke-point.py fails the
 // build if it does, and fails it if any of those call sites goes away.

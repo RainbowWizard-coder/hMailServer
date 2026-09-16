@@ -78,6 +78,7 @@ public:
    STDMETHOD(SearchArchive)(/*[in]*/ BSTR Domain, /*[in]*/ BSTR Mailbox, /*[in]*/ BSTR Sender, /*[in]*/ BSTR Recipient, /*[in]*/ BSTR Subject, /*[in]*/ BSTR Since, /*[in]*/ BSTR Until, /*[in]*/ VARIANT_BOOL HoldOnly, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(SetArchiveHold)(/*[in]*/ long ArchiveID, /*[in]*/ VARIANT_BOOL Hold, /*[out, retval]*/ VARIANT_BOOL *Found);
    STDMETHOD(RunDkimRotation)(/*[in]*/ long SecondsAhead, /*[out, retval]*/ BSTR *Summary);
+   STDMETHOD(BackupArchiveIsEncrypted)(/*[in]*/ BSTR File, /*[out, retval]*/ VARIANT_BOOL *Encrypted);
    // Spam traps: what has addressed one, and the clearing of that record.
    STDMETHOD(GetSpamTrapHits)(/*[in]*/ BSTR Domain, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(ClearSpamTrapHits)(/*[in]*/ BSTR Domain, /*[out, retval]*/ long *Removed);

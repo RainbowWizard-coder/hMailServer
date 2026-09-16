@@ -929,6 +929,8 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('ba
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('backupdestination', '', 0);
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('backupencryptionpassphrase', '', 0);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('defaultdomain', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('avmaxmsgsize', '', 0);
@@ -1782,4 +1784,4 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6058);
+insert into hm_dbversion values (6059);

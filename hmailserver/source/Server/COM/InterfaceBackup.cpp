@@ -7,14 +7,15 @@
 #include "InterfaceBackup.h"
 
 #include "../Common/Application/BackupManager.h"
+#include "../Common/Util/AuditTrail.h"
 
-void 
+void
 InterfaceBackup::Attach(std::shared_ptr<HM::Backup> pBackup)
 {
    backup_ = pBackup;
 }
 
-STDMETHODIMP 
+STDMETHODIMP
 InterfaceBackup::StartRestore()
 {
    try
@@ -22,9 +23,30 @@ InterfaceBackup::StartRestore()
       if (!backup_)
          return GetAccessDenied();
 
+      // Asked here, and not only because an object nobody but a server
+      // administrator can obtain is being used for the most destructive thing in
+      // this interface. Asking is what installs the actor on this thread
+      // (COMAuthentication::InstallActor_), and the row below has to say who made
+      // the request: a COM pool thread keeps the last caller's actor, so without
+      // the question this would be attributed to whoever used the thread before.
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
       // Start a restore of this backup.
-      HM::Application::Instance()->GetBackupManager()->StartRestore(backup_);
-      
+      const bool started = HM::Application::Instance()->GetBackupManager()->StartRestore(backup_);
+
+      // The request, recorded here because nothing the restore itself does can be:
+      // it runs on the maintenance work queue, where no actor is installed, so
+      // every delete and insert it makes reaches the statement chokepoint with
+      // nobody to attribute it to. Recorded only when it actually started - a
+      // restore refused because one is already running changed nothing, and a
+      // trail that says otherwise is worse than one that is silent.
+      if (started)
+      {
+         HM::AuditTrail::Instance()->RecordEvent(_T("backup"), backup_->GetBackupFile(), _T("restore started"),
+            HM::BackupManager::DescribeRestore(backup_));
+      }
+
       return S_OK;
    }
    catch (...)

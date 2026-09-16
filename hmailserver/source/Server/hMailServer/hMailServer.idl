@@ -1592,6 +1592,7 @@ interface IInterfaceUtilities : IDispatch{
    // first walking a domain's accounts.
    [id(46), helpstring("Renames the mailbox at Address, or moves it to another domain on this server, exactly as Account.MoveTo does - the same operation, reached by address. Returns the same JSON summary. Requires manage-accounts authority in the domain the mailbox is leaving and in the one it is going to.")] HRESULT MoveMailbox([in] BSTR Address, [in] BSTR NewAddress, [in] VARIANT_BOOL KeepOldAddressAsAlias, [out, retval] BSTR *Summary);
    [id(47), helpstring("The journal of mailbox moves as JSON {moves:[...]}, newest first: one entry per rename or move with both addresses, the stage it reached and what it carried. Address names one mailbox (its current address); an empty Address is every mailbox on the server and requires server administrator rights. MaxRows 1 to 1000, 100 by default.")] HRESULT GetMailboxMoves([in] BSTR Address, [in] long MaxRows, [out, retval] BSTR *Json);
+   [id(42), helpstring("Whether a backup archive is encrypted: True when its headers - so the names of the files inside it - are encrypted, which is how every encrypted hMailServer backup is written. Read from the archive's own header, so it needs no passphrase and runs nothing. Raises an error when the file does not exist or is not a 7-Zip archive whose header can be read. Server administrators only.")] HRESULT BackupArchiveIsEncrypted([in] BSTR File, [out, retval] VARIANT_BOOL *Encrypted);
 };
 
 [
@@ -2804,6 +2805,7 @@ interface IInterfaceBackupManager : IDispatch
 {
    [id(1), helpstring("Starts a backup.")] HRESULT StartBackup();
    [id(2), helpstring("Loads a backup from a file.")] HRESULT LoadBackup([in] BSTR sXMLFile, [out, retval] IInterfaceBackup ** pVal);
+   [id(3), helpstring("Loads a backup from a file with the passphrase it was encrypted with, to be restored. Fails with the reason - the passphrase is missing, the passphrase is wrong or the archive is damaged, the archive is from a newer version - before anything on this server is touched. An archive that is not encrypted opens here too, with any passphrase or none.")] HRESULT LoadEncryptedBackup([in] BSTR File, [in] BSTR Passphrase, [out, retval] IInterfaceBackup ** pVal);
 
 };
 [
@@ -2828,6 +2830,10 @@ interface IInterfaceBackupSettings : IDispatch{
    [propput, id(5), helpstring("Compress destination files")] HRESULT CompressDestinationFiles([in] VARIANT_BOOL newVal);
 
    [propget, id(7), helpstring("Backup log file")] HRESULT LogFile([out, retval] BSTR *pVal);
+
+   [propput, id(8), helpstring("The passphrase the backup archive is encrypted with: 7-Zip AES-256, with the file names encrypted too, so that an archive without it cannot even be listed. Write-only - it is never read back here or anywhere else, and a restore asks whoever runs it for the passphrase they hold. An empty string clears it and the next backup is written unencrypted. At least 12 and at most 256 printable ASCII characters, not beginning or ending with a space. Kept in the database protected by the machine's secret store, and never written into the archive it protects: if it is lost, nothing in any archive it was used on can be recovered, by anybody.")] HRESULT EncryptionPassphrase([in] BSTR newVal);
+
+   [propget, id(9), helpstring("Whether a backup passphrase is set, and so whether the next backup will be encrypted. The passphrase itself is never returned.")] HRESULT EncryptionPassphraseSet([out, retval] VARIANT_BOOL *pVal);
 
 };
 [

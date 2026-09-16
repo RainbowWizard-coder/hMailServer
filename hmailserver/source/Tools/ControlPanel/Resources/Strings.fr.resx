@@ -488,6 +488,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Une phrase secrète est déjà stockée pour « {0} ». Enregistrer la remplace - l'ancienne ne peut pas être récupérée d'ici. La remplacer ?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>Une phrase secrète est définie : l'archive est chiffrée au moment où elle est écrite, noms de fichiers compris, et une restauration la demande.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>Une phrase secrète est stockée pour ce certificat. Elle n'est jamais affichée ici - en enregistrer une nouvelle la remplace. Que ce soit la BONNE phrase secrète n'est prouvé que lorsque le serveur charge la clé : après le prochain redémarrage, consultez le journal d'erreurs de l'application.</value>
   </data>
@@ -1289,6 +1292,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="At least " xml:space="preserve">
     <value>Au moins</value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Au moins 12 caractères ASCII imprimables. Laissez les deux champs vides pour conserver la phrase secrète déjà définie. Le serveur ne la rend jamais - ni à ce programme ni à personne - conservez-la donc ailleurs qu'à côté des sauvegardes : une restauration la demande, et d'une archive dont la phrase secrète est perdue, personne ne récupère quoi que ce soit.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Au plus une sauvegarde par jour civil, prise à la première vérification à cette heure ou après (heure locale du serveur). Si un intervalle est aussi défini ci-dessous, l'heure quotidienne l'emporte.</value>
@@ -3068,6 +3074,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Activé une fois que « Vérifier » a confirmé que l'enregistrement publié porte la clé publique de cette clé.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>C_hiffrer l'archive avec une phrase secrète (AES-256, noms de fichiers compris)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Chiffré</value>
   </data>
@@ -3079,6 +3088,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Clé chiffrée, pas de phrase secrète</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Chiffrement</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Phrase secrète de chiffreme_nt</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL du moteur (vide = pas de moteur externe)</value>
@@ -3121,6 +3136,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Saisissez l'expiration au format AAAA-MM-JJ HH:MM:SS.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Saisissez la phrase secrète avec laquelle l'archive doit être chiffrée, et retapez-la ci-dessous.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Saisissez le chemin du fichier XML de sauvegarde sur le serveur.</value>
@@ -4966,6 +4984,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Aucun message n'est analysé à la recherche de virus. Le blocage des pièces jointes retire toujours {0}, mais rien n'examine le contenu d'un message.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>Aucune phrase secrète n'est définie : l'archive n'est pas chiffrée, et quiconque atteint le dossier de destination peut lire toutes les boîtes aux lettres qu'elle contient.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Aucune phrase secrète nécessaire</value>
   </data>
@@ -5305,6 +5326,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Seuls les domaines ayant un nom de domaine Active Directory défini sont listés - c'est ce champ qui relie un domaine de messagerie à un annuaire. Faire migrer un domaine à la fois est la façon raisonnable de procéder la première fois.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Uniquement pour une archive écrite avec une phrase secrète. Sans la bonne, l'archive ne s'ouvre pas du tout, et la restauration est refusée avant que quoi que ce soit ne soit touché sur ce serveur.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Nécessaire uniquement pour les algorithmes HS*</value>
   </data>
@@ -5586,6 +5610,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Phrase secrète enregistrée, clé non chiffrée</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Phrase secrète, s_i l'archive est chiffrée</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Mot de passe</value>
@@ -8249,6 +8276,9 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>La vue d'ensemble nomme les configurations qui ne font silencieusement rien - un seuil à zéro, un seuil qu'aucune vérification activée ne peut atteindre, une vérification dont le score est zéro.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>La phrase secrète encore une fois, pour être sûr qu'elle a été tapée _correctement</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Le mot de passe n'a pas pu être vérifié dans les fuites de données publiées pour l'instant, et ce serveur est réglé pour refuser une modification qu'il ne peut pas vérifier. Réessayez plus tard.</value>
   </data>
@@ -8500,6 +8530,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Les deux moitiés échouent différemment et ont des causes différentes. Déterminez laquelle vous avez avant toute chose.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>Les deux phrases secrètes ne sont pas identiques. Rien n'a été enregistré.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>L'assistant de mise à jour a démarré. Ce Control Panel se ferme maintenant pour que l'installateur puisse remplacer ses fichiers ; rouvrez-le dans une minute pour voir le résultat.</value>
@@ -9315,6 +9348,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>Avec un modérateur défini, un expéditeur que les règles ci-dessus refusent est transmis au modérateur au lieu d'être rejeté. Le modérateur approuve en renvoyant le message à la liste depuis une session authentifiée.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>Avec une phrase secrète définie et la compression désactivée, les fichiers de messages sont copiés à côté de l'archive au lieu d'y être placés, où rien ne les chiffre - et la sauvegarde refuse de s'exécuter. Activez la compression, ou effacez la phrase secrète.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>Avec ceci activé, le MAIL FROM d'une session authentifiée doit être l'adresse propre du compte, un alias qui se résout vers lui, ou une autre boîte dont le propriétaire a accordé au compte le droit de dépôt (p) sur sa boîte de réception (INBOX) - c'est ainsi que le « Send-As » d'une boîte partagée s'accorde, depuis l'éditeur d'ACL de n'importe quel client IMAP (SETACL) ou via l'API COM. Tout le reste est refusé avec 550 5.7.1 avant qu'un seul octet du message ne soit accepté, si bien qu'un compte compromis ou négligent ne peut plus envoyer au nom de tous les autres. Désactivé par défaut, parce que rien ne contraignait cela auparavant et qu'une installation peut en dépendre ; l'expéditeur nul est toujours autorisé. Les sessions non authentifiées ne sont pas concernées. S'applique après un redémarrage du service.</value>

@@ -488,6 +488,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Pro '{0}' je již uloženo přístupové heslo. Uložení jej nahradí – staré už odsud nelze obnovit. Nahradit?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>Heslo je nastaveno: archiv se šifruje už při zápisu, včetně názvů souborů, a obnovení si o heslo řekne.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>Pro tento certifikát je uloženo přístupové heslo. Zde se nikdy nezobrazuje – uložením nového se nahradí. Zda jde o SPRÁVNÉ přístupové heslo, se prokáže až při načtení klíče serverem: po příštím restartu zkontrolujte chybový log aplikace.</value>
   </data>
@@ -1289,6 +1292,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="At least " xml:space="preserve">
     <value>Nejméně </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Nejméně 12 tisknutelných znaků ASCII. Necháte-li obě pole prázdná, zůstane zachováno již nastavené heslo. Server ho nikdy nevrátí - ani tomuto programu, ani nikomu jinému - proto je uchovejte jinde než vedle záloh: obnovení si o ně řekne a z archivu, jehož heslo se ztratilo, nelze obnovit nic.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Nejvýše jedna záloha za kalendářní den, pořízená při první kontrole v tento čas nebo po něm (místní čas serveru). Pokud je níže nastaven i interval, vyhrává denní čas.</value>
@@ -3068,6 +3074,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Povoleno, jakmile „Zkontrolovat“ potvrdí, že publikovaný záznam nese veřejný klíč tohoto klíče.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>Šif_rovat archiv heslem (AES-256, včetně názvů souborů)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Šifrováno</value>
   </data>
@@ -3079,6 +3088,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Šifrovaný klíč, bez přístupového hesla</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Šifrování</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Šifrovací hes_lo</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL enginu (prázdné = žádný externí engine)</value>
@@ -3121,6 +3136,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Zadejte heslo, kterým se má archiv šifrovat, a napište je znovu níže.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Zadejte cestu k záložnímu souboru XML na serveru.</value>
@@ -4966,6 +4984,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Žádná zpráva se nekontroluje na viry. Blokování příloh sice stále odstraňuje {0}, ale obsah zpráv nikdo nezkoumá.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>Není nastaveno žádné heslo: archiv není šifrovaný a kdokoli, kdo se dostane k cílové složce, si přečte všechny poštovní schránky v něm.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Přístupové heslo není potřeba</value>
   </data>
@@ -5305,6 +5326,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Uvedeny jsou pouze domény s nastaveným názvem domény Active Directory – právě toto pole spojuje poštovní doménu s adresářem. Převádět domény po jedné je rozumný způsob, jak to udělat napoprvé.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Pouze pro archiv, který byl zapsán s heslem. Bez správného hesla archiv vůbec nelze otevřít a obnovení je odmítnuto dříve, než se na tomto serveru cokoli změní.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Potřebné pouze pro algoritmy HS*</value>
   </data>
@@ -5586,6 +5610,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Přístupové heslo uloženo, klíč není šifrovaný</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Heslo, pokud je archiv ši_frovaný</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Heslo</value>
@@ -8249,6 +8276,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Přehled pojmenovává uspořádání, která potichu nic nedělají - nulový práh, práh, kterého žádná zapnutá kontrola nedosáhne, kontrolu se skóre nula.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>Heslo ještě jednou, pro jistotu, že bylo _napsáno správně</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Heslo se teď nepodařilo ověřit proti zveřejněným únikům dat a tento server je nastaven tak, aby odmítl změnu, kterou nemůže ověřit. Zkuste to později.</value>
   </data>
@@ -8500,6 +8530,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Obě poloviny selhávají jinak a mají jiné příčiny. Než uděláte cokoli jiného, zjistěte, kterou z nich máte.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>Obě hesla nejsou stejná. Nic nebylo uloženo.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Pomocník aktualizace byl spuštěn. Tento Control Panel se nyní zavře, aby instalátor mohl nahradit jeho soubory; za minutu jej znovu otevřete a uvidíte výsledek.</value>
@@ -9315,6 +9348,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>S nastaveným moderátorem je odesílatel, kterého pravidla výše odmítnou, přeposlán moderátorovi místo odmítnutí. Moderátor schválí tím, že zprávu znovu pošle do seznamu z ověřené relace.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>Je-li nastaveno heslo a komprese vypnutá, soubory zpráv se kopírují vedle archivu místo do něj, kde je nic nešifruje - a záloha se odmítne spustit. Zapněte kompresi, nebo heslo vymažte.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>Se zapnutým nastavením musí být MAIL FROM v ověřené relaci vlastní adresa účtu, alias, který se na ni překládá, nebo jiná schránka, jejíž vlastník účtu udělil právo post (p) na svůj INBOX - tak se uděluje Odeslat jako pro sdílenou schránku, z editoru ACL kteréhokoli klienta IMAP (SETACL) nebo přes COM API. Cokoli jiného se odmítne s 550 5.7.1 dřív, než se přijme jediný bajt zprávy, takže jeden kompromitovaný nebo nedbalý účet už nemůže posílat jako všechny ostatní. Ve výchozím stavu vypnuto, protože dřív to nic neomezovalo a instalace na tom může záviset; prázdný odesílatel je vždy povolen. Neověřené relace to neovlivní. Projeví se po restartu služby.</value>

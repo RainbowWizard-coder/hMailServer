@@ -22,6 +22,13 @@ namespace hMailServer.ControlPanel.Views
       // retention settings below live in the same file, for the same reason.
       private readonly IniFeatureStore iniStore_ = new IniFeatureStore();
 
+      // Whether the server says a backup passphrase is set. It is the only thing
+      // about the passphrase that can be read at all - EncryptionPassphrase is
+      // write-only over COM, as it is over REST - so it is what the check box and
+      // the notice are drawn from, and what decides whether an empty box means
+      // "leave it alone" or "there is nothing to leave alone".
+      private bool encryptionPassphraseSet_;
+
       public BackupView()
       {
          InitializeComponent();
@@ -66,7 +73,13 @@ namespace hMailServer.ControlPanel.Views
             CheckMessages.IsChecked = (bool)backup.BackupMessages;
             CheckSettings.IsChecked = (bool)backup.BackupSettings;
             CheckCompress.IsChecked = (bool)backup.CompressDestinationFiles;
+            encryptionPassphraseSet_ = (bool)backup.EncryptionPassphraseSet;
             ServerSession.Release(backup);
+
+            CheckEncrypt.IsChecked = encryptionPassphraseSet_;
+            PassphraseBox.Password = "";
+            PassphraseAgainBox.Password = "";
+            ShowEncryptionState_();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -74,6 +87,19 @@ namespace hMailServer.ControlPanel.Views
          }
 
          RefreshScheduleStatus();
+      }
+
+      /// <summary>
+      ///    Which of the two states the server is in, in the words that matter: a
+      ///    passphrase that is set is a restore that will ask for it, and one that
+      ///    is not is an archive anybody who reaches the folder can read.
+      /// </summary>
+      private void ShowEncryptionState_()
+      {
+         EncryptionNotice.Level = encryptionPassphraseSet_ ? StatusLevel.Good : StatusLevel.Information;
+         EncryptionNotice.Text = encryptionPassphraseSet_
+            ? L("A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase.")
+            : L("No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it.");
       }
 
       /// <summary>What the last action said, at its level, above the cards.</summary>
@@ -88,8 +114,64 @@ namespace hMailServer.ControlPanel.Views
       {
       }
 
+      /// <summary>
+      ///    The passphrase to write, decided before anything is saved: null when
+      ///    there is nothing to change, "" when the administrator has turned
+      ///    encryption off, and the passphrase itself when one was typed. False
+      ///    means the page has already said why it will not save.
+      /// </summary>
+      private bool ReadEncryptionChange_(out string passphrase)
+      {
+         passphrase = null;
+
+         bool encrypt = CheckEncrypt.IsChecked is true;
+         string typed = PassphraseBox.Password ?? "";
+         string again = PassphraseAgainBox.Password ?? "";
+
+         if (!encrypt)
+         {
+            if (encryptionPassphraseSet_)
+               passphrase = "";
+
+            return true;
+         }
+
+         if (typed.Length == 0)
+         {
+            if (encryptionPassphraseSet_)
+               return true;
+
+            MessageBox.Show(L("Enter the passphrase the archive is to be encrypted with, and type it again below."), L("Control Panel"));
+            return false;
+         }
+
+         // A backup passphrase that is not what the person meant to type cannot be
+         // found out later: nothing reads it back, and the archive it writes opens
+         // for nobody. So it is typed twice or it is not accepted.
+         if (typed != again)
+         {
+            MessageBox.Show(L("The two passphrases are not the same. Nothing has been saved."), L("Control Panel"));
+            return false;
+         }
+
+         // The server refuses this combination when the backup runs, which would
+         // be hours later and unattended; refusing it here is the same rule said
+         // in time to act on it.
+         if (CheckMessages.IsChecked is true && CheckCompress.IsChecked is not true)
+         {
+            MessageBox.Show(L("With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase."), L("Control Panel"));
+            return false;
+         }
+
+         passphrase = typed;
+         return true;
+      }
+
       private bool SaveBackupSettings()
       {
+         if (!ReadEncryptionChange_(out string passphrase))
+            return false;
+
          try
          {
             if (iniStore_.IsAvailable)
@@ -107,7 +189,24 @@ namespace hMailServer.ControlPanel.Views
             backup.BackupMessages = CheckMessages.IsChecked is true;
             backup.BackupSettings = CheckSettings.IsChecked is true;
             backup.CompressDestinationFiles = CheckCompress.IsChecked is true;
+
+            // Last, and only when there is something to change: the setter is the
+            // one on this page that can refuse (a passphrase too short, or one
+            // with a character an archive would not survive being moved with), and
+            // its refusal is the server's own sentence.
+            if (passphrase != null)
+            {
+               backup.EncryptionPassphrase = passphrase;
+               encryptionPassphraseSet_ = passphrase.Length > 0;
+            }
+
             ServerSession.Release(backup);
+
+            PassphraseBox.Password = "";
+            PassphraseAgainBox.Password = "";
+            CheckEncrypt.IsChecked = encryptionPassphraseSet_;
+            ShowEncryptionState_();
+
             return true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -183,13 +282,24 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             dynamic manager = ServerSession.Current.Application.BackupManager;
-            dynamic backup = manager.LoadBackup(backupFile);
+
+            // With a passphrase, the archive is opened with it; without one, as
+            // before. Either way the opening is where a wrong passphrase, a
+            // damaged archive or one from a newer hMailServer is refused - with
+            // the server's own sentence, and before anything here is touched.
+            string passphrase = RestorePassphraseBox.Password ?? "";
+            dynamic backup = passphrase.Length > 0
+               ? manager.LoadEncryptedBackup(backupFile, passphrase)
+               : manager.LoadBackup(backupFile);
+
             backup.RestoreDomains = RestoreDomains.IsChecked is true;
             backup.RestoreMessages = RestoreMessages.IsChecked is true;
             backup.RestoreSettings = RestoreSettings.IsChecked is true;
             backup.StartRestore();
             ServerSession.Release(backup);
             ServerSession.Release(manager);
+
+            RestorePassphraseBox.Password = "";
             ShowNotice_(StatusLevel.Good, L("Restore started - runs in the background on the server."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))

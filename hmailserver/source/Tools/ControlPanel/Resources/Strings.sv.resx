@@ -488,6 +488,9 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>En lösenfras är redan sparad för '{0}'. Att spara ersätter den - den gamla kan inte återfås härifrån. Ersätt den?</value>
   </data>
+  <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
+    <value>En lösenfras är satt: arkivet krypteras när det skrivs, filnamnen inräknade, och en återställning frågar efter lösenfrasen.</value>
+  </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>En lösenfras är sparad för det här certifikatet. Den visas aldrig här - att spara en ny ersätter den. Om det är RÄTT lösenfras bevisas först när servern läser in nyckeln: kontrollera programmets fellogg efter nästa omstart.</value>
   </data>
@@ -1289,6 +1292,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="At least " xml:space="preserve">
     <value>Minst </value>
+  </data>
+  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Minst 12 skrivbara ASCII-tecken. Lämna båda fälten tomma för att behålla lösenfrasen som redan är satt. Servern lämnar aldrig tillbaka den - varken till det här programmet eller till någon annan - så förvara den någon annanstans än bredvid säkerhetskopiorna: en återställning frågar efter den, och ur ett arkiv vars lösenfras är borta får ingen ut någonting.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Högst en säkerhetskopiering per kalenderdag, tagen vid den första kontrollen vid eller efter den här tiden (serverns lokala tid). Om ett intervall också anges nedan vinner den dagliga tiden.</value>
@@ -3068,6 +3074,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Aktiveras när "Kontrollera" har bekräftat att den publicerade posten bär den här nyckelns publika nyckel.</value>
   </data>
+  <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
+    <value>K_ryptera arkivet med en lösenfras (AES-256, filnamnen inräknade)</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Krypterad</value>
   </data>
@@ -3079,6 +3088,12 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
     <value>Krypterad nyckel, ingen lösenfras</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Kryptering</value>
+  </data>
+  <data name="Encryption _passphrase" xml:space="preserve">
+    <value>Lösenfras för kr_yptering</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motorns URL (tomt = ingen extern motor)</value>
@@ -3121,6 +3136,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Ange utgången som YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
+    <value>Ange lösenfrasen som arkivet ska krypteras med, och skriv den igen nedan.</value>
   </data>
   <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
     <value>Ange sökvägen till säkerhetskopians XML-fil på servern.</value>
@@ -4966,6 +4984,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Inget meddelande skannas efter virus. Bilageblockering tar fortfarande bort {0}, men inget undersöker innehållet i ett meddelande.</value>
   </data>
+  <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
+    <value>Ingen lösenfras är satt: arkivet är inte krypterat, och var och en som når målmappen kan läsa varenda brevlåda i det.</value>
+  </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Ingen lösenfras behövs</value>
   </data>
@@ -5305,6 +5326,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Bara domäner med ett Active Directory-domännamn satt listas - det fältet är vad som kopplar en e-postdomän till en katalog. Att ta över en domän i taget är det förnuftiga sättet att göra detta första gången.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
+    <value>Endast för ett arkiv som skrivits med en lösenfras. Utan rätt lösenfras går arkivet inte att öppna alls, och återställningen avvisas innan något på den här servern rörs.</value>
+  </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Behövs bara för HS*-algoritmer</value>
   </data>
@@ -5586,6 +5610,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
     <value>Lösenfras sparad, nyckeln inte krypterad</value>
+  </data>
+  <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
+    <value>Lösenfras, om arkivet är kry_pterat</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Lösenord</value>
@@ -8249,6 +8276,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Översikten namnger de arrangemang som tyst gör ingenting - en nolltröskel, en tröskel ingen aktiverad kontroll kan nå, en kontroll som ger noll poäng.</value>
   </data>
+  <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
+    <value>Lösenfrasen en gång till, för att vara säker på att den skrevs rä_tt</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Lösenordet kunde inte kontrolleras mot publicerade dataläckor just nu, och den här servern är inställd på att avvisa en ändring den inte kan kontrollera. Försök igen senare.</value>
   </data>
@@ -8500,6 +8530,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De två halvorna misslyckas olika och har olika orsaker. Ta reda på vilken du har före allt annat.</value>
+  </data>
+  <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
+    <value>De två lösenfraserna är inte lika. Ingenting har sparats.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Uppdateringshjälpen har startat. Den här Kontrollpanelen stängs nu så att installationsprogrammet kan ersätta dess filer; öppna den igen om en minut för att se resultatet.</value>
@@ -9315,6 +9348,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>Med en moderator satt vidarebefordras en avsändare reglerna ovan avvisar till moderatorn i stället för att avvisas. Moderatorn godkänner genom att skicka om meddelandet till listan från en autentiserad session.</value>
+  </data>
+  <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
+    <value>Med en lösenfras satt och komprimering avstängd kopieras meddelandefilerna bredvid arkivet i stället för in i det, där ingenting krypterar dem - och säkerhetskopieringen vägrar att köra. Slå på komprimering, eller töm lösenfrasen.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
     <value>Med detta på måste MAIL FROM i en autentiserad session vara kontots egen adress, ett alias som leder till den, eller en annan brevlåda vars ägare har gett kontot rättigheten post (p) på sin INBOX - vilket är så Send-As för en delad brevlåda tilldelas, från valfri IMAP-klients ACL-redigerare (SETACL) eller över COM API:et. Allt annat avvisas med 550 5.7.1 innan en byte av meddelandet godtas, så ett komprometterat eller slarvigt konto kan inte längre skicka som alla andra. Av som standard eftersom inget begränsade detta förut och en installation kan vara beroende av det; nollavsändaren tillåts alltid. Oautentiserade sessioner påverkas inte. Gäller efter en omstart av tjänsten.</value>

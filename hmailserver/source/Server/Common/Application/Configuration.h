@@ -250,6 +250,36 @@ namespace HM
       int GetBackupOptions() const;
       void SetBackupOption(Backup::BackupOptions iMode, bool bSet);
 
+      // THE BACKUP PASSPHRASE
+      //
+      // The archive holds every mailbox on the server and is written wherever an
+      // administrator pointed it - often a share, sometimes a cloud mount - so it
+      // can be encrypted, and this is the passphrase it is encrypted with. It is
+      // kept the way the route and relayer passwords are kept (Crypt::ProtectSecret:
+      // a DPAPI envelope on Windows where ProtectStoredSecretsWithDPAPI applies, the
+      // key file on Linux) and is never read back over COM or REST, never logged,
+      // never put on a command line, and never written into the archive it protects.
+      //
+      // Reading it and asking whether one is set are two questions, not one. A
+      // stored secret that this machine cannot open - a database carried from
+      // another machine, a key file that has gone - reads back as an empty string,
+      // and the difference between "no passphrase, write in the clear" and "there is
+      // a passphrase and it cannot be opened" is the difference between a backup and
+      // a data breach. So the integer records that one was set, the string holds it,
+      // and BackupExecuter refuses to write anything when they disagree.
+      String GetBackupEncryptionPassphrase() const;
+      bool GetBackupEncryptionPassphraseSet() const;
+
+      // False with the reason - the sentence to show the administrator - when the
+      // passphrase is refused or could not be protected for storage; nothing is
+      // changed then. An empty passphrase clears it, and the next backup is written
+      // unencrypted.
+      bool SetBackupEncryptionPassphrase(const String &passphrase, String &failureReason);
+
+      // Empty when the passphrase is one this server will store, otherwise the
+      // reason it will not. Static: the REST layer asks before it applies anything.
+      static String CheckBackupEncryptionPassphrase(const String &passphrase);
+
       int GetRequiredDBVersion() { return REQUIRED_DB_VERSION; }
 
       String GetHostName() const;

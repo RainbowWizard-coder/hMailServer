@@ -231,4 +231,48 @@ InterfaceBackupSettings::put_CompressDestinationFiles(VARIANT_BOOL newVal)
    }
 }
 
+STDMETHODIMP
+InterfaceBackupSettings::put_EncryptionPassphrase(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      // The refusal is the server's own sentence, so that the Control Panel, the
+      // Deck and a script all say the same thing about a passphrase that is too
+      // short or carries a character an archive would not survive a change of
+      // machine with.
+      HM::String failureReason;
+
+      if (!config_->SetBackupEncryptionPassphrase(newVal, failureReason))
+         return COMError::GenerateError(failureReason);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP
+InterfaceBackupSettings::get_EncryptionPassphraseSet(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetBackupEncryptionPassphraseSet() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 

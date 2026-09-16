@@ -21,11 +21,15 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               change recorded twice, or recorded in a place that does not know
               what the change was. ::RecordEvent, for a change that is neither a
               row nor a setting, is called only where such a change is made -
-              the five ways a lockout is lifted: an account unlocked over REST
+              the five ways a lockout is lifted (an account unlocked over REST
               and over COM, a POP3 mailbox lock cleared over COM, and the
-              logon-failure list cleared over REST and over COM - and the two
-              ways an administrator stops Web Push on every device of an
-              account, whose rows are the person's own and not audited - and by
+              logon-failure list cleared over REST and over COM); the two ways
+              a restore is asked for (Backup.StartRestore over COM and POST
+              /api/v1/backup/restore), where what is recorded is the request,
+              because the restore itself runs on the maintenance work queue
+              with no actor on it; the two ways an administrator stops Web
+              Push on every device of an account, whose rows are the person's
+              own and not audited; and by
               MailboxMove, which is the other shape: a change that IS rows, so
               many of them and so plainly one act that recording each would
               bury it. It writes them with no actor on the thread and records
@@ -120,7 +124,8 @@ ALLOWED = {
       "Common/Application/IniSettingStore.cpp",     # the hm_inisettings chokepoint
    },
    # A change that writes no audited row and no setting: a lockout lifted, in
-   # each of the ways one can be. Each file here makes one.
+   # each of the ways one can be, and a restore asked for. Each file here makes
+   # one.
    "RecordEvent(": {
       "Common/Util/AuditTrail.cpp",
       "Common/Util/AuditTrail.h",
@@ -129,6 +134,8 @@ ALLOWED = {
       "COM/InterfaceApplication.cpp",               # Application.UnlockAccount
       "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox, Account.RemovePushSubscriptions
       "Common/Util/RestApiPush.cpp",                # DELETE /api/v1/accounts/{address}/push
+      "COM/InterfaceBackup.cpp",                    # Backup.StartRestore
+      "Common/Util/RestApiServer.cpp",              # POST /api/v1/backup/restore
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
@@ -205,6 +212,15 @@ REQUIRED = [
    ("Common/Util/RestApiServer.cpp",
     "AuditScope auditScope(AuditActorFor_(caller));",
     "REST no longer says who is making a change"),
+   ("Common/Util/RestApiServer.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("backup"), file, _T("restore started"),',
+    "a restore started over REST is no longer recorded - the restore itself runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),
+   ("COM/InterfaceBackup.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("backup"), backup_->GetBackupFile(), _T("restore started"),',
+    "a restore started over COM is no longer recorded - the restore itself runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),
+   ("COM/InterfaceBackup.cpp",
+    "if (!GetIsServerAdmin())",
+    "Backup.StartRestore no longer asks the question that installs the actor, so the row it writes is attributed to whoever used that COM pool thread last"),
    ("COM/COMAuthentication.cpp",
     "AuditTrail::SetActor(GetAuditActor());",
     "COM no longer says who is making a change"),
@@ -220,10 +236,12 @@ INI_STORE_RECORDS = ("IniSettingStore::WriteSetting", "IniSettingStore::RemoveSe
 # Writes of hm_inisettings that must NOT call the recorder, because no actor is
 # ever on the thread they run on and a call there records nothing while reading
 # as though it did. XMLLoad is a restore, run as a BackupTask on the maintenance
-# work queue; docs/AlertsAndAuditTrail.md says a restore is not recorded, and a
-# RecordChange_ put back here would make that page look wrong without making the
-# trail any more complete. Recording a restore is a decision - one row for the
-# restore, or one per value - that starts by carrying the actor to that thread.
+# work queue; a RecordChange_ put back here would write rows attributed to
+# nobody without making the trail any more complete. What a restore records is
+# the REQUEST, written by the caller on the thread that knows who made it - see
+# the two entries in REQUIRED above - and recording what the restore then
+# CHANGES is still a decision that starts by carrying the actor to that thread.
+# docs/AlertsAndAuditTrail.md says which half is which.
 INI_STORE_CANNOT_RECORD = ("IniSettingStore::XMLLoad",)
 
 # A COM method, by its signature.

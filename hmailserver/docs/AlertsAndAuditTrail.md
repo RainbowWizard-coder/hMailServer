@@ -501,16 +501,23 @@ What this does not do
   neither has the start-up pass that reconciles `hMailServer.ini` with
   `hm_inisettings` or a `[SettingsOverride]` section edited into the file. The
   override announces itself in the error log at every start instead.
-* **A restore is not recorded.** Neither the fact of it nor anything it
-  replaces: the settings, the `[Settings]` keys, the domains and everything
-  under them. `Backup.StartRestore` hands the restore to the maintenance work
-  queue, and the actor that says who made a change lives on the thread that
+* **A restore is recorded as a request, and not as what it replaces.** One row
+  is written the moment a restore is asked for — object type `backup`, the
+  archive's path, action `restore started`, and a detail naming which parts are
+  being put back and whether the archive is an encrypted one — by whoever asked,
+  over COM (`Backup.StartRestore`) or over REST
+  (`POST /api/v1/backup/restore`, which since it deletes every domain, account
+  and public folder it is replacing is the most destructive thing in the API).
+  Nothing the restore then does is recorded: the settings, the `[Settings]`
+  keys, the domains and everything under them are replaced on the maintenance
+  work queue, and the actor that says who made a change lives on the thread that
   asked the authorisation question, so the thread that does the restoring has
   nobody on it and the recorder writes nothing — the same filter that keeps
-  delivery out of the trail. Recording a restore needs a decision first: one
-  row saying who restored which backup, or a row for every value it replaced,
-  which for a large server is thousands. The check fails if a record call is
-  put back into `IniSettingStore::XMLLoad` without that decision.
+  delivery out of the trail. Recording *that* half needs a decision first: a row
+  for every value it replaced, which for a large server is thousands, or a
+  summary the restore composes as it goes. The check fails if a record call is
+  put back into `IniSettingStore::XMLLoad` without that decision, because a call
+  there would write rows attributed to nobody.
 * **Creating or revoking a REST API key is not recorded.** The keys are kept in
   their own store file beside `hMailServer.ini`, not in a table, and neither
   `POST /api/v1/apikeys` nor `DELETE /api/v1/apikeys/{id}` reaches a recorder.
