@@ -112,7 +112,9 @@ def named_constant(name):
     if _constants is None:
         _constants = {}
         enumerator = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(-?\d+|0[xX][0-9a-fA-F]+)\s*,?\s*$", re.M)
-        text_constant = re.compile(r"(?:const\s+(?:wchar_t|TCHAR)\s*\*(?:\s*const)?)\s*"
+        # const wchar_t *, const TCHAR * and const char * alike: an AnsiString
+        # default (ReputationWatch::DefaultLists) is as much a constant as a wide one.
+        text_constant = re.compile(r"(?:const\s+(?:wchar_t|TCHAR|char)\s*\*(?:\s*const)?)\s*"
                                    r"[A-Za-z_][A-Za-z0-9_]*::([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"
                                    r"(?:_T|L)?\(?\s*\"((?:[^\"\\]|\\.)*)\"\s*\)?\s*;")
         for path in server_sources():
@@ -141,6 +143,10 @@ def resolve(text):
             _, number = resolve(part.strip())
             total |= number
         return "", total
+    # String(Class::NAME) is the same constant wrapped for the String overload.
+    wrapped = re.match(r"^(?:String|AnsiString)\((.*)\)$", text)
+    if wrapped:
+        return resolve(wrapped.group(1))
     qualified = QUALIFIED.match(text)
     if qualified:
         value = named_constant(qualified.group(1))

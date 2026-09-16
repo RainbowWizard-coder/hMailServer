@@ -397,9 +397,9 @@ namespace HM
          // installed for this request. InterfaceAccount::RemovePushSubscriptions
          // records the same.
          AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("push-subscriptions-removed"),
-            Formatter::Format(_T("Web Push notifications were stopped on all {0} device(s)"), removed));
+            Formatter::Format(_T("Web Push notifications were stopped on all {0} device(s)"), (int) removed));
 
-         LOG_APPLICATION("RestApi: Web Push notifications were stopped on all " + StringParser::IntToString(removed) +
+         LOG_APPLICATION("RestApi: Web Push notifications were stopped on all " + StringParser::IntToString((int) removed) +
                          " device(s) of " + account->GetAddress() + " by " + String(caller.identity) + ".");
       }
 

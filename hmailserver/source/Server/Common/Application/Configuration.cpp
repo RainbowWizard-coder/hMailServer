@@ -147,7 +147,7 @@ namespace HM
       // parties daily on the strength of an upgrade. This value therefore only
       // ever applies to a database with no row at all, which is a new one.
       property_set_->EnsureLong(PROPERTY_REPUTATION_WATCH_ENABLED, 1);
-      property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, String(ReputationWatch::DefaultLists));
+      property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, ReputationWatch::DefaultLists);
       property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
 
