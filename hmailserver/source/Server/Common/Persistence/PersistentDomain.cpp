@@ -479,6 +479,8 @@ namespace HM
       pDomain->SetMessageRetentionDays(pRS->GetLongValue("domainmessageretentiondays"));
       pDomain->SetQuarantineDigest(pRS->GetLongValue("domainquarantinedigest") == 1);
       pDomain->SetQuarantineDigestHour(pRS->GetLongValue("domainquarantinedigesthour"));
+      pDomain->SetWebhooksEnabled(pRS->GetLongValue("domainwebhooksenabled") == 1);
+      pDomain->SetWebhookSubjects(pRS->GetLongValue("domainwebhooksubjects") == 1);
 
       pDomain->SetEnableSignature(pRS->GetLongValue("domainenablesignature") ? true : false);
       pDomain->SetSignatureMethod((Domain::DomainSignatureMethod) pRS->GetLongValue("domainsignaturemethod"));
@@ -611,6 +613,8 @@ namespace HM
       oStatement.AddColumn("domainmessageretentiondays", pDomain->GetMessageRetentionDays());
       oStatement.AddColumn("domainquarantinedigest", pDomain->GetQuarantineDigest() ? 1L : 0L);
       oStatement.AddColumn("domainquarantinedigesthour", (long) pDomain->GetQuarantineDigestHour());
+      oStatement.AddColumn("domainwebhooksenabled", pDomain->GetWebhooksEnabled() ? 1 : 0);
+      oStatement.AddColumn("domainwebhooksubjects", pDomain->GetWebhookSubjects() ? 1 : 0);
       oStatement.AddColumn("domainaddomain", pDomain->GetADDomainName());
       oStatement.AddColumn("domainmaxmessagesize", pDomain->GetMaxMessageSize());
       oStatement.AddColumn("domainmaxaccountsize", pDomain->GetMaxAccountSize());

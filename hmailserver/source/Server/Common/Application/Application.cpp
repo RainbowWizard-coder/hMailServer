@@ -82,6 +82,7 @@
 #include "BounceMaintenanceTask.h"
 #include "../Util/DiskSpace.h"
 #include "../Util/AlertManager.h"
+#include "../Util/WebhookManager.h"
 #include "DkimRotationTask.h"
 #include "BackupScheduleTask.h"
 #include "../LDAP/DirectorySyncTask.h"
@@ -868,6 +869,19 @@ namespace HM
       alertTask->SetReoccurance(ScheduledTask::RunInfinitely);
       alertTask->SetMinutesBetweenRun(1);
       scheduler_->ScheduleTask(alertTask);
+
+      // Outbound webhooks, and registered for the same reason: the paths that
+      // notice an event write a row and return, and this is the only thing that
+      // POSTs - so a webhook about a delivery is never sent by the thread doing
+      // the delivering. A minute is the scheduler's finest tick; an administrator
+      // who has just configured an endpoint does not wait for it, because
+      // POST /api/v1/webhooks/run makes the same pass at once. With no
+      // subscription configured - which is every installation until somebody
+      // makes one - each pass is one select that finds nothing.
+      std::shared_ptr<WebhookTask> webhookTask = std::shared_ptr<WebhookTask>(new WebhookTask);
+      webhookTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      webhookTask->SetMinutesBetweenRun(1);
+      scheduler_->ScheduleTask(webhookTask);
 
       // DKIM keys that rotate. Registered unconditionally and twice, like log
       // retention: once at start-up, so a record published while the server was

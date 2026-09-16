@@ -19,6 +19,7 @@
 #include "../Util/GUIDCreator.h"
 #include "../Util/Time.h"
 #include "../Util/Utilities.h"
+#include "../Util/WebhookManager.h"
 #include "../Mime/Mime.h"
 #include <ctime>
 #include "../../SMTP/RecipientParser.h"
@@ -140,6 +141,37 @@ namespace HM
             // swept. Remove it rather than leave litter that grows for ever.
             FileUtilities::DeleteFile(targetFile);
             return false;
+         }
+
+
+         // The outbound webhooks: one event per recipient the held message was for,
+         // since a subscription can be confined to one address and each of those
+         // people has had a message of theirs held. Raised after the row is written,
+         // so nothing is announced that the quarantine does not actually hold. The
+         // subject travels only where the domain and the subscription both allow it;
+         // it is already in hand here, so there is nothing extra to read.
+         for (const String &address : StringParser::SplitString(recipients, _T(",")))
+         {
+            String recipientAddress = address;
+            recipientAddress.Trim();
+
+            if (recipientAddress.IsEmpty())
+               continue;
+
+            WebhookManager::Event event;
+            event.name = WebhookManager::EventMessageQuarantined;
+            event.sender = message->GetFromAddress();
+            event.recipient = recipientAddress;
+            event.queue_id = message->GetID();
+            event.size = FileUtilities::FileSize(targetFile);
+            event.subject = subject;
+            event.reason = reason;
+            event.number = score;
+            event.has_number = true;
+
+            WebhookManager::ScopeToLocalDomain(event.sender, event.recipient, event.domain, event.account);
+
+            WebhookManager::Instance()->Raise(event);
          }
 
          return true;

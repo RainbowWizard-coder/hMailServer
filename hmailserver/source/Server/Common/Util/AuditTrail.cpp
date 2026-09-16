@@ -113,6 +113,12 @@ namespace HM
          // adds are the server's own writes, which have no actor and so are never
          // recorded - the list itself says where each of those came from.
          { L"hm_bouncesuppressions",          L"suppression list entry" },
+         // A webhook subscription: where this server sends what its mail does,
+         // and what it signs with. Changing one is the administrative change
+         // that turns a mail server into a source of somebody else's data, so
+         // it is recorded like the routes are. The secret itself is not: the
+         // column is called whsecret and SecretFragments matches "secret".
+         { L"hm_webhooks",                    L"webhook subscription" },
          // An OpenPGP public key held for an account, which this server may publish
          // to the whole internet from its Web Key Directory. Who put a key under
          // somebody's address, and who took one away, is the question that matters

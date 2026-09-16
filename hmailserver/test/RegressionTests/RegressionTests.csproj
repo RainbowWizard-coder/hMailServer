@@ -749,6 +749,7 @@
     <Compile Include="API\RestApiGroups.cs" />
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
+    <Compile Include="API\RestApiWebhooks.cs" />
     <Compile Include="API\RestApiAccountImport.cs" />
     <Compile Include="API\RestApiBounces.cs" />
     <Compile Include="API\RestApiCompression.cs" />

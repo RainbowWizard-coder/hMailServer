@@ -275,6 +275,9 @@ NOT_AUDITED = {
    "hm_messageindexterms": "the full-text index; traffic.",
    "hm_messageindexstate": "the full-text index's progress; traffic.",
    "hm_messagetrace": "where each message went; traffic.",
+   "hm_webhookqueue": "the outbound webhook delivery queue, written by the paths that raise an event and by the delivery pass. "
+                       "Traffic, and the server's own writes - there is no actor on an SMTP thread, so a listed table would record every "
+                       "accepted message as a change nobody made. The subscriptions the rows belong to (hm_webhooks) ARE recorded.",
    "hm_quarantine": "held messages, written by delivery and by each account's own portal. An administrator releasing or deleting one is NOT "
                     "recorded, and docs/AlertsAndAuditTrail.md says so: both end in the same 'delete from hm_quarantine where "
                     "quarantineid = @ID', so a listed table would record a release and a delete as the same row, naming an id that "

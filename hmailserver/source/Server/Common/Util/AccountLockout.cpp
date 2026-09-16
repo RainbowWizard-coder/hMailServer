@@ -7,10 +7,12 @@
 #include "StdAfx.h"
 
 #include "AccountLockout.h"
+#include "WebhookManager.h"
 
 #include "../Application/DefaultDomain.h"
 #include "../Application/ObjectCache.h"
 #include "../BO/DomainAliases.h"
+#include "../Cache/CacheContainer.h"
 
 #include <ctime>
 
@@ -303,6 +305,37 @@ namespace HM
          LOG_APPLICATION("AccountLockout - Authentication for '" + NormalizeKey_(username) + "' is locked for " +
             StringParser::IntToString((__int64) (lockoutSeconds / 60)) +
             " minute(s) after repeated failures. The lockout is per-name and independent of source address.");
+
+         // The outbound webhooks. Outside the lock, with the diagnostics, and for a
+         // stronger reason than theirs: Raise touches the database, and a database
+         // call made under the mutex every authentication has to take would put the
+         // whole server's authentication behind one INSERT.
+         {
+            const String lockedName = NormalizeKey_(username);
+
+            // Only for a name this server hosts. The lockout itself is per-name
+            // with no existence check, deliberately - an outsider must not learn
+            // which names exist from whether they lock - but that means any string
+            // a client hammers becomes a locked name, and an event for each would
+            // let an outsider push arbitrary strings into a receiver's account
+            // member and spend a subscription's ceiling on fictitious lockouts,
+            // after which the real bounces and deliveries it exists for are
+            // dropped. The webhook is internal, so the lookup leaks nothing to
+            // the client: the lock is applied to the name either way.
+            if (CacheContainer::Instance()->GetAccount(lockedName))
+            {
+               WebhookManager::Event event;
+               event.name = WebhookManager::EventAccountLocked;
+               event.account = lockedName;
+               event.domain = StringParser::ExtractDomain(lockedName);
+               event.domain.MakeLower();
+               event.reason = _T("repeated authentication failures");
+               event.number = (__int64) (lockoutSeconds / 60);
+               event.has_number = true;
+
+               WebhookManager::Instance()->Raise(event);
+            }
+         }
       }
 
       if (reportTableFull)

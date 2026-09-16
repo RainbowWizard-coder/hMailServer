@@ -78,6 +78,8 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `bounces` | classify, expire | How the server would read a status or a reply, and the list's hourly sweep run now. |
 | `openpgp` | list, show, store, remove, publish | The OpenPGP PUBLIC keys this server publishes ([OpenPGP.md](OpenPGP.md)): a domain's whole listing, one account's document, a key stored from a file or from standard input, one removed by fingerprint, and an account's own publishing switched on or off. |
 | `queue` | list, retry, delete | |
+| `webhook` | list, get, create, update, delete | The outbound webhook subscriptions: where this server's mail events go, signed with what, and confined to which domains and addresses. The secret is write-only and never read back ([Webhooks.md](Webhooks.md)). |
+| `webhooks` | deliveries, run, test | The delivery queue with `--webhook`, `--state` and `--limit`; one delivery pass now; and one event raised through the path a real one takes, to see whether it arrives. |
 | `quarantine` | list, release, delete | |
 | `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `directories`, `openpgp`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
 | `ini` | list, get, set, delete | The server settings that were the `[Settings]` section of `hMailServer.ini` - stored in the database since schema 6042, under the names they have always had. `list` shows a secret as `(set)`; `get` reads it. |
@@ -230,6 +232,29 @@ PUBLIC half is ever accepted: a secret key is refused with a sentence saying so,
 here and at every other door. A domain listing that is not being served says
 which of the three switches is in the way before it prints the table.
 [OpenPGP.md](OpenPGP.md) is the whole of it.
+
+Outbound webhooks
+-----------------
+
+```bash
+hmctl webhook create --set name=ticketing --set url=https://tickets.example/hook \
+                     --set-string secret="$SECRET" --set events=message.bounced --set domains=example.com
+hmctl webhook list
+hmctl webhook update ticketing --set enabled=false
+hmctl webhooks test --event message.bounced --domain example.com
+hmctl webhooks run
+hmctl webhooks deliveries --state dead-lettered
+```
+
+`webhooks test` raises a real event through exactly the path a real one takes -
+the same matching, the same per-domain switches, the same rate ceiling - and
+says how many subscriptions took it rather than pretending one did, so a `0` is
+an answer rather than a failure. `webhooks run` makes the delivery pass happen
+now rather than within the minute, which is what an administrator wants
+immediately after configuring an endpoint. A subscription's shared secret is
+never returned by any read, so it is not in `webhook list` and not in a
+configuration export; keep it wherever you keep the rest of your secrets.
+[Webhooks.md](Webhooks.md) is the whole of it.
 
 Accounts from a spreadsheet
 ---------------------------
@@ -395,6 +420,10 @@ Get-HmSuppression -Domain example.com | Where-Object category -eq 'hard' | Forma
 Add-HmSuppression -Domain example.com -Address gone@elsewhere.test -Note 'old export' -ExpiresDays 90
 Get-HmBounceCount -Domain example.com | Sort-Object consecutive_hard -Descending | Select-Object -First 10
 Test-HmBounceStatus -Status '550 5.2.2 Mailbox full'
+Get-HmWebhook | Format-Table name, url, events, enabled, pending, dead_lettered
+New-HmWebhook -Name ticketing -Url https://tickets.example/hook -Secret $s -Events message.bounced
+Get-HmWebhookDelivery -State dead-lettered | Format-Table id, webhook, event, attempts, error
+Test-HmWebhook -Event message.bounced -Domain example.com
 Get-HmOpenPgpKey -Domain example.com | Where-Object published -eq $false
 Import-HmAccount -Path .\new-people.csv -WhatIf
 ```

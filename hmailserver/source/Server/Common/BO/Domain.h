@@ -94,6 +94,24 @@ namespace HM
       int GetQuarantineDigestHour() const { return quarantine_digest_hour_; }
       void SetQuarantineDigestHour(int newVal) { quarantine_digest_hour_ = newVal; }
 
+      // Outbound webhooks, per domain (see Util/WebhookManager.h). The first is an
+      // off switch a domain administrator holds: with it off, nothing this domain's
+      // mail or accounts do raises an event, whatever any subscription asks for. On
+      // by default, because a subscription that names no domain is already the
+      // administrator saying "every domain", and an installation with no
+      // subscription raises nothing either way.
+      //
+      // The second is the one content decision in the feature: a webhook body never
+      // carries a message body, and it carries the SUBJECT only when this is on AND
+      // the subscription asks for it. OFF by default, on every existing domain and
+      // every new one, because a subject line is what the message is about and a
+      // stream of them to a third-party endpoint is a disclosure nobody asked for.
+      bool GetWebhooksEnabled() const { return webhooks_enabled_; }
+      void SetWebhooksEnabled(bool newVal) { webhooks_enabled_ = newVal; }
+
+      bool GetWebhookSubjects() const { return webhook_subjects_; }
+      void SetWebhookSubjects(bool newVal) { webhook_subjects_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bNewVal);
 
@@ -375,6 +393,9 @@ namespace HM
       int message_retention_days_;
       int quarantine_digest_;
       int quarantine_digest_hour_;
+
+      bool webhooks_enabled_;
+      bool webhook_subjects_;
       int max_no_of_accounts_;
       int max_no_of_aliases_;
       int max_no_of_distribution_lists_;

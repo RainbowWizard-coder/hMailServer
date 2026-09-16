@@ -237,6 +237,14 @@ END_COM_MAP()
    STDMETHOD(get_OpenPGPPublishNewAccounts)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_OpenPGPPublishNewAccounts)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // Outbound webhooks, per domain: whether events about this domain are raised
+   // at all, and whether a body of one may carry a subject. Both saved by Save.
+   // See Common/Util/WebhookManager.h.
+   STDMETHOD(get_WebhooksEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_WebhooksEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_WebhookSubjects)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_WebhookSubjects)(/*[in]*/ VARIANT_BOOL newVal);
+
    // dkim end.
 private:
    

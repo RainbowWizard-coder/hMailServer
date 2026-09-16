@@ -178,6 +178,23 @@
 #define PROPERTY_ALERT_DIGEST_HOUR              _T("AlertDigestHour")
 #define PROPERTY_ALERT_MAX_PER_HOUR             _T("AlertMaxPerHour")
 #define PROPERTY_ALERT_WEBHOOK_MAX_ATTEMPTS     _T("AlertWebhookMaxAttempts")
+
+// Outbound webhooks. The master switch is on, and it opens nothing on its own:
+// a server with no subscription in hm_webhooks raises no event and makes no
+// request, so "on" costs a stock install one comparison per delivery. The
+// switch is what an administrator reaches for when a receiver has to be
+// silenced at once without deleting the subscriptions that name it.
+//
+// WebhookMaxPerMinute is the ceiling a subscription that names no ceiling of
+// its own is held to. Past it events are DROPPED rather than queued, and the
+// count of what was dropped is reported: a queue that grows without bound is
+// how a busy hour becomes a flood an hour later, and a receiver that cannot
+// keep up wants to know it fell behind rather than to be told about it for the
+// rest of the day.
+#define PROPERTY_WEBHOOKS_ENABLED               _T("WebhooksEnabled")
+#define PROPERTY_WEBHOOK_MAX_ATTEMPTS           _T("WebhookMaxAttempts")
+#define PROPERTY_WEBHOOK_MAX_PER_MINUTE         _T("WebhookMaxPerMinute")
+#define PROPERTY_WEBHOOK_RETENTION_DAYS         _T("WebhookRetentionDays")
 // The syslog sink (RFC 5424), beside the log files rather than instead of them.
 // In hm_settings rather than in hMailServer.ini because of the rule in
 // .github/CONTRIBUTING.md from 15 September 2026: a setting belongs in the
@@ -283,13 +300,11 @@
 //      and the register of delivered messages a delivery report is matched against.
 //      All three start empty and nothing writes to them until BounceProcessingEnabled
 //      is switched on, so an upgraded database behaves exactly as it did.
-// 6050 adds hm_pgpkeys - the OpenPGP public keys this server publishes for an
-//      account, one row per key, holding the transferable public key as base64 with
-//      its fingerprint, version, algorithm, primary user id, creation and expiry,
-//      and who uploaded it and when - and the three switches that decide whether any
-//      of it is served: hm_domains.domainopenpgppublish and .domainopenpgpnewaccounts
-//      and hm_accounts.accountopenpgppublish, with the server's own
-//      OpenPGPWebKeyDirectoryEnabled row beside them. Every one of them is 0, so an
-//      upgraded database publishes nothing and behaves exactly as it did. The store
-//      starts empty; only a secret key is refused, never held.
-#define REQUIRED_DB_VERSION            6050
+// 6050 adds hm_webhooks and hm_webhookqueue - the outbound webhook subscriptions
+//      and the delivery queue that survives a restart - two int columns to
+//      hm_domains (domainwebhooksenabled, 1 on every existing domain, and
+//      domainwebhooksubjects, 0 on every existing domain, so no body carries a
+//      subject until somebody says it may), and seeds the four Webhook* settings.
+//      Both tables start empty and no event is raised until a subscription exists,
+//      so an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6051

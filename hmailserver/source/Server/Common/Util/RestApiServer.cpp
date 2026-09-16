@@ -1866,6 +1866,15 @@ namespace HM
          case RouteBounceClassify:
          case RouteBounceExpire:
             return HandleBounces_(route, GetRequestBody_(request));
+         case RouteWebhookList:
+         case RouteWebhookGet:
+         case RouteWebhookCreate:
+         case RouteWebhookUpdate:
+         case RouteWebhookDelete:
+         case RouteWebhookDeliveryList:
+         case RouteWebhookRun:
+         case RouteWebhookTest:
+            return HandleWebhooks_(caller, route, GetRequestBody_(request));
          case RouteServerMessageList:
             return HandleServerMessageList_();
          case RouteServerMessagePut:
@@ -4024,6 +4033,61 @@ namespace HM
          return;
       }
 
+
+      // Outbound webhooks. The name is the identifier, as the alert rules'
+      // condition is, and the deliveries and the two verbs sit under the
+      // collection rather than under a name so that no subscription can ever be
+      // called "deliveries", "run" or "test".
+      const AnsiString webhooksPath = "/api/v1/webhooks";
+
+      if (method == "GET" && path == webhooksPath + "/deliveries")
+      {
+         route.kind = RouteWebhookDeliveryList;
+         return;
+      }
+
+      if (method == "POST" && path == webhooksPath + "/run")
+      {
+         route.kind = RouteWebhookRun;
+         return;
+      }
+
+      if (method == "POST" && path == webhooksPath + "/test")
+      {
+         route.kind = RouteWebhookTest;
+         return;
+      }
+
+      if (path == webhooksPath)
+      {
+         if (method == "GET")
+            route.kind = RouteWebhookList;
+         else if (method == "POST")
+            route.kind = RouteWebhookCreate;
+
+         return;
+      }
+
+      if (path.StartsWith(webhooksPath + "/"))
+      {
+         AnsiString name = path.Mid(webhooksPath.GetLength() + 1);
+
+         if (!name.IsEmpty() && name.Find("/") < 0)
+         {
+            if (method == "GET")
+               route.kind = RouteWebhookGet;
+            else if (method == "PUT")
+               route.kind = RouteWebhookUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteWebhookDelete;
+
+            if (route.kind != RouteUnknown)
+               route.identifier = name;
+         }
+
+         return;
+      }
+
       if (method == "GET" && path == "/api/v1/openapi.json")
          route.kind = RouteOpenApi;
    }
@@ -4066,6 +4130,19 @@ namespace HM
       case RouteAlertEventList:
       case RouteAlertTest:
       case RouteAlertRun:
+      // A webhook subscription holds a signing secret and the address this
+      // server will POST to. A key that could read one could forge bodies a
+      // receiver would accept; a key that could write one could point the
+      // server's whole mail stream at an endpoint of its own. The same
+      // refusal, for the same reason, and with the same 401.
+      case RouteWebhookList:
+      case RouteWebhookGet:
+      case RouteWebhookCreate:
+      case RouteWebhookUpdate:
+      case RouteWebhookDelete:
+      case RouteWebhookDeliveryList:
+      case RouteWebhookRun:
+      case RouteWebhookTest:
          return true;
 
       default:
@@ -4090,6 +4167,11 @@ namespace HM
       case RouteAlertRuleUpdate:
       case RouteAlertTest:
       case RouteAlertRun:
+      case RouteWebhookCreate:
+      case RouteWebhookUpdate:
+      case RouteWebhookDelete:
+      case RouteWebhookRun:
+      case RouteWebhookTest:
       case RouteMeFileCreate:
       case RouteMeFileContent:
       case RouteMeFileUpdate:
@@ -4485,6 +4567,13 @@ namespace HM
       // refused both, before this is consulted, by IsApiKeyRoute_.
       case RouteAlertRuleList:
       case RouteAlertEventList:
+      // The webhook subscriptions and their delivery queue. A shared secret is
+      // never in either answer (secret_set says whether there is one), so this
+      // is configuration like any other; a key of any scope is refused before
+      // this is consulted, by IsApiKeyRoute_.
+      case RouteWebhookList:
+      case RouteWebhookGet:
+      case RouteWebhookDeliveryList:
       // The reports: per-domain counts built from the message trace, the
       // metric history and the mailbox sizes. The domain administrator's for
       // their own domains, the auditor's for all of them, and not the help
@@ -4743,6 +4832,10 @@ namespace HM
       // and the condition raised on demand to prove a rule works.
       case RouteAlertRuleUpdate:
       case RouteAlertTest:
+      // Removing a webhook subscription: configuration, and the one webhook
+      // change that cannot make the server reach anything. Creating or changing
+      // one, and raising a test event, are manage_server's below.
+      case RouteWebhookDelete:
       // The server's allow and block list, which applies to every recipient
       // of every domain.
       case RouteSenderListCreate:
@@ -4770,6 +4863,21 @@ namespace HM
       // The alert pass run now rather than in a minute, which is the scheduled
       // sends' shape exactly.
       case RouteAlertRun:
+      // One webhook delivery pass now rather than in a minute: the same shape,
+      // and it attempts every subscription's queue, not one domain's.
+      case RouteWebhookRun:
+      // A webhook subscription - where this server's mail events go, signed
+      // with what, and how much of it - and the test event raised to prove one
+      // works. manage_server and not manage_settings, deliberately: an
+      // endpoint is reached FROM this server, so it may be an address only this
+      // server can reach, and with /test, /run and the queue's last error the
+      // holder has an answer-or-refused-or-timed-out oracle over the inside of
+      // the network, one host and port per subscription. That is acting as the
+      // server, which is what manage_server names; the policy is written down
+      // in docs/Webhooks.md.
+      case RouteWebhookCreate:
+      case RouteWebhookUpdate:
+      case RouteWebhookTest:
       // One pass of every domain's DKIM key rotation now, with a clock the
       // caller may move: the scheduled task's pass, and refused to a confined
       // credential below because it advances every domain's rotation.
@@ -5050,6 +5158,14 @@ namespace HM
          case RouteAlertEventList:
          case RouteAlertTest:
          case RouteAlertRun:
+         case RouteWebhookList:
+         case RouteWebhookGet:
+         case RouteWebhookCreate:
+         case RouteWebhookUpdate:
+         case RouteWebhookDelete:
+         case RouteWebhookDeliveryList:
+         case RouteWebhookRun:
+         case RouteWebhookTest:
             break;
 
          default:
@@ -5283,6 +5399,17 @@ namespace HM
       case RouteAlertEventList:
       case RouteAlertTest:
       case RouteAlertRun:
+      // A subscription reaches every domain it is not confined to, and the
+      // queue holds every domain's events. A role confined to named domains is
+      // refused them here, as it is the alerts.
+      case RouteWebhookList:
+      case RouteWebhookGet:
+      case RouteWebhookCreate:
+      case RouteWebhookUpdate:
+      case RouteWebhookDelete:
+      case RouteWebhookDeliveryList:
+      case RouteWebhookRun:
+      case RouteWebhookTest:
       case RouteServerReinitialize:
       case RouteUpdateGet:
       case RouteUpdateCheck:
@@ -12300,7 +12427,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
-         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl), openpgp_publish (publish this domain's accounts' OpenPGP public keys in the Web Key Directory; the server setting and each account's own switch have to be on as well) and openpgp_publish_new_accounts (what an account CREATED in this domain from now on starts with; it never changes an account that already exists). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
+         "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl), openpgp_publish (publish this domain's accounts' OpenPGP public keys in the Web Key Directory; the server setting and each account's own switch have to be on as well) and openpgp_publish_new_accounts (what an account CREATED in this domain from now on starts with; it never changes an account that already exists), webhooks_enabled (whether anything this domain's mail or accounts do raises an outbound webhook event at all - on by default, and an off switch a domain administrator holds whatever the subscriptions at /api/v1/webhooks ask for) and webhook_subjects (whether a webhook body about this domain may carry a message subject - OFF by default on every domain, because a subject line is what a message is about; a subject travels only where this and the subscription's include_subject both say so). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
@@ -12378,6 +12505,7 @@ namespace HM
       openApiJson += OpenApiReportsPaths_();
       openApiJson += OpenApiRolesPaths_();
       openApiJson += OpenApiOpenPgpPaths_();
+      openApiJson += OpenApiWebhooksPaths_();
       openApiJson += openApiTail;
 
       // The same bytes for every caller, built on every call: compressed once.

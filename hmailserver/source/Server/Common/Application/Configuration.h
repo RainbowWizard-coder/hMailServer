@@ -250,6 +250,18 @@ namespace HM
       int GetAlertWebhookMaxAttempts();
       void SetAlertWebhookMaxAttempts(int attempts);
 
+      // Outbound webhooks (see Util/WebhookManager.h). Four rows in hm_settings.
+      // The getters clamp to the documented range, so a hand-edited row cannot
+      // make a subscription unlimited or a queue immortal.
+      bool GetWebhooksEnabled();
+      void SetWebhooksEnabled(bool enabled);
+      int GetWebhookMaxAttempts();
+      void SetWebhookMaxAttempts(int attempts);
+      int GetWebhookMaxPerMinute();
+      void SetWebhookMaxPerMinute(int maximum);
+      int GetWebhookRetentionDays();
+      void SetWebhookRetentionDays(int days);
+
       // Bounces read, and the suppression list (see SMTP/BounceTracker.h). All
       // eight live in hm_settings. The getters clamp to the documented range, so a
       // hand-edited row cannot turn a threshold of 0 into "list on no bounce at all".

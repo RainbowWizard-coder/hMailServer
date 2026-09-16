@@ -31,6 +31,8 @@ namespace HM
       message_retention_days_(0),
       quarantine_digest_(0),
       quarantine_digest_hour_(7),
+      webhooks_enabled_(true),
+      webhook_subjects_(false),
       enable_signature_(false),
       signature_method_(SMSetIfNotSpecifiedInAccount),
       add_signatures_to_local_mail_(true),
@@ -192,6 +194,9 @@ namespace HM
       pNode->AppendAttr(_T("QuarantineDigest"), quarantine_digest_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("QuarantineDigestHour"), StringParser::IntToString(quarantine_digest_hour_));
 
+      pNode->AppendAttr(_T("WebhooksEnabled"), webhooks_enabled_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("WebhookSubjects"), webhook_subjects_ ? _T("1") : _T("0"));
+
       if (!GetDomainAliases()->XMLStore(pNode, iBackupOptions))
          return false;
 
@@ -320,6 +325,17 @@ namespace HM
          if (hour >= 0 && hour <= 23)
             quarantine_digest_hour_ = hour;
       }
+
+      // The webhook flags. An archive taken before they existed has neither
+      // attribute, and the constructor's values stand: events raised, subjects
+      // withheld - which is what an upgraded domain gets. Read one way round
+      // each, deliberately: the absent attribute must not be able to switch
+      // subject disclosure ON, and must not be able to switch a domain OFF.
+      const String webhooksEnabled = pNode->GetAttrValue(_T("WebhooksEnabled"));
+      if (!webhooksEnabled.IsEmpty())
+         webhooks_enabled_ = webhooksEnabled == _T("1");
+
+      webhook_subjects_ = pNode->GetAttrValue(_T("WebhookSubjects")) == _T("1");
 
       return true;
    }

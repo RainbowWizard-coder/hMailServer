@@ -204,6 +204,16 @@ RESOURCES = {
         "verbs": ["list", "get", "create", "update", "delete"],
         "help": "external POP3 accounts an account collects from",
     },
+    "webhook": {
+        "collection": "/api/v1/webhooks",
+        "item": "/api/v1/webhooks/{id}",
+        "key": "webhooks",
+        "id": "name",
+        "columns": ["name", "url", "events", "domains", "enabled", "pending", "delivered", "dead_lettered"],
+        "verbs": ["list", "get", "create", "update", "delete"],
+        "help": "the outbound webhook subscriptions: where this server's mail events go",
+        "create_example": "hmctl webhook create --set name=ticketing --set url=https://tickets.example/hook --set-string secret=... --set events=message.bounced",
+    },
     "apikey": {
         "collection": "/api/v1/apikeys",
         "item": "/api/v1/apikeys/{id}",
@@ -1640,6 +1650,64 @@ def openpgp_command(client, arguments):
     raise ApiError(0, "unknown openpgp verb")
 
 
+
+def webhooks_command(client, arguments):
+    """The two things an administrator does to a webhook that are not editing it:
+    raise one event to see whether it arrives, and make the delivery pass happen
+    now rather than within the minute.
+
+    deliveries is here rather than as a resource verb because the queue is not a
+    collection anybody edits - it is what the subscriptions have produced, and it
+    is read with a filter or not at all.
+    """
+    if arguments.verb == "deliveries":
+        query = []
+        if arguments.webhook:
+            query.append("webhook=" + urllib.parse.quote(arguments.webhook))
+        if arguments.state:
+            query.append("state=" + urllib.parse.quote(arguments.state))
+        query.append("limit=%d" % arguments.limit)
+        answer = client.request("GET", "/api/v1/webhooks/deliveries?" + "&".join(query))
+        deliveries = answer.get("deliveries", []) if isinstance(answer, dict) else answer
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        if not deliveries:
+            print("Nothing has been queued.")
+            return EXIT_OK
+        render(deliveries, False, ["id", "webhook", "event", "state", "attempts", "error"])
+        return EXIT_OK
+
+    if arguments.verb == "run":
+        answer = client.request("POST", "/api/v1/webhooks/run", body={})
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        print("%d delivered, %d removed." % (answer.get("delivered", 0), answer.get("removed", 0)))
+        return EXIT_OK
+
+    if arguments.verb == "test":
+        body = {}
+        if arguments.event:
+            body["event"] = arguments.event
+        if arguments.domain:
+            body["domain"] = arguments.domain
+        if arguments.account:
+            body["account"] = arguments.account
+        answer = client.request("POST", "/api/v1/webhooks/test", body=body)
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        queued = answer.get("queued", 0)
+        print("Queued for %d subscription%s." % (queued, "" if queued == 1 else "s"))
+        if not queued:
+            print("(nothing subscribes to that event, the domain has webhooks off, "
+                  "or every match is at its rate ceiling)")
+        return EXIT_OK
+
+    raise ApiError(0, "webhooks takes deliveries, run or test")
+
+
 def api_command(client, arguments):
     body = None
     if arguments.body:
@@ -1888,6 +1956,21 @@ def build_parser():
     classify.add_argument("status", help="an enhanced status code (5.1.1) or a reply (\"550 5.1.1 User unknown\")")
     classify.add_argument("diagnostic", nargs="?", help="a delivery report's Diagnostic-Code, when status is its Status field")
     bounces_verbs.add_parser("expire", parents=[common])
+
+    webhooks = commands.add_parser("webhooks", help="the webhook delivery queue, a pass, and a test event")
+    webhooks.set_defaults(handler=webhooks_command)
+    webhooks_verbs = webhooks.add_subparsers(dest="verb")
+    deliveries = webhooks_verbs.add_parser("deliveries", parents=[common])
+    deliveries.add_argument("--webhook", help="only this subscription's")
+    deliveries.add_argument("--state", choices=["pending", "delivered", "dead-lettered"])
+    deliveries.add_argument("--limit", type=int, default=100, help="rows to return, 1 to 1000")
+    webhooks_verbs.add_parser("run", parents=[common])
+    test = webhooks_verbs.add_parser("test", parents=[common])
+    test.add_argument("--event", choices=["message.received", "message.delivered", "message.bounced",
+                                          "message.quarantined", "account.locked"],
+                      help="the event to raise; message.received by default")
+    test.add_argument("--domain", help="the domain the event is about, so a confined subscription matches it")
+    test.add_argument("--account", help="the address the event is about")
 
     api = commands.add_parser("api", parents=[common], help="any method on any path - the escape hatch")
     api.set_defaults(handler=api_command)

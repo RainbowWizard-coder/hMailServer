@@ -1069,6 +1069,96 @@ namespace HM
       GetSettings()->SetLong(PROPERTY_ALERT_WEBHOOK_MAX_ATTEMPTS, attempts);
    }
 
+   bool
+   Configuration::GetWebhooksEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_WEBHOOKS_ENABLED);
+   }
+
+   void
+   Configuration::SetWebhooksEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_WEBHOOKS_ENABLED, enabled);
+   }
+
+   int
+   Configuration::GetWebhookMaxAttempts()
+   {
+      int attempts = GetSettings()->GetLong(PROPERTY_WEBHOOK_MAX_ATTEMPTS);
+
+      // 0 is what a database that never got the row answers with, and it would
+      // mean every delivery is dead-lettered on its first failure.
+      if (attempts <= 0)
+         return 5;
+      if (attempts > 20)
+         return 20;
+
+      return attempts;
+   }
+
+   void
+   Configuration::SetWebhookMaxAttempts(int attempts)
+   {
+      if (attempts <= 0)
+         attempts = 5;
+      if (attempts > 20)
+         attempts = 20;
+
+      GetSettings()->SetLong(PROPERTY_WEBHOOK_MAX_ATTEMPTS, attempts);
+   }
+
+   int
+   Configuration::GetWebhookMaxPerMinute()
+   {
+      int maximum = GetSettings()->GetLong(PROPERTY_WEBHOOK_MAX_PER_MINUTE);
+
+      // 0 would be "raise nothing", which is a feature switched off by an
+      // upgrade rather than by a person.
+      if (maximum <= 0)
+         return 60;
+      if (maximum > 100000)
+         return 100000;
+
+      return maximum;
+   }
+
+   void
+   Configuration::SetWebhookMaxPerMinute(int maximum)
+   {
+      if (maximum <= 0)
+         maximum = 60;
+      if (maximum > 100000)
+         maximum = 100000;
+
+      GetSettings()->SetLong(PROPERTY_WEBHOOK_MAX_PER_MINUTE, maximum);
+   }
+
+   int
+   Configuration::GetWebhookRetentionDays()
+   {
+      int days = GetSettings()->GetLong(PROPERTY_WEBHOOK_RETENTION_DAYS);
+
+      // 0 means keep for ever, which for a per-message stream is a decision and
+      // not a default; negative is a hand-edited row and reads as the default.
+      if (days < 0)
+         return 7;
+      if (days > 3650)
+         return 3650;
+
+      return days;
+   }
+
+   void
+   Configuration::SetWebhookRetentionDays(int days)
+   {
+      if (days < 0)
+         days = 7;
+      if (days > 3650)
+         days = 3650;
+
+      GetSettings()->SetLong(PROPERTY_WEBHOOK_RETENTION_DAYS, days);
+   }
+
    namespace
    {
       int ClampSetting(int value, int minimum, int maximum)

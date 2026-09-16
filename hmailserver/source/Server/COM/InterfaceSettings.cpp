@@ -4093,3 +4093,162 @@ STDMETHODIMP InterfaceSettings::put_OpenPGPRequireAddressInUserId(VARIANT_BOOL n
       return COMError::GenerateGenericMessage();
    }
 }
+
+STDMETHODIMP InterfaceSettings::get_WebhooksEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebhooksEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_WebhooksEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetWebhooksEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_WebhookMaxAttempts(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebhookMaxAttempts();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_WebhookMaxAttempts(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Refused rather than clamped, so a caller that asked for a value outside the
+      // range learns that it did not get it.
+      if (newVal < 1 || newVal > 20)
+         return COMError::GenerateError("WebhookMaxAttempts must be between 1 and 20.");
+
+      config_->SetWebhookMaxAttempts((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_WebhookMaxPerMinute(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebhookMaxPerMinute();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_WebhookMaxPerMinute(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Refused rather than clamped, so a caller that asked for a value outside the
+      // range learns that it did not get it.
+      if (newVal < 1 || newVal > 100000)
+         return COMError::GenerateError("WebhookMaxPerMinute must be between 1 and 100000.");
+
+      config_->SetWebhookMaxPerMinute((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_WebhookRetentionDays(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetWebhookRetentionDays();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_WebhookRetentionDays(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Refused rather than clamped, so a caller that asked for a value outside the
+      // range learns that it did not get it.
+      if (newVal < 0 || newVal > 3650)
+         return COMError::GenerateError("WebhookRetentionDays must be between 0 (keep everything) and 3650.");
+
+      config_->SetWebhookRetentionDays((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

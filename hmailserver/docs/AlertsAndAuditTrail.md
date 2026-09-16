@@ -397,6 +397,13 @@ A rule that calls a webhook is refused without an address and refused without a
 secret. An unsigned body arriving at a URL anybody can read out of a
 configuration file is an alert anybody can forge.
 
+This is the webhook that belongs to an operational ALERT. The other one - a
+subscription that is told what this server's MAIL did, message by message - is
+[Webhooks.md](Webhooks.md). It signs the same way and retries on the same
+ladder, by calling this code rather than copying it; everything else about it
+is different, because a stream of messages has no such thing as the same
+delivery twice and no use for a daily digest.
+
 #### Retries and the dead letter
 
 An attempt that does not get a 2xx is retried on the next pass, then after 1, 5,

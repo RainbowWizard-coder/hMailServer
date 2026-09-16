@@ -289,6 +289,13 @@ namespace
    // stored, as the ports and routes refuse one.
    const char *ClamAVPortRefusal = "ClamAVPort must be between 1 and 65535.";
 
+   // InterfaceSettings' three sentences for the webhook ranges, verbatim, so that
+   // a value outside a range is refused over REST exactly as it is over COM
+   // rather than clamped by the setter without a word.
+   const char *WebhookMaxAttemptsRefusal = "WebhookMaxAttempts must be between 1 and 20.";
+   const char *WebhookMaxPerMinuteRefusal = "WebhookMaxPerMinute must be between 1 and 100000.";
+   const char *WebhookRetentionDaysRefusal = "WebhookRetentionDays must be between 0 (keep everything) and 3650.";
+
    // InterfaceSettings::put_IMAPHierarchyDelimiter's sentence, verbatim.
    const char *HierarchyDelimiterRefusal =
       "It was not possible to change the IMAP hierarchy delimiter. It has probably failed because there exists one or more IMAP folders containing the new character.";
@@ -602,6 +609,25 @@ namespace
       { "alert_webhook_max_attempts", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many times a webhook is attempted before the event is dead-lettered. 1 to 20.",
         ROW_NUMBER(Config()->GetAlertWebhookMaxAttempts()), ROW_SET(Config()->SetAlertWebhookMaxAttempts((int) v.number)), ROW_NO_CHECK },
+
+      // Outbound webhooks (Util/WebhookManager.h). Four rows in hm_settings; the
+      // subscriptions themselves are rows in hm_webhooks reached at
+      // /api/v1/webhooks rather than settings, exactly as the alert rules are.
+      { "webhooks_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "The master switch for outbound webhooks. It opens nothing on its own: a server with no subscription at /api/v1/webhooks raises no event and makes no request. Switch it off to silence every receiver at once without deleting what names them.",
+        ROW_FLAG(Config()->GetWebhooksEnabled()), ROW_SET(Config()->SetWebhooksEnabled(v.flag)), ROW_NO_CHECK },
+      { "webhook_max_attempts", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many times a webhook delivery is attempted before it is dead-lettered with its body and the reason kept. 1 to 20.",
+        ROW_NUMBER(Config()->GetWebhookMaxAttempts()), ROW_SET(Config()->SetWebhookMaxAttempts((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 20) ? String(WebhookMaxAttemptsRefusal) : String(); } },
+      { "webhook_max_per_minute", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The ceiling a subscription that names no rate limit of its own is held to. Events past it in one minute are dropped and counted, not queued, so a busy hour cannot become a flood an hour later. 1 to 100000.",
+        ROW_NUMBER(Config()->GetWebhookMaxPerMinute()), ROW_SET(Config()->SetWebhookMaxPerMinute((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 100000) ? String(WebhookMaxPerMinuteRefusal) : String(); } },
+      { "webhook_retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Days of delivered and dead-lettered webhook rows to keep. 0 keeps everything, which for a per-message stream is a decision rather than a default. 0 to 3650.",
+        ROW_NUMBER(Config()->GetWebhookRetentionDays()), ROW_SET(Config()->SetWebhookRetentionDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 3650) ? String(WebhookRetentionDaysRefusal) : String(); } },
 
       // The password breach check (PasswordBreachCheck). In hm_settings, read at
       // every password change. The checks are the COM setters' own, so a value

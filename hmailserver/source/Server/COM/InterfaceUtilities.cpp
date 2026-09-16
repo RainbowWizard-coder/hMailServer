@@ -30,6 +30,8 @@
 #include "../Common/Sieve/SieveScript.h"
 #include "COMError.h"
 #include "../Common/AntiSpam/DKIM/DkimRotation.h"
+#include "../Common/Util/WebhookManager.h"
+#include "../Common/Util/JsonDocument.h"
 #include "../Common/Util/OpenPgpKeyStore.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/BO/Domain.h"
@@ -1142,6 +1144,91 @@ STDMETHODIMP InterfaceUtilities::RemoveOpenPGPKey(BSTR AccountAddress, BSTR Fing
    }
 }
 
+
+namespace
+{
+   // UTF-8, not the machine's code page. CStdStr's own conversion is CP_ACP,
+   // which loses every character the page does not have - a domain in Greek, an
+   // address with an accent - and the document this builds is handed back as
+   // UTF-8 by WideFromUtf8 at the end.
+   HM::AnsiString WebhookUtf8_(const HM::String &value)
+   {
+      HM::AnsiString utf8;
+      HM::Unicode::WideToMultiByte(value, utf8);
+      return utf8;
+   }
+
+   // The way back: UTF-8 bytes to characters, for the same reason WebhookUtf8_
+   // exists.
+   HM::String WebhookFromUtf8_(const std::string &utf8)
+   {
+      HM::String value;
+      HM::Unicode::MultiByteToWide(HM::AnsiString(utf8.c_str()), value);
+      return value;
+   }
+
+   HM::AnsiString WebhookJsonEscape_(const HM::AnsiString &value)
+   {
+      HM::AnsiString result;
+      result.reserve(value.GetLength() + 8);
+
+      for (int i = 0; i < value.GetLength(); i++)
+      {
+         const char character = value[i];
+
+         switch (character)
+         {
+         case '"':  result += "\\\""; break;
+         case '\\': result += "\\\\"; break;
+         case '\r': result += "\\r"; break;
+         case '\n': result += "\\n"; break;
+         case '\t': result += "\\t"; break;
+         default:
+            if ((unsigned char) character >= 0x20)
+               result += character;
+            break;
+         }
+      }
+
+      return result;
+   }
+}
+
+namespace
+{
+   // One subscription as the REST listing writes it. The shared secret is not in
+   // it: secret_set says whether there is one, which is what an administrator
+   // needs to know and what a reader must not be able to take away.
+   HM::AnsiString WebhookSubscriptionJson_(const HM::WebhookManager::Subscription &subscription)
+   {
+      int pending = 0;
+      int delivered = 0;
+      int deadLettered = 0;
+      HM::WebhookManager::Instance()->CountDeliveries(subscription.id, pending, delivered, deadLettered);
+
+      HM::AnsiString json;
+      json += "{";
+      json += "\"name\":\"" + WebhookJsonEscape_(WebhookUtf8_(subscription.name)) + "\",";
+      json += "\"url\":\"" + WebhookJsonEscape_(WebhookUtf8_(subscription.url)) + "\",";
+      json += "\"secret_set\":" + HM::AnsiString(subscription.secret.IsEmpty() ? "false" : "true") + ",";
+      json += "\"events\":\"" + WebhookJsonEscape_(WebhookUtf8_(subscription.events)) + "\",";
+      json += "\"domains\":\"" + WebhookJsonEscape_(WebhookUtf8_(subscription.domains)) + "\",";
+      json += "\"addresses\":\"" + WebhookJsonEscape_(WebhookUtf8_(subscription.addresses)) + "\",";
+      json += "\"enabled\":" + HM::AnsiString(subscription.enabled ? "true" : "false") + ",";
+      json += "\"include_subject\":" + HM::AnsiString(subscription.include_subject ? "true" : "false") + ",";
+
+      HM::AnsiString numbers;
+      numbers.Format("\"max_per_minute\":%d,\"created\":%I64d,\"pending\":%d,\"delivered\":%d,\"dead_lettered\":%d,\"dropped\":%d",
+         subscription.max_per_minute, subscription.created, pending, delivered, deadLettered,
+         HM::WebhookManager::Instance()->DroppedSinceStart(subscription.name));
+      json += numbers;
+
+      json += "}";
+
+      return json;
+   }
+}
+
 STDMETHODIMP InterfaceUtilities::RunBounceMaintenance(long *Removed)
 {
    try
@@ -1165,6 +1252,164 @@ STDMETHODIMP InterfaceUtilities::RunBounceMaintenance(long *Removed)
       if (!succeeded)
          return COMError::GenerateError("The maintenance sweep failed part way; what it removed before failing has been removed.");
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+/*
+   The webhook subscriptions over COM, as JSON rather than as a collection, for the
+   reason the suppression list is: a collection would be two new interfaces and two
+   new coclasses, and registering those needs an elevated step this feature does not
+   otherwise need. The documents are exactly the ones GET /api/v1/webhooks and
+   POST /api/v1/webhooks answer and take, so a client written against either surface
+   reads the same shapes - and the shared secret is absent from both.
+*/
+STDMETHODIMP InterfaceUtilities::GetWebhookSubscriptions(BSTR Name, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String wanted = Name;
+      wanted.Trim();
+      wanted.MakeLower();
+
+      std::vector<HM::WebhookManager::Subscription> subscriptions;
+
+      if (!HM::WebhookManager::Instance()->GetSubscriptions(subscriptions))
+         return COMError::GenerateError("The webhook subscriptions could not be read.");
+
+      HM::AnsiString json = "{\"webhooks\":[";
+      bool first = true;
+
+      for (const HM::WebhookManager::Subscription &subscription : subscriptions)
+      {
+         if (!wanted.IsEmpty() && subscription.name != wanted)
+            continue;
+
+         if (!first)
+            json += ",";
+
+         first = false;
+         json += WebhookSubscriptionJson_(subscription);
+      }
+
+      json += "],\"events\":[";
+
+      const std::vector<HM::String> known = HM::WebhookManager::KnownEvents();
+
+      for (size_t i = 0; i < known.size(); i++)
+      {
+         if (i > 0)
+            json += ",";
+
+         json += "\"" + WebhookUtf8_(known[i]) + "\"";
+      }
+
+      json += "]}";
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::SaveWebhookSubscription(BSTR Json, BSTR *Json2)
+{
+   try
+   {
+      if (!Json2)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AuditScope auditScope(authentication_->GetAuditActor());
+
+      // The BSTR is characters; the parser wants UTF-8 bytes.
+      const HM::AnsiString requestBody = WebhookUtf8_(HM::String(Json));
+
+      HM::JsonValue document;
+      std::string parseError;
+      if (!HM::JsonValue::Parse(std::string(requestBody.c_str(), (size_t) requestBody.GetLength()), document, parseError) ||
+          !document.IsObject())
+         return COMError::GenerateError("The body must be a JSON object.");
+
+      const HM::JsonValue *member = document.Get("name");
+      if (member == nullptr || !member->IsString())
+         return COMError::GenerateError("Name the subscription.");
+
+      HM::String name = WebhookFromUtf8_(member->AsString());
+      name.Trim();
+      name.MakeLower();
+
+      HM::WebhookManager::Subscription existing;
+      const bool exists = HM::WebhookManager::Instance()->GetSubscription(name, existing);
+
+      if (document.GetBool("remove"))
+      {
+         if (!exists || !HM::WebhookManager::Instance()->DeleteSubscription(name))
+            return COMError::GenerateError("There is no webhook subscription of that name.");
+
+         *Json2 = WideFromUtf8(HM::AnsiString("{\"removed\":true}")).AllocSysString();
+         return S_OK;
+      }
+
+      // A field left out of a change keeps the value it has, which is what stops a
+      // caller that wanted to switch one subscription off from clearing its secret
+      // by not sending it.
+      HM::WebhookManager::Subscription subscription = exists ? existing : HM::WebhookManager::Subscription();
+      subscription.name = name;
+
+      if ((member = document.Get("url")) != nullptr && member->IsString())
+         subscription.url = WebhookFromUtf8_(member->AsString());
+
+      if ((member = document.Get("secret")) != nullptr && member->IsString())
+      {
+         const HM::String given = WebhookFromUtf8_(member->AsString());
+
+         if (!given.IsEmpty())
+            subscription.secret = given;
+      }
+
+      if ((member = document.Get("events")) != nullptr && member->IsString())
+         subscription.events = WebhookFromUtf8_(member->AsString());
+
+      if ((member = document.Get("domains")) != nullptr && member->IsString())
+         subscription.domains = WebhookFromUtf8_(member->AsString());
+
+      if ((member = document.Get("addresses")) != nullptr && member->IsString())
+         subscription.addresses = WebhookFromUtf8_(member->AsString());
+
+      if ((member = document.Get("enabled")) != nullptr && member->IsBool())
+         subscription.enabled = member->AsBool();
+
+      if ((member = document.Get("include_subject")) != nullptr && member->IsBool())
+         subscription.include_subject = member->AsBool();
+
+      if ((member = document.Get("max_per_minute")) != nullptr && member->IsNumber())
+         subscription.max_per_minute = (int) member->AsInt64();
+
+      HM::String refusal;
+      if (!HM::WebhookManager::Instance()->SaveSubscription(subscription, !exists, refusal))
+         return COMError::GenerateError(refusal);
+
+      HM::WebhookManager::Subscription saved;
+      if (!HM::WebhookManager::Instance()->GetSubscription(name, saved))
+         return COMError::GenerateError("The subscription was saved but could not be read back.");
+
+      *Json2 = WideFromUtf8(WebhookSubscriptionJson_(saved)).AllocSysString();
       return S_OK;
    }
    catch (...)

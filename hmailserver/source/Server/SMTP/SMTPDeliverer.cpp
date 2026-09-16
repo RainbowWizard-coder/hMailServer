@@ -56,6 +56,7 @@
 
 #include "DeliveryFailure.h"
 #include "BounceTracker.h"
+#include "../Common/Util/WebhookManager.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -712,6 +713,29 @@ namespace HM
          {
             // A bounce/NDR was actually generated and queued for the sender.
             ServerStatus::Instance()->OnMessageBounced();
+
+            // The outbound webhooks, here and nowhere else, because THIS is what a
+            // bounce is: a non-delivery report that was written and queued for the
+            // sender. A failed delivery attempt is not one - the message is retried
+            // - and a recipient refused at RCPT TO is not one either, since the
+            // sending server was told at the time and this server sent nothing. One
+            // event per failed recipient, with the status the report carries.
+            for (const DeliveryFailure &failure : saErrorMessages)
+            {
+               WebhookManager::Event event;
+               event.name = WebhookManager::EventMessageBounced;
+               event.sender = pOrigMessage->GetFromAddress();
+               event.recipient = failure.GetRecipient();
+               event.queue_id = pOrigMessage->GetID();
+               event.status = failure.GetEnhancedStatusCode();
+               event.reason = failure.GetRemoteSmtpReply().IsEmpty()
+                  ? failure.GetText()
+                  : failure.GetRemoteSmtpReply();
+
+               WebhookManager::ScopeToLocalDomain(event.sender, event.recipient, event.domain, event.account);
+
+               WebhookManager::Instance()->Raise(event);
+            }
          }
          else
          {

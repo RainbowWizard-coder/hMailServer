@@ -291,6 +291,17 @@ END_COM_MAP()
    STDMETHOD(get_OpenPGPRequireAddressInUserId)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_OpenPGPRequireAddressInUserId)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // Outbound webhooks. Four rows in hm_settings; the subscriptions themselves are
+   // reached through Utilities.GetWebhookSubscriptions and over REST.
+   STDMETHOD(get_WebhooksEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_WebhooksEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_WebhookMaxAttempts)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_WebhookMaxAttempts)(/*[in]*/ long newVal);
+   STDMETHOD(get_WebhookMaxPerMinute)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_WebhookMaxPerMinute)(/*[in]*/ long newVal);
+   STDMETHOD(get_WebhookRetentionDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_WebhookRetentionDays)(/*[in]*/ long newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

@@ -688,6 +688,24 @@ function suppressionRecord(address, source, category, status) {
       remote_mta: source === 'manual' ? '' : 'mx.remote.test', created: '2026-09-14 10:00:00', expires: '', expired: false };
 }
 
+
+/* A webhook subscription, in the shape the OpenAPI document describes it: the
+   secret is writeOnly, which is what makes the page draw a write-only box and
+   leave it out of a change when it is empty. */
+const WEBHOOK_PROPS = {
+   name: { type: 'string', description: 'Letters, digits and - _ . at most 64 characters.' },
+   url: { type: 'string', description: 'https://host/path, or http:// only to this machine.' },
+   secret: { type: 'string', writeOnly: true, description: 'Write-only. The bodies are signed under it; an empty string in a change keeps the one that is set.' },
+   events: { type: 'string', description: 'message.received, message.delivered, message.bounced, message.quarantined, account.locked - comma-separated. Empty: every event.' },
+   domains: { type: 'string', description: 'Comma-separated domain names. Empty: every domain.' },
+   addresses: { type: 'string', description: 'Comma-separated addresses. Empty: every address.' },
+   enabled: { type: 'boolean' },
+   include_subject: { type: 'boolean', description: 'Carry the message subject on message.received and message.quarantined. Only where the domain allows it too.' },
+   max_per_minute: { type: 'integer', description: 'Events past this in one minute are dropped and counted, not queued.' }
+};
+const WEBHOOKS_POST = 'Body: name (required), url (required), secret (required), events, domains and addresses, ' +
+   'enabled (default true), include_subject (default false) and max_per_minute (0 for the server\'s WebhookMaxPerMinute).';
+
 function body(props, required) {
    return { content: { 'application/json': { schema: Object.assign({ type: 'object', properties: props }, required ? { required } : {}) } } };
 }
@@ -821,6 +839,18 @@ const spec = {
          post: { summary: 'Create a global rule', description: RULES_POST, requestBody: body({ name: { type: 'string' } }, ['name']) }
       },
       '/api/v1/rules/{id}': { put: { summary: 'Replace a global rule' }, delete: { summary: 'Delete a global rule' } },
+      '/api/v1/webhooks': {
+         get: { summary: 'The webhook subscriptions', description: 'One entry per subscription: its name, the endpoint, whether a shared secret is set (the secret itself is never returned), the events, domains and addresses it is confined to (empty means every one), whether it is on, whether its bodies may carry a subject, its rate limit, and how many of its deliveries are pending, delivered, dead-lettered and dropped.' },
+         post: { summary: 'Create a webhook subscription', description: WEBHOOKS_POST, requestBody: body(WEBHOOK_PROPS, ['name', 'url', 'secret']) }
+      },
+      '/api/v1/webhooks/{name}': {
+         get: { summary: 'One webhook subscription' },
+         put: { summary: 'Change a webhook subscription', description: 'Any subset of the fields the create takes. A field left out keeps its value, and an empty secret keeps the one that is set.', requestBody: body(WEBHOOK_PROPS) },
+         delete: { summary: 'Delete a webhook subscription' }
+      },
+      '/api/v1/webhooks/deliveries': { get: { summary: 'The webhook delivery queue' } },
+      '/api/v1/webhooks/run': { post: { summary: 'Run one webhook delivery pass now' } },
+      '/api/v1/webhooks/test': { post: { summary: 'Raise a webhook event on request' } },
       '/api/v1/routes': {
          get: { summary: 'List the SMTP routes', description: 'The routes the running server delivers by, as the Control Panel lists them.' },
          post: { summary: 'Create an SMTP route', description: ROUTES_POST, requestBody: body(ROUTE_PROPS, ['domain_name', 'target_smtp_host']) }
@@ -1092,6 +1122,15 @@ const state = {
       { id: 42, from: 'bob@example.com', recipients: 'gone@nowhere.example', next_try: '2026-09-14 10:05:00' }
    ],
    tlsa: { records: [{ record: '_25._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }, { record: '_465._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }] },
+   webhooks: [
+      { name: 'billing', url: 'https://hooks.example/mail', secret_set: true, events: 'message.bounced', domains: 'example.com',
+        addresses: '', enabled: true, include_subject: false, max_per_minute: 0, created: 1789000000,
+        pending: 1, delivered: 4, dead_lettered: 0, dropped: 0 }
+   ],
+   webhookQueue: [
+      { id: 9, created: 1789000100, attempts: 1, next_attempt: 1789000160, webhook: 'billing', event: 'message.bounced',
+        state: 'pending', error: 'the endpoint answered 502', body: '{"event":"message.bounced"}' }
+   ],
    rules: [
       { id: 1, name: 'Spam to junk', active: true, all_criteria: true,
          criteria: [{ field: 'subject', header: '', match: 'contains', value: '[SPAM]' }],
@@ -1864,6 +1903,45 @@ function answer(method, path, headers, raw) {
       if (method === 'DELETE') { state.ports.splice(at, 1); return json(200, { deleted: true }); }
    }
    if (path === '/api/v1/server/reinitialize' && method === 'POST') { return json(202, { reinitializing: true }); }
+
+
+   if (path === '/api/v1/webhooks' && method === 'GET') {
+      return json(200, { webhooks: state.webhooks, events: ['message.received', 'message.delivered', 'message.bounced', 'message.quarantined', 'account.locked'] });
+   }
+   if (path === '/api/v1/webhooks' && method === 'POST') {
+      if (state.webhooks.some((w) => w.name === parsed.name)) { return json(409, { error: 'a subscription called ' + parsed.name + ' exists already' }); }
+      const subscription = Object.assign({ secret_set: !!parsed.secret, created: 1789000200, pending: 0, delivered: 0, dead_lettered: 0, dropped: 0 }, parsed);
+      delete subscription.secret;
+      state.webhooks.push(subscription);
+      return json(201, subscription);
+   }
+   if (/^\/api\/v1\/webhooks\/deliveries(\?|$)/.test(path) && method === 'GET') {
+      return json(200, { deliveries: state.webhookQueue });
+   }
+   if (path === '/api/v1/webhooks/run' && method === 'POST') {
+      state.webhookQueue = [];
+      state.webhooks.forEach((w) => { w.delivered = Number(w.delivered || 0) + Number(w.pending || 0); w.pending = 0; });
+      return json(200, { delivered: 1, removed: 0 });
+   }
+   if (path === '/api/v1/webhooks/test' && method === 'POST') {
+      return json(200, { queued: state.webhooks.filter((w) => w.enabled).length });
+   }
+   if (/^\/api\/v1\/webhooks\/[^/]+$/.test(path)) {
+      const name = decodeURIComponent(segment(path, 4));
+      const at = state.webhooks.findIndex((w) => w.name === name);
+      if (at < 0) { return json(404, { error: 'no such webhook subscription' }); }
+      if (method === 'GET') { return json(200, state.webhooks[at]); }
+      if (method === 'PUT') {
+         const changed = Object.assign({}, state.webhooks[at], parsed);
+         // The server never hands a secret back, and a body that carries one
+         // only flips secret_set.
+         if (parsed && parsed.secret !== undefined) { changed.secret_set = true; }
+         delete changed.secret;
+         state.webhooks[at] = changed;
+         return json(200, changed);
+      }
+      if (method === 'DELETE') { state.webhooks.splice(at, 1); return json(200, { deleted: true }); }
+   }
 
    if (path === '/api/v1/audit/verify' && method === 'GET') {
       if (state.auditIntact) { return json(200, { intact: true, rows_checked: state.audit.length, first_broken_id: 0, reason: '' }); }
@@ -3600,6 +3678,98 @@ async function main() {
    await goTo('audit');
    check('an empty trail says what will appear here', content().textContent.indexOf('Nothing has been recorded yet') >= 0, content().textContent.slice(0, 120));
    state.audit = auditRows;
+
+   // ---- webhooks
+   before = requests.length;
+   await goTo('webhooks');
+   check('the webhooks view reads the subscriptions and the queue, each once',
+      called(before, 'GET', '/api/v1/webhooks').length === 1 && called(before, 'GET', /^\/api\/v1\/webhooks\/deliveries/).length === 1,
+      paths(before));
+   check('one row per subscription, its endpoint under the name',
+      rows().length === 2 && rows()[0].textContent.indexOf('billing') >= 0 && rows()[0].textContent.indexOf('hooks.example') >= 0,
+      rows().map((r) => r.textContent).join(' | '));
+   check('the queue is said in words rather than in three bare numbers',
+      rows()[0].textContent.indexOf('1 waiting') >= 0 && rows()[0].textContent.indexOf('4 sent') >= 0, rows()[0].textContent);
+   check('the delivery below it names the event, its state and why it has not arrived',
+      rows()[1].textContent.indexOf('message.bounced') >= 0 && rows()[1].textContent.indexOf('pending') >= 0 &&
+      rows()[1].textContent.indexOf('502') >= 0, rows()[1].textContent);
+   check('no shared secret is anywhere on the page', content().textContent.indexOf('secret_set') < 0 &&
+      content().innerHTML.indexOf('"secret"') < 0, content().textContent.slice(0, 160));
+
+   before = requests.length;
+   click(act('hooknew'));
+   await flush();
+   check('the editor is built from the schema of the create route',
+      document.getElementById('hook_name') !== null && document.getElementById('hook_url') !== null &&
+      document.getElementById('hook_events') !== null && document.getElementById('hook_max_per_minute') !== null,
+      content().textContent.slice(0, 160));
+   check('the secret is a write-only box, because the schema says writeOnly',
+      document.getElementById('hook_secret') !== null && document.getElementById('hook_secret').type === 'password',
+      document.getElementById('hook_secret') ? document.getElementById('hook_secret').type : 'no box');
+   check('and enabled starts on, because the create route says so in prose',
+      document.getElementById('hook_enabled') !== null && document.getElementById('hook_enabled').checked === true,
+      document.getElementById('hook_enabled') ? String(document.getElementById('hook_enabled').checked) : 'no box');
+
+   setValue('hook_name', 'ticketing');
+   setValue('hook_url', 'https://tickets.example/hook');
+   setValue('hook_secret', 'a-shared-secret');
+   setValue('hook_events', 'message.bounced,account.locked');
+   click(act('hooksave'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/webhooks');
+   check('a new subscription is sent with its name, endpoint, secret and events',
+      posted && posted.name === 'ticketing' && posted.url === 'https://tickets.example/hook' &&
+      posted.secret === 'a-shared-secret' && posted.events === 'message.bounced,account.locked',
+      JSON.stringify(posted));
+   check('and the list comes back with it', rows().length === 3 && content().textContent.indexOf('ticketing') >= 0,
+      rows().map((r) => r.textContent).join(' | '));
+
+   before = requests.length;
+   click(act('hookedit', { id: 'billing' }));
+   await flush();
+   check('editing one fills the form from what the server holds and hides the name',
+      document.getElementById('hook_url').value === 'https://hooks.example/mail' && document.getElementById('hook_name') === null,
+      content().textContent.slice(0, 160));
+   check('and its secret box is empty, since the server never handed one back',
+      document.getElementById('hook_secret').value === '', document.getElementById('hook_secret').value);
+   document.getElementById('hook_enabled').checked = false;
+   click(act('hooksave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/webhooks/billing');
+   check('a change is a PUT to its own name', put !== null && put.enabled === false, JSON.stringify(put));
+   check('and an untouched secret box sends no secret, so the one that is set survives',
+      put !== null && put.secret === undefined, JSON.stringify(put));
+
+   before = requests.length;
+   click(act('hooktest'));
+   await flush();
+   check('the test button raises one event and says how many subscriptions took it',
+      called(before, 'POST', '/api/v1/webhooks/test').length === 1 && $('#toast').textContent.indexOf('1') >= 0,
+      $('#toast').textContent);
+
+   before = requests.length;
+   click(act('hookrun'));
+   await flush();
+   check('the pass button runs one and reports what it did',
+      called(before, 'POST', '/api/v1/webhooks/run').length === 1 && $('#toast').textContent.indexOf('1') >= 0,
+      $('#toast').textContent);
+
+   before = requests.length;
+   click(act('hookdel', { id: 'ticketing' }));
+   await flush();
+   check('deleting one names it in the question and deletes by name',
+      confirmations[confirmations.length - 1].indexOf('ticketing') >= 0 &&
+      called(before, 'DELETE', '/api/v1/webhooks/ticketing').length === 1 && rows().length === 2,
+      rows().map((r) => r.textContent).join(' | '));
+
+   const keptWebhooks = state.webhooks;
+   state.webhooks = [];
+   state.webhookQueue = [];
+   await goTo('webhooks');
+   check('with none configured the page says what that means',
+      content().textContent.indexOf('no mail event leaves this server') >= 0, content().textContent.slice(0, 200));
+   state.webhooks = keptWebhooks;
+
    // ---- groups: the last thing the census counted as writable over REST and
    // reachable from no view here
    before = requests.length;

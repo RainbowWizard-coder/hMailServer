@@ -6,6 +6,7 @@
 #include "./AWStats.h"
 #include "Time.h"
 #include "MessageTrace.h"
+#include "WebhookManager.h"
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
 #include "../BO/MessageRecipient.h"
@@ -54,6 +55,25 @@ namespace HM
       {
          MessageTrace::Record(pMessage->GetID(), MessageTrace::EventDelivered, pMessage->GetFromAddress(),
                               sRecipient, senderIP, 250, _T(""));
+
+      // And the outbound webhooks, for the same reason the trace is here rather
+      // than at the call sites: this is where the server already says "delivered",
+      // and a second pass over the deliverers to say it again would be two places
+      // to keep in step. Raising writes a row per interested subscription and
+      // returns; nothing is POSTed from the delivery thread.
+      {
+         WebhookManager::Event event;
+         event.name = WebhookManager::EventMessageDelivered;
+         event.sender = pMessage->GetFromAddress();
+         event.recipient = sRecipient;
+         event.queue_id = pMessage->GetID();
+         event.size = pMessage->GetSize();
+         event.status = _T("250");
+
+         WebhookManager::ScopeToLocalDomain(event.sender, event.recipient, event.domain, event.account);
+
+         WebhookManager::Instance()->Raise(event);
+      }
       }
 
       if (!enabled_)

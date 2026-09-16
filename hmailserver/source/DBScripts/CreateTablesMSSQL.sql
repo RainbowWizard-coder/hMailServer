@@ -5,6 +5,8 @@ if exists (select * from sysobjects where id = object_id('hm_audit') and objectp
 
 if exists (select * from sysobjects where id = object_id('hm_alertrules') and objectproperty(id, 'isusertable') = 1) drop table hm_alertrules
 
+if exists (select * from sysobjects where id = object_id('hm_webhookqueue') and objectproperty(id, 'isusertable') = 1) drop table hm_webhookqueue
+if exists (select * from sysobjects where id = object_id('hm_webhooks') and objectproperty(id, 'isusertable') = 1) drop table hm_webhooks
 if exists (select * from sysobjects where id = object_id('hm_alertevents') and objectproperty(id, 'isusertable') = 1) drop table hm_alertevents
 if exists (select * from sysobjects where id = object_id('hm_remotedomainpolicies') and objectproperty(id, 'isusertable') = 1) drop table hm_remotedomainpolicies
 
@@ -308,7 +310,9 @@ create table hm_domains (
 	domaindkimrotationretentiondays int not null default 7,
 	domaindkimrotationkeybits int not null default 2048,
 	domainopenpgppublish int not null default 0,
-	domainopenpgpnewaccounts int not null default 0
+	domainopenpgpnewaccounts int not null default 0,
+	domainwebhooksenabled int not null default 1,
+	domainwebhooksubjects int not null default 0
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -1757,4 +1761,52 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Op
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPRequireAddressInUserId', '', 1)
 
-insert into hm_dbversion values (6050)
+create table hm_webhooks
+(
+	whid bigint identity(1,1) not null,
+	whname nvarchar(64) not null,
+	whurl nvarchar(1024) not null,
+	whsecret nvarchar(1024) not null,
+	whevents nvarchar(255) not null,
+	whdomains nvarchar(1024) not null,
+	whaddresses nvarchar(1024) not null,
+	whenabled int not null,
+	whmaxperminute int not null,
+	whincludesubject int not null,
+	whcreated bigint not null
+)
+
+ALTER TABLE hm_webhooks ADD CONSTRAINT hm_webhooks_pk PRIMARY KEY NONCLUSTERED (whid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_webhooks_name ON hm_webhooks (whname)
+
+create table hm_webhookqueue
+(
+	wqid bigint identity(1,1) not null,
+	wqwebhookid bigint not null,
+	wqevent nvarchar(64) not null,
+	wqcreated bigint not null,
+	wqstate int not null,
+	wqtries int not null,
+	wqnext bigint not null,
+	wqerror nvarchar(255) not null,
+	wqbody ntext not null
+)
+
+ALTER TABLE hm_webhookqueue ADD CONSTRAINT hm_webhookqueue_pk PRIMARY KEY (wqid)
+
+CREATE INDEX idx_hm_webhookqueue_due ON hm_webhookqueue (wqstate, wqnext)
+
+CREATE INDEX idx_hm_webhookqueue_webhook ON hm_webhookqueue (wqwebhookid, wqid)
+
+ALTER TABLE hm_webhookqueue ADD CONSTRAINT fk_hm_webhookqueue_webhook FOREIGN KEY (wqwebhookid) REFERENCES hm_webhooks (whid) ON DELETE CASCADE
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhooksEnabled', '', 1)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookMaxAttempts', '', 5)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookMaxPerMinute', '', 60)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7)
+
+insert into hm_dbversion values (6051)

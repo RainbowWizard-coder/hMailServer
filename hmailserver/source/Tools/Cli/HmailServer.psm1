@@ -1206,6 +1206,172 @@ function Invoke-HmBounceMaintenance {
 }
 
 # ---------------------------------------------------------------------------
+# Outbound webhooks
+# ---------------------------------------------------------------------------
+
+function Get-HmWebhook {
+    <#
+    .SYNOPSIS
+        The outbound webhook subscriptions: where this server's mail events go,
+        what each one wants, and how its deliveries have gone. The shared secret
+        is never returned; SecretSet says whether one is configured.
+    .EXAMPLE
+        Get-HmWebhook | Format-Table name, url, events, enabled, pending, dead_lettered
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0)] [string] $Name
+    )
+    if ($Name) { return Invoke-HmApi -Method GET -Path ('/api/v1/webhooks/' + [uri]::EscapeDataString($Name)) }
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path '/api/v1/webhooks') -Key 'webhooks'
+}
+
+function New-HmWebhook {
+    <#
+    .SYNOPSIS
+        Subscribes an endpoint to this server's mail events. The bodies it
+        receives are signed HMAC-SHA256 over the timestamp, a full stop and the
+        raw body, under the secret given here.
+    .EXAMPLE
+        New-HmWebhook -Name ticketing -Url https://tickets.example/hook -Secret $s -Events message.bounced -Domains example.com
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Name,
+        [Parameter(Mandatory = $true, Position = 1)] [string] $Url,
+        [Parameter(Mandatory = $true, Position = 2)] [string] $Secret,
+        [string[]] $Events,
+        [string[]] $Domains,
+        [string[]] $Addresses,
+        [bool] $Enabled = $true,
+        [switch] $IncludeSubject,
+        [ValidateRange(0, 100000)] [int] $MaxPerMinute = 0
+    )
+    $body = @{ name = $Name; url = $Url; secret = $Secret; enabled = $Enabled;
+               include_subject = [bool] $IncludeSubject; max_per_minute = $MaxPerMinute }
+    if ($PSBoundParameters.ContainsKey('Events')) { $body['events'] = ($Events -join ',') }
+    if ($PSBoundParameters.ContainsKey('Domains')) { $body['domains'] = ($Domains -join ',') }
+    if ($PSBoundParameters.ContainsKey('Addresses')) { $body['addresses'] = ($Addresses -join ',') }
+    if ($PSCmdlet.ShouldProcess($Name, 'Create a webhook subscription')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/webhooks' -Body $body
+    }
+}
+
+function Set-HmWebhook {
+    <#
+    .SYNOPSIS
+        Changes one subscription. A parameter not given keeps the value it has,
+        and the secret is only replaced when one is given - so switching a
+        subscription off cannot clear what it signs with.
+    .EXAMPLE
+        Set-HmWebhook -Name ticketing -Enabled $false
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Name,
+        [string] $Url,
+        [string] $Secret,
+        [string[]] $Events,
+        [string[]] $Domains,
+        [string[]] $Addresses,
+        [bool] $Enabled,
+        [bool] $IncludeSubject,
+        [ValidateRange(0, 100000)] [int] $MaxPerMinute
+    )
+    process {
+        $body = @{}
+        if ($PSBoundParameters.ContainsKey('Url')) { $body['url'] = $Url }
+        if ($PSBoundParameters.ContainsKey('Secret')) { $body['secret'] = $Secret }
+        if ($PSBoundParameters.ContainsKey('Events')) { $body['events'] = ($Events -join ',') }
+        if ($PSBoundParameters.ContainsKey('Domains')) { $body['domains'] = ($Domains -join ',') }
+        if ($PSBoundParameters.ContainsKey('Addresses')) { $body['addresses'] = ($Addresses -join ',') }
+        if ($PSBoundParameters.ContainsKey('Enabled')) { $body['enabled'] = $Enabled }
+        if ($PSBoundParameters.ContainsKey('IncludeSubject')) { $body['include_subject'] = $IncludeSubject }
+        if ($PSBoundParameters.ContainsKey('MaxPerMinute')) { $body['max_per_minute'] = $MaxPerMinute }
+        if ($PSCmdlet.ShouldProcess($Name, 'Change a webhook subscription')) {
+            Invoke-HmApi -Method PUT -Path ('/api/v1/webhooks/' + [uri]::EscapeDataString($Name)) -Body $body
+        }
+    }
+}
+
+function Remove-HmWebhook {
+    <#
+    .SYNOPSIS
+        Removes a subscription, and with it everything of its that is still
+        queued - a delivery to an endpoint that no longer exists is a request
+        nobody wants made.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Name
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Name, 'Remove a webhook subscription')) {
+            Invoke-HmApi -Method DELETE -Path ('/api/v1/webhooks/' + [uri]::EscapeDataString($Name)) | Out-Null
+        }
+    }
+}
+
+function Get-HmWebhookDelivery {
+    <#
+    .SYNOPSIS
+        The webhook delivery queue, newest first: what was sent, what is still
+        owed, and why a dead letter was given up on. Each row carries the body
+        exactly as it was sent.
+    .EXAMPLE
+        Get-HmWebhookDelivery -State dead-lettered | Format-Table id, webhook, event, attempts, error
+    #>
+    [CmdletBinding()]
+    param(
+        [string] $Webhook,
+        [ValidateSet('pending', 'delivered', 'dead-lettered')] [string] $State,
+        [ValidateRange(1, 1000)] [int] $Limit = 100
+    )
+    $query = @('limit=' + $Limit)
+    if ($Webhook) { $query += 'webhook=' + [uri]::EscapeDataString($Webhook) }
+    if ($State) { $query += 'state=' + [uri]::EscapeDataString($State) }
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path ('/api/v1/webhooks/deliveries?' + ($query -join '&'))) -Key 'deliveries'
+}
+
+function Invoke-HmWebhookDelivery {
+    <#
+    .SYNOPSIS
+        Runs one webhook delivery pass now - the pass the scheduled task makes
+        every minute - and removes what the retention no longer keeps.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param()
+    if ($PSCmdlet.ShouldProcess('the webhook queue', 'Deliver what is due')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/webhooks/run' -Body @{}
+    }
+}
+
+function Test-HmWebhook {
+    <#
+    .SYNOPSIS
+        Raises one event through exactly the path a real one takes - the same
+        matching, the same domain switches, the same rate ceiling - so that what
+        arrives is what would arrive. Answers how many subscriptions took it.
+    .EXAMPLE
+        Test-HmWebhook -Event message.bounced -Domain example.com
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [ValidateSet('message.received', 'message.delivered', 'message.bounced', 'message.quarantined', 'account.locked')]
+        [string] $Event,
+        [string] $Domain,
+        [string] $Account
+    )
+    $body = @{}
+    if ($Event) { $body['event'] = $Event }
+    if ($Domain) { $body['domain'] = $Domain }
+    if ($Account) { $body['account'] = $Account }
+    if ($PSCmdlet.ShouldProcess('the webhook subscriptions', 'Raise a test event')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/webhooks/test' -Body $body
+    }
+}
+
+# ---------------------------------------------------------------------------
 # Accounts in bulk
 # ---------------------------------------------------------------------------
 
@@ -1974,6 +2140,8 @@ Export-ModuleMember -Function @(
     'Remove-HmDkimRetiringKey', 'Stop-HmDkimRotation', 'Invoke-HmDkimRotation',
     'Get-HmSuppression', 'Add-HmSuppression', 'Remove-HmSuppression', 'Get-HmBounceCount',
     'Test-HmBounceStatus', 'Invoke-HmBounceMaintenance',
+    'Get-HmWebhook', 'New-HmWebhook', 'Set-HmWebhook', 'Remove-HmWebhook',
+    'Get-HmWebhookDelivery', 'Invoke-HmWebhookDelivery', 'Test-HmWebhook',
     'Get-HmOpenPgpKey', 'Set-HmOpenPgpKey', 'Remove-HmOpenPgpKey', 'Set-HmOpenPgpPublish',
     'Import-HmAccount', 'Export-HmAccount',
     'Export-HmConfiguration', 'Compare-HmConfiguration', 'Import-HmConfiguration',

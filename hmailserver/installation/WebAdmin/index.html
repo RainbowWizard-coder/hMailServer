@@ -320,6 +320,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="logs" data-serverwide="1" data-needs="view_logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
         <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
+        <button data-view="webhooks" data-serverwide="1" data-needs="view_configuration" title="Webhooks"><span class="ico">↱</span><span>Webhooks</span></button>
       </nav>
       <div class="foot">v<span id="ver">—</span></div>
     </aside>
@@ -474,7 +475,7 @@ let spec=null;
 /* The last listing each view read, so that an editor can be opened on a row
    without asking again. Never written to instead of re-reading: every write is
    followed by a fresh GET. */
-const cache={certificates:[],ports:[],routes:[],rules:[],domains:[],groups:[],ranges:[],lists:[],collections:{},messages:[],remotedomains:[],
+const cache={certificates:[],ports:[],routes:[],rules:[],domains:[],groups:[],ranges:[],lists:[],collections:{},messages:[],remotedomains:[],webhooks:[],
   /* The fetch view's chosen domain and account, kept across its re-reads. */
   fetch:{domain:"",address:"",accounts:[],items:[]}};
 
@@ -733,7 +734,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -758,6 +759,7 @@ async function render(silent){
     else if(view==="reports")await renderReports();
     else if(view==="logs")await renderLogs();
     else if(view==="audit")await renderAudit();
+    else if(view==="webhooks")await renderWebhooks();
     $("#connState").textContent=t("Connected");
     connection("good",K("Connected"));
   }catch(err){
@@ -1100,6 +1102,12 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="rddel")deleteRemoteDomain(Number(d.id),d.name);
   else if(d.act==="rdsave")saveRemoteDomain();
   else if(d.act==="rdclearcache")clearVerificationCache();
+  else if(d.act==="hooknew")openWebhook("");
+  else if(d.act==="hookedit")openWebhook(d.id);
+  else if(d.act==="hookdel")deleteWebhook(d.id);
+  else if(d.act==="hooksave")saveWebhook();
+  else if(d.act==="hookrun")runWebhookPass();
+  else if(d.act==="hooktest")sendTestWebhook();
   else if(d.act==="cancel"){editing=null;render();}
 });
 /* A criterion's field or an action's type decides which further controls the
@@ -3926,6 +3934,137 @@ async function showLog(name,lines){
     pre.textContent=(answer.lines||[]).join("\n")||t("(empty)");
     pre.scrollTop=pre.scrollHeight;
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_log",tf("Could not read {0}: {1}",name,e.message));}
+}
+
+
+/* ---------- Webhooks ----------
+   Which other programs are told what this server's mail does. A subscription is
+   an endpoint, a shared secret, the events it wants and the domains and
+   addresses it is confined to; the queue below the list is what has been sent to
+   them and what is still owed.
+
+   The editor is built from the schema of POST /api/v1/webhooks, as the routes'
+   and the ports' are, so a field the record gains appears here without a change
+   to this page - and the secret is drawn as a write-only box because the schema
+   marks it writeOnly, which is also why leaving it empty on a change keeps the
+   one that is set.
+
+   Two buttons do what an administrator does next after configuring one: raise a
+   test event through the same path a real one takes, and run a delivery pass
+   rather than waiting up to a minute for the scheduled one. */
+const WEBHOOK_DELIVERIES=25;
+function webhookStateWord(word){
+  if(word==="delivered")return t("delivered");
+  if(word==="dead-lettered")return t("dead-lettered");
+  return t("pending");
+}
+function webhookQueueText(w){
+  const parts=[];
+  if(Number(w.pending))parts.push(tf("{0} waiting",Number(w.pending)));
+  if(Number(w.delivered))parts.push(tf("{0} sent",Number(w.delivered)));
+  if(Number(w.dead_lettered))parts.push(tf("{0} dead-lettered",Number(w.dead_lettered)));
+  if(Number(w.dropped))parts.push(tf("{0} dropped",Number(w.dropped)));
+  return parts.length?parts.join(", "):t("nothing yet");
+}
+async function renderWebhooks(){
+  await loadSpec();
+  const answer=await api("/api/v1/webhooks");
+  cache.webhooks=asList(answer,"webhooks");
+  if(editing&&editing.kind==="webhook"){renderWebhookEditor();return;}
+  const queue=asList(await api("/api/v1/webhooks/deliveries?limit="+WEBHOOK_DELIVERIES),"deliveries");
+  const rows=cache.webhooks.map(w=>`
+    <tr><td><b>${escHtml(w.name)}</b>${w.enabled?"":' <span class="badge warn">'+t("Off")+'</span>'}
+            <div class="hint muted"><code>${escHtml(w.url)}</code></div></td>
+        <td>${escHtml(w.events||t("every event"))}</td>
+        <td>${escHtml(w.domains||t("every domain"))}${w.addresses?'<div class="hint muted">'+escHtml(w.addresses)+'</div>':""}</td>
+        <td>${escHtml(webhookQueueText(w))}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn ghost sm" data-act="hookedit" data-id="${escHtml(w.name)}">${t("Edit")}</button>
+          <button class="btn danger sm" data-act="hookdel" data-id="${escHtml(w.name)}">${t("Delete")}</button>
+          <div class="err" id="err_hook_${escHtml(w.name)}"></div></td></tr>`).join("");
+  const queueRows=queue.map(d=>`
+    <tr><td>${escHtml(auditWhen(d.created))}</td><td>${escHtml(d.webhook||"—")}</td><td><code>${escHtml(d.event)}</code></td>
+        <td>${escHtml(webhookStateWord(d.state))}</td><td>${escHtml(String(d.attempts||0))}</td>
+        <td>${escHtml(d.error||"")}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/webhooks","get").description||"")}</p>
+      <div class="tablewrap"><table><thead><tr><th>${t("Name")}</th><th>${t("Events")}</th><th>${t("Scope")}</th><th>${t("Queue")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("No subscriptions are configured, so no mail event leaves this server.")+'</td></tr>'}</tbody></table></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" data-act="hooknew">${t("Add a subscription")}</button>
+        <button class="btn ghost" data-act="hooktest">${t("Send a test event")}</button>
+        <button class="btn ghost" data-act="hookrun">${t("Run a delivery pass")}</button>
+        <div class="err" id="err_hooks"></div>
+      </div>
+    </div>
+    <div class="sect"><h2>${t("Recent deliveries")}</h2>
+      <div class="card flat">
+        <div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Subscription")}</th><th>${t("Event")}</th>
+          <th>${t("State")}</th><th>${t("Attempts")}</th><th>${t("Error")}</th></tr></thead>
+        <tbody>${queueRows||'<tr><td colspan="6" class="empty">'+t("Nothing has been queued yet.")+'</td></tr>'}</tbody></table></div>
+      </div></div></div>`;
+}
+function openWebhook(name){
+  const existing=cache.webhooks.filter(w=>w.name===name)[0];
+  const values=existing
+    ? JSON.parse(JSON.stringify(existing))
+    : documentedDefaults("/api/v1/webhooks","post",properties("/api/v1/webhooks","post"));
+  editing={kind:"webhook",id:name||"",values:values};
+  renderWebhookEditor();
+}
+function webhookFormOptions(){
+  return {required:requiredOf("/api/v1/webhooks","post"),
+          skip:editing.id?["name"]:[],
+          passwordHint:t("left unchanged unless filled")};
+}
+function renderWebhookEditor(){
+  const props=properties("/api/v1/webhooks","post");
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="cancel">${t("‹ All subscriptions")}</button>
+    <div class="sect"><h2>${editing.id?tf("Edit the subscription {0}",escHtml(editing.id)):t("New subscription")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation(editing.id?"/api/v1/webhooks/{name}":"/api/v1/webhooks",editing.id?"put":"post").description||"")}</p>
+        <div class="form">${formHtml("hook",props,editing.values,webhookFormOptions())}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" data-act="hooksave">${t("Save the subscription")}</button>
+          <button class="btn ghost" data-act="cancel">${t("Cancel")}</button>
+          <div class="err" id="err_hookedit"></div>
+        </div>
+      </div></div></div>`;
+}
+async function saveWebhook(){
+  setErr("err_hookedit","");
+  const props=properties("/api/v1/webhooks","post");
+  let body;
+  try{body=readForm("hook",props,webhookFormOptions());}catch(e){setErr("err_hookedit",e.message);return;}
+  try{
+    if(editing.id)await api("/api/v1/webhooks/"+encodeURIComponent(editing.id),{method:"PUT",body:JSON.stringify(body)});
+    else await api("/api/v1/webhooks",{method:"POST",body:JSON.stringify(body)});
+    editing=null;toast(t("Subscription saved"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_hookedit",e.message);}
+}
+async function deleteWebhook(name){
+  if(!confirm(tf("Delete the subscription {0}?",name)))return;
+  setErr("err_hook_"+name,"");
+  try{await api("/api/v1/webhooks/"+encodeURIComponent(name),{method:"DELETE"});toast(t("Subscription deleted"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_hook_"+name,e.message);}
+}
+async function runWebhookPass(){
+  setErr("err_hooks","");
+  try{
+    const answer=await api("/api/v1/webhooks/run",{method:"POST",body:"{}"});
+    toast(tf("{0} delivered, {1} removed",Number(answer.delivered)||0,Number(answer.removed)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_hooks",e.message);}
+}
+async function sendTestWebhook(){
+  setErr("err_hooks","");
+  try{
+    const answer=await api("/api/v1/webhooks/test",{method:"POST",body:"{}"});
+    toast(tf("The test event was queued for {0} subscription(s).",Number(answer.queued)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_hooks",e.message);}
 }
 
 /* ---------- Boot ----------

@@ -858,7 +858,52 @@ namespace DBUpdater
          new SchemaProbe(6050, "hm_pgpkeys.pgpkuploaded",
                          "update hm_pgpkeys set pgpkuploaded = pgpkuploaded where 1 = 0"),
          new SchemaProbe(6050, "hm_pgpkeys.pgpkuploadedby",
-                         "update hm_pgpkeys set pgpkuploadedby = pgpkuploadedby where 1 = 0")
+                         "update hm_pgpkeys set pgpkuploadedby = pgpkuploadedby where 1 = 0"),
+         // Upgrade6050to6051* - outbound webhooks: the two flags a domain
+         // carries (whether events about it are raised at all, and whether a
+         // body may carry its subjects), the subscriptions (hm_webhooks) and
+         // the delivery queue that survives a restart (hm_webhookqueue). The
+         // identity columns are never probed.
+         new SchemaProbe(6051, "hm_domains.domainwebhooksenabled",
+                         "update hm_domains set domainwebhooksenabled = domainwebhooksenabled where 1 = 0"),
+         new SchemaProbe(6051, "hm_domains.domainwebhooksubjects",
+                         "update hm_domains set domainwebhooksubjects = domainwebhooksubjects where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whname",
+                         "update hm_webhooks set whname = whname where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whurl",
+                         "update hm_webhooks set whurl = whurl where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whsecret",
+                         "update hm_webhooks set whsecret = whsecret where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whevents",
+                         "update hm_webhooks set whevents = whevents where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whdomains",
+                         "update hm_webhooks set whdomains = whdomains where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whaddresses",
+                         "update hm_webhooks set whaddresses = whaddresses where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whenabled",
+                         "update hm_webhooks set whenabled = whenabled where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whmaxperminute",
+                         "update hm_webhooks set whmaxperminute = whmaxperminute where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whincludesubject",
+                         "update hm_webhooks set whincludesubject = whincludesubject where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhooks.whcreated",
+                         "update hm_webhooks set whcreated = whcreated where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqwebhookid",
+                         "update hm_webhookqueue set wqwebhookid = wqwebhookid where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqevent",
+                         "update hm_webhookqueue set wqevent = wqevent where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqcreated",
+                         "update hm_webhookqueue set wqcreated = wqcreated where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqstate",
+                         "update hm_webhookqueue set wqstate = wqstate where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqtries",
+                         "update hm_webhookqueue set wqtries = wqtries where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqnext",
+                         "update hm_webhookqueue set wqnext = wqnext where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqerror",
+                         "update hm_webhookqueue set wqerror = wqerror where 1 = 0"),
+         new SchemaProbe(6051, "hm_webhookqueue.wqbody",
+                         "update hm_webhookqueue set wqbody = wqbody where 1 = 0")
       };
 
       /// <summary>

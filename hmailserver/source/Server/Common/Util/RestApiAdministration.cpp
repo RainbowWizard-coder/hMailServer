@@ -276,7 +276,8 @@ namespace HM
          "external_tag_subject", "external_tag_header", "external_tag_text", "first_contact_tip",
          "disclaimer_enabled", "disclaimer_plain_text", "disclaimer_html",
          "quarantine_digest", "quarantine_digest_hour",
-         "openpgp_publish", "openpgp_publish_new_accounts"
+         "openpgp_publish", "openpgp_publish_new_accounts",
+         "webhooks_enabled", "webhook_subjects"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -377,6 +378,8 @@ namespace HM
          bool dkimSignAliases = domain->GetDKIMAliasesEnabled(), vacationExternalOverride = domain->GetVacationExternalOverride();
          bool externalTagSubject = domain->GetExternalTagSubject(), externalTagHeader = domain->GetExternalTagHeader();
          bool firstContactTip = domain->GetFirstContactTip(), disclaimerEnabled = domain->GetDisclaimerEnabled();
+         bool webhooksEnabled = domain->GetWebhooksEnabled();
+         bool webhookSubjects = domain->GetWebhookSubjects();
          bool quarantineDigest = domain->GetQuarantineDigest();
          bool openPgpPublish = domain->GetOpenPGPPublish();
          bool openPgpPublishNewAccounts = domain->GetOpenPGPPublishNewAccounts();
@@ -403,7 +406,9 @@ namespace HM
              !ReadBool(body, "disclaimer_enabled", disclaimerEnabled, error) ||
              !ReadBool(body, "quarantine_digest", quarantineDigest, error) ||
              !ReadBool(body, "openpgp_publish", openPgpPublish, error) ||
-             !ReadBool(body, "openpgp_publish_new_accounts", openPgpPublishNewAccounts, error))
+             !ReadBool(body, "openpgp_publish_new_accounts", openPgpPublishNewAccounts, error) ||
+             !ReadBool(body, "webhooks_enabled", webhooksEnabled, error) ||
+             !ReadBool(body, "webhook_subjects", webhookSubjects, error))
             return false;
 
          // The two canonicalisation methods, as put_DKIMHeaderCanonicalizationMethod
@@ -523,6 +528,8 @@ namespace HM
          domain->SetDKIMRotationPropagationHours((int) rotationPropagation);
          domain->SetDKIMRotationRetentionDays((int) rotationRetention);
          domain->SetDKIMRotationKeyBits((int) rotationKeyBits);
+         domain->SetWebhooksEnabled(webhooksEnabled);
+         domain->SetWebhookSubjects(webhookSubjects);
          domain->SetMessageRetentionDays((int) retention);
          domain->SetRelayHost(relayHost);
          domain->SetRelayPort(relayPort);
@@ -646,6 +653,8 @@ namespace HM
       text("vacation_message", domain->GetVacationMessage());
       text("vacation_internal_subject", domain->GetVacationInternalSubject());
       text("vacation_internal_message", domain->GetVacationInternalMessage());
+      flag("webhooks_enabled", domain->GetWebhooksEnabled());
+      flag("webhook_subjects", domain->GetWebhookSubjects());
       flag("vacation_external_override", domain->GetVacationExternalOverride());
       flag("quarantine_digest", domain->GetQuarantineDigest());
       flag("openpgp_publish", domain->GetOpenPGPPublish());

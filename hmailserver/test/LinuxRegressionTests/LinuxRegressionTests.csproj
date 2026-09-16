@@ -330,6 +330,7 @@
     <Compile Include="..\RegressionTests\Stress\StabilitySanityTests.cs" Link="Stress\StabilitySanityTests.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountAppPasswords.cs" Link="API\RestApiAccountAppPasswords.cs" />
     <Compile Include="..\RegressionTests\API\RestApiBreachCheck.cs" Link="API\RestApiBreachCheck.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiWebhooks.cs" Link="API\RestApiWebhooks.cs" />
     <Compile Include="..\RegressionTests\API\RestApiFolderPermissions.cs" Link="API\RestApiFolderPermissions.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountMessages.cs" Link="API\RestApiAccountMessages.cs" />
     <Compile Include="..\RegressionTests\Security\AppPasswords.cs" Link="Security\AppPasswords.cs" />

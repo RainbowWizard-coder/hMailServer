@@ -41,6 +41,7 @@
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/ServerStatus.h"
 #include "../Common/Util/AWStats.h"
+#include "../Common/Util/WebhookManager.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Application/DefaultDomain.h"
@@ -1086,6 +1087,90 @@ namespace HM
          countedRecipientDomains.insert(recipientDomain);
 
          ServerStatus::Instance()->OnDomainMessageReceived(recipientDomain);
+      }
+   }
+
+   void
+   SMTPConnection::RaiseWebhookMessageReceived_()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Raises message.received for each local recipient of a message this server has
+   // just accepted, once per recipient - because a subscription can be confined to
+   // one address, and a message to four people is four things that happened to
+   // four mailboxes.
+   //
+   // Here rather than in a task that watches the queue: this is the path that owns
+   // the event, and it knows the sender, the recipient, the queue id and the size
+   // without asking anything. A watcher would have to poll, and would be telling a
+   // receiver about a message the server had already delivered.
+   //
+   // The subject is read out of the message file ONCE, and only when a subscription
+   // has asked for subjects and the domain allows them - so an installation that
+   // has not asked pays nothing, and one that has pays one read per message rather
+   // than one per recipient. And it is the HEADER BLOCK that is read, the way the
+   // archive index reads it below, not the message: this runs on the SMTP thread
+   // between the save and the 250, and a full MIME parse of a message with
+   // attachments is not a price to pay for one header line.
+   //---------------------------------------------------------------------------()
+   {
+      if (!current_message_ || !current_message_->GetRecipients())
+         return;
+
+      const String sender = current_message_->GetFromAddress();
+      const __int64 queueID = current_message_->GetID();
+      const __int64 size = current_message_->GetSize();
+
+      String subject;
+      bool subjectRead = false;
+
+      std::set<String> raisedFor;
+
+      for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
+      {
+         const String address = recipient->GetAddress();
+
+         String domain = StringParser::ExtractDomain(address);
+         domain.MakeLower();
+
+         // Local recipients only. The recipient domain of a relayed message is
+         // whatever the sender wrote, and an event about it would be an event
+         // about a domain this server does not host.
+         if (domain.IsEmpty() || !CacheContainer::Instance()->GetDomain(domain))
+            continue;
+
+         // One event per address, even where a message names the same one twice.
+         String key = address;
+         key.MakeLower();
+
+         if (raisedFor.find(key) != raisedFor.end())
+            continue;
+
+         if (!WebhookManager::Instance()->Wants(domain, WebhookManager::EventMessageReceived))
+            continue;
+
+         raisedFor.insert(key);
+
+         if (!subjectRead && WebhookManager::Instance()->WantsSubject(domain, WebhookManager::EventMessageReceived))
+         {
+            subjectRead = true;
+
+            AnsiString headerText = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(current_message_), false);
+            MimeHeader header;
+            header.Load(headerText, headerText.GetLength(), true);
+            subject = header.GetUnicodeFieldValue("Subject");
+         }
+
+         WebhookManager::Event event;
+         event.name = WebhookManager::EventMessageReceived;
+         event.domain = domain;
+         event.account = address;
+         event.sender = sender;
+         event.recipient = address;
+         event.queue_id = queueID;
+         event.size = size;
+         event.subject = subject;
+
+         WebhookManager::Instance()->Raise(event);
       }
    }
 
@@ -2157,6 +2242,11 @@ namespace HM
             // whether or not it later bounced - which is the same thing the global
             // processed-messages counter has always meant.
             CountMessageAgainstLocalDomains_();
+
+            // And the outbound webhooks, for the same reason and at the same
+            // moment: the message is the server's now. Nothing is sent from
+            // here - each subscription that wants it gets a queue row.
+            RaiseWebhookMessageReceived_();
 
             // Add this message to the delivery queue cache. This way,
             // we won't have to read it from the database.

@@ -87,6 +87,11 @@ public:
    STDMETHOD(ImportOpenPGPKey)(/*[in]*/ BSTR AccountAddress, /*[in]*/ BSTR Key, /*[in]*/ VARIANT_BOOL AllowAddressMismatch, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(RemoveOpenPGPKey)(/*[in]*/ BSTR AccountAddress, /*[in]*/ BSTR Fingerprint, /*[out, retval]*/ VARIANT_BOOL *Removed);
 
+   // The outbound webhook subscriptions, as the same JSON documents the REST
+   // routes answer and take. See Common/Util/WebhookManager.h.
+   STDMETHOD(GetWebhookSubscriptions)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(SaveWebhookSubscription)(/*[in]*/ BSTR Json, /*[out, retval]*/ BSTR *Json2);
+
 private:
    // The server administrator, or the domain administrator of this domain. Asks
    // the authorisation question, which is also what installs the audit actor.

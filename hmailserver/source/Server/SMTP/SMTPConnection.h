@@ -165,6 +165,12 @@ namespace HM
       // refused, having already answered the client.
       void CountMessageAgainstLocalDomains_();
 
+      // message.received, for every subscription that wants it. Called at
+      // acceptance, beside the per-domain counters and for the same reason: this
+      // is the moment the server took responsibility for the message. See
+      // Common/Util/WebhookManager.h.
+      void RaiseWebhookMessageReceived_();
+
       bool CheckAccountSendingQuotaAtMailFrom_();
       // Consumes one envelope recipient from the same budget. Returns false when
       // the recipient must be refused, having already answered the client.

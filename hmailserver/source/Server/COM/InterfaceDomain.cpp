@@ -2947,3 +2947,79 @@ STDMETHODIMP InterfaceDomain::DKIMRotationCancel(BSTR *Status)
       return COMError::GenerateGenericMessage();
    }
 }
+
+STDMETHODIMP InterfaceDomain::get_WebhooksEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetWebhooksEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_WebhooksEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      object_->SetWebhooksEnabled(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_WebhookSubjects(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetWebhookSubjects() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_WebhookSubjects(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      object_->SetWebhookSubjects(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

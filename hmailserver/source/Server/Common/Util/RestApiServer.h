@@ -523,6 +523,19 @@ namespace HM
          // domain and are scoped to it in Authorize_ exactly as the account
          // routes are; the two built from the server-wide metric history
          // (volume and storage) are refused for a domain-restricted key, for
+         // Outbound webhooks (RestApiWebhooks.cpp): the subscriptions, the
+         // delivery queue, a pass run on demand and a test event. Server-wide,
+         // and refused to every API key for the reason the alert rules are - a
+         // subscription holds a signing secret and points this server at a URL,
+         // so a stolen key must not be able to read one or make one.
+         RouteWebhookList,
+         RouteWebhookGet,
+         RouteWebhookCreate,
+         RouteWebhookUpdate,
+         RouteWebhookDelete,
+         RouteWebhookDeliveryList,
+         RouteWebhookRun,
+         RouteWebhookTest,
          // the reason the delivery queue is - the counters are the server's
          // and there is no honest way to narrow them to one domain.
          RouteReport,
@@ -1259,6 +1272,11 @@ namespace HM
       // RestApiBounces.cpp.
       HttpResponse HandleBounces_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiBouncesPaths_();
+
+      // The webhook subscriptions and their delivery queue. In
+      // RestApiWebhooks.cpp.
+      HttpResponse HandleWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiWebhooksPaths_();
 
       std::shared_ptr<HttpServer> server_;
       bool running_;

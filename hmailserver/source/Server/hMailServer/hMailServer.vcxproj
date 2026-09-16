@@ -590,10 +590,12 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPortal.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSettings.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiWebhooks.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAudit.cpp" />
     <ClCompile Include="..\Common\Util\RestApiBounces.cpp" />
     <ClCompile Include="..\Common\Util\AuditTrail.cpp" />
     <ClCompile Include="..\Common\Util\AlertManager.cpp" />
+    <ClCompile Include="..\Common\Util\WebhookManager.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCertificates.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAdministration.cpp" />
@@ -1417,6 +1419,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\TlsRptStore.h" />
     <ClInclude Include="..\Common\Util\AuditTrail.h" />
     <ClInclude Include="..\Common\Util\AlertManager.h" />
+    <ClInclude Include="..\Common\Util\WebhookManager.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />
