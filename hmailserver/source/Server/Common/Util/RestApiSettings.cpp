@@ -529,7 +529,7 @@ namespace
         "The minutes between two delivery attempts.",
         ROW_NUMBER(Smtp()->GetMinutesBetweenTry()), ROW_SET(Smtp()->SetMinutesBetweenTry(v.number)), ROW_NO_CHECK },
       { "smtp_delivery_bind_to_ip", KindString, ReadWrite, EffectNow, nullptr,
-        "The local address outbound SMTP connects from, or empty for any.",
+        "The local address outbound SMTP connects from, or empty for any. One address, or one of each family separated by a comma (a dual-stack server binds its static IPv6 address so that its PTR and SPF match, and its IPv4 address for IPv4 hosts); an address of the other family than the host being reached is not used for that connection.",
         ROW_TEXT(Smtp()->GetSMTPDeliveryBindToIP()), ROW_SET(Smtp()->SetSMTPDeliveryBindToIP(v.text)), ROW_NO_CHECK },
       { "max_smtp_recipients_in_batch", KindInteger, ReadWrite, EffectNow, nullptr,
         "The most recipients handed to one host in one SMTP session.",

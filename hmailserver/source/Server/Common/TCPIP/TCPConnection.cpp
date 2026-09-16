@@ -112,9 +112,35 @@ namespace HM
       // int, unsigned int, __int64 and unsigned __int64 constructors all equally
       // distant. The cast names the one the Windows build already selects, and a
       // port number cannot be lost by it.
-      LOG_TCPIP(Formatter::Format("Connecting to {0}:{1}...", remote_ip_address_, (int) remotePort));
+      // A local address of the other family is not bound: a socket bound to an
+      // IPv6 address cannot reach an IPv4 host, and the alternative - the bind
+      // succeeding and the connect then failing to every IPv4 server there is -
+      // is what issue 276 reported from a dual-stack server that had bound its
+      // static IPv6 address so that its PTR and SPF would match. The callers
+      // choose by family already (SMTPConfiguration::OutboundBindAddress); this
+      // covers the ones that hand over a single address as they always have.
+      IPAddress remoteAddress;
+      const bool bindRequested = !localAddress.IsAny();
+      const bool bindApplies = bindRequested &&
+                               (!remoteAddress.TryParse(remote_ip_address, false) ||
+                                remoteAddress.GetType() == localAddress.GetType());
 
-      if (!localAddress.IsAny())
+      if (bindRequested && !bindApplies)
+      {
+         LOG_TCPIP(Formatter::Format("Not binding to {0} for the connection to {1}: the two addresses are of different families, so the system chooses the source address.",
+            localAddress.ToString(), remote_ip_address_));
+      }
+
+      if (bindApplies)
+      {
+         LOG_TCPIP(Formatter::Format("Connecting to {0}:{1} from {2}...", remote_ip_address_, (int) remotePort, localAddress.ToString()));
+      }
+      else
+      {
+         LOG_TCPIP(Formatter::Format("Connecting to {0}:{1}...", remote_ip_address_, (int) remotePort));
+      }
+
+      if (bindApplies)
       {
          boost::system::error_code error_code;
 

@@ -907,8 +907,12 @@ namespace HM
          }
       }
 
-      // Determine what local IP address to use.
-      IPAddress localAddress = GetLocalAddress_();
+      // Determine what local IP address to use: the one of the remote's family,
+      // if the setting or the rule names one.
+      IPAddress remoteAddress;
+      remoteAddress.TryParse(AnsiString(serverInfo->GetIpAddress()), false);
+
+      IPAddress localAddress = GetLocalAddress_(remoteAddress);
 
       if (pClientConnection->Connect(serverInfo->GetIpAddress(), serverInfo->GetPort(), localAddress))
       {
@@ -923,27 +927,28 @@ namespace HM
 
    }
 
-   IPAddress 
-   ExternalDelivery::GetLocalAddress_()
+   IPAddress
+   ExternalDelivery::GetLocalAddress_(const IPAddress &remote)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Determines what local IP address to use when delivering to this host.
+   // Determines what local IP address to use when delivering to this host: a
+   // rule's bind-to-address action first, else SMTPDeliveryBindToIP, and of
+   // either only an address of the remote's family. See
+   // SMTPConfiguration::OutboundBindAddress for why the other family is skipped.
    //---------------------------------------------------------------------------()
    {
-      IPAddress localAddress;
-
       std::shared_ptr<SMTPConfiguration> pSMTPConfig = Configuration::Instance()->GetSMTPConfiguration();
 
       String smtpSettingBindToIP = pSMTPConfig->GetSMTPDeliveryBindToIP();
       String ruleBindToAddress = _globalRuleResult.GetBindToAddress();
 
       if (!ruleBindToAddress.IsEmpty())
-         localAddress.TryParse(ruleBindToAddress);
-      else if (!smtpSettingBindToIP.IsEmpty())
-         localAddress.TryParse(smtpSettingBindToIP);
+         return SMTPConfiguration::OutboundBindAddress(ruleBindToAddress, remote);
 
-      return localAddress;
+      if (!smtpSettingBindToIP.IsEmpty())
+         return SMTPConfiguration::OutboundBindAddress(smtpSettingBindToIP, remote);
 
+      return IPAddress();
    }
 
    void 

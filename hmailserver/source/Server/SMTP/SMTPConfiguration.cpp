@@ -12,6 +12,7 @@
 #include "../Common/BO/RemoteDomainPolicies.h"
 
 #include "../Common/TCPIP/SocketConstants.h"
+#include "../Common/Util/Parsing/StringParser.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -131,6 +132,35 @@ namespace HM
    SMTPConfiguration::GetSMTPDeliveryBindToIP() const
    {
       return GetSettings_()->GetString(PROPERTY_SMTPDELIVERYBINDTOIP);
+   }
+
+   IPAddress
+   SMTPConfiguration::OutboundBindAddress(const String &configured, const IPAddress &remote)
+   {
+      IPAddress none;
+
+      String list = configured;
+      list.Replace(_T(";"), _T(","));
+      list.Replace(_T(" "), _T(","));
+
+      std::vector<String> entries = StringParser::SplitString(list, _T(","));
+
+      for (String entry : entries)
+      {
+         entry.Trim();
+
+         if (entry.IsEmpty())
+            continue;
+
+         IPAddress candidate;
+         if (!candidate.TryParse(AnsiString(entry), true))
+            continue;
+
+         if (candidate.GetType() == remote.GetType())
+            return candidate;
+      }
+
+      return none;
    }
 
    void 

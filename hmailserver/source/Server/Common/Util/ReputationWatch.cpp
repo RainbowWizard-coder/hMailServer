@@ -7,6 +7,7 @@
 #include "StdAfx.h"
 
 #include "ReputationWatch.h"
+#include "Parsing/StringParser.h"
 
 #include "AlertManager.h"
 
@@ -745,9 +746,20 @@ namespace HM
       // shows them.
       const String bind = Configuration::Instance()->GetSMTPConfiguration()->GetSMTPDeliveryBindToIP();
 
-      if (!bind.IsEmpty())
+      // One address, or one of each family (issue 276): every one is an address
+      // the internet sees this server as.
+      String bindList = bind;
+      bindList.Replace(_T(";"), _T(","));
+      bindList.Replace(_T(" "), _T(","));
+
+      for (String entry : StringParser::SplitString(bindList, _T(",")))
       {
-         raw.push_back(AnsiString(bind));
+         entry.Trim();
+
+         if (entry.IsEmpty())
+            continue;
+
+         raw.push_back(AnsiString(entry));
          sources.push_back("bind");
       }
 

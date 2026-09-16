@@ -47,7 +47,7 @@ namespace HM
       // Function not called anywhere else to matter
       bool GetRetryOptions_(std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError, long &lNoOfRetries, long &lMinutesBetween);
 
-      IPAddress GetLocalAddress_();
+      IPAddress GetLocalAddress_(const IPAddress &remote);
 
       const String &_sendersIP;
       const std::shared_ptr<Message> original_message_;

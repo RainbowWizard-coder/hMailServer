@@ -746,6 +746,7 @@
     <Compile Include="Shared\IniFileSetting.cs" />
     <Compile Include="Shared\RestListener.cs" />
     <Compile Include="SMTP\SpoolWriteFailure.cs" />
+    <Compile Include="SMTP\OutboundBindFamily.cs" />
     <Compile Include="Shared\TlsHandshakeProbe.cs" />
     <Compile Include="MIME\FuzzHarness.cs" />
     <Compile Include="Infrastructure\LogDeviceAndFormat.cs" />

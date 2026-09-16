@@ -11,6 +11,7 @@
 #include "../TCPIP/IOService.h"
 
 #include "../TCPIP/DNSResolver.h"
+#include "../../SMTP/SMTPConfiguration.h"
 
 using boost::asio::ip::tcp;
 
@@ -26,17 +27,11 @@ namespace HM
    {
       std::shared_ptr<IOService> io_service_wrapper = Application::Instance()->GetIOService();
 
-      IPAddress localAddress;
+      // The setting may name one address of each family; which one applies is
+      // known only once the remote has been resolved, so it is chosen per
+      // address below (SMTPConfiguration::OutboundBindAddress).
       if (!localAddressStr.IsEmpty())
-      {
-         if (!localAddress.TryParse(localAddressStr, false))
-         {
-            result.append(Formatter::Format("ERROR: Unable to parse address {0}.\r\n", localAddressStr));
-            return false;
-         }
-         else
-            result.append(Formatter::Format("Local address is {0}.\r\n", localAddress.ToString()));
-      }
+         result.append(Formatter::Format("Outbound connections bind to {0}.\r\n", localAddressStr));
 
       result.append(Formatter::Format("Trying to connect to host {0}...\r\n", server));
       
@@ -64,6 +59,19 @@ namespace HM
          String formattedString;
          formattedString.Format(_T("Trying to connect to TCP/IP address %s on port %d.\r\n"), ipaddress.c_str(), port);
          result.append(formattedString);
+
+         IPAddress remoteAddress;
+         remoteAddress.TryParse(AnsiString(ipaddress), false);
+
+         IPAddress localAddress = SMTPConfiguration::OutboundBindAddress(localAddressStr, remoteAddress);
+
+         if (!localAddressStr.IsEmpty())
+         {
+            if (localAddress.IsAny())
+               result.append(_T("No bound address is of this address's family, so the system chooses the source address.\r\n"));
+            else
+               result.append(Formatter::Format("Local address is {0}.\r\n", localAddress.ToString()));
+         }
 
          std::shared_ptr<Event> disconnectEvent = std::shared_ptr<Event>(new Event());
 

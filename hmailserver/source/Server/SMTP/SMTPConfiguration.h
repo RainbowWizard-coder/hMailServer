@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../Common/BO/IncomingRelays.h"
+#include "../Common/TCPIP/IPAddress.h"
 #include "../Common/TCPIP/SocketConstants.h"
 
 namespace HM
@@ -49,6 +50,15 @@ namespace HM
 
       String GetSMTPDeliveryBindToIP() const;
       void SetSMTPDeliveryBindToIP(const String &sIP);
+
+      // The address an outbound connection to `remote` binds to, given the text
+      // of SMTPDeliveryBindToIP or a rule's bind-to-address action: one address,
+      // or one of each family separated by a comma, semicolon or space. The
+      // first address of the remote's own family is the answer; an address of
+      // the other family is not a bind that fails, it is no bind at all (an
+      // IPAddress that IsAny), because a socket bound to an IPv6 address cannot
+      // reach an IPv4 host and a dual-stack server has to reach both (issue 276).
+      static IPAddress OutboundBindAddress(const String &configured, const IPAddress &remote);
 
       bool GetBlockBareLFs() const;
 

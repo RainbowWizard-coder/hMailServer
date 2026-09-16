@@ -28,7 +28,7 @@ Three places, and none of them a guess:
 
 | Source | What it is |
 |---|---|
-| `bind` | `SMTPDeliveryBindToIP`, the address outbound SMTP binds to. When it is set, it is the address the internet sees this server as. |
+| `bind` | `SMTPDeliveryBindToIP`, the address outbound SMTP binds to - or, on a dual-stack server, the two it names, one of each family. When it is set, it is the address the internet sees this server as. |
 | `rule` | The **bind to address** action of any active global rule, for the mail that leaves from somewhere else. |
 | `setting` | `ReputationWatchAddresses`: the addresses an administrator says this server is seen as. |
 
