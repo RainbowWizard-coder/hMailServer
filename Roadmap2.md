@@ -4,6 +4,10 @@
 
 The legend is Roadmap.md's: ✅ done and verified, 🔄 underway, ⬜ not started, ⏸️ deferred with the reason written down.
 
+**Where it stands:** 52 done, 31 in motion, 88 not started, 4 paused.
+
+That line is counted from the rows below by `build/check-roadmap2.py`, which CI runs; a branch that flips a row runs it with `--write` and commits the line with the row.
+
 ## 1. Landing what was built on 13 and 14 September
 
 | | Item | Where it stands |
