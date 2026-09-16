@@ -131,13 +131,13 @@ namespace HM
       // providers' own postmaster tools report on, and not a setting: a rate
       // measured over a window the operator can change is not the number the
       // provider is looking at.
-      static const int RateWindowDays = 7;
+      static constexpr int RateWindowDays = 7;
 
       // Below this many messages in the window a domain's rate is not judged - the
       // alert does not fire on it and the metric reports the rate as 0. Three
       // complaints out of ten messages is not a 300,000 ppm problem, it is a domain
       // that has barely sent anything.
-      static const int RateMinimumVolume = 100;
+      static constexpr int RateMinimumVolume = 100;
 
       struct Rate
       {

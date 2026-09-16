@@ -261,23 +261,23 @@ namespace HM
       // upgrade. Schema 6049 seeds the row with this text.
       static const char *DefaultLists;
 
-      static const int MaximumLists = 20;
-      static const int MaximumAddresses = 32;
+      static constexpr int MaximumLists = 20;
+      static constexpr int MaximumAddresses = 32;
 
       // A day. The task wakes every hour and checks when the last check was, so a
       // restart neither loses a day nor causes an extra check.
-      static const __int64 SecondsBetweenChecks = 86400;
+      static constexpr __int64 SecondsBetweenChecks = 86400;
 
       // How long a check may go on making lookups. Tested between lookups, so it
       // bounds how MANY a check makes rather than how long any one of them takes:
       // DNSQueryTimeout bounds a single query (ten seconds by default, and 0
       // means wait for ever, in which case a check waits with it).
-      static const __int64 MaximumCheckSeconds = 120;
+      static constexpr __int64 MaximumCheckSeconds = 120;
 
       // How long a listing that no later check has confirmed goes on counting as
       // a listing. See the note at the top: a refused or unanswered check must not
       // delist an address, and a retired zone must not assert one for ever.
-      static const __int64 UnconfirmedListingSeconds = 7 * 86400;
+      static constexpr __int64 UnconfirmedListingSeconds = 7 * 86400;
 
       // The two settings, read as the watch uses them. Both return the entries
       // they could read and a sentence naming the first they could not, so a row

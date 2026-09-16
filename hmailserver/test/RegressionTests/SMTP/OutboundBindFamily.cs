@@ -32,7 +32,9 @@ namespace RegressionTests.SMTP
    [TestFixture]
    public class OutboundBindFamily : TestFixtureBase
    {
-      private const string Recipient = "someone@bindfamily.test";
+      // The route TestSetup.AddRoutePointingAtLocalhost adds is for dummy-example.com,
+      // so that is the domain the recipient has to be in for the fake server to be reached.
+      private const string Recipient = "someone@dummy-example.com";
 
       [Test]
       [Description("An IPv6 bind address does not stop delivery to an IPv4 host: the bind is skipped for that connection, the log says so, and no bind error is reported.")]
