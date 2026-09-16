@@ -20,6 +20,8 @@
 
 #include "../Application/SessionManager.h"
 
+#include "../Util/CountryBlocking.h"
+
 #include "../Util/Encoding/Base64.h"
 
 #include "SslContextInitializer.h"
@@ -92,6 +94,27 @@ namespace HM
          SessionType session_type_;
          bool held_;
       };
+   }
+
+   namespace
+   {
+      // Which of the country policies governs a listener. The four session types
+      // this server accepts on map one to one onto three of them; anything else
+      // is judged by the HTTP policy, which is the one the other listeners share.
+      CountryBlocking::Surface SurfaceForSessionType_(SessionType sessionType)
+      {
+         switch (sessionType)
+         {
+         case STSMTP:
+            return CountryBlocking::SurfaceSmtp;
+         case STIMAP:
+            return CountryBlocking::SurfaceImap;
+         case STPOP3:
+            return CountryBlocking::SurfacePop3;
+         default:
+            return CountryBlocking::SurfaceHttp;
+         }
+      }
    }
 
    TCPServer::TCPServer(boost::asio::io_context& io_context, const IPAddress &ipaddress, int port, SessionType sessionType, std::shared_ptr<SSLCertificate> certificate, std::shared_ptr<TCPConnectionFactory> connectionFactory, ConnectionSecurity connection_security,
@@ -395,6 +418,22 @@ namespace HM
 
          String sMessage = Formatter::Format("TCP - {0} connected to {1}:{2}.", remoteAddress.ToString(), localAddress.ToString(), port_);
          LOG_TCPIP(sMessage);
+
+         /*
+            The country policy, asked here and nowhere later: before the greeting,
+            before the TLS handshake and before anything touches the database -
+            the same place, and for the same reasons, as the IP-range refusal
+            below. A connection refused here is simply closed, with nothing said
+            to the client about why; CountryBlocking has already written the
+            administrator's line and counted it.
+
+            It is asked before CreateSession so that a refused connection never
+            takes a session slot at all. Nothing asks it again afterwards, which
+            is what makes a policy change, a database reload or a database that
+            has gone missing unable to disturb a session that is already open.
+         */
+         if (!CountryBlocking::Instance()->IsConnectionAllowed(SurfaceForSessionType_(sessionType_), remoteAddress))
+            return;
 
          std::shared_ptr<SecurityRange> securityRange = PersistentSecurityRange::ReadMatchingIP(remoteAddress);
 

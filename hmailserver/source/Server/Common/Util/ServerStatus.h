@@ -62,6 +62,22 @@ namespace HM
       void OnAuthenticationFailed();
       int GetNumberOfAuthenticationFailures() const;
 
+      // Connections and sign-ins refused by the country policy, counted in total
+      // and split by the ISO country code the geographic database gave (or "??"
+      // when it had none). The split is what a report and a Prometheus scrape
+      // need to say WHERE the refusals came from, and its cardinality is bounded
+      // by construction: there are about 250 country codes and nothing outside
+      // that set can ever appear, so unlike a per-domain or per-address label
+      // there is nothing attacker-chosen to truncate.
+      //
+      // Deliberately NOT folded into the authentication-failure counter: a
+      // connection refused before a greeting never attempted to authenticate,
+      // and a sign-in refused on its country was never a wrong password. Both
+      // are exactly the kind of number people build brute-force alerts on.
+      void OnCountryRefusal(const String &country);
+      int GetNumberOfCountryRefusals() const;
+      std::map<String, __int64> GetCountryRefusals() const;
+
       // Requests to /metrics that the metrics listener refused because they carried
       // no credential or the wrong one. Kept here rather than inside MetricsServer
       // so that it survives the listener being stopped and restarted by a
@@ -159,6 +175,10 @@ namespace HM
       mutable boost::mutex domain_counter_mutex_;
       std::map<String, __int64> domain_messages_received_;
       std::map<String, __int64> domain_messages_sent_;
+
+      mutable boost::mutex country_counter_mutex_;
+      std::map<String, __int64> country_refusals_;
+      __int64 country_refusals_total_;
       int number_of_spam_messages_detected_;
       int number_of_viruses_removed_;
       int number_of_tls_handshakes_completed_;

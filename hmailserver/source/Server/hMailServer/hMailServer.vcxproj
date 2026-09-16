@@ -642,6 +642,9 @@ EXIT 0
     <ClCompile Include="..\Common\AntiSpam\QuarantineDigest.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SenderPattern.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SenderListCache.cpp" />
+    <ClCompile Include="..\Common\Util\CountryBlocking.cpp" />
+    <ClCompile Include="..\Common\Util\GeoIpDatabase.cpp" />
+    <ClCompile Include="..\Common\Util\GeoIpDatabaseTester.cpp" />
     <ClCompile Include="..\Common\Util\Totp.cpp" />
     <ClCompile Include="..\Common\Util\MessageTrace.cpp" />
     <ClCompile Include="..\Common\Util\PasswordHistory.cpp" />
@@ -1408,6 +1411,8 @@ EXIT 0
     <ClInclude Include="..\Common\AntiSpam\QuarantineDigest.h" />
     <ClInclude Include="..\Common\AntiSpam\SenderPattern.h" />
     <ClInclude Include="..\Common\AntiSpam\SenderListCache.h" />
+    <ClInclude Include="..\Common\Util\CountryBlocking.h" />
+    <ClInclude Include="..\Common\Util\GeoIpDatabase.h" />
     <ClInclude Include="..\Common\Util\Totp.h" />
     <ClInclude Include="..\Common\Util\MessageTrace.h" />
     <ClInclude Include="..\Common\Util\PasswordHistory.h" />

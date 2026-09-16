@@ -161,6 +161,20 @@
 #define PROPERTY_QUARANTINE_DIGEST_BASE_URL     _T("QuarantineDigestBaseUrl")
 #define PROPERTY_QUARANTINE_DIGEST_LINK_HOURS   _T("QuarantineDigestLinkHours")
 
+// Country blocking. Seven rows in hm_settings, which is where a setting belongs:
+// the MaxMind database the administrator supplies (this project ships none and
+// downloads none), how old that file may be before the log says so, the
+// addresses no policy judges, and one policy per listener family written as
+// "off", "allow:GB,IE" or "block:CN,RU". Every one of them is empty or off in a
+// stock install, so a server nobody has configured behaves exactly as it did.
+#define PROPERTY_GEOIP_DATABASE_FILE            _T("GeoIpDatabaseFile")
+#define PROPERTY_GEOIP_DATABASE_MAX_AGE_DAYS    _T("GeoIpDatabaseMaxAgeDays")
+#define PROPERTY_COUNTRY_EXEMPT_RANGES          _T("CountryBlockingExemptRanges")
+#define PROPERTY_COUNTRY_POLICY_SMTP            _T("CountryPolicySMTP")
+#define PROPERTY_COUNTRY_POLICY_IMAP            _T("CountryPolicyIMAP")
+#define PROPERTY_COUNTRY_POLICY_POP3            _T("CountryPolicyPOP3")
+#define PROPERTY_COUNTRY_POLICY_HTTP            _T("CountryPolicyHTTP")
+
 // The audit trail. Recording is on by default: a server nobody has configured
 // still answers "who changed this", and the cost is one row per administrative
 // change. Retention of 0 keeps everything, which is what an audit trail is for;
@@ -300,11 +314,11 @@
 //      and the register of delivered messages a delivery report is matched against.
 //      All three start empty and nothing writes to them until BounceProcessingEnabled
 //      is switched on, so an upgraded database behaves exactly as it did.
-// 6050 adds hm_webhooks and hm_webhookqueue - the outbound webhook subscriptions
-//      and the delivery queue that survives a restart - two int columns to
-//      hm_domains (domainwebhooksenabled, 1 on every existing domain, and
-//      domainwebhooksubjects, 0 on every existing domain, so no body carries a
-//      subject until somebody says it may), and seeds the four Webhook* settings.
-//      Both tables start empty and no event is raised until a subscription exists,
-//      so an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6051
+// 6050 adds hm_domains.domaincountrypolicy - the country policy applied when an
+//      account of the domain signs in, empty on every existing domain - and seeds
+//      seven hm_settings rows for country blocking: GeoIpDatabaseFile (''),
+//      GeoIpDatabaseMaxAgeDays (45), CountryBlockingExemptRanges (the loopback and
+//      private ranges), and CountryPolicySMTP, CountryPolicyIMAP, CountryPolicyPOP3
+//      and CountryPolicyHTTP (all ''). With no database file named nothing is
+//      judged by country at all, so an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6052

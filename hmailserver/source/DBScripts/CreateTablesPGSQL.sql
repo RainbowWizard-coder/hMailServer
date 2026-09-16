@@ -219,7 +219,9 @@ create table hm_domains
 	domainopenpgppublish int not null default 0,
 	domainopenpgpnewaccounts int not null default 0,
 	domainwebhooksenabled int not null default 1,
-	domainwebhooksubjects int not null default 0
+	domainwebhooksubjects int not null default 0,
+	domaincountrypolicy varchar(255) not null default '',
+	domaindkimrotationkeybits int not null default 2048
 );
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
@@ -1013,6 +1015,20 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Qu
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('QuarantineDigestLinkHours', '', 72);
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GeoIpDatabaseFile', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GeoIpDatabaseMaxAgeDays', '', 45);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryBlockingExemptRanges', '127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,100.64.0.0/10,fe80::/10,fc00::/7', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicySMTP', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyIMAP', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyPOP3', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyHTTP', '', 0);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5);
@@ -1575,4 +1591,4 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7);
 
-insert into hm_dbversion values (6051);
+insert into hm_dbversion values (6052);

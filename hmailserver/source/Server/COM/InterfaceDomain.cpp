@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "InterfaceDomain.h"
+#include "../Common/Util/CountryBlocking.h"
 #include "InterfaceDomain.h"
 #include "InterfaceAccounts.h"
 #include "InterfaceAliases.h"
@@ -2429,6 +2430,54 @@ STDMETHODIMP InterfaceDomain::put_QuarantineDigest(VARIANT_BOOL newVal)
          return authentication_->GetAccessDenied();
 
       object_->SetQuarantineDigest(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_CountryPolicy(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetCountryPolicy().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_CountryPolicy(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // The same grammar, the same refusal sentence and the same canonical form
+      // as Settings.CountryPolicy: one concept, spelled one way everywhere.
+      HM::String canonical;
+      HM::String error;
+
+      if (!HM::CountryBlocking::Canonicalise(HM::String(newVal), canonical, error))
+         return COMError::GenerateError(error);
+
+      object_->SetCountryPolicy(canonical);
 
       return S_OK;
    }

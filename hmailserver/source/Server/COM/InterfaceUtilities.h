@@ -84,6 +84,8 @@ public:
    STDMETHOD(GetBounceCounts)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(ClassifyBounce)(/*[in]*/ BSTR Status, /*[in]*/ BSTR Diagnostic, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(RunBounceMaintenance)(/*[out, retval]*/ long *Removed);
+   STDMETHOD(LookupCountry)(/*[in]*/ BSTR IPAddress, /*[out, retval]*/ BSTR *Country);
+   STDMETHOD(GeoIpDatabaseStatus)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(ImportOpenPGPKey)(/*[in]*/ BSTR AccountAddress, /*[in]*/ BSTR Key, /*[in]*/ VARIANT_BOOL AllowAddressMismatch, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(RemoveOpenPGPKey)(/*[in]*/ BSTR AccountAddress, /*[in]*/ BSTR Fingerprint, /*[out, retval]*/ VARIANT_BOOL *Removed);
 

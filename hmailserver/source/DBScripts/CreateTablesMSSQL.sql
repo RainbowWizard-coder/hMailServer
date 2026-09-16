@@ -109,7 +109,7 @@ declare @constname	sysname,
 		@cmd		varchar(1024)
 declare curs_constraints cursor for
 	select 	name
-	from 	sysobjects 
+	from 	sysobjects ,
 	where 	xtype in ('C', 'F', 'PK', 'UQ', 'D')
 	and	(status & 64) = 0
 	and     parent_obj = object_id(@tablename)
@@ -147,7 +147,7 @@ CREATE proc [dbo].[hm_drop_table_column]
 	@tablename sysname,
 	@columnname sysname
 as
-	set nocount on
+	set nocount on,
 	declare @constname sysname,
 	@cmd varchar(1024)
 	declare curs_constraints cursor for
@@ -204,8 +204,8 @@ create table hm_accounts (
 	accountadminlevel tinyint not null ,
 	accountaddress nvarchar(255) not null,
 	accountpassword nvarchar(255) not null ,
-	accountactive int not null, 
-	accountisad int not null, 
+	accountactive int not null,
+	accountisad int not null,
 	accountaddomain nvarchar(255) not null ,
 	accountadusername nvarchar(255) not null,
 	accountmaxsize int not null,
@@ -246,7 +246,7 @@ create table hm_aliases (
 	aliasid int identity (1, 1) not null,
 	aliasdomainid int not null ,
 	aliasname nvarchar(255) not null,
-	aliasvalue nvarchar(255) not null ,	
+	aliasvalue nvarchar(255) not null ,
 	aliasactive tinyint not null
 ) 
 
@@ -312,7 +312,8 @@ create table hm_domains (
 	domainopenpgppublish int not null default 0,
 	domainopenpgpnewaccounts int not null default 0,
 	domainwebhooksenabled int not null default 1,
-	domainwebhooksubjects int not null default 0
+	domainwebhooksubjects int not null default 0,
+	domaincountrypolicy nvarchar(255) not null default ''
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -1202,6 +1203,20 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Qu
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('QuarantineDigestLinkHours', '', 72)
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GeoIpDatabaseFile', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GeoIpDatabaseMaxAgeDays', '', 45)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryBlockingExemptRanges', '127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,100.64.0.0/10,fe80::/10,fc00::/7', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicySMTP', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyIMAP', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyPOP3', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('CountryPolicyHTTP', '', 0)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5)
@@ -1809,4 +1824,4 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7)
 
-insert into hm_dbversion values (6051)
+insert into hm_dbversion values (6052)

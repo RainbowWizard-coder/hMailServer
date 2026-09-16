@@ -8,6 +8,7 @@
 #include "../Common/Util/AuditTrail.h"
 
 #include "InterfaceSettings.h"
+#include "../Common/Util/CountryBlocking.h"
 #include "InterfaceLogging.h"
 #include "InterfaceAntiVirus.h"
 #include "InterfaceCache.h"
@@ -3070,6 +3071,206 @@ STDMETHODIMP InterfaceSettings::put_QuarantineDigestBaseUrl(BSTR newVal)
       }
 
       config_->SetQuarantineDigestBaseUrl(url);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// COUNTRY BLOCKING. The grammar and every refusal sentence are
+// CountryBlocking's, so that this property, the REST settings group, hmctl and
+// the Control Deck all refuse a bad policy in the same words - and so that a
+// policy is stored in one spelling however it was typed.
+
+STDMETHODIMP InterfaceSettings::get_GeoIpDatabaseFile(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetGeoIpDatabaseFile().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_GeoIpDatabaseFile(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String path = newVal;
+      path.Trim();
+
+      // Not refused for being missing: an administrator may name the file before
+      // the download lands, and a server that refused the name would make that
+      // order impossible. Whether it could be read is what
+      // Utilities.GeoIpDatabaseStatus answers, and the application log says so
+      // the first time the file is wanted.
+      config_->SetGeoIpDatabaseFile(path);
+
+      // The next question loads the new file rather than the old one.
+      HM::CountryBlocking::Instance()->Invalidate();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_GeoIpDatabaseMaxAgeDays(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = (long) config_->GetGeoIpDatabaseMaxAgeDays();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_GeoIpDatabaseMaxAgeDays(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 3650)
+         return COMError::GenerateError("GeoIpDatabaseMaxAgeDays is between 0 and 3650 days. 0 never calls the database stale.");
+
+      config_->SetGeoIpDatabaseMaxAgeDays((int) newVal);
+      HM::CountryBlocking::Instance()->Invalidate();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_CountryBlockingExemptRanges(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetCountryBlockingExemptRanges().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_CountryBlockingExemptRanges(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String ranges = newVal;
+      ranges.Trim();
+
+      config_->SetCountryBlockingExemptRanges(ranges);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_CountryPolicy(BSTR Protocol, BSTR *pVal)
+{
+   try
+   {
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::CountryBlocking::Surface surface;
+
+      if (!HM::CountryBlocking::SurfaceFromName(HM::String(Protocol), surface))
+         return COMError::GenerateError("The protocol is smtp, imap, pop3 or http.");
+
+      *pVal = HM::CountryBlocking::FormatPolicy(HM::CountryBlocking::Instance()->PolicyFor(surface)).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_CountryPolicy(BSTR Protocol, BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::CountryBlocking::Surface surface;
+
+      if (!HM::CountryBlocking::SurfaceFromName(HM::String(Protocol), surface))
+         return COMError::GenerateError("The protocol is smtp, imap, pop3 or http.");
+
+      HM::String canonical;
+      HM::String error;
+
+      if (!HM::CountryBlocking::Canonicalise(HM::String(newVal), canonical, error))
+         return COMError::GenerateError(error);
+
+      switch (surface)
+      {
+      case HM::CountryBlocking::SurfaceSmtp:
+         config_->SetCountryPolicySMTP(canonical);
+         break;
+      case HM::CountryBlocking::SurfaceImap:
+         config_->SetCountryPolicyIMAP(canonical);
+         break;
+      case HM::CountryBlocking::SurfacePop3:
+         config_->SetCountryPolicyPOP3(canonical);
+         break;
+      default:
+         config_->SetCountryPolicyHTTP(canonical);
+         break;
+      }
 
       return S_OK;
    }

@@ -58,7 +58,13 @@ namespace HM
          // because "storage growth" cannot be answered from anything else
          // this server keeps - a mailbox's size is known only as it is now.
          "store_bytes",
-         "store_messages"
+         "store_messages",
+         // Added 16 September 2026 with country blocking. A ServerStatus
+         // counter like the ones above it; the per-country split it also keeps
+         // is NOT sampled, because a history table with one row per country per
+         // minute would be two hundred and fifty times the size of every other
+         // series here for a number the status and the report already give.
+         "country_blocked_total"
       };
 
       // Prune on the first run and then once an hour: the delete is indexed and
@@ -137,6 +143,8 @@ namespace HM
 
       values.push_back(std::make_pair(AnsiString("store_bytes"), (double) storeBytes));
       values.push_back(std::make_pair(AnsiString("store_messages"), (double) storeMessages));
+
+      values.push_back(std::make_pair(AnsiString("country_blocked_total"), (double) status->GetNumberOfCountryRefusals()));
    }
 
    int

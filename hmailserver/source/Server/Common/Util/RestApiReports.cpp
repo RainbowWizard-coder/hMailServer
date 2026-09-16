@@ -29,6 +29,7 @@
 #include "StdAfx.h"
 
 #include "RestApiServer.h"
+#include "ServerStatus.h"
 #include "Reports.h"
 #include "MessageTrace.h"
 #include "Time.h"
@@ -83,7 +84,9 @@ namespace HM
          { "volume", true, "hm_metricsamples",
            "Messages processed, delivered, deferred and bounced, spam detected and viruses removed, per day. Server-wide: these counters carry no domain." },
          { "storage", true, "hm_metricsamples",
-           "The size of the message store per day, and what it grew by over the window. Server-wide." }
+           "The size of the message store per day, and what it grew by over the window. Server-wide." },
+         { "countries", true, "hm_metricsamples",
+           "Connections and sign-ins refused by a country policy: the daily total from the metric history, and the split by country since the server started. Server-wide." }
       };
 
       const int SectionCount = (int) (sizeof(SECTIONS) / sizeof(SECTIONS[0]));
@@ -935,6 +938,71 @@ namespace HM
          return section;
       }
 
+      // ------------------------------------------------------------- countries
+
+      Section BuildCountries(Context &context)
+      {
+         Section section;
+         section.name = "countries";
+         section.source = "hm_metricsamples";
+         section.enabled = IniFileSettings::Instance()->GetMetricsHistoryDays() > 0;
+
+         // What this section can and cannot say, in its own note, because the
+         // two halves of it cover different periods and a reader who thinks
+         // otherwise will draw the wrong conclusion. The daily column is the
+         // window that was asked for; the split by country is a set of counters
+         // that start at zero when the server starts and are not stored per day.
+         section.note = "Refusals by a country policy. The per-day figures are the increase in the "
+                        "country_blocked_total counter across each day of the window, from the metric history. "
+                        "The split by country below them is NOT windowed: nothing records a refusal per country "
+                        "per day, so those are the counters as they stand, since this server last started. "
+                        "Server-wide: a country policy is a property of a listener or of a domain's sign-ins, "
+                        "not of the mail, so there is nothing to attribute to the domain a report names.";
+
+         section.table.Column("day", false);
+         section.table.Column("refused", true);
+
+         std::vector<Reports::DayValue> days;
+         Reports::ReadCounterIncreaseByDay(_T("country_blocked_total"), context.range, days);
+
+         for (const Reports::DayValue &value : days)
+         {
+            std::vector<AnsiString> row;
+            row.push_back(AnsiString(value.day));
+            row.push_back(RoundedNumber(value.value));
+
+            section.table.rows.push_back(row);
+         }
+
+         AnsiString byCountry = ",\"by_country\":[";
+         bool first = true;
+         __int64 total = 0;
+
+         for (const std::pair<const String, __int64> &entry : ServerStatus::Instance()->GetCountryRefusals())
+         {
+            if (!first)
+               byCountry += ",";
+
+            AnsiString row;
+            row.Format("{\"country\":\"%hs\",\"refused\":%I64d}", context.escape(AnsiString(entry.first)).c_str(), entry.second);
+            byCountry += row;
+
+            total += entry.second;
+            first = false;
+         }
+
+         byCountry += "]";
+
+         AnsiString extra;
+         extra.Format(",\"refusals_since_start\":%d,\"refusals_by_country_total\":%I64d,\"retention_days\":%d",
+            ServerStatus::Instance()->GetNumberOfCountryRefusals(), total,
+            IniFileSettings::Instance()->GetMetricsHistoryDays());
+
+         section.extra = extra + byCountry;
+
+         return section;
+      }
+
       Section BuildSectionByName(Context &context, const AnsiString &name)
       {
          if (name.CompareNoCase("traffic") == 0)
@@ -954,6 +1022,9 @@ namespace HM
 
          if (name.CompareNoCase("volume") == 0)
             return BuildVolume(context);
+
+         if (name.CompareNoCase("countries") == 0)
+            return BuildCountries(context);
 
          return BuildStorage(context);
       }
@@ -1043,15 +1114,16 @@ namespace HM
          "\"403\":{\"description\":\"A role that does not hold both view_configuration and view_message_trace\"}}}}"
 
          ",\"/api/v1/reports/{section}\":{\"get\":{\"summary\":\"One report section\","
-         "\"description\":\"section is traffic, failures, senders, recipients, mailboxes, volume, storage or summary. "
+         "\"description\":\"section is traffic, failures, senders, recipients, mailboxes, volume, storage, countries or summary. "
          "Query parameters: from and to (YYYY-MM-DD, inclusive; the default is the last 30 days and the window may not exceed 366 days), "
          "domain (one local domain; the default is every domain the credential may see), top (how many rows the senders, recipients and mailboxes "
          "sections return: 1 to 200, default 10) and format (json, the default, or csv - csv answers text/csv with the same columns and rows, and is "
          "refused for summary, which is not one table). "
          "traffic, failures, senders and recipients are counted from hm_messagetrace, which is OFF by default (MessageTraceEnabled) and which records "
          "only deliveries and failures - there is no spam or virus event in it. mailboxes is the size of every mailbox as it is NOW, not over the "
-         "window. volume and storage are counted from the server-wide metric history and carry no domain at all, which is why spam and virus counts "
-         "and storage growth cannot be given per domain; both are refused for a domain-restricted key. Every per-domain section counts only domains "
+         "window. volume, storage and countries are counted from the server-wide metric history and carry no domain at all, which is why spam and virus counts "
+         "and storage growth cannot be given per domain; all three are refused for a domain-restricted key. "
+         "countries also carries a by_country split that is NOT windowed - nothing records a refusal per country per day, so it is the counters as they stand since the server started. Every per-domain section counts only domains "
          "this server hosts, and a domain-restricted key sees its own domains and no others. Every section needs view_configuration and view_message_trace, both: "
          "senders and recipients list who mails whom, and a role that may read the configuration is not thereby a role that may read that.\","
          "\"responses\":{\"200\":{\"description\":\"The section\"},\"400\":{\"description\":\"A date, a window, a top or a format the route does not take\"},"

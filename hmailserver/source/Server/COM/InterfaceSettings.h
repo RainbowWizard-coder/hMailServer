@@ -312,6 +312,14 @@ END_COM_MAP()
    // The quarantine digest, which lives in hm_settings rather than the ini.
    STDMETHOD(get_QuarantineDigestBaseUrl)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_QuarantineDigestBaseUrl)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_GeoIpDatabaseFile)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_GeoIpDatabaseFile)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_GeoIpDatabaseMaxAgeDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_GeoIpDatabaseMaxAgeDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_CountryBlockingExemptRanges)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_CountryBlockingExemptRanges)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_CountryPolicy)(/*[in]*/ BSTR Protocol, /*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_CountryPolicy)(/*[in]*/ BSTR Protocol, /*[in]*/ BSTR newVal);
    STDMETHOD(get_QuarantineDigestLinkHours)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_QuarantineDigestLinkHours)(/*[in]*/ long newVal);
 

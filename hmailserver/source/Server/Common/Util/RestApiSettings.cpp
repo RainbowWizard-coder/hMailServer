@@ -45,6 +45,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "CountryBlocking.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "Utilities.h"
@@ -304,6 +305,40 @@ namespace
    const char *TarpitDelayRefusal = "TarpitDelay must be between 0 and 30 seconds.";
    const char *TarpitCountRefusal = "TarpitCount cannot be negative.";
    const char *IniWriteFailure = "The setting could not be written to hMailServer.INI. Nothing has been changed.";
+
+   // InterfaceSettings::put_GeoIpDatabaseMaxAgeDays's sentence, verbatim.
+   const char *GeoIpMaxAgeRefusal =
+      "GeoIpDatabaseMaxAgeDays is between 0 and 3650 days. 0 never calls the database stale.";
+
+   // The four country policies differ only in which setting they write, and
+   // every one of them is read, refused and stored by CountryBlocking - so the
+   // check below is the same function four times and the setter is the same
+   // function with a different destination.
+   String CountryPolicyCheck(const Value &v)
+   {
+      String canonical;
+      String error;
+
+      CountryBlocking::Canonicalise(v.text, canonical, error);
+      return error;
+   }
+
+   Outcome ApplyCountryPolicy(const Value &v, void (Configuration::*setter)(const String &))
+   {
+      String canonical;
+      String error;
+
+      if (!CountryBlocking::Canonicalise(v.text, canonical, error))
+      {
+         Outcome outcome;
+         outcome.status = 400;
+         outcome.message = error;
+         return outcome;
+      }
+
+      (Config()->*setter)(canonical);
+      return Applied();
+   }
 
    // InterfaceSettings::put_BreachCheckMinimumCount's sentence, verbatim.
    const char *BreachCheckMinimumRefusal =
@@ -654,6 +689,43 @@ namespace
       { "breach_check_unreachable_action", KindEnum, ReadWrite, EffectNow, BreachCheckUnreachableWords,
         "What happens to a password change when the endpoint cannot be used: allow lets it through, refuse refuses it. Both are recorded in the error log.",
         ROW_NUMBER(Config()->GetBreachCheckUnreachableAction()), ROW_SET(Config()->SetBreachCheckUnreachableAction(v.number)), ROW_NO_CHECK },
+
+      // Country blocking (CountryBlocking). Seven rows in hm_settings and one
+      // read-only answer about the file they name. The four policies share one
+      // grammar and one refusal sentence with the COM properties, because both
+      // go through CountryBlocking::Canonicalise - which also means a policy is
+      // stored in one spelling whichever surface wrote it.
+      { "geoip_database_file", KindString, ReadWrite, EffectNow, nullptr,
+        "The MaxMind database file (.mmdb) the country policies read. The administrator supplies it; this server ships none and downloads none. Empty means nothing is judged by country, whatever the policies say.",
+        ROW_TEXT(Config()->GetGeoIpDatabaseFile()),
+        [] (const Value &v) { String path = v.text; path.Trim(); Config()->SetGeoIpDatabaseFile(path); CountryBlocking::Instance()->Invalidate(); return Applied(); }, ROW_NO_CHECK },
+      { "geoip_database_max_age_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days old the database may be before the application log calls it stale. 45 by default, 0 never. A stale database is still used, because most addresses in it have not moved.",
+        ROW_NUMBER(Config()->GetGeoIpDatabaseMaxAgeDays()),
+        [] (const Value &v) { Config()->SetGeoIpDatabaseMaxAgeDays((int) v.number); CountryBlocking::Instance()->Invalidate(); return Applied(); },
+        [] (const Value &v) -> String
+        {
+           return (v.number < 0 || v.number > 3650) ? String(GeoIpMaxAgeRefusal) : String();
+        } },
+      { "geoip_database_status", KindString, ReadOnly, EffectNow, nullptr,
+        "What the server can say about the database right now, as JSON: configured, path, loaded, error, type, build_epoch, age_days, stale, bytes, max_age_days, refusals_total, refusals_by_country and the four policies. Shown and never sent.",
+        [] { return Text(String(CountryBlocking::Instance()->StatusJson())); }, nullptr, ROW_NO_CHECK },
+      { "country_blocking_exempt_ranges", KindString, ReadWrite, EffectNow, nullptr,
+        "Addresses and CIDR ranges no country policy judges, comma separated; the loopback address and the private networks by default. This is the whole of the exemption - emptying it has this server's own network judged like anybody else's, which a strict allow list will refuse.",
+        ROW_TEXT(Config()->GetCountryBlockingExemptRanges()),
+        [] (const Value &v) { String ranges = v.text; ranges.Trim(); Config()->SetCountryBlockingExemptRanges(ranges); return Applied(); }, ROW_NO_CHECK },
+      { "country_policy_smtp", KindString, ReadWrite, EffectNow, nullptr,
+        "The country policy for the SMTP listeners, applied when a connection is accepted: empty is off, allow:GB,IE admits only those countries, block:CN,RU refuses those. An allow list refuses an address whose country is not known; a block list allows it.",
+        ROW_TEXT(Config()->GetCountryPolicySMTP()), [] (const Value &v) { return ApplyCountryPolicy(v, &Configuration::SetCountryPolicySMTP); }, CountryPolicyCheck },
+      { "country_policy_imap", KindString, ReadWrite, EffectNow, nullptr,
+        "The country policy for the IMAP listeners, in the same grammar as country_policy_smtp.",
+        ROW_TEXT(Config()->GetCountryPolicyIMAP()), [] (const Value &v) { return ApplyCountryPolicy(v, &Configuration::SetCountryPolicyIMAP); }, CountryPolicyCheck },
+      { "country_policy_pop3", KindString, ReadWrite, EffectNow, nullptr,
+        "The country policy for the POP3 listeners, in the same grammar as country_policy_smtp.",
+        ROW_TEXT(Config()->GetCountryPolicyPOP3()), [] (const Value &v) { return ApplyCountryPolicy(v, &Configuration::SetCountryPolicyPOP3); }, CountryPolicyCheck },
+      { "country_policy_http", KindString, ReadWrite, EffectNow, nullptr,
+        "The country policy for the HTTP listeners - the REST API, this interface and the web services share one - in the same grammar as country_policy_smtp. Set it with care: it is the listener the Control Deck itself arrives on.",
+        ROW_TEXT(Config()->GetCountryPolicyHTTP()), [] (const Value &v) { return ApplyCountryPolicy(v, &Configuration::SetCountryPolicyHTTP); }, CountryPolicyCheck },
    };
 
    const Row AntiSpamRows[] =

@@ -197,6 +197,8 @@ namespace HM
       pNode->AppendAttr(_T("WebhooksEnabled"), webhooks_enabled_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("WebhookSubjects"), webhook_subjects_ ? _T("1") : _T("0"));
 
+      pNode->AppendAttr(_T("CountryPolicy"), country_policy_);
+
       if (!GetDomainAliases()->XMLStore(pNode, iBackupOptions))
          return false;
 
@@ -336,6 +338,11 @@ namespace HM
          webhooks_enabled_ = webhooksEnabled == _T("1");
 
       webhook_subjects_ = pNode->GetAttrValue(_T("WebhookSubjects")) == _T("1");
+
+      // The same rule again: a backup taken before country blocking existed has
+      // no attribute and restores with no policy, which is every domain until an
+      // administrator writes one.
+      country_policy_ = pNode->GetAttrValue(_T("CountryPolicy"));
 
       return true;
    }

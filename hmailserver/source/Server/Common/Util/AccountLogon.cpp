@@ -6,6 +6,7 @@
 
 #include "AccountLogon.h"
 #include "AccountLockout.h"
+#include "CountryBlocking.h"
 #include "AutoBanFirewall.h"
 #include "../Application/IniFileSettings.h"
 #include "PasswordValidator.h"
@@ -81,6 +82,27 @@ namespace HM
       {
          ServerStatus::Instance()->OnAuthenticationFailed();
 
+         std::shared_ptr<Account> empty;
+         return empty;
+      }
+
+      // The country policy of the domain the name belongs to, checked here for
+      // the same reason the lockout is: before a password is verified, so that
+      // an address a domain will not accept sign-ins from cannot spend an
+      // Argon2id verification, and so that every protocol gets the decision -
+      // this is the one function IMAP LOGIN and AUTHENTICATE, POP3, SMTP AUTH,
+      // ManageSieve, the DAV services and the REST API all pass through.
+      //
+      // Refused is the ordinary invalid-credentials answer, and it is
+      // deliberately NOT reported to RegisterFailedLogin, for the reason the
+      // lockout gives above and for one more of its own: the person refused here
+      // is very often the account's real owner, travelling. Charging their
+      // attempts to the per-name lockout would let a trip abroad lock somebody
+      // out of their mailbox at home, and charging them to the per-IP auto-ban
+      // would ban a hotel's NAT for everyone behind it. The refusal is counted
+      // as what it is - a country refusal - and logged as one.
+      if (!CountryBlocking::Instance()->IsLogonAllowed(username, ipaddress))
+      {
          std::shared_ptr<Account> empty;
          return empty;
       }

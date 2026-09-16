@@ -18,6 +18,8 @@
 #include "../Common/Util/EmailAllUsers.h"
 #include "../Common/Util/GUIDCreator.h"
 #include "../Common/Util/ClassTester.h"
+#include "../Common/Util/CountryBlocking.h"
+#include "../Common/TCPIP/IPAddress.h"
 #include "../Common/Util/Utilities.h"
 #include "../Common/Util/PasswordGenerator.h"
 #include "../SMTP/RuleApplier.h"
@@ -1410,6 +1412,60 @@ STDMETHODIMP InterfaceUtilities::SaveWebhookSubscription(BSTR Json, BSTR *Json2)
          return COMError::GenerateError("The subscription was saved but could not be read back.");
 
       *Json2 = WideFromUtf8(WebhookSubscriptionJson_(saved)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::LookupCountry(BSTR IPAddress, BSTR *Country)
+{
+   try
+   {
+      if (!Country)
+         return COMError::GenerateGenericMessage();
+
+      *Country = nullptr;
+
+      // A domain administrator may ask: it answers a fact about a public
+      // address and nothing about this server's own configuration.
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String text = IPAddress;
+      text.Trim();
+
+      HM::IPAddress address;
+
+      if (!address.TryParse(HM::AnsiString(text), false))
+         return COMError::GenerateError(_T("That is not an IP address. Give an IPv4 or IPv6 address, such as 8.8.8.8 or 2001:db8::1."));
+
+      const HM::AnsiString iso = HM::CountryBlocking::Instance()->CountryOf(address);
+
+      *Country = HM::String(iso).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GeoIpDatabaseStatus(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      *Json = WideFromUtf8(HM::CountryBlocking::Instance()->StatusJson()).AllocSysString();
+
       return S_OK;
    }
    catch (...)

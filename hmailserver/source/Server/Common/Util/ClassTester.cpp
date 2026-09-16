@@ -16,6 +16,8 @@
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
+#include "../Util/GeoIpDatabase.h"
+#include "../Util/CountryBlocking.h"
 #include "../Util/SealedMessage.h"
 #include "../Util/OpenPgpKey.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
@@ -162,6 +164,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing InlineImageParts\n"));
       InlineImagePartsTester inlineImagePartsTester;
       inlineImagePartsTester.Test();
+
+      // The MaxMind database reader, against databases these tests write byte by
+      // byte, and the country policy grammar that decides what one means.
+      GeoIpDatabaseTester geoIpDatabaseTester;
+      geoIpDatabaseTester.Test();
+
+      CountryBlockingTester countryBlockingTester;
+      countryBlockingTester.Test();
 
       // DKIM keys that rotate: every clock boundary of the walk, the record match,
       // the selector rules and a generated key's round trip through a signature.

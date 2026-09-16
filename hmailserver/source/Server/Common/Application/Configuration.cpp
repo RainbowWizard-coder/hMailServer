@@ -347,6 +347,95 @@ namespace HM
       return (int) GetSettings()->GetLong(PROPERTY_QUARANTINE_DIGEST_LINK_HOURS);
    }
 
+   // Country blocking. Nothing here validates: the policy grammar is
+   // CountryBlocking::Canonicalise's, and every writing surface - COM, REST,
+   // hmctl and the Deck - runs a value through it before it reaches these, so
+   // that all four refuse a bad policy with the same sentence. A value written
+   // straight into the database by hand and not understood is read as "off".
+   void
+   Configuration::SetGeoIpDatabaseFile(const String &path)
+   {
+      GetSettings()->SetString(PROPERTY_GEOIP_DATABASE_FILE, path);
+   }
+
+   String
+   Configuration::GetGeoIpDatabaseFile() const
+   {
+      return GetSettings()->GetString(PROPERTY_GEOIP_DATABASE_FILE);
+   }
+
+   void
+   Configuration::SetGeoIpDatabaseMaxAgeDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_GEOIP_DATABASE_MAX_AGE_DAYS, days);
+   }
+
+   int
+   Configuration::GetGeoIpDatabaseMaxAgeDays() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_GEOIP_DATABASE_MAX_AGE_DAYS);
+   }
+
+   void
+   Configuration::SetCountryBlockingExemptRanges(const String &ranges)
+   {
+      GetSettings()->SetString(PROPERTY_COUNTRY_EXEMPT_RANGES, ranges);
+   }
+
+   String
+   Configuration::GetCountryBlockingExemptRanges() const
+   {
+      return GetSettings()->GetString(PROPERTY_COUNTRY_EXEMPT_RANGES);
+   }
+
+   void
+   Configuration::SetCountryPolicySMTP(const String &policy)
+   {
+      GetSettings()->SetString(PROPERTY_COUNTRY_POLICY_SMTP, policy);
+   }
+
+   String
+   Configuration::GetCountryPolicySMTP() const
+   {
+      return GetSettings()->GetString(PROPERTY_COUNTRY_POLICY_SMTP);
+   }
+
+   void
+   Configuration::SetCountryPolicyIMAP(const String &policy)
+   {
+      GetSettings()->SetString(PROPERTY_COUNTRY_POLICY_IMAP, policy);
+   }
+
+   String
+   Configuration::GetCountryPolicyIMAP() const
+   {
+      return GetSettings()->GetString(PROPERTY_COUNTRY_POLICY_IMAP);
+   }
+
+   void
+   Configuration::SetCountryPolicyPOP3(const String &policy)
+   {
+      GetSettings()->SetString(PROPERTY_COUNTRY_POLICY_POP3, policy);
+   }
+
+   String
+   Configuration::GetCountryPolicyPOP3() const
+   {
+      return GetSettings()->GetString(PROPERTY_COUNTRY_POLICY_POP3);
+   }
+
+   void
+   Configuration::SetCountryPolicyHTTP(const String &policy)
+   {
+      GetSettings()->SetString(PROPERTY_COUNTRY_POLICY_HTTP, policy);
+   }
+
+   String
+   Configuration::GetCountryPolicyHTTP() const
+   {
+      return GetSettings()->GetString(PROPERTY_COUNTRY_POLICY_HTTP);
+   }
+
    bool
    Configuration::GetLogSMTPConversations() const
    {

@@ -112,6 +112,15 @@ namespace HM
       bool GetWebhookSubjects() const { return webhook_subjects_; }
       void SetWebhookSubjects(bool newVal) { webhook_subjects_ = newVal; }
 
+      // The country policy applied when an account of this domain signs in:
+      // empty (nothing is judged), "allow:GB,IE" or "block:CN,RU". The grammar
+      // and the decision are CountryBlocking's; this is only where it is kept.
+      // A domain is not known when a connection is accepted, which is why this
+      // is a policy about SIGNING IN and the server-wide ones are about
+      // connecting.
+      String GetCountryPolicy() const { return country_policy_; }
+      void SetCountryPolicy(const String &newVal) { country_policy_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bNewVal);
 
@@ -380,6 +389,7 @@ namespace HM
 
       bool use_plus_addressing_;
       String plus_addressing_char_;
+      String country_policy_;
 
       bool enable_signature_;
       DomainSignatureMethod signature_method_;

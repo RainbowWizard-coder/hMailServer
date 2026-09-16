@@ -234,6 +234,15 @@ namespace RegressionTests.Shared
          if (_settings.MirrorEMailAddress != "")
             _settings.MirrorEMailAddress = "";
 
+         // Country blocking off, whatever a fixture left behind. One setting does
+         // it: with no geographic database named, no connection and no sign-in is
+         // judged by country however the policies read. A fixture that failed
+         // between emptying CountryBlockingExemptRanges and putting a policy back
+         // would otherwise refuse every test that ran after it, from the loopback
+         // address, with nothing said to the client.
+         if (_settings.GeoIpDatabaseFile != "")
+            _settings.GeoIpDatabaseFile = "";
+
          if (_settings.SMTPRelayer != "")
             _settings.SMTPRelayer = "";
 

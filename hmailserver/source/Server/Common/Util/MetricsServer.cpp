@@ -1588,6 +1588,40 @@ namespace HM
       line.Format("hmailserver_metrics_unauthorized_requests_total %I64u\n", status->GetMetricsUnauthorizedRequestsCount());
       body += line;
 
+      // Connections and sign-ins refused by a country policy: the total, and the
+      // same split by country. The split is always emitted - unlike the
+      // per-domain series, which is off by default - because its cardinality is
+      // bounded by the ISO 3166-1 list and cannot be driven by a client: a
+      // country code is chosen by the geographic database, not by the peer. A
+      // server with no policy configured emits the total as 0 and no split at
+      // all, so any series here means a policy is doing something.
+      //
+      // Not folded into hmailserver_auth_failures_total for the reason given
+      // there: a connection refused before its greeting never tried to
+      // authenticate, and a sign-in refused on its country was not a wrong
+      // password.
+      body += "# HELP hmailserver_country_blocked_total Connections and sign-ins refused by a country policy since server start.\n";
+      body += "# TYPE hmailserver_country_blocked_total counter\n";
+      line.Format("hmailserver_country_blocked_total %d\n", status->GetNumberOfCountryRefusals());
+      body += line;
+
+      {
+         const std::map<String, __int64> byCountry = status->GetCountryRefusals();
+
+         if (!byCountry.empty())
+         {
+            body += "# HELP hmailserver_country_blocked_by_country_total Refusals by the ISO 3166-1 country the geographic database gave. The code ?? is an address it had no country for.\n";
+            body += "# TYPE hmailserver_country_blocked_by_country_total counter\n";
+
+            for (const auto &entry : byCountry)
+            {
+               line.Format("hmailserver_country_blocked_by_country_total{country=\"%s\"} %I64d\n",
+                           EscapeLabelValue_(entry.first).c_str(), entry.second);
+               body += line;
+            }
+         }
+      }
+
       body += "# HELP hmailserver_messages_delivered_total Number of message delivery passes that completed successfully.\n";
       body += "# TYPE hmailserver_messages_delivered_total counter\n";
       line.Format("hmailserver_messages_delivered_total %d\n", status->GetNumberOfMessagesDelivered());

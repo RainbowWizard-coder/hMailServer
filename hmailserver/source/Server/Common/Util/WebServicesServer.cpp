@@ -9,6 +9,7 @@
 #include "StdAfx.h"
 
 #include "WebServicesServer.h"
+#include "CountryBlocking.h"
 #include "OpenPgpKeyStore.h"
 #include "HttpServer.h"
 #include "AcmeClient.h"
@@ -550,7 +551,15 @@ namespace HM
          {
             return ProcessRequest_(request);
          },
-         HttpServer::AcceptFilter(),
+         [](const IPAddress &peer)
+         {
+            // The country policy for the HTTP listeners. The web services and
+            // the REST API share one policy because they are one surface from
+            // the outside: two listeners on one server answering over HTTP.
+            // Refused means the socket is closed with no response, exactly as
+            // the REST listener refuses.
+            return CountryBlocking::Instance()->IsConnectionAllowed(CountryBlocking::SurfaceHttp, peer);
+         },
          [](int status, const AnsiString &message)
          {
             return BuildResponse_(status, "text/plain", message);

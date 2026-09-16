@@ -166,6 +166,31 @@ namespace HM
       int GetQuarantineDigestLinkHours() const;
       void SetQuarantineDigestLinkHours(int hours);
 
+      // COUNTRY BLOCKING. Seven rows in hm_settings; see CountryBlocking.h for
+      // what each means and why nothing here is compiled in. The file is the
+      // MaxMind database the administrator supplies - empty means no connection
+      // is judged by country at all, which is every stock install.
+      String GetGeoIpDatabaseFile() const;
+      void SetGeoIpDatabaseFile(const String &path);
+
+      int GetGeoIpDatabaseMaxAgeDays() const;
+      void SetGeoIpDatabaseMaxAgeDays(int days);
+
+      String GetCountryBlockingExemptRanges() const;
+      void SetCountryBlockingExemptRanges(const String &ranges);
+
+      String GetCountryPolicySMTP() const;
+      void SetCountryPolicySMTP(const String &policy);
+
+      String GetCountryPolicyIMAP() const;
+      void SetCountryPolicyIMAP(const String &policy);
+
+      String GetCountryPolicyPOP3() const;
+      void SetCountryPolicyPOP3(const String &policy);
+
+      String GetCountryPolicyHTTP() const;
+      void SetCountryPolicyHTTP(const String &policy);
+
 
       // BACKUP OPTIONS
       String GetBackupDestination() const;

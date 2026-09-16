@@ -1474,6 +1474,8 @@ const DOMAIN_GROUPS=[
     vacation_enabled:{type:"boolean",description:K("Send a domain-wide out-of-office reply. It answers only for accounts that have no vacation message of their own, and at most one reply answers any message.")},
     vacation_subject:{type:"string",description:K("The reply's subject.")},
     vacation_message:{type:"string",format:"multiline",description:K("The reply's text.")}}},
+  {title:K("Country blocking"),props:{
+    country_policy:{type:"string",description:K("Which countries may sign in to this domain's accounts, on any protocol. Empty judges nothing; allow:GB,IE admits only those countries; block:CN,RU refuses those. It needs the server's geographic database to be configured, and an address in the exempt ranges - the loopback address and the private networks - is never judged.")}}},
   {title:K("What this domain does to a message"),props:{
     external_tag_subject:{type:"boolean",description:K("Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.")},
     external_tag_header:{type:"boolean",description:K("Stamp X-hMailServer-External on mail this domain receives from outside, which the webmail shows as a banner beside the sender.")},
@@ -3652,13 +3654,15 @@ const REPORT_SECTIONS=[
   {id:"recipients",title:K("Top recipients")},
   {id:"mailboxes",title:K("Largest mailboxes")},
   {id:"volume",title:K("Volume")},
-  {id:"storage",title:K("Storage"),chart:true}
+  {id:"storage",title:K("Storage"),chart:true},
+  {id:"countries",title:K("Country refusals")}
 ];
 const REPORT_COLUMNS={day:K("Day"),domain:K("Domain"),incoming:K("Incoming"),outgoing:K("Outgoing"),
   failed_incoming:K("Failed incoming"),failed_outgoing:K("Failed outgoing"),status:K("Status"),reason:K("Reason"),
   total:K("Total"),sender:K("Sender"),recipient:K("Recipient"),messages:K("Messages"),failed:K("Failed"),
   address:K("Address"),bytes:K("Bytes"),megabytes:K("Megabytes"),processed:K("Processed"),delivered:K("Delivered"),
-  deferred:K("Deferred"),bounced:K("Bounced"),spam:K("Spam"),viruses:K("Viruses"),mailboxes:K("Mailboxes")};
+  deferred:K("Deferred"),bounced:K("Bounced"),spam:K("Spam"),viruses:K("Viruses"),mailboxes:K("Mailboxes"),
+  refused:K("Refused"),country:K("Country")};
 let report={from:"",to:"",domain:"",top:10};
 function reportQuery(extra){
   const parts=[];
@@ -3751,7 +3755,18 @@ function reportSectionHtml(section,answer){
     (section.chart?reportSectionChart(section.id,answer):"")+
     '<div class="tablewrap"><table><thead><tr>'+head+"</tr></thead><tbody>"+
     (body||'<tr><td colspan="'+Math.max(1,columns.length)+'" class="empty">'+t("Nothing in this range.")+"</td></tr>")+
-    "</tbody></table></div></div></div>";
+    "</tbody></table></div>"+reportByCountryHtml(answer)+"</div></div>";
+}
+/* The countries section carries a second table the others do not: the refusals
+   split by country. It is drawn separately because it is a different period -
+   the counters as they stand since the server started, not the window above -
+   and the section's own note from the server says so. */
+function reportByCountryHtml(answer){
+  const rows=answer.by_country||[];
+  if(!rows.length)return "";
+  const body=rows.map(r=>"<tr><td>"+escHtml(r.country||"")+"</td><td>"+escHtml(String(r.refused))+"</td></tr>").join("");
+  return '<p class="note" style="margin-top:14px"><b>'+t("By country, since the server started")+"</b></p>"+
+    '<div class="tablewrap"><table><thead><tr><th>'+t("Country")+"</th><th>"+t("Refused")+"</th></tr></thead><tbody>"+body+"</tbody></table></div>";
 }
 async function renderReports(){
   const index=await api("/api/v1/reports");

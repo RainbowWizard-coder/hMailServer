@@ -1938,7 +1938,7 @@ def build_parser():
                                  help="what happened on this server, per domain and per day")
     report.set_defaults(handler=report_command)
     report.add_argument("section", choices=["sections", "summary", "traffic", "failures", "senders",
-                                            "recipients", "mailboxes", "volume", "storage"],
+                                            "recipients", "mailboxes", "volume", "storage", "countries"],
                         help="sections lists what can be reported and what cannot")
     report.add_argument("--from", dest="set_from", metavar="YYYY-MM-DD",
                         help="the first day of the window; the default is 30 days back")

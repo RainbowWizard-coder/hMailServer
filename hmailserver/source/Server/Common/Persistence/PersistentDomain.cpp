@@ -479,6 +479,7 @@ namespace HM
       pDomain->SetMessageRetentionDays(pRS->GetLongValue("domainmessageretentiondays"));
       pDomain->SetQuarantineDigest(pRS->GetLongValue("domainquarantinedigest") == 1);
       pDomain->SetQuarantineDigestHour(pRS->GetLongValue("domainquarantinedigesthour"));
+      pDomain->SetCountryPolicy(pRS->GetStringValue("domaincountrypolicy"));
       pDomain->SetWebhooksEnabled(pRS->GetLongValue("domainwebhooksenabled") == 1);
       pDomain->SetWebhookSubjects(pRS->GetLongValue("domainwebhooksubjects") == 1);
 
@@ -609,6 +610,7 @@ namespace HM
       oStatement.AddColumn("domainname", pDomain->GetName());
       oStatement.AddColumn("domainactive", pDomain->GetIsActive());
       oStatement.AddColumn("domainpostmaster", pDomain->GetPostmaster());
+      oStatement.AddColumn("domaincountrypolicy", pDomain->GetCountryPolicy());
       oStatement.AddColumn("domainmaxsize", pDomain->GetMaxSizeMB());
       oStatement.AddColumn("domainmessageretentiondays", pDomain->GetMessageRetentionDays());
       oStatement.AddColumn("domainquarantinedigest", pDomain->GetQuarantineDigest() ? 1L : 0L);

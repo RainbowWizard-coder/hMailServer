@@ -183,6 +183,8 @@ END_COM_MAP()
    STDMETHOD(put_QuarantineDigest)(/*[in]*/ VARIANT_BOOL newVal);
    STDMETHOD(get_QuarantineDigestHour)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_QuarantineDigestHour)(/*[in]*/ long newVal);
+   STDMETHOD(get_CountryPolicy)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_CountryPolicy)(/*[in]*/ BSTR newVal);
    STDMETHOD(put_RelayHost)(/*[in]*/ BSTR newVal);
    STDMETHOD(get_RelayPort)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_RelayPort)(/*[in]*/ long newVal);

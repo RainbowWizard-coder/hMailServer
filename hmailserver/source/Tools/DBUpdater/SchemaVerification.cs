@@ -903,7 +903,14 @@ namespace DBUpdater
          new SchemaProbe(6051, "hm_webhookqueue.wqerror",
                          "update hm_webhookqueue set wqerror = wqerror where 1 = 0"),
          new SchemaProbe(6051, "hm_webhookqueue.wqbody",
-                         "update hm_webhookqueue set wqbody = wqbody where 1 = 0")
+                         "update hm_webhookqueue set wqbody = wqbody where 1 = 0"),
+         // Upgrade6051to6052* - country blocking. One column, on hm_domains: the
+         // policy applied when an account of the domain signs in. The seven
+         // hm_settings rows the same step seeds are rows and not columns, so
+         // there is nothing for a probe to assert about them - a missing row
+         // reads as the setting's default, which is off.
+         new SchemaProbe(6052, "hm_domains.domaincountrypolicy",
+                         "update hm_domains set domaincountrypolicy = domaincountrypolicy where 1 = 0")
       };
 
       /// <summary>

@@ -417,6 +417,7 @@
     <Compile Include="Shared\Paths.cs" />
     <Compile Include="Shared\MiniJson.cs" />
     <Compile Include="Shared\FakeDnsServer.cs" />
+    <Compile Include="Shared\GeoIpFixture.cs" />
     <Compile Include="Shared\DnssecSigner.cs" />
     <Compile Include="Security\DnssecDenialOfExistence.cs" />
     <Compile Include="Security\AcmeRenewalTiming.cs" />
@@ -561,6 +562,7 @@
     <Compile Include="Security\LdapDirectoryPreview.cs" />
     <Compile Include="Security\ActiveDirectoryAuthentication.cs" />
     <Compile Include="Security\AutoBan.cs" />
+    <Compile Include="Security\CountryBlocking.cs" />
     <Compile Include="Security\HashPolicy.cs" />
     <Compile Include="Security\OAuth2Bearer.cs" />
     <Compile Include="Security\OAuth2Jwks.cs" />

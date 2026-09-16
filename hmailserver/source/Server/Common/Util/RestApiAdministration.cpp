@@ -40,6 +40,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "CountryBlocking.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "../BO/Domains.h"
@@ -277,7 +278,8 @@ namespace HM
          "disclaimer_enabled", "disclaimer_plain_text", "disclaimer_html",
          "quarantine_digest", "quarantine_digest_hour",
          "openpgp_publish", "openpgp_publish_new_accounts",
-         "webhooks_enabled", "webhook_subjects"
+         "webhooks_enabled", "webhook_subjects",
+         "country_policy"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -301,6 +303,7 @@ namespace HM
          String adDomainName = domain->GetADDomainName();
          String externalTagText = domain->GetExternalTagText();
          String disclaimerPlainText = domain->GetDisclaimerPlainText(), disclaimerHtml = domain->GetDisclaimerHTML();
+         String countryPolicy = domain->GetCountryPolicy();
 
          if (!ReadString(body, "name", name, error) ||
              !ReadString(body, "postmaster", postmaster, error) ||
@@ -326,8 +329,21 @@ namespace HM
              !ReadString(body, "ad_domain_name", adDomainName, error) ||
              !ReadString(body, "external_tag_text", externalTagText, error) ||
              !ReadString(body, "disclaimer_plain_text", disclaimerPlainText, error) ||
-             !ReadString(body, "disclaimer_html", disclaimerHtml, error))
+             !ReadString(body, "disclaimer_html", disclaimerHtml, error) ||
+             !ReadString(body, "country_policy", countryPolicy, error))
             return false;
+
+         // The country policy, in the grammar CountryBlocking owns: refused here
+         // in the setting's own words, and stored in the one canonical spelling
+         // that COM, hmctl and the Control Deck also store.
+         String canonicalCountryPolicy;
+         String countryPolicyError;
+
+         if (!CountryBlocking::Canonicalise(countryPolicy, canonicalCountryPolicy, countryPolicyError))
+         {
+            error = AnsiString(countryPolicyError);
+            return false;
+         }
 
          long maxMessageSize = domain->GetMaxMessageSize(), maxSize = domain->GetMaxSizeMB(), maxAccountSize = domain->GetMaxAccountSize();
          long maxAccounts = domain->GetMaxNoOfAccounts(), maxAliases = domain->GetMaxNoOfAliases(), maxLists = domain->GetMaxNoOfDistributionLists();
@@ -547,6 +563,7 @@ namespace HM
          domain->SetOpenPGPPublish(openPgpPublish);
          domain->SetOpenPGPPublishNewAccounts(openPgpPublishNewAccounts);
          domain->SetQuarantineDigestHour((int) digestHour);
+         domain->SetCountryPolicy(canonicalCountryPolicy);
          domain->SetADDomainName(adDomainName);
          domain->SetExternalTagSubject(externalTagSubject);
          domain->SetExternalTagHeader(externalTagHeader);
@@ -667,6 +684,7 @@ namespace HM
       flag("disclaimer_enabled", domain->GetDisclaimerEnabled());
       text("disclaimer_plain_text", domain->GetDisclaimerPlainText());
       text("disclaimer_html", domain->GetDisclaimerHTML());
+      text("country_policy", domain->GetCountryPolicy());
       entry += "}";
       return entry;
    }

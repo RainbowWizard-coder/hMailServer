@@ -106,6 +106,7 @@ namespace HM
       database_queries_count_ = 0;
       database_slow_queries_count_ = 0;
       metrics_unauthorized_requests_ = 0;
+      country_refusals_total_ = 0;
       state_ = StateUnknown ;
 
       // One slot per bound, plus the +Inf slot. Sized once here so the observation
@@ -233,6 +234,31 @@ namespace HM
    {
       boost::lock_guard<boost::mutex> guard(domain_counter_mutex_);
       return domain_messages_sent_;
+   }
+
+   void
+   ServerStatus::OnCountryRefusal(const String &country)
+   {
+      boost::lock_guard<boost::mutex> guard(country_counter_mutex_);
+
+      country_refusals_total_++;
+
+      if (!country.IsEmpty())
+         country_refusals_[country]++;
+   }
+
+   int
+   ServerStatus::GetNumberOfCountryRefusals() const
+   {
+      boost::lock_guard<boost::mutex> guard(country_counter_mutex_);
+      return (int) country_refusals_total_;
+   }
+
+   std::map<String, __int64>
+   ServerStatus::GetCountryRefusals() const
+   {
+      boost::lock_guard<boost::mutex> guard(country_counter_mutex_);
+      return country_refusals_;
    }
 
    void
