@@ -409,7 +409,7 @@ namespace HM
          {
             // No row yet. This is THE MIGRATION: on the first start at schema 6042
             // every key the file has that the table does not is taken into the store,
-            // which is what moves 238 settings without moving them one at a time. It
+            // which is what moves 241 settings without moving them one at a time. It
             // is also the ordinary path for a fresh install, and for a key an
             // administrator has put in the file for a server that has never stored it.
             if (InsertRow_(name, fileNow, fileNow))
@@ -656,6 +656,14 @@ namespace HM
          return false;
       if (lower.StartsWith(_T("indexerfulltext")))
          return false;
+      // The work factors of a new password hash - PasswordHashIterations,
+      // PasswordHashMemoryKB, PasswordHashTimeCost. Numbers an administrator
+      // raises, carrying two of the fragments and holding neither a password nor
+      // a hash. The shape, so that the next work factor is right without anybody
+      // remembering this; the trail names these three exactly, as it does the
+      // hash algorithms above.
+      if (lower.StartsWith(_T("passwordhash")))
+         return false;
       if (lower.Compare(_T("protectstoredsecretswithdpapi")) == 0)
          return false;
 
@@ -667,13 +675,32 @@ namespace HM
    {
       spelling.Empty();
 
-      for (size_t i = 0; i < IniSettingsBaseline::SettingsKeyCount; i++)
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsCount; i++)
       {
-         if (name.CompareNoCase(IniSettingsBaseline::SettingsKeys[i]) == 0)
+         if (name.CompareNoCase(IniSettingsBaseline::Settings[i].Name) == 0)
          {
-            spelling = IniSettingsBaseline::SettingsKeys[i];
+            spelling = IniSettingsBaseline::Settings[i].Name;
             return true;
          }
+      }
+
+      return false;
+   }
+
+   bool
+   IniSettingStore::DefaultFor(const String &name, String &value, bool &isInteger)
+   {
+      value.Empty();
+      isInteger = false;
+
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsCount; i++)
+      {
+         if (name.CompareNoCase(IniSettingsBaseline::Settings[i].Name) != 0)
+            continue;
+
+         value = IniSettingsBaseline::Settings[i].Default;
+         isInteger = IniSettingsBaseline::Settings[i].IsInteger;
+         return true;
       }
 
       return false;

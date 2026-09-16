@@ -30,7 +30,7 @@ namespace HM
    /// onto replacement hardware gets their domains, accounts and mail back and
    /// none of their server settings. The project's rule since 15 September 2026,
    /// in .github/CONTRIBUTING.md, is that a setting belongs in the database; this
-   /// is the class that makes that true of the 238 keys already in the file.
+   /// is the class that makes that true of the 241 keys already in the file.
    ///
    /// WHY THE FILE IS STILL WRITTEN. Because some readers cannot go to the
    /// database, and one of them by definition never can: hMailServer.exe /Register
@@ -200,11 +200,11 @@ namespace HM
       /// fragments stand, and the shapes that match one without being a secret are
       /// let through - a path (RestApiPrivateKeyFile is where the key is, not the
       /// key), an address, a policy about passwords rather than one, the choice of
-      /// a hash algorithm. A key this build does not know that matches a fragment
-      /// is masked: that way costs a value in an export, the other way costs a
-      /// secret in a repository.
+      /// a hash algorithm, the work factors of one. A key this build does not know
+      /// that matches a fragment is masked: that way costs a value in an export,
+      /// the other way costs a secret in a repository.
       ///
-      /// Over the 238 [Settings] keys this server reads the two rules answer the
+      /// Over the 241 [Settings] keys this server reads the two rules answer the
       /// same for every name but three - MetricsServerPrivateKeyFile,
       /// RestApiPrivateKeyFile and WebServicesPrivateKeyFile, which the trail
       /// masks and this list shows - and nothing this list masks is shown by the
@@ -236,6 +236,32 @@ namespace HM
       /// which the baseline does not list and which have REST pages of their own.
       /// </summary>
       static bool IsSettingTheServerReads(const String &name, String &spelling);
+
+      /// <summary>
+      /// The value this version of the server reads a [Settings] key with when
+      /// nothing has been stored for it - the third argument of the read in
+      /// IniFileSettings, carried into the binary by IniSettingsBaseline.h - and
+      /// whether the read is the integer one. False for a name this build does not
+      /// read, which has no default because nothing consults it.
+      ///
+      /// isInteger is how a stored value is compared with this: the integer read
+      /// is GetPrivateProfileInt, which stops at the first character that is not
+      /// part of a number and yields 0 for one that does not start with one, so a
+      /// stored "0009" is the same setting as a default of 9 and is not a
+      /// difference, while for a string read it plainly would be.
+      ///
+      /// WHAT "DEFAULT" MEANS, and it is worth saying because one case of it is
+      /// not obvious. It is the value the server BEHAVES as though the setting
+      /// has when it has no value of its own - not the value a fresh installation
+      /// has in its file. The two differ for the keys the installer writes:
+      /// hMailServer.ini ships with lines the packaging put there, every one of
+      /// which is adopted into the store at the first start, and a line whose
+      /// value is the same as this default is not a change to anything. So a key
+      /// the installer wrote with the shipped value does not appear in the list of
+      /// what an installation has changed, which is what makes that list short
+      /// enough to read.
+      /// </summary>
+      static bool DefaultFor(const String &name, String &value, bool &isInteger);
 
       /// <summary>
       /// Every setting name the server holds: the union of the table and the

@@ -152,6 +152,15 @@ namespace HM
          L"passwordpolicyrequiredigit", L"passwordpolicyrequiremixedcase",
          L"passwordpolicyrequirenonalphanumeric",
          L"preferredhashalgorithm", L"minimumacceptedhashalgorithm",
+         // The work factors of a new password hash - iterations, memory, passes.
+         // They carry "password" and "hash" and hold neither: they are numbers an
+         // administrator raises, and a reader owed a change-control record is owed
+         // "210000 -> 310000" rather than "(changed)". Found on 16 September 2026
+         // by the list of what a server has changed from stock, which showed all
+         // three as "(set)" - and which meant a configuration export had been
+         // dropping them, since IniSettingStore::IsSecretName narrows this rule
+         // and had no shape for them either.
+         L"passwordhashiterations", L"passwordhashmemorykb", L"passwordhashtimecost",
          L"protectstoredsecretswithdpapi",
          L"oauth2publickeyfile", L"updatelogpublickeyfile",
          L"indexerfulltextmaxtokenspermessage", L"indexerfulltextmintokenlength",

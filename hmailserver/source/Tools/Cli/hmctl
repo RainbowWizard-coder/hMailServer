@@ -1453,6 +1453,60 @@ def config_export(client, arguments):
     return EXIT_OK
 
 
+def config_changed(client, arguments):
+    """Every setting whose value is not the one this version ships with.
+
+    One route answers the whole of it and this prints what the server said: the
+    defaults are the server's own, read from the source it was built from, so
+    this file holds no copy of them to go stale. The same document the Control
+    Deck's page and COM's Settings.GetChangedFromDefault show, which is the
+    point - three tools that describe the same server differently are worse
+    than two that say nothing.
+
+    A difference is NOT an exit code here, which is the one place this parts
+    company with `config diff`. Every real server has changed something, so a
+    non-zero exit would be the normal answer and every script would learn to
+    ignore it.
+
+    The route answers to the administrator password and to nothing else, as
+    `ini list` does: an api key is refused and so is an account holding a role,
+    because the settings include the server's secrets and the commands it runs.
+    """
+    answer = client.request("GET", "/api/v1/settings/changed")
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+
+    rows = answer.get("settings", []) if isinstance(answer, dict) else []
+    shown = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        entry = dict(row)
+        # A name the server ships no default for: the column would otherwise be
+        # empty, which reads as "the default is empty" rather than "there is none".
+        if entry.get("known") is False:
+            entry["default"] = "(none: this server does not read it)"
+        # A value the file's [SettingsOverride] section is forcing over whatever is
+        # stored. Said beside the value rather than left out, because it is the one
+        # thing here that no page and no configuration export shows, and reading
+        # "DnsServer 10.0.0.1" while the stored value is something else is how an
+        # afternoon gets lost.
+        if entry.get("overridden"):
+            entry["value"] = "%s (forced from [SettingsOverride])" % entry.get("value", "")
+        entry.pop("known", None)
+        entry.pop("secret", None)
+        entry.pop("overridden", None)
+        shown.append(entry)
+
+    render(shown, False, ["store", "name", "value", "default"])
+
+    if isinstance(answer, dict):
+        print("%d of %d settings are not what this version ships with." %
+              (len(rows), int(answer.get("considered") or 0)))
+    return EXIT_OK
+
+
 def config_diff(client, arguments):
     with io.open(arguments.file, encoding="utf-8") as handle:
         wanted = json.load(handle)
@@ -2090,6 +2144,9 @@ def build_parser():
     exporter = configuration_verbs.add_parser("export", parents=[common])
     exporter.set_defaults(handler=config_export)
     exporter.add_argument("file", nargs="?", default="-")
+    changed = configuration_verbs.add_parser("changed", parents=[common],
+                                             help="every setting whose value is not the shipped default, with the default beside it")
+    changed.set_defaults(handler=config_changed)
     differ = configuration_verbs.add_parser("diff", parents=[common])
     differ.set_defaults(handler=config_diff)
     differ.add_argument("file")

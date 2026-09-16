@@ -15,6 +15,8 @@
 
 #include "../Common/Application/Application.h"
 #include "../Common/Application/ACLManager.h"
+#include "../Common/Application/SettingsDiff.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/MessageOrigin.h"
@@ -4927,6 +4929,66 @@ STDMETHODIMP InterfaceSettings::put_ComplaintRetentionDays(long newVal)
          return COMError::GenerateError("ComplaintRetentionDays must be between 0 and 3650.");
 
       config_->SetComplaintRetentionDays((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+namespace
+{
+   HM::String WideFromUtf8(const HM::AnsiString &utf8)
+   {
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(utf8, wide);
+      return wide;
+   }
+}
+
+STDMETHODIMP InterfaceSettings::GetChangedFromDefault(BSTR *Json)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // The same document GET /api/v1/settings/changed answers, built by the same
+      // function, so that an administrator reading the Control Panel and one
+      // reading the Deck cannot be told different things about the same server.
+      *Json = WideFromUtf8(HM::SettingsDiff::Json()).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::GetSettingDefault(BSTR Name, BSTR *Value)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Value)
+         return COMError::GenerateGenericMessage();
+
+      HM::String name = Name;
+      name.Trim();
+
+      HM::String shipped;
+      if (!HM::SettingsDiff::ShippedValue(name, shipped))
+         return COMError::GenerateError("This build ships no default for a setting of that name. The [Settings] keys it reads are in IniSettingsBaseline.h and the hm_settings properties in SettingsDefaults.h; a name in neither is one an administrator stored for a script of their own, which has no default because nothing here reads it.");
+
+      *Value = shipped.AllocSysString();
 
       return S_OK;
    }

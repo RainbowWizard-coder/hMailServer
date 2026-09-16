@@ -1903,6 +1903,8 @@ namespace HM
             return HandleSettingsDirectories_();
          case RouteIniSettingList:
             return HandleIniSettingList_();
+         case RouteSettingsChanged:
+            return HandleSettingsChanged_();
          case RouteIniSettingGet:
             return HandleIniSettingGet_(route.identifier);
          case RouteIniSettingPut:
@@ -4076,6 +4078,12 @@ namespace HM
          return;
       }
 
+      if (method == "GET" && path == "/api/v1/settings/changed")
+      {
+         route.kind = RouteSettingsChanged;
+         return;
+      }
+
       // One [Settings] key of hMailServer.ini, named in the path as it is
       // spelled in the file. The name is not decoded: the characters a key
       // cannot hold - = [ ] and a line break - are refused by the handler with
@@ -4431,6 +4439,16 @@ namespace HM
       case RouteIniSettingGet:
       case RouteIniSettingPut:
       case RouteIniSettingDelete:
+      // The list of what has been changed from stock is those settings' values
+      // seen from another angle, so it is the administrator password's for the
+      // same reason, and an account holding a role is refused it as well - it is
+      // NOT one of the seven below. A secret is masked in it, but AutoBanCommand
+      // - the command the server runs, as the service - is not a secret by name
+      // and is exactly the kind of setting somebody changes, so it is in this
+      // list when it has been set. The Control Deck's page for it is left out
+      // for every credential but the administrator password, by data-admin on
+      // its button, so that a role is not offered a page it would be refused.
+      case RouteSettingsChanged:
       // The audit trail names every administrator and every change they made,
       // and the alert rules hold the webhook secrets. A key that could read the
       // first could watch for its own footprints; a key that could write the
@@ -4826,6 +4844,15 @@ namespace HM
       // them - and not one secret among them. RouteUnknown is here so that a
       // path this server does not have answers 404 as it always has, rather
       // than telling an unauthorised caller which paths exist.
+      //
+      // Three of them never reach here: the [Settings] list, one of its keys,
+      // and the list of what this server has changed from stock are refused to
+      // everything but the administrator password in Authorize_, before any
+      // permission is consulted, as the key routes above are. Every route must
+      // be classified all the same - build/check-role-choke-point.py holds that,
+      // because a route in no classification is a route nobody decided about -
+      // and for these the classification says what kind of route it is, not what
+      // a role may read.
       case RouteUnknown:
       case RouteStatus:
       case RouteTlsa:
@@ -4845,6 +4872,7 @@ namespace HM
       case RouteSettingsDirectoriesGet:
       case RouteIniSettingList:
       case RouteIniSettingGet:
+      case RouteSettingsChanged:
       case RouteSettingsScriptingGet:
       case RouteScriptingCheck:
       case RouteSettingsPushGet:
@@ -5573,7 +5601,7 @@ namespace HM
             break;
 
          default:
-            refusalReason = "the api keys and the [Settings] section of hMailServer.ini answer to the administrator password only";
+            refusalReason = "the api keys and the [Settings] section of hMailServer.ini, including the list of what this server has changed from stock, answer to the administrator password only";
             return AuthorizationForbidden;
          }
       }
@@ -5732,6 +5760,7 @@ namespace HM
       case RouteComplaintRates:
       case RouteComplaintExpire:
       case RouteSettingsGet:
+      case RouteSettingsChanged:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamGet:
       case RouteSettingsAntiSpamPut:

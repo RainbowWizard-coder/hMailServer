@@ -1239,6 +1239,22 @@ const state = {
         object_type: 'setting', object: 'AutoBanMinutes', action: 'updated', detail: 'AutoBanMinutes: 60 -> 120', hash: 'aa', previous_hash: '' }
    ],
    auditIntact: true,
+   // What this server has changed from stock. Five entries chosen for the five
+   // things the page has to get right: a plain ini key, a secret named and not
+   // shown, a name the server ships no default for, a property of the other
+   // store - so that the column that says which store is exercised too - and one
+   // the file's [SettingsOverride] section is forcing, which is a value nothing
+   // else on the Deck shows.
+   changed: {
+      changed: 5, considered: 391,
+      settings: [
+         { store: 'ini', name: 'LogLevel', value: '5', default: '9', secret: false, known: true },
+         { store: 'ini', name: 'OAuth2HmacSecret', value: '(set)', default: '', secret: true, known: true },
+         { store: 'ini', name: 'OurOwnScriptKey', value: 'yes', default: '', secret: false, known: false },
+         { store: 'database', name: 'smtpnoofretries', value: '6', default: '4', secret: false, known: true },
+         { store: 'ini', name: 'DnsServer', value: '10.0.0.1', default: '', secret: false, known: true, overridden: true }
+      ]
+   },
    // The reports. The index says what each source is and how far back it can
    // see; the sections are the tables. One of them is deliberately switched
    // off (the trace), because the page has to SAY so rather than draw an empty
@@ -2090,6 +2106,7 @@ function answer(method, path, headers, raw) {
       if (method === 'DELETE') { state.webhooks.splice(at, 1); return json(200, { deleted: true }); }
    }
 
+   if (path === '/api/v1/settings/changed' && method === 'GET') { return json(200, state.changed); }
    if (path === '/api/v1/audit/verify' && method === 'GET') {
       if (state.auditIntact) { return json(200, { intact: true, rows_checked: state.audit.length, first_broken_id: 0, reason: '' }); }
       return json(200, { intact: false, rows_checked: 1, first_broken_id: 2, reason: 'the row has been edited' });
@@ -3915,6 +3932,33 @@ async function main() {
       document.getElementById('err_log').textContent);
    state.logs.pop();
 
+   // ---- what this server has changed from stock
+   before = requests.length;
+   await goTo('changed');
+   check('the Changed from stock view asks the one route that answers it',
+      called(before, 'GET', '/api/v1/settings/changed').length === 1, paths(before));
+   check('and lists a row for each setting that is not what this version ships with', rows().length === 5, String(rows().length));
+   check('with the store, the name, the value and the shipped default beside each other',
+      rows()[0].textContent.indexOf('ini') >= 0 && rows()[0].textContent.indexOf('LogLevel') >= 0 &&
+      rows()[0].textContent.indexOf('5') >= 0 && rows()[0].textContent.indexOf('9') >= 0, rows()[0].textContent);
+   check('a secret is named and its value is never on the page',
+      rows()[1].textContent.indexOf('OAuth2HmacSecret') >= 0 && rows()[1].textContent.indexOf('(set)') >= 0,
+      rows()[1].textContent);
+   check('a name the server ships no default for says so rather than showing an empty column',
+      rows()[2].textContent.indexOf('This server has no default for it') >= 0, rows()[2].textContent);
+   check('the other store is named as itself', rows()[3].textContent.indexOf('database') >= 0, rows()[3].textContent);
+   check('a value the file is forcing says so, because no other page of the Deck shows an override',
+      rows()[4].textContent.indexOf('Forced from [SettingsOverride] in hMailServer.ini') >= 0, rows()[4].textContent);
+   check('and the count is given against the number of settings there are',
+      content().textContent.indexOf('5 of 391 settings') >= 0, content().textContent.slice(-200));
+   check('the page only reads: it offers nothing that would change a setting from here',
+      content().querySelectorAll('button').length === 0 && content().querySelectorAll('input').length === 0,
+      String(content().querySelectorAll('button').length));
+   state.changed = { changed: 0, considered: 391, settings: [] };
+   await goTo('changed');
+   check('a server that has changed nothing says so rather than drawing an empty table',
+      content().textContent.indexOf('Nothing has been changed') >= 0, content().textContent.slice(0, 200));
+
    // ---- the audit trail
    before = requests.length;
    await goTo('audit');
@@ -4779,6 +4823,12 @@ async function main() {
    check('an auditor reaching every domain is shown the audit trail, the reports and the remote domains',
       !$('#nav button[data-view="audit"]').hidden && !$('#nav button[data-view="reports"]').hidden &&
       !$('#nav button[data-view="remotedomains"]').hidden && !$('#nav button[data-view="groups"]').hidden);
+   /* And not the one page whose route answers to the administrator password and
+      to nothing else. An auditor holds view_configuration, so a view that named
+      that permission would be put in front of it and refused on the first click
+      - which is the failure this whole mechanism exists to avoid. */
+   check('and not the Changed from stock page, whose route answers to the administrator password alone',
+      $('#nav button[data-view="changed"]').hidden);
 
    // The reports need two permissions, because their senders and recipients are
    // who mails whom: a custom role that reads the configuration and not the
@@ -4811,8 +4861,9 @@ async function main() {
    await flush();
    whoami = null;
    await signIn();
-   check('and the administrator is shown everything again',
-      !$('#nav button[data-view="settings"]').hidden && !$('#nav button[data-view="roles"]').hidden);
+   check('and the administrator is shown everything again, the administrator-only page included',
+      !$('#nav button[data-view="settings"]').hidden && !$('#nav button[data-view="roles"]').hidden &&
+      !$('#nav button[data-view="changed"]').hidden);
 
    if (failures.length) {
       out.error('\ndeck script: ' + failures.length + ' of ' + checks + ' checks failed\n');

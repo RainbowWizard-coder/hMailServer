@@ -325,6 +325,7 @@ namespace HM
          RouteIniSettingGet,
          RouteIniSettingPut,
          RouteIniSettingDelete,
+         RouteSettingsChanged,
          RouteLogonFailuresClear,
          RouteSettingsScriptingGet,
          RouteSettingsScriptingPut,
@@ -1191,6 +1192,10 @@ namespace HM
       HttpResponse HandleIniSettingGet_(const AnsiString &name);
       HttpResponse HandleIniSettingPut_(const AnsiString &name, const AnsiString &requestBody);
       HttpResponse HandleIniSettingDelete_(const AnsiString &name);
+      // What this server has changed from stock: every setting whose value is
+      // not the one this version ships with (RestApiSettings.cpp), which is what
+      // Settings.GetChangedFromDefault answers over COM, from the same function.
+      HttpResponse HandleSettingsChanged_();
       HttpResponse HandleLogonFailuresClear_();
       // Wave E: the scripting and backup groups, the server messages and the
       // Sieve evaluation (RestApiSettings.cpp).

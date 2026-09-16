@@ -131,7 +131,7 @@ lines written together left the MySQL create script unable to run from 12 Septem
 2026's tenth webmail wave until the Linux build's database gate said so the same day.
 
 **The database is the settings store; hMailServer.ini is the bootstrap.** Since
-schema 6042 the 238 keys the `[Settings]` section used to hold are read from
+schema 6042 the 241 keys the `[Settings]` section used to hold are read from
 `hm_inisettings` and written to it, and the section in the file is a CACHE the server
 keeps current - because a handful of readers cannot go to the database, and one of
 them never can: `hMailServer.exe /Register` reads `ServiceAccountName` before there
@@ -148,7 +148,7 @@ open.
 rule from 15 September 2026, written in `.github/CONTRIBUTING.md` and held by
 `build/check-ini-coverage.py` against the committed baseline
 `build/ini-settings-baseline.txt`: a key that appears in `[Settings]` and is not in
-the baseline fails CI. The existing 238 keep the shape they have - a getter in
+the baseline fails CI. The existing 241 keep the shape they have - a getter in
 `IniFileSettings.h`, the default on the member declaration, a `ReadIniSetting*_` call
 in `IniFileSettings.cpp` and a control in the Control Panel's `FeatureSettingsView` -
 they are simply read from the database now. Per-account and per-domain settings go in

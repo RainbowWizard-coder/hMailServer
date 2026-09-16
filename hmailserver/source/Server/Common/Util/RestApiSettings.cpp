@@ -54,6 +54,7 @@
 #include "PasswordBreachCheck.h"
 #include "SessionPolicies.h"
 #include "../Application/IniSettingStore.h"
+#include "../Application/SettingsDiff.h"
 #include "../Application/Backup.h"
 #include "../BO/ServerMessages.h"
 #include "../BO/ServerMessage.h"
@@ -2237,6 +2238,9 @@ namespace
    const char *BreachCheckTestPath =
       ",\"/api/v1/settings/breach-check/test\":{\"post\":{\"summary\":\"Ask the password breach check endpoint for a range\",\"description\":\"What Settings.TestBreachCheckEndpoint does over COM: the endpoint - url in the body, or breach_check_url when the body has none - is asked for the prefix 00000, which belongs to no password, with the padding header and the timeout a real check uses, and the answer is reported: reachable, the HTTP status, how many entries came back, whether any was padding, and how long it took. The body of the answer is never returned. A url the check would not accept is a 400 with the reason. Nothing is changed. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"url\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{reachable: true, status, entries, padded, milliseconds}, or {reachable: false, status (0 when no answer arrived), error, milliseconds}\"},\"400\":{\"description\":\"The body is not a JSON object, url is not a string, or the url is not one the check accepts (the reason is in error)\"}}}}";
 
+   const char *ChangedFromStockPath =
+      ",\"/api/v1/settings/changed\":{\"get\":{\"summary\":\"What this server has changed from stock\",\"description\":\"Every setting whose value is not the one this version of the server ships with, with the shipped value beside it - the same document Settings.GetChangedFromDefault answers over COM, built by the same function. It is the first thing to look at when a server behaves oddly and the first thing to put in a support message: a server holds several hundred settings across its two stores and an administrator has usually changed twenty, and until this route there was no way to be told which twenty. changed is how many are listed and considered is how many settings the two stores hold altogether, so that a count of 3 reads as 3 of 391. Each entry is {store, name, value, default, secret, known, overridden}. store is ini for the keys that were the [Settings] section of hMailServer.ini (hm_inisettings since schema 6042), whose shipped value is the third argument of the read in the server's own source, and database for hm_settings, whose shipped value is what this version's create script puts in a new database. DEFAULT MEANS what the server behaves as though the setting has when nothing is stored for it, not what a fresh installation's files happen to contain: hMailServer.ini ships with lines the packaging wrote, every one adopted into the store at the first start, and a line holding the shipped value is not a change to anything and is not listed - which is what keeps this list short enough to read. A line the installer wrote with a value that is NOT the shipped one is listed, and should be. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true, by the same rule GET /api/v1/settings/ini uses; GET /api/v1/settings/ini/{name} reads such a value when it is wanted. overridden is true where the [SettingsOverride] section of hMailServer.ini is forcing the value over whatever is stored - the deliberate door for a database that is unreachable or holds a value the server will not start on, which no other page and no backup shows, and a key forced that way is listed even when neither store holds a row for it. A row of hm_settings that this build does not read is not listed at all: an installation upgraded from an old schema holds a dozen that upgrade scripts inserted for features that have gone, and a row nothing reads cannot explain anything the server is doing. known is false for a setting this build ships no default for - a key stored for a script of the administrator's own, or one the server reads by name where it is used rather than through the loader - which is a difference from stock all the same, since stock has no such value at all. The values are this server process's: a setting stored since it started is listed as stored though most take effect at the next start, and one stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until it restarts or reloads. Administrator password only: an api key of any scope is refused with a 401 and an account holding an administrative role with a 403, for the same reason the ini list is - the settings include the server's secrets and the commands it runs, and AutoBanCommand is a command this server runs as the service account.\",\"responses\":{\"200\":{\"description\":\"{changed, considered, settings: [{store, name, value, default, secret, known, overridden}]}\"}}}}";
+
    const char *IniAndLogonFailurePaths =
       ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The server settings that were the [Settings] section of hMailServer.ini\",\"description\":\"names: every name in the settings store or in the [Settings] section of the file, sorted by name with case - what Settings.IniSettingNames lists over COM; PasswordPepper, which the store never holds, is among them when the file has it. settings: the same names as {name, value, secret}, with the value GET /api/v1/settings/ini/{name} answers - the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. A value this server stored since it started is listed as stored, and most settings apply when it next starts; a value stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until it restarts or reloads. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true: this list is what a configuration export is built from, and GET /api/v1/settings/ini/{name} reads such a value when it is wanted. Since schema 6042 the database (hm_inisettings) is the store and the section in the file is the server's copy of it. Administrator password only: an api key of any scope is refused, since the settings include the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...], settings: [{name, value, secret}]}\"}}}},"
       "\"/api/v1/settings/ini/{name}\":{"
@@ -2273,6 +2277,7 @@ namespace HM
       paths += OpenApiPath(LoggingGroup, "The logging settings", "Change logging settings", bridge);
       paths += OpenApiReadOnlyPath(DirectoriesGroup, "The directories the server runs in",
          "What Settings.Directories reports over COM, and the hMailServer.ini the settings came from. Facts about the installation, set when it was made; nothing here is written. Server-wide; refused for domain-restricted keys.", bridge);
+      paths += ChangedFromStockPath;
       paths += IniAndLogonFailurePaths;
       paths += OpenApiPath(ComplaintGroup, "The feedback loop settings", "Change the feedback loop settings", bridge);
       paths += OpenApiPath(ScriptingGroup, "The event-handler scripting settings", "Change the scripting settings", bridge);
@@ -2371,6 +2376,17 @@ namespace HM
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       return IniDelete(name, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsChanged_()
+   {
+      // SettingsDiff::Json is the whole answer, and is the same function COM's
+      // Settings.GetChangedFromDefault calls: this route holds no opinion of its
+      // own about what a difference is, so the two interfaces cannot describe the
+      // same server differently. It is already JSON, and already escaped as JSON,
+      // so it goes out as it stands.
+      return BuildResponse_(200, SettingsDiff::Json(), "");
    }
 
    HttpResponse

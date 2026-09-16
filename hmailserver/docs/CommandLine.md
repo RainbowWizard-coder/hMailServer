@@ -392,6 +392,7 @@ The configuration as one file
 -----------------------------
 
 ```bash
+hmctl config changed                     # every setting that is not the shipped default
 hmctl config export server.json          # the whole configuration, as a document
 hmctl config diff server.json            # what would change; exit 1 if anything would
 hmctl config apply server.json           # the plan, and nothing else
@@ -443,6 +444,39 @@ What it does not carry, and why:
   them different it asks the server's rotation route, and while the server says
   it holds them they are left out of the comparison and of what is sent.
 
+### What this server has changed from stock
+
+```text
+$ hmctl config changed
+STORE     NAME                       VALUE           DEFAULT
+ini       LogLevel                   5               9
+ini       SMTPDMaxTimeout            600             1800
+ini       OAuth2HmacSecret           (set)
+ini       DnsServer                  10.0.0.1 (forced from [SettingsOverride])
+database  smtpnoofretries            6               4
+
+5 of 391 settings are not what this version ships with.
+```
+
+`config changed` is the other half of `config export`: the export is the whole
+configuration, and this is only the part of it that is not what the server ships
+with - which is the first thing to look at when a server behaves oddly and the
+first thing to put in a support message. The shipped values are the server's own,
+read from the source it was built from, so this file holds no copy of them to go
+stale; `hmailserver/docs/ChangedFromStock.md` says what `default` means for a key
+the installer writes, and why a secret is named here and never shown.
+
+A difference is **not** an exit code here, which is the one place this parts
+company with `config diff`. Every real server has changed something, so a
+non-zero exit would be the normal answer and every script would learn to ignore
+it. `--json` prints the server's own document, counts and all.
+
+The route answers to the administrator password alone, as `ini list` does: an API
+key is refused and so is an account holding a role, because the settings include
+the server's secrets and the commands it runs. A value the file's
+`[SettingsOverride]` section is forcing over what is stored says so beside the
+value - nothing else the server offers shows one.
+
 ### A repository that is the configuration
 
 There is no daemon; the loop is two commands and whatever runs them.
@@ -475,6 +509,7 @@ Set-HmSetting -Group antispam -Property @{ use_spf = $true }
 Test-HmBreachCheckEndpoint -Url https://mirror.example/range/
 Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery
 Get-HmDkimRotation -Domain example.com -Records | Where-Object Action -eq publish
+Get-HmChangedSetting | Format-Table store, name, value, default
 Get-HmSuppression -Domain example.com | Where-Object category -eq 'hard' | Format-Table address, status, created
 Add-HmSuppression -Domain example.com -Address gone@elsewhere.test -Note 'old export' -ExpiresDays 90
 Get-HmBounceCount -Domain example.com | Sort-Object consecutive_hard -Descending | Select-Object -First 10

@@ -504,6 +504,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\ChangedFromStock.cs" />
     <Compile Include="API\Unicode.cs" />
     <Compile Include="Infrastructure\BackupRestore.cs" />
     <Compile Include="Infrastructure\BackupAccountStores.cs" />

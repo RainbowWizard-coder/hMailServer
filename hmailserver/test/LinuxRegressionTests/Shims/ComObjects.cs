@@ -325,6 +325,7 @@ namespace hMailServer
       public const string Logging = "/api/v1/settings/logging";
       public const string Directories = "/api/v1/settings/directories";
       public const string Ini = "/api/v1/settings/ini";
+      public const string Changed = "/api/v1/settings/changed";
       public const string LogonFailuresClear = "/api/v1/settings/logon-failures/clear";
       public const string Scripting = "/api/v1/settings/scripting";
       public const string Backup = "/api/v1/settings/backup";
@@ -975,6 +976,33 @@ namespace hMailServer
             var names = ServerApi.Array(answer, "names").Select(n => n.GetString());
             return string.Join("\r\n", names);
          }
+      }
+
+      // ---- What this server has changed from stock, over /api/v1/settings/changed ----
+      //
+      // The COM call answers this route's document verbatim - the server builds
+      // both from SettingsDiff::Json - so the shim hands the body back as it
+      // arrived rather than rebuilding it, which is the only way the two can be
+      // asserted to agree.
+
+      public string GetChangedFromDefault()
+      {
+         if (!ServerApi.HasRoute(SettingsApi.Changed, "get"))
+            throw NotOnThisServer.Skipped(NotOnThisServer.NoChangedFromStock);
+
+         return ServerApi.Get(SettingsApi.Changed).Expect(200, "GET " + SettingsApi.Changed).Body;
+      }
+
+      /// <summary>
+      ///    One setting's shipped value. There is no REST route for it: the list of
+      ///    what has been changed carries the shipped value of every setting that
+      ///    HAS been changed, and a route that answered for one that has not would
+      ///    be a route for reading a constant. So the test that needs it is skipped
+      ///    here with that reason rather than answered wrongly.
+      /// </summary>
+      public string GetSettingDefault(string name)
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoSettingDefault);
       }
 
       public int CrashSimulationMode

@@ -50,6 +50,7 @@ SURVIVORS = ["hMailServer.ini", "hMailServer", "OpenAPI", "ManageSieve", "Sieve"
              "DANE", "TLSA", "SURBL", "DNS", "STARTTLS", "SSL/TLS", "TLS", "MX", "IPv4", "IPv6", "MB", "KB",
              "YYYY-MM-DD", "HH:MM:SS", "127.0.0.2", "192.168.*", "2001:db8:*", "*.exe", "user+anything@domain", "user@domain",
              "ScheduledBackupTime", "ScheduledBackupIntervalMinutes", "ScheduledBackupKeepCount", "ScheduledBackupMaxAgeDays",
+             "SettingsOverride",
              "Active Directory", "Windows", "domain_members", "membership", "announcement", "Date"]
 
 SCRIPT = re.compile(r"<script(?P<attrs>[^>]*)>(?P<body>.*?)</script>", re.S | re.I)

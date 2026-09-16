@@ -1079,6 +1079,14 @@ namespace HM
       IniSettingStore::ReadSettingNames(names);
    }
 
+   void
+   IniFileSettings::GetOverriddenNames(std::set<String> &names)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+
+      names = file_overrides_;
+   }
+
    String
    IniFileSettings::ReadIniSettingString_(const String &sSection, const String &sKey, const String &sDefault)
    {

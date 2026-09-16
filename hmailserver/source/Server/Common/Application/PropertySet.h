@@ -41,6 +41,24 @@ namespace HM
 
       bool Contains(const String &sPropertyName) const;
 
+      /// <summary>
+      /// Every property the set holds, as name -> (settinginteger, settingstring).
+      ///
+      /// Both columns, because the table does not say which of them a property
+      /// uses and this set does not know either: a long property leaves the string
+      /// empty and a string property leaves the number 0, so a caller comparing a
+      /// property with its shipped default compares both and reports whichever has
+      /// moved. Reading the whole set rather than asking for names one at a time
+      /// also avoids GetProperty_'s HM5015 for a name that is not there, which is
+      /// the right report for a read of a setting and the wrong one for a walk.
+      ///
+      /// The string of a crypted property (the relayer password) is the DECRYPTED
+      /// value, as GetString gives it - Refresh decrypts on load. A caller putting
+      /// these in front of anybody masks by name, which is what
+      /// IniSettingStore::IsSecretName is for.
+      /// </summary>
+      void GetAll(std::map<String, std::pair<long, String> > &values) const;
+
       bool XMLStore(XNode *pBackupNode);
       bool XMLLoad(XNode *pBackupNode);
 

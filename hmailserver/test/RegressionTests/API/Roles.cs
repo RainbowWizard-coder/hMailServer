@@ -351,6 +351,37 @@ namespace RegressionTests.API
 
          (int status, string body) keys = AsAccount("audrey@example.test", "GET", "/api/v1/apikeys");
          Assert.AreEqual(403, keys.status, "The key store is the administrator password's, and a 403 rather than a 401 does not sign a Deck session out. Body: " + keys.body);
+
+         // The [Settings] section of hMailServer.ini is the administrator
+         // password's for the same reason, and so is the list of what this server
+         // has changed from stock, which is those same values seen from another
+         // angle: AutoBanCommand is a command the server runs as the service
+         // account and is not a secret by name. An auditor holds view_configuration
+         // and is refused all three, before any permission is consulted - which is
+         // why the Deck's Changed from stock button carries data-admin rather than
+         // naming a permission.
+
+         // And a key of the widest scope there is, which is refused as a 401 - the
+         // refusal a key gets everywhere here, so that "valid but not permitted"
+         // stays indistinguishable from "not a key at all".
+         (int status, string body) fullKey = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest settings\",\"scope\":\"full\"}");
+         Assert.AreEqual(201, fullKey.status, fullKey.body);
+         string fullToken = JsonValue(fullKey.body, "key");
+
+         foreach (string administratorOnly in new[] { "/api/v1/settings/ini", "/api/v1/settings/changed" })
+         {
+            (int status, string body) refused = AsAccount("audrey@example.test", "GET", administratorOnly);
+            Assert.AreEqual(403, refused.status,
+               administratorOnly + " answers to the administrator password alone. Body: " + refused.body);
+
+            (int status, string body) refusedKey = Bearer(fullToken, "GET", administratorOnly);
+            Assert.AreEqual(401, refusedKey.status,
+               "A key of full scope reached " + administratorOnly + ". Body: " + refusedKey.body);
+
+            (int status, string body) allowed = Admin("GET", administratorOnly);
+            Assert.AreEqual(200, allowed.status,
+               "The administrator password reads it. Body: " + allowed.body);
+         }
       }
 
       [Test]

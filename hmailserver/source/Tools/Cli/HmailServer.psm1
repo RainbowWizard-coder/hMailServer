@@ -1992,6 +1992,33 @@ function ConvertTo-HmConfigurationRow {
     $ordered
 }
 
+function Get-HmChangedSetting {
+    <#
+    .SYNOPSIS
+        Every setting whose value is not the one this version of the server ships
+        with, with the shipped value beside it: store, name, value and default.
+
+    .DESCRIPTION
+        The first thing to look at when a server behaves oddly and the first thing
+        to put in a support message. store is ini for the keys that were the
+        [Settings] section of hMailServer.ini and database for hm_settings. A
+        setting whose value is a secret is named with its value as (set) and never
+        shown. known is false for a setting this build ships no default for - a key
+        stored for a script of your own - which is a difference from stock all the
+        same, and overridden is true where the [SettingsOverride] section of
+        hMailServer.ini is forcing the value over whatever is stored. -Summary
+        answers the whole document instead, with the counts.
+
+        Answers to the administrator password and to nothing else, as
+        Get-HmIniSetting does: an API key is refused, and so is an account
+        holding an administrative role.
+    #>
+    [CmdletBinding()]
+    param([switch] $Summary)
+    $answer = Invoke-HmApi -Method GET -Path '/api/v1/settings/changed'
+    if ($Summary) { $answer } else { Get-HmCollection -Answer $answer -Key 'settings' }
+}
+
 function Export-HmConfiguration {
     <#
     .SYNOPSIS
@@ -2300,6 +2327,7 @@ Export-ModuleMember -Function @(
     'Get-HmDkimRotation', 'Start-HmDkimRotation', 'Test-HmDkimRotation', 'Complete-HmDkimRotation',
     'Remove-HmDkimRetiringKey', 'Stop-HmDkimRotation', 'Invoke-HmDkimRotation',
     'Get-HmSuppression', 'Add-HmSuppression', 'Remove-HmSuppression', 'Get-HmBounceCount',
+    'Get-HmChangedSetting',
     'Test-HmBounceStatus', 'Invoke-HmBounceMaintenance',
     'Get-HmWebhook', 'New-HmWebhook', 'Set-HmWebhook', 'Remove-HmWebhook',
     'Get-HmWebhookDelivery', 'Invoke-HmWebhookDelivery', 'Test-HmWebhook',

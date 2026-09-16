@@ -188,6 +188,18 @@ namespace HM
    }
 
    void
+   PropertySet::GetAll(std::map<String, std::pair<long, String> > &values) const
+   {
+      values.clear();
+
+      for (auto iterProperty = items_.begin(); iterProperty != items_.end(); iterProperty++)
+      {
+         std::shared_ptr<Property> oProperty = (*iterProperty).second;
+         values[(*iterProperty).first] = std::make_pair(oProperty->GetLongValue(), oProperty->GetStringValue());
+      }
+   }
+
+   void
    PropertySet::EnsureLong(const String &sPropertyName, long lValue)
    {
       if (Contains(sPropertyName))

@@ -94,6 +94,15 @@ jobs:
       # missing after the feature had shipped.
       - name: Every INI setting can be set from the Control Panel
         run: python3 build/check-ini-coverage.py
+
+      # The other settings store's shipped values, which are what the list of
+      # what an installation has changed from stock compares against. They live
+      # in the create scripts' `insert into hm_settings` rows and in
+      # Configuration::EnsureSettingDefaults_, and are carried into the binary by
+      # a generated header. A default changed in one and not regenerated in the
+      # other would make that list confidently wrong.
+      - name: The shipped hm_settings defaults the server carries are current
+        run: python3 build/generate-settings-defaults.py --check
       - name: Every statement in a MySQL script ends with a blank line
         run: python3 build/check-sql-separators.py
       - name: An upgrade step adds a setting row only if it is not already there

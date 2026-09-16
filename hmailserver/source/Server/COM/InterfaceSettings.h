@@ -323,6 +323,12 @@ END_COM_MAP()
    STDMETHOD(get_ComplaintRetentionDays)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_ComplaintRetentionDays)(/*[in]*/ long newVal);
 
+   // What this server has changed from stock, across both settings stores. Reads
+   // only; see SettingsDiff for what "default" means and why a secret is named
+   // and not shown.
+   STDMETHOD(GetChangedFromDefault)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(GetSettingDefault)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *Value);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

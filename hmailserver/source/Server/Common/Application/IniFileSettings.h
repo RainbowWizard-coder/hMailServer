@@ -101,6 +101,20 @@ namespace HM
       /// <summary>Every setting name the server holds: the table and the file, united.</summary>
       void GetSettingsNames(std::vector<String> &names);
 
+      /// <summary>
+      /// The [Settings] keys the file's [SettingsOverride] section is forcing, as the
+      /// overlay loaded them at the last start - not as the file reads now, because a
+      /// section edited since is not what this server is running on.
+      ///
+      /// It exists because an override is the one value the two stores do not know
+      /// about: GetSettingsNames unites the table and the [Settings] section, and a
+      /// key forced from [SettingsOverride] that has neither a row nor a line is in
+      /// neither. Anything reporting what the server is RUNNING on has to add these,
+      /// or it silently leaves out the one mechanism whose whole purpose is to run a
+      /// server on something other than what is stored.
+      /// </summary>
+      void GetOverriddenNames(std::set<String> &names);
+
       bool CheckSettings(String &sErrorMessage);
 
       static String GetInitializationFile();

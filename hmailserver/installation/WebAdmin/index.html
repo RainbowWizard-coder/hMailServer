@@ -309,6 +309,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="queue" data-serverwide="1" data-needs="view_queue" title="Delivery queue"><span class="ico">⇶</span><span>Delivery queue</span></button>
         <button data-view="tlsa" data-needs="view_configuration" title="DANE / TLSA"><span class="ico">⛨</span><span>DANE / TLSA</span></button>
         <button data-view="settings" data-serverwide="1" data-needs="view_configuration" title="Settings"><span class="ico">⚙</span><span>Settings</span></button>
+        <button data-view="changed" data-serverwide="1" data-admin="1" title="Changed from stock"><span class="ico">≠</span><span>Changed from stock</span></button>
         <button data-view="backup" data-serverwide="1" data-needs="view_configuration" title="Backup"><span class="ico">⛃</span><span>Backup</span></button>
         <button data-view="messages" data-serverwide="1" data-needs="view_configuration" title="Server messages"><span class="ico">✎</span><span>Server messages</span></button>
         <button data-view="rules" data-serverwide="1" data-needs="view_configuration" title="Rules"><span class="ico">⚖</span><span>Rules</span></button>
@@ -672,6 +673,16 @@ let permissions=null;
    the whole server's - the settings, the queue, the logs - is refused to such a
    credential whatever permission it holds, so it is left out for it too. */
 let confined=false;
+/* True when the credential is the administrator password itself rather than an
+   account holding a role. A few routes answer to it alone and consult no
+   permission at all - the api keys, the [Settings] section of hMailServer.ini,
+   and the Changed from stock list, which is those settings' values seen from
+   another angle - so a view of one of them says data-admin rather than naming a
+   permission: view_configuration would put it in front of an auditor whose every
+   request it refuses. It starts true, as the permissions start unknown, so that
+   a whoami that could not be read never hides a page from the credential that
+   may use it. */
+let administrator=true;
 /* administer_server is the whole of it, as it is in RoleManager::Allows. */
 function may(permission){return !permissions||!permission||permissions.indexOf("administer_server")>=0||permissions.indexOf(permission)>=0;}
 /* A view that needs more than one permission names them all in data-needs,
@@ -690,7 +701,7 @@ function applyPermissions(){
   const buttons=Array.from(document.querySelectorAll("#nav button[data-view]"));
   let visible=null;
   buttons.forEach(b=>{
-    const allowed=mayAll(b.dataset.needs)&&!(confined&&b.dataset.serverwide);
+    const allowed=mayAll(b.dataset.needs)&&!(confined&&b.dataset.serverwide)&&!(b.dataset.admin&&!administrator);
     b.hidden=!allowed;
     if(allowed&&!visible)visible=b.dataset.view;
   });
@@ -701,11 +712,12 @@ function applyPermissions(){
   }
 }
 async function readSession(){
-  permissions=null;confined=false;
+  permissions=null;confined=false;administrator=true;
   try{
     const who=await api("/api/v1/session");
     if(who&&Array.isArray(who.permissions))permissions=who.permissions;
     confined=!!(who&&Array.isArray(who.domains)&&who.domains.length>0);
+    if(who&&who.credential)administrator=who.credential==="administrator";
   }catch(_){/* an older server, or a request that did not arrive: show everything */}
   applyPermissions();
 }
@@ -735,7 +747,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -749,6 +761,7 @@ async function render(silent){
     else if(view==="queue")await renderQueue();
     else if(view==="tlsa")await renderTlsa();
     else if(view==="settings")await renderSettings();
+    else if(view==="changed")await renderChanged();
     else if(view==="backup")await renderBackup();
     else if(view==="messages")await renderMessages();
     else if(view==="rules")await renderRules();
@@ -4106,6 +4119,37 @@ function auditWhen(seconds){
   if(!value)return "—";
   return new Date(value*1000).toISOString().replace("T"," ").replace(/\.\d+Z$/,"Z");
 }
+/* ---------- Changed from stock ----------
+   Every setting whose value is not the one this version ships with, with the
+   shipped value beside it. One route answers the whole page and the page holds
+   no opinion of its own about what a difference is: the server decides, from
+   the defaults its own source was built with, and COM's
+   Settings.GetChangedFromDefault is given the same document - so the Deck, the
+   Control Panel and hmctl cannot describe the same server differently.
+
+   It reads and never writes. A setting is changed where it is set, which is the
+   Settings view and the pages of the thing it belongs to; a page that could
+   edit from here would be a second place to do it and a second set of rules
+   about who may.
+
+   The route answers the administrator password alone, as GET
+   /api/v1/settings/ini does, so the button carries data-admin rather than a
+   permission and a role account is not offered a page it would be refused. */
+async function renderChanged(){
+  const answer=await api("/api/v1/settings/changed");
+  const settings=answer.settings||[];
+  const considered=Number(answer.considered)||0;
+  const rows=settings.map(s=>`
+    <tr><td>${escHtml(s.store||"")}</td><td>${escHtml(s.name||"")}</td>
+        <td>${escHtml(s.value||"")}${s.overridden?' <span class="note">'+t("Forced from [SettingsOverride] in hMailServer.ini")+'</span>':''}</td>
+        <td>${s.known===false?'<span class="note">'+t("This server has no default for it")+'</span>':escHtml(s.default||"")}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="card view">
+    <p class="note">${t("Every setting whose value is not the one this version of the server ships with. It is the first thing to look at when a server behaves oddly, and the first thing to put in a support message. A setting whose value is a secret is named here and never shown.")}</p>
+    <div class="tablewrap"><table><thead><tr><th>${t("Store")}</th><th>${t("Setting")}</th><th>${t("Value")}</th><th>${t("Shipped default")}</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="4" class="empty">'+t("Nothing has been changed. Every setting on this server is what this version ships with.")+'</td></tr>'}</tbody></table></div>
+    <p class="note" style="margin-top:12px">${tf("{0} of {1} settings are not what this version ships with.",settings.length,considered)}</p></div>`;
+}
+
 async function renderAudit(){
   const filter=(auditFilter||"").trim();
   const query="?limit="+AUDIT_PAGE+"&offset="+auditOffset+(filter?"&actor="+encodeURIComponent(filter):"");
