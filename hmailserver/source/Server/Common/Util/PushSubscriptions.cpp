@@ -584,16 +584,18 @@ namespace HM
       subscription.quiet_to = 7 * 60;
       subscription.quiet_offset = 120;
 
-      // 1789000000 is 2026-09-09 06:13:20 UTC, which is 08:13 on the device: awake.
-      if (PushSubscriptions::IsQuiet(subscription, 1789000000))
+      // 1788934400 is 2026-09-09 06:13:20 UTC, which is 08:13 on the device: awake.
+      // (1788934400, which this read before, is 00:26 UTC on the 10th - 02:26 on
+      // the device, inside the window - and the self-test failed on its own sum.)
+      if (PushSubscriptions::IsQuiet(subscription, 1788934400))
          throw std::logic_error("08:13 on the device is not inside quiet hours of 22:00 to 07:00.");
 
       // Four hours earlier is 02:13 on the device: quiet.
-      if (!PushSubscriptions::IsQuiet(subscription, 1789000000 - 6 * 3600))
+      if (!PushSubscriptions::IsQuiet(subscription, 1788934400 - 6 * 3600))
          throw std::logic_error("02:13 on the device is inside quiet hours that wrap midnight.");
 
       // And 23:13 on the device, which is the other side of the wrap.
-      if (!PushSubscriptions::IsQuiet(subscription, 1789000000 - 9 * 3600))
+      if (!PushSubscriptions::IsQuiet(subscription, 1788934400 - 9 * 3600))
          throw std::logic_error("23:13 on the device is inside quiet hours that wrap midnight.");
 
       // A window that does not wrap: 13:00 to 14:00, on a device on UTC.
@@ -601,18 +603,18 @@ namespace HM
       plain.quiet_from = 13 * 60;
       plain.quiet_to = 14 * 60;
       plain.quiet_offset = 0;
-      if (!PushSubscriptions::IsQuiet(plain, 1789000000 + 7 * 3600))
+      if (!PushSubscriptions::IsQuiet(plain, 1788934400 + 7 * 3600))
          throw std::logic_error("13:13 UTC is inside quiet hours of 13:00 to 14:00.");
-      if (PushSubscriptions::IsQuiet(plain, 1789000000 + 8 * 3600))
+      if (PushSubscriptions::IsQuiet(plain, 1788934400 + 8 * 3600))
          throw std::logic_error("14:13 UTC is not inside quiet hours that end at 14:00.");
 
       // No quiet hours at all, and the degenerate window.
       PushSubscriptions::Subscription always;
-      if (PushSubscriptions::IsQuiet(always, 1789000000))
+      if (PushSubscriptions::IsQuiet(always, 1788934400))
          throw std::logic_error("A device with no quiet hours is never quiet.");
       always.quiet_from = 60;
       always.quiet_to = 60;
-      if (PushSubscriptions::IsQuiet(always, 1789000000))
+      if (PushSubscriptions::IsQuiet(always, 1788934400))
          throw std::logic_error("Quiet hours whose ends are the same are no quiet hours, not a whole day of them.");
 
       // A device behind UTC, where the naive modulus would go negative.
@@ -620,22 +622,22 @@ namespace HM
       behind.quiet_from = 22 * 60;
       behind.quiet_to = 7 * 60;
       behind.quiet_offset = -8 * 60;
-      // 1789000000 is 06:13 UTC, so 22:13 the previous day on the device.
-      if (!PushSubscriptions::IsQuiet(behind, 1789000000))
+      // 1788934400 is 06:13 UTC, so 22:13 the previous day on the device.
+      if (!PushSubscriptions::IsQuiet(behind, 1788934400))
          throw std::logic_error("A device behind UTC must have its own minute of the day worked out, not a negative one.");
 
       // And the whole decision together: a dead-lettered device is told nothing
       // whatever its choices say.
       PushSubscriptions::Subscription dead;
       dead.state = PushSubscriptions::StateDeadLettered;
-      if (PushSubscriptions::Wants(dead, _T("a@example.com"), _T(""), 1789000000))
+      if (PushSubscriptions::Wants(dead, _T("a@example.com"), _T(""), 1788934400))
          throw std::logic_error("A dead-lettered subscription is sent nothing.");
 
       PushSubscriptions::Subscription live;
       live.senders = _T("@work.example");
-      if (!PushSubscriptions::Wants(live, _T("boss@work.example"), _T(""), 1789000000))
+      if (!PushSubscriptions::Wants(live, _T("boss@work.example"), _T(""), 1788934400))
          throw std::logic_error("A live subscription whose sender list matches is told.");
-      if (PushSubscriptions::Wants(live, _T("spam@elsewhere.example"), _T(""), 1789000000))
+      if (PushSubscriptions::Wants(live, _T("spam@elsewhere.example"), _T(""), 1788934400))
          throw std::logic_error("A live subscription whose sender list does not match is not told.");
    }
 }
