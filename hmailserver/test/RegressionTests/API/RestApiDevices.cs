@@ -244,11 +244,14 @@ namespace RegressionTests.API
          Assert.IsTrue(MiniJson.Flag(outcome, "credential_disabled"), revoked.body);
 
          // The connection was dropped where it stood: the next command gets no
-         // OK, because there is nobody at the other end to give one.
+         // OK, because there is nobody at the other end to give one. Send rather
+         // than SendSingleCommand: the latter waits for a tagged answer and fails
+         // the test from inside its own timeout, and a socket the peer has closed
+         // still says it is connected until something is written to it.
          string afterwards;
          try
          {
-            afterwards = imap.SendSingleCommand("A02 NOOP");
+            afterwards = imap.Send("A02 NOOP");
          }
          catch (Exception ex)
          {

@@ -46,6 +46,10 @@ namespace RegressionTests.Security
       private const string LoopbackCountry = "SE";
       private const string OtherCountry = "US";
 
+      // CountryBlocking::DefaultExemptRanges, as docs/CountryBlocking.md prints it.
+      private const string ShippedExemptRanges =
+         "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,100.64.0.0/10,fe80::/10,fc00::/7";
+
       private string _databasePath;
       private string _exemptRangesAsShipped;
       private Account _account;
@@ -66,7 +70,15 @@ namespace RegressionTests.Security
 
          GeoIpFixture.WriteCountryDatabase(_databasePath, networks);
 
+         // What TearDown puts back. A run that was killed between a test's
+         // JudgeTheLoopbackAddress and its TearDown leaves the bench with no
+         // exemptions at all, and the next run would then "restore" that and
+         // read it as the shipped value; the shipped value is what the server
+         // seeds the settings row with (CountryBlocking::DefaultExemptRanges).
          _exemptRangesAsShipped = _settings.CountryBlockingExemptRanges;
+         if (string.IsNullOrWhiteSpace(_exemptRangesAsShipped))
+            _exemptRangesAsShipped = ShippedExemptRanges;
+
          _settings.GeoIpDatabaseFile = _databasePath;
       }
 

@@ -635,8 +635,8 @@ namespace RegressionTests.API
       [Description("The report and the check are the server's own: a read-only key is refused the check, and a key issued for one domain is refused both.")]
       public void TheCheckIsTheServersOwnRatherThanADomains()
       {
-         (string id, string key) readOnly = CreateKey("repwatch-read", "read", null);
-         (string id, string key) confined = CreateKey("repwatch-domain", "readwrite", _domain.Name);
+         (string id, string key) readOnly = CreateKey("repwatch-read", "readonly", null);
+         (string id, string key) confined = CreateKey("repwatch-domain", "full", _domain.Name);
 
          try
          {

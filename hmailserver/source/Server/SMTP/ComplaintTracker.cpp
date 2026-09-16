@@ -7,6 +7,7 @@
 #include "ComplaintTracker.h"
 
 #include "BounceTracker.h"
+#include "DeliveryReportParser.h"
 #include "FeedbackReportParser.h"
 
 #include "../Common/BO/Account.h"
@@ -196,7 +197,10 @@ namespace HM
    ComplaintTracker::ComplaintKey(const String &messageId, const String &address, const String &sender,
                                   const String &arrival, __int64 fallback)
    {
-      String identity = messageId;
+      // The Message-ID as the report's original headers carry it, or as a
+      // caller hands it over: with or without its angle brackets, in any case.
+      // The same report read twice - or by two nodes - has to make one key.
+      String identity = DeliveryReportParser::NormaliseMessageId(messageId);
       identity.Trim();
       identity.ToLower();
 

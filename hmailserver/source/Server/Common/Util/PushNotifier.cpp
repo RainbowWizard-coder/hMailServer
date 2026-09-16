@@ -370,7 +370,9 @@ namespace HM
          return false;
       }
 
-      AnsiString payload = BuildPayload(subscription.detail, 1, "", "", "", "", (__int64) time(nullptr));
+      // At the count level whatever the device allows: a test is about no
+      // message, so it names nobody and carries no subject, empty or otherwise.
+      AnsiString payload = BuildPayload(PushSubscriptions::DetailCount, 1, "", "", "", "", (__int64) time(nullptr));
 
       // A test says it is a test, so that the page can word it as one and a person
       // is never left wondering which message it was about.
