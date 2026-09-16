@@ -40,7 +40,7 @@ STDMETHODIMP InterfaceResult::get_Value(long *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = result_->GetValue();
       return S_OK;
@@ -75,7 +75,7 @@ STDMETHODIMP InterfaceResult::get_Parameter(long *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = result_->GetParameter();
       return S_OK;
@@ -110,7 +110,7 @@ STDMETHODIMP InterfaceResult::get_Message(BSTR *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = result_->GetMessage().AllocSysString();
       return S_OK;

@@ -40,7 +40,7 @@ STDMETHODIMP InterfaceDiagnosticResults::get_Item(long Index, IInterfaceDiagnost
          return authentication_->GetAccessDenied();
    
       if (Index >= (long) results_.size())
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       CComObject<InterfaceDiagnosticResult>* pResult = new CComObject<InterfaceDiagnosticResult>();
       pResult->SetAuthentication(authentication_);

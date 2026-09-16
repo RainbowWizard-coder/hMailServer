@@ -244,7 +244,7 @@ namespace HM
       { _T("hm_imap_metadata"),
         _T("Per-mailbox annotations (RFC 5464), keyed on a folder id the restore reassigns. As above.") },
       { _T("hm_acl"),
-        _T("ACLPermission::XMLStore writes it, under its public folder.") },
+        _T("ACLPermission::XMLStore writes it, under its folder - an account's own as well as a public one, since an owner can share a mailbox.") },
       { _T("hm_group_members"),
         _T("GroupMember::XMLStore writes it, under its group, in the settings section.") },
       { _T("hm_messageindexterms"),

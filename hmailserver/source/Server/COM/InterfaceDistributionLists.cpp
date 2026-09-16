@@ -121,7 +121,7 @@ STDMETHODIMP InterfaceDistributionLists::get_Item(long Index, IInterfaceDistribu
       std::shared_ptr<HM::DistributionList> pPersList = distribution_lists_->GetItem(Index);
    
       if (!pPersList)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pList->AttachItem(pPersList);
       pList->AttachParent(distribution_lists_, true);
@@ -165,7 +165,7 @@ STDMETHODIMP InterfaceDistributionLists::get_ItemByDBID(long DBID, IInterfaceDis
       std::shared_ptr<HM::DistributionList> pPersList = distribution_lists_->GetItemByDBID(DBID);
    
       if (!pPersList)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pList->AttachItem(pPersList);
       pList->AttachParent(distribution_lists_, true);
@@ -193,7 +193,7 @@ STDMETHODIMP InterfaceDistributionLists::get_ItemByAddress(BSTR sAddress, IInter
       std::shared_ptr<HM::DistributionList> pPersList = distribution_lists_->GetItemByAddress(sAddress);
    
       if (!pPersList)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pList->AttachItem(pPersList);
       pList->AttachParent(distribution_lists_, true);

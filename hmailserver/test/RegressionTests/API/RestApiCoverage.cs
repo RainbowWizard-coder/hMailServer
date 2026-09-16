@@ -912,9 +912,34 @@ namespace RegressionTests.API
          StringAssert.Contains("\"max_message_size_kb\":" + _settings.MaxMessageSize, body);
          StringAssert.Contains("\"max_smtp_connections\":" + _settings.MaxSMTPConnections, body);
          StringAssert.Contains("\"log_smtp_conversations\":", body);
-         // A KEY whose name is a password, not the word anywhere: the group carries
-         // breach_check_url, whose default endpoint is api.pwnedpasswords.com.
-         StringAssert.DoesNotContain("password\":", body);
+         AssertNoSecretFieldIsEmitted(body, "GET /api/v1/settings");
+      }
+
+      // Every row of the server group that a PUT accepts and a GET must never
+      // answer with - RestApiSettings.cpp marks them Access::WriteOnly and
+      // GroupJson skips them. The relayer password is the only one today; a new
+      // one belongs here, whatever it is called.
+      private static readonly string[] WriteOnlyFields = { "smtp_relayer_password" };
+
+      /// <summary>
+      ///    The claim - that no secret is ever emitted - is one about field NAMES, so
+      ///    the body is parsed and its keys are read. Searching the whole document for
+      ///    a substring says something else, and something false in both directions:
+      ///    breach_check_url's default endpoint is https://api.pwnedpasswords.com/range/,
+      ///    a VALUE that carries the word and must stay readable, while a needle that
+      ///    matches only a name ending in the word would let a key such as
+      ///    password_policy - or any future write-only field not called a password -
+      ///    through with its value.
+      /// </summary>
+      private static void AssertNoSecretFieldIsEmitted(string body, string what)
+      {
+         foreach (string field in MiniJson.Object(body).Keys)
+         {
+            Assert.IsFalse(field.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0,
+               what + " emitted the field \"" + field + "\", whose name is a password.");
+            CollectionAssert.DoesNotContain(WriteOnlyFields, field,
+               what + " emitted the field \"" + field + "\", which is write-only.");
+         }
       }
 
       [Test]

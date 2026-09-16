@@ -116,7 +116,7 @@ STDMETHODIMP InterfaceSecurityRanges::get_Item(long Index, IInterfaceSecurityRan
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
    
@@ -150,7 +150,7 @@ STDMETHODIMP InterfaceSecurityRanges::get_ItemByDBID(long DBID, IInterfaceSecuri
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
       return S_OK;
@@ -211,7 +211,7 @@ STDMETHODIMP InterfaceSecurityRanges::get_ItemByName(BSTR sName, IInterfaceSecur
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
       return S_OK;

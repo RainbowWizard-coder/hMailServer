@@ -55,7 +55,7 @@ InterfaceBackupManager::LoadBackup(BSTR sXMLFile, IInterfaceBackup **pVal)
       std::shared_ptr<HM::Backup> pBackup = backup_manager_->LoadBackup(sXMLFile);
    
       if (!pBackup)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pBackupInt->Attach(pBackup);
       pBackupInt->AddRef();

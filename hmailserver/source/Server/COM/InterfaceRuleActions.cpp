@@ -33,7 +33,7 @@ STDMETHODIMP InterfaceRuleActions::get_ItemByDBID(long lDBID, IInterfaceRuleActi
    
       std::shared_ptr<HM::RuleAction> pRule = rule_actions_->GetItemByDBID(lDBID);
       if (!pRule)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceRuleAction->AttachItem(pRule);
       pInterfaceRuleAction->AttachParent(rule_actions_, true);
@@ -60,7 +60,7 @@ STDMETHODIMP InterfaceRuleActions::get_Item(long lIndex, IInterfaceRuleAction** 
    
       std::shared_ptr<HM::RuleAction> pRule = rule_actions_->GetItem(lIndex);
       if (!pRule)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceRuleAction->AttachItem(pRule);
       pInterfaceRuleAction->AttachParent(rule_actions_, true);

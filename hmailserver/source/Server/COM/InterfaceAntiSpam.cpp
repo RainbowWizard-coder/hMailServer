@@ -585,7 +585,7 @@ STDMETHODIMP InterfaceAntiSpam::get_GreyListingWhiteAddresses(IInterfaceGreyList
          return GetAccessDenied();
 
       if (!config_)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       CComObject<InterfaceGreyListingWhiteAddresses>* pGLWhiteList = new CComObject<InterfaceGreyListingWhiteAddresses>();
       pGLWhiteList->SetAuthentication(authentication_);
@@ -610,7 +610,7 @@ STDMETHODIMP InterfaceAntiSpam::get_WhiteListAddresses(IInterfaceWhiteListAddres
          return GetAccessDenied();
 
       if (!config_)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       CComObject<InterfaceWhiteListAddresses>* pGLWhiteList = new CComObject<InterfaceWhiteListAddresses>();
       pGLWhiteList->SetAuthentication(authentication_);

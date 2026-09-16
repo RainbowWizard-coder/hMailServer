@@ -34,7 +34,7 @@ STDMETHODIMP InterfaceLinks::get_Domain(long DBID, IInterfaceDomain **pVal)
    
       std::shared_ptr<HM::Domain> pDomain = std::shared_ptr<HM::Domain>(new HM::Domain);
       if (!HM::PersistentDomain::ReadObject(pDomain, DBID))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       CComObject<InterfaceDomain>* pInterface = new CComObject<InterfaceDomain>();
       pInterface->SetAuthentication(authentication_);
@@ -58,7 +58,7 @@ STDMETHODIMP InterfaceLinks::get_Account(long DBID, IInterfaceAccount **pVal)
    
       std::shared_ptr<HM::Account> pAccount = std::shared_ptr<HM::Account>(new HM::Account);
       if (!HM::PersistentAccount::ReadObject(pAccount, DBID))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       bool accountAdminOK =! authentication_->GetIsDomainAdmin() && authentication_->GetAccountID() == pAccount->GetID();
       bool domainAdminOK = authentication_->GetIsDomainAdmin() && authentication_->GetDomainID() == pAccount->GetDomainID();
@@ -88,7 +88,7 @@ STDMETHODIMP InterfaceLinks::get_Alias(long DBID, IInterfaceAlias **pVal)
    
       std::shared_ptr<HM::Alias> pAlias = std::shared_ptr<HM::Alias>(new HM::Alias);
       if (!HM::PersistentAlias::ReadObject(pAlias, DBID))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       bool domainAdminOK = authentication_->GetIsDomainAdmin() && authentication_->GetDomainID() == pAlias->GetDomainID();
    
@@ -117,7 +117,7 @@ STDMETHODIMP InterfaceLinks::get_DistributionList(long DBID, IInterfaceDistribut
    
       std::shared_ptr<HM::DistributionList> pList = std::shared_ptr<HM::DistributionList>(new HM::DistributionList);
       if (!HM::PersistentDistributionList::ReadObject(pList, DBID))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       bool domainAdminOK = authentication_->GetIsDomainAdmin() && authentication_->GetDomainID() == pList->GetDomainID();
    

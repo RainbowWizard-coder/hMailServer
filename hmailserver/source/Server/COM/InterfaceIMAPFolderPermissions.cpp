@@ -95,7 +95,7 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::get_Item(long Index, IInterfaceIMAP
       std::shared_ptr<HM::ACLPermission> pPersACLPermission = acl_permission_->GetItem(Index);
    
       if (!pPersACLPermission)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pACLPermission->AttachItem(pPersACLPermission);
       pACLPermission->AttachParent(acl_permission_, true);
@@ -164,7 +164,7 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::get_ItemByDBID(long DBID, IInterfac
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
    
@@ -218,7 +218,7 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::get_ItemByName(BSTR Name, IInterfac
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
    

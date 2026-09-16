@@ -24,6 +24,7 @@ and hands back an empty list that a caller then edits and throws away.
 Run from the repository root: python3 build/check-authz-choke-point.py
 """
 import os
+import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hmailserver", "source", "Server")
@@ -44,16 +45,6 @@ ALLOWED = {
         "COM/InterfaceSettings.cpp",          # the setting's own property
         "Common/Util/RestApiSettings.cpp",    # the same property, over REST
     },
-    # A folder's stored ACL is read through ACLManager::GetPermissionsSetOnFolder,
-    # never through the business object: IMAPFolder::GetPermissions() skips the
-    # database read for an account-level folder, so a caller that goes there reads
-    # an empty list and edits a copy that is thrown away. That is what left the COM
-    # Permissions collection blind on every account folder until 16 September 2026.
-    # Written with the arrow so that the rule matches a CALL and not the prose,
-    # which names it as IMAPFolder::GetPermissions().
-    "->GetPermissions()": {
-        "Common/Application/ACLManager.cpp",    # the one reader, which handles both kinds of folder
-    },
     "GetAclEnforcementEnabled(": {
         "Common/Application/ACLManager.cpp",
         "Common/Application/ACLManager.h",
@@ -68,6 +59,38 @@ ALLOWED = {
     },
 }
 
+# A folder's stored ACL is read through ACLManager::GetPermissionsSetOnFolder, never
+# through the business object: IMAPFolder::GetPermissions() skips the database read
+# for an account-level folder, so a caller that goes there reads an empty list and
+# edits a copy that is thrown away. That is what left the COM Permissions collection
+# blind on every account folder until 16 September 2026.
+#
+# This rule was first written as the literal "->GetPermissions()", to match a call
+# and not the prose that names the function in a comment - and it therefore matched
+# no call that a member function makes on ITSELF. There were two, both in
+# IMAPFolder: XMLStore and XMLLoad, the backup and the restore, each reading a
+# folder's grants through the accessor that skips the read. So the backup wrote an
+# empty ACL for every account folder while a restore deleted the real rows, and
+# every share on an account's mailbox - including the post right the Send-As
+# identity list is built from - was destroyed by restoring a backup of it.
+#
+# A CALL is now matched in every form: on a pointer, on a reference, bare with its
+# result used, and bare with its result returned. The declaration ("... >
+# GetPermissions();") and the definition ("IMAPFolder::GetPermissions()") match
+# none of them, and comments are not read at all.
+CALL_RULES = [
+    (
+        "GetPermissions()",
+        re.compile(r"(?:->|\.)\s*GetPermissions\s*\(\s*\)"
+                   r"|GetPermissions\s*\(\s*\)\s*(?:->|\.)"
+                   r"|\breturn\s+GetPermissions\s*\(\s*\)"),
+        {
+            "Common/Application/ACLManager.cpp",   # the one reader, which handles both kinds of folder
+        },
+        "ACLManager::GetPermissionsSetOnFolder, which reads the rows an account folder has too",
+    ),
+]
+
 # The decision functions themselves must exist, or the rule above guards nothing.
 REQUIRED = [
     ("Common/Application/ACLManager.h", "static bool CheckPermission("),
@@ -76,7 +99,58 @@ REQUIRED = [
 ]
 
 
+def code_only(line):
+    """The part of a line that is not a comment.
+
+    Prose that names a function is not a call to it, and the comments in this tree
+    say IMAPFolder::GetPermissions() a dozen times. Comments here are // to the end
+    of the line, or a block whose continuation lines begin with * - which is all the
+    server's source uses.
+    """
+    stripped = line.lstrip()
+    if stripped.startswith("//") or stripped.startswith("*") or stripped.startswith("/*"):
+        return ""
+    return line.split("//", 1)[0]
+
+
+SELF_TEST = [
+    # (line, is it a call?)
+    ("         if (!GetPermissions()->XMLStore(pNode, iBackupOptions))", True),
+    ("         if (!GetPermissions()->XMLLoad(pFolderNode, iRestoreOptions))", True),
+    ("         return pFolder->GetPermissions();", True),
+    ("      auto rows = folder.GetPermissions();", True),
+    ("      return GetPermissions();", True),
+    ("      std::shared_ptr<ACLPermissions> GetPermissions();", False),
+    ("   IMAPFolder::GetPermissions()", False),
+    ("   // Exists because IMAPFolder::GetPermissions() skips the database read.", False),
+    ("   // ... not IMAPFolder::GetPermissions() -> the rows are read here instead.", False),
+    ("      std::shared_ptr<ACLPermissions> GetPermissionsSetOnFolder(IMAPFolder &folder);", False),
+]
+
+
+def self_test():
+    """The rule against the lines it exists to catch, and the ones it must not."""
+    _, pattern, _, _ = CALL_RULES[0]
+    failures = []
+    for line, is_call in SELF_TEST:
+        found = bool(pattern.search(code_only(line)))
+        if found != is_call:
+            failures.append("%s: expected %s, got %s" % (line.strip(), is_call, found))
+
+    if failures:
+        print("Authorisation choke point self-test: %d failure(s)" % len(failures))
+        for failure in failures:
+            print("  " + failure)
+        return 1
+
+    print("Authorisation choke point self-test: %d line(s), every one classified as intended" % len(SELF_TEST))
+    return 0
+
+
 def main():
+    if "--self-test" in sys.argv:
+        return self_test()
+
     problems = []
     for dirpath, _, files in os.walk(ROOT):
         for name in files:
@@ -93,10 +167,15 @@ def main():
             for number, line in enumerate(lines, 1):
                 for symbol, allowed in ALLOWED.items():
                     if symbol in line and rel not in allowed:
-                        instead = ("ACLManager::GetPermissionsSetOnFolder, which reads the rows an "
-                                   "account folder has too") if symbol.startswith("->") else \
-                                  ("ACLManager::CheckPermission or CheckDelegatedRight instead")
-                        problems.append(f"{rel}:{number}: {symbol[:-1]} outside ACLManager - ask {instead}")
+                        problems.append(f"{rel}:{number}: {symbol[:-1]} outside ACLManager - "
+                                        f"ask ACLManager::CheckPermission or CheckDelegatedRight instead")
+
+                code = code_only(line)
+                for name_of, pattern, allowed, instead in CALL_RULES:
+                    if rel in allowed:
+                        continue
+                    if pattern.search(code):
+                        problems.append(f"{rel}:{number}: {name_of} called outside ACLManager - ask {instead}")
 
     for rel, needle in REQUIRED:
         path = os.path.join(ROOT, rel)

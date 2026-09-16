@@ -37,7 +37,7 @@ STDMETHODIMP InterfaceClient::get_Port(long *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetPort();
       return S_OK;
@@ -56,7 +56,7 @@ STDMETHODIMP InterfaceClient::get_IPAddress(BSTR *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetIPAddress().AllocSysString();
       return S_OK;
@@ -75,7 +75,7 @@ STDMETHODIMP InterfaceClient::get_Username(BSTR *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetUsername().AllocSysString();
       return S_OK;
@@ -94,7 +94,7 @@ STDMETHODIMP InterfaceClient::get_HELO(BSTR *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetHELO().AllocSysString();
       return S_OK;
@@ -113,7 +113,7 @@ STDMETHODIMP InterfaceClient::get_Authenticated(VARIANT_BOOL *pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetIsAuthenticated() ? VARIANT_TRUE : VARIANT_FALSE;
       return S_OK;
@@ -132,7 +132,7 @@ STDMETHODIMP InterfaceClient::get_EncryptedConnection(VARIANT_BOOL* pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetIsEncryptedConnection() ? VARIANT_TRUE : VARIANT_FALSE;
       return S_OK;
@@ -151,7 +151,7 @@ STDMETHODIMP InterfaceClient::get_CipherVersion(BSTR* pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetCipherVersion().AllocSysString();
       return S_OK;
@@ -170,7 +170,7 @@ STDMETHODIMP InterfaceClient::get_CipherName(BSTR* pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetCipherName().AllocSysString();
       return S_OK;
@@ -189,7 +189,7 @@ STDMETHODIMP InterfaceClient::get_CipherBits(long* pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetCipherBits();
       return S_OK;
@@ -208,7 +208,7 @@ STDMETHODIMP InterfaceClient::get_SessionID(long* pVal)
          return NotAttached_();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = client_info_->GetSessionID();
       return S_OK;

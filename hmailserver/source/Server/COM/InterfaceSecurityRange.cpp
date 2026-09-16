@@ -317,7 +317,7 @@ STDMETHODIMP InterfaceSecurityRange::get_RequireAuthForDeliveryToLocal(VARIANT_B
          return GetAccessDenied();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       // OBSOLETE: replaced in 5.1 by the four RequireSMTPAuth* properties, which
       // split the single question by the locality of the sender as well as the
@@ -362,7 +362,7 @@ STDMETHODIMP InterfaceSecurityRange::get_RequireAuthForDeliveryToRemote(VARIANT_
          return GetAccessDenied();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       // OBSOLETE: see get_RequireAuthForDeliveryToLocal. Same reasoning, other half
       // of the 5.1 split.
@@ -755,7 +755,7 @@ STDMETHODIMP InterfaceSecurityRange::get_IsForwardingRelay(VARIANT_BOOL *pVal)
          return GetAccessDenied();
 
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       // OBSOLETE: no longer used as of 5.1, and unlike the two properties above there
       // is nothing left in the range to answer from - so the answer is a flat no, and

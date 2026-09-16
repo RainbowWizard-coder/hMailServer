@@ -31,7 +31,7 @@ STDMETHODIMP InterfaceRules::get_ItemByDBID(long lDBID, IInterfaceRule** pVal)
    
       std::shared_ptr<HM::Rule> pRule = rules_->GetItemByDBID(lDBID);
       if (!pRule)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceRule->AttachParent(rules_, true);
       pInterfaceRule->AttachItem(pRule);
@@ -58,7 +58,7 @@ STDMETHODIMP InterfaceRules::get_Item(long lIndex, IInterfaceRule** pVal)
    
       std::shared_ptr<HM::Rule> pRule = rules_->GetItem(lIndex);
       if (!pRule)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceRule->AttachParent(rules_, true);
       pInterfaceRule->AttachItem(pRule);

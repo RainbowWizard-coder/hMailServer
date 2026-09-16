@@ -1115,6 +1115,10 @@ namespace HM
       // checked is checked below.
       Logger::Instance()->LogBackup("Backup archive accepted. Starting the restore...");
 
+      // Nothing a restore that failed part-way through left waiting is carried
+      // into this one. See ACLManager::RestoredGrant.
+      ACLManager::ForgetRestoredGrants();
+
       // The custom roles FIRST: before the domains, and so before the accounts and
       // the role assignments they carry, which name a role by its name and can be
       // written only once that role exists here. Before anything is deleted, too,
@@ -1222,6 +1226,18 @@ namespace HM
          }
       }
 
+
+      // Last of all, the grants on accounts' own folders that named somebody the
+      // restore had not reached when the folder was put back - an account further
+      // down the archive, or a group, which comes back with the settings above.
+      // Everything they can name exists by now; see ACLManager::RestoredGrant.
+      if (!ACLManager::ApplyRestoredGrants())
+      {
+         String sErrorMessage = "Restore of folder permissions failed. Please check hMailServer log.";
+         Logger::Instance()->LogBackup(sErrorMessage);
+         Application::Instance()->GetBackupManager()->OnBackupFailed(sErrorMessage);
+         return false;
+      }
 
       // Reinitialize server since everything may have changed.
       // We can't run Application::ReInitialize here, since this

@@ -95,7 +95,7 @@ InterfaceWhiteListAddresses::get_Item(long Index, IInterfaceWhiteListAddress **p
       std::shared_ptr<HM::WhiteListAddress> pBA = object_->GetItem(Index);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceWhiteListAddress->AttachItem(pBA);
       pInterfaceWhiteListAddress->AttachParent(object_, true);
@@ -143,7 +143,7 @@ InterfaceWhiteListAddresses::get_ItemByDBID(long lDBID, IInterfaceWhiteListAddre
       std::shared_ptr<HM::WhiteListAddress> pBA = object_->GetItemByDBID(lDBID);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceWhiteListAddress->AttachItem(pBA);
       pInterfaceWhiteListAddress->AttachParent(object_, true);
@@ -173,7 +173,7 @@ InterfaceWhiteListAddresses::get_ItemByName(BSTR sName, IInterfaceWhiteListAddre
       std::shared_ptr<HM::WhiteListAddress> pBA = object_->GetItemByName(sName);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceWhiteListAddress->AttachItem(pBA);
       pInterfaceWhiteListAddress->AttachParent(object_, true);

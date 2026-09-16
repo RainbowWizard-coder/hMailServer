@@ -26,7 +26,7 @@ STDMETHODIMP InterfaceAppPasswords::get_ItemByDBID(long lDBID, IInterfaceAppPass
 
       std::shared_ptr<HM::AppPassword> password = app_passwords_->GetItemByDBID(lDBID);
       if (!password)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceAppPassword>* item = new CComObject<InterfaceAppPassword>();
       item->SetAuthentication(authentication_);
@@ -53,7 +53,7 @@ STDMETHODIMP InterfaceAppPasswords::get_Item(long lIndex, IInterfaceAppPassword*
 
       std::shared_ptr<HM::AppPassword> password = app_passwords_->GetItem(lIndex);
       if (!password)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceAppPassword>* item = new CComObject<InterfaceAppPassword>();
       item->SetAuthentication(authentication_);

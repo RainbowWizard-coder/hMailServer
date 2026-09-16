@@ -33,7 +33,7 @@ STDMETHODIMP InterfaceLanguages::get_ItemByName(BSTR ItemName, IInterfaceLanguag
       std::shared_ptr<HM::Language> pLanguage = HM::Languages::Instance()->GetLanguage(ItemName);
    
       if (!pLanguage)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceLanguage->Attach(pLanguage);
       pInterfaceLanguage->AddRef();
@@ -57,7 +57,7 @@ STDMETHODIMP InterfaceLanguages::get_Item(long Index, IInterfaceLanguage **pVal)
       std::shared_ptr<HM::Language> pLanguage = HM::Languages::Instance()->GetLanguage(Index);
    
       if (!pLanguage)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceLanguage->Attach(pLanguage);
       pInterfaceLanguage->AddRef();

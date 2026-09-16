@@ -262,6 +262,16 @@ namespace HM
    {
    public:
       AuditDescription(const String &table, const String &objectName, const String &detail);
+
+      // The NAME only, with the statement's own columns left to make the detail.
+      // For a row the recorder describes correctly and NAMES unrecognisably,
+      // which is what a column holding an encoding rather than a name does to it:
+      // a greylisting white address typed as 10.78.0.? is stored as the SQL LIKE
+      // pattern 10.78.0._, so the trail named an address that appears nowhere in
+      // the Control Panel, the REST list or hmctl. The detail is still the
+      // columns, and so still says what was written.
+      AuditDescription(const String &table, const String &objectName);
+
       ~AuditDescription();
 
    private:
@@ -273,6 +283,7 @@ namespace HM
       String table_;
       String object_name_;
       String detail_;
+      bool detail_supplied_;
       const AuditDescription *previous_;
    };
 

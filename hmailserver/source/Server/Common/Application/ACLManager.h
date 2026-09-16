@@ -121,7 +121,49 @@ namespace HM
       // while changing nothing.
       std::shared_ptr<ACLPermissions> GetPermissionsSetOnFolder(std::shared_ptr<IMAPFolder> pFolder);
 
+      // The same read for a caller that holds the folder itself rather than a
+      // shared pointer to it - the backup, which writes a folder's grants from
+      // inside IMAPFolder::XMLStore. Identical in every other way.
+      std::shared_ptr<ACLPermissions> GetPermissionsSetOnFolder(IMAPFolder &folder);
+
       bool SetACL(std::shared_ptr<IMAPFolder> pFolder, const String& sIdentifier, const String &sPermissions);
+
+      // AN ACCOUNT FOLDER'S GRANTS, ACROSS A RESTORE
+      //
+      // A folder's grants are written by the folder and read back by it
+      // (IMAPFolder::XMLStore / ::XMLLoadSubItems). For a PUBLIC folder that is
+      // the whole story: public folders are restored in the settings phase, after
+      // every domain, every account and every group is back, so each grant's
+      // holder resolves by name the moment the row is read.
+      //
+      // An ACCOUNT's folder is restored in the middle of the domain phase, and a
+      // grant on it names an account that may come later in the archive - or in a
+      // later domain - or a group, which is not restored until the settings phase
+      // after it. ACLPermission::XMLLoad leaves the holder at 0 when the name
+      // resolves to nothing, and PersistentACLPermission::Validate refuses such a
+      // row: restoring these grants where they are read would fail the whole
+      // restore over the ORDER two mailboxes happen to appear in the archive.
+      //
+      // So a grant whose holder is not back yet waits. ACLPermissions::
+      // PreSaveObject hands it here, and ApplyRestoredGrants writes them all once
+      // the restore has put back everything they can name. A holder still unknown
+      // then is one this archive does not carry - an account deleted before the
+      // backup, a group whose settings were not restored - and that grant is
+      // dropped, counted and named in the backup log rather than guessed at,
+      // which is the answer AccountStores gives a reference it cannot resolve.
+      struct RestoredGrant
+      {
+         RestoredGrant() : folder_id(0), type(0), rights(0) { }
+
+         __int64 folder_id;
+         int type;              // ACLPermission::ePermissionType
+         __int64 rights;
+         String holder;         // the account address, the group name, or Anyone
+      };
+
+      static void ForgetRestoredGrants();
+      static void RememberRestoredGrant(__int64 folderId, int type, __int64 rights, const String &holder);
+      static bool ApplyRestoredGrants();
 
    private:
 

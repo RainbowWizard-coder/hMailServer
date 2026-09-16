@@ -128,7 +128,7 @@ STDMETHODIMP InterfaceDistributionListRecipients::get_Item(long Index, IInterfac
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
    
@@ -180,7 +180,7 @@ STDMETHODIMP InterfaceDistributionListRecipients::get_ItemByDBID(long DBID, IInt
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
       return S_OK;

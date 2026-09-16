@@ -28,7 +28,7 @@ STDMETHODIMP InterfaceFetchAccounts::get_ItemByDBID(long lDBID, IInterfaceFetchA
    
       std::shared_ptr<HM::FetchAccount> pFetchAccount = fetch_accounts_->GetItemByDBID(lDBID);
       if (!pFetchAccount)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceAccount->AttachItem(pFetchAccount);
       pInterfaceAccount->AttachParent(fetch_accounts_, true);
@@ -55,7 +55,7 @@ STDMETHODIMP InterfaceFetchAccounts::get_Item(long lIndex, IInterfaceFetchAccoun
    
       std::shared_ptr<HM::FetchAccount> pFetchAccount = fetch_accounts_->GetItem(lIndex);
       if (!pFetchAccount)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceAccount->AttachItem(pFetchAccount);
       pInterfaceAccount->AttachParent(fetch_accounts_, true);

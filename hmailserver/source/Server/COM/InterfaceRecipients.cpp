@@ -53,7 +53,7 @@ InterfaceRecipients::get_Item(long Index, IInterfaceRecipient **pVal)
       std::vector<std::shared_ptr<HM::MessageRecipient> > vecRecipients = message_->GetRecipients()->GetVector();
    
       if (Index >= (long) vecRecipients.size())
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       std::shared_ptr<HM::MessageRecipient> pRecipient = vecRecipients[Index];
    

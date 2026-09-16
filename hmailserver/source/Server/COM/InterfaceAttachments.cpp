@@ -67,7 +67,7 @@ STDMETHODIMP InterfaceAttachments::get_Item(long Index, IInterfaceAttachment **p
       std::shared_ptr<HM::Attachment> pAttachment = attachments_->GetItem(Index);
    
       if (!pAttachment)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pInterfaceAttachment->Attach(pAttachment);
       pInterfaceAttachment->AddRef();

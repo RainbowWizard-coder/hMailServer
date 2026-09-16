@@ -68,7 +68,7 @@ InterfaceGreyListingWhiteAddresses::get_Item(long Index, IInterfaceGreyListingWh
       std::shared_ptr<HM::GreyListingWhiteAddress> pBA = gl_white_addresses_->GetItem(Index);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGreyListingWhiteAddress->AttachItem(pBA);
       pInterfaceGreyListingWhiteAddress->AttachParent(gl_white_addresses_, true);
@@ -116,7 +116,7 @@ InterfaceGreyListingWhiteAddresses::get_ItemByDBID(long lDBID, IInterfaceGreyLis
       std::shared_ptr<HM::GreyListingWhiteAddress> pBA = gl_white_addresses_->GetItemByDBID(lDBID);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGreyListingWhiteAddress->AttachItem(pBA);
       pInterfaceGreyListingWhiteAddress->AttachParent(gl_white_addresses_, true);
@@ -146,7 +146,7 @@ InterfaceGreyListingWhiteAddresses::get_ItemByName(BSTR sName, IInterfaceGreyLis
       std::shared_ptr<HM::GreyListingWhiteAddress> pBA = gl_white_addresses_->GetItemByName(sName);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGreyListingWhiteAddress->AttachItem(pBA);
       pInterfaceGreyListingWhiteAddress->AttachParent(gl_white_addresses_, true);

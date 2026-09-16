@@ -5044,6 +5044,13 @@ namespace HM
       case RouteIniSettingGet:
       case RouteIniSettingPut:
       case RouteIniSettingDelete:
+      // Classified with the unlock, which a help desk holds, and here all the
+      // same. hm_logon_failures records the ADDRESS a failure came from and its
+      // time; it holds no account and no domain, so there is no per-domain form
+      // of it to offer and clearing it resets the auto-ban counter for every
+      // domain on the server. A help desk confined to one of them lifts one
+      // person's lockout with POST /api/v1/accounts/{address}/unlock instead.
+      // Written down in docs/Roles.md, "The logon-failure list".
       case RouteLogonFailuresClear:
       case RouteSettingsScriptingGet:
       case RouteSettingsScriptingPut:

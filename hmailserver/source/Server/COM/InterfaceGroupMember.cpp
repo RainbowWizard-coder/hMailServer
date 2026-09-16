@@ -139,7 +139,7 @@ InterfaceGroupMember::get_Account(IInterfaceAccount **pVal)
       std::shared_ptr<HM::Account> pAccount = std::shared_ptr<HM::Account>(new HM::Account);
          
       if (!HM::PersistentAccount::ReadObject(pAccount, (__int64) object_->GetAccountID()))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceAccount->AttachItem(pAccount);
       pInterfaceAccount->AddRef();

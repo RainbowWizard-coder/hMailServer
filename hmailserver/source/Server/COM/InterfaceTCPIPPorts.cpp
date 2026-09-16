@@ -91,7 +91,7 @@ InterfaceTCPIPPorts::get_Item(long Index, IInterfaceTCPIPPort **pVal)
       std::shared_ptr<HM::TCPIPPort> pBA = tcpip_ports_->GetItem(Index);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceTCPIPPort->AttachItem(pBA);
       pInterfaceTCPIPPort->AttachParent(tcpip_ports_, true);
@@ -139,7 +139,7 @@ InterfaceTCPIPPorts::get_ItemByDBID(long lDBID, IInterfaceTCPIPPort **pVal)
       std::shared_ptr<HM::TCPIPPort> pBA = tcpip_ports_->GetItemByDBID(lDBID);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceTCPIPPort->AttachItem(pBA);
       pInterfaceTCPIPPort->AttachParent(tcpip_ports_, true);

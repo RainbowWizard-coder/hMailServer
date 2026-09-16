@@ -196,7 +196,7 @@ STDMETHODIMP InterfaceMessageHeader::get_Name(BSTR *pVal)
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = nullptr;
 
@@ -239,7 +239,7 @@ STDMETHODIMP InterfaceMessageHeader::get_Value(BSTR *pVal)
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = nullptr;
 

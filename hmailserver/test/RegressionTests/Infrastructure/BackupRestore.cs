@@ -122,6 +122,98 @@ namespace RegressionTests.Infrastructure
          SetupDomainObject(domain);
          SetupDomainObjects(domain);
          SetupSettings();
+
+         // Last, because it shares an account's own folder with a group as well as
+         // with an account, and SetupSettings is what creates the group.
+         SetupAccountFolderPermissions(domain);
+      }
+
+      /// <summary>
+      ///    A share on an ACCOUNT's own folder, which until 16 September 2026 no
+      ///    backup carried: IMAPFolder::XMLStore wrote the grants of a public folder
+      ///    only, while a restore deletes every domain first and deleting a folder
+      ///    deletes its hm_acl rows. So restoring a backup destroyed every share on
+      ///    every mailbox - and with it every Send-As grant, which is the post right
+      ///    on an owner's INBOX - and had nothing in the archive to put back.
+      ///
+      ///    Both holders are chosen to land after the folder in the restore, which is
+      ///    where it would be easiest to get this wrong: accounts are restored in
+      ///    address order, so zz-delegate@ is put back after test@ whose INBOX this
+      ///    is, and groups are not restored until the settings phase after every
+      ///    domain. Neither grant can be written where it is read.
+      /// </summary>
+      private void SetupAccountFolderPermissions(Domain domain)
+      {
+         var delegated = SingletonProvider<TestSetup>.Instance.AddAccount(domain, "zz-delegate@example.test", "test");
+
+         var inbox = domain.Accounts.get_ItemByAddress("test@example.test").IMAPFolders.get_ItemByName("INBOX");
+
+         var permission = inbox.Permissions.Add();
+         permission.PermissionType = eACLPermissionType.ePermissionTypeUser;
+         permission.PermissionAccountID = delegated.ID;
+         permission.set_Permission(eACLPermission.ePermissionLookup, true);
+         permission.set_Permission(eACLPermission.ePermissionRead, true);
+         permission.set_Permission(eACLPermission.ePermissionPost, true);
+         permission.Save();
+
+         var group = _application.Settings.Groups.get_ItemByName("ACLTestGroup");
+         Assert.IsNotNull(group, "SetupGroupObject must have run before this.");
+
+         permission = inbox.Permissions.Add();
+         permission.PermissionType = eACLPermissionType.ePermissionTypeGroup;
+         permission.PermissionGroupID = group.ID;
+         permission.set_Permission(eACLPermission.ePermissionLookup, true);
+         permission.set_Permission(eACLPermission.ePermissionInsert, true);
+         permission.Save();
+      }
+
+      private void ConfirmAccountFolderPermissions()
+      {
+         // A folder rides the archive only when messages do, so its grants do too;
+         // and a restore without them puts no folder back to hold one.
+         if (!_backupMessages)
+            return;
+
+         var domain = _application.Domains[0];
+         var inbox = domain.Accounts.get_ItemByAddress("test@example.test").IMAPFolders.get_ItemByName("INBOX");
+         var permissions = inbox.Permissions;
+
+         Assert.AreEqual(2, permissions.Count,
+            "The two grants on this account's own INBOX must survive the backup and the restore.");
+
+         IMAPFolderPermission byAccount = null;
+         IMAPFolderPermission byGroup = null;
+
+         for (int i = 0; i < permissions.Count; i++)
+         {
+            var permission = permissions[i];
+
+            if (permission.PermissionType == eACLPermissionType.ePermissionTypeUser)
+               byAccount = permission;
+            else if (permission.PermissionType == eACLPermissionType.ePermissionTypeGroup)
+               byGroup = permission;
+         }
+
+         Assert.IsNotNull(byAccount, "The grant held by an account is not there.");
+         Assert.IsNotNull(byGroup, "The grant held by a group is not there.");
+
+         // The IDs are the restored server's, not the archive's: a grant is carried
+         // as its holder's NAME, and the whole of what makes that necessary is that
+         // every one of these numbers is reassigned by the restore.
+         var delegated = domain.Accounts.get_ItemByAddress("zz-delegate@example.test");
+         var group = _application.Settings.Groups.get_ItemByName("ACLTestGroup");
+
+         Assert.AreEqual(delegated.ID, byAccount.PermissionAccountID);
+         Assert.IsTrue(byAccount.get_Permission(eACLPermission.ePermissionLookup));
+         Assert.IsTrue(byAccount.get_Permission(eACLPermission.ePermissionRead));
+         Assert.IsTrue(byAccount.get_Permission(eACLPermission.ePermissionPost),
+            "The post right is what a Send-As grant is, and is the one this most needed to carry.");
+         Assert.IsFalse(byAccount.get_Permission(eACLPermission.ePermissionAdminister));
+
+         Assert.AreEqual(group.ID, byGroup.PermissionGroupID);
+         Assert.IsTrue(byGroup.get_Permission(eACLPermission.ePermissionLookup));
+         Assert.IsTrue(byGroup.get_Permission(eACLPermission.ePermissionInsert));
+         Assert.IsFalse(byGroup.get_Permission(eACLPermission.ePermissionRead));
       }
 
       private void SetupSettings()
@@ -624,6 +716,7 @@ namespace RegressionTests.Infrastructure
          ConfirmSettings();
          ConfirmDomainObject(_application.Domains[0]);
          ConfirmDomainObjects();
+         ConfirmAccountFolderPermissions();
       }
 
       private void ConfirmSettings()

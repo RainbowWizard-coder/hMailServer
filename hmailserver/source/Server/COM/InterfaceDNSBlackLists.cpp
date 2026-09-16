@@ -75,7 +75,7 @@ InterfaceDNSBlackLists::get_Item(long Index, IInterfaceDNSBlackList **pVal)
       std::shared_ptr<HM::DNSBlackList> pDNSBlackList = black_lists_->GetItem(Index);
    
       if (!pDNSBlackList)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceDNSBlackList->AttachItem(pDNSBlackList);
       pInterfaceDNSBlackList->AttachParent(black_lists_, true);
@@ -122,7 +122,7 @@ InterfaceDNSBlackLists::get_ItemByDBID(long lDBID, IInterfaceDNSBlackList **pVal
       std::shared_ptr<HM::DNSBlackList> pDNSBlackList = black_lists_->GetItemByDBID(lDBID);
    
       if (!pDNSBlackList)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceDNSBlackList->AttachItem(pDNSBlackList);
       pInterfaceDNSBlackList->AttachParent(black_lists_, true);

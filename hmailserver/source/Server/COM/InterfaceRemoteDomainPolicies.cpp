@@ -55,7 +55,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicies::get_Item(long Index, IInterfaceRemot
       std::shared_ptr<HM::RemoteDomainPolicy> policy = policies_->GetItem(Index);
 
       if (!policy)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceRemoteDomainPolicy>* item = new CComObject<InterfaceRemoteDomainPolicy>();
       item->SetAuthentication(authentication_);
@@ -131,7 +131,7 @@ InterfaceRemoteDomainPolicies::get_ItemByName(BSTR ItemName, IInterfaceRemoteDom
       // that one finds the record that governs "mail.example".
       std::shared_ptr<HM::RemoteDomainPolicy> policy = policies_->GetItemByName(ItemName);
       if (!policy)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceRemoteDomainPolicy>* item = new CComObject<InterfaceRemoteDomainPolicy>();
       item->SetAuthentication(authentication_);
@@ -160,7 +160,7 @@ InterfaceRemoteDomainPolicies::get_ItemByDBID(long lDBID, IInterfaceRemoteDomain
 
       std::shared_ptr<HM::RemoteDomainPolicy> policy = policies_->GetItemByDBID(lDBID);
       if (!policy)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceRemoteDomainPolicy>* item = new CComObject<InterfaceRemoteDomainPolicy>();
       item->SetAuthentication(authentication_);
@@ -195,7 +195,7 @@ InterfaceRemoteDomainPolicies::get_PolicyForDomain(BSTR DomainName, IInterfaceRe
 
       std::shared_ptr<HM::RemoteDomainPolicy> policy = policies_->GetPolicyForDomain(domain);
       if (!policy)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceRemoteDomainPolicy>* item = new CComObject<InterfaceRemoteDomainPolicy>();
       item->SetAuthentication(authentication_);

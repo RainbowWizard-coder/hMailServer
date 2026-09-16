@@ -218,6 +218,17 @@ namespace HM
       table_(table),
       object_name_(objectName),
       detail_(detail),
+      detail_supplied_(true),
+      previous_(AuditTrail::description_)
+   {
+      table_.MakeLower();
+      AuditTrail::description_ = this;
+   }
+
+   AuditDescription::AuditDescription(const String &table, const String &objectName) :
+      table_(table),
+      object_name_(objectName),
+      detail_supplied_(false),
       previous_(AuditTrail::description_)
    {
       table_.MakeLower();
@@ -472,15 +483,26 @@ namespace HM
          return;
 
       // Words the writer supplied for this table, when a row of it is nothing
-      // but ids - see AuditDescription. The innermost scope for the table wins.
+      // but ids, or when its name column holds an encoding rather than a name -
+      // see AuditDescription. The innermost scope for the table wins.
       for (const AuditDescription *described = description_; described; described = described->previous_)
       {
          if (described->table_ != table)
             continue;
 
-         Write_(objectType, Truncate(OneLine(described->object_name_), MaxValueLength), action,
-                Truncate(OneLine(described->detail_), MaxDetailLength));
-         return;
+         objectName = Truncate(OneLine(described->object_name_), MaxValueLength);
+
+         // The name alone, when that is all the writer supplied: the statement's
+         // own columns still make the detail below, which is the whole point of
+         // that form - the recorder has the columns right and only the NAME
+         // wrong.
+         if (described->detail_supplied_)
+         {
+            Write_(objectType, objectName, action, Truncate(OneLine(described->detail_), MaxDetailLength));
+            return;
+         }
+
+         break;
       }
 
       // The columns the statement carried, with every secret withheld. A DELETE

@@ -8,6 +8,7 @@
 
 #include "Message.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Application/ACLManager.h"
 #include "../BO/ACLPermissions.h"
 #include "../Util/Time.h"
 
@@ -174,11 +175,22 @@ namespace HM
       if (!GetSubFolders()->XMLStore(pNode, iBackupOptions))
          return false;
 
-      if (IsPublicFolder())
-      {
-         if (!GetPermissions()->XMLStore(pNode, iBackupOptions))
-            return false;
-      }
+      // Every folder's stored grants, not only a public folder's. An account's own
+      // folder can carry them too - SETACL names one when an owner shares a
+      // mailbox, and the Send-As identity list is built from the post right on an
+      // owner's INBOX - and they were left out of the archive from the day that
+      // became possible. Which is not merely an omission: a restore deletes every
+      // domain first, and deleting a folder deletes its hm_acl rows, so restoring
+      // a backup destroyed every share on every account folder and had nothing to
+      // put back in its place.
+      //
+      // Read through ACLManager and not through GetPermissions(), which skips the
+      // database read for an account folder and would write an empty <ACLs> for
+      // exactly the folders this is here for.
+      ACLManager aclManager;
+
+      if (!aclManager.GetPermissionsSetOnFolder(*this)->XMLStore(pNode, iBackupOptions))
+         return false;
 
       return true;
    }
@@ -213,12 +225,19 @@ namespace HM
       if (!GetSubFolders()->XMLLoad(pFolderNode, iRestoreOptions))
          return false;
 
-      // Restore ACL permisisons.
-      if (IsPublicFolder())
-      {
-         if (!GetPermissions()->XMLLoad(pFolderNode, iRestoreOptions))
-            return false;
-      }
+      // Restore ACL permissions - an account folder's as well as a public
+      // folder's, to match what XMLStore now writes. A collection bound to this
+      // folder's NEW id, made here rather than taken from GetPermissions(): there
+      // is nothing stored for it to read, the folder having just been created, and
+      // the accessor's account-folder shortcut is what this whole defect was.
+      //
+      // A grant naming an account or a group the restore has not reached yet is
+      // not written here; ACLPermissions::PreSaveObject hands it to ACLManager,
+      // which writes it once the restore has put everything back.
+      ACLPermissions permissions(dbid_);
+
+      if (!permissions.XMLLoad(pFolderNode, iRestoreOptions))
+         return false;
 
       return true;
    }

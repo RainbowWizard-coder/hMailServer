@@ -21,6 +21,16 @@ COMError::GenerateGenericMessage()
 }
 
 HRESULT
+COMError::WithoutMessage(HRESULT result)
+{
+   // The thread's error info belongs to whatever failed on it last. This failure
+   // has none, so it says none: see the comment in COMError.h.
+   SetErrorInfo(0, NULL);
+
+   return result;
+}
+
+HRESULT
 COMError::GenerateError(HM::String sDescription)
 {
    if (sDescription == _T(""))

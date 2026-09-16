@@ -372,7 +372,7 @@ STDMETHODIMP InterfaceMessage::get_Headers(IInterfaceMessageHeaders **pVal)
       std::shared_ptr<HM::MimeBody> pMimeBody = GetMessageData_()->GetMimeMessage();
    
       if (!pMimeBody)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       CComObject<InterfaceMessageHeaders>* pItem = new CComObject<InterfaceMessageHeaders>();
    

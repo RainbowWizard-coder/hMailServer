@@ -39,7 +39,7 @@ STDMETHODIMP InterfaceBlockedAttachments::get_Count(long *pVal)
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       // Guarded, as Refresh already was. BlockedAttachments is a registered coclass, so
       // one can be created directly rather than obtained from AntiVirus, and one created
@@ -67,7 +67,7 @@ InterfaceBlockedAttachments::get_Item(long Index, IInterfaceBlockedAttachment **
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = nullptr;
 
@@ -80,7 +80,7 @@ InterfaceBlockedAttachments::get_Item(long Index, IInterfaceBlockedAttachment **
       std::shared_ptr<HM::BlockedAttachment> pBA = blocked_attachments_->GetItem(Index);
 
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceBlockedAttachment>* pInterfaceBlockedAttachment = new CComObject<InterfaceBlockedAttachment>();
       pInterfaceBlockedAttachment->SetAuthentication(authentication_);
@@ -131,7 +131,7 @@ InterfaceBlockedAttachments::get_ItemByDBID(long lDBID, IInterfaceBlockedAttachm
       std::shared_ptr<HM::BlockedAttachment> pBA = blocked_attachments_->GetItemByDBID(lDBID);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceBlockedAttachment->AttachItem(pBA);
       pInterfaceBlockedAttachment->AttachParent(blocked_attachments_, true);

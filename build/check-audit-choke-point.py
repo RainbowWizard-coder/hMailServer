@@ -74,9 +74,12 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               with the value it had, and a listing would record it twice.
 
   words       An AuditDescription - the account's address and the role's name in
-              place of "raaccountid=12, raroleid=3" - is supplied only by
-              RoleManager, which writes the two role tables. It changes what a
-              row says and never whether it is written.
+              place of "raaccountid=12, raroleid=3" - is supplied by RoleManager,
+              which writes the two role tables, and by the persister of the
+              greylisting white list, whose address column holds the SQL LIKE
+              pattern a typed wildcard was converted into (10.78.0.? is stored as
+              10.78.0._) and so names an address no other surface shows. It
+              changes what a row says and never whether it is written.
 
   scripts     Every script engine ScriptServer starts runs inside a
               ScriptActorBoundary. A script runs in process on the server thread
@@ -129,12 +132,17 @@ ALLOWED = {
       "Common/Util/AuditTrail.cpp",
    },
    # The words a row is recorded with, in place of the ones read from its
-   # statement. Only for a table whose rows are nothing but ids, and only from
-   # the code that writes that table: words that are wrong are a record that lies.
+   # statement. Only for a table whose rows are nothing but ids, or whose name
+   # column holds an encoding rather than a name, and only from the code that
+   # writes that table: words that are wrong are a record that lies.
    "AuditDescription ": {
       "Common/Util/AuditTrail.cpp",
       "Common/Util/AuditTrail.h",
       "Common/Application/RoleManager.cpp",         # hm_roles and hm_roleassignments
+      # hm_greylisting_whiteaddresses, whose address column is the SQL LIKE
+      # pattern that what the administrator typed was converted into. The NAME
+      # only: the detail is still read from the statement's own columns.
+      "Common/Persistence/PersistentGreyListingWhiteAddress.cpp",
    },
 }
 

@@ -46,7 +46,7 @@ InterfaceRouteAddresses::get_Item(long Index, IInterfaceRouteAddress **pVal)
       std::shared_ptr<HM::RouteAddress> pRouteAddress = route_addresses_->GetItem(Index);
    
       if (!pRouteAddress)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pInterfaceRouteAddress->AttachItem(pRouteAddress);
       pInterfaceRouteAddress->AttachParent(route_addresses_, true);
@@ -155,7 +155,7 @@ InterfaceRouteAddresses::get_ItemByDBID(long lDBID, IInterfaceRouteAddress **pVa
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
       return S_OK;

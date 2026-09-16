@@ -56,7 +56,7 @@ STDMETHODIMP InterfaceMessages::get_Item(long Index, IInterfaceMessage **pVal)
       }
       else
       {
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
       }
 
       return S_OK;
@@ -89,7 +89,7 @@ STDMETHODIMP InterfaceMessages::get_ItemByDBID(hyper DBID, IInterfaceMessage **p
       }
       else
       {
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
       }
 
       return S_OK;
@@ -114,7 +114,7 @@ STDMETHODIMP InterfaceMessages::Add(IInterfaceMessage **pVal)
       {
          // We can't add a new message when we're not browsing the
          // message cache.
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
       }
 
       std::shared_ptr<HM::Message> pNewMsg = std::shared_ptr<HM::Message>(new HM::Message);
@@ -150,7 +150,7 @@ STDMETHODIMP InterfaceMessages::DeleteByDBID(hyper lDBID)
       if (!pMsg)
       {
          // No such message exists
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
       }
 
       // Expunge the mailbox. Will cause the message to be

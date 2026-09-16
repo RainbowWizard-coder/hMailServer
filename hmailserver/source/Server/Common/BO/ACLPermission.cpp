@@ -269,17 +269,25 @@ namespace HM
    String
    ACLPermission::GetPermissionHolderName_(ACLPermission *pPermission)  const
    {
+      // Null-checked, which it was not. This is the backup's read of a grant, and
+      // since 16 September 2026 the backup reads the grants on ACCOUNTS' folders
+      // too - many more rows, and rows whose holder can be gone: nothing enforces
+      // a foreign key from hm_acl to hm_accounts or hm_groups. A holder no longer
+      // on this server dereferenced a null shared_ptr and took the BACKUP down
+      // with it. "Unknown" instead, which the restore cannot resolve and drops,
+      // counts and names - and which is what this function already returns for a
+      // type it does not know.
       switch (pPermission->GetPermissionType())
       {
       case ACLPermission::PTGroup:
          {
             std::shared_ptr<Group> pGroup = Configuration::Instance()->GetIMAPConfiguration()->GetGroups()->GetItemByDBID(pPermission->GetPermissionGroupID());
-            return pGroup->GetName();
+            return pGroup ? pGroup->GetName() : String(_T("Unknown"));
          }
       case ACLPermission::PTUser:
          {
             std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(pPermission->GetPermissionAccountID());
-            return pAccount->GetAddress();
+            return pAccount ? pAccount->GetAddress() : String(_T("Unknown"));
          }
       case ACLPermission::PTAnyone:
          {

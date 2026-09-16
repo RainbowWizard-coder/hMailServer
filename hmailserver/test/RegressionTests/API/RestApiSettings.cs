@@ -309,11 +309,7 @@ namespace RegressionTests.API
          StringAssert.Contains("\"tcpip_threads\":" + _settings.TCPIPThreads + ",", body);
          StringAssert.Contains("\"imap_sort_enabled\":" + (_settings.IMAPSortEnabled ? "true" : "false"), body);
          StringAssert.Contains("\"smtp_relayer_connection_security\":\"", body);
-         // The needle carries the colon so that it matches a KEY and not a value:
-         // smtp_relayer_password is write-only and must never come back, while
-         // breach_check_url's default endpoint - api.pwnedpasswords.com - is a value
-         // that contains the word and must. Do not shorten it back.
-         StringAssert.DoesNotContain("password\":", body, "No field whose name is a password is ever emitted.");
+         AssertNoSecretFieldIsEmitted(body, "GET /api/v1/settings");
 
          (int putStatus, string putBody) = Http("PUT", "/api/v1/settings",
             "{\"host_name\":\"rest-settings.test\"," +
@@ -340,9 +336,8 @@ namespace RegressionTests.API
          StringAssert.Contains("\"smtp_relayer_connection_security\":\"starttls_required\"", putBody);
          StringAssert.Contains("\"imap_sort_enabled\":false", putBody);
          StringAssert.Contains("\"tcpip_threads\":", putBody, "A PUT answers with the whole group, not only the keys it changed.");
-         StringAssert.DoesNotContain("relay-secret-7", putBody);
-         // The key, as above; the line before it is what pins the value.
-         StringAssert.DoesNotContain("password\":", putBody);
+         StringAssert.DoesNotContain("relay-secret-7", putBody, "The value the PUT carried is what a leak would look like.");
+         AssertNoSecretFieldIsEmitted(putBody, "PUT /api/v1/settings");
 
          // COM reads back what the Control Panel would show.
          Assert.AreEqual("rest-settings.test", _settings.HostName);
@@ -1111,6 +1106,33 @@ namespace RegressionTests.API
          (int missingStatus, string missingBody) = Http("POST", "/api/v1/sieve/evaluate", "{\"message\":\"x\"}");
          Assert.AreEqual(400, missingStatus, missingBody);
          StringAssert.Contains("script must be a string", missingBody);
+      }
+
+      // Every row of the server group that a PUT accepts and a GET must never
+      // answer with - RestApiSettings.cpp marks them Access::WriteOnly and
+      // GroupJson skips them. The relayer password is the only one today; a new
+      // one belongs here, whatever it is called.
+      private static readonly string[] WriteOnlyFields = { "smtp_relayer_password" };
+
+      /// <summary>
+      ///    The claim - that no secret is ever emitted - is one about field NAMES, so
+      ///    the body is parsed and its keys are read. Searching the whole document for
+      ///    a substring says something else, and something false in both directions:
+      ///    breach_check_url's default endpoint is https://api.pwnedpasswords.com/range/,
+      ///    a VALUE that carries the word and must stay readable, while a needle that
+      ///    matches only a name ending in the word would let a key such as
+      ///    password_policy - or any future write-only field not called a password -
+      ///    through with its value.
+      /// </summary>
+      private static void AssertNoSecretFieldIsEmitted(string body, string what)
+      {
+         foreach (string field in MiniJson.Object(body).Keys)
+         {
+            Assert.IsFalse(field.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0,
+               what + " emitted the field \"" + field + "\", whose name is a password.");
+            CollectionAssert.DoesNotContain(WriteOnlyFields, field,
+               what + " emitted the field \"" + field + "\", which is write-only.");
+         }
       }
 
       // A string as a JSON string literal, for bodies that carry line breaks and quotes.

@@ -90,7 +90,7 @@ InterfaceSenderListEntries::get_Item(long Index, IInterfaceSenderListEntry **pVa
       std::shared_ptr<HM::SenderListEntry> entry = object_->GetItem(Index);
 
       if (!entry)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceSenderListEntry>* pInterface = new CComObject<InterfaceSenderListEntry>();
       pInterface->SetAuthentication(authentication_);
@@ -141,7 +141,7 @@ InterfaceSenderListEntries::get_ItemByDBID(long lDBID, IInterfaceSenderListEntry
       std::shared_ptr<HM::SenderListEntry> entry = object_->GetItemByDBID(lDBID);
 
       if (!entry)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceSenderListEntry>* pInterface = new CComObject<InterfaceSenderListEntry>();
       pInterface->SetAuthentication(authentication_);
@@ -171,7 +171,7 @@ InterfaceSenderListEntries::get_ItemByName(BSTR sName, IInterfaceSenderListEntry
       std::shared_ptr<HM::SenderListEntry> entry = object_->GetItemByName(sName);
 
       if (!entry)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceSenderListEntry>* pInterface = new CComObject<InterfaceSenderListEntry>();
       pInterface->SetAuthentication(authentication_);

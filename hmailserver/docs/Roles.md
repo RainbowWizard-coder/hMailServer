@@ -50,7 +50,7 @@ domains is refused them whatever it holds.
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, a domain's own allow and block list, a domain's DKIM key rotation (rotate, check, switch, retire and cancel now), and a domain's suppression list (an address added or removed by hand) | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
-| `unlock_account` | `POST /api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` (both locks), `Account.UnlockMailbox` (the POP3 mailbox lock alone; an account's own is its own to clear) - each on the audit trail as `unlocked` - and clearing the logon-failure list (`POST /api/v1/settings/logon-failures/clear`, *server-wide* — it clears every address's failures, so it is reached only by a credential with no list of domains; `Settings.ClearLogonFailureList` answers the server administrator only), on it as `logon failures` / `cleared` | ✅ | ✅ | ✅ | |
+| `unlock_account` | `POST /api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` (both locks), `Account.UnlockMailbox` (the POP3 mailbox lock alone; an account's own is its own to clear) - each on the audit trail as `unlocked` - and clearing the logon-failure list (`POST /api/v1/settings/logon-failures/clear` *(server-wide)*; `Settings.ClearLogonFailureList` answers the server administrator only), on it as `logon failures` / `cleared`. See [The logon-failure list](#the-logon-failure-list) for what a confined help desk does instead | ✅ | ✅ | ✅ | |
 | `manage_mailbox` | Another account's folders, messages and folder rights, and a support session | ✅ | ✅ | | |
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
@@ -108,6 +108,27 @@ address in a domain it reaches, and is shown only the events that name that addr
 exactly: `user@example.test` does not also show `otheruser@example.test`, and never
 `user@example.test.elsewhere`. The most recent events for anyone and one queued
 message's story are server-wide.
+
+### The logon-failure list
+
+`POST /api/v1/settings/logon-failures/clear` is classified with `unlock_account`, which
+`helpdesk` holds — and it is **server-wide**, so a help desk confined to named domains is
+refused it. That is not an oversight in the route, it is what the table can say:
+`hm_logon_failures` has three columns — `ipaddress1`, `ipaddress2`, `failuretime` — and
+records the address a failure came from and nothing else. There is no account and no
+domain in it, so there is no per-domain form of "clear the failures for my customer"
+to offer: an address is not a domain, and the same address is what a brute-force run
+against every domain on the server looks like. Clearing the list resets the auto-ban
+counter for everybody, which is why only a credential that reaches every domain may do
+it. `Settings.ClearLogonFailureList` over COM answers the server administrator alone.
+
+A help desk that reaches only its own domain lifts a lockout for the person in front of
+it instead: `POST /api/v1/accounts/{address}/unlock` clears the failed-authentication
+lockout and the POP3 mailbox lock for **one account**, is scoped to that account's
+domain, and is on the audit trail as `unlocked`. A password reset clears the lockout
+with it. If the auto-ban has already placed a ban, that is an IP range and is removed
+through `/api/v1/ipranges`, which is `manage_settings` and server-wide for the same
+reason.
 
 ### The reports
 

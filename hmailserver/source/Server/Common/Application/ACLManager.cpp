@@ -22,6 +22,15 @@
 
 namespace HM
 {
+   namespace
+   {
+      // The grants a restore has read but cannot write yet, and the lock that
+      // guards them. A restore runs on one thread, so the lock is here for the
+      // reader that comes later rather than for a race that exists now.
+      boost::mutex restored_grants_mutex_;
+      std::vector<ACLManager::RestoredGrant> restored_grants_;
+   }
+
    ACLManager::ACLManager(void)
    {
 
@@ -225,7 +234,19 @@ namespace HM
       if (pFolder->IsPublicFolder())
          return pFolder->GetPermissions();
 
-      std::shared_ptr<ACLPermissions> pPermissions = std::shared_ptr<ACLPermissions>(new ACLPermissions(pFolder->GetID()));
+      return GetPermissionsSetOnFolder(*pFolder);
+   }
+
+   std::shared_ptr<ACLPermissions>
+   ACLManager::GetPermissionsSetOnFolder(IMAPFolder &folder)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The same rows, for a caller holding the folder itself. The backup writes a
+   // folder's grants from inside the folder, where there is no shared pointer to
+   // it and where the business object's own accessor is the one that lies.
+   //---------------------------------------------------------------------------()
+   {
+      std::shared_ptr<ACLPermissions> pPermissions = std::shared_ptr<ACLPermissions>(new ACLPermissions(folder.GetID()));
       pPermissions->Refresh();
 
       return pPermissions;
@@ -458,7 +479,133 @@ namespace HM
 
       if (!PersistentACLPermission::SaveObject(pPermission))
          return false;
-      
+
+      return true;
+   }
+
+   void
+   ACLManager::ForgetRestoredGrants()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Emptied at the start of every restore, so that grants a restore that failed
+   // part-way through never got to write cannot be written by the next one.
+   //---------------------------------------------------------------------------()
+   {
+      boost::lock_guard<boost::mutex> guard(restored_grants_mutex_);
+
+      restored_grants_.clear();
+   }
+
+   void
+   ACLManager::RememberRestoredGrant(__int64 folderId, int type, __int64 rights, const String &holder)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // A grant read out of the archive whose holder the restore has not put back
+   // yet. See the comment on RestoredGrant in the header for why it waits.
+   //---------------------------------------------------------------------------()
+   {
+      boost::lock_guard<boost::mutex> guard(restored_grants_mutex_);
+
+      RestoredGrant grant;
+      grant.folder_id = folderId;
+      grant.type = type;
+      grant.rights = rights;
+      grant.holder = holder;
+
+      restored_grants_.push_back(grant);
+   }
+
+   bool
+   ACLManager::ApplyRestoredGrants()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Writes every grant that waited, now that the restore has put back every
+   // account and every group one could name. False only when a row could not be
+   // WRITTEN, which is a failed restore like any other failed write; a holder
+   // this server has no account or group for is dropped, counted and named.
+   //---------------------------------------------------------------------------()
+   {
+      std::vector<RestoredGrant> grants;
+
+      {
+         boost::lock_guard<boost::mutex> guard(restored_grants_mutex_);
+
+         grants.swap(restored_grants_);
+      }
+
+      if (grants.empty())
+         return true;
+
+      unsigned int written = 0;
+      unsigned int dropped = 0;
+      String droppedNames;
+
+      for (const RestoredGrant &grant : grants)
+      {
+         std::shared_ptr<ACLPermission> permission = std::shared_ptr<ACLPermission>(new ACLPermission);
+
+         permission->SetShareFolderID(grant.folder_id);
+         permission->SetPermissionType((ACLPermission::ePermissionType) grant.type);
+         permission->SetValue(grant.rights);
+
+         if (grant.type == ACLPermission::PTUser)
+         {
+            std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(grant.holder);
+
+            if (!account)
+            {
+               dropped++;
+
+               if (dropped > 1)
+                  droppedNames += _T(", ");
+
+               droppedNames += grant.holder;
+               continue;
+            }
+
+            permission->SetPermissionAccountID(account->GetID());
+         }
+         else if (grant.type == ACLPermission::PTGroup)
+         {
+            std::shared_ptr<Group> group = Configuration::Instance()->GetIMAPConfiguration()->GetGroups()->GetItemByName(grant.holder);
+
+            if (!group)
+            {
+               dropped++;
+
+               if (dropped > 1)
+                  droppedNames += _T(", ");
+
+               droppedNames += grant.holder;
+               continue;
+            }
+
+            permission->SetPermissionGroupID(group->GetID());
+         }
+
+         if (!PersistentACLPermission::SaveObject(permission))
+         {
+            Logger::Instance()->LogBackup(Formatter::Format(
+               "Restore failed: a folder permission held by {0} could not be written. Check the hMailServer error log.",
+               grant.holder));
+
+            return false;
+         }
+
+         written++;
+      }
+
+      Logger::Instance()->LogBackup(Formatter::Format(
+         "Restored {0} folder permission(s) whose holder had not yet been put back when the folder was.", written));
+
+      if (dropped > 0)
+      {
+         Logger::Instance()->LogBackup(Formatter::Format(
+            "{0} folder permission(s) were dropped: this server has no account or group named {1}. "
+            "The holder was deleted before the backup was taken, or is a group and the settings were not restored with the domains.",
+            dropped, droppedNames));
+      }
+
       return true;
    }
 

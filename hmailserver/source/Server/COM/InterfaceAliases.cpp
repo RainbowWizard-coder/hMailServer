@@ -78,7 +78,7 @@ STDMETHODIMP InterfaceAliases::get_Item(long Index, IInterfaceAlias **pVal)
       std::shared_ptr<HM::Alias> pPersAlias = aliases_->GetItem(Index);
    
       if (!pPersAlias)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pAlias->AttachItem(pPersAlias);
       pAlias->AddRef();
@@ -145,7 +145,7 @@ STDMETHODIMP InterfaceAliases::get_ItemByDBID(long DBID, IInterfaceAlias **pVal)
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
    
@@ -198,7 +198,7 @@ STDMETHODIMP InterfaceAliases::get_ItemByName(BSTR Name, IInterfaceAlias **pVal)
       }
       else
       {
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
       }
    
    

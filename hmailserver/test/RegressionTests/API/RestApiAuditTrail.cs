@@ -482,6 +482,65 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A settings field kept in the [Settings] store, changed over PUT /api/v1/settings - the server group itself - is recorded once, over REST, with the value it had and the value it was given.")]
+      public void AServerGroupFieldKeptInTheIniStoreIsRecordedOverRest()
+      {
+         // The test above moved to /api/v1/settings/antispam, where tarpit_count
+         // really lives, and left nothing asserting this of the SERVER group. Two of
+         // its fields are kept in the [Settings] store: user_interface_language
+         // (UseLanguage) and rewrite_envelope_from_when_forwarding. This is the one
+         // that changes nothing about how the server behaves - the server translates
+         // nothing with it, and only a third-party administration tool reading it
+         // over COM ever does - so the suite that runs on these settings afterwards
+         // cannot be affected by it either way.
+         const string Key = "UseLanguage";
+
+         (bool present, string value) stored = StoredIniSetting(Key);
+         string effective = _settings.UserInterfaceLanguage;
+
+         string after = "Svenska";
+         foreach (string candidate in new[] { "Svenska", "Deutsch", "Nederlands" })
+         {
+            if (candidate != effective && candidate != stored.value)
+            {
+               after = candidate;
+               break;
+            }
+         }
+
+         string before = stored.present ? stored.value : "(default)";
+
+         try
+         {
+            (int status, string body) put = Http("PUT", "/api/v1/settings", "{\"user_interface_language\":\"" + after + "\"}");
+            Assert.AreEqual(200, put.status, put.body);
+            StringAssert.Contains("\"user_interface_language\":\"" + after + "\"", put.body);
+
+            string trail = Read(AuditPath + "?object_type=setting&limit=50");
+
+            string row = RowWith(trail, "\"object\":\"" + Key + "\"");
+            StringAssert.Contains("\"interface\":\"REST\"", row);
+            StringAssert.Contains("\"address\":\"127.0.0.1\"", row);
+            StringAssert.Contains("\"action\":\"updated\"", row);
+
+            Assert.AreEqual(1, Occurrences(trail, Key + ": " + before + " -> " + after),
+               "The value is kept in hm_inisettings rather than hm_settings, reached through the server group, and is recorded all the same - once. Body: " + trail);
+
+            // What the setting is called over REST is not what the store calls it,
+            // and the trail names the stored key: a reader searching for the REST
+            // field name would find nothing, which is worth pinning either way.
+            Assert.AreEqual(_settings.UserInterfaceLanguage, after,
+               "COM reads back what the route wrote, so the recorded change is a change that happened.");
+         }
+         finally
+         {
+            // The stored row is put back as it was; TearDown's Reinitialize then puts
+            // the running value back from it.
+            RestoreIniSetting(Key, stored);
+         }
+      }
+
+      [Test]
       [Description("A secret kept in the [Settings] store is recorded as changed and never as a value, while a setting whose name merely contains 'password' is recorded with its values.")]
       public void AnIniSecretIsRecordedAsChangedAndALookalikeWithItsValues()
       {
@@ -539,14 +598,15 @@ namespace RegressionTests.API
          whiteList.DeleteByDBID(whiteId);
 
          var greyList = _settings.AntiSpam.GreyListingWhiteAddresses;
-         // A plain address and not a pattern: GreyListingWhiteAddress stores what is
-         // typed as a SQL LIKE pattern - SetUserEditableIPAddress turns ? into _ and *
-         // into % - and the recorder names a created row by the column the statement
-         // carried. A pattern would therefore be recorded in the form the table holds
-         // rather than the form it was typed in, and what is under test here is that
-         // the row is recorded at all.
+         // A wildcard on purpose. GreyListingWhiteAddress stores what is typed as a
+         // SQL LIKE pattern - SetUserEditableIPAddress turns ? into _ and * into % -
+         // and the recorder names a created row by the value the statement carried,
+         // which for this one column is the encoding and not the address. So the
+         // persister supplies the name it was typed as (AuditDescription, name only;
+         // the detail is still the columns), and this is what proves it: the trail
+         // must say what the Control Panel, the REST list and hmctl all say.
          var grey = greyList.Add();
-         grey.IPAddress = "10.78.0.1";
+         grey.IPAddress = "10.78.0.?";
          grey.Description = "audit trail";
          grey.Save();
          int greyId = grey.ID;
@@ -580,7 +640,7 @@ namespace RegressionTests.API
          RowWith(trail, "\"object_type\":\"white list address\"", "\"object\":\"audit-white@example.test\"", "\"action\":\"created\"");
          RowWith(trail, "\"object_type\":\"white list address\"", "\"object\":\"whiteid " + whiteId + "\"", "\"action\":\"deleted\"");
 
-         RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"10.78.0.1\"", "\"action\":\"created\"");
+         RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"10.78.0.?\"", "\"action\":\"created\"");
          RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"whiteid " + greyId + "\"", "\"action\":\"deleted\"");
 
          RowWith(trail, "\"object_type\":\"blocked sender\"", "\"object\":\"audit-blocked@example.test\"", "\"action\":\"created\"");

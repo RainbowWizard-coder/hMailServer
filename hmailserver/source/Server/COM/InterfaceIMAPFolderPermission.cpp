@@ -187,6 +187,37 @@ STDMETHODIMP InterfaceIMAPFolderPermission::put_Value(LONG newVal)
    }
 }
 
+// WHY THERE IS NO ADMINISTRATOR CHECK HERE, AND WHY THAT IS THE DECISION.
+//
+// Adding a grant asks GetIsDomainAdmin (InterfaceIMAPFolderPermissions::Add).
+// Changing one here, and deleting one (::Delete below, and the collection's
+// Delete and DeleteByDBID), ask nothing - and are meant not to. The rule this
+// object keeps is IMAP's: a folder's OWNER administers it. ACLManager::
+// GetPermissionForFolder says so by answering GrantAll for the owner before it
+// reads a single row, and SETACL and DELETEACL have let an owner exercise that
+// over the wire on their own mailbox since account folders became shareable.
+// Adding a domain-administrator check here would not close anything - the same
+// account could make the same change from any IMAP client - it would only make
+// COM disagree with the protocol about who owns a mailbox.
+//
+// What bounds it is where the object comes from, not what is asked here. A
+// permission is reached through a folder, a folder through an account, and an
+// account through InterfaceDomain::get_Accounts, which hands a credential that
+// is not a domain administrator a collection holding its own account and nothing
+// else. A grant on somebody else's folder is therefore not reachable to be
+// edited or deleted, and a grant the caller does reach is one on a folder it
+// owns, where IMAP would let it do the same. Nor can a grant be redirected at
+// another folder: ShareFolderID is read-only in the IDL and is written by the
+// collection that created the row, from the folder it was reached through. The
+// public folders, whose owner is the server, are behind a server-administrator
+// check two levels up (InterfaceApplication::get_Settings).
+//
+// Every change made through this object is on the audit trail as a folder
+// permission, under the credential that made it - the AuditScope below - which
+// is what makes the decision reviewable rather than merely argued.
+//
+// The boundary is pinned by
+// Permissions.AnAccountCannotReachAGrantOnAFolderItDoesNotOwn.
 STDMETHODIMP InterfaceIMAPFolderPermission::Save()
 {
    try
@@ -278,7 +309,7 @@ InterfaceIMAPFolderPermission::get_Account(IInterfaceAccount **pVal)
       std::shared_ptr<HM::Account> pAccount = std::shared_ptr<HM::Account>(new HM::Account);
    
       if (!HM::PersistentAccount::ReadObject(pAccount, (__int64) object_->GetPermissionAccountID()))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       // The account a permission names is handed out only to somebody who could
       // reach it anyway: the server administrator, a domain administrator of
@@ -324,7 +355,7 @@ InterfaceIMAPFolderPermission::get_Group(IInterfaceGroup **pVal)
       std::shared_ptr<HM::Group> pGroup = HM::Configuration::Instance()->GetIMAPConfiguration()->GetGroups()->GetItemByDBID(object_->GetPermissionGroupID());
    
       if (!pGroup)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGroup->AttachItem(pGroup);
       pInterfaceGroup->AddRef();

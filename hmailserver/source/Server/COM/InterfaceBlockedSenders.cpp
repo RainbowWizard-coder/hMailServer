@@ -89,7 +89,7 @@ InterfaceBlockedSenders::get_Item(long Index, IInterfaceBlockedSender **pVal)
       std::shared_ptr<HM::BlockedSender> pBS = object_->GetItem(Index);
 
       if (!pBS)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       pInterfaceBlockedSender->AttachItem(pBS);
       pInterfaceBlockedSender->AttachParent(object_, true);
@@ -137,7 +137,7 @@ InterfaceBlockedSenders::get_ItemByDBID(long lDBID, IInterfaceBlockedSender **pV
       std::shared_ptr<HM::BlockedSender> pBS = object_->GetItemByDBID(lDBID);
 
       if (!pBS)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       pInterfaceBlockedSender->AttachItem(pBS);
       pInterfaceBlockedSender->AttachParent(object_, true);
@@ -167,7 +167,7 @@ InterfaceBlockedSenders::get_ItemByName(BSTR sName, IInterfaceBlockedSender **pV
       std::shared_ptr<HM::BlockedSender> pBS = object_->GetItemByName(sName);
 
       if (!pBS)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       pInterfaceBlockedSender->AttachItem(pBS);
       pInterfaceBlockedSender->AttachParent(object_, true);

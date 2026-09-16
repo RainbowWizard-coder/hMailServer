@@ -30,7 +30,7 @@ STDMETHODIMP InterfaceDomainAliases::get_ItemByDBID(long lDBID, IInterfaceDomain
    
       std::shared_ptr<HM::DomainAlias> pDomainAlias = domain_aliases_->GetItemByDBID(lDBID);
       if (!pDomainAlias)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceDA->AttachItem(pDomainAlias);
       pInterfaceDA->AttachParent(domain_aliases_, true);
@@ -57,7 +57,7 @@ STDMETHODIMP InterfaceDomainAliases::get_Item(long lIndex, IInterfaceDomainAlias
    
       std::shared_ptr<HM::DomainAlias> pDomainAlias = domain_aliases_->GetItem(lIndex);
       if (!pDomainAlias)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceAccount->AttachItem(pDomainAlias);
       pInterfaceAccount->AttachParent(domain_aliases_, true);

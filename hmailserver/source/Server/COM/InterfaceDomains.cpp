@@ -144,7 +144,7 @@ STDMETHODIMP InterfaceDomains::get_ItemByName(BSTR ItemName, IInterfaceDomain **
       std::shared_ptr<HM::Domain> pPersDomain = objects_->GetItemByName(ItemName);
    
       if (!pPersDomain)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pDomain->AttachItem(pPersDomain);
       pDomain->AttachParent(objects_, true);
@@ -177,7 +177,7 @@ STDMETHODIMP InterfaceDomains::get_Item(long Index, IInterfaceDomain **pVal)
       std::shared_ptr<HM::Domain> pPersDomain = objects_->GetItem(Index);
    
       if (!pPersDomain)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pDomain->SetAuthentication(authentication_);
       pDomain->AttachItem(pPersDomain);
@@ -211,7 +211,7 @@ STDMETHODIMP InterfaceDomains::get_ItemByDBID(long DBID, IInterfaceDomain **pVal
       std::shared_ptr<HM::Domain> pPersDomain = objects_->GetItemByDBID(DBID);
    
       if (!pPersDomain)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pDomain->SetAuthentication(authentication_);
       pDomain->AttachItem(pPersDomain);

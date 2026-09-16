@@ -109,7 +109,7 @@ STDMETHODIMP InterfaceAccounts::get_Item(long Index, IInterfaceAccount **pVal)
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItem(Index);
    
       if (!pAccount)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
       
       pAccountInt->AttachItem(pAccount);
       pAccountInt->AttachParent(accounts_, true);
@@ -154,7 +154,7 @@ STDMETHODIMP InterfaceAccounts::get_ItemByDBID(long DBID, IInterfaceAccount **pV
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItemByDBID(DBID);
    
       if (!pAccount)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pAccountInt->AttachItem(pAccount);
       pAccountInt->SetAuthentication(authentication_);
@@ -184,7 +184,7 @@ STDMETHODIMP InterfaceAccounts::get_ItemByAddress(BSTR Address, IInterfaceAccoun
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItemByName(Address);
    
       if (!pAccount)
-         return DISP_E_BADINDEX; 
+         return COMError::WithoutMessage(DISP_E_BADINDEX); 
    
       pAccountInt->AttachItem(pAccount);
       pAccountInt->SetAuthentication(authentication_);

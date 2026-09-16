@@ -789,7 +789,7 @@ STDMETHODIMP InterfaceAccount::get_Messages(IInterfaceMessages **pVal)
       std::shared_ptr<HM::Messages> pMsgs = object_->GetMessages();
    
       if (!pMsgs)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pMessages->Attach(pMsgs);
       pMessages->AddRef();
@@ -1336,7 +1336,7 @@ STDMETHODIMP InterfaceAccount::get_IMAPFolders(IInterfaceIMAPFolders **pVal)
          return GetAccessDenied();
 
       if (object_->GetID() == 0)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       CComObject<InterfaceIMAPFolders>* pItem = new CComObject<InterfaceIMAPFolders >();
       pItem->SetAuthentication(authentication_);

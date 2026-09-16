@@ -20,10 +20,10 @@ STDMETHODIMP InterfaceMessageHeaders::get_Count(long *pVal)
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       if (!header_)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       *pVal = header_->GetFieldCount();
 
@@ -41,12 +41,12 @@ InterfaceMessageHeaders::get_Item(long Index, IInterfaceMessageHeader **pVal)
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = nullptr;
 
       if (!header_)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       // Bounds-checked here rather than left to MimeHeader::GetField(unsigned int).
       // That function tests "iIndex <= fields_.size() - 1" on a size_t, which
@@ -56,12 +56,12 @@ InterfaceMessageHeaders::get_Item(long Index, IInterfaceMessageHeader **pVal)
       // handed a script a wild pointer to read and write through. The same comparison
       // is signed-to-unsigned, so a negative index arrives there as a very large one.
       if (Index < 0 || Index >= header_->GetFieldCount())
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       HM::MimeField *pField = header_->GetField(static_cast<unsigned int>(Index));
 
       if (!pField)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceMessageHeader>* pInterfaceMessageHeader = new CComObject<InterfaceMessageHeader>();
       pInterfaceMessageHeader->AttachItem(header_, pField);
@@ -84,18 +84,18 @@ InterfaceMessageHeaders::get_ItemByName(BSTR sName, IInterfaceMessageHeader **pV
    try
    {
       if (!pVal)
-         return E_POINTER;
+         return COMError::WithoutMessage(E_POINTER);
 
       *pVal = nullptr;
 
       if (!header_)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       HM::AnsiString sFieldName = sName;
       HM::MimeField *pField = header_->GetField(sFieldName);
 
       if (!pField)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
 
       CComObject<InterfaceMessageHeader>* pInterfaceMessageHeader = new CComObject<InterfaceMessageHeader>();
       pInterfaceMessageHeader->AttachItem(header_, pField);

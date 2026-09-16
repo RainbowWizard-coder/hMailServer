@@ -70,7 +70,7 @@ InterfaceGroupMembers::get_Item(long Index, IInterfaceGroupMember **pVal)
       std::shared_ptr<HM::GroupMember> pBA = group_members_->GetItem(Index);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGroupMember->AttachItem(pBA);
       pInterfaceGroupMember->AttachParent(group_members_, true);
@@ -118,7 +118,7 @@ InterfaceGroupMembers::get_ItemByDBID(long lDBID, IInterfaceGroupMember **pVal)
       std::shared_ptr<HM::GroupMember> pBA = group_members_->GetItemByDBID(lDBID);
    
       if (!pBA)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGroupMember->AttachItem(pBA);
       pInterfaceGroupMember->AttachParent(group_members_, true);

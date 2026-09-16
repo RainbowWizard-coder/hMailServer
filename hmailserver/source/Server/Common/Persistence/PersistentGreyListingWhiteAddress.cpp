@@ -7,6 +7,7 @@
 #include "PersistentGreyListingWhiteAddress.h"
 #include "../BO/GreyListingWhiteAddress.h"
 #include "../SQL/SQLStatement.h"
+#include "../Util/AuditTrail.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -85,6 +86,18 @@ namespace HM
       oStatement.AddColumn("whiteipdescription", pObject->GetDescription());
 
       bool bNewObject = pObject->GetID() == 0;
+
+      // The trail names this row as the administrator typed it. The column holds
+      // the SQL LIKE pattern SetUserEditableIPAddress made of what they typed -
+      // 10.78.0.? is stored as 10.78.0._, and a literal _ as /_ - and the recorder
+      // names an object by the value the statement carried, which is what keeps it
+      // honest everywhere else and what made it unrecognisable here: the Control
+      // Panel, the REST list and hmctl all show the wildcard form, so a reader
+      // matching the trail against the configuration found an address that is in
+      // neither. This is the one column in the schema that stores an encoding of
+      // what a person typed, and this is the place that writes it. Only the name:
+      // the detail is still the columns, so the stored pattern is on the record too.
+      AuditDescription described(_T("hm_greylisting_whiteaddresses"), pObject->GetUserEditableIPAddress());
 
       // Save and fetch ID
       __int64 iDBID = 0;

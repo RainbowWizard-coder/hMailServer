@@ -504,6 +504,34 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A failure that carries no message of its own does not borrow the previous call's. COMError::GenerateError puts an IErrorInfo on the thread and only GetErrorInfo takes it off, and since 16 September 2026 nearly every COM class answers S_OK for ISupportErrorInfo - so a bare DISP_E_BADINDEX is now a failure the CLR asks for a rich error about, and would be told about the refusal before it. It clears the thread instead (COMError::WithoutMessage), so the caller is given the code's own meaning.")]
+      public void ABareIndexFailureDoesNotCarryThePreviousCallsSentence()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "staleerror@example.test", "test");
+
+         var user = new Application();
+         Assert.IsNotNull(user.Authenticate(account.Address, "test"));
+
+         // A refusal with a sentence of its own. This is what leaves an IErrorInfo
+         // on the thread that served it.
+         var refused = Assert.Throws<COMException>(() => user.Domains.Add());
+         StringAssert.Contains("You do not have access to this property / method.", refused.Message);
+
+         // And now, on the same connection, an index that is nobody's. It fails
+         // with DISP_E_BADINDEX and says nothing of its own, so it must read as
+         // that code and never as the refusal above.
+         var missing = Assert.Throws<COMException>(
+            () => user.Domains[0].Accounts.get_ItemByAddress("nobody@example.test"));
+         StringAssert.Contains("Invalid index.", missing.Message);
+         StringAssert.DoesNotContain("You do not have access", missing.Message,
+            "A bare failure was handed the sentence of the call before it.");
+
+         // The account's own address is in the collection, so the failure above is
+         // the index and not the collection being empty of everything.
+         Assert.AreEqual(account.Address, user.Domains[0].Accounts.get_ItemByAddress(account.Address).Address);
+      }
+
+      [Test]
       public void TestSaveMessageInExistingIMAPFolder()
       {
          var settings = SingletonProvider<TestSetup>.Instance.GetApp().Settings;

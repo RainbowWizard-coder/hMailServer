@@ -71,7 +71,7 @@ InterfaceSURBLServers::get_Item(long Index, IInterfaceSURBLServer **pVal)
       std::shared_ptr<HM::SURBLServer> pDNSBlackList = surbl_servers_->GetItem(Index);
    
       if (!pDNSBlackList)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceSURBLServer->AttachItem(pDNSBlackList);
       pInterfaceSURBLServer->AttachParent(surbl_servers_, true);
@@ -119,7 +119,7 @@ InterfaceSURBLServers::get_ItemByDBID(long lDBID, IInterfaceSURBLServer **pVal)
       std::shared_ptr<HM::SURBLServer> pDNSBlackList = surbl_servers_->GetItemByDBID(lDBID);
    
       if (!pDNSBlackList)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceSURBLServer->AttachItem(pDNSBlackList);
       pInterfaceSURBLServer->AttachParent(surbl_servers_, true);

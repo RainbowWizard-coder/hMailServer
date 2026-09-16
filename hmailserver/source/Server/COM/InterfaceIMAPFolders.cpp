@@ -67,7 +67,7 @@ InterfaceIMAPFolders::get_Item(long Index, IInterfaceIMAPFolder **pVal)
       std::shared_ptr<HM::IMAPFolder> pIMAPFolder = object_->GetItem(Index);
    
       if (!pIMAPFolder)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pIMAPFolderInt->Attach(pIMAPFolder);
       pIMAPFolderInt->AttachParent(object_, true);
@@ -96,7 +96,7 @@ InterfaceIMAPFolders::get_ItemByDBID(long DBID, IInterfaceIMAPFolder **pVal)
       std::shared_ptr<HM::IMAPFolder> pIMAPFolder = object_->GetItemByDBID(DBID);
    
       if (!pIMAPFolder)
-         return DISP_E_BADINDEX;  
+         return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pIMAPFolderInt->Attach(pIMAPFolder);
       pIMAPFolderInt->AttachParent(object_, true);
@@ -128,7 +128,7 @@ InterfaceIMAPFolders::get_ItemByName(BSTR sName, IInterfaceIMAPFolder **pVal)
       std::shared_ptr<HM::IMAPFolder> pIMAPFolder = object_->GetFolderByName(sFolderName);
    
       if (!pIMAPFolder)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pIMAPFolderInt->Attach(pIMAPFolder);
       pIMAPFolderInt->AttachParent(object_, true);
@@ -155,7 +155,7 @@ InterfaceIMAPFolders::DeleteByDBID(long lDBID)
 
       // Check that it does not exist.
       if (!object_->DeleteItemByDBID(lDBID))
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
       
       return S_OK;
    }

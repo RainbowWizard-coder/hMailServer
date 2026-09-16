@@ -31,6 +31,19 @@ GetAccessDenied, its header must:
              classes swept in September 2026 have it, or in the .cpp with the
              array of IIDs the ATL wizard used to write; both are read here.
 
+And a fourth rule, which is the other half of the same mechanism:
+
+  cleared    No .cpp here returns a bare failure HRESULT. SetErrorInfo puts an
+             IErrorInfo on the THREAD and only GetErrorInfo takes it off, so a
+             method that fails with DISP_E_BADINDEX or E_POINTER and sets nothing
+             hands the caller whatever the last failure on that thread left
+             behind - a sentence about another object entirely. That was harmless
+             while almost no class answered for ISupportErrorInfo and became
+             reachable from almost everywhere the moment they all did. Such a
+             failure goes through COMError::WithoutMessage, which clears the
+             thread and returns the HRESULT unchanged, so the caller is given the
+             code's own meaning ("Invalid index.") and never somebody else's.
+
 None of this touches hMailServer.idl, which does not mention ISupportErrorInfo:
 the IID is Windows' own, with the system proxy and stub, so a class gains this
 with three lines and no registration.
@@ -54,11 +67,28 @@ METHOD = "InterfaceSupportsErrorInfo"
 # in the older one, an array of IIDs and a loop. Both fit in this much.
 BODY = 700
 
+# A failure HRESULT returned as itself, with nothing said and nothing cleared.
+# S_FALSE and S_OK are not failures and are not matched.
+BARE = re.compile(r"return\s+(E_[A-Z_]+|DISP_E_[A-Z_]+)\s*;")
+
 
 def check(sources):
     """sources: {file name: text}, the .h and .cpp of hmailserver/source/Server/COM."""
     failures = []
     checked = 0
+
+    for name in sorted(sources):
+        # COMError.cpp is where the clearing lives, so it is the one file that
+        # returns such a code as itself.
+        if not name.endswith(".cpp") or name == "COMError.cpp":
+            continue
+
+        for number, line in enumerate(sources[name].split("\n"), 1):
+            bare = BARE.search(line)
+            if bare:
+                failures.append("%s:%d: returns %s as it is - the caller is handed whatever failed on this "
+                                "thread last. Use COMError::WithoutMessage(%s)."
+                                % (name, number, bare.group(1), bare.group(1)))
 
     for name in sorted(sources):
         if not name.startswith("Interface") or not name.endswith(".cpp"):
@@ -145,6 +175,11 @@ def self_test(sources):
     copy = dict(sources)
     copy[header] = re.sub(r"\n\s*STDMETHOD\(InterfaceSupportsErrorInfo\).*?\n\s*\}\n", "\n", text, flags=re.S)
     expect("a class with no InterfaceSupportsErrorInfo", copy, "no InterfaceSupportsErrorInfo(REFIID)")
+
+    copy = dict(sources)
+    copy["InterfaceRoutes.cpp"] = sources["InterfaceRoutes.cpp"].replace(
+        "return COMError::WithoutMessage(DISP_E_BADINDEX);", "return DISP_E_BADINDEX;", 1)
+    expect("a bare failure HRESULT", copy, "returns DISP_E_BADINDEX as it is")
 
     copy = {name: text for name, text in sources.items() if not name.startswith("Interface")}
     expect("a check that has stopped seeing the source", copy, "has stopped seeing the source")

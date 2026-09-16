@@ -74,7 +74,7 @@ InterfaceServerMessages::get_Item(long Index, IInterfaceServerMessage **pVal)
       std::shared_ptr<HM::ServerMessage> pSM = server_messages_->GetItem(Index);
    
       if (!pSM)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceServerMessage->AttachItem(pSM);
       pInterfaceServerMessage->AddRef();
@@ -102,7 +102,7 @@ InterfaceServerMessages::get_ItemByDBID(long lDBID, IInterfaceServerMessage **pV
       std::shared_ptr<HM::ServerMessage> pSM = server_messages_->GetItemByDBID(lDBID);
    
       if (!pSM)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceServerMessage->AttachItem(pSM);
       pInterfaceServerMessage->AddRef();
@@ -131,7 +131,7 @@ InterfaceServerMessages::get_ItemByName(BSTR sName, IInterfaceServerMessage **pV
       std::shared_ptr<HM::ServerMessage> pSM = server_messages_->GetItemByName(sName);
    
       if (!pSM)
-         return DISP_E_BADINDEX;
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceServerMessage->AttachItem(pSM);
       pInterfaceServerMessage->AddRef();
