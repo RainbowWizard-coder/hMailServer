@@ -1754,7 +1754,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("The account's S/MIME key store: an own certificate with its wrapped key and chain, a recipient's certificate, each added, replaced by fingerprint, listed and removed, with the shape of each field checked")]
+      [Description("The account's S/MIME key store: an own certificate with its wrapped key and chain, a recipient's certificate, each added, replaced by fingerprint, listed and removed, with the shape of each field checked - including the wrapping's version marker, which survives the round trip, and its work factor, which has a floor")]
       public void SmimeKeysAndCertificatesAreKeptForTheAccount()
       {
          (int status, string body) empty = Http("GET", "/api/v1/me/smime", UserHeader(UserPassword));
@@ -1764,7 +1764,7 @@ namespace RegressionTests.API
 
          string certificate = Convert.ToBase64String(new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 });
          string own = new string('a', 64);
-         string key = "{\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
+         string key = "{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
          (int status, string body) added = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
             "{\"address\":\"" + Address + "\",\"name\":\"Me, Myself\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"chain\":[\"" + certificate + "\"],\"key\":" + key + ",\"not_after\":2000000000}");
          Assert.AreEqual(201, added.status, "Body: " + added.body);
@@ -1788,6 +1788,40 @@ namespace RegressionTests.API
          (int status, string body) badCertificate = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
             "{\"address\":\"" + Address + "\",\"fingerprint\":\"" + own + "\",\"certificate\":\"not base64!\",\"key\":" + key + "}");
          Assert.AreEqual(400, badCertificate.status, "Body: " + badCertificate.body);
+
+         // The wrapping's own shape. The page writes {v, kdf, iterations,
+         // salt, iv, data} and reads every one of them back before it derives
+         // anything, so the marker has to survive being stored; a key from
+         // before the marker was kept is version 1; and a work factor below
+         // what the page uses is refused here, the only place that can refuse
+         // it, because the wrapping itself happens where the server cannot see.
+         string unmarkedKey = "{\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
+         (int status, string body) unmarked = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
+            "{\"address\":\"" + Address + "\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"key\":" + unmarkedKey + "}");
+         Assert.AreEqual(200, unmarked.status, "Body: " + unmarked.body);
+         StringAssert.Contains("\"key\":{\"v\":1,\"kdf\":\"PBKDF2-SHA256\"", unmarked.body, "A key stored without a version marker is version 1.");
+
+         string nextVersion = "{\"v\":2,\"kdf\":\"HKDF-SHA512\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
+         (int status, string body) later = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
+            "{\"address\":\"" + Address + "\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"key\":" + nextVersion + "}");
+         Assert.AreEqual(200, later.status, "Body: " + later.body);
+         StringAssert.Contains("\"key\":" + nextVersion, later.body, "A wrapping this server does not interpret is stored as it was given.");
+         (int status, string body) readBack = Http("GET", "/api/v1/me/smime", UserHeader(UserPassword));
+         StringAssert.Contains("\"key\":" + nextVersion, readBack.body, "The marker is in the store, not just in the answer to the write.");
+
+         (int status, string body) badVersion = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
+            "{\"address\":\"" + Address + "\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"key\":{\"v\":0,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}}");
+         Assert.AreEqual(400, badVersion.status, "Body: " + badVersion.body);
+         StringAssert.Contains("version", badVersion.body);
+
+         (int status, string body) tooFewIterations = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
+            "{\"address\":\"" + Address + "\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"key\":{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":1,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}}");
+         Assert.AreEqual(400, tooFewIterations.status, "Body: " + tooFewIterations.body);
+         StringAssert.Contains("600,000", tooFewIterations.body);
+
+         (int status, string body) restored = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
+            "{\"address\":\"" + Address + "\",\"name\":\"Me again\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"chain\":[],\"key\":" + key + "}");
+         Assert.AreEqual(200, restored.status, "Body: " + restored.body);
 
          string bob = new string('b', 64);
          (int status, string body) recipient = Http("PUT", "/api/v1/me/smime/recipients", UserHeader(UserPassword),

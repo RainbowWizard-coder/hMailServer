@@ -617,10 +617,12 @@
   "Write your message": "Напишите сообщение",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Пишется в новом письме и сохраняется оттуда. В шаблоне {first_name} становится именем первого получателя, {subject} - темой, {date} - сегодняшней датой.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Неверный пароль. Если администратор сменил ваш пароль, введите прежний; ключи будут заново обёрнуты текущим.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Неверный пароль. Если администратор сменил ваш пароль, введите прежний; чтобы ключи были заново обёрнуты текущим, выйдите, войдите снова и разблокируйте их один раз.",
   "You do not usually get mail from this sender.": "Обычно вы не получаете писем от этого отправителя.",
   "You will get the digest.": "Вы будете получать сводку.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Вы не будете получать сводку. Почта по-прежнему задерживается и по-прежнему перечислена здесь.",
   "Your keys were re-wrapped with the new password.": "Ваши ключи заново обёрнуты новым паролем.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Подпись и шифрование недоступны: браузер не предоставляет свою криптографию странице, открытой не по HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Ваш почтовый ящик в этом браузере. Пароль один раз обменивается на cookie сеанса и никогда не хранится этой страницей.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "В вашем сообщении упоминается вложение, но ничего не вложено. Всё равно отправить?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Ваш адрес, каждый псевдоним, ведущий сюда, и каждый ящик, разрешивший вам писать от его имени. Выбор поля От в новом письме предлагает тот же список.",
@@ -678,5 +680,7 @@
   "{0} selected": "Выбрано: {0}",
   "{0} stops here: the next thing it points at is not on this screen.": "«{0}» останавливается здесь: следующее, на что она указывает, не показано на этом экране.",
   "{0} unread": "{0} непрочитанных",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Пароль, с которым вы вошли, не открывает ваши ключи. Если администратор сменил ваш пароль, введите прежний; ключи будут заново обёрнуты текущим.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Подписанное или зашифрованное сообщение пока нельзя сохранить как черновик или запланировать: снимите флажки «Подписать» и «Зашифровать» либо отправьте его сейчас."
 }

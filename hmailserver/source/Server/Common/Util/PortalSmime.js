@@ -589,7 +589,19 @@
   //
   // PBKDF2-HMAC-SHA256 from the password and a random salt, then AES-256-GCM
   // over the PKCS#8. The server stores what this makes and cannot open it.
+  //
+  // The envelope carries how it was made - {v, kdf, iterations, salt, iv,
+  // data} - and unwrapping reads those rather than assuming them. A version
+  // or a derivation this build does not know is refused by name: deriving
+  // some other key from the right password and then calling the failure a
+  // wrong password is how a change of format turns into keys nobody can
+  // open, and a refusal that names what it met is how the next build knows
+  // what to write. A key stored before the server kept the marker comes back
+  // with neither field: that is version 1 under PBKDF2-SHA256, which is all
+  // this module has ever written.
 
+  const WRAP_VERSION = 1;
+  const WRAP_KDF = 'PBKDF2-SHA256';
   const WRAP_ITERATIONS = 600000;
 
   async function deriveWrapKey(password, salt, iterations) {
@@ -602,11 +614,16 @@
     const iv = randomBytes(12);
     const key = await deriveWrapKey(password, salt, WRAP_ITERATIONS);
     const data = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, pkcs8));
-    return { v: 1, kdf: 'PBKDF2-SHA256', iterations: WRAP_ITERATIONS, salt: b64encode(salt), iv: b64encode(iv), data: b64encode(data) };
+    return { v: WRAP_VERSION, kdf: WRAP_KDF, iterations: WRAP_ITERATIONS, salt: b64encode(salt), iv: b64encode(iv), data: b64encode(data) };
   }
 
   async function unwrapPrivateKey(wrapped, password) {
-    const key = await deriveWrapKey(password, b64decode(wrapped.salt), wrapped.iterations || WRAP_ITERATIONS);
+    if (!wrapped || typeof wrapped !== 'object') { throw new Error('the stored key is not a wrapped key'); }
+    const version = (wrapped.v === undefined || wrapped.v === null) ? WRAP_VERSION : Number(wrapped.v);
+    if (version !== WRAP_VERSION) { throw new Error('the key is wrapped in version ' + wrapped.v + ', which this page cannot open'); }
+    const kdf = (wrapped.kdf === undefined || wrapped.kdf === null) ? WRAP_KDF : String(wrapped.kdf);
+    if (kdf !== WRAP_KDF) { throw new Error('the key is wrapped with ' + kdf + ', which this page cannot open'); }
+    const key = await deriveWrapKey(password, b64decode(wrapped.salt), Number(wrapped.iterations) || WRAP_ITERATIONS);
     try {
       return new Uint8Array(await subtle.decrypt({ name: 'AES-GCM', iv: b64decode(wrapped.iv) }, key, b64decode(wrapped.data)));
     } catch (e) {
@@ -1182,6 +1199,11 @@
   }
 
   return {
+    // Whether the browser gave this page its cryptography at all. It does
+    // not on a page opened over plain HTTP: crypto.subtle is withheld from
+    // an insecure context, and nothing below works without it. The page
+    // asks this before it offers Sign or Encrypt.
+    available: !!subtle,
     // bytes
     utf8: utf8, latin1Bytes: latin1Bytes, b64encode: b64encode, b64decode: b64decode, hex: hex, concat: concat, binaryString: binaryString, pemBlocks: pemBlocks,
     // DER

@@ -617,10 +617,12 @@
   "Write your message": "Γράψτε το μήνυμά σας",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Γράφεται σε νέο μήνυμα και αποθηκεύεται από εκεί. Σε ένα πρότυπο, το {first_name} γίνεται το όνομα του πρώτου παραλήπτη, το {subject} το θέμα, το {date} η σημερινή ημερομηνία.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Λάθος κωδικός. Αν ένας διαχειριστής άλλαξε τον κωδικό σας, εισαγάγετε αυτόν που είχατε πριν· τα κλειδιά τυλίγονται τότε ξανά με τον τρέχοντα.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Λάθος κωδικός. Αν ένας διαχειριστής άλλαξε τον κωδικό σας, εισαγάγετε αυτόν που είχατε πριν· για να τυλιχθούν ξανά τα κλειδιά με τον τρέχοντα, αποσυνδεθείτε, συνδεθείτε ξανά και ξεκλειδώστε τα μία φορά.",
   "You do not usually get mail from this sender.": "Συνήθως δεν λαμβάνετε αλληλογραφία από αυτόν τον αποστολέα.",
   "You will get the digest.": "Θα λαμβάνετε τη σύνοψη.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Δεν θα λαμβάνετε τη σύνοψη. Η αλληλογραφία εξακολουθεί να κρατείται και να εμφανίζεται εδώ.",
   "Your keys were re-wrapped with the new password.": "Τα κλειδιά σας τυλίχθηκαν ξανά με τον νέο κωδικό.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Η υπογραφή και η κρυπτογράφηση δεν είναι διαθέσιμες: ο περιηγητής δεν παρέχει την κρυπτογραφία του σε σελίδα που δεν ανοίχτηκε μέσω HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Το γραμματοκιβώτιό σας, σε αυτό το πρόγραμμα περιήγησης. Ο κωδικός ανταλλάσσεται μία φορά με ένα cookie συνεδρίας και δεν κρατείται ποτέ από αυτή τη σελίδα.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Το μήνυμά σας αναφέρει ένα συνημμένο, αλλά δεν έχει επισυναφθεί τίποτα. Να σταλεί ούτως ή άλλως;",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Η δική σας διεύθυνση, κάθε ψευδώνυμο που δείχνει εδώ και κάθε γραμματοκιβώτιο που σας επέτρεψε να γράφετε ως αυτό. Ο επιλογέας Από σε νέο μήνυμα προσφέρει την ίδια λίστα.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} επιλεγμένα",
   "{0} stops here: the next thing it points at is not on this screen.": "Η «{0}» σταματά εδώ: το επόμενο που δείχνει δεν βρίσκεται σε αυτήν την οθόνη.",
   "{0} unread": "{0} μη αναγνωσμένα",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Ο κωδικός με τον οποίο συνδεθήκατε δεν ανοίγει τα κλειδιά σας. Αν ένας διαχειριστής άλλαξε τον κωδικό σας, εισαγάγετε αυτόν που είχατε πριν· τα κλειδιά τυλίγονται τότε ξανά με τον τρέχοντα.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Ένα υπογεγραμμένο ή κρυπτογραφημένο μήνυμα δεν μπορεί ακόμη να αποθηκευτεί ως πρόχειρο ή να προγραμματιστεί: αποεπιλέξτε Υπογραφή και Κρυπτογράφηση, ή στείλτε το τώρα."
 }

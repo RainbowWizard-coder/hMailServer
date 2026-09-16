@@ -1852,6 +1852,7 @@
     composeKey = '';
     blankCompose();
     forgetSecret();
+    smimeForget();
     var frame = el('message-html');
     if (frame) { frame.hidden = true; frame.removeAttribute('src'); }
     ['message-list', 'folder-nav', 'message-text', 'message-attachments'].forEach(function (id) {
@@ -1925,6 +1926,7 @@
     return call('GET', '/api/v1/me').then(function (result) {
       if (result.status === 200 && result.data) {
         me = String(result.data.address || '').toLowerCase();
+        smimeViaAppPassword = result.data.via_app_password === true;
         render(result.data);
         loadQuarantine();
         loadSettings();
@@ -2546,11 +2548,16 @@
   };
   // The page closing with a send waiting: the message goes in a request
   // the browser keeps alive after the page, when it fits in one (64 KB);
-  // a larger one - attachments - is worth a warning instead.
+  // a larger one - attachments - is worth a warning instead. So is one that
+  // is to be signed or encrypted: that is done in smimePrepare on the way
+  // through submitMessage, and it cannot be done here, because beforeunload
+  // does not wait for the cryptography - so the body sent from here would
+  // be the plaintext, with an encrypt flag the server does not act on. The
+  // one right thing is not to send it, and to warn.
   window.addEventListener('beforeunload', function (event) {
     if (!pendingSend) { return; }
     var body = JSON.stringify(pendingSend.body);
-    if (body.length < 60000) {
+    if (body.length < 60000 && !pendingSend.body.sign && !pendingSend.body.encrypt) {
       cancelUndo();
       fetch('/api/v1/me/messages', { method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'hMailServer' }, body: body });
       return;
@@ -2558,11 +2565,23 @@
     event.preventDefault();
     event.returnValue = '';
   });
+  // The draft route stores what it is given, and it is given the plaintext:
+  // signing and encryption happen on the way through submitMessage, not
+  // here. A draft that was to be sealed is therefore refused rather than
+  // stored in the clear with a flag the server ignores - and a scheduled
+  // send, which is a draft with an hour, would otherwise go in the clear at
+  // that hour. True when the body was refused, having said why.
+  var smimeSealedDraft = function (body) {
+    if (!body.sign && !body.encrypt) { return false; }
+    say('compose-status', t('A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.'), false);
+    return true;
+  };
   // The draft, saved: what the form holds and the files with it, over the
   // draft it came from. Resolves to the draft's id, or 0 when it could not
   // be saved, having said why.
   var saveDraft = function () {
     var body = composeBody();
+    if (smimeSealedDraft(body)) { return Promise.resolve(0); }
     if (draftId) { body.replace_id = draftId; }
     return readFiles().then(function (files) {
       files = carried.concat(files);
@@ -3328,9 +3347,56 @@
   // unlocks the private keys with the password - which never leaves the
   // browser - and puts what the module finds on the page.
   var smime = function () { return window.hmSmime; };
-  var smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {} };
+  // Whether the page can do any of this: the module loaded, and the browser
+  // gave it its cryptography. A page opened over plain HTTP - behind a
+  // reverse proxy that speaks HTTPS to the world and HTTP to this server,
+  // say - is not a secure context, and the browser withholds crypto.subtle
+  // from it. Before this was asked, such a page offered Sign and Encrypt and
+  // failed at send time with the name of a missing property; now the
+  // controls stay away and the Security page says why.
+  var smimeUsable = function () { return !!(smime() && smime().available !== false && window.isSecureContext !== false); };
+  // current: the account's current password, and only while the keys are not
+  // wrapped under it - see loadSmime. It is in this page and nowhere else,
+  // and it goes the moment it has been used or the account signs out.
+  var smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {}, current: '' };
+  // True when the session was started with an app password: a mailbox
+  // credential, never the account's own password, so it is not what the
+  // keys are wrapped under and must never become what they are wrapped under.
+  var smimeViaAppPassword = false;
   var smimePassword = '';
   var smimeCerts = {};
+  // Sign-out, for this block. The unlocked map holds the account's private
+  // keys themselves - an extractable CryptoKey, the PKCS#8 it was made from
+  // and, for an RSA key, its secret numbers - so leaving it standing hands
+  // the previous account's keys to whoever signs in next in this tab, and
+  // reads their sealed mail with them. Everything here goes back to what it
+  // was before the first sign-in: the keys, the certificates the page parsed,
+  // the password typed at the gate, the two tables of the store, and both
+  // password boxes. A dialogue still waiting for a password is refused
+  // rather than left open over the next account's session.
+  var smimeForget = function () {
+    smimeSettle(false, '');
+    smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {}, current: '' };
+    smimeViaAppPassword = false;
+    smimePassword = '';
+    smimeCerts = {};
+    clear(el('smime-own-rows'));
+    clear(el('smime-recipient-rows'));
+    el('smime-own-table').hidden = true;
+    el('smime-recipient-table').hidden = true;
+    el('smime-own-empty').hidden = false;
+    el('smime-recipient-empty').hidden = false;
+    el('smime-unlock-password').value = '';
+    el('smime-passphrase').value = '';
+    el('smime-file').value = '';
+    say('smime-status', '', true);
+    el('compose-sign-label').hidden = true;
+    el('compose-encrypt-label').hidden = true;
+    el('compose-smime-note').hidden = true;
+    el('message-smime').hidden = true;
+    el('message-smime-unlock').hidden = true;
+    el('message-smime-text').textContent = '';
+  };
   var smimeAddress = function (text) { var m = String(text || '').match(/<([^>]+)>/); return (m ? m[1] : String(text || '')).trim().toLowerCase(); };
   var smimeAddresses = function (text) { return String(text || '').split(/[,;]/).map(smimeAddress).filter(function (a) { return a.indexOf('@') > 0; }); };
   var smimeFromAddress = function () { var f = el('compose-from'); return (!f.hidden && f.value) ? smimeAddress(f.value) : me; };
@@ -3367,7 +3433,7 @@
   // of the account's own; Encrypt when there is any certificate to encrypt for;
   // and a note names what is missing for what is ticked.
   var smimeComposeHints = function () {
-    if (!smimeState.loaded || !smime()) { return; }
+    if (!smimeState.loaded || !smimeUsable()) { return; }
     var own = smimeOwnFor(smimeFromAddress());
     el('compose-sign-label').hidden = !own;
     el('compose-encrypt-label').hidden = !own && !smimeState.recipients.length;
@@ -3385,23 +3451,46 @@
   ['compose-from', 'compose-sign', 'compose-encrypt'].forEach(function (id) { el(id).addEventListener('change', smimeComposeHints); });
   var loadSmime = function () {
     if (!smime()) { return Promise.resolve(); }
+    el('smime-unavailable').hidden = smimeUsable();
+    el('smime-body').hidden = !smimeUsable();
+    if (!smimeUsable()) { return Promise.resolve(); }
+    // The state this load is for. A sign-out replaces smimeState while the
+    // request is in the air; what comes back then belongs to an account that
+    // has gone, and is not rendered or kept.
+    var state = smimeState;
     return call('GET', '/api/v1/me/smime').then(function (result) {
-      if (result.status !== 200 || !result.data) { return; }
-      smimeState.own = result.data.own || [];
-      smimeState.recipients = result.data.recipients || [];
-      smimeState.limits = result.data.limits || {};
-      smimeState.loaded = true;
-      smimeRenderRows(el('smime-own-rows'), smimeState.own, 'own');
-      el('smime-own-table').hidden = !smimeState.own.length;
-      el('smime-own-empty').hidden = !!smimeState.own.length;
-      smimeRenderRows(el('smime-recipient-rows'), smimeState.recipients, 'recipients');
-      el('smime-recipient-table').hidden = !smimeState.recipients.length;
-      el('smime-recipient-empty').hidden = !!smimeState.recipients.length;
+      if (result.status !== 200 || !result.data || state !== smimeState) { return; }
+      state.own = result.data.own || [];
+      state.recipients = result.data.recipients || [];
+      state.limits = result.data.limits || {};
+      state.loaded = true;
+      smimeRenderRows(el('smime-own-rows'), state.own, 'own');
+      el('smime-own-table').hidden = !state.own.length;
+      el('smime-own-empty').hidden = !!state.own.length;
+      smimeRenderRows(el('smime-recipient-rows'), state.recipients, 'recipients');
+      el('smime-recipient-table').hidden = !state.recipients.length;
+      el('smime-recipient-empty').hidden = !!state.recipients.length;
       smimeComposeHints();
       // The password typed to sign in opens the keys once, then is forgotten.
+      // When it will not open them - an administrator changed the password,
+      // and the keys are wrapped under the old one - the dialogue asks for
+      // the old one now, while the page still has the current one the server
+      // has just accepted; the current one is held for exactly as long as
+      // that dialogue is open, and goes with it whether it was answered or
+      // cancelled. The submit handler wraps the keys again under it, which is
+      // what the dialogue says. An app password is a mailbox credential and
+      // not the account's password: it neither opens the keys nor wraps them.
       var typed = smimePassword;
       smimePassword = '';
-      if (typed && smimeState.own.length) { smimeUnlockWith(typed).then(null, function () {}); }
+      state.current = '';
+      if (typed && state.own.length && !smimeViaAppPassword) {
+        smimeUnlockWith(typed).then(null, function (e) {
+          if (!e || e.message !== 'wrong password' || state !== smimeState) { return; }
+          state.current = typed;
+          var drop = function () { state.current = ''; };
+          smimeAsk(t('Unlock your keys'), t('The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.'), 'unlock').then(drop, drop);
+        });
+      }
     });
   };
   // Unwraps every own key that is still wrapped, with the password given;
@@ -3409,13 +3498,19 @@
   var smimeUnlockWith = function (password) {
     var chain = Promise.resolve();
     var failed = '';
-    smimeState.own.forEach(function (entry) {
+    // Bound to the account's state at the start: the derivation takes long
+    // enough that a sign-out can happen under it, and a key that opens after
+    // that belongs to nobody the page is showing - it is not kept anywhere.
+    var state = smimeState;
+    state.own.forEach(function (entry) {
       chain = chain.then(function () {
-        if (smimeState.unlocked[entry.fingerprint] || !entry.key) { return null; }
+        if (state !== smimeState || state.unlocked[entry.fingerprint] || !entry.key) { return null; }
         return smime().unwrapPrivateKey(entry.key, password).then(function (pkcs8) {
+          if (state !== smimeState) { return null; }
           return smime().importPrivateKey(pkcs8).then(function (key) {
+            if (state !== smimeState) { return; }
             var chainCerts = (entry.chain || []).map(function (c) { try { return smime().parseCertificate(smime().b64decode(c)); } catch (e) { return null; } }).filter(Boolean);
-            smimeState.unlocked[entry.fingerprint] = { key: key, certificate: smimeParse(entry), chain: chainCerts, address: entry.address, entry: entry };
+            state.unlocked[entry.fingerprint] = { key: key, certificate: smimeParse(entry), chain: chainCerts, address: entry.address, entry: entry };
           });
         }, function (e) { failed = e && e.message ? e.message : String(e); });
       });
@@ -3447,8 +3542,28 @@
     var password = el('smime-unlock-password').value;
     if (!password) { say('smime-unlock-status', t('Enter your password.'), false); return; }
     if (el('smime-unlock-form').getAttribute('data-ask') === 'password') { smimeSettle(true, password); return; }
-    smimeUnlockWith(password).then(function () { smimeSettle(true, password); }, function (e) {
-      say('smime-unlock-status', (e && e.message === 'wrong password') ? t('Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.') : String(e && e.message || e), false);
+    smimeUnlockWith(password).then(function () {
+      // The keys opened with a password this session did not sign in with:
+      // an administrator changed it, and the wrapping is still the old
+      // password's. Both are here at this moment - the current one because
+      // loadSmime opened this dialogue while it still had it - so wrap them
+      // again with the current one now, which is what the dialogue promises,
+      // and forget it either way.
+      var current = smimeState.current;
+      smimeState.current = '';
+      if (!current || current === password) { smimeSettle(true, password); return; }
+      smimeRewrapUnlocked(current).then(function (count) {
+        smimeSettle(true, current);
+        if (count) { say('smime-status', t('Your keys were re-wrapped with the new password.'), true); loadSmime(); }
+      }, function () { smimeSettle(true, password); });
+    }, function (e) {
+      if (!e || e.message !== 'wrong password') { say('smime-unlock-status', String(e && e.message || e), false); return; }
+      // Two sentences, because only one of them is true at a time: the page
+      // can wrap the keys again only while it holds the current password,
+      // which is in the dialogue opened at sign-in and nowhere after it.
+      say('smime-unlock-status', smimeState.current
+        ? t('Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.')
+        : t('Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.'), false);
     });
   });
   el('smime-unlock-cancel').addEventListener('click', function () { smimeSettle(false, t('Not sent. The message is still here.')); });
@@ -3487,6 +3602,11 @@
     if (!smime()) { return; }
     var type = smimeContentType(m.headers);
     if (type.indexOf('multipart/signed') !== 0 && type.indexOf('application/pkcs7-mime') !== 0 && type.indexOf('application/x-pkcs7-mime') !== 0) { return; }
+    if (!smimeUsable()) {
+      el('message-smime-text').textContent = t('Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.');
+      el('message-smime').hidden = false;
+      return;
+    }
     var run = ++smimeRun;
     el('message-smime-text').textContent = t('Checking the signature...');
     el('message-smime').hidden = false;
@@ -3568,6 +3688,7 @@
   var smimePrepare = function (body) {
     if (!body.sign && !body.encrypt) { return Promise.resolve(body); }
     if (!smime()) { return Promise.reject(t('The S/MIME module did not load.')); }
+    if (!smimeUsable()) { return Promise.reject(t('Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.')); }
     var own = smimeOwnFor(body.from ? smimeAddress(body.from) : me);
     if (body.sign && !own) { return Promise.reject(t('Sign: no certificate of yours for this From address.')); }
     var recipients = [];
@@ -3601,6 +3722,7 @@
     var file = (el('smime-file').files || [])[0];
     if (!file) { say('smime-status', t('Choose a file first.'), false); return; }
     if (!smime()) { say('smime-status', t('The S/MIME module did not load.'), false); return; }
+    if (!smimeUsable()) { say('smime-status', t('Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.'), false); return; }
     var passphrase = el('smime-passphrase').value;
     say('smime-status', t('Importing...'), true);
     file.arrayBuffer().then(function (buffer) {
@@ -3610,6 +3732,7 @@
       var others = found.certificates.filter(function (c) { return !keyed.some(function (k) { return k.certificate === c; }) && !c.isCA && c.emails.length; });
       if (!keyed.length && !others.length) { throw new Error(t('The file holds no certificate.')); }
       var ask = keyed.length ? smimeAsk(t('Your password protects the key'), t('It is wrapped with your password in this browser before it is stored; the server cannot open it.'), 'password') : Promise.resolve('');
+      var state = smimeState;
       return ask.then(function (password) {
         var chain = Promise.resolve();
         var imported = [];
@@ -3623,8 +3746,9 @@
                 var entry = { address: address, name: cert.name, fingerprint: fp, certificate: smime().b64encode(cert.raw), chain: chainCerts.map(function (c) { return smime().b64encode(c.raw); }), key: wrapped, not_after: smimeSeconds(cert.notAfter) };
                 return call('PUT', '/api/v1/me/smime/own', entry).then(function (result) {
                   if (result.status !== 200 && result.status !== 201) { throw new Error(describe(result, t('Could not store the key'))); }
+                  if (state !== smimeState) { return; }
                   smimeCerts[fp] = cert;
-                  smimeState.unlocked[fp] = { key: k.key, certificate: cert, chain: chainCerts, address: address, entry: entry };
+                  state.unlocked[fp] = { key: k.key, certificate: cert, chain: chainCerts, address: address, entry: entry };
                   imported.push(address);
                 });
               });
@@ -3815,6 +3939,7 @@
     if (at.length !== 16) { say('compose-status', t('Choose when to send it.'), false); return; }
     if (!el('compose-to').value.trim()) { say('compose-status', t('Say who it is to.'), false); return; }
     var body = composeBody();
+    if (smimeSealedDraft(body)) { return; }
     if (draftId) { body.replace_id = draftId; }
     readFiles().then(function (files) {
       files = carried.concat(files);

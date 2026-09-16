@@ -617,10 +617,12 @@
   "Write your message": "כתוב את ההודעה שלך",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "נכתבת בהודעה חדשה ונשמרת משם. בתבנית, {first_name} הופך לשם הפרטי של הנמען הראשון, {subject} לנושא, {date} לתאריך היום.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "סיסמה שגויה. אם מנהל שינה את הסיסמה שלך, הזן את זו שהייתה לך קודם; המפתחות ייעטפו אז מחדש בסיסמה הנוכחית.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "סיסמה שגויה. אם מנהל שינה את הסיסמה שלך, הזן את זו שהייתה לך קודם; כדי שהמפתחות ייעטפו מחדש בסיסמה הנוכחית, התנתק, התחבר שוב ופתח אותם פעם אחת.",
   "You do not usually get mail from this sender.": "בדרך כלל אינך מקבל דואר מהשולח הזה.",
   "You will get the digest.": "תקבלו את התקציר.",
   "You will not get the digest. Held mail is still held, and still listed here.": "לא תקבלו את התקציר. הדואר עדיין מוחזק ועדיין מופיע כאן.",
   "Your keys were re-wrapped with the new password.": "המפתחות שלך נעטפו מחדש בסיסמה החדשה.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "חתימה והצפנה אינן זמינות: הדפדפן מונע את הקריפטוגרפיה שלו מדף שלא נפתח דרך HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "תיבת הדואר שלך, בדפדפן זה. הסיסמה מוחלפת פעם אחת בעוגיית הפעלה ואינה נשמרת לעולם בעמוד זה.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "ההודעה שלך מזכירה קובץ מצורף, אך דבר אינו מצורף. לשלוח בכל זאת?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "הכתובת שלך, כל כינוי שמצביע לכאן, וכל תיבה שהתירה לך לכתוב בשמה. בורר השולח בהודעה חדשה מציע את אותה רשימה.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} נבחרו",
   "{0} stops here: the next thing it points at is not on this screen.": "“{0}” עוצר כאן: הדבר הבא שהוא מצביע עליו אינו במסך הזה.",
   "{0} unread": "{0} לא נקראו",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "הסיסמה שבה נכנסת אינה פותחת את המפתחות שלך. אם מנהל שינה את הסיסמה שלך, הזן את זו שהייתה לך קודם; המפתחות ייעטפו אז מחדש בסיסמה הנוכחית.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "הודעה חתומה או מוצפנת עדיין אינה ניתנת לשמירה כטיוטה או לתזמון: בטל את הסימון של חתימה והצפנה, או שלח אותה עכשיו."
 }

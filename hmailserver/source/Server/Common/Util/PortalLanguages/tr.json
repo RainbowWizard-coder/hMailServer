@@ -617,10 +617,12 @@
   "Write your message": "İletinizi yazın",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Yeni bir iletide yazılır ve oradan kaydedilir. Şablonda {first_name} ilk alıcının adı, {subject} konu, {date} bugünün tarihi olur.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Yanlış parola. Parolanızı bir yönetici değiştirdiyse öncekini girin; anahtarlar sonra şu ankiyle yeniden sarılır.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Yanlış parola. Parolanızı bir yönetici değiştirdiyse öncekini girin; anahtarların şu ankiyle yeniden sarılması için oturumu kapatın, yeniden açın ve anahtarları bir kez açın.",
   "You do not usually get mail from this sender.": "Bu göndericiden genellikle posta almazsınız.",
   "You will get the digest.": "Özeti alacaksınız.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Özeti almayacaksınız. Posta yine alıkonuyor ve burada yine listeleniyor.",
   "Your keys were re-wrapped with the new password.": "Anahtarlarınız yeni parolayla yeniden sarıldı.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "İmzalama ve şifreleme kullanılamıyor: tarayıcı, HTTPS üzerinden açılmamış bir sayfaya kriptografisini sunmaz.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Bu tarayıcıdaki posta kutunuz. Parola bir kez oturum çerezi ile değiştirilir ve bu sayfa tarafından hiç saklanmaz.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "İletiniz bir ekten söz ediyor ama hiçbir şey eklenmemiş. Yine de gönderilsin mi?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Kendi adresiniz, buraya işaret eden her takma ad ve sizin onun adına yazmanıza izin vermiş her posta kutusu. Yeni iletideki Kimden seçici aynı listeyi sunar.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} seçildi",
   "{0} stops here: the next thing it points at is not on this screen.": "“{0}” burada duruyor: gösterdiği bir sonraki şey bu ekranda değil.",
   "{0} unread": "{0} okunmamış",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Oturum açtığınız parola anahtarlarınızı açmıyor. Parolanızı bir yönetici değiştirdiyse öncekini girin; anahtarlar sonra şu ankiyle yeniden sarılır.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "İmzalı veya şifreli bir ileti henüz taslak olarak kaydedilemez ya da zamanlanamaz: İmzala ve Şifrele seçimlerini kaldırın ya da şimdi gönderin."
 }

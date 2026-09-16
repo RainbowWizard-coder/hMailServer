@@ -1116,6 +1116,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 <div class="card">
 <h2>S/MIME</h2>
+<p id="smime-unavailable" class="note" hidden>Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.</p>
+<div id="smime-body">
 <p class="note">Sign and encrypt mail in this browser. Your private key is wrapped with your password here before it is stored; the server cannot open it. Import a PKCS#12 (.p12, .pfx) or PEM file with its passphrase.</p>
 <form id="smime-import-form" class="row">
 <input id="smime-file" type="file" accept=".p12,.pfx,.pem,.crt,.cer,.der,.key" aria-label="Certificate file" style="width:auto;flex:1">
@@ -1129,6 +1131,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <p class="note">Kept from the signed messages they sent, so a message to them can be encrypted.</p>
 <table class="list" id="smime-recipient-table" hidden><thead><tr><th>Address</th><th>Certificate</th><th>Expires</th><th></th></tr></thead><tbody id="smime-recipient-rows"></tbody></table>
 <div id="smime-recipient-empty" class="hint">None yet.</div>
+</div>
 </div>
 <div class="card">
 <h2>Sessions</h2>

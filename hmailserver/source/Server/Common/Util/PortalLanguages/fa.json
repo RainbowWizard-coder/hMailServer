@@ -617,10 +617,12 @@
   "Write your message": "پیام خود را بنویسید",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "در پیامی نو نوشته و از همان‌جا ذخیره می‌شود. در یک قالب، {first_name} نام نخستین گیرنده می‌شود، {subject} موضوع، و {date} تاریخ امروز.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "گذرواژه نادرست است. اگر مدیری گذرواژهٔ شما را تغییر داده است، همان را که پیش‌تر داشتید وارد کنید؛ آنگاه کلیدها با گذرواژهٔ کنونی دوباره پوشانده می‌شوند.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "گذرواژه نادرست است. اگر مدیری گذرواژهٔ شما را تغییر داده است، همان را که پیش‌تر داشتید وارد کنید؛ برای آنکه کلیدها با گذرواژهٔ کنونی دوباره پوشانده شوند، از حساب خارج شوید، دوباره وارد شوید و یک بار آن‌ها را باز کنید.",
   "You do not usually get mail from this sender.": "شما معمولاً از این فرستنده نامه دریافت نمی‌کنید.",
   "You will get the digest.": "چکیده را دریافت خواهید کرد.",
   "You will not get the digest. Held mail is still held, and still listed here.": "چکیده را دریافت نخواهید کرد. نامه‌ها همچنان نگه داشته می‌شوند و همچنان اینجا فهرست می‌شوند.",
   "Your keys were re-wrapped with the new password.": "کلیدهای شما با گذرواژهٔ نو دوباره پوشانده شدند.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "امضا و رمزگذاری در دسترس نیستند: مرورگر رمزنگاری خود را از صفحه‌ای که از طریق HTTPS باز نشده است دریغ می‌کند.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "صندوق پستی شما، در همین مرورگر. گذرواژه یک بار با یک کلوچک نشست جابه‌جا می‌شود و هرگز در این صفحه نگاه داشته نمی‌شود.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "پیام شما از پیوستی نام می‌برد، اما چیزی پیوست نشده است. با این حال فرستاده شود؟",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "نشانی خود شما، هر نام مستعاری که به اینجا اشاره دارد، و هر صندوقی که به شما اجازهٔ نوشتن به نام خود را داده است. گزینندهٔ فرستنده در پیامی نو همین فهرست را پیش می‌نهد.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} برگزیده",
   "{0} stops here: the next thing it points at is not on this screen.": "«{0}» اینجا می‌ایستد: چیز بعدی که به آن اشاره می‌کند در این صفحه نیست.",
   "{0} unread": "{0} نخوانده",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "گذرواژه‌ای که با آن وارد شدید کلیدهای شما را باز نمی‌کند. اگر مدیری گذرواژهٔ شما را تغییر داده است، همان را که پیش‌تر داشتید وارد کنید؛ آنگاه کلیدها با گذرواژهٔ کنونی دوباره پوشانده می‌شوند.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "پیام امضاشده یا رمزگذاری‌شده هنوز نمی‌تواند به‌عنوان پیش‌نویس ذخیره یا زمان‌بندی شود: تیک «امضا» و «رمزگذاری» را بردارید، یا اکنون آن را بفرستید."
 }

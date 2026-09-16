@@ -617,10 +617,12 @@
   "Write your message": "اكتب رسالتك",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "يُكتب في رسالة جديدة ويُحفظ من هناك. في القالب، يصير {first_name} الاسم الأول لأول مستلم، و{subject} الموضوع، و{date} تاريخ اليوم.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "كلمة المرور خاطئة. إن كان مدير قد غيّر كلمة مرورك، فأدخل التي كانت لديك من قبل؛ عندها يُعاد تغليف المفاتيح بالكلمة الحالية.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "كلمة المرور خاطئة. إن كان مدير قد غيّر كلمة مرورك، فأدخل التي كانت لديك من قبل؛ ولإعادة تغليف المفاتيح بالكلمة الحالية، سجّل الخروج ثم سجّل الدخول من جديد وافتح المفاتيح مرة واحدة.",
   "You do not usually get mail from this sender.": "لا تتلقى عادةً رسائل من هذا المرسل.",
   "You will get the digest.": "ستصلك رسائل الملخّص.",
   "You will not get the digest. Held mail is still held, and still listed here.": "لن تصلك رسائل الملخّص. البريد المحتجز يبقى محتجزًا، ولا يزال مُدرجًا هنا.",
   "Your keys were re-wrapped with the new password.": "أُعيد تغليف مفاتيحك بكلمة المرور الجديدة.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "التوقيع والتشفير غير متاحين: يحجب المتصفح تشفيره عن صفحة لم تُفتح عبر HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "صندوق بريدك، في هذا المتصفح. تُستبدل كلمة المرور مرة واحدة بكعكة جلسة، ولا تحتفظ بها هذه الصفحة أبدًا.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "تذكر رسالتك مرفقًا، لكن لا شيء مرفق. أتُرسلها رغم ذلك؟",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "عنوانك أنت، وكل اسم مستعار يشير إلى هنا، وكل صندوق سمح لك بالكتابة باسمه. ويعرض منتقي المرسِل في رسالة جديدة القائمة نفسها.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} محدّدة",
   "{0} stops here: the next thing it points at is not on this screen.": "تتوقّف «{0}» هنا: الشيء التالي الذي تشير إليه ليس على هذه الشاشة.",
   "{0} unread": "{0} غير مقروءة",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "كلمة المرور التي سجّلت بها الدخول لا تفتح مفاتيحك. إن كان مدير قد غيّر كلمة مرورك، فأدخل التي كانت لديك من قبل؛ عندها يُعاد تغليف المفاتيح بالكلمة الحالية.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "لا يمكن بعد حفظ رسالة موقّعة أو مشفّرة كمسودة أو جدولتها: ألغِ تحديد «توقيع» و«تشفير»، أو أرسلها الآن."
 }

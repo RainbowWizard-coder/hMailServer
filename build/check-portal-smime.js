@@ -99,6 +99,18 @@ function openssl(args, input) {
   let bad = '';
   try { await smime.unwrapPrivateKey(wrapped, 'other'); } catch (e) { bad = e.message; }
   check(bad === 'wrong password', 'unwrapping with another password fails: ' + bad);
+  check(wrapped.v === 1 && wrapped.kdf === 'PBKDF2-SHA256' && wrapped.iterations === 600000 && wrapped.salt.length >= 20,
+    'the envelope says how it was made: v' + wrapped.v + ', ' + wrapped.kdf + ' x ' + wrapped.iterations);
+  // A row stored before the server kept the version marker: neither field.
+  const older = { iterations: wrapped.iterations, salt: wrapped.salt, iv: wrapped.iv, data: wrapped.data };
+  const fromOlder = await smime.unwrapPrivateKey(older, 'account-password');
+  check(Buffer.compare(Buffer.from(fromOlder), Buffer.from(clear.keys[0].key.pkcs8)) === 0, 'an envelope with no version and no kdf is read as the only one this module has written');
+  let refused = '';
+  try { await smime.unwrapPrivateKey(Object.assign({}, wrapped, { kdf: 'scrypt' }), 'account-password'); } catch (e) { refused = e.message; }
+  check(/scrypt/.test(refused) && refused !== 'wrong password', 'a derivation this module does not know is refused by name, not mis-derived: ' + refused);
+  let refusedVersion = '';
+  try { await smime.unwrapPrivateKey(Object.assign({}, wrapped, { v: 2 }), 'account-password'); } catch (e) { refusedVersion = e.message; }
+  check(/version 2/.test(refusedVersion) && refusedVersion !== 'wrong password', 'a version this module does not know is refused by name: ' + refusedVersion);
 
   console.log('== verifying what OpenSSL signed');
   const own = [{ key: clear.keys[0].key, certificate: alice }];

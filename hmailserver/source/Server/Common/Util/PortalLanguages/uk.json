@@ -617,10 +617,12 @@
   "Write your message": "Напишіть повідомлення",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Пишеться в новому листі та зберігається звідти. У шаблоні {first_name} стає ім'ям першого одержувача, {subject} - темою, {date} - сьогоднішньою датою.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Неправильний пароль. Якщо адміністратор змінив ваш пароль, введіть попередній; ключі потім буде загорнуто заново поточним.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Неправильний пароль. Якщо адміністратор змінив ваш пароль, введіть попередній; щоб ключі було загорнуто заново поточним, вийдіть, увійдіть знову та розблокуйте їх один раз.",
   "You do not usually get mail from this sender.": "Зазвичай ви не отримуєте листів від цього відправника.",
   "You will get the digest.": "Ви отримуватимете зведення.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Ви не отримуватимете зведення. Пошта й далі затримується і й далі перелічена тут.",
   "Your keys were re-wrapped with the new password.": "Ваші ключі заново загорнуто новим паролем.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Підпис і шифрування недоступні: браузер не надає свою криптографію сторінці, відкритій не через HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Ваша поштова скринька в цьому браузері. Пароль один раз обмінюється на cookie сеансу і ця сторінка ніколи його не зберігає.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "У вашому повідомленні згадується вкладення, але нічого не вкладено. Усе одно надіслати?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Ваша адреса, кожен псевдонім, що веде сюди, і кожна скринька, яка дозволила вам писати від її імені. Вибір поля Від у новому листі пропонує той самий список.",
@@ -678,5 +680,7 @@
   "{0} selected": "Вибрано: {0}",
   "{0} stops here: the next thing it points at is not on this screen.": "«{0}» зупиняється тут: наступне, на що вона вказує, не показано на цьому екрані.",
   "{0} unread": "{0} непрочитаних",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Пароль, з яким ви увійшли, не відкриває ваші ключі. Якщо адміністратор змінив ваш пароль, введіть попередній; ключі потім буде загорнуто заново поточним.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Підписане або зашифроване повідомлення поки що не можна зберегти як чернетку чи запланувати: зніміть позначки «Підписати» й «Зашифрувати» або надішліть його зараз."
 }

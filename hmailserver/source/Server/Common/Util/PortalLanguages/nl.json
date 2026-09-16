@@ -617,10 +617,12 @@
   "Write your message": "Schrijf uw bericht",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Geschreven in een nieuw bericht en van daaruit opgeslagen. In een sjabloon wordt {first_name} de voornaam van de eerste ontvanger, {subject} het onderwerp, {date} de datum van vandaag.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Verkeerd wachtwoord. Als een beheerder uw wachtwoord heeft gewijzigd, voer dan het vorige in; de sleutels worden dan opnieuw ingepakt met het huidige.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Verkeerd wachtwoord. Als een beheerder uw wachtwoord heeft gewijzigd, voer dan het vorige in; om de sleutels opnieuw te laten inpakken met het huidige, meldt u zich af, weer aan en ontgrendelt u ze één keer.",
   "You do not usually get mail from this sender.": "U ontvangt gewoonlijk geen post van deze afzender.",
   "You will get the digest.": "U krijgt het overzicht.",
   "You will not get the digest. Held mail is still held, and still listed here.": "U krijgt het overzicht niet. Post wordt nog steeds vastgehouden en staat hier nog steeds.",
   "Your keys were re-wrapped with the new password.": "Uw sleutels zijn opnieuw ingepakt met het nieuwe wachtwoord.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Ondertekenen en versleutelen zijn niet beschikbaar: de browser onthoudt zijn cryptografie aan een pagina die niet via HTTPS is geopend.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Uw postvak, in deze browser. Het wachtwoord wordt eenmaal ingewisseld voor een sessiecookie en wordt door deze pagina nooit bewaard.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Uw bericht noemt een bijlage, maar er is niets bijgevoegd. Toch verzenden?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Uw eigen adres, elke alias die hierheen wijst, en elk postvak dat u namens zichzelf laat schrijven. De Van-keuze bij een nieuw bericht biedt dezelfde lijst.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} geselecteerd",
   "{0} stops here: the next thing it points at is not on this screen.": "‘{0}’ stopt hier: het volgende waar hij naar wijst, staat niet op dit scherm.",
   "{0} unread": "{0} ongelezen",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Het wachtwoord waarmee u zich hebt aangemeld, opent uw sleutels niet. Als een beheerder uw wachtwoord heeft gewijzigd, voer dan het vorige in; de sleutels worden dan opnieuw ingepakt met het huidige.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Een ondertekend of versleuteld bericht kan nog niet als concept worden opgeslagen of ingepland: vink Ondertekenen en Versleutelen uit, of verstuur het nu."
 }

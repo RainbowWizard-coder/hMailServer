@@ -617,10 +617,12 @@
   "Write your message": "Skriv ditt meddelande",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Skrivs i ett nytt meddelande och sparas därifrån. I en mall blir {first_name} den första mottagarens förnamn, {subject} ämnet, {date} dagens datum.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Fel lösenord. Om en administratör bytte ditt lösenord, ange det du hade förut; nycklarna paketeras då om med det nuvarande.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Fel lösenord. Om en administratör bytte ditt lösenord, ange det du hade förut; för att nycklarna ska paketeras om med det nuvarande, logga ut, logga in igen och lås upp dem en gång.",
   "You do not usually get mail from this sender.": "Du brukar inte få post från den här avsändaren.",
   "You will get the digest.": "Du får sammanfattningen.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Du får inte sammanfattningen. Posten hålls fortfarande kvar och listas fortfarande här.",
   "Your keys were re-wrapped with the new password.": "Dina nycklar paketerades om med det nya lösenordet.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Signering och kryptering är inte tillgängliga: webbläsaren håller inne sin kryptografi från en sida som inte öppnades över HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Din brevlåda, i den här webbläsaren. Lösenordet byts en gång mot en sessionskaka och sparas aldrig av den här sidan.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Ditt meddelande nämner en bilaga, men inget är bifogat. Skicka ändå?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Din egen adress, varje alias som pekar hit, och varje brevlåda som låtit dig skriva som den. Från-väljaren i ett nytt meddelande erbjuder samma lista.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} markerade",
   "{0} stops here: the next thing it points at is not on this screen.": "”{0}” stannar här: nästa sak den pekar på finns inte på den här skärmen.",
   "{0} unread": "{0} olästa",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Lösenordet du loggade in med öppnar inte dina nycklar. Om en administratör bytte ditt lösenord, ange det du hade förut; nycklarna paketeras då om med det nuvarande.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Ett signerat eller krypterat meddelande kan ännu inte sparas som utkast eller schemaläggas: avmarkera Signera och Kryptera, eller skicka det nu."
 }

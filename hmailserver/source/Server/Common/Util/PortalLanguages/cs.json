@@ -617,10 +617,12 @@
   "Write your message": "Napište zprávu",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Píše se v nové zprávě a odtud se ukládá. V šabloně se {first_name} nahradí jménem prvního příjemce, {subject} předmětem a {date} dnešním datem.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Nesprávné heslo. Pokud vaše heslo změnil správce, zadejte to předchozí; klíče se pak znovu zabalí tím současným.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Nesprávné heslo. Pokud vaše heslo změnil správce, zadejte to předchozí; chcete-li klíče znovu zabalit tím současným, odhlaste se, znovu se přihlaste a jednou je odemkněte.",
   "You do not usually get mail from this sender.": "Od tohoto odesílatele obvykle poštu nedostáváte.",
   "You will get the digest.": "Souhrn vám bude chodit.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Souhrn vám chodit nebude. Zadržená pošta se dál zadržuje a je stále uvedená zde.",
   "Your keys were re-wrapped with the new password.": "Vaše klíče byly znovu zabaleny novým heslem.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Podepisování a šifrování nejsou k dispozici: prohlížeč neposkytuje svou kryptografii stránce, která nebyla otevřena přes HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Vaše schránka v tomto prohlížeči. Heslo se jednou vymění za cookie relace a tato stránka ho nikdy neuchovává.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Vaše zpráva zmiňuje přílohu, ale nic není přiloženo. Přesto odeslat?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Vaše vlastní adresa, každý alias, který sem vede, a každá schránka, která vám dovolila psát jejím jménem. Výběr Od v nové zprávě nabízí stejný seznam.",
@@ -678,5 +680,7 @@
   "{0} selected": "Vybráno: {0}",
   "{0} stops here: the next thing it points at is not on this screen.": "„{0}“ tady končí: další věc, na kterou ukazuje, na této obrazovce není.",
   "{0} unread": "{0} nepřečtených",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Heslo, kterým jste se přihlásili, vaše klíče neotevírá. Pokud vaše heslo změnil správce, zadejte to předchozí; klíče se pak znovu zabalí tím současným.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Podepsanou nebo šifrovanou zprávu zatím nelze uložit jako koncept ani naplánovat: zrušte zaškrtnutí Podepsat a Šifrovat, nebo ji odešlete hned."
 }

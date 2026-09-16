@@ -617,10 +617,12 @@
   "Write your message": "Skriv meldingen din",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Skrives i en ny melding og lagres derfra. I en mal blir {first_name} fornavnet til den første mottakeren, {subject} emnet, {date} dagens dato.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Feil passord. Hvis en administrator endret passordet ditt, skriv inn det du hadde før; nøklene pakkes så inn på nytt med det nåværende.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Feil passord. Hvis en administrator endret passordet ditt, skriv inn det du hadde før; for å få nøklene pakket inn på nytt med det nåværende må du logge ut, logge inn igjen og låse dem opp én gang.",
   "You do not usually get mail from this sender.": "Du pleier ikke å få post fra denne avsenderen.",
   "You will get the digest.": "Du får sammendraget.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Du får ikke sammendraget. Posten holdes fortsatt tilbake og står fortsatt her.",
   "Your keys were re-wrapped with the new password.": "Nøklene dine ble pakket inn på nytt med det nye passordet.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Signering og kryptering er ikke tilgjengelig: nettleseren holder kryptografien sin tilbake fra en side som ikke ble åpnet over HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Postkassen din, i denne nettleseren. Passordet byttes én gang mot en økt-informasjonskapsel og lagres aldri av denne siden.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Meldingen nevner et vedlegg, men ingenting er lagt ved. Sende likevel?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Din egen adresse, hvert alias som peker hit, og hver postkasse som har latt deg skrive som den. Fra-velgeren i en ny melding tilbyr den samme listen.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} valgt",
   "{0} stops here: the next thing it points at is not on this screen.": "«{0}» stopper her: det neste den peker på, er ikke på denne skjermen.",
   "{0} unread": "{0} uleste",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Passordet du logget inn med, åpner ikke nøklene dine. Hvis en administrator endret passordet ditt, skriv inn det du hadde før; nøklene pakkes så inn på nytt med det nåværende.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "En signert eller kryptert melding kan ennå ikke lagres som utkast eller planlegges: fjern avkrysningen for Signer og Krypter, eller send den nå."
 }

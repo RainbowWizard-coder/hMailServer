@@ -617,10 +617,12 @@
   "Write your message": "メッセージを入力",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "新しいメッセージで書き、そこから保存します。テンプレートでは {first_name} が最初の宛先の名、{subject} が件名、{date} が今日の日付になります。",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "パスワードが違います。管理者がパスワードを変更した場合は以前のパスワードを入力してください。鍵は現在のパスワードで包み直されます。",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "パスワードが違います。管理者がパスワードを変更した場合は以前のパスワードを入力してください。鍵を現在のパスワードで包み直すには、いったんサインアウトし、もう一度サインインして一度鍵を解除してください。",
   "You do not usually get mail from this sender.": "この差出人からのメールを受け取ることは普段ありません。",
   "You will get the digest.": "ダイジェストが届きます。",
   "You will not get the digest. Held mail is still held, and still listed here.": "ダイジェストは届きません。メールの保留は続き、ここにも表示されます。",
   "Your keys were re-wrapped with the new password.": "鍵は新しいパスワードで包み直されました。",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "署名と暗号化は利用できません。HTTPS で開かれていないページには、ブラウザーが暗号機能を提供しないためです。",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "このブラウザーで使うあなたのメールボックスです。パスワードは一度だけセッション Cookie と交換され、このページに保存されることはありません。",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "メッセージに添付ファイルについての記述がありますが、何も添付されていません。このまま送信しますか？",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "自分のアドレス、ここに向くすべてのエイリアス、そして代理送信を許可しているすべてのメールボックスです。新しいメッセージの差出人選択にも同じ一覧が表示されます。",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} 件を選択中",
   "{0} stops here: the next thing it points at is not on this screen.": "「{0}」はここで止まります。次に指し示すものがこの画面にありません。",
   "{0} unread": "未読 {0} 件",
-  "{0} {1}.": "{0} 件を{1}。"
+  "{0} {1}.": "{0} 件を{1}。",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "サインインに使ったパスワードでは鍵を開けません。 管理者がパスワードを変更した場合は以前のパスワードを入力してください。鍵は現在のパスワードで包み直されます。",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "署名または暗号化したメッセージは、まだ下書き保存や送信予約ができません。「署名」と「暗号化」のチェックを外すか、今すぐ送信してください。"
 }

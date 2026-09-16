@@ -617,10 +617,12 @@
   "Write your message": "Scrivi il tuo messaggio",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Scritto in un nuovo messaggio e salvato da lì. In un modello, {first_name} diventa il nome del primo destinatario, {subject} l'oggetto, {date} la data di oggi.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Password errata. Se un amministratore ha cambiato la tua password, inserisci quella precedente; le chiavi verranno poi riavvolte con quella attuale.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Password errata. Se un amministratore ha cambiato la tua password, inserisci quella precedente; per far riavvolgere le chiavi con quella attuale, esci, rientra e sbloccale una volta.",
   "You do not usually get mail from this sender.": "Di solito non ricevi posta da questo mittente.",
   "You will get the digest.": "Riceverete il riepilogo.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Non riceverete il riepilogo. La posta resta trattenuta ed è ancora elencata qui.",
   "Your keys were re-wrapped with the new password.": "Le tue chiavi sono state riavvolte con la nuova password.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Firma e cifratura non sono disponibili: il browser nega la sua crittografia a una pagina non aperta tramite HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "La sua casella, in questo browser. La password viene scambiata una volta con un cookie di sessione e questa pagina non la conserva mai.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Il messaggio menziona un allegato, ma non è allegato nulla. Inviarlo comunque?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Il suo indirizzo, ogni alias che punta qui e ogni casella che le ha permesso di scrivere a suo nome. Il selettore Da di un nuovo messaggio offre lo stesso elenco.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} selezionati",
   "{0} stops here: the next thing it points at is not on this screen.": "«{0}» si ferma qui: la prossima cosa che indica non è su questa schermata.",
   "{0} unread": "{0} da leggere",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "La password con cui hai effettuato l'accesso non apre le tue chiavi. Se un amministratore ha cambiato la tua password, inserisci quella precedente; le chiavi verranno poi riavvolte con quella attuale.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Un messaggio firmato o cifrato non può ancora essere salvato come bozza né programmato: deseleziona Firma e Cifra, oppure invialo ora."
 }

@@ -617,10 +617,12 @@
   "Write your message": "Rédigez votre message",
   "Written in a new message and saved from there. In a template, {first_name} becomes the first name of the first recipient, {subject} the subject, {date} today's date.": "Rédigé dans un nouveau message et enregistré depuis celui-ci. Dans un modèle, {first_name} devient le prénom du premier destinataire, {subject} l'objet, {date} la date du jour.",
   "Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Mot de passe incorrect. Si un administrateur a changé votre mot de passe, saisissez l'ancien ; les clés seront alors ré-enveloppées avec l'actuel.",
+  "Wrong password. If an administrator changed your password, enter the one you had before; to have the keys re-wrapped with the current one, sign out, sign in again and unlock them once.": "Mot de passe incorrect. Si un administrateur a changé votre mot de passe, saisissez l'ancien ; pour que les clés soient ré-enveloppées avec l'actuel, déconnectez-vous, reconnectez-vous et déverrouillez-les une fois.",
   "You do not usually get mail from this sender.": "Vous ne recevez habituellement pas de courrier de cet expéditeur.",
   "You will get the digest.": "Vous recevrez le récapitulatif.",
   "You will not get the digest. Held mail is still held, and still listed here.": "Vous ne recevrez pas le récapitulatif. Le courrier reste retenu et reste affiché ici.",
   "Your keys were re-wrapped with the new password.": "Vos clés ont été ré-enveloppées avec le nouveau mot de passe.",
+  "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "La signature et le chiffrement sont indisponibles : le navigateur refuse sa cryptographie à une page qui n'a pas été ouverte en HTTPS.",
   "Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.": "Votre boîte aux lettres, dans ce navigateur. Le mot de passe est échangé une fois contre un cookie de session et n'est jamais conservé par cette page.",
   "Your message mentions an attachment, but nothing is attached. Send it anyway?": "Votre message mentionne une pièce jointe, mais rien n'est joint. L'envoyer quand même ?",
   "Your own address, every alias that points here, and every mailbox that has let you write as it. The From picker on a new message offers the same list.": "Votre propre adresse, chaque alias qui pointe ici, et chaque boîte qui vous a autorisé à écrire en son nom. Le sélecteur De d'un nouveau message propose la même liste.",
@@ -678,5 +680,7 @@
   "{0} selected": "{0} sélectionnés",
   "{0} stops here: the next thing it points at is not on this screen.": "« {0} » s'arrête ici : la prochaine chose qu'elle désigne n'est pas sur cet écran.",
   "{0} unread": "{0} non lus",
-  "{0} {1}.": "{0} {1}."
+  "{0} {1}.": "{0} {1}.",
+  "The password you signed in with does not open your keys. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.": "Le mot de passe avec lequel vous vous êtes connecté n'ouvre pas vos clés. Si un administrateur a changé votre mot de passe, saisissez l'ancien ; les clés seront alors ré-enveloppées avec l'actuel.",
+  "A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.": "Un message signé ou chiffré ne peut pas encore être enregistré comme brouillon ni programmé : décochez Signer et Chiffrer, ou envoyez-le maintenant."
 }

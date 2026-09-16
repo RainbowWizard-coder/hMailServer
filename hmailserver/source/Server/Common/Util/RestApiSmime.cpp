@@ -95,6 +95,17 @@ namespace HM
       const int ChainMaximum = 8;
       const int WrappedKeyMaximum = 16 * 1024;
       const int EntityMaximum = 16 * 1024 * 1024;
+      // How the page wraps a private key (PortalSmime.js): version 1 is
+      // PBKDF2-HMAC-SHA256 then AES-256-GCM, at 600,000 iterations - the
+      // figure OWASP gives for that derivation. A row here is the only thing
+      // between a copy of this database and the private key in it, so a
+      // weaker work factor is refused rather than stored: this validator is
+      // the one place that can refuse it, since the wrapping itself is done
+      // where this server cannot see it.
+      const int WrapVersion = 1;
+      const int WrapVersionMaximum = 99;
+      const int WrapIterationsMinimum = 600000;
+      const int WrapIterationsMaximum = 10000000;
 
       const char *Columns = "smimeid, smimeaccountid, smimekind, smimeaddress, smimename, smimefingerprint, smimecertificate, smimechain, smimekey, smimenotafter, smimecreated";
 
@@ -273,14 +284,20 @@ namespace HM
       }
 
       // The wrapped key as the page made it: the fields it needs to open it
-      // again, checked and written back in one shape.
+      // again, checked and written back in one shape. The version marker is
+      // part of that shape and is kept - dropping it would leave a future
+      // format indistinguishable from this one, and a page that cannot tell
+      // which it is derives the wrong key and reports a wrong password. A
+      // key stored before this was written carries no marker and is version 1,
+      // which is what the page assumes of one.
       bool WrappedKeyJson(const JsonValue *key, AnsiString &out, AnsiString &problem)
       {
          if (!key || !key->IsObject())
          {
-            problem = "{\"error\":\"key: an object with kdf, iterations, salt, iv and data, as the page wraps a private key\"}";
+            problem = "{\"error\":\"key: an object with v, kdf, iterations, salt, iv and data, as the page wraps a private key\"}";
             return false;
          }
+         const JsonValue *version = key->Get("v");
          const JsonValue *kdf = key->Get("kdf");
          const JsonValue *iterations = key->Get("iterations");
          const JsonValue *salt = key->Get("salt");
@@ -291,14 +308,24 @@ namespace HM
             problem = "{\"error\":\"key: kdf (string), iterations (number), salt, iv and data (base64) are required\"}";
             return false;
          }
-         double count = iterations->AsNumber();
-         if (count < 1 || count > 10000000 || !IsBase64(salt->AsString()) || !IsBase64(iv->AsString()) || !IsBase64(data->AsString()) || data->AsString().size() > (size_t) WrappedKeyMaximum)
+         int marker = WrapVersion;
+         if (version)
          {
-            problem = "{\"error\":\"key: iterations is 1 to 10,000,000; salt, iv and data are base64, data at most 16 KB\"}";
+            if (!version->IsNumber() || version->AsNumber() < 1 || version->AsNumber() > WrapVersionMaximum)
+            {
+               problem = "{\"error\":\"key: v is the wrapping's version, a number from 1 to 99\"}";
+               return false;
+            }
+            marker = (int) version->AsNumber();
+         }
+         double count = iterations->AsNumber();
+         if (count < WrapIterationsMinimum || count > WrapIterationsMaximum || !IsBase64(salt->AsString()) || !IsBase64(iv->AsString()) || !IsBase64(data->AsString()) || data->AsString().size() > (size_t) WrappedKeyMaximum)
+         {
+            problem = "{\"error\":\"key: iterations is at least 600,000 and at most 10,000,000; salt, iv and data are base64, data at most 16 KB\"}";
             return false;
          }
-         out.Format("{\"kdf\":\"%hs\",\"iterations\":%d,\"salt\":\"%hs\",\"iv\":\"%hs\",\"data\":\"%hs\"}",
-            Escape(AnsiString(kdf->AsString().c_str())).c_str(), (int) count,
+         out.Format("{\"v\":%d,\"kdf\":\"%hs\",\"iterations\":%d,\"salt\":\"%hs\",\"iv\":\"%hs\",\"data\":\"%hs\"}",
+            marker, Escape(AnsiString(kdf->AsString().c_str())).c_str(), (int) count,
             salt->AsString().c_str(), iv->AsString().c_str(), data->AsString().c_str());
          return true;
       }

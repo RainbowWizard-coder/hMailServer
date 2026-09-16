@@ -354,6 +354,23 @@ let prefsStore = {};
 // A server that does not answer the change route at all - an older one, or one
 // built before that route existed.
 let changesMissing = false;
+// Which account the recorded server answers as. The sign-out checks at the
+// end sign in twice, as two different people in one browser, which is the
+// only way to see what one of them left behind for the other.
+let account = 'user@example.com';
+// The S/MIME store, per account: the rows GET /api/v1/me/smime answers with.
+// A row's wrapped key is the stub module's own shape (see smimeStub below).
+const smimeStores = {};
+const wrappedUnder = (password) => ({ v: 1, kdf: 'PBKDF2-SHA256', iterations: 600000, salt: 'AAAAAAAAAAAAAAAAAAAAAA==', iv: 'AAAAAAAAAAAAAAAA', data: String(password) });
+const ownKeyOf = (address, password) => ({ id: 1, address, name: 'Key of ' + address, fingerprint: 'f'.repeat(64), certificate: 'MAMCAQE=', chain: [], key: wrappedUnder(password), not_after: 2000000000, created: 1700000000 });
+// One message in the shape the S/MIME reader looks at: the headers say it is
+// sealed, so opening it hands the page's unlocked keys to the module.
+const SEALED = {
+   id: 601, folder_id: 1, uid: 21, subject: 'Sealed', from: 'b@example.net', to: 'user@example.com', cc: '',
+   date: '2026-09-09 14:00', size: 900, message_id: '<sealed@example.net>', references: '', in_reply_to: '',
+   headers: 'Content-Type: application/pkcs7-mime; smime-type=enveloped-data; name="smime.p7m"\r\nFrom: b@example.net\r\n',
+   text: '', html: '', html_remote: false, flags: { seen: true, flagged: false, draft: false }, attachments: []
+};
 
 const INBOX = { id: 1, account_id: 7, name: 'INBOX', path: 'INBOX', parent_id: 0, special_use: '', subscribed: true, writable: true, messages: 3, unseen: 2, uidvalidity: 1, subfolders: [] };
 const SENT = { id: 2, account_id: 7, name: 'Sent', path: 'Sent', parent_id: 0, special_use: '\\Sent', subscribed: true, writable: true, messages: 1, unseen: 0, uidvalidity: 1, subfolders: [] };
@@ -448,12 +465,12 @@ function json(status, body, headers) {
 }
 
 function answer(method, path, body) {
-   if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: 'user@example.com' }); }
+   if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
    if (path === '/api/v1/me') {
       return json(200, {
-         address: 'user@example.com', quota: { used_bytes: 5242880, limit_mb: 100 },
+         address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
          vacation: { enabled: false, subject: '', message: '', expires: false, expires_date: '' },
          second_factor: false, directory_linked: false, password_changed: '2026-09-01'
       });
@@ -554,6 +571,23 @@ function answer(method, path, body) {
       return { status: 200, body: 'FILEBYTES', headers: { 'Content-Type': types[Number(path.split('/').pop())] || 'application/octet-stream' } };
    }
    if (path === '/api/v1/me/messages/105' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(DRAFT_WITH_LOGO)))); }
+   if (path === '/api/v1/me/smime' && method === 'GET') {
+      const store = smimeStores[account] || { own: [], recipients: [] };
+      return json(200, { own: store.own, recipients: store.recipients, limits: { own: 20, recipients: 500 } });
+   }
+   if (path === '/api/v1/me/smime/own' && method === 'PUT') {
+      const store = smimeStores[account] || (smimeStores[account] = { own: [], recipients: [] });
+      const wanted = JSON.parse(body || '{}');
+      const at = store.own.findIndex((o) => o.fingerprint === wanted.fingerprint);
+      const row = Object.assign({ id: 1, created: 1700000000 }, wanted);
+      if (at >= 0) { store.own[at] = row; return json(200, row); }
+      store.own.push(row);
+      return json(201, row);
+   }
+   if (path === '/api/v1/me/messages/601' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(SEALED)))); }
+   if (path === '/api/v1/me/messages/601/source' && method === 'GET') {
+      return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: 'Content-Type: application/pkcs7-mime\r\n\r\nAAECAwQ=\r\n' };
+   }
    if (/^\/api\/v1\/me\/messages\/5\d\d$/.test(path) && method === 'GET') {
       const one = WORK_THREAD.filter((m) => m.id === Number(path.split('/').pop()))[0];
       if (one) { return json(200, withState(Object.assign({ folder_id: 3, cc: '', html: '', attachments: [] }, one))); }
@@ -617,10 +651,37 @@ function fetchStub(path, options) {
       ok: reply.status >= 200 && reply.status < 300,
       headers: { get: (name) => (name in reply.headers ? reply.headers[name] : null) },
       text: () => Promise.resolve(reply.body),
+      arrayBuffer: () => Promise.resolve(Uint8Array.from(Buffer.from(reply.body, 'binary')).buffer),
       json: () => Promise.resolve(JSON.parse(reply.body)),
       blob: () => Promise.resolve({ type: reply.headers['Content-Type'] || 'application/octet-stream', base64: 'QUJD' })
    });
 }
+
+/* --------------------------------------------- the page's S/MIME module */
+
+// window.hmSmime, as far as the page uses it. The real module is held to
+// OpenSSL in both directions by build/check-portal-smime.js; what matters
+// here is which keys the page hands it, so this one records them. Its
+// wrapped key is its own password - {"data": "<the password>"} - so it
+// unwraps with the right one and throws 'wrong password' with any other,
+// which is the message the real module throws and the page reads.
+const readWith = [];
+const smimeStub = {
+   parseCertificate: (bytes) => ({ raw: bytes, emails: [], name: 'Certificate', notAfter: new Date('2030-01-01T00:00:00Z'), isCA: false, keyType: 'rsa' }),
+   b64decode: (value) => Uint8Array.from(Buffer.from(String(value), 'base64')),
+   b64encode: (bytes) => Buffer.from(bytes).toString('base64'),
+   fingerprint: async () => 'f'.repeat(64),
+   importPrivateKey: async (pkcs8) => ({ type: 'rsa', pkcs8 }),
+   wrapPrivateKey: async (pkcs8, password) => wrappedUnder(password),
+   unwrapPrivateKey: async (wrapped, password) => {
+      if (!wrapped || String(wrapped.data) !== String(password)) { throw new Error('wrong password'); }
+      return Uint8Array.from([0x30, 0x03, 0x02, 0x01, 0x01]);
+   },
+   readMessage: async (bytes, unlocked) => {
+      readWith.push(unlocked.map((u) => u.address).sort());
+      return { layers: ['encrypted'], encrypted: { ok: false, error: 'not encrypted for a key this page holds' }, signed: null, content: null };
+   }
+};
 
 /* ------------------------------------------------------------ the assertions */
 
@@ -2277,6 +2338,158 @@ async function main() {
    check('the draft is blank again', document.getElementById('compose-to').value === '',
       document.getElementById('compose-to').value);
    check('the recent searches go with the account', !store.has('hmPortalSearches'), String(store.get('hmPortalSearches')));
+
+   // ---- and it forgets the keys, which is the other half that matters on a
+   // shared browser. The unlocked map holds the account's private keys
+   // themselves, and the page hands every one of them to the S/MIME module
+   // whenever a sealed message is opened - so a key left there after a
+   // sign-out is offered to the next person who signs in, against their mail.
+   // Signed in twice here, as two different people in one tab.
+   window.hmSmime = smimeStub;
+   smimeStores['user@example.com'] = { own: [ownKeyOf('user@example.com', 'a-real-password')], recipients: [] };
+   smimeStores['second@example.com'] = { own: [], recipients: [] };
+   const signInAs = async (address, password) => {
+      account = address;
+      document.getElementById('address').value = address;
+      document.getElementById('password').value = password;
+      document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+   };
+   const openSealed = async () => {
+      location.hash = '#/m/601';
+      await flush();
+      location.hash = '#/f/1';
+      await flush();
+   };
+   await signInAs('user@example.com', 'a-real-password');
+   check('the key of the account signing in is listed', document.getElementById('smime-own-rows').children.length === 1,
+      document.getElementById('smime-own-rows').children.length + ' rows');
+   await openSealed();
+   check('a sealed message is read with the keys the password at the gate unlocked',
+      readWith.length === 1 && readWith[0].length === 1 && readWith[0][0] === 'user@example.com', JSON.stringify(readWith));
+   // A password typed into the unlock box and never submitted is a password
+   // in a field, and the field survives a sign-out unless it is emptied.
+   document.getElementById('smime-unlock-password').value = 'typed-and-not-sent';
+   document.getElementById('smime-passphrase').value = 'the-file-passphrase';
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('sign-out empties the certificate store on the page',
+      document.getElementById('smime-own-rows').children.length === 0 && document.getElementById('smime-own-table').hidden === true,
+      document.getElementById('smime-own-rows').children.length + ' rows, table hidden=' + document.getElementById('smime-own-table').hidden);
+   check('and keeps no password in either box',
+      document.getElementById('smime-unlock-password').value === '' && document.getElementById('smime-passphrase').value === '',
+      JSON.stringify([document.getElementById('smime-unlock-password').value, document.getElementById('smime-passphrase').value]));
+   await signInAs('second@example.com', 'a-different-password');
+   await openSealed();
+   check('and the next account to sign in is handed none of the first account\'s keys',
+      readWith.length === 2 && readWith[1].length === 0, JSON.stringify(readWith));
+
+   // ---- the promise the unlock dialogue makes, kept
+   // An administrator has changed the password: the keys are still wrapped
+   // under the old one, so the password that signs in will not open them. The
+   // page's refusal says that entering the old one re-wraps them with the
+   // current one, and this is that sentence being true - from the refusal to
+   // the PUT that stores the new wrapping.
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   smimeStores['third@example.com'] = { own: [ownKeyOf('third@example.com', 'the-old-password')], recipients: [] };
+   await signInAs('third@example.com', 'the-current-password');
+   location.hash = '#/m/601';
+   await flush();
+   check('a sealed message whose keys the gate did not open offers to unlock them',
+      document.getElementById('message-smime-unlock').hidden === false);
+   document.getElementById('message-smime-unlock').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('and asks for a password', document.getElementById('smime-unlock').hidden === false);
+   document.getElementById('smime-unlock-password').value = 'neither-password';
+   document.getElementById('smime-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('a password that opens nothing is refused with the promise this session can keep, in the reader\'s language',
+      document.getElementById('smime-unlock-status').textContent === german['Wrong password. If an administrator changed your password, enter the one you had before; the keys are then re-wrapped with the current one.'],
+      document.getElementById('smime-unlock-status').textContent);
+   const beforeRewrap = requests.length;
+   document.getElementById('smime-unlock-password').value = 'the-old-password';
+   document.getElementById('smime-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const rewrap = since(beforeRewrap).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/smime/own').pop();
+   check('the password the keys were wrapped under opens them, and they are wrapped again with the current one',
+      !!rewrap && JSON.parse(rewrap.body).key.data === 'the-current-password', rewrap ? rewrap.body : 'nothing was stored again');
+   check('so what the server holds is the new wrapping',
+      smimeStores['third@example.com'].own[0].key.data === 'the-current-password',
+      JSON.stringify(smimeStores['third@example.com'].own[0].key));
+   check('and the dialogue is gone', document.getElementById('smime-unlock').hidden === true);
+
+   // ---- the page closing during the undo countdown does not send a sealed
+   // message in the clear. Signing and encryption happen in smimePrepare on
+   // the way through submitMessage; beforeunload cannot wait for them, so the
+   // body it could send is the plaintext with an encrypt flag the server
+   // ignores. The right thing is to send nothing and warn, and this is the
+   // check that fails on the tree that sent it.
+   await writeMessage('For your eyes only.');
+   document.getElementById('compose-encrypt').checked = true;
+   const beforeClose = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('a send with Encrypt ticked waits out the undo delay', timers.length > 0 && !called(beforeClose, 'POST', '/api/v1/me/messages'),
+      timers.length + ' timers, ' + JSON.stringify(since(beforeClose).map((r) => r.method + ' ' + r.path)));
+   const closing = makeEvent('beforeunload');
+   window.dispatchEvent(closing);
+   await flush();
+   check('and the page closing during the wait sends nothing, rather than the plaintext',
+      !called(beforeClose, 'POST', '/api/v1/me/messages'), JSON.stringify(since(beforeClose).map((r) => r.method + ' ' + r.path + ' ' + r.body)));
+   check('and warns that a message is still waiting', closing.defaultPrevented === true);
+   document.getElementById('undo-send').dispatchEvent(makeEvent('click'));
+   await flush();
+   // The negative control: the same message with nothing to seal still goes
+   // in the request the browser keeps alive after the page, as it always did.
+   document.getElementById('compose-to').value = 'a@example.net';
+   document.getElementById('compose-subject').value = 'For anyone';
+   document.getElementById('compose-text').value = 'Nothing to seal.';
+   document.getElementById('compose-encrypt').checked = false;
+   document.getElementById('compose-sign').checked = false;
+   const beforePlain = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const closingPlain = makeEvent('beforeunload');
+   window.dispatchEvent(closingPlain);
+   await flush();
+   const keptAlive = since(beforePlain).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/messages').pop();
+   check('a plain message waiting when the page closes goes in a request kept alive after it, unwarned',
+      !!keptAlive && closingPlain.defaultPrevented === false && JSON.parse(keptAlive.body).encrypt === undefined,
+      keptAlive ? keptAlive.body : 'no POST; prevented=' + closingPlain.defaultPrevented);
+   dismissAllToasts();
+
+   // ---- a page the browser gave no cryptography. Over plain HTTP - behind
+   // a reverse proxy that speaks HTTPS to the world and HTTP to this server -
+   // the page is not a secure context and crypto.subtle is withheld. The
+   // controls stay away and the page says why, instead of offering Sign and
+   // Encrypt and failing at send time with the name of a missing property.
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   window.hmSmime = Object.assign({}, smimeStub, { available: false });
+   window.isSecureContext = false;
+   const readsBefore = readWith.length;
+   const beforeInsecure = requests.length;
+   await signInAs('user@example.com', 'a-real-password');
+   check('on a page without cryptography the Security card says signing and encryption are unavailable, and why',
+      document.getElementById('smime-unavailable').hidden === false && document.getElementById('smime-body').hidden === true
+         && document.getElementById('smime-unavailable').textContent.indexOf('HTTPS') >= 0,
+      'unavailable hidden=' + document.getElementById('smime-unavailable').hidden + ' body hidden=' + document.getElementById('smime-body').hidden);
+   check('and the key store is not even asked for', !called(beforeInsecure, 'GET', '/api/v1/me/smime'),
+      JSON.stringify(since(beforeInsecure).filter((r) => /smime/.test(r.path)).map((r) => r.method + ' ' + r.path)));
+   location.hash = '#/m/601';
+   await flush();
+   check('a sealed message says so in the reader rather than failing',
+      document.getElementById('message-smime').hidden === false && document.getElementById('message-smime-text').textContent.indexOf('HTTPS') >= 0
+         && document.getElementById('message-smime-unlock').hidden === true,
+      document.getElementById('message-smime-text').textContent);
+   check('and no key is handed to a module that cannot use one', readWith.length === readsBefore, readWith.length + ' reads');
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   check('and the compose form offers neither Sign nor Encrypt',
+      document.getElementById('compose-sign-label').hidden === true && document.getElementById('compose-encrypt-label').hidden === true);
+   window.hmSmime = smimeStub;
+   delete window.isSecureContext;
 
    if (failures.length) {
       console.error('\nportal script: ' + failures.length + ' of ' + checks + ' checks failed\n');
