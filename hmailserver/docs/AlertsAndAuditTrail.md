@@ -149,9 +149,10 @@ way:
 * **`[Settings]` keys** — `IniSettingStore::WriteSetting` and
   `::RemoveSetting`, which every route to those keys ends in: COM
   `SetIniSetting` and `DeleteIniSetting`, `PUT` and `DELETE
-  /api/v1/settings/ini/{name}`, the `/api/v1/settings` fields kept in that
-  store (`tarpit_count` and `tarpit_delay` among them), hmctl, and the Control
-  Panel pages built on them. The stored value is read before it is replaced.
+  /api/v1/settings/ini/{name}`, the settings-group fields kept in that store
+  (`tarpit_count` and `tarpit_delay` on `/api/v1/settings/antispam`,
+  `user_interface_language` and `rewrite_envelope_from_when_forwarding` on
+  `/api/v1/settings`), hmctl, and the Control Panel pages built on them. The stored value is read before it is replaced.
   `PasswordPepper`, the one key kept in the file and never stored, is read from
   the file for the same purpose, so a new pepper — after which no hash made
   before it verifies — is a row like any other key's, reading `(changed)`.

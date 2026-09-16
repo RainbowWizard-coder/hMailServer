@@ -38,7 +38,7 @@ namespace RegressionTests.API
    ///    and blocked senders were never recorded. Nor were folder permissions, or
    ///    any of the [Settings] keys that moved into hm_inisettings at schema 6042.
    ///    So one test per shape of hole: a domain alias, an incoming relay, a folder
-   ///    permission, and a [Settings] key over COM, over a /api/v1/settings field
+   ///    permission, and a [Settings] key over COM, over a settings-group field
    ///    and over /api/v1/settings/ini, with the value before and after and a secret
    ///    as "(changed)"; then the rest of the renamed and added tables in one test
    ///    (both white lists, blocked senders, remote domain policies), a syslog
@@ -434,7 +434,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A settings field kept in the [Settings] store, changed over PUT /api/v1/settings, is recorded once, over REST, with the value it had and the value it was given.")]
+      [Description("A settings field kept in the [Settings] store, changed over PUT /api/v1/settings/antispam, is recorded once, over REST, with the value it had and the value it was given.")]
       public void ASettingsFieldKeptInTheIniStoreIsRecordedOverRest()
       {
          const string Key = "SmtpTarpitCount";
@@ -456,7 +456,11 @@ namespace RegressionTests.API
 
          try
          {
-            (int status, string body) put = Http("PUT", "/api/v1/settings", "{\"tarpit_count\":" + after + "}");
+            // tarpit_count is a field of the anti-spam group, not of the server group,
+            // and a group resolves every key in the body against its own table and
+            // refuses one that belongs to another. Only the route differs: the setter
+            // is the same Ini()->SetSmtpTarpitCount, through the same audited store.
+            (int status, string body) put = Http("PUT", "/api/v1/settings/antispam", "{\"tarpit_count\":" + after + "}");
             Assert.AreEqual(200, put.status, put.body);
 
             string trail = Read(AuditPath + "?object_type=setting&limit=50");
@@ -535,8 +539,14 @@ namespace RegressionTests.API
          whiteList.DeleteByDBID(whiteId);
 
          var greyList = _settings.AntiSpam.GreyListingWhiteAddresses;
+         // A plain address and not a pattern: GreyListingWhiteAddress stores what is
+         // typed as a SQL LIKE pattern - SetUserEditableIPAddress turns ? into _ and *
+         // into % - and the recorder names a created row by the column the statement
+         // carried. A pattern would therefore be recorded in the form the table holds
+         // rather than the form it was typed in, and what is under test here is that
+         // the row is recorded at all.
          var grey = greyList.Add();
-         grey.IPAddress = "10.78.0.?";
+         grey.IPAddress = "10.78.0.1";
          grey.Description = "audit trail";
          grey.Save();
          int greyId = grey.ID;
@@ -570,7 +580,7 @@ namespace RegressionTests.API
          RowWith(trail, "\"object_type\":\"white list address\"", "\"object\":\"audit-white@example.test\"", "\"action\":\"created\"");
          RowWith(trail, "\"object_type\":\"white list address\"", "\"object\":\"whiteid " + whiteId + "\"", "\"action\":\"deleted\"");
 
-         RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"10.78.0.?\"", "\"action\":\"created\"");
+         RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"10.78.0.1\"", "\"action\":\"created\"");
          RowWith(trail, "\"object_type\":\"greylisting white address\"", "\"object\":\"whiteid " + greyId + "\"", "\"action\":\"deleted\"");
 
          RowWith(trail, "\"object_type\":\"blocked sender\"", "\"object\":\"audit-blocked@example.test\"", "\"action\":\"created\"");
