@@ -262,9 +262,15 @@ namespace RegressionTests.Security
          using (var corpus = new FakeBreachCorpus())
          {
             corpus.Add("password", 10434004);
+
+            // The account is made before the check is switched on, as it is in every
+            // other test here: an account's own password is a password choice like any
+            // other, and InterfaceAccount::put_Password asks the corpus about it - so
+            // with the check already on, creating the account costs a request of its
+            // own and "exactly one request for one change" counts two.
+            var account = NewAccount("breachwire", "initial-password-9551");
             Enable(FakeBreachCorpus.Url);
 
-            var account = NewAccount("breachwire", "initial-password-9551");
             string refusal = Refusal(account, "password");
 
             ClassicAssert.IsNotNull(refusal, "\"password\" is in the corpus and must be refused.");
