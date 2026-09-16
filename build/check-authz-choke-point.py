@@ -16,6 +16,11 @@ CAPABILITY line. A new call to any of these anywhere else is a second decision-m
 which is how mail servers serve other people's mail - so it fails here, with the file
 and the line, before it can be merged.
 
+One more symbol is here for a neighbouring reason rather than that one: the rows a
+folder stores are read through ACLManager::GetPermissionsSetOnFolder, because the
+business object's own accessor skips the database read for an account-level folder
+and hands back an empty list that a caller then edits and throws away.
+
 Run from the repository root: python3 build/check-authz-choke-point.py
 """
 import os
@@ -38,6 +43,16 @@ ALLOWED = {
         "IMAP/IMAPConfiguration.h",
         "COM/InterfaceSettings.cpp",          # the setting's own property
         "Common/Util/RestApiSettings.cpp",    # the same property, over REST
+    },
+    # A folder's stored ACL is read through ACLManager::GetPermissionsSetOnFolder,
+    # never through the business object: IMAPFolder::GetPermissions() skips the
+    # database read for an account-level folder, so a caller that goes there reads
+    # an empty list and edits a copy that is thrown away. That is what left the COM
+    # Permissions collection blind on every account folder until 16 September 2026.
+    # Written with the arrow so that the rule matches a CALL and not the prose,
+    # which names it as IMAPFolder::GetPermissions().
+    "->GetPermissions()": {
+        "Common/Application/ACLManager.cpp",    # the one reader, which handles both kinds of folder
     },
     "GetAclEnforcementEnabled(": {
         "Common/Application/ACLManager.cpp",
@@ -78,8 +93,10 @@ def main():
             for number, line in enumerate(lines, 1):
                 for symbol, allowed in ALLOWED.items():
                     if symbol in line and rel not in allowed:
-                        problems.append(f"{rel}:{number}: {symbol[:-1]} outside ACLManager - ask "
-                                        f"ACLManager::CheckPermission or CheckDelegatedRight instead")
+                        instead = ("ACLManager::GetPermissionsSetOnFolder, which reads the rows an "
+                                   "account folder has too") if symbol.startswith("->") else \
+                                  ("ACLManager::CheckPermission or CheckDelegatedRight instead")
+                        problems.append(f"{rel}:{number}: {symbol[:-1]} outside ACLManager - ask {instead}")
 
     for rel, needle in REQUIRED:
         path = os.path.join(ROOT, rel)

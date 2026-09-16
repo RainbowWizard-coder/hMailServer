@@ -17,10 +17,19 @@ void
 InterfaceIMAPFolderPermissions::AttachItem(std::shared_ptr<HM::IMAPFolder> pFolder)
 {
    folder_ = pFolder;
-   
-   // Fetch the permissions in this ACL. It's really these we are
-   // interested in in this interface.
-   acl_permission_ = folder_->GetPermissions();
+
+   // The rows stored for this folder, read through ACLManager and not through
+   // IMAPFolder::GetPermissions, which skips the database read for an
+   // account-level folder ("account level folders never have permissions set").
+   // That stopped being true when a private folder's ACL became how a mailbox is
+   // shared and how Send-As is granted, and reading it here left this collection
+   // empty for every account folder: Count 0, Item 0 a DISP_E_BADINDEX, Delete
+   // and DeleteByDBID reporting success and removing nothing - while Add() wrote a
+   // real hm_acl row. It is the same read GETACL, SETACL and DELETEACL make, for
+   // the reason written at ACLManager::GetPermissionsSetOnFolder, and a public
+   // folder is unaffected: that call hands one straight back to GetPermissions.
+   HM::ACLManager aclManager;
+   acl_permission_ = aclManager.GetPermissionsSetOnFolder(folder_);
 }
 
 STDMETHODIMP InterfaceIMAPFolderPermissions::get_Count(long *pVal)

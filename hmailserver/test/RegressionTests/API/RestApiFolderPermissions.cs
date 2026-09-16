@@ -125,8 +125,8 @@ namespace RegressionTests.API
             StringAssert.Contains("\"rights_text\":\"p\"", created.body);
             long id = long.Parse(Extract(created.body, "id"));
 
-            // What the Control Panel would show. An account folder's COM
-            // collection is handed out unloaded, so it is refreshed first.
+            // What the Control Panel would show, read after the change was made
+            // over REST rather than through this object.
             IMAPFolderPermissions stored = inbox.Permissions;
             stored.Refresh();
             Assert.AreEqual(1, stored.Count);
