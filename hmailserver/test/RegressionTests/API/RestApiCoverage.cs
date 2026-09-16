@@ -912,7 +912,9 @@ namespace RegressionTests.API
          StringAssert.Contains("\"max_message_size_kb\":" + _settings.MaxMessageSize, body);
          StringAssert.Contains("\"max_smtp_connections\":" + _settings.MaxSMTPConnections, body);
          StringAssert.Contains("\"log_smtp_conversations\":", body);
-         StringAssert.DoesNotContain("password", body);
+         // A KEY whose name is a password, not the word anywhere: the group carries
+         // breach_check_url, whose default endpoint is api.pwnedpasswords.com.
+         StringAssert.DoesNotContain("password\":", body);
       }
 
       [Test]

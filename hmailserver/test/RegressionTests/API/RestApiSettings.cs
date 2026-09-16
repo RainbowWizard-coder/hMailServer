@@ -309,7 +309,11 @@ namespace RegressionTests.API
          StringAssert.Contains("\"tcpip_threads\":" + _settings.TCPIPThreads + ",", body);
          StringAssert.Contains("\"imap_sort_enabled\":" + (_settings.IMAPSortEnabled ? "true" : "false"), body);
          StringAssert.Contains("\"smtp_relayer_connection_security\":\"", body);
-         StringAssert.DoesNotContain("password", body, "No password is ever emitted.");
+         // The needle carries the colon so that it matches a KEY and not a value:
+         // smtp_relayer_password is write-only and must never come back, while
+         // breach_check_url's default endpoint - api.pwnedpasswords.com - is a value
+         // that contains the word and must. Do not shorten it back.
+         StringAssert.DoesNotContain("password\":", body, "No field whose name is a password is ever emitted.");
 
          (int putStatus, string putBody) = Http("PUT", "/api/v1/settings",
             "{\"host_name\":\"rest-settings.test\"," +
@@ -337,7 +341,8 @@ namespace RegressionTests.API
          StringAssert.Contains("\"imap_sort_enabled\":false", putBody);
          StringAssert.Contains("\"tcpip_threads\":", putBody, "A PUT answers with the whole group, not only the keys it changed.");
          StringAssert.DoesNotContain("relay-secret-7", putBody);
-         StringAssert.DoesNotContain("password", putBody);
+         // The key, as above; the line before it is what pins the value.
+         StringAssert.DoesNotContain("password\":", putBody);
 
          // COM reads back what the Control Panel would show.
          Assert.AreEqual("rest-settings.test", _settings.HostName);
