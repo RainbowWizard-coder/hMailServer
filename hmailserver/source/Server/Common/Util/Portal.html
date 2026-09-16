@@ -418,6 +418,7 @@ iframe#message-html{width:100%;min-height:24rem;border:none;border-radius:8px;ba
 .dock-body{flex:1;min-height:0;overflow:auto;padding:0 16px 8px}
 .dock.inline{position:static;width:auto;max-width:none;max-height:none;border-radius:12px;box-shadow:none;border:1px solid var(--line);margin:18px 0 0;margin-inline-start:52px;animation:none;transform:none}
 .dock.inline .dock-head{border-radius:12px 12px 0 0}
+#reply-slot-top .dock.inline{margin:0 0 18px}
 .dock.inline .dock-head #compose-min,.dock.inline .dock-head #compose-expand{display:none}
 .dock.inline .dock-body{max-height:none}
 .dock #compose-text,.dock .editor{min-height:14rem}
@@ -784,6 +785,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="message-badges"></div>
 <div id="message-labels" class="chips"></div>
 <div id="message-warnings" class="warnbox" hidden></div>
+<div id="reply-slot-top"></div>
 <div id="conversation"></div>
 <div class="msg-card" id="message-card">
 <div class="msg-head">
@@ -940,6 +942,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div style="flex:1;min-width:12rem"><label for="pref-theme">Theme</label><select id="pref-theme"><option value="system">Follow the system</option><option value="dark">Dark</option><option value="light">Light</option></select></div>
 <div style="flex:1;min-width:12rem"><label for="pref-density">Density</label><select id="pref-density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></div>
 <div style="flex:1;min-width:12rem"><label for="pref-pane">Reading pane</label><select id="pref-pane"><option value="right">On the right</option><option value="bottom">Below the list</option><option value="off">Off</option></select></div>
+<div style="flex:1;min-width:12rem"><label for="pref-reply-place">Reply card</label><select id="pref-reply-place"><option value="below">Under the message it answers</option><option value="above">Above the conversation</option></select></div>
 </div>
 <div class="row">
 <div style="flex:1;min-width:12rem"><label for="pref-undo">Undo send</label><select id="pref-undo"><option value="0">Send at once</option><option value="5">5 seconds to undo</option><option value="10">10 seconds to undo</option><option value="20">20 seconds to undo</option><option value="30">30 seconds to undo</option></select></div>

@@ -4351,7 +4351,7 @@
   // Kept with the account (GET/PUT /api/v1/me/preferences); the browser's
   // storage holds only the theme, for the sign-in page before there is one.
   var prefs = {};
-  var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', nudges: '1', timezone: '', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9' };
+  var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', nudges: '1', timezone: '', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9', reply_place: 'below' };
   var renderListTools = function () {
     el('view-threads').textContent = pref('view') === 'threads' ? t('Show messages one by one') : t('Show conversations');
     var emptyable = !state.everywhere && (folderIs(state.folderId, 'Junk') || folderIs(state.folderId, 'Trash'));
@@ -4659,6 +4659,7 @@
     el('pref-density').value = pref('density') === 'compact' ? 'compact' : 'comfortable';
     el('pref-pane').value = paneMode();
     applyPane();
+    el('pref-reply-place').value = pref('reply_place') === 'above' ? 'above' : 'below';
     el('pref-undo').value = String(undoSeconds());
     if (!el('pref-undo').value) { el('pref-undo').value = '5'; }
     el('pref-notify').checked = pref('notify') === '1';
@@ -4942,9 +4943,14 @@
     var ticked = [];
     var labels = el('notify-folders').children;
     for (var i = 0; i < labels.length; i++) { var tick = labels[i].children[0]; if (tick && tick.checked) { ticked.push(tick.value); } }
-    savePrefs({ language: el('pref-language').value, timezone: el('pref-timezone').value, swipe_right: el('pref-swipe-right').value, swipe_left: el('pref-swipe-left').value, snooze_hours: el('pref-snooze-hours').value, snooze_hour: el('pref-snooze-hour').value, theme: el('pref-theme').value, density: el('pref-density').value, pane: el('pref-pane').value, undo_seconds: el('pref-undo').value,
+    savePrefs({ language: el('pref-language').value, timezone: el('pref-timezone').value, swipe_right: el('pref-swipe-right').value, swipe_left: el('pref-swipe-left').value, reply_place: el('pref-reply-place').value, snooze_hours: el('pref-snooze-hours').value, snooze_hour: el('pref-snooze-hour').value, theme: el('pref-theme').value, density: el('pref-density').value, pane: el('pref-pane').value, undo_seconds: el('pref-undo').value,
                 notify: el('pref-notify').checked ? '1' : '0', notify_folders: ticked.join(','), inbox: el('pref-inbox').value, nudges: el('pref-nudges').checked ? '1' : '0' }).then(function (ok) {
-      if (ok) { say('prefs-status', t('Saved.'), true); if (lastPage) { renderMessages(lastPage); } }
+      if (ok) {
+        say('prefs-status', t('Saved.'), true);
+        if (lastPage) { renderMessages(lastPage); }
+        // A reply already open moves to the slot the reader just chose.
+        if (!el('compose-section').hidden && el('compose-section').classList.contains('inline')) { placeCompose('inline'); }
+      }
     });
   });
   el('pref-notify').addEventListener('change', function () {
@@ -5965,10 +5971,16 @@
   // ---- The compose window: docked over the mail, or under the message it answers
   var composeMode = 'new';
   var composeId = 0;
+  // Where an inline reply sits is the reader's choice (discussion #266): under
+  // the message it answers, which is Gmail's shape and the default, or above the
+  // whole conversation, which is Outlook's. Nothing about the sent message
+  // changes - the reply is top-posted either way.
+  var replySlot = function () { return el(pref('reply_place') === 'above' ? 'reply-slot-top' : 'reply-slot'); };
   var placeCompose = function (where) {
     var dock = el('compose-section');
     if (where === 'inline') {
-      if (dock.parentNode !== el('reply-slot')) { el('reply-slot').appendChild(dock); }
+      var slot = replySlot();
+      if (dock.parentNode !== slot) { slot.appendChild(dock); }
       dock.classList.add('inline');
       dock.classList.remove('min'); dock.classList.remove('full');
     } else {

@@ -1199,6 +1199,8 @@ async function main() {
    check('the reply is written under the message, over the list', document.getElementById('compose-section').hidden === false &&
       document.getElementById('mail-section').hidden === false && document.getElementById('compose-section').className.indexOf('inline') >= 0,
       document.getElementById('compose-section').className);
+   check('and, by default, in the slot under the message it answers', document.getElementById('compose-section').parentNode.id === 'reply-slot',
+      document.getElementById('compose-section').parentNode.id);
 
    // ---- Back goes back, and lands on the row it left
    history.back();
@@ -1627,6 +1629,29 @@ async function main() {
    const nudgePref = since(beforeNudgesOff).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/preferences')[0];
    check('the preference turns nudges off, with the account', !!nudgePref && JSON.parse(nudgePref.body).nudges === '0' && !nudgeOf(rowBySubject('Draft agenda')),
       (nudgePref ? nudgePref.body : 'no preferences call') + ' nudge=' + !!nudgeOf(rowBySubject('Draft agenda')));
+
+   // ---- the reply card above the conversation, as a choice (discussion #266)
+   document.getElementById('pref-reply-place').value = 'above';
+   const beforeReplyPlace = requests.length;
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const replyPlacePref = since(beforeReplyPlace).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/preferences')[0];
+   check('the reply card can be put above the conversation, with the account', !!replyPlacePref && JSON.parse(replyPlacePref.body).reply_place === 'above',
+      replyPlacePref ? replyPlacePref.body : 'no preferences call');
+   location.hash = '#/m/102';
+   await flush();
+   document.getElementById('message-reply').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('and the next reply is written above the conversation, still inline', document.getElementById('compose-section').parentNode.id === 'reply-slot-top' &&
+      document.getElementById('compose-section').className.indexOf('inline') >= 0, document.getElementById('compose-section').parentNode.id);
+   check('the message sent is unchanged by the choice: still addressed to the sender', document.getElementById('compose-to').value === 'b@example.net',
+      document.getElementById('compose-to').value);
+   location.hash = '#/settings';
+   await flush();
+   document.getElementById('pref-reply-place').value = 'below';
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('and put back under the message', prefsStore.reply_place === 'below', String(prefsStore.reply_place));
 
    // ---- quick steps: a button of the reader's own, kept with the account, run by a click or a key
    location.hash = '#/settings';
