@@ -942,13 +942,22 @@ namespace HM
       String smtpSettingBindToIP = pSMTPConfig->GetSMTPDeliveryBindToIP();
       String ruleBindToAddress = _globalRuleResult.GetBindToAddress();
 
-      if (!ruleBindToAddress.IsEmpty())
-         return SMTPConfiguration::OutboundBindAddress(ruleBindToAddress, remote);
+      const String configured = !ruleBindToAddress.IsEmpty() ? ruleBindToAddress : smtpSettingBindToIP;
 
-      if (!smtpSettingBindToIP.IsEmpty())
-         return SMTPConfiguration::OutboundBindAddress(smtpSettingBindToIP, remote);
+      if (configured.IsEmpty())
+         return IPAddress();
 
-      return IPAddress();
+      IPAddress chosen = SMTPConfiguration::OutboundBindAddress(configured, remote);
+
+      // Said where the administrator will look for it: a bind that was asked for
+      // and not applied is otherwise a setting that silently did nothing.
+      if (chosen.IsAny())
+      {
+         LOG_TCPIP(Formatter::Format("Not binding to {0} for the connection to {1}: the two addresses are of different families, so the system chooses the source address.",
+            configured, String(remote.ToString())));
+      }
+
+      return chosen;
    }
 
    void 
