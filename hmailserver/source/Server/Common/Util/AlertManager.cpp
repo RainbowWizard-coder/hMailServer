@@ -27,6 +27,7 @@
 
 #include "../../SMTP/RecipientParser.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
+#include "../../SMTP/ComplaintTracker.h"
 
 #include <openssl/pem.h>
 #include <openssl/x509.h>
@@ -63,6 +64,7 @@ namespace HM
    const wchar_t *AlertManager::ConditionAutoBanStorm = L"autoban.storm";
    const wchar_t *AlertManager::ConditionMinidumpWritten = L"minidump.written";
    const wchar_t *AlertManager::ConditionDkimRotationStalled = L"dkim.rotation.stalled";
+   const wchar_t *AlertManager::ConditionComplaintsRateHigh = L"complaints.rate.high";
 
    namespace
    {
@@ -1093,6 +1095,44 @@ namespace HM
    }
 
    int
+   AlertManager::EvaluateComplaintRates_()
+   {
+      Rule rule;
+      if (!GetRule(ConditionComplaintsRateHigh, rule) || !rule.enabled)
+         return 0;
+
+      if (!Configuration::Instance()->GetComplaintProcessingEnabled())
+      {
+         // Nothing is being read, so no rate can be said to have risen or fallen.
+         // A raise that is standing is cleared, because leaving it up would say a
+         // rate is high that nobody is measuring.
+         //
+         // What this path costs, since the feature is off on most installations and
+         // the rule is seeded ON: Clear reads the rule and the newest event for the
+         // condition and writes nothing when there is no raise to clear. That is the
+         // same per-pass cost every other seeded rule has, and it is the reason this
+         // returns here rather than going on - what it never does with the feature
+         // off is touch hm_complaints or hm_complaintvolume.
+         Clear(ConditionComplaintsRateHigh, _T("Complaints are not being read."));
+         return 0;
+      }
+
+      // The rates are read from the database at most once a minute and shared with
+      // the metrics endpoint, so this pass costs a query at most once a minute.
+      String summary;
+      if (!ComplaintTracker::WorstRate(rule.threshold > 0 ? rule.threshold : 1000, summary))
+      {
+         Clear(ConditionComplaintsRateHigh, _T("No domain's complaint rate is above the limit."));
+         return 0;
+      }
+
+      Raise(ConditionComplaintsRateHigh, ErrorManager::High, _T("A domain's complaint rate is too high: ") + summary,
+         _T("Readers at the large providers are marking this domain's mail as spam. Look at the domain's complaints - who was mailed, about what, and which provider reported it - and stop sending whatever produced them. A sender whose rate stays here is throttled and then blocked, and the providers do not say when they start."));
+
+      return 1;
+   }
+
+   int
    AlertManager::EvaluateMinidumps_()
    {
       Rule rule;
@@ -1149,6 +1189,7 @@ namespace HM
       raised += EvaluateAutoBans_();
       raised += EvaluateMinidumps_();
       raised += EvaluateDkimRotations_();
+      raised += EvaluateComplaintRates_();
 
       return raised;
    }

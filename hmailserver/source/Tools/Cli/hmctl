@@ -130,6 +130,16 @@ RESOURCES = {
         "help": "addresses a domain no longer sends to because mail to them bounced",
         "create_example": "hmctl suppression create --domain example.com --set address=gone@elsewhere.test --set-string note=\"old export\"",
     },
+    "complaint": {
+        "collection": "/api/v1/domains/{parent}/complaints",
+        "parent": "domain",
+        "key": "items",
+        "id": "address",
+        "search": True,
+        "columns": ["address", "feedback_type", "sender", "subject", "provider", "arrival"],
+        "verbs": ["list"],
+        "help": "the abuse reports the providers' feedback loops have sent about a domain's mail",
+    },
     "bounce": {
         "collection": "/api/v1/domains/{parent}/bounces",
         "parent": "domain",
@@ -235,6 +245,7 @@ SETTING_GROUPS = [
     "indexing",
     "scripting",
     "bounces",
+    "complaints",
     "push",
     "directories",
     "openpgp",
@@ -1738,6 +1749,44 @@ def webhooks_command(client, arguments):
     raise ApiError(0, "webhooks takes deliveries, run or test")
 
 
+def complaints_command(client, arguments):
+    """Every domain's complaint rate, and the feedback loops' sweep.
+
+    The rate is asked of the server rather than worked out here from the
+    listing: the window, the floor below which a rate is not judged, and the
+    denominator are the server's, and a second implementation of them would
+    drift from the one the alert fires on.
+    """
+    if arguments.verb == "rates":
+        answer = client.request("GET", "/api/v1/complaints/rates")
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        if not answer.get("processing_enabled"):
+            print("Complaints are not being read; the rates below are whatever was recorded before.")
+        rows = collection(answer, "domains")
+        for row in rows:
+            if row.get("judged"):
+                print("%-40s %8d complaint(s) in %9d message(s)  %6d in a million"
+                      % (row.get("domain"), row.get("complaints", 0), row.get("sent", 0), row.get("rate_ppm", 0)))
+            else:
+                print("%-40s %8d complaint(s) in %9d message(s)  (too little sent to judge)"
+                      % (row.get("domain"), row.get("complaints", 0), row.get("sent", 0)))
+        if not rows:
+            print("No domain has sent or been complained about in the last %d days." % answer.get("window_days", 7))
+        return EXIT_OK
+
+    if arguments.verb == "expire":
+        answer = client.request("POST", "/api/v1/complaints/expire")
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        pruned = answer.get("complaints_pruned", 0)
+        print("%d old complaint%s and tally row%s removed." % (pruned, "" if pruned == 1 else "s", "" if pruned == 1 else "s"))
+        return EXIT_OK
+
+    raise ApiError(0, "complaints takes rates or expire")
+
 def api_command(client, arguments):
     body = None
     if arguments.body:
@@ -2013,6 +2062,11 @@ def build_parser():
     test.add_argument("--domain", help="the domain the event is about, so a confined subscription matches it")
     test.add_argument("--account", help="the address the event is about")
 
+    complaints = commands.add_parser("complaints", help="the complaint rate of each domain, and the feedback loops' sweep")
+    complaints.set_defaults(handler=complaints_command)
+    complaints_verbs = complaints.add_subparsers(dest="verb")
+    complaints_verbs.add_parser("rates", parents=[common])
+    complaints_verbs.add_parser("expire", parents=[common])
     api = commands.add_parser("api", parents=[common], help="any method on any path - the escape hatch")
     api.set_defaults(handler=api_command)
     api.add_argument("method")

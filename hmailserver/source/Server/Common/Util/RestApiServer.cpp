@@ -1953,6 +1953,14 @@ namespace HM
          case RouteBounceClassify:
          case RouteBounceExpire:
             return HandleBounces_(route, GetRequestBody_(request));
+         case RouteSettingsComplaintsGet:
+            return HandleSettingsComplaints_();
+         case RouteSettingsComplaintsPut:
+            return HandleSettingsComplaintsPut_(GetRequestBody_(request));
+         case RouteComplaintList:
+         case RouteComplaintRates:
+         case RouteComplaintExpire:
+            return HandleComplaints_(route, GetRequestBody_(request));
          case RouteWebhookList:
          case RouteWebhookGet:
          case RouteWebhookCreate:
@@ -3464,6 +3472,20 @@ namespace HM
          }
       }
 
+      // The abuse reports a domain's mail has drawn (RestApiComplaints.cpp).
+      if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/complaints"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+            path.GetLength() - domainsPrefix.GetLength() - AnsiString("/complaints").GetLength());
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = RouteComplaintList;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
       if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/aliases"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -4114,6 +4136,24 @@ namespace HM
          return;
       }
 
+      if (path == "/api/v1/settings/complaints" && (method == "GET" || method == "PUT"))
+      {
+         route.kind = method == "GET" ? RouteSettingsComplaintsGet : RouteSettingsComplaintsPut;
+         return;
+      }
+
+      if (method == "GET" && path == "/api/v1/complaints/rates")
+      {
+         route.kind = RouteComplaintRates;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/complaints/expire")
+      {
+         route.kind = RouteComplaintExpire;
+         return;
+      }
+
       // The server's message texts, named as the table names them.
       const AnsiString messagesPath = "/api/v1/settings/messages";
       if (path == messagesPath)
@@ -4437,6 +4477,8 @@ namespace HM
       case RouteWhiteListAddressDelete:
       case RouteBlockedSenderCreate:
       case RouteBlockedSenderUpdate:
+      case RouteComplaintExpire:
+      case RouteSettingsComplaintsPut:
       case RouteBlockedSenderDelete:
       case RouteIncomingRelayCreate:
       case RouteIncomingRelayUpdate:
@@ -4727,6 +4769,7 @@ namespace HM
       case RouteSettingsPushGet:
       case RouteSettingsBackupGet:
       case RouteSettingsBouncesGet:
+      case RouteSettingsComplaintsGet:
       // The Web Key Directory's settings, one account's keys and one
       // domain's. A key here is a PUBLIC key and never a secret, so reading
       // one is reading configuration; the domain and the account routes are
@@ -4772,6 +4815,15 @@ namespace HM
       // asks for view_message_trace as well, as it does for the reports.
       case RouteSuppressionList:
       case RouteBounceCountList:
+      // The abuse reports about one domain's mail, scoped to that domain, and
+      // every domain's complaint rate, which is refused to a confined credential
+      // below. A complaint names a reader outside this server who was mailed
+      // from it and did not want it, so SecondPermissionFor_ asks for
+      // view_message_trace as well, exactly as it does for the suppression list.
+      // The rates carry no address at all - a domain name, two counts and a
+      // ratio - so they take view_configuration alone.
+      case RouteComplaintList:
+      case RouteComplaintRates:
       // How a status and a diagnostic would be classified: the server's rule
       // applied to what the caller typed. It reads and writes nothing and names
       // no domain.
@@ -4979,6 +5031,7 @@ namespace HM
       case RouteSettingsPushPut:
       // Making a new VAPID key pair is a change to the server's configuration and
       // nothing narrower: it invalidates every subscription on every account.
+      case RouteSettingsComplaintsPut:
       case RouteSettingsPushVapid:
       // published under is the account's, so this is administering that account
       // in that domain, as COM's Utilities.ImportOpenPGPKey answers that domain's
@@ -5121,6 +5174,10 @@ namespace HM
       // and old report keys removed from every domain's list, which is also why
       // it is refused to a confined credential below.
       case RouteBounceExpire:
+      // The feedback loops' hourly sweep run now: old complaints and the tally
+      // rows behind the rate removed for every domain, which is also why it is
+      // refused to a confined credential below.
+      case RouteComplaintExpire:
          return RolePermission::ManageServer;
 
       default:
@@ -5169,6 +5226,11 @@ namespace HM
       // view_configuration alone does not read them.
       case RouteSuppressionList:
       case RouteBounceCountList:
+      // A domain's complaints: every row is a reader outside this server that
+      // the domain mailed, with what they said about it and when. Who mails
+      // whom, as the suppression list's rows are. The rates are not here: they
+      // name no address.
+      case RouteComplaintList:
          permission = RolePermission::ViewMessageTrace;
          return true;
 
@@ -5218,6 +5280,9 @@ namespace HM
       case RouteSenderListDomainDelete:
       // A domain's suppression list and the bounce counts behind it. Left out
       // of this list, one of these routes would name no domain, and a
+      // A domain's complaints. Left out of this list, the route would name no
+      // domain, and a credential confined to one domain could read another's.
+      case RouteComplaintList:
       // credential confined to one domain could read or change another's list.
       case RouteSuppressionList:
       case RouteSuppressionCreate:
@@ -5563,6 +5628,12 @@ namespace HM
       case RouteMessageTraceQueue:
       case RouteBackupStart:
       case RouteBackupStatus:
+      // The complaint settings apply to every domain, the rates are every
+      // domain's, and the sweep prunes every domain's rows.
+      case RouteSettingsComplaintsGet:
+      case RouteSettingsComplaintsPut:
+      case RouteComplaintRates:
+      case RouteComplaintExpire:
       case RouteSettingsGet:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamGet:
@@ -5601,6 +5672,7 @@ namespace HM
       case RouteIndexingClear:
       case RouteSettingsBackupGet:
       case RouteSettingsBackupPut:
+      // The bounce settings apply to every domain, and the sweep removes entries
       // The bounce settings apply to every domain, and the sweep removes entries
       // from every domain's list.
       case RouteSettingsBouncesGet:
@@ -12977,6 +13049,7 @@ namespace HM
       openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiBouncesPaths_();
+      openApiJson += OpenApiComplaintsPaths_();
       openApiJson += OpenApiReportsPaths_();
       openApiJson += OpenApiRolesPaths_();
       openApiJson += OpenApiOpenPgpPaths_();

@@ -2,7 +2,8 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// The three tables behind bounces read and the suppression list (schema 6049):
+// The three tables behind bounces read and the suppression list (schema 6049,
+// with hm_bouncecounts.bccomplaints added by 6050 for the feedback loops):
 // hm_bouncesuppressions, the list itself; hm_bouncecounts, what it is fed from;
 // and hm_bouncereportkeys, the register a delivery report is matched against.
 //
@@ -45,10 +46,19 @@ namespace HM
       int policy = 0;
       int other = 0;
       int consecutive_hard = 0;
+      int complaints = 0;      // abuse reports, counted by ComplaintTracker
       String last_status;
       int last_category = 0;
       String last_bounce;
       String last_delivered;
+      // When the last complaint about this address was counted. Its own column and
+      // not last_delivered, because last_delivered means "a remote accepted a
+      // message to this address" and is what decides whether a delivery report that
+      // arrives later adds to the run of hard bounces - a complaint must not touch
+      // that. It is also the recency the sweep measures a complaint-only row's age
+      // by: without it such a row has no date at all and would be swept on the
+      // first pass, taking the count with it.
+      String last_complaint;
    };
 
    // One row of the register a delivery report is matched against.
@@ -119,6 +129,15 @@ namespace HM
       // says otherwise (the caller keeps what it set aside in the register). Touches
       // no row for an address that has never bounced.
       static bool RecordDelivered(__int64 domainID, const String &address, const String &deliveredAt);
+
+      // One complaint added to a row that exists, in the database's own
+      // arithmetic, as AddToCount adds a bounce. A complaint says nothing about
+      // whether the mailbox is there, so it touches no bounce counter and never
+      // the run of hard bounces - and not bclastdelivered either, which is the
+      // column the run is decided from. It refreshes bclastcomplaint instead, so a
+      // row that only ever holds complaints ages from the last of them rather than
+      // from the first.
+      static bool AddComplaintToCount(__int64 id, const String &complainedAt);
 
       // An administrator removed the entry by hand: the run starts again.
       static bool ResetConsecutiveHard(__int64 domainID, const String &address);

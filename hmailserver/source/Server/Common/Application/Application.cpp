@@ -80,6 +80,7 @@
 #include "MessageStoreConsistencyTask.h"
 #include "WorkQueueHealthTask.h"
 #include "BounceMaintenanceTask.h"
+#include "ComplaintMaintenanceTask.h"
 #include "../Util/DiskSpace.h"
 #include "../Util/AlertManager.h"
 #include "../Util/PushNotifier.h"
@@ -709,6 +710,19 @@ namespace HM
       bounceMaintenanceTask->SetReoccurance(ScheduledTask::RunInfinitely);
       bounceMaintenanceTask->SetMinutesBetweenRun(60);
       scheduler_->ScheduleTask(bounceMaintenanceTask);
+
+      // The feedback loops' sweep: complaints older than ComplaintRetentionDays and
+      // the daily tally rows behind them. Once at start and then hourly, whether or
+      // not complaint processing is on, so switching it off does not leave a record
+      // of who complained about what standing for ever.
+      std::shared_ptr<ComplaintMaintenanceTask> complaintMaintenanceStartupTask = std::shared_ptr<ComplaintMaintenanceTask>(new ComplaintMaintenanceTask);
+      complaintMaintenanceStartupTask->SetReoccurance(ScheduledTask::RunOnce);
+      scheduler_->ScheduleTask(complaintMaintenanceStartupTask);
+
+      std::shared_ptr<ComplaintMaintenanceTask> complaintMaintenanceTask = std::shared_ptr<ComplaintMaintenanceTask>(new ComplaintMaintenanceTask);
+      complaintMaintenanceTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      complaintMaintenanceTask->SetMinutesBetweenRun(60);
+      scheduler_->ScheduleTask(complaintMaintenanceTask);
 
       // Log retention: prune date-stamped log files older than LogDeleteDays.
       // The task itself no-ops when LogDeleteDays <= 0 (retention disabled).

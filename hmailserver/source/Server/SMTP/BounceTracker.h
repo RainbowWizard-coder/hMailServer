@@ -182,7 +182,29 @@ namespace HM
          AddFailed = 5
       };
 
+      // The locally hosted domain a message's envelope sender belongs to, or 0 when
+      // it belongs to nobody here: an SRS forward, a prvs return path, or a sender at
+      // a domain this server does not host. Public because the feedback loops measure
+      // their rate per sending domain and must read "whose mail was this" the same way.
+      static __int64 SenderDomainID(const String &sender);
+
       static __int64 DomainIDByName(const String &domainName);
+
+      // THE FEEDBACK LOOPS' WAY IN (SMTP/ComplaintTracker.h). An abuse report a
+      // provider sent about this domain's mail to this address, counted where the
+      // bounces are counted and listed on the same list with its own reason, under
+      // the one lock that owns an address's count row - so a complaint arriving
+      // while a bounce is being counted cannot lose either of them.
+      //
+      // A complaint is not a bounce: it touches no bounce counter and never the run
+      // of hard bounces, because a reader who marks a message as spam has proved
+      // that the mailbox is there. threshold is the complaints that list an address
+      // (0 never lists one). Returns the complaints now counted for the address, or
+      // -1 when the database failed. Answers regardless of BounceProcessingEnabled:
+      // the complaint mailbox is the switch that decided this, and the list is the
+      // one place an address that must not be mailed belongs.
+      static int CountComplaint(__int64 domainID, const String &address, int threshold,
+                                const String &diagnostic, bool &listed);
 
       static AddResult AddManual(__int64 domainID, const String &address, const String &note, int expiresDays);
 
@@ -200,8 +222,15 @@ namespace HM
       static AnsiString ClassifyJson(const String &status, const String &diagnostic);
 
    private:
+      // BounceProcessingEnabled: whether a bounce or a delivery report is read,
+      // classified and counted at all.
       static bool Enabled_();
-      static __int64 SenderDomainID_(const String &sender);
+
+      // Whether the suppression list is APPLIED, which is either switch: an
+      // operator who switched on the feedback loops and not the bounces has a list
+      // being written by complaints, and a list that is written and never applied
+      // is the feature doing nothing while looking as though it works.
+      static bool ListApplies_();
       static void Count_(__int64 domainID, const String &address, const BounceClassifier::Verdict &verdict,
                          int source, const String &diagnostic, const String &remoteMta,
                          const BounceReportKeyRow *reportKey);

@@ -76,12 +76,14 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `suppression` | list, create, delete | A domain's suppression list, under `--domain`; `list` takes `--search`, and an entry is deleted by its address. |
 | `bounce` | list | The bounce counts behind a domain's suppression list, under `--domain`, with `--search`. |
 | `bounces` | classify, expire | How the server would read a status or a reply, and the list's hourly sweep run now. |
+| `complaint` | list | The abuse reports a domain's mail has drawn, under `--domain`, with `--search` over the complained-of address, the sender, the subject and the provider. |
+| `complaints` | rates, expire | Every domain's complaint rate over the last seven days, and the feedback loops' hourly sweep run now. |
 | `openpgp` | list, show, store, remove, publish | The OpenPGP PUBLIC keys this server publishes ([OpenPGP.md](OpenPGP.md)): a domain's whole listing, one account's document, a key stored from a file or from standard input, one removed by fingerprint, and an account's own publishing switched on or off. |
 | `queue` | list, retry, delete | |
 | `webhook` | list, get, create, update, delete | The outbound webhook subscriptions: where this server's mail events go, signed with what, and confined to which domains and addresses. The secret is write-only and never read back ([Webhooks.md](Webhooks.md)). |
 | `webhooks` | deliveries, run, test | The delivery queue with `--webhook`, `--state` and `--limit`; one delivery pass now; and one event raised through the path a real one takes, to see whether it arrives. |
 | `quarantine` | list, release, delete | |
-| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `directories`, `openpgp`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
+| `settings` | get, set, breach-test | A group whole, or one setting: `settings`, `antispam`, `antivirus`, `logging`, `backup`, `cache`, `indexing`, `scripting`, `bounces`, `complaints`, `directories`, `openpgp`. `breach-test [--endpoint URL]` asks the password breach check's endpoint for a range and exits 1 when it could not be used ([PasswordBreachCheck.md](PasswordBreachCheck.md)). |
 | `ini` | list, get, set, delete | The server settings that were the `[Settings]` section of `hMailServer.ini` - stored in the database since schema 6042, under the names they have always had. `list` shows a secret as `(set)`; `get` reads it. |
 | `log` | list, tail | |
 | `backup` | status, start | The server's own backup. |
@@ -260,6 +262,30 @@ immediately after configuring an endpoint. A subscription's shared secret is
 never returned by any read, so it is not in `webhook list` and not in a
 configuration export; keep it wherever you keep the rest of your secrets.
 [Webhooks.md](Webhooks.md) is the whole of it.
+
+Complaints and the feedback loops
+---------------------------------
+
+```bash
+hmctl settings set complaints --set processing_enabled=true --set-string mailbox=fbl@example.com
+hmctl complaint list --domain example.com
+hmctl complaint list --domain example.com --search anna@example.com
+hmctl complaints rates
+hmctl complaints expire
+```
+
+```powershell
+Get-HmComplaint -Domain example.com | Format-Table address, feedback_type, sender, arrival
+Get-HmComplaintRate | Format-Table domain, sent, complaints, rate_ppm, judged
+Invoke-HmComplaintMaintenance
+```
+
+`complaints rates` asks the server rather than working the rate out from the
+listing, because the window, the volume below which a rate is not judged and the
+denominator are the server's, and a second implementation of them would drift
+from the one the `complaints.rate.high` alert fires on. A domain that has sent too
+little is said to be so rather than given a rate.
+[Complaints.md](Complaints.md) is the whole of it.
 
 Accounts from a spreadsheet
 ---------------------------

@@ -302,6 +302,7 @@ TLS-RPT reporter makes, for the same reason.
 | `queue.stalled` | no | `WorkQueueHealthTask`, when every worker thread of a monitored queue has been in the same task past `AsyncQueueStallThreshold`. |
 | `autoban.storm` | no | `AlertTask`, when auto-bans in the last hour reach the rule's threshold (25 by default). |
 | `minidump.written` | no | `AlertTask`, when a dump newer than the last one recorded appears in the log directory. |
+| `complaints.rate.high` | **yes** | `AlertTask`, when a locally hosted domain's complaint rate over the feedback loops' seven-day window reaches the rule's threshold in parts per million (1000 by default - one complaint in a thousand messages, which the large providers describe as too high). A domain that has sent fewer than 100 messages in the window is not judged. With complaint processing off it clears the condition and reads no complaint data at all - though the pass and the clear still read the rule and the newest event, as every seeded rule's do. See [Complaints.md](Complaints.md). |
 | `dkim.rotation.stalled` | **yes** | `AlertTask`, from the DKIM key rotation's stored state: a next key whose record has not been seen for the rule's threshold in days (7 by default), or a running rotation (the schedule on, or a next or retiring selector in flight) whose last attempt to move failed. It never looks anything up. See [DkimKeyRotation.md](DkimKeyRotation.md). |
 
 Four are off because they fire on a healthy server often enough to be noise

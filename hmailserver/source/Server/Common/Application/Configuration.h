@@ -363,6 +363,18 @@ namespace HM
       // the old one, which is why nothing does this on its own.
       bool GenerateWebPushVapidKeys(String &refusal);
 
+      // Complaints, read: the feedback loops (see SMTP/ComplaintTracker.h). Off,
+      // with no mailbox, and with either of those nothing is read, counted or
+      // written. Stored in hm_settings like the bounce settings above.
+      bool GetComplaintProcessingEnabled();
+      void SetComplaintProcessingEnabled(bool enabled);
+      String GetComplaintMailbox();                // empty: no feedback loop
+      void SetComplaintMailbox(const String &mailbox);
+      int GetComplaintSuppressionThreshold();      // 0 never lists, up to 100
+      void SetComplaintSuppressionThreshold(int threshold);
+      int GetComplaintRetentionDays();             // 0 keeps, up to 3650
+      void SetComplaintRetentionDays(int days);
+
       int GetCrashSimulationMode() const;
       void SetCrashSimulationMode(int mode);
 

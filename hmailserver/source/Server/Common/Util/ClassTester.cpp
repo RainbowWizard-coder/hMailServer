@@ -27,6 +27,8 @@
 #include "../../SMTP/BounceClassifier.h"
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DeliveryReportParser.h"
+#include "../../SMTP/ComplaintTracker.h"
+#include "../../SMTP/FeedbackReportParser.h"
 #include "../Util/AcmeClient.h"
 #include "../Util/FileUtilities.h"
 #include "../Application/IniFileSettings.h"
@@ -211,6 +213,18 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing OpenPgpKey\n"));
       OpenPgpKeyTester openPgpKeyTester;
       openPgpKeyTester.Test();
+
+      // Complaints read, the feedback loops: the RFC 5965 parser that is handed
+      // hostile input by construction, and the decisions taken on what it read -
+      // which mailbox is the complaint mailbox, which feedback types count, what
+      // makes two reports one complaint, and the rate arithmetic.
+      OutputDebugString(_T("hMailServer: Testing FeedbackReportParser\n"));
+      FeedbackReportParserTester feedbackReportParserTester;
+      feedbackReportParserTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing ComplaintTracker\n"));
+      ComplaintTrackerTester complaintTrackerTester;
+      complaintTrackerTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

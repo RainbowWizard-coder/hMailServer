@@ -982,7 +982,52 @@ namespace DBUpdater
          new SchemaProbe(6054, "hm_pushsubscriptions.psquietto",
                          "update hm_pushsubscriptions set psquietto = psquietto where 1 = 0"),
          new SchemaProbe(6054, "hm_pushsubscriptions.psquietoffset",
-                         "update hm_pushsubscriptions set psquietoffset = psquietoffset where 1 = 0")
+                         "update hm_pushsubscriptions set psquietoffset = psquietoffset where 1 = 0"),
+
+         // Upgrade6054to6055* - complaints read, the feedback loops: the complaint
+         // count beside each address's bounce counts (hm_bouncecounts.bccomplaints)
+         // with the date of the last one (bclastcomplaint, which is what keeps a
+         // complaint-only row from being swept before its count can reach the
+         // threshold), the reports themselves (hm_complaints) and the per-domain
+         // daily tally the complaint rate is computed from (hm_complaintvolume).
+         new SchemaProbe(6055, "hm_bouncecounts.bccomplaints",
+                         "update hm_bouncecounts set bccomplaints = bccomplaints where 1 = 0"),
+         new SchemaProbe(6055, "hm_bouncecounts.bclastcomplaint",
+                         "update hm_bouncecounts set bclastcomplaint = bclastcomplaint where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpdomainid",
+                         "update hm_complaints set cpdomainid = cpdomainid where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpaccountid",
+                         "update hm_complaints set cpaccountid = cpaccountid where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpkey",
+                         "update hm_complaints set cpkey = cpkey where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpaddress",
+                         "update hm_complaints set cpaddress = cpaddress where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpsender",
+                         "update hm_complaints set cpsender = cpsender where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpfeedbacktype",
+                         "update hm_complaints set cpfeedbacktype = cpfeedbacktype where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpprovider",
+                         "update hm_complaints set cpprovider = cpprovider where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpsourceip",
+                         "update hm_complaints set cpsourceip = cpsourceip where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpreporteddomain",
+                         "update hm_complaints set cpreporteddomain = cpreporteddomain where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpmessageid",
+                         "update hm_complaints set cpmessageid = cpmessageid where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpsubject",
+                         "update hm_complaints set cpsubject = cpsubject where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cparrival",
+                         "update hm_complaints set cparrival = cparrival where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaints.cpreceived",
+                         "update hm_complaints set cpreceived = cpreceived where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaintvolume.cvdomainid",
+                         "update hm_complaintvolume set cvdomainid = cvdomainid where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaintvolume.cvday",
+                         "update hm_complaintvolume set cvday = cvday where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaintvolume.cvsent",
+                         "update hm_complaintvolume set cvsent = cvsent where 1 = 0"),
+         new SchemaProbe(6055, "hm_complaintvolume.cvcomplaints",
+                         "update hm_complaintvolume set cvcomplaints = cvcomplaints where 1 = 0")
       };
 
       /// <summary>

@@ -1031,6 +1031,9 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="supppage")showSuppressions(suppressionView.domain,suppressionView.search,Math.max(0,suppressionView.offset+Number(d.by)));
   else if(d.act==="suppnew")addSuppression();
   else if(d.act==="suppdel")removeSuppression(d.address);
+  else if(d.act==="complaints")showComplaints(d.domain,"",0);
+  else if(d.act==="cmpsearch")showComplaints(complaintView.domain,($("#cmpSearch")||{}).value||"",0);
+  else if(d.act==="cmppage")showComplaints(complaintView.domain,complaintView.search,Math.max(0,complaintView.offset+Number(d.by)));
   else if(d.act==="domains"){editing=null;render();}
   else if(d.act==="domainnew")createDomain();
   else if(d.act==="domainedit")openDomain(d.name);
@@ -1529,6 +1532,7 @@ async function renderDomains(){
           <button class="btn ghost sm" data-act="aliases" data-domain="${escHtml(x.name)}">${t("Aliases ›")}</button>
           <button class="btn ghost sm" data-act="lists" data-domain="${escHtml(x.name)}">${t("Lists ›")}</button>
           <button class="btn ghost sm" data-act="suppressions" data-domain="${escHtml(x.name)}">${t("Suppressions ›")}</button>
+          <button class="btn ghost sm" data-act="complaints" data-domain="${escHtml(x.name)}">${t("Complaints ›")}</button>
           <button class="btn ghost sm" data-act="openpgp" data-domain="${escHtml(x.name)}">${t("OpenPGP ›")}</button>
           <button class="btn ghost sm" data-act="domainedit" data-name="${escHtml(x.name)}">${t("Edit")}</button>
           <button class="btn danger sm" data-act="domaindel" data-name="${escHtml(x.name)}">${t("Delete")}</button>
@@ -2269,7 +2273,7 @@ async function showSuppressions(domain,search,offset){
         <td>${bounceCategoryHtml(c.last_category)} <code>${escHtml(c.last_status||"")}</code></td>
         <td>${escHtml(c.last_bounce||"")}</td><td>${escHtml(c.last_delivered||"—")}</td></tr>`).join("");
   const props=suppressionProps();
-  const off=list.processing_enabled?"":'<p class="note"><span class="badge warn">'+t("Off")+'</span> '+t("Bounce processing is off: nothing is counted, listed or refused, and the entries below are not applied. Settings has the switch.")+'</p>';
+  const off=list.processing_enabled?"":'<p class="note"><span class="badge warn">'+t("Off")+'</span> '+(list.list_applies?t("Bounce processing is off, so no bounce is classified or counted - but the entries below ARE still applied, because complaint processing is on and the feedback loops fill this same list. Settings has both switches."):t("Bounce processing is off: nothing is counted, listed or refused, and the entries below are not applied. Settings has the switch."))+'</p>';
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
     <div class="sect"><h2>${tf("{0} — suppression list",escHtml(domain))}</h2>
@@ -2422,6 +2426,71 @@ async function removeOpenPgpKey(address,fingerprint){
     toast(tf("Removed the OpenPGP key of {0}",address));
     await showOpenPgp(openPgpView.domain);
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_pgp",e.message);}
+}
+
+
+/* ---------- Complaints ----------
+   The abuse reports the large providers' feedback loops have sent about this
+   domain's mail - GET /api/v1/domains/{domain}/complaints, which is also what
+   Utilities.GetComplaints answers the desktop Control Panel. Reached from a
+   domain's row, beside its suppression list, because a complaint's effect is an
+   entry on that list.
+
+   The rate is shown above the table rather than under it: it is the number the
+   providers throttle on, and a page that lists the rows without the denominator
+   shows half the answer. A domain that has sent too little for a rate to mean
+   anything says so instead of showing a figure nobody should act on. When
+   complaint processing is off, or no mailbox is named, the page says so: an empty
+   list and a list nobody is filling look the same otherwise. */
+const COMPLAINT_PAGE=50;
+let complaintView={domain:"",search:"",offset:0};
+const COMPLAINT_TYPES={abuse:K("Abuse"),fraud:K("Fraud"),virus:K("Virus"),
+  "not-spam":K("Not spam"),other:K("Other")};
+function complaintTypeHtml(word){
+  const label=COMPLAINT_TYPES[word];
+  const text=label?t(label):(word||"");
+  const tone=word==="not-spam"?"":word==="abuse"||word==="fraud"||word==="virus"?"warn":"info";
+  return '<span class="badge '+tone+'">'+escHtml(text)+'</span>';
+}
+async function showComplaints(domain,search,offset){
+  editing=null;
+  complaintView={domain:domain,search:search||"",offset:offset||0};
+  await loadSpec();
+  const filter=complaintView.search?"&search="+encodeURIComponent(complaintView.search):"";
+  let list;
+  try{
+    list=await api("/api/v1/domains/"+encodeURIComponent(domain)+"/complaints?limit="+COMPLAINT_PAGE+"&offset="+complaintView.offset+filter);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}toast(e.message);return;}
+  const items=asList(list,"items"),total=Number(list.total)||0;
+  const rows=items.map(x=>`
+    <tr><td>${x.address?escHtml(x.address):'<span class="muted">'+t("Not named")+'</span>'}</td>
+        <td>${complaintTypeHtml(x.feedback_type)}${x.counts?"":' <span class="hint muted">'+t("counts towards nothing")+'</span>'}</td>
+        <td>${escHtml(x.sender||"")}</td>
+        <td>${escHtml(x.subject||"")}${x.message_id?'<div class="hint muted"><code>'+escHtml(x.message_id)+'</code></div>':""}</td>
+        <td>${escHtml(x.provider||"")}${x.source_ip?'<div class="hint muted">'+escHtml(x.source_ip)+'</div>':""}</td>
+        <td>${escHtml(x.arrival||x.received||"")}</td></tr>`).join("");
+  const off=list.processing_enabled?"":'<p class="note"><span class="badge warn">'+t("Off")+'</span> '+t("Complaints are not being read: nothing is recorded, counted or listed. Settings has the switch.")+'</p>';
+  const nomailbox=(list.processing_enabled&&!list.mailbox_configured)?'<p class="note"><span class="badge warn">'+t("No mailbox")+'</span> '+t("No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.")+'</p>':"";
+  const rate=list.rate_judged
+    ?tf("{0} complaint(s) in {1} message(s) over {2} days: {3} in a million.",list.complaints,list.sent,list.window_days,list.rate_ppm)
+    :tf("{0} complaint(s) in {1} message(s) over {2} days - too little sent for a rate to mean anything.",list.complaints,list.sent,list.window_days);
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
+    <div class="sect"><h2>${tf("{0} — complaints",escHtml(domain))}</h2>
+      <div class="card flat">
+        ${off}${nomailbox}
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/complaints","get").summary||"")}. ${escHtml(rate)}</p>
+        <div class="row" data-enter="cmpsearch" style="margin-bottom:12px">
+          <input id="cmpSearch" placeholder="${t("Search complaints")}" aria-label="${t("Search complaints")}" value="${escHtml(complaintView.search)}" style="flex:1;min-width:220px">
+          <button class="btn ghost sm" data-act="cmpsearch">${t("Search")}</button>
+          <button class="btn ghost sm" data-act="cmppage" data-by="-${COMPLAINT_PAGE}">${t("Newer")}</button>
+          <button class="btn ghost sm" data-act="cmppage" data-by="${COMPLAINT_PAGE}">${t("Older")}</button>
+        </div>
+        <div class="err" id="err_cmp"></div>
+        <div class="tablewrap"><table><thead><tr><th>${t("Who complained")}</th><th>${t("Type")}</th><th>${t("Sender")}</th><th>${t("Message")}</th><th>${t("Reported by")}</th><th>${t("Arrived")}</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No abuse report has been recorded for this domain.")+'</td></tr>'}</tbody></table></div>
+        <p class="note" style="margin-top:12px">${tf("{0} to {1} of {2}",total?complaintView.offset+1:0,complaintView.offset+items.length,total)}</p>
+      </div></div></div>`;
 }
 
 /* ---------- Groups ----------
@@ -2620,7 +2689,9 @@ const SETTING_GROUPS=[
   // the private key (write-only, for carrying an installation); the verb makes
   // a fresh pair, after which every device has to be asked again.
   {id:"push", path:"/api/v1/settings/push",    title:K("Web Push"),save:K("Save Web Push settings"),
-    verbs:[{path:"/api/v1/settings/push/vapid",label:K("Make a new VAPID key pair")}]}
+    verbs:[{path:"/api/v1/settings/push/vapid",label:K("Make a new VAPID key pair")}]},
+  {id:"complaint",path:"/api/v1/settings/complaints", title:K("Complaints and feedback loops"),save:K("Save complaint settings"),
+    verbs:[{path:"/api/v1/complaints/expire",label:K("Prune old complaints now")}]}
 ];
 function verbButtonsHtml(g){
   return (g.verbs||[]).map(v=>`<button class="btn ghost" data-act="setpost" data-group="${g.id}" data-path="${escHtml(v.path)}" data-label="${escHtml(t(v.label))}" title="${escHtml(operation(v.path,"post").summary||"")}">${escHtml(t(v.label))}</button>`).join("");

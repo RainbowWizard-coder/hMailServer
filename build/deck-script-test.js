@@ -835,6 +835,17 @@ const SETTING_GROUPS = {
       },
       values: { enabled: false, subject: '', time_to_live_seconds: 86400, max_devices_per_account: 10, max_attempts: 5, vapid_public_key: '' }
    },
+   // Complaints read, the feedback loops: a group like the others, with the
+   // sweep as its verb and a mailbox that decides whether anything is read.
+   '/api/v1/settings/complaints': {
+      props: {
+         processing_enabled: { type: 'boolean', description: 'The master switch: read the RFC 5965 abuse reports the providers post to the complaint mailbox.' },
+         mailbox: { type: 'string', description: 'The address this server\'s feedback loops are registered against. Only a report delivered here is read as a complaint.' },
+         suppression_threshold: { type: 'integer', description: 'Complaints about one address that put it on its sending domain\'s suppression list. 0 lists nobody.' },
+         retention_days: { type: 'integer', description: 'Days a complaint and the daily tally behind the complaint rate are kept.' }
+      },
+      values: { processing_enabled: true, mailbox: 'fbl@example.com', suppression_threshold: 1, retention_days: 180 }
+   },
    '/api/v1/settings/backup': {
       props: {
          destination: { type: 'string', description: 'The directory a backup is written to.' },
@@ -1003,6 +1014,10 @@ const spec = {
       },
       '/api/v1/domains/{domain}/suppressions/{address}': { delete: { summary: 'Take an address off a domain\'s suppression list' } },
       '/api/v1/domains/{domain}/bounces': { get: { summary: 'The bounce counts of a domain\'s recipients', description: 'Per address this domain has sent to and had bounce: the counts, the run of hard bounces and whether the address is listed now.' } },
+      '/api/v1/settings/complaints': settingsPath('/api/v1/settings/complaints'),
+      '/api/v1/complaints/expire': { post: { summary: 'Run the feedback loops\' maintenance sweep now', description: 'What the hourly task does: complaints older than retention_days, and the daily tally rows behind the rate, are removed.' } },
+      '/api/v1/domains/{domain}/complaints': { get: { summary: 'The abuse reports recorded about a domain\'s mail', description: 'What the large providers\' feedback loops have reported about this domain: who complained, about which message, and which provider reported it.' } },
+      '/api/v1/complaints/rates': { get: { summary: 'Every domain\'s complaint rate', description: 'The complaint rate of each locally hosted domain over the last seven days, worst first.' } },
       ...collectionPaths(),
       '/api/v1/settings/messages': { get: { summary: 'The server\'s message texts', description: 'The texts the server puts in the mail it writes itself - Settings.ServerMessages over COM. Each entry: id, name, text. Server-wide; refused for domain-restricted keys.' } },
       '/api/v1/settings/messages/{name}': { put: { summary: 'Change one server message text', description: 'Body: text. The name is the table\'s own, as the listing shows it. In use at once. Server-wide; refused for domain-restricted and read-only keys.', requestBody: body({ text: { type: 'string' } }, ['text']) } },
@@ -1120,6 +1135,17 @@ const state = {
          last_bounce: '2026-09-14 10:00:00', last_delivered: '', suppressed: true }]
    },
    bounceSweeps: 0,
+   complaints: {
+      'example.com': [
+         { address: 'reader@provider.test', sender: 'anna@example.com', account_id: 1, feedback_type: 'abuse', counts: true,
+            provider: 'SomeGenerator/1.0', source_ip: '192.0.2.1', reported_domain: 'example.com', message_id: 'abc.123@example.com',
+            subject: 'Our newsletter', arrival: '2026-09-15 09:00:00', received: '2026-09-15 09:04:00' },
+         { address: '', sender: 'anna@example.com', account_id: 1, feedback_type: 'not-spam', counts: false,
+            provider: 'SomeGenerator/1.0', source_ip: '', reported_domain: 'example.com', message_id: '',
+            subject: 'Our newsletter', arrival: '', received: '2026-09-15 10:00:00' }
+      ]
+   },
+   complaintSweeps: 0,
    fetcherDown: false,
    backup: { status: '', log: ['2026-09-13 02:00:00 Backup started.', '2026-09-13 02:00:09 Backup completed.'] },
    backupRunning: false,
@@ -1708,7 +1734,7 @@ function answer(method, path, headers, raw) {
       const all = (path.split('?')[0].endsWith('/bounces') ? state.bounceCounts[domain] : state.suppressions[domain]) || [];
       const matching = search ? all.filter((e) => e.address.indexOf(search) >= 0) : all;
       const answerBody = { domain, total: matching.length, offset, items: matching.slice(offset, offset + limit) };
-      if (!path.split('?')[0].endsWith('/bounces')) { answerBody.processing_enabled = SETTING_GROUPS['/api/v1/settings/bounces'].values.processing_enabled; answerBody.action = SETTING_GROUPS['/api/v1/settings/bounces'].values.suppression_action; }
+      if (!path.split('?')[0].endsWith('/bounces')) { answerBody.processing_enabled = SETTING_GROUPS['/api/v1/settings/bounces'].values.processing_enabled; answerBody.list_applies = SETTING_GROUPS['/api/v1/settings/bounces'].values.processing_enabled || SETTING_GROUPS['/api/v1/settings/complaints'].values.processing_enabled; answerBody.action = SETTING_GROUPS['/api/v1/settings/bounces'].values.suppression_action; }
       return json(200, answerBody);
    }
    if (/^\/api\/v1\/domains\/[^/]+\/suppressions$/.test(path) && method === 'POST') {
@@ -1772,6 +1798,23 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/bounces/expire' && method === 'POST') { state.bounceSweeps += 1; return json(200, { suppressions_expired: 0, counts_pruned: 0, report_keys_pruned: 0 }); }
+
+   // The abuse reports recorded about a domain, and the sweep.
+   if (/^\/api\/v1\/domains\/[^/]+\/complaints(\?|$)/.test(path) && method === 'GET') {
+      const domain = segment(path, 4);
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      const parameter = (name) => { const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0]; return hit ? decodeURIComponent(hit.split('=').slice(1).join('=')) : ''; };
+      const search = parameter('search');
+      const offset = Number(parameter('offset') || 0);
+      const limit = Number(parameter('limit') || 100);
+      const all = state.complaints[domain] || [];
+      const matching = search ? all.filter((e) => (e.address + ' ' + e.sender + ' ' + e.subject).indexOf(search) >= 0) : all;
+      const group = SETTING_GROUPS['/api/v1/settings/complaints'].values;
+      return json(200, { domain, processing_enabled: group.processing_enabled, mailbox_configured: !!group.mailbox,
+         window_days: 7, sent: 4000, complaints: matching.length,
+         rate_ppm: 250, rate_judged: true, total: matching.length, offset, items: matching.slice(offset, offset + limit) });
+   }
+   if (path === '/api/v1/complaints/expire' && method === 'POST') { state.complaintSweeps += 1; return json(200, { complaints_pruned: 0 }); }
 
    if (path === '/api/v1/tlsa') { return json(200, state.tlsa); }
 
@@ -2472,8 +2515,28 @@ async function main() {
       rows().length ? rows()[0].textContent : 'no rows');
    check('the counts are drawn beside the list, the run of hard bounces and the listed mark among them', rows().length === 2 && rows()[1].textContent.indexOf('gone@remote.test') >= 0 &&
       rows()[1].textContent.indexOf('Listed') >= 0 && rows()[1].querySelectorAll('td').length === 10, rows().length ? rows()[rows().length - 1].textContent : 'no rows');
-   check('with processing off, the page says the list is not being applied, and says what the action is', content().textContent.indexOf('Bounce processing is off') >= 0 &&
-      content().textContent.indexOf('A listed recipient is refused, with the reason.') >= 0);
+   // Bounce processing is off in the recorded settings and complaint processing is
+   // on, which is the case the feedback loops introduced: the list IS applied, and
+   // the page must not go on saying it is not. Both wordings are checked, because
+   // they share a first sentence and a substring test on that sentence alone would
+   // pass whichever one was drawn.
+   check('with bounce processing off but complaints on, the page says the entries are still applied, and says what the action is',
+      content().textContent.indexOf('the entries below ARE still applied') >= 0 &&
+      content().textContent.indexOf('and the entries below are not applied') < 0 &&
+      content().textContent.indexOf('A listed recipient is refused, with the reason.') >= 0, content().textContent.slice(0, 400));
+   SETTING_GROUPS['/api/v1/settings/complaints'].values.processing_enabled = false;
+   click(act('domains'));
+   await flush();
+   click(act('suppressions', { domain: 'example.com' }));
+   await flush();
+   check('with both switches off, the page says the list is not being applied',
+      content().textContent.indexOf('and the entries below are not applied') >= 0 &&
+      content().textContent.indexOf('the entries below ARE still applied') < 0, content().textContent.slice(0, 400));
+   SETTING_GROUPS['/api/v1/settings/complaints'].values.processing_enabled = true;
+   click(act('domains'));
+   await flush();
+   click(act('suppressions', { domain: 'example.com' }));
+   await flush();
    const drawnSuppNew = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('suppnew_') === 0).map((id) => id.slice(8)).sort();
    check('the add form has every key of the create, the expiry at the default its description names', JSON.stringify(drawnSuppNew) === '["address","expires_days","note"]' &&
       document.getElementById('suppnew_expires_days').value === '0' && document.getElementById('suppnew_address').closest('.fr').textContent.indexOf('required') >= 0, JSON.stringify(drawnSuppNew));
@@ -2521,6 +2584,27 @@ async function main() {
    click(act('suppdel', { address: 'gone@remote.test' }));
    await flush();
    check('a refused removal is the server\'s sentence above the table', document.getElementById('err_supp').textContent === 'The entry could not be removed.', document.getElementById('err_supp').textContent);
+   // ---- the complaints of a domain (the feedback loops)
+   click(act('domains'));
+   await flush();
+   check('each domain row carries a way to its complaints', act('complaints', { domain: 'example.com' }) !== null);
+   before = requests.length;
+   click(act('complaints', { domain: 'example.com' }));
+   await flush();
+   check('Complaints reads the domain\'s reports a page at a time', called(before, 'GET', '/api/v1/domains/example.com/complaints?limit=50&offset=0').length === 1, paths(before));
+   check('the rate is shown with its denominator, not on its own', content().textContent.indexOf('250 in a million') >= 0 && content().textContent.indexOf('4000 message(s)') >= 0, content().textContent.slice(0, 400));
+   check('a complaint is drawn with who complained, the type, the sender and the provider', rows().length === 2 &&
+      rows()[0].textContent.indexOf('reader@provider.test') >= 0 && rows()[0].textContent.indexOf('Abuse') >= 0 &&
+      rows()[0].textContent.indexOf('anna@example.com') >= 0 && rows()[0].textContent.indexOf('SomeGenerator/1.0') >= 0, rows().map((r) => r.textContent).join(' | '));
+   check('a redacted reader reads as Not named, and a not-spam report says it counts towards nothing',
+      rows()[1].textContent.indexOf('Not named') >= 0 && rows()[1].textContent.indexOf('counts towards nothing') >= 0, rows()[1].textContent);
+   before = requests.length;
+   setValue('cmpSearch', 'reader');
+   click(act('cmpsearch'));
+   await flush();
+   check('searching asks the server for the substring and draws what it answers',
+      called(before, 'GET', '/api/v1/domains/example.com/complaints?limit=50&offset=0&search=reader').length === 1 && rows().length === 1, paths(before));
+
 
    // ---- the OpenPGP key directory of a domain
    click(act('domains'));
@@ -3199,6 +3283,7 @@ async function main() {
    await flush();
    check('Delete confirms, deletes and re-reads', confirmations[confirmations.length - 1].indexOf('41') >= 0 && called(before, 'DELETE', '/api/v1/queue/41').length === 1 && rows().length === 1);
 
+
    // ---- DANE / TLSA
    before = requests.length;
    await goTo('tlsa');
@@ -3211,7 +3296,7 @@ async function main() {
    // ---- settings, drawn from the OpenAPI document
    before = requests.length;
    await goTo('settings');
-   check('the settings view reads the seven groups, and the document was read once for the whole session',
+   check('the settings view reads the nine groups, and the document was read once for the whole session',
       called(0, 'GET', '/api/v1/openapi.json').length === 1 &&
       ['/api/v1/settings', '/api/v1/settings/antispam', '/api/v1/settings/logging', '/api/v1/settings/antivirus', '/api/v1/settings/scripting', '/api/v1/settings/cache', '/api/v1/settings/indexing'].every((p) => called(before, 'GET', p).length === 1),
       paths(before));

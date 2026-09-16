@@ -365,6 +365,16 @@ namespace HM
       // only changes when a certificate is replaced.
       void RefreshCertificateExpiryCache_();
 
+      // Rebuilds the three per-domain complaint series (SMTP/ComplaintTracker.h).
+      // Called only from the refresher, and only when a scrape has asked for them,
+      // for the same two reasons as the delivery queue: ComplaintTracker::Rates is a
+      // database read, and rule 5 says the request thread performs none. Never
+      // throws: a read that failed leaves the previous body in place, and an empty
+      // body - which is what an installation with the feedback loops switched off
+      // has - emits no series at all rather than a rate of zero, a number an
+      // operator would act on.
+      void RefreshComplaintRateCache_();
+
       // Whether the database has proved recently that it can answer. All three
       // conditions in rule 6, with the reason for the first one that fails. This is
       // the only thing /readyz, /healthz and hmailserver_database_connected consult;
@@ -375,6 +385,10 @@ namespace HM
       // rather than a reference: the refresher may replace the cached body while a
       // response is being assembled.
       AnsiString GetCachedCertificateExpiryMetrics_();
+
+      // The per-domain complaint series as the refresher last built them, on the
+      // same terms.
+      AnsiString GetCachedComplaintRateMetrics_();
 
       // Reads notAfter out of a PEM certificate as a Unix timestamp. Returns 0 when
       // the file is missing, unreadable or unparseable.
@@ -468,6 +482,10 @@ namespace HM
       bool certificate_refresh_requested_;
       ULONGLONG certificate_cache_tick_;
       AnsiString certificate_cache_body_;
+
+      bool complaint_refresh_requested_;
+      ULONGLONG complaint_cache_tick_;
+      AnsiString complaint_cache_body_;
 
       // The expected credentials, empty when the corresponding scheme is not
       // configured. The Basic pair is stored pre-joined as "username:password"

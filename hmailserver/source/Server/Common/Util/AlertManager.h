@@ -98,6 +98,13 @@ namespace HM
       // failed. Seeded by schema 6048, on, threshold 7.
       static const wchar_t *ConditionDkimRotationStalled;
 
+      // A sending domain's complaint rate over the feedback loops' seven-day
+      // window at or above the rule's threshold, which is in parts per million
+      // (1000 is one complaint in a thousand messages, the figure the large
+      // providers themselves describe as too high). Seeded by schema 6050, on,
+      // threshold 1000. See SMTP/ComplaintTracker.h.
+      static const wchar_t *ConditionComplaintsRateHigh;
+
       struct Rule
       {
          Rule() : id(0), enabled(false), threshold(0), actions(ActionMail), cooldown(60), digest(true) {}
@@ -206,6 +213,7 @@ namespace HM
       int EvaluateAutoBans_();
       int EvaluateMinidumps_();
       int EvaluateDkimRotations_();
+      int EvaluateComplaintRates_();
 
       boost::recursive_mutex mutex_;
 

@@ -49,6 +49,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "Utilities.h"
+#include "MessageOrigin.h"
 #include "WebPush.h"
 #include "PasswordBreachCheck.h"
 #include "SessionPolicies.h"
@@ -277,6 +278,51 @@ namespace
       { "tls", 2 },
       { nullptr, 0 }
    };
+
+   // Every address in a complaint mailbox list has to be one, and one this server
+   // hosts: a feedback loop is registered against a mailbox here, and a list
+   // naming an address somewhere else would read no report and never say so. The
+   // same sentences InterfaceSettings::put_ComplaintMailbox refuses with.
+   String ComplaintMailboxProblem(const String &value)
+   {
+      String text = value;
+      text.Trim();
+
+      if (text.IsEmpty())
+         return String();
+
+      if (text.GetLength() > 255)
+         return String(_T("mailbox must be at most 255 characters."));
+
+      String list = text;
+      list.Replace(_T(";"), _T(","));
+      list.Replace(_T(" "), _T(","));
+
+      std::vector<String> names = StringParser::SplitString(list, _T(","));
+      int found = 0;
+
+      for (const String &name : names)
+      {
+         String address = name;
+         address.Trim();
+
+         if (address.IsEmpty())
+            continue;
+
+         found++;
+
+         if (!StringParser::IsValidEmailAddress(address, true))
+            return String(_T("mailbox must be one address, or several separated by commas."));
+
+         if (!MessageOrigin::IsHostedAddress(address))
+            return Formatter::Format(_T("{0} is not an address this server hosts, and a provider could not deliver a report to it."), address);
+      }
+
+      if (found == 0)
+         return String(_T("mailbox must be one address, or several separated by commas."));
+
+      return String();
+   }
 
    // BounceTracker::Action, in the order the Control Panel lists them.
    const Word BounceSuppressionActionWords[] =
@@ -1235,7 +1281,7 @@ namespace
    const Row BounceRows[] =
    {
       { "processing_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
-        "The master switch: classify bounces, count them per address, and keep a suppression list per sending domain. Off by default, and with it off nothing is read, counted or refused.",
+        "The master switch for READING bounces: classify them, count them per address, and add to the suppression list per sending domain. Off by default, and with it off no bounce is classified, counted or stored. Note that it does not by itself stop the list being APPLIED: the entries are enforced whenever this or complaint processing is on, because the feedback loops fill the same list and an entry nobody applies is a feature that does nothing.",
         ROW_FLAG(Config()->GetBounceProcessingEnabled()), ROW_SET(Config()->SetBounceProcessingEnabled(v.flag)), ROW_NO_CHECK },
       { "hard_bounce_threshold", KindInteger, ReadWrite, EffectNow, nullptr,
         "Hard bounces in a row, with no delivery between them, that put an address on its sending domain's list. 1 to 100; 1 by default.",
@@ -1333,6 +1379,30 @@ namespace
                               return WebPush::PublicKeyOf(AnsiString(key), derived, error) ? String() : error; } },
    };
 
+   // Complaints, read: the feedback loops (SMTP/ComplaintTracker.h). In
+   // hm_settings, through the same Configuration setters the COM properties call,
+   // and read at the moment they matter, so every one is in force for the next
+   // report. The ranges are refused before anything is applied, in the sentences
+   // InterfaceSettings uses.
+   const Row ComplaintRows[] =
+   {
+      { "processing_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "The master switch: read the RFC 5965 abuse reports the providers post to the complaint mailbox, record them per domain and per account, and list an address that complains. Off by default, and with it off nothing is read, counted or written.",
+        ROW_FLAG(Config()->GetComplaintProcessingEnabled()), ROW_SET(Config()->SetComplaintProcessingEnabled(v.flag)), ROW_NO_CHECK },
+      { "mailbox", KindString, ReadWrite, EffectNow, nullptr,
+        "The address this server's feedback loops are registered against, such as fbl@example.com, or several separated by commas. ONLY a report delivered here is read as a complaint: arriving where the provider was told to send it is the only thing that tells a report from a forgery, since anybody can write a message that looks like one. Each address must be one this server hosts. Empty, the default, means no complaint is ever read.",
+        ROW_TEXT(Config()->GetComplaintMailbox()), ROW_SET(Config()->SetComplaintMailbox(v.text)),
+        [] (const Value &v) { return ComplaintMailboxProblem(v.text); } },
+      { "suppression_threshold", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Complaints about one address that put it on its sending domain's suppression list - the same list the bounces feed, with its own reason on the entry. 0 by default, which records and counts every report and lists nobody: the only thing that tells a genuine report from a forged one is that it arrived at the mailbox, so read some real entries before letting the list act. 1 is the value to move to - a reader who pressed the spam button received the message and did not want it. At most 100.",
+        ROW_NUMBER(Config()->GetComplaintSuppressionThreshold()), ROW_SET(Config()->SetComplaintSuppressionThreshold((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 100) ? String(_T("suppression_threshold must be between 0 and 100.")) : String(); } },
+      { "retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Days a complaint is kept. 180 by default; 0 keeps them for ever; at most 3650. The daily tally behind the complaint rate is swept on the same clock, but never below the seven days of the rate window, so a retention shorter than the window cannot empty the window it is measured over. A suppression list entry a complaint made is not removed by this - it has its own expiry, in the bounce settings.",
+        ROW_NUMBER(Config()->GetComplaintRetentionDays()), ROW_SET(Config()->SetComplaintRetentionDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 3650) ? String(_T("retention_days must be between 0 and 3650.")) : String(); } },
+   };
+
 #undef ROW_TEXT
 #undef ROW_NUMBER
 #undef ROW_FLAG
@@ -1349,6 +1419,7 @@ namespace
    const Group AntiSpamGroup = { "antispam", "/api/v1/settings/antispam", AntiSpamRows, sizeof(AntiSpamRows) / sizeof(AntiSpamRows[0]) };
    const Group AntiVirusGroup = { "antivirus", "/api/v1/settings/antivirus", AntiVirusRows, sizeof(AntiVirusRows) / sizeof(AntiVirusRows[0]) };
    const Group LoggingGroup = { "logging", "/api/v1/settings/logging", LoggingRows, sizeof(LoggingRows) / sizeof(LoggingRows[0]) };
+   const Group ComplaintGroup = { "complaints", "/api/v1/settings/complaints", ComplaintRows, sizeof(ComplaintRows) / sizeof(ComplaintRows[0]) };
    const Group DirectoriesGroup = { "directories", "/api/v1/settings/directories", DirectoriesRows, sizeof(DirectoriesRows) / sizeof(DirectoriesRows[0]) };
    const Group ScriptingGroup = { "scripting", "/api/v1/settings/scripting", ScriptingRows, sizeof(ScriptingRows) / sizeof(ScriptingRows[0]) };
    const Group BackupGroup = { "backup", "/api/v1/settings/backup", BackupRows, sizeof(BackupRows) / sizeof(BackupRows[0]) };
@@ -2203,6 +2274,7 @@ namespace HM
       paths += OpenApiReadOnlyPath(DirectoriesGroup, "The directories the server runs in",
          "What Settings.Directories reports over COM, and the hMailServer.ini the settings came from. Facts about the installation, set when it was made; nothing here is written. Server-wide; refused for domain-restricted keys.", bridge);
       paths += IniAndLogonFailurePaths;
+      paths += OpenApiPath(ComplaintGroup, "The feedback loop settings", "Change the feedback loop settings", bridge);
       paths += OpenApiPath(ScriptingGroup, "The event-handler scripting settings", "Change the scripting settings", bridge);
       paths += OpenApiPath(BackupGroup, "The backup settings", "Change the backup settings", bridge);
       paths += ScriptingMessagesAndSievePaths;
@@ -2528,6 +2600,20 @@ namespace HM
          JsonEscape_(Utf8_(Configuration::Instance()->GetWebPushVapidPublicKey())) + "\"}";
 
       return BuildResponse_(200, json);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsComplaints_()
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupGet(ComplaintGroup, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsComplaintsPut_(const AnsiString &requestBody)
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return GroupPut(ComplaintGroup, requestBody, bridge);
    }
 
    HttpResponse

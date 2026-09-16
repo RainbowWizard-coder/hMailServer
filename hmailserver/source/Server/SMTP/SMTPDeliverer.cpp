@@ -56,6 +56,7 @@
 
 #include "DeliveryFailure.h"
 #include "BounceTracker.h"
+#include "ComplaintTracker.h"
 #include "../Common/Util/WebhookManager.h"
 
 #ifdef _DEBUG
@@ -350,6 +351,14 @@ namespace HM
       // is on and the message has a null sender. See BounceTracker.
       BounceTracker::InspectIncomingReport(pMessage);
 
+      // An RFC 5965 abuse report that a provider's feedback loop posted to the
+      // complaint mailbox is read here, for the same reason and in the same place:
+      // before local delivery takes its recipients away, so the address it was
+      // addressed to can still be seen. Returns at once unless complaint processing
+      // is on and a mailbox is named. The message is delivered unchanged either
+      // way. See ComplaintTracker.
+      ComplaintTracker::InspectIncomingComplaint(pMessage);
+
       std::vector<DeliveryFailure> saErrorMessages;
 
       // Perform deliver to local recipients.
@@ -377,6 +386,11 @@ namespace HM
          // and in whose words, or deferred - so the bounces are counted from the
          // recipients themselves, and a delivery's report key is kept.
          BounceTracker::RecordDeliveryPass(pMessage, messageRescheduled);
+
+         // The complaint rate's denominator: the recipients a remote accepted in
+         // this pass, added to the sending domain's tally for today. One write per
+         // pass, and none at all unless a complaint mailbox is named.
+         ComplaintTracker::RecordDeliveryPass(pMessage);
       }
 
       // If an error has occurred, now is the time to send an error

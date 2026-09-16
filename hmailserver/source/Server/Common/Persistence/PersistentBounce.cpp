@@ -130,14 +130,16 @@ namespace HM
          row.policy = (int) recordset->GetLongValue("bcpolicy");
          row.other = (int) recordset->GetLongValue("bcother");
          row.consecutive_hard = (int) recordset->GetLongValue("bcconsecutivehard");
+         row.complaints = (int) recordset->GetLongValue("bccomplaints");
          row.last_status = recordset->GetStringValue("bclaststatus");
          row.last_category = (int) recordset->GetLongValue("bclastcategory");
          row.last_bounce = recordset->GetStringValue("bclastbounce");
          row.last_delivered = recordset->GetStringValue("bclastdelivered");
+         row.last_complaint = recordset->GetStringValue("bclastcomplaint");
       }
 
       const wchar_t *SuppressionColumns = L"bsid, bsdomainid, bsaddress, bssource, bscategory, bsstatus, bsdiagnostic, bsremotemta, bscreated, bsexpires";
-      const wchar_t *CountColumns = L"bcid, bcdomainid, bcaddress, bchard, bcsoft, bcmailboxfull, bcpolicy, bcother, bcconsecutivehard, bclaststatus, bclastcategory, bclastbounce, bclastdelivered";
+      const wchar_t *CountColumns = L"bcid, bcdomainid, bcaddress, bchard, bcsoft, bcmailboxfull, bcpolicy, bcother, bcconsecutivehard, bccomplaints, bclaststatus, bclastcategory, bclastbounce, bclastdelivered, bclastcomplaint";
    }
 
    const char *
@@ -372,10 +374,12 @@ namespace HM
       statement.AddColumn("bcpolicy", (long) row.policy);
       statement.AddColumn("bcother", (long) row.other);
       statement.AddColumn("bcconsecutivehard", (long) row.consecutive_hard);
+      statement.AddColumn("bccomplaints", (long) row.complaints);
       statement.AddColumn("bclaststatus", row.last_status.Left(16));
       statement.AddColumn("bclastcategory", (long) row.last_category);
       statement.AddColumn("bclastbounce", row.last_bounce);
       statement.AddColumn("bclastdelivered", row.last_delivered);
+      statement.AddColumn("bclastcomplaint", row.last_complaint);
       statement.SetStatementType(SQLStatement::STInsert);
       statement.SetIdentityColumn("bcid");
 
@@ -422,6 +426,18 @@ namespace HM
       command.AddParameter("@DELIVERED", deliveredAt.IsEmpty() ? DateTimeFromNow(0) : deliveredAt);
       command.AddParameter("@DOMAINID", domainID);
       command.AddParameter("@ADDRESS", Canonical(address));
+
+      return Db()->Execute(command);
+   }
+
+   bool
+   PersistentBounce::AddComplaintToCount(__int64 id, const String &complainedAt)
+   {
+      // bclastcomplaint and not bclastdelivered: the two mean different things and
+      // only one of them decides a later delivery report's run. See the header.
+      SQLCommand command(_T("update hm_bouncecounts set bccomplaints = bccomplaints + 1, bclastcomplaint = @LASTCOMPLAINT where bcid = @ID"));
+      command.AddParameter("@LASTCOMPLAINT", complainedAt.IsEmpty() ? DateTimeFromNow(0) : complainedAt);
+      command.AddParameter("@ID", id);
 
       return Db()->Execute(command);
    }
@@ -665,13 +681,22 @@ namespace HM
       // Candidates in one select, then each checked against the list and deleted by
       // id. A count behind an entry that is still on the list is kept whatever its
       // age: it is the entry's history, and the page shows the two side by side.
-      // Two names for the one value, in the order they appear: SQL Server and
-      // Compact bind parameters by position, and a name used twice would be two
-      // placeholders with one value behind them.
+      // Three names for the one value, in the order they appear: SQL Server and
+      // Compact bind parameters by position, and a name used three times would be
+      // three placeholders with one value behind them.
+      //
+      // All three dates have to be old, and an empty one counts as old on every
+      // backend because '' sorts before any timestamp. That is what keeps a row a
+      // complaint made - which has no bounce and no delivery - alive for the
+      // retention period after the LAST complaint rather than the first: without
+      // bclastcomplaint in this predicate such a row has no date at all, is swept
+      // on the next hourly pass, and an address complained about once a quarter
+      // never reaches a threshold above one.
       SQLCommand command(SelectWithLimit(_T("bcid, bcdomainid, bcaddress"), _T("hm_bouncecounts"),
-         _T("bclastbounce <= @BOUNCECUTOFF and bclastdelivered <= @DELIVEREDCUTOFF"), _T("bcid"), MaxPrunePerPass));
+         _T("bclastbounce <= @BOUNCECUTOFF and bclastdelivered <= @DELIVEREDCUTOFF and bclastcomplaint <= @COMPLAINTCUTOFF"), _T("bcid"), MaxPrunePerPass));
       command.AddParameter("@BOUNCECUTOFF", cutoff);
       command.AddParameter("@DELIVEREDCUTOFF", cutoff);
+      command.AddParameter("@COMPLAINTCUTOFF", cutoff);
 
       std::shared_ptr<DALRecordset> recordset = Db()->OpenRecordset(command);
       if (!recordset)

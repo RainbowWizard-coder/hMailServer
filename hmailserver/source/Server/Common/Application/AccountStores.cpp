@@ -311,6 +311,9 @@ namespace HM
         _T("The full-text index: derived from the messages themselves and rebuilt by the indexer, so carrying it would double the archive to save work a background task does.") },
       { _T("hm_messageindexstate"),
         _T("How far the indexer has read. Derived, as above; a restored server indexes from the beginning.") },
+      { _T("hm_complaints"),
+        _T("An abuse report a feedback loop sent about mail this installation put out. Its account id says whose mail drew it, which makes it look like a per-account store, but it is not the account's: it is what somebody outside said, it is pruned on ComplaintRetentionDays rather than kept, and what it does - the complaint count and the suppression list entry - belongs to the DOMAIN and travels with the domain. ")
+        _T("Restoring it under an account would bring back complaints that had already aged out, and the rate they feed is a moving seven-day window a restore cannot honestly reconstruct.") },
       { _T("hm_digesttokens"),
         _T("The one-shot capabilities a quarantine digest's links carry - release this entry, release everything listed, stop the digest - each good once and dead within QuarantineDigestLinkHours (72 by default, 720 at most). ")
         _T("Restoring one would bring back a link that was already spent or had expired, naming a quarantine entry by an id the restore does not carry; the next digest issues fresh ones.") },

@@ -375,6 +375,24 @@ namespace RegressionTests.Shared
          if (BounceTestSupport.ComBounceReportWindowDays(_settings) != 7)
             BounceTestSupport.ComSetBounceReportWindowDays(_settings, 7);
 
+         // Complaints read, the feedback loops: all four back to what the server
+         // ships. A mailbox left named by a fixture that failed before its own
+         // TearDown would make every later fixture's mail to that address a
+         // complaint intake, and a threshold left at 0 would hide a suppression a
+         // later test expects. The rows go with the test domain, which AddTestDomain
+         // deletes and both complaint tables cascade from.
+         if (ComplaintTestSupport.ComComplaintProcessingEnabled(_settings))
+            ComplaintTestSupport.ComSetComplaintProcessingEnabled(_settings, false);
+
+         if (ComplaintTestSupport.ComComplaintMailbox(_settings) != "")
+            ComplaintTestSupport.ComSetComplaintMailbox(_settings, "");
+
+         if (ComplaintTestSupport.ComComplaintSuppressionThreshold(_settings) != 1)
+            ComplaintTestSupport.ComSetComplaintSuppressionThreshold(_settings, 1);
+
+         if (ComplaintTestSupport.ComComplaintRetentionDays(_settings) != 180)
+            ComplaintTestSupport.ComSetComplaintRetentionDays(_settings, 180);
+
          EnableLogging(true);
 
          CustomAsserts.AssertNoReportedError();

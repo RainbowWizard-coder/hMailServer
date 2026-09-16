@@ -136,6 +136,27 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS, 0);
       property_set_->EnsureLong(PROPERTY_BOUNCE_READ_REPORTS, 1);
       property_set_->EnsureLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, 90);
+
+      // Complaints, read: the feedback loops. Off, with no mailbox named, which is
+      // the server as it has always been - it has never read an abuse report.
+      //
+      // The threshold ships at 0, which records and counts every report and lists
+      // nobody. That is deliberately the observe-only setting and not the acting
+      // one, and the reason is the feature's own threat model: the single thing
+      // that tells a genuine report from one somebody wrote is that it arrived at
+      // the mailbox, so whoever learns that address - and an operator who names
+      // abuse@, which RFC 2142 publishes, has told everybody - can have any address
+      // they choose refused for the whole domain with one message. An administrator
+      // who has read some real entries raises it to 1, which is the value this
+      // feature is for: a reader who pressed the spam button received the message
+      // and did not want it. docs/Complaints.md says exactly this, and the shipped
+      // default now agrees with it.
+      //
+      // The complaints themselves are kept for half a year.
+      property_set_->EnsureLong(PROPERTY_COMPLAINT_PROCESSING_ENABLED, 0);
+      property_set_->EnsureString(PROPERTY_COMPLAINT_MAILBOX, _T(""));
+      property_set_->EnsureLong(PROPERTY_COMPLAINT_THRESHOLD, 0);
+      property_set_->EnsureLong(PROPERTY_COMPLAINT_RETENTION_DAYS, 180);
       property_set_->EnsureLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, 7);
 
       // Web Push. Off, with no keys and no contact: a server that has never been
@@ -1624,6 +1645,57 @@ namespace HM
       GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, String(privateKey));
       GetSettings()->SetString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, String(publicKey));
       return true;
+   }
+
+   bool
+   Configuration::GetComplaintProcessingEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_COMPLAINT_PROCESSING_ENABLED);
+   }
+
+   void
+   Configuration::SetComplaintProcessingEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_COMPLAINT_PROCESSING_ENABLED, enabled);
+   }
+
+   String
+   Configuration::GetComplaintMailbox()
+   {
+      return GetSettings()->GetString(PROPERTY_COMPLAINT_MAILBOX);
+   }
+
+   void
+   Configuration::SetComplaintMailbox(const String &mailbox)
+   {
+      String value = mailbox;
+      value.Trim();
+
+      GetSettings()->SetString(PROPERTY_COMPLAINT_MAILBOX, value.Left(255));
+   }
+
+   int
+   Configuration::GetComplaintSuppressionThreshold()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_COMPLAINT_THRESHOLD), 0, 100);
+   }
+
+   void
+   Configuration::SetComplaintSuppressionThreshold(int threshold)
+   {
+      GetSettings()->SetLong(PROPERTY_COMPLAINT_THRESHOLD, ClampSetting(threshold, 0, 100));
+   }
+
+   int
+   Configuration::GetComplaintRetentionDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_COMPLAINT_RETENTION_DAYS), 0, 3650);
+   }
+
+   void
+   Configuration::SetComplaintRetentionDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_COMPLAINT_RETENTION_DAYS, ClampSetting(days, 0, 3650));
    }
 
    int

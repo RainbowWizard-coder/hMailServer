@@ -7,6 +7,7 @@
 #include "AddressTraceEraser.h"
 #include "../Persistence/PersistentArchiveIndex.h"
 #include "../Persistence/PersistentBounce.h"
+#include "../Persistence/PersistentComplaint.h"
 
 #include "FileUtilities.h"
 #include "../Application/Application.h"
@@ -90,6 +91,16 @@ namespace HM
       count = PersistentBounce::EraseAddress(address);
       if (count < 0)
          failedStores.push_back(_T("the bounce counts and suppression lists"));
+      else
+         removedCount += count;
+
+      // The abuse reports naming the address, as the reader who complained and as
+      // the sender complained about. The complaint's effect on the suppression list
+      // went with the entry above; this is the report itself, which names who
+      // complained about what and is exactly what an erasure is asked to forget.
+      count = PersistentComplaint::EraseAddress(address);
+      if (count < 0)
+         failedStores.push_back(_T("the complaints"));
       else
          removedCount += count;
 

@@ -1743,10 +1743,12 @@ create table hm_bouncecounts
 	bcpolicy int not null,
 	bcother int not null,
 	bcconsecutivehard int not null,
+	bccomplaints int not null,
 	bclaststatus nvarchar(16) not null,
 	bclastcategory int not null,
 	bclastbounce nvarchar(32) not null,
-	bclastdelivered nvarchar(32) not null
+	bclastdelivered nvarchar(32) not null,
+	bclastcomplaint nvarchar(32) not null
 )
 
 ALTER TABLE hm_bouncecounts ADD CONSTRAINT hm_bouncecounts_pk PRIMARY KEY NONCLUSTERED (bcid)
@@ -1889,4 +1891,51 @@ CREATE UNIQUE CLUSTERED INDEX idx_hm_pushsubscriptions_endpoint ON hm_pushsubscr
 
 ALTER TABLE hm_pushsubscriptions ADD CONSTRAINT fk_hm_pushsubscriptions_account FOREIGN KEY (psaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6054)
+create table hm_complaints
+(
+	cpid bigint identity(1,1) not null,
+	cpdomainid int not null,
+	cpaccountid int not null,
+	cpkey nvarchar(64) not null,
+	cpaddress nvarchar(255) not null,
+	cpsender nvarchar(255) not null,
+	cpfeedbacktype nvarchar(32) not null,
+	cpprovider nvarchar(255) not null,
+	cpsourceip nvarchar(45) not null,
+	cpreporteddomain nvarchar(255) not null,
+	cpmessageid nvarchar(255) not null,
+	cpsubject nvarchar(255) not null,
+	cparrival nvarchar(32) not null,
+	cpreceived nvarchar(32) not null
+)
+
+ALTER TABLE hm_complaints ADD CONSTRAINT hm_complaints_pk PRIMARY KEY NONCLUSTERED (cpid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_complaints_key ON hm_complaints (cpkey)
+
+CREATE INDEX idx_hm_complaints_domain ON hm_complaints (cpdomainid)
+
+CREATE INDEX idx_hm_complaints_address ON hm_complaints (cpaddress)
+
+CREATE INDEX idx_hm_complaints_received ON hm_complaints (cpreceived)
+
+create table hm_complaintvolume
+(
+	cvid bigint identity(1,1) not null,
+	cvdomainid int not null,
+	cvday nvarchar(10) not null,
+	cvsent bigint not null,
+	cvcomplaints int not null
+)
+
+ALTER TABLE hm_complaintvolume ADD CONSTRAINT hm_complaintvolume_pk PRIMARY KEY NONCLUSTERED (cvid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_complaintvolume_day ON hm_complaintvolume (cvdomainid, cvday)
+
+ALTER TABLE hm_complaints ADD CONSTRAINT fk_hm_complaints_domain FOREIGN KEY (cpdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+ALTER TABLE hm_complaintvolume ADD CONSTRAINT fk_hm_complaintvolume_domain FOREIGN KEY (cvdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('complaints.rate.high', 1, 1000, 1, '', '', '', 1440, 1)
+
+insert into hm_dbversion values (6055)

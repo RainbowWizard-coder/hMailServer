@@ -313,6 +313,16 @@ END_COM_MAP()
    STDMETHOD(get_SessionBindToAddress)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_SessionBindToAddress)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // Complaints, read: the feedback loops. See the IDL.
+   STDMETHOD(get_ComplaintProcessingEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_ComplaintProcessingEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_ComplaintMailbox)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ComplaintMailbox)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_ComplaintSuppressionThreshold)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_ComplaintSuppressionThreshold)(/*[in]*/ long newVal);
+   STDMETHOD(get_ComplaintRetentionDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_ComplaintRetentionDays)(/*[in]*/ long newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

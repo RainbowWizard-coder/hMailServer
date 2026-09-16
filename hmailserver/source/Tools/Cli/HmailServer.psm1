@@ -640,7 +640,7 @@ function Remove-HmGroupMember {
 # Settings
 # ---------------------------------------------------------------------------
 
-$script:SettingGroups = @('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'directories')
+$script:SettingGroups = @('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'complaints', 'directories')
 
 function Get-HmSettingPath {
     param([string] $Group)
@@ -660,7 +660,7 @@ function Get-HmSetting {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'push', 'directories', 'openpgp')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'push', 'complaints', 'directories', 'openpgp')]
         [string] $Group = 'settings',
 
         [Parameter(Position = 1)]
@@ -693,7 +693,7 @@ function Set-HmSetting {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0)]
-        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'push', 'directories', 'openpgp')]
+        [ValidateSet('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'push', 'complaints', 'directories', 'openpgp')]
         [string] $Group = 'settings',
 
         [Parameter(Mandatory = $true)]
@@ -1426,6 +1426,54 @@ function Revoke-HmDevice {
         if ($PSCmdlet.ShouldProcess("$DeviceId of $Address", 'Revoke the client')) {
             Invoke-HmApi -Method DELETE -Path $path
         }
+    }
+}
+
+
+function Get-HmComplaint {
+    <#
+    .SYNOPSIS
+        The abuse reports the large providers' feedback loops have sent about a
+        domain's mail: who complained, about which message, and which provider
+        reported it.
+    .EXAMPLE
+        Get-HmComplaint -Domain example.com | Format-Table address, feedback_type, sender, arrival
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [string] $Search
+    )
+    $path = Get-HmSuppressionPath -Domain $Domain -Tail '/complaints'
+    if ($Search) { $path += '?search=' + [uri]::EscapeDataString($Search) }
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path $path) -Key 'items'
+}
+
+function Get-HmComplaintRate {
+    <#
+    .SYNOPSIS
+        Every hosted domain's complaint rate over the last seven days, worst
+        first. rate_ppm is complaints in a million messages delivered; judged is
+        false for a domain that has sent too little for a rate to mean anything.
+        This is the number the large providers throttle and block on.
+    .EXAMPLE
+        Get-HmComplaintRate | Format-Table domain, sent, complaints, rate_ppm, judged
+    #>
+    [CmdletBinding()]
+    param()
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path '/api/v1/complaints/rates') -Key 'domains'
+}
+
+function Invoke-HmComplaintMaintenance {
+    <#
+    .SYNOPSIS
+        Runs the feedback loops' hourly sweep now: complaints older than
+        retention_days, and the daily tally rows behind the rate.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param()
+    if ($PSCmdlet.ShouldProcess('the complaints', 'Prune the old ones')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/complaints/expire'
     }
 }
 
@@ -2184,6 +2232,7 @@ Register-ArgumentCompleter -CommandName Get-HmDkimRotation, Start-HmDkimRotation
 Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount -ParameterName Address -ScriptBlock $script:CompleterAddress
 
 Export-ModuleMember -Function @(
+    'Get-HmComplaint', 'Get-HmComplaintRate', 'Invoke-HmComplaintMaintenance',
     'Get-HmDevice', 'Revoke-HmDevice',
     'Connect-HmServer', 'Disconnect-HmServer', 'Get-HmSession', 'Invoke-HmApi', 'Get-HmCollection',
     'Get-HmStatus',

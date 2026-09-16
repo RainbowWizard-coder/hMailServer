@@ -7,6 +7,7 @@
 #include "../Common/Util/AddressTraceEraser.h"
 #include "../Common/Util/Unicode.h"
 #include "../SMTP/BounceTracker.h"
+#include "../SMTP/ComplaintTracker.h"
 #include "../Common/Application/MailboxRetentionTask.h"
 #include "../Common/Application/MetricsHistoryTask.h"
 #include "../Common/Persistence/PersistentArchiveIndex.h"
@@ -1652,6 +1653,63 @@ STDMETHODIMP InterfaceUtilities::SetDomainSessionPolicy(BSTR DomainName, long Id
 
       *Saved = VARIANT_TRUE;
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetComplaints(BSTR DomainName, BSTR Search, long MaxRows, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      const __int64 domainID = HM::BounceTracker::DomainIDByName(DomainName);
+      if (domainID <= 0)
+      {
+         if (!authentication_->GetIsDomainAdmin())
+            return authentication_->GetAccessDenied();
+
+         return COMError::GenerateError("No domain of that name exists.");
+      }
+
+      if (!MayAdministerDomain_(domainID))
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString json;
+      if (!HM::ComplaintTracker::ComplaintsJson(domainID, 0, Search, MaxRows <= 0 ? 100 : MaxRows, 0, json))
+         return COMError::GenerateError("The complaints could not be read from the database.");
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetComplaintRates(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // Every domain's rate, so the server administrator's and not a domain
+      // administrator's: one domain's rate is in that domain's own document.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      const HM::AnsiString json = HM::ComplaintTracker::RatesJson();
+      if (json.IsEmpty())
+         return COMError::GenerateError("The complaint rates could not be read from the database.");
+
+      *Json = WideFromUtf8(json).AllocSysString();
       return S_OK;
    }
    catch (...)

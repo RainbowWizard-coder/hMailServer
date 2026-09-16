@@ -164,8 +164,18 @@ namespace HM
       return configuration && configuration->GetSettings() && configuration->GetBounceProcessingEnabled();
    }
 
+   bool
+   BounceTracker::ListApplies_()
+   {
+      Configuration *configuration = Configuration::Instance();
+      if (!configuration || !configuration->GetSettings())
+         return false;
+
+      return configuration->GetBounceProcessingEnabled() || configuration->GetComplaintProcessingEnabled();
+   }
+
    __int64
-   BounceTracker::SenderDomainID_(const String &sender)
+   BounceTracker::SenderDomainID(const String &sender)
    {
       if (sender.IsEmpty())
          return 0;
@@ -506,6 +516,120 @@ namespace HM
          canonical, DomainName(domainID), consecutive, verdict.status, String(PersistentBounce::SourceName(source))));
    }
 
+   int
+   BounceTracker::CountComplaint(__int64 domainID, const String &address, int threshold,
+                                 const String &diagnostic, bool &listed)
+   {
+      listed = false;
+
+      const String canonical = PersistentBounce::Canonical(address);
+      if (domainID <= 0 || canonical.IsEmpty())
+         return -1;
+
+      const String now = PersistentBounce::DateTimeFromNow(0);
+      int complaints = 0;
+
+      {
+         // The same stripe every other writer of this address's row takes.
+         boost::lock_guard<boost::mutex> guard(CountLockFor(canonical));
+
+         // Twice at most: the second time is the insert that lost a race with
+         // another node, read back and applied to the row that node wrote.
+         bool counted = false;
+
+         for (int attempt = 0; attempt < 2 && !counted; attempt++)
+         {
+            BounceCountRow row;
+            const int found = PersistentBounce::FindCount(domainID, canonical, row);
+
+            if (found < 0)
+               break;
+
+            if (found == 0)
+            {
+               // No bounce has ever been counted for this address. The row exists
+               // from now on with every bounce counter at zero, which is the truth:
+               // the mail arrived, and somebody did not want it.
+               //
+               // bclastdelivered is deliberately left empty. It means "a remote
+               // accepted a message to this address", it is the column
+               // ReportRunIncrease reads to decide whether a delivery report that
+               // arrives later still adds to the run of hard bounces, and a
+               // complaint is not a delivery: writing the report's own read time
+               // there would make a genuine hard bounce for an earlier message
+               // count for nothing. The complaint's recency goes in its own column.
+               row.domain_id = domainID;
+               row.address = canonical;
+               row.complaints = 1;
+               row.last_category = (int) BounceNone;
+               row.last_complaint = now;
+
+               counted = PersistentBounce::InsertCount(row);
+               complaints = 1;
+               continue;
+            }
+
+            counted = PersistentBounce::AddComplaintToCount(row.id, now);
+            complaints = row.complaints + 1;
+
+            // An update that failed is not a race; only a lost insert is retried.
+            if (!counted)
+               break;
+         }
+
+         if (!counted)
+            return -1;
+      }
+
+      LOG_DEBUG(Formatter::Format(_T("Complaints: counted a complaint for {0} against domain {1}; {2} in all."),
+         canonical, domainID, complaints));
+
+      if (threshold <= 0 || complaints < threshold)
+         return complaints;
+
+      BounceSuppressionEntry existing;
+      const int found = PersistentBounce::FindSuppression(domainID, canonical, existing);
+
+      if (found < 0)
+         return -1;
+
+      if (found == 1)
+      {
+         // Listed already, by a bounce, a report, an administrator or an earlier
+         // complaint. An entry that has expired but not been swept is replaced, so
+         // a fresh complaint starts a fresh entry rather than none - the rule
+         // Count_ applies to a fresh bounce.
+         if (!PersistentBounce::IsExpired(existing, Configuration::Instance()->GetBounceSuppressionExpiryDays(), now))
+            return complaints;
+
+         PersistentBounce::DeleteSuppression(domainID, canonical);
+      }
+
+      BounceSuppressionEntry entry;
+      entry.domain_id = domainID;
+      entry.address = canonical;
+      entry.source = PersistentBounce::SourceComplaint;
+      entry.category = (int) BounceNone;
+      entry.diagnostic = diagnostic;
+      entry.created = now;
+
+      if (!PersistentBounce::InsertSuppression(entry))
+      {
+         BounceSuppressionEntry raced;
+         if (PersistentBounce::FindSuppression(domainID, canonical, raced) != 1)
+            return -1;
+
+         return complaints;
+      }
+
+      listed = true;
+
+      LOG_APPLICATION(Formatter::Format(_T("Complaints: {0} was put on the suppression list of {1} after {2} complaint(s)."),
+         canonical, DomainName(domainID), complaints));
+
+      return complaints;
+   }
+
    void
    BounceTracker::RecordDeliveryPass(std::shared_ptr<Message> message, bool messageRescheduled)
    {
@@ -516,7 +640,7 @@ namespace HM
       if (recipients.empty())
          return;
 
-      const __int64 domainID = SenderDomainID_(message->GetFromAddress());
+      const __int64 domainID = SenderDomainID(message->GetFromAddress());
       if (domainID <= 0)
          return;
 
@@ -813,6 +937,15 @@ namespace HM
             entry.address, domainName, since);
       }
 
+      if (entry.source == PersistentBounce::SourceComplaint)
+      {
+         // Not a dead mailbox: somebody there read the mail and reported it as
+         // spam, which is 5.7.1 - refused on policy - and never 5.1.1.
+         enhancedCode = _T("5.7.1");
+         return Formatter::Format(_T("{0} is on the suppression list of {1}: its provider reported mail to it as spam on {2}. An administrator can remove it."),
+            entry.address, domainName, since);
+      }
+
       enhancedCode = BounceClassifier::IsEnhancedStatusCode(entry.status) && entry.status.GetAt(0) == '5' ? entry.status : String(_T("5.7.1"));
 
       return Formatter::Format(_T("{0} is on the suppression list of {1}: mail to it bounced permanently ({2}) on {3}. An administrator can remove it."),
@@ -829,13 +962,13 @@ namespace HM
    bool
    BounceTracker::RefuseAtSubmission(const String &sender, const String &recipient, String &enhancedCode, String &text, String &source)
    {
-      if (!Enabled_())
+      if (!ListApplies_())
          return false;
 
       if (Configuration::Instance()->GetBounceSuppressionAction() != ActionRefuse)
          return false;
 
-      const __int64 domainID = SenderDomainID_(sender);
+      const __int64 domainID = SenderDomainID(sender);
       if (domainID <= 0)
          return false;
 
@@ -871,7 +1004,7 @@ namespace HM
    void
    BounceTracker::ApplyAtDelivery(std::shared_ptr<Message> message, const String &sendersIP, std::vector<DeliveryFailure> &failures)
    {
-      if (!message || !Enabled_())
+      if (!message || !ListApplies_())
          return;
 
       std::vector<std::shared_ptr<MessageRecipient> > &recipients = message->GetRecipients()->GetVector();
@@ -879,7 +1012,7 @@ namespace HM
          return;
 
       const String sender = message->GetFromAddress();
-      const __int64 domainID = SenderDomainID_(sender);
+      const __int64 domainID = SenderDomainID(sender);
       if (domainID <= 0)
          return;
 
@@ -1064,8 +1197,15 @@ namespace HM
       const int expiryDays = configuration->GetBounceSuppressionExpiryDays();
       const String now = PersistentBounce::DateTimeFromNow(0);
 
+      // Two flags and not one: processing_enabled is whether bounces are read and
+      // counted, list_applies is whether the entries below are enforced. They came
+      // apart when the feedback loops began filling this same list - a complaint's
+      // entry has to be applied or the feature does nothing - so a page that
+      // showed only the first would tell an operator with bounce processing off
+      // that nothing is refused while the server refuses.
       json = "{" + JsonField("domain", DomainName(domainID)) + "," +
              JsonBool("processing_enabled", configuration->GetBounceProcessingEnabled()) + "," +
+             JsonBool("list_applies", ListApplies_()) + "," +
              JsonField("action", String(ActionName(configuration->GetBounceSuppressionAction()))) + "," +
              JsonNumber("total", total) + "," + JsonNumber("offset", offset < 0 ? 0 : offset) + ",\"items\":[";
 
@@ -1140,10 +1280,12 @@ namespace HM
                  JsonNumber("policy", row.policy) + "," +
                  JsonNumber("other", row.other) + "," +
                  JsonNumber("consecutive_hard", row.consecutive_hard) + "," +
+                 JsonNumber("complaints", row.complaints) + "," +
                  JsonField("last_status", row.last_status) + "," +
                  JsonField("last_category", String(BounceClassifier::Name((BounceCategory) row.last_category))) + "," +
                  JsonField("last_bounce", row.last_bounce) + "," +
                  JsonField("last_delivered", row.last_delivered) + "," +
+                 JsonField("last_complaint", row.last_complaint) + "," +
                  JsonBool("suppressed", suppressed) + "}";
       }
 

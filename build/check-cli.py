@@ -227,9 +227,28 @@ ANSWERS = {
         "domain": "example.com", "total": 1, "offset": 0,
         "items": [{"address": "gone@elsewhere.test", "hard": 2, "soft": 1, "mailbox_full": 0, "policy": 0, "other": 0,
                    "consecutive_hard": 2, "last_status": "5.1.1", "last_category": "hard",
-                   "last_bounce": "2026-09-14 10:00:00", "last_delivered": "", "suppressed": True}]},
+                   "last_bounce": "2026-09-14 10:00:00", "last_delivered": "", "last_complaint": "",
+                   "suppressed": True}]},
     ("POST", "/api/v1/bounces/classify"): {"category": "other", "suppresses": False, "trusted": False, "status": "5.1.1"},
     ("POST", "/api/v1/bounces/expire"): {"suppressions_expired": 2, "counts_pruned": 5, "report_keys_pruned": 40},
+    ("GET", "/api/v1/settings/complaints"): {"processing_enabled": False, "mailbox": "",
+                                             "suppression_threshold": 0, "retention_days": 180},
+    ("PUT", "/api/v1/settings/complaints"): {"processing_enabled": True, "mailbox": "fbl@example.com",
+                                             "suppression_threshold": 1, "retention_days": 180},
+    ("GET", "/api/v1/domains/example.com/complaints"): {
+        "domain": "example.com", "processing_enabled": True, "mailbox_configured": True,
+        "window_days": 7, "sent": 4000, "complaints": 1, "rate_ppm": 250,
+        "rate_judged": True, "total": 1, "offset": 0,
+        "items": [{"address": "reader@provider.test", "sender": "anna@example.com", "account_id": 1,
+                   "feedback_type": "abuse", "counts": True, "provider": "SomeGenerator/1.0",
+                   "source_ip": "192.0.2.1", "reported_domain": "example.com",
+                   "message_id": "abc.123@example.com", "subject": "Our newsletter",
+                   "arrival": "2026-09-15 09:00:00", "received": "2026-09-15 09:04:00"}]},
+    ("GET", "/api/v1/complaints/rates"): {
+        "processing_enabled": True, "mailbox": "fbl@example.com", "window_days": 7, "minimum_volume": 100,
+        "domains": [{"domain": "example.com", "sent": 4000, "complaints": 1, "rate_ppm": 250, "judged": True},
+                    {"domain": "second.example", "sent": 12, "complaints": 1, "rate_ppm": 0, "judged": False}]},
+    ("POST", "/api/v1/complaints/expire"): {"complaints_pruned": 3},
     # The shape RestApiSettings.cpp's IniList answers, both halves: names for
     # the Linux test shim, settings for these two clients. Until 15 September
     # 2026 this fake answered a settings array the real route did not send,
@@ -513,6 +532,19 @@ CASES = [
      "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812 entries", "padded"]),
     ("settings breach-test, configured endpoint", ["settings", "breach-test"],
      "POST", "/api/v1/settings/breach-check/test", {}, ["reachable"]),
+    ("complaints of a domain", ["complaint", "list", "--domain", "example.com"],
+     "GET", "/api/v1/domains/example.com/complaints", None, ["reader@provider.test", "abuse", "SomeGenerator/1.0"]),
+    ("complaints of one sender", ["complaint", "list", "--domain", "example.com", "--search", "anna"],
+     "GET", "/api/v1/domains/example.com/complaints", None, ["reader@provider.test"]),
+    ("complaint rates", ["complaints", "rates"], "GET", "/api/v1/complaints/rates", None,
+     ["example.com", "250 in a million", "too little sent to judge"]),
+    ("complaints expire", ["complaints", "expire"], "POST", "/api/v1/complaints/expire", None,
+     ["3 old complaints"]),
+    ("settings get complaints", ["settings", "get", "complaints"], "GET", "/api/v1/settings/complaints", None,
+     ["suppression_threshold"]),
+    ("settings set complaints", ["settings", "set", "complaints", "--set", "processing_enabled=true",
+                                 "--set-string", "mailbox=fbl@example.com"],
+     "PUT", "/api/v1/settings/complaints", {"processing_enabled": True, "mailbox": "fbl@example.com"}, []),
     ("ini list", ["ini", "list"], "GET", "/api/v1/settings/ini", None, ["DisableAUTHList", "OAuth2HmacSecret", "(set)"]),
     ("ini list --json", ["ini", "list", "--json"], "GET", "/api/v1/settings/ini", None, ['"name": "DisableAUTHList"', '"value": "0"']),
     ("ini set", ["ini", "set", "DisableAUTHList", "1"],
@@ -702,6 +734,14 @@ def run_python_refusals(url):
     # could be used; hmctl turns "not reachable" into exit 1, which is what a
     # monitoring job reads.
     key = ("POST", "/api/v1/settings/breach-check/test")
+    ("Get-HmComplaint", "Get-HmComplaint -Domain example.com | Select-Object -ExpandProperty address",
+     "GET", "/api/v1/domains/example.com/complaints", None, ["reader@provider.test"]),
+    ("Get-HmComplaintRate", "Get-HmComplaintRate | Select-Object -First 1 -ExpandProperty rate_ppm",
+     "GET", "/api/v1/complaints/rates", None, ["250"]),
+    ("Invoke-HmComplaintMaintenance", "Invoke-HmComplaintMaintenance -Confirm:$false | Select-Object -ExpandProperty complaints_pruned",
+     "POST", "/api/v1/complaints/expire", None, ["3"]),
+    ("Get-HmSetting -Group complaints", "Get-HmSetting -Group complaints -Name suppression_threshold",
+     "GET", "/api/v1/settings/complaints", None, ["0"]),
     reachable = ANSWERS[key]
     ANSWERS[key] = {"reachable": False, "status": 0, "error": "The request to mirror.example failed: refused", "milliseconds": 2003}
     try:

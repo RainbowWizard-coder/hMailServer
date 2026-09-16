@@ -302,6 +302,11 @@
 #define PROPERTY_WEB_PUSH_MAX_ATTEMPTS          _T("WebPushMaxAttempts")
 #define PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY      _T("WebPushVapidPublicKey")
 #define PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY     _T("WebPushVapidPrivateKey")
+// Complaints, read: the feedback loops (SMTP/ComplaintTracker.h).
+#define PROPERTY_COMPLAINT_PROCESSING_ENABLED   _T("ComplaintProcessingEnabled")
+#define PROPERTY_COMPLAINT_MAILBOX              _T("ComplaintMailbox")
+#define PROPERTY_COMPLAINT_THRESHOLD            _T("ComplaintSuppressionThreshold")
+#define PROPERTY_COMPLAINT_RETENTION_DAYS       _T("ComplaintRetentionDays")
 
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
@@ -359,4 +364,12 @@
 //      senders and labels it is for, and the quiet hours; and seeds the seven
 //      WebPush* settings rows. The table starts empty and WebPushEnabled is 0, so
 //      an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6054
+// 6050 adds hm_complaints and hm_complaintvolume, and hm_bouncecounts.bccomplaints:
+//      the abuse reports the large providers send when a reader marks a message as
+//      spam (RFC 5965), one row each, with the per-domain daily tally of messages
+//      delivered and complaints received that the complaint rate is computed from,
+//      and the complaint count beside each address's bounce counts. It also seeds
+//      the complaints.rate.high alert rule. Nothing is written to any of them until
+//      ComplaintProcessingEnabled is switched on and a complaint mailbox is named,
+//      so an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6055

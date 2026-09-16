@@ -523,6 +523,16 @@ namespace HM
          // about and nobody else's.
          RouteMessageTraceRecent,
          RouteMessageTraceAddress,
+         // Complaints read, the feedback loops (RestApiComplaints.cpp). The
+         // listing under a domain is scoped to it in Authorize_ as the
+         // suppression list is; the rates, the settings group and the sweep are
+         // server-wide, because a rate is every domain's and the sweep prunes
+         // every domain's rows.
+         RouteComplaintList,
+         RouteComplaintRates,
+         RouteComplaintExpire,
+         RouteSettingsComplaintsGet,
+         RouteSettingsComplaintsPut,
          RouteMessageTraceQueue,
          // The audit trail and the alerts (RestApiAudit.cpp). Every one of these
          // is refused to an API key of any scope - they are in IsApiKeyRoute_ -
@@ -1054,6 +1064,8 @@ namespace HM
       // ban per three requests while never honouring one turns a credential
       // flood on this port into database load that every mail connection pays
       // for. See the block comment above the definitions in the .cpp.
+      HttpResponse HandleSettingsComplaints_();
+      HttpResponse HandleSettingsComplaintsPut_(const AnsiString &requestBody);
       static bool IsRefusedAddress_(const IPAddress &peer_address);
       static void RefuseAddress_(const IPAddress &peer_address);
       static void ClearRefusedAddresses_();
@@ -1363,6 +1375,11 @@ namespace HM
       // RestApiWebhooks.cpp.
       HttpResponse HandleWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiWebhooksPaths_();
+
+      // The complaints of one domain, every domain's rate, and the sweep. In
+      // RestApiComplaints.cpp.
+      HttpResponse HandleComplaints_(const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiComplaintsPaths_();
 
       std::shared_ptr<HttpServer> server_;
       bool running_;

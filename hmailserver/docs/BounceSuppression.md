@@ -20,10 +20,24 @@ processing on, it also reads what came back:
 The list is per sending domain, visible in the Control Panel, the Control Deck,
 `hmctl` and the PowerShell module, and every entry can be removed by hand.
 
-**It is off by default.** With `BounceProcessingEnabled` off, every point where
-the feature could act reads that one setting and returns: nothing is classified,
-counted, stored, looked up or refused, and an upgraded server behaves exactly as
-it did.
+**It is off by default.** With `BounceProcessingEnabled` off, no bounce and no
+delivery report is classified, counted or stored, and an upgraded server behaves
+exactly as it did.
+
+**One thing that switch does not by itself turn off: whether the list is
+APPLIED.** Since the feedback loops were added, the entries are enforced - looked
+up at submission and at delivery, and refused or dropped per
+`BounceSuppressionAction` - whenever `BounceProcessingEnabled` **or**
+`ComplaintProcessingEnabled` is on. The reason is that a complaint puts an
+address on this same list ([Complaints.md](Complaints.md)), and a list that is
+written and never applied is a feature that does nothing while looking as though
+it works. So an operator who had switched bounce processing off to stop the
+entries being enforced, and then switches the feedback loops on, will find the
+entries a bounce made being enforced again. Empty the list, or set
+`BounceSuppressionAction` to `observe`, if that is not what is wanted. The
+suppression list document and the Control Deck's page both say which is in force:
+`processing_enabled` is whether bounces are read, `list_applies` is whether the
+entries act.
 
 Turning it on
 -------------
@@ -43,7 +57,7 @@ message without a restart.
 | What happens to a listed recipient | `BounceSuppressionAction` | `suppression_action` (`refuse`, `drop`, `observe`) | `0` (refuse) | `0` refuse, `1` drop, `2` observe. See *What the list does*. |
 | Days before an entry made by a bounce expires | `BounceSuppressionExpiryDays` | `suppression_expiry_days` | `0` | 0 keeps entries until they are removed; at most 3650. Measured from when the entry was made, so lowering it applies to the entries already there. Entries added by hand are not affected; they carry their own expiry. |
 | Read delivery reports | `BounceReadDeliveryReports` | `read_delivery_reports` | on | Whether RFC 3464 reports are read, and whether the register they are matched against is written. Subordinate to the first setting. |
-| Days bounce counts are kept | `BounceCountRetentionDays` | `count_retention_days` | `90` | A count whose last bounce and last delivery are both older than this, and whose address is not on the list, is removed by the sweep. 0 keeps counts; at most 3650. |
+| Days bounce counts are kept | `BounceCountRetentionDays` | `count_retention_days` | `90` | A count whose last bounce, last delivery **and last complaint** are all older than this, and whose address is not on the list, is removed by the sweep. An empty date counts as old, so a row that has only ever bounced ages from its last bounce and one that has only ever been complained about ages from its last complaint. This is the clock the complaint count `bccomplaints` keeps to - not `ComplaintRetentionDays`, which governs the reports in `hm_complaints`. 0 keeps counts; at most 3650. |
 | Days a delivery report is still matched | `BounceReportWindowDays` | `report_window_days` | `7` | 1 to 30. How long the register keeps what it needs to believe a report; 7 is also how long a BATV tag stays valid. |
 
 A value out of range is refused, over COM and over REST, with a sentence naming
@@ -134,7 +148,9 @@ including whether it trusted the code, and change nothing.
 What is never counted
 ---------------------
 
-* Anything while `BounceProcessingEnabled` is off.
+* Any bounce or delivery report while `BounceProcessingEnabled` is off. (The
+  entries already on the list are still applied if `ComplaintProcessingEnabled`
+  is on - see above. Nothing new is counted either way.)
 * Mail whose envelope sender is not an address in a domain this server hosts
   (after domain aliases): mail relayed for somebody else, a forward this server
   rewrote into SRS (the bounce belongs to the original sender), a BATV `prvs=`
@@ -387,13 +403,21 @@ Every address is stored lower-cased and every date is a `YYYY-MM-DD HH:MM:SS` st
 in the server's local time.
 
 * `hm_bouncesuppressions` - the list: `bsdomainid`, `bsaddress` (unique together),
-  `bssource` (0 a bounce while delivering, 1 a delivery report, 2 added by hand),
+  `bssource` (0 a bounce while delivering, 1 a delivery report, 2 added by hand,
+  3 an abuse report a provider's feedback loop sent - see
+  [Complaints.md](Complaints.md)),
   `bscategory`, `bsstatus`, `bsdiagnostic` (the remote's words, or the
   administrator's note, 255 characters), `bsremotemta`, `bscreated`, `bsexpires`
   (empty for none).
 * `hm_bouncecounts` - per domain and address: `bchard`, `bcsoft`, `bcmailboxfull`,
-  `bcpolicy`, `bcother`, `bcconsecutivehard`, `bclaststatus`, `bclastcategory`,
-  `bclastbounce`, `bclastdelivered` (empty when never delivered).
+  `bcpolicy`, `bcother`, `bcconsecutivehard`, `bccomplaints` (schema 6050, the
+  feedback loops' counter - see [Complaints.md](Complaints.md)), `bclaststatus`,
+  `bclastcategory`, `bclastbounce`, `bclastdelivered` (empty when never
+  delivered) and `bclastcomplaint` (schema 6050, empty when never complained
+  about). The last three are three separate dates on purpose: `bclastdelivered`
+  is what decides whether a delivery report arriving after an acceptance still
+  adds to the run, so a complaint must not write it, and the sweep needs a date
+  of its own for a row that holds nothing but complaints.
 * `hm_bouncereportkeys` - the register: `brkdomainid`, `brkkey` (the SHA-256 of
   Message-ID, recipient and sender), `brksent`, `brkaddress` (the SHA-256 of the
   recipient alone) and `brkrun` (the run of hard bounces the acceptance set aside).

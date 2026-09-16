@@ -39,14 +39,14 @@ domains is refused them whatever it holds.
 |---|---|:-:|:-:|:-:|:-:|
 | `administer_server` | Everything, including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
 | `administer_domain` | Every COM gate that has always asked "is this a domain administrator?" | ✅ | ✅ | | |
-| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation, the bounce settings *(server-wide)* and how a bounce would be classified — never a secret | ✅ | ✅ | | ✅ |
+| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation, the bounce settings *(server-wide)* and how a bounce would be classifiedand complaint settings, how a bounce would be classified, and every domain's complaint rate — never a secret | ✅ | ✅ | | ✅ |
 | `view_accounts` | Domains, accounts, aliases, lists, groups *(server-wide)*, fetch accounts, the OpenAPI document | ✅ | ✅ | ✅ | ✅ |
 | `view_mailbox` | Another account's folders and messages | ✅ | ✅ | | ✅ |
 | `view_queue` | The delivery queue *(server-wide)* | ✅ | | | ✅ |
 | `view_quarantine` | The quarantine *(server-wide)* | ✅ | ✅ | | ✅ |
 | `view_archive` | The archive *(server-wide)* | ✅ | | | ✅ |
 | `view_logs` | The logs *(server-wide)* | ✅ | | | ✅ |
-| `view_message_trace` | The message trace — see below — and, with `view_configuration`, the reports and a domain's suppression list and bounce counts | ✅ | ✅ | ✅ | ✅ |
+| `view_message_trace` | The message trace — see below — and, with `view_configuration`, the reports and a domain's suppression list and bounce cou, a domain's suppression list and bounce counts, and a domain's complaints | ✅ | ✅ | ✅ | ✅ |
 | `view_audit` | The audit trail *(server-wide)* | ✅ | | | ✅ |
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, a domain's own allow and block list, a domain's DKIM key rotation (rotate, check, switch, retire and cancel now), a domain's suppression list (an address added or removed by hand), and an account's OpenPGP public keys (stored or removed) | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
@@ -57,7 +57,7 @@ domains is refused them whatever it holds.
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
 | `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, and the breach check's endpoint test *(server-wide)* | ✅ | | | |
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
-| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass or the suppression list's sweep now *(server-wide)* | ✅ | | | |
+| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
 
 The REST API's **key store** (`/api/v1/apikeys`) and the `[Settings]` section of

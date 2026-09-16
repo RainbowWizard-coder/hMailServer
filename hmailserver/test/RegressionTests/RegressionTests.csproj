@@ -471,6 +471,7 @@
     <Compile Include="SMTP\DeliveryStatusNotification.cs" />
     <Compile Include="SMTP\BounceSuppression.cs" />
     <Compile Include="SMTP\BounceReports.cs" />
+    <Compile Include="SMTP\FeedbackReports.cs" />
     <Compile Include="SMTP\Srs.cs" />
     <Compile Include="SMTP\Batv.cs" />
     <Compile Include="SMTP\Bdat.cs" />
@@ -757,8 +758,10 @@
     <Compile Include="API\RestApiCompression.cs" />
     <Compile Include="API\RestApiDevices.cs" />
     <Compile Include="API\RestApiWebPush.cs" />
+    <Compile Include="API\RestApiComplaints.cs" />
     <Compile Include="Shared\RestRequest.cs" />
     <Compile Include="Shared\BounceTestSupport.cs" />
+    <Compile Include="Shared\ComplaintTestSupport.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Messages\MultipartMessageWithNoMainBodyText.txt" />

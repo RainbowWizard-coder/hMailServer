@@ -306,6 +306,12 @@ NOT_AUDITED = {
    "hm_logon_failures": "failed logons, which are traffic and the auto-ban's business.",
    "hm_metricsamples": "metric history; traffic.",
    "hm_alertevents": "what an alert condition raised; the alert rules that decide it (hm_alertrules) are audited.",
+   "hm_complaints": "one row per RFC 5965 abuse report a provider's feedback loop posted to the complaint mailbox, written by the "
+                    "arriving report with no actor at all - nobody here decided it - and pruned by the sweep; traffic. What an "
+                    "administrator decides about the feedback loops is a setting (hm_settings) or the suppression list entry a "
+                    "complaint made (hm_bouncesuppressions), and both are audited.",
+   "hm_complaintvolume": "the per-domain daily tally of messages delivered and complaints received that the complaint rate is "
+                         "worked out from, written by delivery and by an arriving report, with no actor; traffic.",
    "hm_knownsenders": "who an account has corresponded with, learned from its mail.",
    "hm_passwordhistory": "the hashes of an account's earlier passwords, written as a consequence of the password change the hm_accounts row already records.",
    "hm_accountprefs": "an account's own webmail preferences, set by the account in the portal.",

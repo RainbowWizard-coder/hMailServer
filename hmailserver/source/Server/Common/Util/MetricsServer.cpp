@@ -27,6 +27,7 @@
 #include "../TCPIP/AcceptLoop.h"
 #include "../TCPIP/SocketConstants.h"
 #include "../TCPIP/SslContextInitializer.h"
+#include "../../SMTP/ComplaintTracker.h"
 
 #ifdef HM_PLATFORM_POSIX
 namespace
@@ -143,6 +144,11 @@ namespace HM
 
       // How often the delivery-queue aggregates are re-read.
       const ULONGLONG DeliveryQueueRefreshIntervalMilliseconds = 10000;
+
+      // How often the per-domain complaint rates are re-read. A minute, which is
+      // also the life of ComplaintTracker's own snapshot, so this refresh normally
+      // costs one query and the alert pass that runs on the same cadence shares it.
+      const ULONGLONG ComplaintRateRefreshIntervalMilliseconds = 60000;
 
       // Ceiling on the number of hmailserver_tls_certificate_expiry_seconds series.
       // Every other family on this endpoint is a fixed number of lines, so this is
@@ -317,6 +323,8 @@ namespace HM
       queue_oldest_age_cache_value_(0),
       certificate_refresh_requested_(false),
       certificate_cache_tick_(0),
+      complaint_refresh_requested_(false),
+      complaint_cache_tick_(0),
       metrics_availability_(MetricsAvailable)
    {
 
@@ -532,6 +540,8 @@ namespace HM
          queue_cache_tick_ = 0;
          certificate_refresh_requested_ = true;
          certificate_cache_tick_ = 0;
+         complaint_refresh_requested_ = true;
+         complaint_cache_tick_ = 0;
       }
 
       running_ = true;
@@ -1719,6 +1729,14 @@ namespace HM
                         EscapeLabelValue_(entry.first).c_str(), entry.second);
             body += line;
          }
+
+         // The feedback loops (SMTP/ComplaintTracker.h). Built by the refresher and
+         // copied here: ComplaintTracker::Rates is a database read, and rule 5 is
+         // that the request path performs none. An empty body is what an
+         // installation with complaint processing off has, and what a read that
+         // failed leaves - in both cases no series at all, rather than a rate of
+         // zero, which is a number an operator would act on.
+         body += GetCachedComplaintRateMetrics_();
       }
 
       // A start timestamp rather than an uptime counter, matching the
@@ -1936,7 +1954,7 @@ namespace HM
       // this is the top of a std::thread, so an exception that escaped here would be
       // std::terminate() and the whole mail server would die because a monitoring
       // refresh went wrong. Each refresh has its own barrier so one failing does not
-      // skip the other two, and this outer barrier catches anything they let past -
+      // skip the other three, and this outer barrier catches anything they let past -
       // including out of the reporting itself, which reaches operator-supplied script
       // through ScriptServer::FireEvent.
       for (;;)
@@ -1953,6 +1971,7 @@ namespace HM
             RefreshDatabaseProbe_();
             RefreshDeliveryQueueCache_();
             RefreshCertificateExpiryCache_();
+            RefreshComplaintRateCache_();
          }
          catch (...)
          {
@@ -2171,6 +2190,120 @@ namespace HM
       certificate_refresh_requested_ = true;
 
       return certificate_cache_body_;
+   }
+
+   AnsiString
+   MetricsServer::GetCachedComplaintRateMetrics_()
+   {
+      std::lock_guard<std::mutex> guard(refresh_mutex_);
+
+      complaint_refresh_requested_ = true;
+
+      return complaint_cache_body_;
+   }
+
+   void
+   MetricsServer::RefreshComplaintRateCache_()
+   {
+      {
+         std::lock_guard<std::mutex> guard(refresh_mutex_);
+
+         // The same on-demand rule as the delivery queue and the certificates: no
+         // scrape since the last refresh means nothing needs these series, so an
+         // installation with the port open and no Prometheus behind it pays nothing
+         // for the query - and the alert pass, which wants the same numbers, has its
+         // own reason to ask for them.
+         if (!complaint_refresh_requested_)
+            return;
+
+         if (complaint_cache_tick_ != 0 && (GetTickCount64() - complaint_cache_tick_) < ComplaintRateRefreshIntervalMilliseconds)
+            return;
+
+         complaint_cache_tick_ = GetTickCount64();
+         complaint_refresh_requested_ = false;
+      }
+
+      // Switched off is not the same as failed: with the feedback loops off there
+      // is nothing to report and the body is emptied, so the series disappear
+      // rather than freezing at whatever they last said.
+      if (!Configuration::Instance()->GetComplaintProcessingEnabled())
+      {
+         std::lock_guard<std::mutex> guard(refresh_mutex_);
+
+         complaint_cache_body_ = "";
+         return;
+      }
+
+      std::vector<ComplaintTracker::Rate> rates;
+
+      // Built into a local and published in one short critical section at the end.
+      // The mutex is not held across the read, which is the invariant rule 5 rests
+      // on. The barrier is this thread's own: ComplaintTracker::Rates already
+      // swallows what the query throws, but resolving a domain id to its name goes
+      // through the domain cache, which falls back to the database on a miss - and
+      // that is outside anything Rates can catch on the caller's behalf.
+      try
+      {
+         if (!ComplaintTracker::Rates(rates))
+         {
+            // Serve the previous body rather than losing the series. A database that
+            // cannot answer is already reported by hmailserver_database_connected, so
+            // this is a debug note and not an error: it would otherwise repeat on
+            // every refresh for as long as the outage lasted.
+            LOG_DEBUG("MetricsServer: the per-domain complaint rates could not be refreshed. Serving the previously cached series.");
+            return;
+         }
+      }
+      catch (...)
+      {
+         LOG_DEBUG("MetricsServer: reading the per-domain complaint rates threw. Serving the previously cached series.");
+         return;
+      }
+
+      // Gauges and not counters: all three are totals over a moving seven-day
+      // window, which goes down as well as up, and a counter that goes down reads as
+      // a process restart to every Prometheus rate() in the world. The rate is a
+      // plain ratio rather than a percentage, so an alert expression compares it
+      // with 0.001 - one complaint in a thousand - and not with 0.1.
+      AnsiString body;
+      AnsiString line;
+
+      if (!rates.empty())
+      {
+         body += "# HELP hmailserver_domain_complaints Abuse reports (RFC 5965) received about each locally hosted domain in the last seven days.\n";
+         body += "# TYPE hmailserver_domain_complaints gauge\n";
+
+         for (const ComplaintTracker::Rate &rate : rates)
+         {
+            line.Format("hmailserver_domain_complaints{domain=\"%s\"} %I64d\n",
+                        EscapeLabelValue_(rate.domain).c_str(), rate.complaints);
+            body += line;
+         }
+
+         body += "# HELP hmailserver_domain_complaint_window_messages Messages each locally hosted domain had accepted by a remote in the last seven days: the denominator of hmailserver_domain_complaint_rate.\n";
+         body += "# TYPE hmailserver_domain_complaint_window_messages gauge\n";
+
+         for (const ComplaintTracker::Rate &rate : rates)
+         {
+            line.Format("hmailserver_domain_complaint_window_messages{domain=\"%s\"} %I64d\n",
+                        EscapeLabelValue_(rate.domain).c_str(), rate.sent);
+            body += line;
+         }
+
+         body += "# HELP hmailserver_domain_complaint_rate Complaints divided by messages delivered for each locally hosted domain over the last seven days. 0 for a domain that has sent fewer than 100 messages in the window, whose rate would not mean anything. Alert on hmailserver_domain_complaint_rate > 0.001.\n";
+         body += "# TYPE hmailserver_domain_complaint_rate gauge\n";
+
+         for (const ComplaintTracker::Rate &rate : rates)
+         {
+            line.Format("hmailserver_domain_complaint_rate{domain=\"%s\"} %.6f\n",
+                        EscapeLabelValue_(rate.domain).c_str(), rate.parts_per_million / 1000000.0);
+            body += line;
+         }
+      }
+
+      std::lock_guard<std::mutex> guard(refresh_mutex_);
+
+      complaint_cache_body_ = body;
    }
 
    void

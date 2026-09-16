@@ -17,6 +17,8 @@
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/Logger.h"
+#include "../Common/Util/MessageOrigin.h"
+#include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/PasswordBreachCheck.h"
 #include "../Common/Util/SessionPolicies.h"
@@ -4732,6 +4734,199 @@ STDMETHODIMP InterfaceSettings::GenerateWebPushKeys(BSTR *PublicKey)
       }
 
       *PublicKey = config_->GetWebPushVapidPublicKey().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ComplaintProcessingEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetComplaintProcessingEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ComplaintProcessingEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetComplaintProcessingEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ComplaintMailbox(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetComplaintMailbox().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ComplaintMailbox(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Every address in the list has to be one, and one this server hosts: a
+      // feedback loop is registered against a mailbox here, and a list naming an
+      // address somewhere else would read no report and say nothing about it.
+      HM::String value = newVal;
+      value.Trim();
+
+      if (value.GetLength() > 255)
+         return COMError::GenerateError("ComplaintMailbox must be at most 255 characters.");
+
+      if (!value.IsEmpty())
+      {
+         HM::String list = value;
+         list.Replace(_T(";"), _T(","));
+         list.Replace(_T(" "), _T(","));
+
+         std::vector<HM::String> names = HM::StringParser::SplitString(list, _T(","));
+         int found = 0;
+
+         for (const HM::String &name : names)
+         {
+            HM::String address = name;
+            address.Trim();
+
+            if (address.IsEmpty())
+               continue;
+
+            found++;
+
+            if (!HM::StringParser::IsValidEmailAddress(address, true))
+               return COMError::GenerateError("ComplaintMailbox must be one address, or several separated by commas.");
+
+            if (!HM::MessageOrigin::IsHostedAddress(address))
+               return COMError::GenerateError("The complaint mailbox must be an address this server hosts, since that is where a provider delivers its reports.");
+         }
+
+         if (found == 0)
+            return COMError::GenerateError("ComplaintMailbox must be one address, or several separated by commas.");
+      }
+
+      config_->SetComplaintMailbox(value);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ComplaintSuppressionThreshold(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetComplaintSuppressionThreshold();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ComplaintSuppressionThreshold(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Refused rather than clamped, so a caller that asked for a value outside the
+      // range learns that it did not get it.
+      if (newVal < 0 || newVal > 100)
+         return COMError::GenerateError("ComplaintSuppressionThreshold must be between 0 and 100.");
+
+      config_->SetComplaintSuppressionThreshold((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ComplaintRetentionDays(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetComplaintRetentionDays();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ComplaintRetentionDays(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Refused rather than clamped, so a caller that asked for a value outside the
+      // range learns that it did not get it.
+      if (newVal < 0 || newVal > 3650)
+         return COMError::GenerateError("ComplaintRetentionDays must be between 0 and 3650.");
+
+      config_->SetComplaintRetentionDays((int) newVal);
 
       return S_OK;
    }
