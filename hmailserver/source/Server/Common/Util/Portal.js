@@ -518,8 +518,18 @@
   var colourKeyOf = function (name) { var lower = name.toLowerCase(); for (var k in labelColours) { if (k.toLowerCase() === lower) { return k; } } return null; };
   var colourOf = function (name) { var k = colourKeyOf(name); return k ? labelColours[k] : '#5b6875'; };
   var chip = function (name) { var c = node('span', name, 'chip'); if (c.style) { c.style.backgroundColor = colourOf(name); } return c; };
-  var chipsFor = function (keywords) { var box = node('span', undefined, 'chips'); (keywords || []).filter(function (k) { return k.charAt(0) !== '$'; }).forEach(function (k) { box.appendChild(chip(k)); }); return box; };
-  var validLabel = function (name) { return /^[\x21-\x7e]+$/.test(name) && !/[()\{\}\[\]%*"\\]/.test(name) && name.length <= 60; };
+  // A label is a word of the reader's own. The keywords this page keeps for
+  // itself begin with $ - the second and third stars, the follow-up and its
+  // day, pinned, muted - and are not labels: they are shown by the thing
+  // that owns them (the star, the follow-up button, the row's marks) and
+  // changed only through it, so that a message never keeps one of them
+  // under a star, a flag or a mark that no longer shows it.
+  var ownKeyword = function (k) { return String(k).charAt(0) === '$'; };
+  var chipsFor = function (keywords) { var box = node('span', undefined, 'chips'); (keywords || []).filter(function (k) { return !ownKeyword(k); }).forEach(function (k) { box.appendChild(chip(k)); }); return box; };
+  // A $ is refused with the brackets and the quotes: the page's own keywords
+  // begin with one, so a label named $Star3 would put a third star's keyword
+  // on a message without the star, where nothing in this page would show it.
+  var validLabel = function (name) { return /^[\x21-\x7e]+$/.test(name) && !/[()\{\}\[\]%*"\\$]/.test(name) && name.length <= 60; };
   var saveLabelColours = function () { return savePrefs({ labels: JSON.stringify(labelColours) }); };
   var renderLabelNav = function () {
     var nav = el('label-nav');
@@ -580,7 +590,7 @@
     var box = el('message-labels');
     clear(box);
     if (!current) { return; }
-    (current.flags.keywords || []).filter(function (k) { return k.charAt(0) !== '$'; }).forEach(function (k) { box.appendChild(chip(k)); });
+    (current.flags.keywords || []).filter(function (k) { return !ownKeyword(k); }).forEach(function (k) { box.appendChild(chip(k)); });
   };
   var setKeywords = function (add, remove) {
     if (!current) { return Promise.resolve(false); }
@@ -612,8 +622,15 @@
     if (menu.hidden || !current) { return; }
     var have = {};
     (current.flags.keywords || []).forEach(function (k) { have[k.toLowerCase()] = true; });
-    var names = labelNames();
-    (current.flags.keywords || []).forEach(function (k) { if (!colourKeyOf(k)) { names.push(k); } });
+    // The menu offers the reader's labels and any label already on the
+    // message; the page's own $ keywords are left out of both, as the chips
+    // and the message's labels leave them out. Offered here, the second and
+    // third stars were a tick box beside the star itself: unticking $Star3
+    // took the keyword off and left the flag, which drops the message to the
+    // first star while the page goes on painting the third - the very state
+    // this row exists to remove.
+    var names = labelNames().filter(function (k) { return !ownKeyword(k); });
+    (current.flags.keywords || []).forEach(function (k) { if (!ownKeyword(k) && !colourKeyOf(k)) { names.push(k); } });
     if (!names.length) { menu.appendChild(node('span', t('No labels yet - name one:'), 'muted')); }
     names.forEach(function (name) {
       var label = document.createElement('label');
@@ -1028,9 +1045,7 @@
     unread.setAttribute('title', seen ? t('Mark as unread') : t('Mark as read'));
     unread.setAttribute('aria-label', seen ? t('Mark as unread') : t('Mark as read'));
     setIcon(unread, seen ? 'mail' : 'mail-open');
-    var flag = el('message-flag');
-    paintStar(flag, starStage(current));
-    flag.setAttribute('aria-label', starTitle(starStage(current)));
+    paintStar(el('message-flag'), starStage(current));
     var follow = el('message-followup');
     var dueDay = dueOf(current);
     follow.classList.toggle('on', hasFollowUp(current));
@@ -1983,7 +1998,7 @@
   })();
   el('message-back').addEventListener('click', function () { closeMessage(false); });
   el('message-unread').addEventListener('click', function () { if (current) { setFlags({ seen: !current.flags.seen }, false); } });
-  el('message-flag').addEventListener('click', function () { if (current) { cycleStar(current, null); } });
+  el('message-flag').addEventListener('click', function () { cycleStar(current); });
   el('message-delete').addEventListener('click', function () { fileCurrent('delete'); });
   var remoteAllowed = { id: 0 };
   var remoteSenders = function () { return String(pref('remote_senders') || '').toLowerCase().split(',').filter(Boolean); };
@@ -4166,10 +4181,13 @@
     return dated.concat(messages.filter(function (m) { return !dueOf(m); }));
   };
   // The star, the keyword and the day in one change; a day already there
-  // is taken off first. An empty day clears the flag, star and all.
+  // is taken off first. An empty day clears the flag, star and all - the
+  // second and third stars' keywords with it, as taking the star off does -
+  // and a follow-up on a message that shows no star gives it the first star,
+  // never a third one left behind under a cleared flag.
   var setFollowUp = function (m, day) {
     var stale = keywordsOf(m).filter(isDueKeyword);
-    var body = day ? { flagged: true, keywords_add: [FOLLOWUP, DUE + day], keywords_remove: stale } : { flagged: false, keywords_remove: stale.concat([FOLLOWUP]) };
+    var body = day ? { flagged: true, keywords_add: [FOLLOWUP, DUE + day], keywords_remove: stale.concat(starStage(m) === 0 ? STAR_KEYWORDS : []) } : { flagged: false, keywords_remove: stale.concat([FOLLOWUP], STAR_KEYWORDS) };
     return call('PUT', '/api/v1/me/messages/' + m.id + '/flags', body).then(function (result) {
       if (result.status !== 200 || !result.data || !result.data.flags) { say('mail-status', describe(result, t('Could not change the flags')), false); return false; }
       m.flags = result.data.flags;
@@ -5035,7 +5053,11 @@
       add('Reply all', 'message', function () { el('message-reply-all').click(); });
       add('Forward', 'message', function () { el('message-forward').click(); });
       add(current.flags.seen ? 'Mark as unread' : 'Mark as read', 'message', function () { el('message-unread').click(); });
-      add(current.flags.flagged ? 'Remove flag' : 'Flag', 'message', function () { el('message-flag').click(); });
+      // Named for the star this entry will give; it presses the star over the
+      // open message, as the entries around it press their own buttons, so it
+      // acts on whatever is open when it is chosen rather than on the message
+      // the palette was built for.
+      add(['Star', 'Second star', 'Third star', 'Unstar'][starStage(current)], 'message', function () { el('message-flag').click(); });
       add('Delete', 'message', function () { el('message-delete').click(); });
       add('Print', 'message', function () { window.print(); });
       allFolders.forEach(function (f) {
@@ -5360,7 +5382,17 @@
   // none again. The first is the IMAP flag every client shows; the second
   // and third are the keywords $Star2 and $Star3 on top of it, which other
   // clients ignore and the Starred view includes all the same.
+  //
+  // One function gives a message its next star, and every way this page has
+  // of starring goes through it: the star on a row and the star over the
+  // open message, s on either, the row's menu and the palette. Each press is
+  // one request carrying the flag and both keywords - the stage's keyword
+  // added and the other taken off, or both taken off with the flag - so a
+  // message never keeps a star keyword its star no longer shows. Nothing
+  // else may edit these two keywords: the label menu offers the reader's
+  // labels alone (ownKeyword, above), so the star is the only way to a star.
   var STAR_KEYWORDS = ['$Star2', '$Star3'];
+  var isStarKeyword = function (k) { return /^\$star[23]$/i.test(String(k)); };
   var starStage = function (m) {
     if (!m.flags.flagged) { return 0; }
     var keys = (m.flags.keywords || []).map(function (k) { return k.toLowerCase(); });
@@ -5372,36 +5404,88 @@
     button.classList.toggle('s2', stage === 2);
     button.classList.toggle('s3', stage === 3);
     button.setAttribute('title', starTitle(stage));
+    // The name read out is the star the press will give, on a row as over
+    // the open message. aria-label wins over title, so a row left at "Star"
+    // announced the wrong thing for every star but the first.
+    button.setAttribute('aria-label', starTitle(stage));
   };
-  var applyStarStage = function (m, stage) {
-    m.flags.flagged = stage > 0;
-    m.flags.keywords = (m.flags.keywords || []).filter(function (k) { return STAR_KEYWORDS.indexOf(k) < 0 && k.toLowerCase() !== '$star2' && k.toLowerCase() !== '$star3'; });
-    if (stage >= 2) { m.flags.keywords.push(STAR_KEYWORDS[stage - 2]); }
+  // The change that puts a message at a stage: 0 none, 1 the flag, 2 and 3
+  // the flag and that stage's keyword.
+  var starChange = function (stage) {
+    var keep = stage >= 2 ? STAR_KEYWORDS[stage - 2] : '';
+    var change = { flagged: stage > 0, keywords_remove: STAR_KEYWORDS.filter(function (k) { return k !== keep; }) };
+    if (keep) { change.keywords_add = [keep]; }
+    return change;
   };
-  var cycleStar = function (m, star) {
-    var stage = (starStage(m) + 1) % 4;
-    var body = { flagged: stage > 0 };
-    if (stage >= 2) { body.keywords_add = [STAR_KEYWORDS[stage - 2]]; }
-    body.keywords_remove = STAR_KEYWORDS.filter(function (k) { return !(stage >= 2 && k === STAR_KEYWORDS[stage - 2]); });
-    return call('PUT', '/api/v1/me/messages/' + m.id + '/flags', body).then(function (result) {
-      if (result.status !== 200) { say('mail-status', describe(result, t('Could not change the flags')), false); return; }
-      // The star and the keywords from the server's answer; the rest of the
-      // flags - seen, answered - stay as the row had them.
-      if (result.data && result.data.flags) { m.flags.flagged = !!result.data.flags.flagged; m.flags.keywords = result.data.flags.keywords || []; } else { applyStarStage(m, stage); }
-      if (star) { paintStar(star, starStage(m)); }
-      if (current && current.id === m.id) { if (current !== m) { current.flags = m.flags; } renderActions(); }
-      lastListing = null;
+  // The flag and the keywords a change left, put on every copy of the
+  // message the page holds - its row, the conversation it heads, the open
+  // message - and painted there; the other flags (seen, answered) stay as
+  // each copy had them.
+  var showStar = function (m, flagged, keywords, button) {
+    var take = function (copy) { if (copy && copy.flags && copy.id === m.id) { copy.flags.flagged = flagged; copy.flags.keywords = keywords.slice(); } };
+    take(m);
+    listRows.forEach(function (r) {
+      (r.ms || [r.m]).forEach(take);
+      if (r.star && r.m && r.m.id === m.id) { paintStar(r.star, starStage(r.m)); }
     });
+    if (button) { paintStar(button, starStage(m)); }
+    if (current && current.id === m.id) { take(current); renderActions(); }
   };
-  var toggleStar = function (m, star) { return cycleStar(m, star); };
+  // The presses for one message are counted and sent in turn. Counting each
+  // from the star the message SHOWS would lose the second of two quick
+  // presses - the key repeating while it is held, or a double press - since
+  // the page's copy of the message changes only when the answer arrives: both
+  // would ask for the first star and the message would stop there, the second
+  // press swallowed. So each press counts from the star the press before it
+  // asked for, and a press whose predecessor was refused is dropped rather
+  // than sent for a star the message never reached.
+  var starPending = {};
+  var cycleStar = function (m, button) {
+    if (!m || !m.flags) { return Promise.resolve(); }
+    var id = m.id;
+    var pending = starPending[id] || { stage: starStage(m), queue: Promise.resolve(), waiting: 0, failed: false };
+    starPending[id] = pending;
+    pending.stage = (pending.stage + 1) % 4;
+    pending.waiting += 1;
+    var stage = pending.stage;
+    var sent = pending.queue.then(function () {
+      if (pending.failed) { return; }
+      var change = starChange(stage);
+      return call('PUT', '/api/v1/me/messages/' + id + '/flags', change).then(function (result) {
+        if (result.status !== 200) {
+          pending.failed = true;
+          say('mail-status', describe(result, t('Could not change the flags')), false);
+          return;
+        }
+        // The server's answer when it gave one; otherwise what was asked for.
+        var flags = result.data && result.data.flags;
+        var keywords = flags ? (flags.keywords || []) : (m.flags.keywords || []).filter(function (k) { return !isStarKeyword(k); }).concat(change.keywords_add || []);
+        showStar(m, flags ? !!flags.flagged : change.flagged, keywords, button);
+        lastListing = null;
+      });
+    });
+    // However a press ended, it gives its place in the queue up. A press
+    // whose work threw stops the presses already behind it - they would ask
+    // for a star the message never reached - but the queue itself settles,
+    // because a queue left rejected would swallow every later press of that
+    // message for the life of the page and the star would simply stop
+    // working. The count is kept the same way, so the next press starts
+    // again from the star the message shows.
+    var done = function () {
+      pending.waiting -= 1;
+      if (!pending.waiting && starPending[id] === pending) { delete starPending[id]; }
+    };
+    pending.queue = sent.then(null, function () { pending.failed = true; });
+    return sent.then(done, done);
+  };
   var starButton = function (m) {
     var stage = starStage(m);
     var star = node('button', undefined, 'star' + (stage > 0 ? ' on' : '') + (stage === 2 ? ' s2' : '') + (stage === 3 ? ' s3' : ''));
     star.type = 'button';
     star.setAttribute('title', starTitle(stage));
-    star.setAttribute('aria-label', t('Star'));
+    star.setAttribute('aria-label', starTitle(stage));
     star.appendChild(icon('star'));
-    star.addEventListener('click', function (event) { event.stopPropagation(); toggleStar(m, star); });
+    star.addEventListener('click', function (event) { event.stopPropagation(); cycleStar(m, star); });
     return star;
   };
 
@@ -5862,10 +5946,12 @@
     if (open && event.key === 'r') { event.preventDefault(); go('/compose?reply=' + current.id); return; }
     if (open && event.key === 'a') { event.preventDefault(); go('/compose?replyall=' + current.id); return; }
     if (open && event.key === 'f') { event.preventDefault(); go('/compose?forward=' + current.id); return; }
+    // One key, one meaning: the next star, for the open message as for the
+    // row under the cursor - what the star beside either of them does.
     if (event.key === 's') {
       event.preventDefault();
-      if (open) { setFlags({ flagged: !current.flags.flagged }, false); return; }
-      if (cursor >= 0 && listRows[cursor] && listRows[cursor].star) { toggleStar(listRows[cursor].m, listRows[cursor].star); }
+      var row = cursor >= 0 ? listRows[cursor] : null;
+      if (open) { cycleStar(current); } else if (row) { cycleStar(row.m, row.star); }
       return;
     }
     if (event.key === 'o' && cursor >= 0 && listRows[cursor] && !el('message-list').hidden) { event.preventDefault(); go('/m/' + listRows[cursor].id); return; }
@@ -6371,7 +6457,7 @@
     for (var i = 0; i < items.length; i++) {
       var act = items[i].getAttribute ? items[i].getAttribute('data-act') : '';
       if (act === 'read') { items[i].textContent = m.flags.seen ? t('Mark as unread') : t('Mark as read'); }
-      if (act === 'star') { items[i].textContent = m.flags.flagged ? t('Unstar') : t('Star'); }
+      if (act === 'star') { items[i].textContent = starTitle(starStage(m)); }
       if (act === 'pin') { items[i].textContent = isPinned(m) ? t('Unpin') : t('Pin'); }
       if (act === 'mute') { items[i].textContent = isMuted(m) ? t('Unmute') : t('Mute'); }
       // Only a conversation has anything to clean up.
@@ -6401,7 +6487,7 @@
     else if (act === 'junk') { fileRow(entry, junkTargetFor(entry.folderId)); }
     else if (act === 'delete') { fileRow(entry, 'delete'); }
     else if (act === 'read') { markRows([entry], !m.flags.seen); }
-    else if (act === 'star' && entry.star) { toggleStar(m, entry.star); }
+    else if (act === 'star') { cycleStar(m, entry.star); }
     else if (act === 'pin') { pinMessages(entry.ids || [entry.id], !isPinned(m)); }
     else if (act === 'block') { blockSender(addressOf(m.from)); }
     else if (act === 'sweep') { sweepSender(addressOf(m.from), entry.folderId); }

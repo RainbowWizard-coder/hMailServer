@@ -64,6 +64,13 @@ class Element {
       this.focused = 0;
    }
    get id() { return this.attributes.id || ''; }
+   // The page names two elements it has just made - the label menu's new-label
+   // field and its button - and a getter with no setter made that a TypeError
+   // from inside renderLabelMenu, so the label menu had never been opened by
+   // any check here. A browser puts a named element within reach of
+   // getElementById; the newest of a name wins, as the newest render is the
+   // menu on screen.
+   set id(v) { this.attributes.id = String(v); if (parsed && parsed.byId) { parsed.byId[String(v)] = this; } }
    get children() { return this.childNodes.filter((n) => n instanceof Element); }
    get firstChild() { return this.childNodes.length ? this.childNodes[0] : null; }
    get className() { return this.attributes.class || ''; }
@@ -392,6 +399,14 @@ const todayStamp = (() => { const d = new Date(); return d.getFullYear() + '-' +
 const stampDaysAgo = (days) => { const d = new Date(Date.now() - days * 86400000); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const flaggedById = { 101: true };
 const keywordsById = { 101: ['$FollowUp', '$Due-' + todayStamp] };
+// Armed for the next request a star sends - the one carrying the flag and
+// the star keywords together. The change is stored as usual, but the answer
+// carries a keyword list the page cannot use, so the work the page does with
+// the answer throws. What is being asked is not that this server would ever
+// send such a thing: it is that one press that throws does not take that
+// message's star down with it for the rest of the session.
+let brokenFlagsAnswerOnce = false;
+const isStarRequest = (body) => /"keywords_remove"/.test(body || '') && /\$Star2/i.test(body || '');
 const withState = (m) => Object.assign({}, m, { flags: Object.assign({}, m.flags, { flagged: !!flaggedById[m.id], keywords: (keywordsById[m.id] || []).slice() }) });
 
 const LISTING = {
@@ -692,6 +707,7 @@ function answer(method, path, body) {
       (change.keywords_remove || []).forEach((k) => { keywords = keywords.filter((have) => have.toLowerCase() !== k.toLowerCase()); });
       (change.keywords_add || []).forEach((k) => { if (!keywords.some((have) => have.toLowerCase() === k.toLowerCase())) { keywords.push(k); } });
       keywordsById[id] = keywords;
+      if (brokenFlagsAnswerOnce && isStarRequest(body)) { brokenFlagsAnswerOnce = false; return json(200, { id, folder_id: 1, flags: { seen: true, flagged: !!flaggedById[id], draft: false, keywords: 7 } }); }
       return json(200, { id, folder_id: 1, flags: { seen: true, flagged: !!flaggedById[id], draft: false, keywords: keywords.slice() } });
    }
    if (path.startsWith('/api/v1/me/changes')) {
@@ -1558,8 +1574,8 @@ async function main() {
    document.getElementById('followup-clear').dispatchEvent(makeEvent('click'));
    await flush();
    const clearCall = since(beforeClear).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/messages/102/flags')[0];
-   check('Clear the flag unstars the message and takes both keywords off',
-      !!clearCall && JSON.parse(clearCall.body).flagged === false && JSON.stringify(JSON.parse(clearCall.body).keywords_remove) === JSON.stringify(['$Due-' + tomorrowStamp, '$FollowUp']),
+   check('Clear the flag unstars the message and takes both keywords off, and the second and third stars\' keywords with them',
+      !!clearCall && JSON.parse(clearCall.body).flagged === false && JSON.stringify(JSON.parse(clearCall.body).keywords_remove) === JSON.stringify(['$Due-' + tomorrowStamp, '$FollowUp', '$Star2', '$Star3']),
       clearCall ? clearCall.body : 'no flags call');
    check('and the button is off again', !followBtn.classList.contains('on') && document.getElementById('followup-clear').hidden === true, followBtn.className + ' clear hidden=' + document.getElementById('followup-clear').hidden);
    dismissAllToasts();
@@ -2001,6 +2017,229 @@ async function main() {
       && stageBodies[2].flagged === true && (stageBodies[2].keywords_add || []).join() === '$Star3' && (stageBodies[2].keywords_remove || []).indexOf('$Star2') >= 0
       && stageBodies[3].flagged === false && (stageBodies[3].keywords_remove || []).length === 2;
    check('the star pressed again goes amber, then red, then off, as flag and keywords', stagesRight, JSON.stringify(stageBodies));
+
+   // ---- one key, one meaning: s on an open message cycles the stars as the row does
+   // Message 102 starts with no star and a label of the reader's own, which no
+   // star may touch; the mock keeps the flag and the keywords as the server
+   // does. The open message's row is watched as well: its star must follow.
+   const kept102 = { flagged: !!flaggedById[102], keywords: (keywordsById[102] || []).slice() };
+   const starStageOf = (button) => !button ? -1 : !button.classList.contains('on') ? 0 : button.classList.contains('s3') ? 3 : button.classList.contains('s2') ? 2 : 1;
+   const starKeywordsOf = (id) => (keywordsById[id] || []).filter((k) => /^\$star/i.test(k));
+   const flagsOf = (id) => (flaggedById[id] ? 'flagged' : 'unflagged') + ' [' + (keywordsById[id] || []).join(' ') + ']';
+   const starPuts = (before, id) => since(before).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/messages/' + id + '/flags' && /"flagged"/.test(r.body || ''));
+   const pressS = async (id) => {
+      const before = requests.length;
+      document.dispatchEvent(makeEvent('keydown', { key: 's', target: document.body }));
+      await flush();
+      return starPuts(before, id);
+   };
+   const openFresh = async (id) => { location.hash = '#/f/1'; await flush(); location.hash = '#/m/' + id; await flush(); };
+   const secondRowStage = () => { const row = rowBySubject('Second'); return row ? starStageOf(starOf(row)) : -1; };
+   flaggedById[102] = false;
+   keywordsById[102] = ['Home'];
+   await openFresh(102);
+   const paneStar = document.getElementById('message-flag');
+   check('the open message starts with no star', document.getElementById('message-view').hidden === false && starStageOf(paneStar) === 0 && secondRowStage() === 0,
+      flagsOf(102) + ' pane ' + paneStar.className + ' row ' + secondRowStage());
+   const wantedSteps = [{ stage: 1, flagged: true, stars: '' }, { stage: 2, flagged: true, stars: '$Star2' }, { stage: 3, flagged: true, stars: '$Star3' }, { stage: 0, flagged: false, stars: '' }];
+   const openSteps = [];
+   for (let press = 0; press < 4; press += 1) {
+      const puts = await pressS(102);
+      openSteps.push({ requests: puts.length, flagged: !!flaggedById[102], stars: starKeywordsOf(102).join(), label: (keywordsById[102] || []).indexOf('Home') >= 0, pane: starStageOf(paneStar), row: secondRowStage() });
+   }
+   check('s on an open message cycles it as the row does: a star, the second, the third, none - one request a press',
+      openSteps.length === 4 && openSteps.every((s, i) => s.requests === 1 && s.pane === wantedSteps[i].stage && s.flagged === wantedSteps[i].flagged), JSON.stringify(openSteps));
+   check('with the keywords right after every press, and the reader\'s own label left alone',
+      openSteps.length === 4 && openSteps.every((s, i) => s.stars === wantedSteps[i].stars && s.label), JSON.stringify(openSteps));
+   check('the star on the open message\'s row follows it', openSteps.length === 4 && openSteps.every((s, i) => s.row === wantedSteps[i].stage), JSON.stringify(openSteps.map((s) => s.row)));
+   check('taken off from the open message, the star leaves no $Star keyword behind', !flaggedById[102] && starKeywordsOf(102).length === 0 && (keywordsById[102] || []).join() === 'Home', flagsOf(102));
+
+   // A message an older page left with the flag cleared and $Star3 still on
+   // it shows no star; the first press gives it the first star and takes the
+   // leftover off in the same request.
+   keywordsById[102] = ['$Star3', 'Home'];
+   await openFresh(102);
+   check('a $Star3 left under a cleared flag shows no star', starStageOf(paneStar) === 0, flagsOf(102) + ' ' + paneStar.className);
+   const leftover = await pressS(102);
+   check('and s gives it the first star, taking the leftover off in the one request', leftover.length === 1 && !!flaggedById[102] && starKeywordsOf(102).length === 0 && starStageOf(paneStar) === 1, flagsOf(102));
+
+   // From the list: the row under the cursor at the third star; s takes the
+   // flag and both keywords off in one request.
+   flaggedById[102] = true;
+   keywordsById[102] = ['$Star3', 'Home'];
+   location.hash = '#/f/1';
+   await flush();
+   const secondAt = rows().indexOf(rowBySubject('Second'));
+   for (let guard = 0; guard < 10 && onCursor() < secondAt; guard += 1) { document.dispatchEvent(makeEvent('keydown', { key: 'j', target: document.body })); }
+   for (let guard = 0; guard < 10 && onCursor() > secondAt; guard += 1) { document.dispatchEvent(makeEvent('keydown', { key: 'k', target: document.body })); }
+   check('the row at the third star shows it, under the cursor', secondAt >= 0 && onCursor() === secondAt && secondRowStage() === 3, 'row ' + secondAt + ' cursor ' + onCursor() + ' stage ' + secondRowStage() + ' ' + flagsOf(102));
+   const fromRow = await pressS(102);
+   const fromRowBody = fromRow.length ? JSON.parse(fromRow[0].body) : {};
+   check('s on the row takes the star off: the flag and both $Star keywords in one request, none left behind',
+      fromRow.length === 1 && fromRowBody.flagged === false && (fromRowBody.keywords_remove || []).indexOf('$Star2') >= 0 && (fromRowBody.keywords_remove || []).indexOf('$Star3') >= 0
+      && !flaggedById[102] && starKeywordsOf(102).length === 0 && secondRowStage() === 0, JSON.stringify(fromRowBody) + ' ' + flagsOf(102) + ' stage ' + secondRowStage());
+
+   // The row's menu names the star it will give, and gives it the same way.
+   const menuSteps = [];
+   for (let press = 0; press < 4; press += 1) {
+      rowBySubject('Second').dispatchEvent(makeEvent('contextmenu', { clientX: 300, clientY: 200 }));
+      const item = menuItem('star');
+      const label = item ? item.textContent : 'no star item';
+      const before = requests.length;
+      if (item) { item.dispatchEvent(makeEvent('click', { target: item })); }
+      await flush();
+      menuSteps.push({ label, requests: starPuts(before, 102).length, flagged: !!flaggedById[102], stars: starKeywordsOf(102).join(), row: secondRowStage() });
+   }
+   check('the row menu offers Star, Second star, Third star and Unstar in turn, each a step of the same cycle',
+      JSON.stringify(menuSteps.map((s) => s.label)) === JSON.stringify(['Star', 'Second star', 'Third star', 'Unstar'])
+      && menuSteps.every((s, i) => s.requests === 1 && s.flagged === wantedSteps[i].flagged && s.stars === wantedSteps[i].stars && s.row === wantedSteps[i].stage), JSON.stringify(menuSteps));
+
+   // Clear the flag of a follow-up at the third star: the stars' keywords go with it.
+   flaggedById[102] = true;
+   keywordsById[102] = ['$Star3', '$FollowUp', '$Due-2026-09-20', 'Home'];
+   await openFresh(102);
+   check('a third-starred follow-up shows the third star', starStageOf(paneStar) === 3, flagsOf(102) + ' ' + paneStar.className);
+   document.getElementById('followup-clear').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('and Clear the flag leaves no $Star keyword on it', !flaggedById[102] && starKeywordsOf(102).length === 0 && (keywordsById[102] || []).join() === 'Home' && starStageOf(paneStar) === 0, flagsOf(102));
+
+   // The star over the open message is the same function as the row's: two
+   // clicks give the first star and then the second, one request each - not
+   // the flag on and off again, which is what it did before.
+   flaggedById[102] = false;
+   keywordsById[102] = ['Home'];
+   await openFresh(102);
+   const paneClicks = [];
+   for (let press = 0; press < 2; press += 1) {
+      const before = requests.length;
+      paneStar.dispatchEvent(makeEvent('click'));
+      await flush();
+      paneClicks.push({ requests: starPuts(before, 102).length, stars: starKeywordsOf(102).join(), pane: starStageOf(paneStar), row: secondRowStage() });
+   }
+   check('the star over the open message gives the next star, not the flag alone',
+      JSON.stringify(paneClicks) === JSON.stringify([{ requests: 1, stars: '', pane: 1, row: 1 }, { requests: 1, stars: '$Star2', pane: 2, row: 2 }]), JSON.stringify(paneClicks));
+
+   // The palette's entry for the open message names the star it will give,
+   // and gives it through the same cycle. The message is at the second star,
+   // so the entry reads Third star and then Unstar.
+   const paletteStarItem = () => {
+      document.dispatchEvent(makeEvent('keydown', { key: 'k', ctrlKey: true, target: document.body }));
+      const input = document.getElementById('palette-input');
+      input.value = 'star';
+      input.dispatchEvent(makeEvent('input'));
+      return document.getElementById('palette-list').children[0];
+   };
+   const paletteSteps = [];
+   for (let press = 0; press < 2; press += 1) {
+      const item = paletteStarItem();
+      const label = item ? item.childNodes[0].textContent : 'no entry';
+      const before = requests.length;
+      if (item) { item.dispatchEvent(makeEvent('mousedown', { target: item })); }
+      await flush();
+      paletteSteps.push({ label, requests: starPuts(before, 102).length, stars: starKeywordsOf(102).join(), pane: starStageOf(paneStar) });
+   }
+   check('the palette names the star it will give and gives it the same way',
+      JSON.stringify(paletteSteps) === JSON.stringify([{ label: 'Third star', requests: 1, stars: '$Star3', pane: 3 }, { label: 'Unstar', requests: 1, stars: '', pane: 0 }]), JSON.stringify(paletteSteps));
+   // Closed, whatever the palette did: the keys the checks below press are
+   // ignored by the page while it is open, so a failure here would read as a
+   // failure there instead.
+   document.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.body }));
+   await flush();
+
+   // A follow-up given a day to a message that shows no star gives it the
+   // first star: a $Star3 an older page left under a cleared flag goes in the
+   // same request, so the message does not come back at the third star.
+   flaggedById[102] = false;
+   keywordsById[102] = ['$Star3', 'Home'];
+   await openFresh(102);
+   const beforeFollowStar = requests.length;
+   document.getElementById('followup-tomorrow').dispatchEvent(makeEvent('click'));
+   await flush();
+   const followStarPut = starPuts(beforeFollowStar, 102)[0];
+   const followStarBody = followStarPut ? JSON.parse(followStarPut.body) : {};
+   check('a follow-up on a message showing no star gives it the first star, taking a leftover keyword off with it',
+      !!followStarPut && followStarBody.flagged === true
+      && (followStarBody.keywords_remove || []).indexOf('$Star2') >= 0 && (followStarBody.keywords_remove || []).indexOf('$Star3') >= 0
+      && starKeywordsOf(102).length === 0 && starStageOf(paneStar) === 1, JSON.stringify(followStarBody) + ' ' + flagsOf(102));
+   dismissAllToasts();
+
+   // Two presses before the first answer comes back: the second counts from
+   // the star the first asked for, so the pair gives the second star rather
+   // than asking twice for the first and stopping there.
+   flaggedById[102] = false;
+   keywordsById[102] = ['Home'];
+   await openFresh(102);
+   const beforeQuick = requests.length;
+   document.dispatchEvent(makeEvent('keydown', { key: 's', target: document.body }));
+   document.dispatchEvent(makeEvent('keydown', { key: 's', target: document.body }));
+   await flush();
+   const quickPresses = starPuts(beforeQuick, 102).map((r) => JSON.parse(r.body));
+   check('two presses before the first answer comes back give the second star, not the first twice',
+      quickPresses.length === 2 && (quickPresses[0].keywords_add || []).join() === '' && (quickPresses[1].keywords_add || []).join() === '$Star2'
+      && !!flaggedById[102] && starKeywordsOf(102).join() === '$Star2' && starStageOf(paneStar) === 2 && secondRowStage() === 2,
+      JSON.stringify(quickPresses) + ' ' + flagsOf(102) + ' row ' + secondRowStage());
+   dismissAllToasts();
+
+   // The label menu is not a way to star. It offers the reader's labels, and
+   // the keywords this page keeps for itself - the two stars, the follow-up
+   // and its day - are not among them: ticked off there, $Star3 came off the
+   // message while the flag stayed, which drops it to the first star with
+   // nothing repainted and the third star still showing.
+   flaggedById[102] = true;
+   keywordsById[102] = ['$Star3', '$FollowUp', '$Due-2026-09-20', 'Home'];
+   await openFresh(102);
+   const labelMenu = document.getElementById('label-menu');
+   const beforeMenu = requests.length;
+   document.getElementById('message-label').dispatchEvent(makeEvent('click'));
+   await flush();
+   const labelOffers = [];
+   (function walk(n) {
+      for (let i = 0; i < n.childNodes.length; i++) {
+         const c = n.childNodes[i];
+         if (c.tagName === 'INPUT' && c.type === 'checkbox') { labelOffers.push(String(c.getAttribute('aria-label'))); }
+         if (c.childNodes) { walk(c); }
+      }
+   })(labelMenu);
+   check('the label menu offers the reader\'s own labels and none of the page\'s $ keywords, so no star can be taken off behind the star\'s back',
+      labelMenu.hidden === false && labelOffers.indexOf('Home') >= 0 && labelOffers.every((name) => name.charAt(0) !== '$'),
+      JSON.stringify(labelOffers));
+   check('and the message is still at its third star, with nothing asked of the server by opening the menu',
+      starStageOf(paneStar) === 3 && starKeywordsOf(102).join() === '$Star3' && requests.length === beforeMenu, flagsOf(102) + ' ' + paneStar.className);
+
+   // What a screen reader reads out on a row: the star the press will give.
+   // aria-label wins over title, so a row left at "Star" for ever named the
+   // wrong press for every star but the first.
+   flaggedById[102] = false;
+   keywordsById[102] = ['Home'];
+   await openFresh(102);
+   const starNames = () => { const row = rowBySubject('Second'); const s = row ? starOf(row) : null; return (s ? s.getAttribute('aria-label') : 'no row star') + ' / ' + paneStar.getAttribute('aria-label'); };
+   const namedSteps = [starNames()];
+   for (let press = 0; press < 4; press += 1) { await pressS(102); namedSteps.push(starNames()); }
+   check('a row\'s star is read out as the star the press will give, as the open message\'s star is',
+      JSON.stringify(namedSteps) === JSON.stringify(['Star / Star', 'Second star / Second star', 'Third star / Third star', 'Unstar / Unstar', 'Star / Star']),
+      JSON.stringify(namedSteps));
+
+   // A press whose work throws - an answer the page cannot use, a repaint
+   // that fails - must not leave the press behind it chained to a promise
+   // that will never run: that would stop this message's star for the rest
+   // of the session, and silently. The next press starts again from the star
+   // the message shows.
+   flaggedById[102] = false;
+   keywordsById[102] = ['Home'];
+   await openFresh(102);
+   brokenFlagsAnswerOnce = true;
+   const brokePress = await pressS(102);
+   const afterBroke = await pressS(102);
+   brokenFlagsAnswerOnce = false;
+   check('a press whose answer the page cannot use does not stop that message\'s star: the next press is sent, and paints',
+      brokePress.length === 1 && afterBroke.length === 1 && !!flaggedById[102] && starKeywordsOf(102).join() === '$Star2'
+      && starStageOf(paneStar) === 2 && secondRowStage() === 2,
+      brokePress.length + '+' + afterBroke.length + ' ' + flagsOf(102) + ' pane ' + paneStar.className + ' row ' + secondRowStage());
+
+   flaggedById[102] = kept102.flagged;
+   keywordsById[102] = kept102.keywords;
+   location.hash = '#/f/1';
+   await flush();
 
    // ---- snooze presets and swipe actions as settings
    location.hash = '#/settings';

@@ -2620,6 +2620,48 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("One flags request takes the flag and several keywords off together, in whatever case a client stored them - the request the webmail sends when a star is taken off")]
+      public void OneFlagsRequestTakesTheFlagAndEveryStarKeywordOff()
+      {
+         Deliver(Address, "Starred", "Three stars.");
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);
+
+         // The third star as another client might have written it, with a
+         // label of the reader's own beside it.
+         var imap = new ImapClientSimulator();
+         Assert.IsTrue(imap.ConnectAndLogon(Address, UserPassword));
+         Assert.IsTrue(imap.SelectFolder("INBOX"));
+         string stored = imap.SendSingleCommand("A1 STORE 1 +FLAGS (\\Flagged $star2 $STAR3 Home)");
+         StringAssert.Contains("A1 OK", stored);
+         string before = imap.Fetch("1 (FLAGS)");
+         StringAssert.Contains("\\Flagged", before);
+         StringAssert.Contains("$STAR3", before);
+         imap.Disconnect();
+
+         (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+         long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+         (int status, string body) list = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword));
+         Assert.AreEqual(200, list.status, "Body: " + list.body);
+         long starred = IdBefore(list.body, "\"subject\":\"Starred\"");
+
+         (int status, string body) cleared = Http("PUT", "/api/v1/me/messages/" + starred + "/flags", UserHeader(UserPassword),
+            "{\"flagged\":false,\"keywords_remove\":[\"$Star2\",\"$Star3\"]}");
+         Assert.AreEqual(200, cleared.status, "Body: " + cleared.body);
+         StringAssert.Contains("\"flagged\":false", cleared.body);
+         StringAssert.Contains("\"keywords\":[\"Home\"]", cleared.body);
+
+         // What an IMAP client sees afterwards: no flag, no star keyword, the label kept.
+         imap = new ImapClientSimulator();
+         Assert.IsTrue(imap.ConnectAndLogon(Address, UserPassword));
+         Assert.IsTrue(imap.SelectFolder("INBOX"));
+         string after = imap.Fetch("1 (FLAGS)");
+         imap.Disconnect();
+         Assert.IsFalse(after.Contains("\\Flagged"), "The flag was taken off. " + after);
+         Assert.IsFalse(after.ToLowerInvariant().Contains("$star"), "Both star keywords were taken off. " + after);
+         StringAssert.Contains("Home", after);
+      }
+
+      [Test]
       [Description("A Sieve addflag at delivery stores a keyword on the message, which IMAP and REST both show")]
       public void ASieveAddflagStoresAKeywordAtDelivery()
       {
