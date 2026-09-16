@@ -1529,6 +1529,11 @@ namespace HM
       line.Format("hmailserver_spam_messages_total %d\n", status->GetNumberOfDetectedSpamMessages());
       body += line;
 
+      body += "# HELP hmailserver_spam_trap_hits_total Number of times a spam trap was addressed since server start. Counted once per trap per session. Every one of these is a sender working from a harvested or guessed list.\n";
+      body += "# TYPE hmailserver_spam_trap_hits_total counter\n";
+      line.Format("hmailserver_spam_trap_hits_total %I64u\n", status->GetNumberOfSpamTrapHits());
+      body += line;
+
       body += "# HELP hmailserver_viruses_removed_total Number of viruses removed since server start.\n";
       body += "# TYPE hmailserver_viruses_removed_total counter\n";
       line.Format("hmailserver_viruses_removed_total %d\n", status->GetNumberOfRemovedViruses());

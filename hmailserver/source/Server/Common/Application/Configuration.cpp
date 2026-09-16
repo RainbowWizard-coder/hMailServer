@@ -121,6 +121,15 @@ namespace HM
       // it has always been, which no change on upgrade may alter.
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_ENABLED, 0);
       property_set_->EnsureString(PROPERTY_BREACH_CHECK_URL, PasswordBreachCheck::DefaultUrl);
+
+      // Spam traps: a day's ban, a month on the block list, three months of
+      // record, and nothing taught to SpamAssassin. The rows exist from the
+      // start because a read of a missing property reports HM5015, and a server
+      // with no trap declared does none of it whatever they say.
+      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_BAN_MINUTES, 1440);
+      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_BLOCK_DAYS, 30);
+      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS, 90);
+      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN, 0);
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
 
       // The reputation watch: on, the four lists that answer an ordinary resolver
@@ -571,6 +580,54 @@ namespace HM
    Configuration::SetReputationWatchAddresses(const String &newVal)
    {
       GetSettings()->SetString(PROPERTY_REPUTATION_WATCH_ADDRESSES, newVal);
+   }
+
+   int
+   Configuration::GetSpamTrapBanMinutes() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_SPAM_TRAP_BAN_MINUTES);
+   }
+
+   void
+   Configuration::SetSpamTrapBanMinutes(int minutes)
+   {
+      GetSettings()->SetLong(PROPERTY_SPAM_TRAP_BAN_MINUTES, minutes);
+   }
+
+   int
+   Configuration::GetSpamTrapBlockDays() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_SPAM_TRAP_BLOCK_DAYS);
+   }
+
+   void
+   Configuration::SetSpamTrapBlockDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_SPAM_TRAP_BLOCK_DAYS, days);
+   }
+
+   int
+   Configuration::GetSpamTrapHitRetentionDays() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS);
+   }
+
+   void
+   Configuration::SetSpamTrapHitRetentionDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS, days);
+   }
+
+   bool
+   Configuration::GetSpamTrapTeachSpamAssassin() const
+   {
+      return GetSettings()->GetBool(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN);
+   }
+
+   void
+   Configuration::SetSpamTrapTeachSpamAssassin(bool newVal)
+   {
+      GetSettings()->SetBool(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN, newVal);
    }
 
    bool

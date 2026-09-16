@@ -19,6 +19,7 @@
 #include "../../TCPIP/IOService.h"
 #include "../../Threading/WorkQueue.h"
 #include "../../Util/Event.h"
+#include "../../Util/FileUtilities.h"
 #include "../../Util/Unicode.h"
 #include "../../Util/Strings/Formatter.h"
 #include "../../../IMAP/IMAPSpecialUse.h"
@@ -121,11 +122,12 @@ namespace HM
       return *completed;
    }
 
-   SpamAssassinLearnTask::SpamAssassinLearnTask(const String &messageFile, bool spam, const String &user) :
+   SpamAssassinLearnTask::SpamAssassinLearnTask(const String &messageFile, bool spam, const String &user, bool removeFileAfterwards) :
       Task("SpamAssassinLearnTask"),
       message_file_(messageFile),
       spam_(spam),
-      user_(user)
+      user_(user),
+      remove_file_afterwards_(removeFileAfterwards)
    {
    }
 
@@ -133,6 +135,12 @@ namespace HM
    SpamAssassinLearnTask::DoWork()
    {
       const bool acknowledged = SpamAssassinLearner::Tell(message_file_, spam_, user_);
+
+      // A copy made for this lesson is removed once spamd has had it, whatever
+      // it answered: nothing else will ever read it, and leaving it would grow
+      // the temporary directory by one message per lesson.
+      if (remove_file_afterwards_)
+         FileUtilities::DeleteFile(message_file_);
 
       LOG_APPLICATION(Formatter::Format("SpamAssassin was told {0} is {1}{2}: {3}.",
          message_file_, spam_ ? String("spam") : String("ham"),

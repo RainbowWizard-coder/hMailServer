@@ -270,6 +270,10 @@
 #define PROPERTY_BREACH_CHECK_URL               _T("BreachCheckUrl")
 #define PROPERTY_BREACH_CHECK_MINIMUM_COUNT     _T("BreachCheckMinimumCount")
 #define PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION _T("BreachCheckUnreachableAction")
+#define PROPERTY_SPAM_TRAP_BAN_MINUTES          _T("SpamTrapBanMinutes")
+#define PROPERTY_SPAM_TRAP_BLOCK_DAYS           _T("SpamTrapBlockDays")
+#define PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS   _T("SpamTrapHitRetentionDays")
+#define PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN   _T("SpamTrapTeachSpamAssassin")
 
 // Bounces read, and a suppression list (SMTP/BounceTracker.h). In hm_settings, by
 // the rule of 15 September 2026, with rows created at start by EnsureLong when a
@@ -395,4 +399,11 @@
 //      is why a new installation is seeded on (1 in the create scripts) and an
 //      upgrade is seeded off (0 here): an existing server may already have a bind
 //      address, and an upgrade must not start sending it to third parties daily.
-#define REQUIRED_DB_VERSION            6057
+// 6049 adds hm_spamtraps (the addresses an administrator declares to be a domain's
+//      spam traps, held by local part so that renaming the domain carries them)
+//      and hm_spamtraphits (each time a trap was addressed: the address, the
+//      connecting address, the envelope sender, whether it was banned and blocked,
+//      and why not), and seeds hm_settings rows SpamTrapBanMinutes (1440),
+//      SpamTrapBlockDays (30), SpamTrapHitRetentionDays (90) and
+//      SpamTrapTeachSpamAssassin (0). No domain has a trap until one is declared.
+#define REQUIRED_DB_VERSION            6058

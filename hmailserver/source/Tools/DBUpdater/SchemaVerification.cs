@@ -1067,7 +1067,41 @@ namespace DBUpdater
          new SchemaProbe(6057, "hm_reputationchecks.rclistedsince",
                          "update hm_reputationchecks set rclistedsince = rclistedsince where 1 = 0"),
          new SchemaProbe(6057, "hm_reputationchecks.rcconfirmed",
-                         "update hm_reputationchecks set rcconfirmed = rcconfirmed where 1 = 0")
+                         "update hm_reputationchecks set rcconfirmed = rcconfirmed where 1 = 0"),
+         // Upgrade6057to6058* - spam traps: the addresses a domain declares
+         // (hm_spamtraps) and each time one was addressed (hm_spamtraphits). The
+         // identity columns are never probed.
+         new SchemaProbe(6058, "hm_spamtraps.stdomainid",
+                         "update hm_spamtraps set stdomainid = stdomainid where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraps.stlocalpart",
+                         "update hm_spamtraps set stlocalpart = stlocalpart where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraps.stcreated",
+                         "update hm_spamtraps set stcreated = stcreated where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthdomainid",
+                         "update hm_spamtraphits set sthdomainid = sthdomainid where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthaddress",
+                         "update hm_spamtraphits set sthaddress = sthaddress where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthipaddress",
+                         "update hm_spamtraphits set sthipaddress = sthipaddress where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthsender",
+                         "update hm_spamtraphits set sthsender = sthsender where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthtime",
+                         "update hm_spamtraphits set sthtime = sthtime where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthbanned",
+                         "update hm_spamtraphits set sthbanned = sthbanned where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthblocked",
+                         "update hm_spamtraphits set sthblocked = sthblocked where 1 = 0"),
+         new SchemaProbe(6058, "hm_spamtraphits.sthnote",
+                         "update hm_spamtraphits set sthnote = sthnote where 1 = 0"),
+         // Both tables are the domain's, and a row left behind when the domain
+         // goes would start trapping - or claiming to have trapped - an address
+         // in whichever domain is issued that id next. The code deletes them, and
+         // reports it when it cannot; these are the database's own guarantee
+         // underneath that, in the shape the 6030 probes above explain.
+         new SchemaProbe(6058, "hm_spamtraps.fk_hm_spamtraps_domain",
+                         "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraps_domain' and constraint_type = 'FOREIGN KEY')"),
+         new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
+                         "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };
 
       /// <summary>

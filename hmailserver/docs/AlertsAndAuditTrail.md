@@ -40,10 +40,10 @@ recording each would bury it. One row per change, in `hm_audit`:
 | `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
 | `auditinterface` | `COM`, `REST` or `Deck`. |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
-| `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared. |
+| `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared, `spam trap hits` for the record of trap hits cleared. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. For a greylisting white address it is the address as it was typed (`10.78.0.?`), because the column holds the SQL `LIKE` pattern that was made of it (`10.78.0._`) and that is an address no other surface shows; the detail still carries the stored pattern. |
 | `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list; `moved` for a mailbox renamed or moved to another domain, and `move failed` for one that failed and could not be put back. |
-| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. |
+| `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. A row of `hm_spamtraps` is the same shape — a domain id and a local part going in, a row id coming out — so a trap declared or taken back is recorded with the address itself. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
 The configuration tables recorded, and the object type each is recorded as:
@@ -65,6 +65,7 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_servermessages`, `hm_fetchaccounts`, `hm_alertrules` | `server message`, `fetch account`, `alert rule` |
 | `hm_archiveindex` | `archive entry` |
 | `hm_senderlist` | `sender list entry` |
+| `hm_spamtraps` | `spam trap` |
 | `hm_roles`, `hm_roleassignments` | `role`, `role assignment` |
 
 The archive index is mostly traffic, and is listed for the two writes of it
@@ -172,10 +173,14 @@ asks `unlock_account` for anybody's mailbox but the caller's own - an account cl
 its own lock is not an administrative change, asks no question, installs no actor and is
 deliberately not recorded, since a COM pool thread still carries the last caller's); and `POST
 /api/v1/settings/logon-failures/clear` and `Settings.ClearLogonFailureList` delete the
-rows of `hm_logon_failures`, which is traffic and not an audited table. Each is recorded
-explicitly, through `AuditTrail::RecordEvent`, at the call site that makes it - object
-type `account`, the address, action `unlocked`; or object type `logon failures`, action
-`cleared` - under the same actor and with the same `[role: ...]` as any other row.
+rows of `hm_logon_failures`, which is traffic and not an audited table. `DELETE
+/api/v1/spam-traps/hits` and `Utilities.ClearSpamTrapHits` are the same shape:
+`hm_spamtraphits` is traffic too, and a clear whose whole effect is to remove the
+evidence of what walked into the traps is the last thing that may go unrecorded. Each is
+recorded explicitly, through `AuditTrail::RecordEvent`, at the call site that makes it -
+object type `account`, the address, action `unlocked`; object type `logon failures` or
+`spam trap hits`, action `cleared` - under the same actor and with the same
+`[role: ...]` as any other row.
 
 A mailbox renamed, or moved to another domain, is the other shape of the same
 problem. It writes the account row, an alias, a row per distribution list

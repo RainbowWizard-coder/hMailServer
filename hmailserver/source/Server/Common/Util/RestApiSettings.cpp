@@ -403,6 +403,14 @@ namespace
    const char *BreachCheckMinimumRefusal =
       "BreachCheckMinimumCount must be 1 or more: a password is refused when it has appeared in the corpus at least this many times.";
 
+   // InterfaceSettings' sentences for the spam trap settings, verbatim.
+   const char *SpamTrapBanRefusal =
+      "SpamTrapBanMinutes is between 0 and 525600 (a year). 0 bans nobody, which leaves the sender block and the record.";
+   const char *SpamTrapBlockRefusal =
+      "SpamTrapBlockDays is between 0 and 3650. 0 blocks nobody, which leaves the ban and the record.";
+   const char *SpamTrapRetentionRefusal =
+      "SpamTrapHitRetentionDays is between 1 and 3650: the record of spam trap hits is kept for that long.";
+
    // PasswordBreachCheck::UnreachableAction, as the Control Panel lists it.
    const Word BreachCheckUnreachableWords[] =
    {
@@ -729,6 +737,34 @@ namespace
       { "session_one_per_device", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether signing in from a client that already has a session for that account ends the earlier one, so somebody who signs in on a shared machine and forgets leaves nothing behind the next time they sign in there. Off by default.",
         ROW_FLAG(Config()->GetSessionOnePerDevice()), ROW_SET(Config()->SetSessionOnePerDevice(v.flag)), ROW_NO_CHECK },
+
+      // Spam traps (Common/AntiSpam/SpamTrapMonitor.h). In hm_settings, read
+      // when a trap is addressed, so a change applies to the next hit. Nothing
+      // here does anything until a domain has a trap.
+      { "spam_trap_ban_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long the address that addressed a spam trap is banned, in minutes; 0 bans nobody. The ban is the expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation. An authenticated session, an IP range that does not run the spam tests, the anti-spam white list, an incoming relay and an address on AutoBanNeverBan are never banned.",
+        ROW_NUMBER(Config()->GetSpamTrapBanMinutes()), ROW_SET(Config()->SetSpamTrapBanMinutes((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           return (v.number < 0 || v.number > 525600) ? String(SpamTrapBanRefusal) : String();
+        } },
+      { "spam_trap_block_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long the envelope sender of a message to a spam trap stays on the server's block list, in days; 0 blocks nobody. The entry is an ordinary block at server scope, so a nearer allow entry still overrules it. The null sender, a sender in a domain this server hosts, and a sender the server's own allow list names are never blocked.",
+        ROW_NUMBER(Config()->GetSpamTrapBlockDays()), ROW_SET(Config()->SetSpamTrapBlockDays((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           return (v.number < 0 || v.number > 3650) ? String(SpamTrapBlockRefusal) : String();
+        } },
+      { "spam_trap_hit_retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long the record of spam trap hits is kept, in days. Swept hourly. The bans and blocked senders the hits made are not touched by the sweep.",
+        ROW_NUMBER(Config()->GetSpamTrapHitRetentionDays()), ROW_SET(Config()->SetSpamTrapHitRetentionDays((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           return (v.number < 1 || v.number > 3650) ? String(SpamTrapRetentionRefusal) : String();
+        } },
+      { "spam_trap_teach_spamassassin", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a message sent to a real mailbox by a session that addressed a spam trap is taught to SpamAssassin as spam (the spamc TELL command, the store its verdicts come from). Off by default, and does nothing unless SpamAssassin is enabled and its spamd allows TELL. A trap hit with no message after it teaches nothing: the trap is refused at RCPT TO, so its own message never arrives.",
+        ROW_FLAG(Config()->GetSpamTrapTeachSpamAssassin()), ROW_SET(Config()->SetSpamTrapTeachSpamAssassin(v.flag)), ROW_NO_CHECK },
       { "session_bind_to_address", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether a session is refused from any address but the one it began on, so a stolen cookie is of no use away from the victim's network. Off by default: an address that changes underneath somebody - a phone moving between wi-fi and a mobile network - ends their session while this is on.",
         ROW_FLAG(Config()->GetSessionBindToAddress()), ROW_SET(Config()->SetSessionBindToAddress(v.flag)), ROW_NO_CHECK },

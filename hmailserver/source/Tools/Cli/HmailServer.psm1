@@ -550,6 +550,107 @@ function Remove-HmAlias {
     }
 }
 
+function Get-HmSpamTrap {
+    <#
+    .SYNOPSIS
+        A domain's spam traps: addresses of it that were never real.
+    .DESCRIPTION
+        A message to one is refused exactly as a message to an address this
+        server does not have, and then the connecting address is banned and the
+        envelope sender blocked. Get-HmSpamTrapHit says what has addressed them.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $Domain
+    )
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path (Get-HmSpamTrapPath -Domain $Domain)) -Key 'spam_traps'
+}
+
+function Add-HmSpamTrap {
+    <#
+    .SYNOPSIS
+        Declares an address of a domain a spam trap.
+    .DESCRIPTION
+        Address is a whole address in the domain, or just the part before the @,
+        which is taken to be in it. An address an account, an alias or a
+        distribution list already has is refused - and one that is a trap cannot
+        be given to any of them while it is. Declaring an address that is already
+        a trap changes nothing and is not an error.
+    .EXAMPLE
+        Add-HmSpamTrap -Domain example.com -Address never-used
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [Parameter(Mandatory = $true, Position = 1)] [string] $Address
+    )
+    if ($PSCmdlet.ShouldProcess($Address, 'Declare a spam trap')) {
+        Invoke-HmApi -Method POST -Path (Get-HmSpamTrapPath -Domain $Domain) -Body @{ address = $Address }
+    }
+}
+
+function Remove-HmSpamTrap {
+    <#
+    .SYNOPSIS
+        Stops trapping an address.
+    .DESCRIPTION
+        What its hits already did - a banned address, a blocked sender - stays
+        until it expires or is removed by hand, and so does the record of them.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [string] $Address
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Address, 'Remove spam trap')) {
+            Invoke-HmApi -Method DELETE -Path ('/api/v1/spam-traps/' + [uri]::EscapeDataString($Address)) | Out-Null
+        }
+    }
+}
+
+function Get-HmSpamTrapHit {
+    <#
+    .SYNOPSIS
+        What has addressed a spam trap: newest first, with what was done about it.
+    .DESCRIPTION
+        Every domain's, or one domain's with -Domain. Each entry carries the
+        trap, the connecting address, the envelope sender, whether the address
+        was banned and the sender blocked, and a note saying why not when not.
+    .EXAMPLE
+        Get-HmSpamTrapHit -Limit 20 | Format-Table time, address, ip_address, sender
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0)] [string] $Domain,
+        [int] $Limit
+    )
+    $path = if ($Domain) { (Get-HmSpamTrapPath -Domain $Domain) + '/hits' } else { '/api/v1/spam-traps/hits' }
+    if ($Limit) { $path = $path + '?limit=' + $Limit }
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path $path) -Key 'items'
+}
+
+function Clear-HmSpamTrapHit {
+    <#
+    .SYNOPSIS
+        Clears the record of spam trap hits and says how many rows went.
+    .DESCRIPTION
+        The bans and the blocked senders the hits made are untouched: this clears
+        a record, it undoes nothing.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param()
+    if ($PSCmdlet.ShouldProcess('every recorded spam trap hit', 'Clear')) {
+        Invoke-HmApi -Method DELETE -Path '/api/v1/spam-traps/hits'
+    }
+}
+
+function Get-HmSpamTrapPath {
+    param([Parameter(Mandatory = $true)] [string] $Domain)
+    '/api/v1/domains/' + [uri]::EscapeDataString($Domain) + '/spam-traps'
+}
+
 function Get-HmGroup {
     <#
     .SYNOPSIS
@@ -1956,6 +2057,9 @@ $script:ConfigurationSections = @(
     @{ Name = 'accounts'; Collection = '/api/v1/domains/{1}/accounts';        Item = '/api/v1/accounts/{0}'; Key = 'address'; Parent = 'domain' },
     @{ Name = 'aliases';  Collection = '/api/v1/domains/{1}/aliases';         Item = '/api/v1/aliases/{0}';  Key = 'name';    Parent = 'domain' },
     @{ Name = 'lists';    Collection = '/api/v1/domains/{1}/lists';           Item = '/api/v1/lists/{0}';    Key = 'address'; Parent = 'domain' },
+    # NoUpdate: a spam trap is an address and nothing else, so there is nothing
+    # about one to change and the server has no PUT route to send a change to.
+    @{ Name = 'spam_traps'; Collection = '/api/v1/domains/{1}/spam-traps';    Item = '/api/v1/spam-traps/{0}'; Key = 'address'; Parent = 'domain'; NoUpdate = $true },
     @{ Name = 'groups';   Collection = '/api/v1/groups';                      Item = '/api/v1/groups/{0}';   Key = 'name';    Parent = $null },
     @{ Name = 'rules';    Collection = '/api/v1/rules';                       Item = '/api/v1/rules/{0}';    Key = 'name';    Parent = $null },
     @{ Name = 'routes';   Collection = '/api/v1/routes';                      Item = '/api/v1/routes/{0}';   Key = 'domain_name'; Parent = $null },
@@ -1963,12 +2067,17 @@ $script:ConfigurationSections = @(
     @{ Name = 'ipranges'; Collection = '/api/v1/ipranges';                    Item = '/api/v1/ipranges/{0}'; Key = 'name';    Parent = $null }
 )
 
-# What the server allocated or computed rather than what was configured. None of
-# it travels into a document, and none of it is compared.
+# What the server allocated or computed rather than what was configured, and a
+# piece of another field split out for a reader (a spam trap's local_part, which
+# is its address up to the @). None of it travels into a document, and none of it
+# is compared - a field here that reached a create would be refused, since the
+# write routes take the fields they own and nothing else, and the document would
+# not apply to the server it came from. hmctl's list, key for key.
 $script:NotConfiguration = @(
     'id', 'account_id', 'domain_id', 'rule_id', 'route_id', 'parent_id',
     'account_count', 'alias_count', 'member_count', 'size_mb', 'size',
-    'created', 'modified', 'last_used', 'last_login', 'last_logon'
+    'created', 'modified', 'last_used', 'last_login', 'last_logon',
+    'local_part'
 )
 
 # A domain's selector and key files while its DKIM key rotation is on: the rotation
@@ -2321,6 +2430,12 @@ function Import-HmConfiguration {
             }
             Invoke-HmApi -Method POST -Path $path -Body $body | Out-Null
         }
+        elseif ($section.ContainsKey('NoUpdate') -and $section.NoUpdate) {
+            # Said here rather than discovered as a 404: a plan that asks to
+            # change a resource that cannot be changed means the two sides
+            # disagree about a field that is not configuration.
+            throw ("A {0} entry is created or removed, never changed; the document and the server differ about {1} in a way nothing can apply." -f $step.Section, $step.Key)
+        }
         else {
             Invoke-HmApi -Method PUT -Path ($section.Item -f [uri]::EscapeDataString($step.Key)) -Body $body | Out-Null
         }
@@ -2362,6 +2477,7 @@ Register-ArgumentCompleter -CommandName Get-HmAccount, New-HmAccount, Get-HmAlia
 Register-ArgumentCompleter -CommandName Get-HmDomain, Set-HmDomain, Remove-HmDomain -ParameterName Name -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmDkimRotation, Start-HmDkimRotation, Test-HmDkimRotation, Complete-HmDkimRotation, Remove-HmDkimRetiringKey, Stop-HmDkimRotation -ParameterName Domain -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount, Get-HmMailboxMove, Move-HmMailbox -ParameterName Address -ScriptBlock $script:CompleterAddress
+Register-ArgumentCompleter -CommandName Get-HmSpamTrap, Add-HmSpamTrap, Get-HmSpamTrapHit -ParameterName Domain -ScriptBlock $script:CompleterDomain
 
 Export-ModuleMember -Function @(
     'Get-HmComplaint', 'Get-HmComplaintRate', 'Invoke-HmComplaintMaintenance',
@@ -2371,6 +2487,7 @@ Export-ModuleMember -Function @(
     'Get-HmDomain', 'New-HmDomain', 'Set-HmDomain', 'Remove-HmDomain',
     'Get-HmAccount', 'New-HmAccount', 'Set-HmAccount', 'Remove-HmAccount',
     'Get-HmAlias', 'New-HmAlias', 'Remove-HmAlias',
+    'Get-HmSpamTrap', 'Add-HmSpamTrap', 'Remove-HmSpamTrap', 'Get-HmSpamTrapHit', 'Clear-HmSpamTrapHit',
     'Get-HmGroup', 'New-HmGroup', 'Remove-HmGroup', 'Get-HmGroupMember', 'Add-HmGroupMember', 'Remove-HmGroupMember',
     'Get-HmSetting', 'Set-HmSetting', 'Test-HmBreachCheckEndpoint', 'Get-HmIniSetting', 'Set-HmIniSetting',
     'Get-HmQueue', 'Start-HmQueueDelivery', 'Remove-HmQueueMessage',

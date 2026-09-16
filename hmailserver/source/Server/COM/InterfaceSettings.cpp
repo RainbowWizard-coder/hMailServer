@@ -5119,3 +5119,157 @@ STDMETHODIMP InterfaceSettings::GetSettingDefault(BSTR Name, BSTR *Value)
       return COMError::GenerateGenericMessage();
    }
 }
+
+
+STDMETHODIMP InterfaceSettings::get_SpamTrapBanMinutes(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = (long) config_->GetSpamTrapBanMinutes();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SpamTrapBanMinutes(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 525600)
+         return COMError::GenerateError("SpamTrapBanMinutes is between 0 and 525600 (a year). 0 bans nobody, which leaves the sender block and the record.");
+
+      config_->SetSpamTrapBanMinutes((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SpamTrapBlockDays(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = (long) config_->GetSpamTrapBlockDays();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SpamTrapBlockDays(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 3650)
+         return COMError::GenerateError("SpamTrapBlockDays is between 0 and 3650. 0 blocks nobody, which leaves the ban and the record.");
+
+      config_->SetSpamTrapBlockDays((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SpamTrapHitRetentionDays(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = (long) config_->GetSpamTrapHitRetentionDays();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SpamTrapHitRetentionDays(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 3650)
+         return COMError::GenerateError("SpamTrapHitRetentionDays is between 1 and 3650: the record of spam trap hits is kept for that long.");
+
+      config_->SetSpamTrapHitRetentionDays((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SpamTrapTeachSpamAssassin(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSpamTrapTeachSpamAssassin() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SpamTrapTeachSpamAssassin(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetSpamTrapTeachSpamAssassin(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

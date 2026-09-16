@@ -106,6 +106,7 @@ namespace HM
       database_queries_count_ = 0;
       database_slow_queries_count_ = 0;
       metrics_unauthorized_requests_ = 0;
+      spam_trap_hits_ = 0;
       country_refusals_total_ = 0;
       state_ = StateUnknown ;
 
@@ -481,6 +482,21 @@ namespace HM
       snapshot.cumulative_buckets = AccumulateLatencyBuckets(database_latency_buckets_);
 
       return snapshot;
+   }
+
+   void
+   ServerStatus::OnSpamTrapHit()
+   {
+      // Called from the SMTP connection threads, one per trap per session.
+      boost::lock_guard<boost::recursive_mutex> guard(spam_trap_mutex_);
+      spam_trap_hits_++;
+   }
+
+   unsigned __int64
+   ServerStatus::GetNumberOfSpamTrapHits() const
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(spam_trap_mutex_);
+      return spam_trap_hits_;
    }
 
    int

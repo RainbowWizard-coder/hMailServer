@@ -94,6 +94,7 @@ namespace HM
          { L"hm_blocked_attachments",         L"blocked attachment" },
          { L"hm_blocked_senders",             L"blocked sender" },
          { L"hm_senderlist",                  L"sender list entry" },
+         { L"hm_spamtraps",                   L"spam trap" },
          { L"hm_servermessages",              L"server message" },
          { L"hm_groups",                      L"group" },
          { L"hm_group_members",               L"group member" },

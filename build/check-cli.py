@@ -357,6 +357,16 @@ ANSWERS = {
         "sections": {"mailboxes": {"section": "mailboxes", "columns": ["address", "megabytes"],
                                    "rows": [{"address": "ann@example.com", "megabytes": 40}]}},
         "omitted": [{"section": "volume", "reason": "counted from server-wide metrics that carry no domain"}]},
+    # Spam traps: a domain's, the record of what has addressed one, and the
+    # clearing of that record.
+    ("GET", "/api/v1/domains/example.com/spam-traps"): {"domain": "example.com", "spam_traps": [
+        {"id": 701, "address": "never-used@example.com", "local_part": "never-used", "created": "2026-09-15 08:00:00"}]},
+    ("POST", "/api/v1/domains/example.com/spam-traps"): (201, {"id": 702, "address": "sales-2004@example.com",
+                                                              "local_part": "sales-2004", "created": "2026-09-16 00:00:00"}),
+    ("DELETE", "/api/v1/spam-traps/never-used@example.com"): {"deleted": True},
+    ("GET", "/api/v1/spam-traps/hits"): {"items": [{"id": 801, "time": "2026-09-15 09:12:00", "address": "never-used@example.com", "domain": "example.com", "ip_address": "203.0.113.9", "sender": "harvester@spammer.example", "banned": True, "blocked": True, "note": "banned for 1440 minutes; sender blocked for 30 days"}], "hits_since_start": 1},
+    ("GET", "/api/v1/domains/example.com/spam-traps/hits"): {"items": [{"id": 801, "time": "2026-09-15 09:12:00", "address": "never-used@example.com", "domain": "example.com", "ip_address": "203.0.113.9", "sender": "harvester@spammer.example", "banned": True, "blocked": True, "note": "banned for 1440 minutes; sender blocked for 30 days"}]},
+    ("DELETE", "/api/v1/spam-traps/hits"): {"removed": 1},
     ("GET", "/api/v1/domains/example.com/dkim/rotation"): ROTATION_STATUS,
     ("POST", "/api/v1/domains/example.com/dkim/rotation/start"): ROTATION_STATUS,
     ("POST", "/api/v1/domains/example.com/dkim/rotation/check"): ROTATION_STATUS,
@@ -590,6 +600,19 @@ CASES = [
      {"new_address": "ann@example.net", "keep_alias": True},
      ["ann@example.com moved to ann@example.net", "812 message(s) in 9 folder(s)",
       "2 alias(es) re-pointed", "The old address is kept as an alias"]),
+    ("spamtrap list", ["spamtrap", "list", "--domain", "example.com"],
+     "GET", "/api/v1/domains/example.com/spam-traps", None, ["never-used@example.com"]),
+    ("spamtrap create", ["spamtrap", "create", "--domain", "example.com", "--set", "address=sales-2004"],
+     "POST", "/api/v1/domains/example.com/spam-traps", {"address": "sales-2004"}, ["sales-2004@example.com"]),
+    ("spamtrap delete", ["spamtrap", "delete", "never-used@example.com"],
+     "DELETE", "/api/v1/spam-traps/never-used@example.com", None, ["deleted"]),
+    ("traphits list", ["traphits", "list"], "GET", "/api/v1/spam-traps/hits", None,
+     ["never-used@example.com", "203.0.113.9", "harvester@spammer.example"]),
+    ("traphits list --domain", ["traphits", "list", "--domain", "example.com"],
+     "GET", "/api/v1/domains/example.com/spam-traps/hits", None, ["never-used@example.com"]),
+    ("traphits list --limit", ["traphits", "list", "--limit", "20"],
+     "GET", "/api/v1/spam-traps/hits", None, ["harvester@spammer.example"]),
+    ("traphits clear", ["traphits", "clear"], "DELETE", "/api/v1/spam-traps/hits", None, ["removed"]),
     ("mailbox move --drop-alias",
      ["mailbox", "move", "ann@example.com", "ann@example.net", "--drop-alias"],
      "POST", "/api/v1/accounts/ann@example.com/move",
@@ -1050,6 +1073,18 @@ POWERSHELL_CASES = [
      "PUT", "/api/v1/accounts/ann@example.com", {"openpgp_publish": True}, ["ann@example.com"]),
     ("Get-HmSetting -Group openpgp", "Get-HmSetting -Group openpgp -Name keys_per_account",
      "GET", "/api/v1/settings/openpgp", None, ["8"]),
+    ("Get-HmSpamTrap", "Get-HmSpamTrap -Domain example.com | Select-Object -ExpandProperty address",
+     "GET", "/api/v1/domains/example.com/spam-traps", None, ["never-used@example.com"]),
+    ("Add-HmSpamTrap", "(Add-HmSpamTrap -Domain example.com -Address sales-2004 -Confirm:$false).address",
+     "POST", "/api/v1/domains/example.com/spam-traps", {"address": "sales-2004"}, ["sales-2004@example.com"]),
+    ("Remove-HmSpamTrap", "Remove-HmSpamTrap -Address never-used@example.com -Confirm:$false; 'removed'",
+     "DELETE", "/api/v1/spam-traps/never-used@example.com", None, ["removed"]),
+    ("Get-HmSpamTrapHit", "Get-HmSpamTrapHit | Select-Object -ExpandProperty sender",
+     "GET", "/api/v1/spam-traps/hits", None, ["harvester@spammer.example"]),
+    ("Get-HmSpamTrapHit -Domain", "Get-HmSpamTrapHit -Domain example.com | Select-Object -ExpandProperty address",
+     "GET", "/api/v1/domains/example.com/spam-traps/hits", None, ["never-used@example.com"]),
+    ("Clear-HmSpamTrapHit", "(Clear-HmSpamTrapHit -Confirm:$false).removed",
+     "DELETE", "/api/v1/spam-traps/hits", None, ["1"]),
 ]
 
 
@@ -1321,6 +1356,32 @@ def run_config_cases(url, tmp):
           "the document's ini section does not hold DisableAUTHList=0: %r" % (ini,))
     check("OAuth2HmacSecret" not in first and "(set)" not in first,
           "the document carries a secret the server had masked")
+
+    # A spam trap travels as its address and nothing else. The listing also
+    # answers local_part - the address up to the @, which the server splits out
+    # for a reader - and the create route refuses any field but address, so a
+    # document carrying it would be refused by the very server it came from.
+    traps = json.loads(first).get("sections", {}).get("spam_traps", [])
+    check(any(row.get("address") == "never-used@example.com" and row.get("domain") == "example.com"
+              for row in traps), "the document holds no spam trap: %s" % traps)
+    check(not any("local_part" in row for row in traps),
+          "the document carries a spam trap's local_part, which the create route refuses: %s" % traps)
+
+    trapped = json.loads(first)
+    trapped["sections"]["spam_traps"].append({"address": "sales-2004@example.com", "domain": "example.com"})
+    trapped_path = os.path.join(tmp, "trapped.json")
+    with open(trapped_path, "w", encoding="utf-8") as handle:
+        json.dump(trapped, handle, indent=2, sort_keys=True)
+
+    with Recorder.lock:
+        Recorder.requests = []
+    run(["config", "apply", trapped_path, "--force"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    posts = [r["body"] for r in applying
+             if r["method"] == "POST" and r["path"] == "/api/v1/domains/example.com/spam-traps"]
+    check(posts == [{"address": "sales-2004@example.com"}],
+          "apply --force must declare the document's spam trap with address alone: %s" % posts)
 
     second_path = os.path.join(tmp, "config-again.json")
     run(["config", "export", second_path])

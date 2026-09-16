@@ -30,6 +30,7 @@
 #include "../Common/BO/SenderListEntries.h"
 #include "../Common/BO/SenderListEntry.h"
 #include "../Common/AntiSpam/DKIM/DkimRotation.h"
+#include "../Common/AntiSpam/SpamTrapMonitor.h"
 #include "../Common/Util/Unicode.h"
 
 #include <ctime>
@@ -3065,6 +3066,103 @@ STDMETHODIMP InterfaceDomain::put_WebhookSubjects(VARIANT_BOOL newVal)
          return authentication_->GetAccessDenied();
 
       object_->SetWebhookSubjects(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_SpamTraps(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      std::vector<HM::SpamTrapMonitor::Listed> traps;
+
+      if (!HM::SpamTrapMonitor::List(object_, traps))
+         return COMError::GenerateError("The spam traps could not be read; see the error log.");
+
+      // One address a line, which is what a script iterates over and what an
+      // administration page shows. The REST listing is the one that carries the
+      // id and the time each was declared.
+      HM::String text;
+
+      for (const HM::SpamTrapMonitor::Listed &trap : traps)
+      {
+         if (!text.IsEmpty())
+            text += _T("\r\n");
+
+         text += trap.address;
+      }
+
+      *pVal = text.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::AddSpamTrap(BSTR Address)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String canonical;
+      HM::String refusal;
+
+      const HM::SpamTrapMonitor::AddResult result =
+         HM::SpamTrapMonitor::Add(object_, HM::String(Address), canonical, refusal);
+
+      // An address that is already a trap is not an error: asking twice for the
+      // same state is the same state, and a configuration tool that applies a
+      // list of traps must not fail on the second run.
+      if (result == HM::SpamTrapMonitor::AddCreated || result == HM::SpamTrapMonitor::AddAlreadyATrap)
+         return S_OK;
+
+      return COMError::GenerateError(refusal);
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::RemoveSpamTrap(BSTR Address, VARIANT_BOOL *Removed)
+{
+   try
+   {
+      if (!Removed)
+         return COMError::GenerateGenericMessage();
+
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String canonical;
+      bool found = false;
+
+      if (!HM::SpamTrapMonitor::Remove(object_, HM::String(Address), canonical, found))
+         return COMError::GenerateError("The spam trap could not be removed; see the error log.");
+
+      *Removed = found ? VARIANT_TRUE : VARIANT_FALSE;
+
       return S_OK;
    }
    catch (...)

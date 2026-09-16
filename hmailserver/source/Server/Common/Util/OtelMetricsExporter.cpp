@@ -268,6 +268,8 @@ namespace HM
          (unsigned __int64) status->GetNumberOfProcessedMessages());
       AppendSum_(json, first, "hmailserver_spam_messages_total",
          (unsigned __int64) status->GetNumberOfDetectedSpamMessages());
+      AppendSum_(json, first, "hmailserver_spam_trap_hits_total",
+         status->GetNumberOfSpamTrapHits());
       AppendSum_(json, first, "hmailserver_viruses_removed_total",
          (unsigned __int64) status->GetNumberOfRemovedViruses());
       AppendSum_(json, first, "hmailserver_tls_handshakes_total",

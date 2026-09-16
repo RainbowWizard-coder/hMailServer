@@ -224,6 +224,20 @@ RESOURCES = {
         "help": "the outbound webhook subscriptions: where this server's mail events go",
         "create_example": "hmctl webhook create --set name=ticketing --set url=https://tickets.example/hook --set-string secret=... --set events=message.bounced",
     },
+    "spamtrap": {
+        # Listed and made under the domain that owns them, taken back at their
+        # own address: an address is unique in itself and names the domain it
+        # belongs to, which is the shape an alias has.
+        "collection": "/api/v1/domains/{parent}/spam-traps",
+        "item": "/api/v1/spam-traps/{id}",
+        "parent": "domain",
+        "key": "spam_traps",
+        "id": "address",
+        "columns": ["address", "created"],
+        "verbs": ["list", "create", "delete"],
+        "help": "spam traps: addresses of a domain that were never real",
+        "create_example": "hmctl spamtrap create --domain example.com --set address=never-used@example.com",
+    },
     "apikey": {
         "collection": "/api/v1/apikeys",
         "item": "/api/v1/apikeys/{id}",
@@ -1283,6 +1297,7 @@ CONFIG_SECTIONS = [
     {"name": "accounts", "kind": "resource", "resource": "account"},
     {"name": "aliases", "kind": "resource", "resource": "alias"},
     {"name": "lists", "kind": "resource", "resource": "list"},
+    {"name": "spam_traps", "kind": "resource", "resource": "spamtrap"},
     {"name": "groups", "kind": "resource", "resource": "group"},
     {"name": "rules", "kind": "resource", "resource": "rule"},
     {"name": "routes", "kind": "resource", "resource": "route"},
@@ -1292,11 +1307,16 @@ CONFIG_SECTIONS = [
 
 # Fields the server answers with that describe the world rather than the
 # configuration, and that must not travel into a document or be compared: an
-# identifier the server allocates, a count it computes, a time it recorded.
+# identifier the server allocates, a count it computes, a time it recorded, or a
+# piece of another field it splits out for a reader (a spam trap's local_part,
+# which is its address up to the @). A field here that reached a create would be
+# refused - the write routes take the fields they own and nothing else - so the
+# document would not apply to the server it was exported from.
 NOT_CONFIGURATION = {
     "id", "account_id", "domain_id", "rule_id", "route_id", "parent_id",
     "account_count", "alias_count", "member_count", "size_mb", "size",
     "created", "modified", "last_used", "last_login", "last_logon",
+    "local_part",
 }
 
 # A domain's selector and key files while its DKIM key rotation is on. The rotation
@@ -1717,12 +1737,41 @@ def apply_one(client, wanted, section, verb, key):
         client.request("POST", path, body=row)
         return
 
+    # An update. Some resources have none - a spam trap is an address and nothing
+    # else, so there is nothing about one to change and no PUT route to send it
+    # to. Said here rather than discovered as a 404, since a plan that asks for
+    # one means the two sides disagree about a field that is not configuration.
+    if "update" not in resource.get("verbs", ()):
+        raise ApiError(0, "a %s is created or removed, never changed; the document and the server differ "
+                          "about %s in a way nothing can apply" % (section, key))
+
     path = resource["item"].replace("{id}", urllib.parse.quote(key, safe="@"))
     if "{parent}" in path:
         if not parent:
             raise ApiError(0, "the document's %s entry %s carries no domain" % (section, key))
         path = path.replace("{parent}", urllib.parse.quote(parent, safe=""))
     client.request("PUT", path, body=row)
+
+
+def traphits_command(client, arguments):
+    """What has addressed a spam trap, and the clearing of that record."""
+    if arguments.verb == "clear":
+        render(client.request("DELETE", "/api/v1/spam-traps/hits"), arguments.json)
+        return EXIT_OK
+
+    if arguments.domain:
+        path = "/api/v1/domains/%s/spam-traps/hits" % urllib.parse.quote(arguments.domain, safe="")
+    else:
+        path = "/api/v1/spam-traps/hits"
+
+    query = {}
+    if arguments.limit:
+        query["limit"] = arguments.limit
+
+    answer = client.request("GET", path, query=query or None)
+    render(collection(answer, "items"), arguments.json,
+           ["time", "address", "ip_address", "sender", "banned", "blocked", "note"])
+    return EXIT_OK
 
 
 def report_command(client, arguments):
@@ -2247,6 +2296,17 @@ def build_parser():
     exporter.set_defaults(handler=accounts_export)
     exporter.add_argument("domain")
     exporter.add_argument("file", nargs="?", default="-")
+
+    traphits = commands.add_parser("traphits", help="what has addressed a spam trap")
+    traphits.set_defaults(handler=traphits_command)
+    traphits_verbs = traphits.add_subparsers(dest="verb")
+    hits_list = traphits_verbs.add_parser("list", parents=[common])
+    hits_list.add_argument("--domain", help="one domain's hits; every domain's when left out")
+    hits_list.add_argument("--limit", type=int, default=None, metavar="N",
+                           help="how many rows, 1 to 1000 (100 by default)")
+    hits_clear = traphits_verbs.add_parser("clear", parents=[common],
+                                           help="clear the record; the bans and blocked senders it made stay")
+    hits_clear.set_defaults(domain=None, limit=None)
 
     configuration = commands.add_parser("config", help="the whole configuration as one file")
     configuration_verbs = configuration.add_subparsers(dest="verb")

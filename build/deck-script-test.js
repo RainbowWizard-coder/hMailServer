@@ -943,6 +943,16 @@ const spec = {
          post: { summary: 'Add an entry to a domain\'s list', requestBody: body({ value: { type: 'string' }, blocked: { type: 'boolean' }, reason: { type: 'string' } }, ['value']) }
       },
       '/api/v1/domains/{domain}/sender-list/{id}': { delete: { summary: 'Remove an entry from a domain\'s list' } },
+      '/api/v1/domains/{domain}/spam-traps': {
+         get: { summary: 'The domain\'s spam traps', description: 'Addresses in this domain that were never real. A message to one is refused exactly as a message to any address this server does not have.' },
+         post: { summary: 'Declare an address a spam trap', requestBody: body({ address: { type: 'string' } }, ['address']) }
+      },
+      '/api/v1/domains/{domain}/spam-traps/hits': { get: { summary: 'What has addressed this domain\'s spam traps' } },
+      '/api/v1/spam-traps/{address}': { delete: { summary: 'Stop trapping an address' } },
+      '/api/v1/spam-traps/hits': {
+         get: { summary: 'What has addressed any spam trap', description: 'Newest first, with what was done about each.' },
+         delete: { summary: 'Clear the record of spam trap hits' }
+      },
       '/api/v1/domains/{domain}/aliases': {
          get: { summary: 'List aliases in a domain' },
          post: { summary: 'Create an alias', description: 'Body: name (the alias address, in this domain), value (the e-mail address it delivers to) and active (default true). Judged as the Control Panel judges an alias - a name an account or a distribution list already has, or a domain at its alias limit, is refused with the same sentence - and in effect for the next message to the name. Scoped to the domain.',
@@ -1102,6 +1112,11 @@ const state = {
    ],
    // Each domain's own allow and block list, made on first read.
    domainSenders: { 'example.com': [{ id: 901, scope: 'domain', value: 'partner.example', blocked: false, reason: 'the partner', expires: false, expired: false }] },
+   // The domain's spam traps, and what has walked into one.
+   spamTraps: { 'example.com': [{ id: 701, address: 'never-used@example.com', local_part: 'never-used', created: '2026-09-15 08:00:00' }] },
+   trapHits: [{ id: 801, time: '2026-09-15 09:12:00', address: 'never-used@example.com', domain: 'example.com',
+      ip_address: '203.0.113.9', sender: 'harvester@spammer.example', banned: true, blocked: true,
+      note: 'banned for 1440 minutes; sender blocked for 30 days' }],
    rotations: {
       'example.com': rotationDoc('example.com', 'jan2026', 'old2025'),
       [HOSTILE]: rotationDoc(HOSTILE, null, null),
@@ -1432,6 +1447,38 @@ function answer(method, path, headers, raw) {
          delete state.domainAliases[name];
          return json(200, { deleted: true });
       }
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/spam-traps\/hits(\?.*)?$/.test(path) && method === 'GET') {
+      const domain = segment(path, 4);
+      return json(200, { items: state.trapHits.filter((h) => h.domain === domain) });
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/spam-traps$/.test(path)) {
+      const domain = segment(path, 4);
+      if (!state.domains.some((d) => d.name === domain)) { return json(404, { error: 'no such domain' }); }
+      const traps = state.spamTraps[domain] || (state.spamTraps[domain] = []);
+      if (method === 'GET') { return json(200, { domain: domain, spam_traps: traps }); }
+      if (method === 'POST') {
+         const wanted = String(parsed.address || '').trim().toLowerCase();
+         if (!wanted) { return json(400, { error: 'address is required: an address in this domain, or the part before the @' }); }
+         const address = wanted.indexOf('@') < 0 ? wanted + '@' + domain : wanted;
+         const existing = traps.filter((t) => t.address === address)[0];
+         if (existing) { return json(200, existing); }
+         const trap = { id: nextId++, address: address, local_part: address.split('@')[0], created: '2026-09-16 00:00:00' };
+         traps.push(trap);
+         return json(201, trap);
+      }
+   }
+   if (/^\/api\/v1\/spam-traps\/hits(\?.*)?$/.test(path)) {
+      if (method === 'GET') { return json(200, { items: state.trapHits, hits_since_start: state.trapHits.length }); }
+      if (method === 'DELETE') { const removed = state.trapHits.length; state.trapHits = []; return json(200, { removed: removed }); }
+   }
+   if (/^\/api\/v1\/spam-traps\/[^/]+$/.test(path) && method === 'DELETE') {
+      const address = segment(path, 4);
+      const domain = address.split('@')[1];
+      const traps = state.spamTraps[domain] || [];
+      if (!traps.some((t) => t.address === address)) { return json(404, { error: 'no such spam trap' }); }
+      state.spamTraps[domain] = traps.filter((t) => t.address !== address);
+      return json(200, { deleted: true });
    }
    if (/^\/api\/v1\/domains\/[^/]+\/sender-list$/.test(path)) {
       const domain = segment(path, 4);
@@ -3088,6 +3135,38 @@ async function main() {
    await flush();
    check('removing an entry asks, naming it, and deletes it by id', confirmations[confirmations.length - 1].indexOf('spam.example') >= 0 &&
       called(before, 'DELETE', '/api/v1/domains/renamed.example/sender-list/' + senderId).length === 1 && document.getElementById('domainSenders').textContent.indexOf('spam.example') < 0);
+   // ---- the domain's spam traps
+   check('the domain editor reads the domain\'s spam traps and what has addressed them',
+      document.getElementById('domainTraps') !== null &&
+      document.getElementById('domainTraps').textContent.indexOf('never-used@example.com') >= 0 &&
+      document.getElementById('domainTraps').textContent.indexOf('harvester@spammer.example') >= 0 &&
+      document.getElementById('domainTraps').textContent.indexOf('banned for 1440 minutes') >= 0,
+      document.getElementById('domainTraps') === null ? 'no card' : document.getElementById('domainTraps').textContent.slice(0, 300));
+   setValue('newSpamTrap', 'sales-2004');
+   before = requests.length;
+   click(act('dtrapadd'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/renamed.example/spam-traps');
+   check('a trap is declared under its domain, by the part before the @ alone',
+      JSON.stringify(posted) === '{"address":"sales-2004"}', JSON.stringify(posted));
+   check('and the list is read again and shows the whole address',
+      called(before, 'GET', '/api/v1/domains/renamed.example/spam-traps').length === 1 &&
+      document.getElementById('domainTraps').textContent.indexOf('sales-2004@renamed.example') >= 0);
+   before = requests.length;
+   click(act('dtrapdel', { address: 'sales-2004@renamed.example' }));
+   await flush();
+   check('removing a trap asks, naming it, and deletes it at its own address',
+      confirmations[confirmations.length - 1].indexOf('sales-2004@renamed.example') >= 0 &&
+      called(before, 'DELETE', '/api/v1/spam-traps/sales-2004%40renamed.example').length === 1 &&
+      document.getElementById('domainTraps').textContent.indexOf('sales-2004@renamed.example') < 0,
+      paths(before));
+   setValue('newSpamTrap', '');
+   before = requests.length;
+   click(act('dtrapadd'));
+   await flush();
+   check('an empty trap address is refused by the page and nothing is sent',
+      called(before, 'POST', /spam-traps/).length === 0 && document.getElementById('err_dtrap').textContent === 'A trap address is required.');
+
    setValue('newDomainSender', '');
    before = requests.length;
    click(act('dsenderadd'));
@@ -4417,6 +4496,26 @@ async function main() {
    check('the theme can be turned over', document.body.getAttribute('data-theme') === 'light');
    check('and is remembered under a name that is not a secret', localStorage.getItem('hmsTheme') === 'light');
    before = requests.length;
+   // ---- the Spam traps view: the record across every domain
+   click($('#nav button[data-view="spamtraps"]'));
+   await flush();
+   check('the Spam traps view lists what has addressed a trap, with what was done and the counter',
+      content().textContent.indexOf('never-used@example.com') >= 0 &&
+      content().textContent.indexOf('203.0.113.9') >= 0 &&
+      content().textContent.indexOf('harvester@spammer.example') >= 0 &&
+      content().textContent.indexOf('banned for 1440 minutes') >= 0 &&
+      content().textContent.indexOf('Hits since the server started: 1') >= 0,
+      content().textContent.slice(0, 300));
+   before = requests.length;
+   click(act('trapclear'));
+   await flush();
+   check('clearing the record asks first, says what it does not undo, and sends one DELETE',
+      confirmations[confirmations.length - 1].indexOf('bans and the blocked senders they made stay') >= 0 &&
+      called(before, 'DELETE', '/api/v1/spam-traps/hits').length === 1, paths(before));
+   check('and the view comes back empty',
+      content().textContent.indexOf('Nothing has addressed a spam trap.') >= 0,
+      content().textContent.slice(0, 200));
+
    click($('#logoutBtn'));
    await flush();
    check('signing out ends the session on the server', called(before, 'DELETE', '/api/v1/session').length === 1);

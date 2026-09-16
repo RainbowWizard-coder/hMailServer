@@ -116,6 +116,14 @@ namespace HM
 
       void InitializeSpamProtectionType_(const String &sFromAddress);
 
+      // Whether this RCPT TO addressed a spam trap - an address of a hosted
+      // domain that was never real. True when it did, and the recipient has by
+      // then been refused with the words an address this server does not have
+      // gets, so the caller returns at once and adds no recipient. Everything a
+      // hit does - the ban, the blocked sender, the recorded row, the counter -
+      // happens in here, before that reply, and once per trap per session.
+      bool CheckSpamTrap_(const String &recipientAddress);
+
       bool CheckLineEndings_() const;
 
       void LogClientCommand_(const String &sClientData);
@@ -384,6 +392,22 @@ namespace HM
       bool rejected_by_delayed_grey_listing_;
       int cur_no_of_rcptto_;
       int cur_no_of_invalid_commands_;
+
+      // The spam traps this SESSION has addressed, so that a client repeating
+      // one RCPT TO is refused every time but counted, recorded and banned once.
+      // The metric's HELP text, ServerStatus.h and the documentation all promise
+      // once per trap per session, and this is where that is kept:
+      // SpamTrapMonitor::OnHit acts every time it is called. Deliberately not
+      // cleared by RSET - a new transaction down the same connection is the same
+      // client, and that is who the promise is about.
+      std::set<String> spam_traps_addressed_;
+      bool banned_for_spam_trap_;
+
+      // Set when a trap was addressed in THIS transaction, for the SpamAssassin
+      // lesson: a message the session then sends to a real mailbox is a message
+      // from somebody demonstrably working from a harvested list. Cleared with
+      // the rest of the transaction by ResetCurrentMessage_.
+      bool addressed_spam_trap_;
       
       std::shared_ptr<const Domain> sender_domain_;
       std::shared_ptr<const Account> sender_account_;

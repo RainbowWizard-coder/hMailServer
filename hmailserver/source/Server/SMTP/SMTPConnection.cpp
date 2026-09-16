@@ -63,6 +63,7 @@
 
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/SpamProtection.h"
+#include "../Common/AntiSpam/SpamTrapMonitor.h"
 #include "../Common/AntiSpam/AuthenticationResults.h"
 #include "../Common/AntiSpam/AuthenticationResultsWriter.h"
 
@@ -119,6 +120,8 @@ namespace HM
       type_(SPNone),
       pending_disconnect_(false),
       isAuthenticated_(false),
+      banned_for_spam_trap_(false),
+      addressed_spam_trap_(false),
       authentication_failure_count_(0),
       esmtp_session_(false),
       smtputf8_requested_(false),
@@ -1406,6 +1409,16 @@ namespace HM
       if (!CheckAccountSendingQuotaAtRcptTo_())
          return;
 
+      // A spam trap, and before the delivery lookups below rather than after
+      // them. A trap in a domain with a catch-all would otherwise be ACCEPTED
+      // like every other unknown address there, and the evidence the trap exists
+      // to collect would be delivered to the postmaster instead; greylisting
+      // would answer 451 and tell a harvester to come back; and a backup-MX
+      // callout would ask another server about an address only this one knows
+      // about. The reply, when it is a trap, is the unknown user's own.
+      if (CheckSpamTrap_(sRecipientAddress))
+         return;
+
       String sErrMsg = "";
       bool localDelivery = false;
       
@@ -1690,6 +1703,74 @@ namespace HM
    
       // 2.1.5 = destination (recipient) address is valid (RFC 3463).
       SendResponse_(250, _T("2.1.5"), _T("OK"));
+   }
+
+   bool
+   SMTPConnection::CheckSpamTrap_(const String &recipientAddress)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // A spam trap is an address of a hosted domain that was never real, so a
+   // message to one is evidence that needs no scoring: the sender is working
+   // from a list they harvested, bought or guessed. The session is refused with
+   // the words an address this server does not have gets, made by the same call
+   // with the same CONST_UNKNOWN_USER, because a sender who can tell a trap from
+   // an unknown address takes it off their list and the trap stops working.
+   // Everything the hit does happens before that reply.
+   //---------------------------------------------------------------------------()
+   {
+      String trapAddress;
+      __int64 domainId = 0;
+
+      // One map lookup when no trap is declared anywhere, which is the common
+      // case and the one that must cost nothing.
+      if (!SpamTrapMonitor::Match(recipientAddress, trapAddress, domainId))
+         return false;
+
+      const String sender = current_message_ ? current_message_->GetFromAddress() : String();
+
+      if (spam_traps_addressed_.find(trapAddress) == spam_traps_addressed_.end())
+      {
+         spam_traps_addressed_.insert(trapAddress);
+
+         // What the session is, read here; what that means, decided in one place
+         // in SpamTrapMonitor::OnHit and written into the hit's own note.
+         std::shared_ptr<SecurityRange> range = GetSecurityRange();
+         const bool rangeRunsSpamTests = range ? range->GetSpamProtection() : true;
+
+         std::shared_ptr<IncomingRelays> incomingRelays = Configuration::Instance()->GetSMTPConfiguration()->GetIncomingRelays();
+         const bool incomingRelay = incomingRelays && incomingRelays->IsIncomingRelay(GetRemoteEndpointAddress());
+
+         const bool whiteListed = SpamProtection::IsWhiteListed(sender, GetRemoteEndpointAddress());
+
+         SpamTrapMonitor::Outcome outcome =
+            SpamTrapMonitor::OnHit(trapAddress, domainId, GetRemoteEndpointAddress(), sender,
+                                   isAuthenticated_, rangeRunsSpamTests, whiteListed, incomingRelay,
+                                   banned_for_spam_trap_);
+
+         if (outcome.banned)
+            banned_for_spam_trap_ = true;
+
+         // Only when the hit was allowed to punish this session. Every party
+         // OnHit deliberately spared - one of our own people who authenticated,
+         // a range the operator has said is trusted, a white-listed sender, an
+         // address on AutoBanNeverBan - is spared the lesson as well: a ban
+         // expires and a poisoned Bayes store does not, so teaching is the
+         // heavier of the two and must not happen where the lighter one was
+         // judged wrong.
+         if (outcome.teachable)
+            addressed_spam_trap_ = true;
+      }
+
+      // The unknown address's own refusal, made the same way it is made for one:
+      // the AWStats failure line and then 550 with CONST_UNKNOWN_USER, which is
+      // what RecipientParser answers for an address in a hosted domain that
+      // nothing answers for.
+      AWStats::LogDeliveryFailure(GetIPAddressString(), sender, recipientAddress, 550,
+                                  current_message_ ? current_message_->GetID() : 0);
+
+      SendErrorResponse_(550, CONST_UNKNOWN_USER);
+
+      return true;
    }
 
    bool
@@ -2236,6 +2317,15 @@ namespace HM
             // to the file.
             if (transmission_buffer_)
                transmission_buffer_.reset();
+
+            // This session addressed a spam trap and then sent this message to a
+            // real mailbox, so it comes from somebody demonstrably working from a
+            // harvested list: teach it to spamd as spam. Does nothing unless
+            // SpamTrapTeachSpamAssassin is on, and copies the file first, because
+            // delivery removes this one while spamd is still being talked to.
+            // After the handle above is released, so the copy can be made.
+            if (addressed_spam_trap_)
+               SpamTrapMonitor::TeachSpamAssassin(PersistentMessage::GetFileName(current_message_));
 
             // Per-domain counters, before the message is released below. Counted
             // here, at acceptance, rather than at delivery: this answers "how much
@@ -2789,6 +2879,12 @@ namespace HM
       }
 
       rejected_by_delayed_grey_listing_ = false;
+
+      // A trap addressed in the transaction that is ending teaches nothing about
+      // the next one. The session's own record of which traps it has addressed
+      // (spam_traps_addressed_) deliberately survives: it is the client that is
+      // counted once, not the transaction.
+      addressed_spam_trap_ = false;
 
       message_submission_ = false;
 

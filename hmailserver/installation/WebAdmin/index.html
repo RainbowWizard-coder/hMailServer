@@ -306,6 +306,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="ipranges" data-serverwide="1" data-needs="view_configuration" title="IP ranges"><span class="ico">⌗</span><span>IP ranges</span></button>
         <button data-view="fetch" data-needs="view_accounts" title="Fetch accounts"><span class="ico">⇓</span><span>Fetch accounts</span></button>
         <button data-view="lists" data-needs="view_accounts" title="Lists"><span class="ico">≣</span><span>Lists</span></button>
+        <button data-view="spamtraps" data-serverwide="1" data-needs="view_configuration" title="Spam traps"><span class="ico">◎</span><span>Spam traps</span></button>
         <button data-view="queue" data-serverwide="1" data-needs="view_queue" title="Delivery queue"><span class="ico">⇶</span><span>Delivery queue</span></button>
         <button data-view="tlsa" data-needs="view_configuration" title="DANE / TLSA"><span class="ico">⛨</span><span>DANE / TLSA</span></button>
         <button data-view="settings" data-serverwide="1" data-needs="view_configuration" title="Settings"><span class="ico">⚙</span><span>Settings</span></button>
@@ -748,7 +749,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -760,6 +761,7 @@ async function render(silent){
     else if(view==="fetch")await renderFetch();
     else if(view==="lists")await renderLists();
     else if(view==="reputation")await renderReputation();
+    else if(view==="spamtraps")await renderSpamTraps();
     else if(view==="queue")await renderQueue();
     else if(view==="tlsa")await renderTlsa();
     else if(view==="settings")await renderSettings();
@@ -1059,6 +1061,9 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="daliasdel")deleteDomainAlias(d.name);
   else if(d.act==="dsenderadd")addDomainSender();
   else if(d.act==="dsenderdel")deleteDomainSender(Number(d.id),d.value);
+  else if(d.act==="dtrapadd")addDomainTrap();
+  else if(d.act==="dtrapdel")deleteDomainTrap(d.address);
+  else if(d.act==="trapclear")clearSpamTrapHits();
   else if(d.act==="dkimrotstart")rotationAct("start");
   else if(d.act==="dkimrotcheck")rotationAct("check");
   else if(d.act==="dkimrotswitch")rotationAct("switch");
@@ -1588,7 +1593,7 @@ async function createDomain(){
 async function openDomain(name){
   const existing=cache.domains.filter(d=>d.name===name)[0];
   if(!existing)return;
-  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",rotation:null,rotationError:""};
+  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",traps:[],trapHits:[],trapError:"",rotation:null,rotationError:""};
   try{await reloadDomainAliases();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.aliasError=e.message;}
   // The domain's own allow and block list, read with the domain rather than
@@ -1596,6 +1601,11 @@ async function openDomain(name){
   // do, and a domain administrator whose key is scoped to it has no other way in.
   try{await reloadDomainSenders();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.senderError=e.message;}
+  // The domain's spam traps, and what has addressed them: read with the domain,
+  // because a trap is a property of the domain as its other names are, and a
+  // domain administrator confined to it has no other way in.
+  try{await reloadDomainTraps();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.trapError=e.message;}
   try{await reloadRotation();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.rotationError=e.message;}
   renderDomainEditor();
@@ -1668,6 +1678,10 @@ function renderDomainEditor(){
   cards.splice(digestAt>=0?digestAt+2:cards.length,0,`<div class="sect"><h2>${t("Allow and block list")}</h2><div class="card flat" id="domainSenders">${domainSendersHtml()}</div></div>`);
   // The key rotation under the DKIM group it belongs to, in a box of its own so
   // that an action redraws the rotation and not the edits in the groups above.
+  // The traps after the allow and block list: both are this domain saying which
+  // mail it does not want, one by naming senders and one by naming addresses
+  // that were never real.
+  cards.splice(digestAt>=0?digestAt+3:cards.length,0,`<div class="sect"><h2>${t("Spam traps")}</h2><div class="card flat" id="domainTraps">${domainTrapsHtml()}</div></div>`);
   cards.push(`<div class="sect"><h2>${t("DKIM key rotation")}</h2><div class="card flat" id="dkimRotation">${rotationHtml()}</div></div>`);
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="cancel">${t("‹ All domains")}</button>
@@ -1739,6 +1753,56 @@ const ROTATION_WAITS={
   retiring_slot:K("Waiting for the old selector to be retired."),
   retention:K("The old selector is kept for mail still on its way.")};
 function rotationPath(action){return "/api/v1/domains/"+encodeURIComponent(editing.name)+"/dkim/rotation"+(action||"");}
+async function reloadDomainTraps(){
+  // Both paths written out where they are fetched, as every other reload
+  // function writes its own. build/check-deck-parity.py reads those calls to
+  // census which routes this page uses, and it can only read a literal: a path
+  // held in a variable is credited to every collection the page knows, and a
+  // path built by concatenating one is credited to none.
+  editing.traps=asList(await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/spam-traps"),"spam_traps");
+  // The hits are the other half of the answer to "is this doing anything", and
+  // they are the domain's own: the server-wide list is a view of its own.
+  try{editing.trapHits=asList(await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/spam-traps/hits?limit=10"),"items");}
+  catch(e){editing.trapHits=[];}
+}
+function domainTrapsHtml(){
+  const list=(editing.traps||[]).map(x=>`
+    <div class="row erow"><code style="flex:1">${escHtml(x.address)}</code>
+      <button class="btn ghost sm" data-act="dtrapdel" data-address="${escHtml(x.address)}">${t("Remove")}</button></div>`).join("")
+    ||'<div class="note">'+t("No spam traps: every address of this domain that is not an account, an alias or a list is refused as an unknown address, and nothing is banned for it.")+'</div>';
+  const hits=(editing.trapHits||[]).map(h=>`
+    <tr><td>${escHtml(h.time||"")}</td><td><code>${escHtml(h.address||"")}</code></td>
+        <td>${escHtml(h.ip_address||"")}</td><td>${escHtml(h.sender||"\u2014")}</td>
+        <td>${h.banned?'<span class="badge warn">'+t("IP banned")+'</span> ':""}${h.blocked?'<span class="badge warn">'+t("Sender blocked")+'</span> ':""}${escHtml(h.note||"")}</td></tr>`).join("");
+  const table=hits?`<div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Trap")}</th><th>${t("Connecting address")}</th><th>${t("Sender")}</th><th>${t("What was done")}</th></tr></thead><tbody>${hits}</tbody></table></div>`
+    :'<div class="note">'+t("Nothing has addressed a trap of this domain.")+'</div>';
+  return `<p class="note">${escHtml(operation("/api/v1/domains/{domain}/spam-traps","get").description||"")}</p>
+    ${list}
+    <div class="row" style="margin-top:14px" data-enter="dtrapadd">
+      <input id="newSpamTrap" placeholder="${t("An address in this domain that nobody uses")}" aria-label="${t("An address in this domain that nobody uses")}" style="flex:1;min-width:220px">
+      <button class="btn ghost sm" data-act="dtrapadd">${t("Add a trap")}</button>
+      <div class="err" id="err_dtrap">${escHtml(editing.trapError||"")}</div>
+    </div>
+    <h3 style="margin-top:18px">${t("Recently addressed")}</h3>
+    ${table}`;
+}
+async function addDomainTrap(){
+  setErr("err_dtrap","");
+  const value=$("#newSpamTrap").value.trim();
+  if(!value){setErr("err_dtrap",t("A trap address is required."));return;}
+  try{
+    await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/spam-traps",{method:"POST",body:JSON.stringify({address:value})});
+    toast(tf("Trap added: {0}",value));editing.trapError="";await reloadDomainTraps();$("#domainTraps").innerHTML=domainTrapsHtml();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_dtrap",e.message);}
+}
+async function deleteDomainTrap(address){
+  if(!confirm(tf("Remove the spam trap {0}?",address)))return;
+  setErr("err_dtrap","");
+  try{
+    await api("/api/v1/spam-traps/"+encodeURIComponent(address),{method:"DELETE"});
+    toast(tf("Trap removed: {0}",address));editing.trapError="";await reloadDomainTraps();$("#domainTraps").innerHTML=domainTrapsHtml();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_dtrap",e.message);}
+}
 async function reloadRotation(){editing.rotation=await api(rotationPath());}
 function rotationCheckHtml(check){
   const c=ROTATION_CHECKS[(check&&check.status)||"unchecked"]||ROTATION_CHECKS.unchecked;
@@ -3633,6 +3697,41 @@ function collectionProps(c){
   Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&c.hints[k])out[k].description=c.hints[k];});
   return out;
 }
+/* ---------- Spam traps ----------
+   The record across every domain, which is the one question this page can
+   answer that a domain's own card cannot: is anything walking the address
+   space, and what did the server do about it. The traps themselves are
+   declared on the domain they belong to, so this view links back to it. */
+async function renderSpamTraps(){
+  await loadSpec();
+  const answer=await api("/api/v1/spam-traps/hits?limit=200");
+  const hits=asList(answer,"items");
+  const rows=hits.map(h=>`
+    <tr><td>${escHtml(h.time||"")}</td><td><code>${escHtml(h.address||"")}</code></td>
+        <td>${escHtml(h.domain||"")}</td><td>${escHtml(h.ip_address||"")}</td><td>${escHtml(h.sender||"\u2014")}</td>
+        <td>${h.banned?'<span class="badge warn">'+t("IP banned")+'</span> ':""}${h.blocked?'<span class="badge warn">'+t("Sender blocked")+'</span> ':""}${escHtml(h.note||"")}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat"><p class="note">${escHtml(operation("/api/v1/spam-traps/hits","get").description||"")}</p>
+      <p class="note">${tf("Hits since the server started: {0}",String(answer&&answer.hits_since_start!==undefined?answer.hits_since_start:hits.length))}</p></div>
+    <div class="sect"><h2>${t("Recently addressed")}</h2>
+      <div class="card flat">
+        <div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Trap")}</th><th>${t("Domain")}</th><th>${t("Connecting address")}</th><th>${t("Sender")}</th><th>${t("What was done")}</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("Nothing has addressed a spam trap.")+'</td></tr>'}</tbody></table></div>
+        <div class="row" style="margin-top:16px"><button class="btn ghost" data-act="trapclear">${t("Clear the record")}</button>
+          <div class="err" id="err_trapclear"></div></div>
+      </div></div>
+    </div>`;
+}
+async function clearSpamTrapHits(){
+  if(!confirm(t("Clear the record of every spam trap hit? The bans and the blocked senders they made stay.")))return;
+  setErr("err_trapclear","");
+  try{
+    const answer=await api("/api/v1/spam-traps/hits",{method:"DELETE"});
+    toast(tf("{0} hits cleared",String(answer&&answer.removed!==undefined?answer.removed:0)));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_trapclear",e.message);}
+}
+
 async function renderLists(){
   await loadSpec();
   for(const c of COLLECTIONS)cache.collections[c.id]=asList(await api(c.path),"items");

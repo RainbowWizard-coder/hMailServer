@@ -39,12 +39,16 @@ namespace HM
    class SpamAssassinLearnTask : public Task
    {
    public:
-      SpamAssassinLearnTask(const String &messageFile, bool spam, const String &user);
+      // removeFileAfterwards: the file is a copy made for this lesson alone (a
+      // spam trap's is, because the message it was taken from is on its way to a
+      // mailbox), and nothing will look at it again once spamd has had it.
+      SpamAssassinLearnTask(const String &messageFile, bool spam, const String &user, bool removeFileAfterwards = false);
       virtual void DoWork();
 
    private:
       String message_file_;
       bool spam_;
       String user_;
+      bool remove_file_afterwards_;
    };
 }

@@ -131,6 +131,8 @@ ALLOWED = {
       "Common/Util/RestApiPush.cpp",                # DELETE /api/v1/accounts/{address}/push
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
+      "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
+      "COM/InterfaceUtilities.cpp",                 # Utilities.ClearSpamTrapHits
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
    },
    "AuditTrail::SetActor(": {
@@ -148,6 +150,7 @@ ALLOWED = {
       "Common/Util/AuditTrail.cpp",
       "Common/Util/AuditTrail.h",
       "Common/Application/RoleManager.cpp",         # hm_roles and hm_roleassignments
+      "Common/AntiSpam/SpamTrapMonitor.cpp",        # hm_spamtraps: a domain id and a local part going in, a row id coming out
       # hm_greylisting_whiteaddresses, whose address column is the SQL LIKE
       # pattern that what the administrator typed was converted into. The NAME
       # only: the detail is still read from the statement's own columns.
@@ -169,6 +172,12 @@ REQUIRED = [
    ("Common/Util/RestApiRoles.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),',
     "an account unlocked over REST is no longer recorded - the lockout is in memory, so no chokepoint sees it"),
+   ("Common/Util/RestApiSpamTraps.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("spam trap hits"), _T("every recorded hit"), _T("cleared"),',
+    "the record of spam trap hits cleared over REST is no longer recorded - hm_spamtraphits is traffic, so the statement chokepoint does not record the delete, and a clear whose whole effect is to remove evidence would leave no trace"),
+   ("COM/InterfaceUtilities.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("spam trap hits"),',
+    "the record of spam trap hits cleared over COM is no longer recorded - hm_spamtraphits is traffic, so the statement chokepoint does not record the delete, and a clear whose whole effect is to remove evidence would leave no trace"),
    ("COM/InterfaceApplication.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),',
     "an account unlocked over COM is no longer recorded - the lockout is in memory, so no chokepoint sees it"),
@@ -335,6 +344,14 @@ NOT_AUDITED = {
                      "account itself in the webmail; the domain's switch and hour are hm_domains columns, which are audited.",
    "hm_digesttokens": "the digest's one-use release links, written by the digest task and spent by whoever follows one; traffic, and "
                       "each row holds a token that releases a held message.",
+   "hm_spamtraphits": "one row each time a spam trap was addressed - the address, the connecting address, the envelope sender "
+                      "and what was done about it. Traffic, written by the SMTP connection with no actor on the thread, and the "
+                      "record of the hit rather than a change anybody made. The traps themselves (hm_spamtraps) are "
+                      "configuration and ARE audited; the ban a hit creates is a hm_securityranges row written with no actor, "
+                      "as an auto-ban from failed logons is, and the sender it blocks is a hm_senderlist row written the same "
+                      "way - docs/SpamTraps.md says so. CLEARING the record is not traffic and is recorded: "
+                      "Utilities.ClearSpamTrapHits and DELETE /api/v1/spam-traps/hits each call RecordEvent, because an act "
+                      "whose whole effect is to remove evidence is the one that must leave a trace.",
    "hm_dkimrotations": "where each domain's DKIM key rotation has got to - when the next key was made and first seen, the last DNS "
                        "check of each selector, the last error - rewritten by the rotation's pass every fifteen minutes under the "
                        "system actor, so a listing would record every lookup. Generating a next key, switching to it and cancelling "

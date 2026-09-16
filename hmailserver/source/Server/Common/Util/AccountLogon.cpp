@@ -229,6 +229,24 @@ namespace HM
    }
 
    bool
+   AccountLogon::BanForSpamTrap(const IPAddress &ipaddress, const String &trapAddress, int minutes)
+   {
+      // The range keeps the "Auto-ban: " prefix its name is built with, because
+      // that prefix is what AutoBanFirewall recognises as one of ours to mirror
+      // into the firewall and what the expiry sweep lifts. The trap is cut to 60
+      // characters: the name column holds 100 and GetIPRangeName_ may add a
+      // suffix to make the name unique.
+      const String suffix = trapAddress.GetLength() > 60 ? trapAddress.Left(60) : trapAddress;
+
+      if (!CreateIPRange(ipaddress, _T("spam trap ") + suffix, minutes))
+         return false;
+
+      AutoBanFirewall::BannedForSpamTrap(ipaddress, minutes, trapAddress);
+
+      return true;
+   }
+
+   bool
    AccountLogon::CreateIPRange(const IPAddress &ipaddress, const String &username, int minutes)
    {
       // Why do we need a lock here? IP ranges requires unique names.

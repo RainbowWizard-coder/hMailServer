@@ -248,6 +248,11 @@ END_COM_MAP()
    STDMETHOD(put_WebhookSubjects)(/*[in]*/ VARIANT_BOOL newVal);
 
    // dkim end.
+
+   // Spam traps. See Common/AntiSpam/SpamTrapMonitor.h.
+   STDMETHOD(get_SpamTraps)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(AddSpamTrap)(/*[in]*/ BSTR Address);
+   STDMETHOD(RemoveSpamTrap)(/*[in]*/ BSTR Address, /*[out, retval]*/ VARIANT_BOOL *Removed);
 private:
    
    std::shared_ptr<HM::COMAuthentication> authentication_;

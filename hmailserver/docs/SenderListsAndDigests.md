@@ -149,6 +149,13 @@ getting through. Rules written that way before are left exactly where they are.)
 Expiry can be set over REST and in the Deck; the Control Panel and the webmail
 do not offer it yet.
 
+One thing writes to the server's list by itself: a **spam trap**. A message to
+an address that was never real puts its envelope sender on the server's block
+list with an expiry, under a reason naming the trap and the address it came
+from - unless this list already allows that sender, in which case the
+administrator's decision stands and the hit records that it did. See
+[SpamTraps.md](SpamTraps.md).
+
 ### REST
 
 All three list routes answer the same object and take the same body.

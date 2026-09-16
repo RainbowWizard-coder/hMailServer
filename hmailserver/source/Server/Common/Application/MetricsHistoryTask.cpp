@@ -39,6 +39,7 @@ namespace HM
          "messages_deferred_total",
          "messages_bounced_total",
          "spam_messages_total",
+         "spam_trap_hits_total",
          "viruses_removed_total",
          "auth_success_total",
          "auth_failures_total",
@@ -130,6 +131,7 @@ namespace HM
       values.push_back(std::make_pair(AnsiString("messages_deferred_total"), (double) status->GetNumberOfMessagesDeferred()));
       values.push_back(std::make_pair(AnsiString("messages_bounced_total"), (double) status->GetNumberOfMessagesBounced()));
       values.push_back(std::make_pair(AnsiString("spam_messages_total"), (double) status->GetNumberOfDetectedSpamMessages()));
+      values.push_back(std::make_pair(AnsiString("spam_trap_hits_total"), (double) status->GetNumberOfSpamTrapHits()));
       values.push_back(std::make_pair(AnsiString("viruses_removed_total"), (double) status->GetNumberOfRemovedViruses()));
       values.push_back(std::make_pair(AnsiString("auth_success_total"), (double) status->GetNumberOfAuthenticationsSucceeded()));
       values.push_back(std::make_pair(AnsiString("auth_failures_total"), (double) status->GetNumberOfAuthenticationFailures()));

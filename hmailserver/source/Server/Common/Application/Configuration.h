@@ -133,6 +133,24 @@ namespace HM
       long GetBreachCheckUnreachableAction() const;
       void SetBreachCheckUnreachableAction(long newVal);
 
+      // Spam traps (SpamTrapMonitor). Four settings in hm_settings: how long a
+      // hit bans the connecting address (0 bans nothing), how long the envelope
+      // sender stays on the server's block list (0 blocks nobody), how long the
+      // record of hits is kept, and whether the message a session that addressed
+      // a trap goes on to send is taught to SpamAssassin as spam. None of them
+      // does anything until a domain has a trap.
+      int GetSpamTrapBanMinutes() const;
+      void SetSpamTrapBanMinutes(int minutes);
+
+      int GetSpamTrapBlockDays() const;
+      void SetSpamTrapBlockDays(int days);
+
+      int GetSpamTrapHitRetentionDays() const;
+      void SetSpamTrapHitRetentionDays(int days);
+
+      bool GetSpamTrapTeachSpamAssassin() const;
+      void SetSpamTrapTeachSpamAssassin(bool newVal);
+
       void SetUseScriptServer(bool newVal);
       bool GetUseScriptServer() const;
 

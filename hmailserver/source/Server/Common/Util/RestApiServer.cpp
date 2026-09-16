@@ -11,6 +11,7 @@
 
 #include "AuditTrail.h"
 #include "../Application/RoleManager.h"
+#include "DavSupport.h"
 #include "HttpServer.h"
 #include "HttpCompression.h"
 #include "JsonDocument.h"
@@ -1833,6 +1834,13 @@ namespace HM
          case RouteSenderListMeUpdate:
          case RouteSenderListMeDelete:
             return HandleSenderLists_(route, caller, GetRequestBody_(request));
+         case RouteSpamTrapDomainList:
+         case RouteSpamTrapDomainCreate:
+         case RouteSpamTrapDelete:
+         case RouteSpamTrapDomainHits:
+         case RouteSpamTrapHits:
+         case RouteSpamTrapHitsClear:
+            return HandleSpamTraps_(route, caller, GetRequestBody_(request));
          case RouteGroupList:
          case RouteGroupCreate:
          case RouteGroupGet:
@@ -3745,6 +3753,96 @@ namespace HM
             }
          }
       }
+      // A domain's spam traps, in the shape an alias has: listed and created
+      // under the domain, removed at the address itself - an address is unique
+      // in itself and names the domain it belongs to, so the same rule that
+      // scopes an alias delete to a domain scopes this one. The record of hits
+      // is a verb of the collection; "hits" is not an address, so the two cannot
+      // be confused for one another.
+      {
+         const AnsiString trapsSuffix = "/spam-traps";
+         const AnsiString trapHitsSuffix = "/spam-traps/hits";
+
+         if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith(trapHitsSuffix))
+         {
+            AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+               path.GetLength() - domainsPrefix.GetLength() - trapHitsSuffix.GetLength());
+
+            if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+            {
+               route.kind = RouteSpamTrapDomainHits;
+               route.identifier = domainName;
+               return;
+            }
+         }
+
+         if (path.StartsWith(domainsPrefix) && path.EndsWith(trapsSuffix))
+         {
+            AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
+               path.GetLength() - domainsPrefix.GetLength() - trapsSuffix.GetLength());
+
+            if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+            {
+               if (method == "GET")
+               {
+                  route.kind = RouteSpamTrapDomainList;
+                  route.identifier = domainName;
+                  return;
+               }
+
+               if (method == "POST")
+               {
+                  route.kind = RouteSpamTrapDomainCreate;
+                  route.identifier = domainName;
+                  return;
+               }
+            }
+         }
+
+         if (path == "/api/v1/spam-traps/hits")
+         {
+            if (method == "GET")
+            {
+               route.kind = RouteSpamTrapHits;
+               return;
+            }
+
+            if (method == "DELETE")
+            {
+               route.kind = RouteSpamTrapHitsClear;
+               return;
+            }
+         }
+
+         const AnsiString trapsPrefix = "/api/v1/spam-traps/";
+
+         if (method == "DELETE" && path.StartsWith(trapsPrefix))
+         {
+            AnsiString address = path.Mid(trapsPrefix.GetLength());
+
+            if (!address.IsEmpty() && address.Find("/") < 0)
+            {
+               // Percent-decoded, because the identifier is an ADDRESS and every
+               // client that builds this path encodes the @ in it: the Deck's
+               // encodeURIComponent and the module's EscapeDataString both send
+               // %40. An identifier still holding %40 has no @ in it at all, so
+               // the handler answered "no such spam trap" for a trap that was
+               // there, and DomainNamedByRoute_ - which scopes this route to the
+               // domain in the address - could not read a domain out of it either.
+               // Decoded after the segment test, so a %2F cannot smuggle in a
+               // second path segment.
+               const AnsiString decoded = Dav::PercentDecode(address);
+
+               if (!decoded.IsEmpty() && decoded.Find("/") < 0)
+               {
+                  route.kind = RouteSpamTrapDelete;
+                  route.identifier = decoded;
+                  return;
+               }
+            }
+         }
+      }
+
       // One domain's allow and block list, in the shape the distribution lists
       // use: the collection under its domain, the entry under the collection.
       // The id stays inside the domain's path rather than moving to a flat
@@ -4610,6 +4708,11 @@ namespace HM
       case RouteSenderListMeCreate:
       case RouteSenderListMeUpdate:
       case RouteSenderListMeDelete:
+      // A trap declared or taken back changes what the next RCPT TO does with
+      // an address; clearing the record removes rows. All three are writes.
+      case RouteSpamTrapDomainCreate:
+      case RouteSpamTrapDelete:
+      case RouteSpamTrapHitsClear:
       case RouteMeQuarantineDigestPut:
       case RouteGroupCreate:
       case RouteGroupUpdate:
@@ -4894,6 +4997,14 @@ namespace HM
       case RouteScriptingCheck:
       case RouteSettingsPushGet:
       case RouteSettingsBackupGet:
+      // A domain's spam traps and what has addressed them: configuration of
+      // the domain, as its allow and block list is. A hit names an envelope
+      // sender and a connecting address, which is what a refused RCPT TO
+      // already writes into this server's own log, and never a secret. The
+      // server-wide record is refused to a confined credential below.
+      case RouteSpamTrapDomainList:
+      case RouteSpamTrapDomainHits:
+      case RouteSpamTrapHits:
       case RouteSettingsBouncesGet:
       case RouteSettingsComplaintsGet:
       // The Web Key Directory's settings, one account's keys and one
@@ -5142,6 +5253,11 @@ namespace HM
       case RouteSenderListDomainCreate:
       case RouteSenderListDomainUpdate:
       case RouteSenderListDomainDelete:
+      // Declaring an address of a domain a spam trap, and taking one back: a
+      // property of the domain as its allow and block list is, and COM's
+      // Domain.AddSpamTrap answers a domain administrator.
+      case RouteSpamTrapDomainCreate:
+      case RouteSpamTrapDelete:
       // A domain's DKIM key rotation acted on now: a key generated and
       // staged, a check that starts the propagation clock, signing moved, the
       // old selector retired, the next key cancelled. The key and its selector
@@ -5270,6 +5386,9 @@ namespace HM
       case RouteSenderListCreate:
       case RouteSenderListUpdate:
       case RouteSenderListDelete:
+      // Clearing the server-wide record of spam trap hits: server-wide, and a
+      // record the auditor reads and does not remove.
+      case RouteSpamTrapHitsClear:
       // The breach check's endpoint test, which makes this server send a
       // request to a URL the caller chooses: acting as the server, not
       // reading it, and so never an auditor's.
@@ -5375,6 +5494,9 @@ namespace HM
          permission = RolePermission::ViewMessageTrace;
          return true;
 
+      case RouteSpamTrapDomainList:
+      case RouteSpamTrapDomainCreate:
+      case RouteSpamTrapDomainHits:
       default:
          break;
       }
@@ -5442,6 +5564,10 @@ namespace HM
       case RouteListDelete:
       case RouteListUpdate:
       case RouteAliasDelete:
+      // A spam trap is removed at its own address, as an alias is, so the
+      // domain it belongs to is the domain in that address. Without this a
+      // credential issued for one domain could stop another domain trapping.
+      case RouteSpamTrapDelete:
       case RouteAccountUpdate:
       case RouteAccountGet:
       case RouteFetchAccountList:
@@ -5764,6 +5890,11 @@ namespace HM
       case RouteSenderListCreate:
       case RouteSenderListUpdate:
       case RouteSenderListDelete:
+      // The record of every domain's spam trap hits, and its clearing: one
+      // list across every domain, so a credential confined to some of them is
+      // refused it and reads its own domains' hits instead.
+      case RouteSpamTrapHits:
+      case RouteSpamTrapHitsClear:
       case RouteCertificateList:
       case RouteRuleList:
       case RouteLogList:
@@ -13194,6 +13325,7 @@ namespace HM
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();
       openApiJson += OpenApiSenderListPaths_();
+      openApiJson += OpenApiSpamTrapPaths_();
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();

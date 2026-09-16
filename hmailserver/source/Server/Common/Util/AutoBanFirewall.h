@@ -48,11 +48,20 @@ namespace HM
    // an administrator, or was already there when the service started. It runs at
    // start-up, whenever a ban is created, whenever a range is deleted, and once a
    // minute from RemoveExpiredRecords, which is what un-bans an expired address.
+   // Because of that last one, a reconciliation that is deferred or dropped costs
+   // at most a minute of the firewall lagging the ranges - which is what lets a
+   // spam trap's ban hand the work to the asynchronous queue rather than do it
+   // inside an SMTP command.
    class AutoBanFirewall
    {
    public:
       // The address failed enough logons to be banned and the range is saved.
       static void Banned(const IPAddress &address, int minutes, const String &username, int failures);
+
+      // The same, for an address banned because it addressed a spam trap. A line
+      // of its own because the reason is different and the packaged fail2ban
+      // filter matches on it.
+      static void BannedForSpamTrap(const IPAddress &address, int minutes, const String &trapAddress);
 
       // Make the firewall match the auto-ban ranges. Any thread, any time; the
       // reason is for the log.
@@ -73,6 +82,15 @@ namespace HM
       static const wchar_t *PackagedHook();
 
    private:
+
+      // Synchronise, handed to the asynchronous work queue. For a caller that
+      // must not wait: a spam trap's ban is placed inside RCPT TO, and the
+      // refusal that follows has to look exactly like the refusal an address
+      // this server does not have gets - including how long it took. Falls back
+      // to doing the work here when there is no queue; nothing is lost in any
+      // case, because RemoveExpiredRecords reconciles once a minute regardless.
+      static void SynchroniseLater_(const String &why);
+
       struct Ban
       {
          String address;

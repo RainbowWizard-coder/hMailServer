@@ -25,7 +25,7 @@ In the archive
 
 | What | Notes |
 |---|---|
-| Domains, and their aliases, distribution lists and signatures | With each domain its allow and block list and its quarantine digest switch and hour |
+| Domains, and their aliases, distribution lists and signatures | With each domain its allow and block list, its spam traps, and its quarantine digest switch and hour |
 | Accounts | Address, password hash, forwarding, vacation, signature, quota, admin level, TOTP secret, anti-spam thresholds |
 | Aliases and distribution lists, with their members | |
 | Routes, IP ranges, TCP/IP ports, SSL certificate *records*, incoming relays, groups | Only with **Back up settings** on |

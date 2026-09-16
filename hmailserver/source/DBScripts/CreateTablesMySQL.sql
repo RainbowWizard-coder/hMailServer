@@ -22,6 +22,10 @@ drop table if exists hm_dkimrotations;
 
 drop table if exists hm_reputationchecks;
 
+drop table if exists hm_spamtraps;
+
+drop table if exists hm_spamtraphits;
+
 drop table if exists hm_calendarobjects;
 
 drop table if exists hm_calendars;
@@ -1040,6 +1044,14 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Re
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ReputationWatchAddresses', '', 0);
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapBanMinutes', '', 1440);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapBlockDays', '', 30);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapHitRetentionDays', '', 90);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapTeachSpamAssassin', '', 0);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5);
@@ -1395,6 +1407,37 @@ create table hm_dkimrotations
 
 CREATE UNIQUE INDEX idx_hm_dkimrotations_domain ON hm_dkimrotations (dkrdomainid);
 
+create table hm_spamtraps
+(
+	stid int auto_increment not null, primary key(`stid`), unique(`stid`),
+	stdomainid int not null,
+	stlocalpart varchar(64) not null,
+	stcreated datetime not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_spamtraps_address ON hm_spamtraps (stdomainid, stlocalpart);
+
+ALTER TABLE hm_spamtraps ENGINE=InnoDB;
+
+create table hm_spamtraphits
+(
+	sthid int auto_increment not null, primary key(`sthid`), unique(`sthid`),
+	sthdomainid int not null,
+	sthaddress varchar(255) not null,
+	sthipaddress varchar(64) not null,
+	sthsender varchar(255) not null,
+	sthtime datetime not null,
+	sthbanned tinyint not null,
+	sthblocked tinyint not null,
+	sthnote varchar(255) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_spamtraphits_time ON hm_spamtraphits (sthtime);
+
+CREATE INDEX idx_hm_spamtraphits_domain ON hm_spamtraphits (sthdomainid);
+
+ALTER TABLE hm_spamtraphits ENGINE=InnoDB;
+
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
@@ -1402,6 +1445,10 @@ ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOR
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
+
+ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
+
+ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE;
 
@@ -1827,4 +1874,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6057);
+insert into hm_dbversion values (6058);

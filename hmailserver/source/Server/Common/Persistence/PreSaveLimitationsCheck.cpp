@@ -21,6 +21,7 @@
 #include "../BO/SecurityRanges.h"
 
 #include "../Cache/CacheContainer.h"
+#include "../AntiSpam/SpamTrapMonitor.h"
 #include "../Application/ObjectCache.h"
 
 #include "PersistentDomain.h"
@@ -243,6 +244,26 @@ namespace HM
          return false;
       }
 
+      // An address that is one of the domain's spam traps is not an address to
+      // give to anybody. The trap exists so that mail to it is proof of a
+      // harvested list; a mailbox, an alias or a list there would take delivery
+      // of what was aimed at the trap and destroy the evidence with it. The trap
+      // has to be removed first, which is a decision somebody makes rather than
+      // something that happens quietly. Every save comes through here - COM, REST,
+      // the import tool and a directory sync alike - except a restore and a
+      // rename, which have returned above.
+      //
+      // Asked AFTER the address is known to belong to this domain, and that order
+      // matters: IsTrapAddress answers about the domain in the ADDRESS, not the
+      // domain being saved into, so asking first refused an address in somebody
+      // else's domain with a sentence about "this domain's spam traps" - which is
+      // both wrong and a quiet disclosure that the other domain traps it.
+      if (SpamTrapMonitor::IsTrapAddress(account->GetAddress()))
+      {
+         resultDescription = "That address is one of this domain's spam traps. Remove the trap before giving the address to an account, an alias or a distribution list.";
+         return false;
+      }
+
       if (account->GetID() == 0)
       {
          if (domain->GetMaxNoOfAccountsEnabled() && 
@@ -346,6 +367,26 @@ namespace HM
          return false;
       }
 
+      // An address that is one of the domain's spam traps is not an address to
+      // give to anybody. The trap exists so that mail to it is proof of a
+      // harvested list; a mailbox, an alias or a list there would take delivery
+      // of what was aimed at the trap and destroy the evidence with it. The trap
+      // has to be removed first, which is a decision somebody makes rather than
+      // something that happens quietly. Every save comes through here - COM, REST,
+      // the import tool and a directory sync alike - except a restore and a
+      // rename, which have returned above.
+      //
+      // Asked AFTER the address is known to belong to this domain, and that order
+      // matters: IsTrapAddress answers about the domain in the ADDRESS, not the
+      // domain being saved into, so asking first refused an address in somebody
+      // else's domain with a sentence about "this domain's spam traps" - which is
+      // both wrong and a quiet disclosure that the other domain traps it.
+      if (SpamTrapMonitor::IsTrapAddress(alias->GetName()))
+      {
+         resultDescription = "That address is one of this domain's spam traps. Remove the trap before giving the address to an account, an alias or a distribution list.";
+         return false;
+      }
+
       if (alias->GetID() == 0)
       {
          if (domain->GetMaxNoOfAliasesEnabled() && 
@@ -375,6 +416,26 @@ namespace HM
       if (domainName.CompareNoCase(domain->GetName()) != 0)
       {
          resultDescription = "The distribution list domain does not match the owning domain name.";
+         return false;
+      }
+
+      // An address that is one of the domain's spam traps is not an address to
+      // give to anybody. The trap exists so that mail to it is proof of a
+      // harvested list; a mailbox, an alias or a list there would take delivery
+      // of what was aimed at the trap and destroy the evidence with it. The trap
+      // has to be removed first, which is a decision somebody makes rather than
+      // something that happens quietly. Every save comes through here - COM, REST,
+      // the import tool and a directory sync alike - except a restore and a
+      // rename, which have returned above.
+      //
+      // Asked AFTER the address is known to belong to this domain, and that order
+      // matters: IsTrapAddress answers about the domain in the ADDRESS, not the
+      // domain being saved into, so asking first refused an address in somebody
+      // else's domain with a sentence about "this domain's spam traps" - which is
+      // both wrong and a quiet disclosure that the other domain traps it.
+      if (SpamTrapMonitor::IsTrapAddress(list->GetAddress()))
+      {
+         resultDescription = "That address is one of this domain's spam traps. Remove the trap before giving the address to an account, an alias or a distribution list.";
          return false;
       }
 

@@ -93,6 +93,13 @@ namespace HM
       void OnMetricsRequestUnauthorized();
       unsigned __int64 GetMetricsUnauthorizedRequestsCount() const;
 
+      // Spam traps: how often one has been addressed since the server started,
+      // counted once per trap per session so that a client repeating one RCPT TO
+      // cannot inflate it. Published as hmailserver_spam_trap_hits_total, and the
+      // one number that says whether the traps are seeing anything at all.
+      void OnSpamTrapHit();
+      unsigned __int64 GetNumberOfSpamTrapHits() const;
+
       // Outbound/delivery outcome counters, incremented from the SMTP delivery
       // threads as each queued message reaches a terminal outcome for a pass.
       void OnMessageDelivered();
@@ -195,6 +202,7 @@ namespace HM
       unsigned __int64 database_queries_count_;
       unsigned __int64 database_slow_queries_count_;
       unsigned __int64 metrics_unauthorized_requests_;
+      unsigned __int64 spam_trap_hits_;
 
       // Per-bucket (not cumulative) observation counts, sized to the bucket bounds
       // plus one slot for +Inf. The snapshot getters accumulate them.
@@ -220,6 +228,7 @@ namespace HM
       // class read unlocked, which is a latent hazard on that build; this one does
       // not repeat it.
       mutable boost::recursive_mutex metrics_request_mutex_;
+      mutable boost::recursive_mutex spam_trap_mutex_;
 
       ServerState state_;
    };

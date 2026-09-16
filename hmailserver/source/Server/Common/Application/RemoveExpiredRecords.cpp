@@ -9,6 +9,9 @@
 #include "../Persistence/PersistentSecurityRange.h"
 #include "../Util/AutoBanFirewall.h"
 #include "../Persistence/PersistentLogonFailure.h"
+#include "../AntiSpam/SpamTrapMonitor.h"
+
+#include <ctime>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -67,6 +70,21 @@ namespace HM
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6115, "RemoveExpiredRecords::DoWork",
                "Expired logon failures could not be cleared. They keep counting towards the auto-ban threshold until this succeeds, so occasional failures spread over a long period may add up to a ban.");
+         }
+      }
+
+      // The record of spam trap hits, swept once an hour rather than on every
+      // run. This task runs every minute; the record is bounded by a retention
+      // period rather than by a promise about any one row, so a delete a minute
+      // against a table nothing else reads would be work for its own sake.
+      {
+         static time_t lastSpamTrapSweep = 0;
+         const time_t now = time(nullptr);
+
+         if (lastSpamTrapSweep == 0 || now - lastSpamTrapSweep >= 3600)
+         {
+            lastSpamTrapSweep = now;
+            SpamTrapMonitor::SweepHits();
          }
       }
    }

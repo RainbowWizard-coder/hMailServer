@@ -13,6 +13,8 @@
 #include "PersistentDistributionListRecipient.h"
 #include "PersistentSenderListEntry.h"
 #include "../BO/SenderListEntry.h"
+#include "PersistentSpamTrap.h"
+#include "../AntiSpam/SpamTrapMonitor.h"
 
 #include "../Util/Crypt.h"
 #include "../BO/Domain.h"
@@ -372,6 +374,18 @@ namespace HM
                   iDomainID));
          }
 
+         // The domain's spam traps, and the record of what addressed them. The
+         // same reason and the same trade as the list above: domain ids are
+         // reissued, and a trap left behind would start refusing an address in
+         // whichever domain takes the number next - which is somebody else's
+         // mail refused as an unknown user, and their sender banned for it.
+         if (!PersistentSpamTrap::DeleteByDomain(iDomainID))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6912, "PersistentDomain::DeleteObject",
+               Formatter::Format("Domain {0} is being deleted but its spam traps could not be, and will be left behind referring to a domain that no longer exists.",
+                  iDomainID));
+         }
+
          // The key files the domain's DKIM rotation generated go with it, as its
          // mail store does. Which files those are is read before the row goes,
          // because the rotation's row cascades from it and is what says which files
@@ -704,6 +718,13 @@ namespace HM
       bool bRetVal = Application::Instance()->GetDBManager()->Execute(oStatement, bNewObject ? &iDBID : 0);
       if (bRetVal && bNewObject)
          pDomain->SetID((int) iDBID);
+
+      // A rename changes what this domain's spam traps ARE: they are held as a
+      // local part and this id, and the address the RCPT TO path compares is put
+      // together from the two. A flag, so the next message that finds it set does
+      // the read and every other message pays nothing.
+      if (bRetVal)
+         SpamTrapMonitor::SetNeedRefresh();
 
       // NameChanger::RenameDomain only walks the objects this domain owns. An
       // alias target, a distribution list membership or a forward address held by

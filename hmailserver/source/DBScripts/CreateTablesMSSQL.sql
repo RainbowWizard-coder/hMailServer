@@ -13,6 +13,9 @@ if exists (select * from sysobjects where id = object_id('hm_remotedomainpolicie
 if exists (select * from sysobjects where id = object_id('hm_dkimrotations') and objectproperty(id, 'isusertable') = 1) drop table hm_dkimrotations
 
 if exists (select * from sysobjects where id = object_id('hm_reputationchecks') and objectproperty(id, 'isusertable') = 1) drop table hm_reputationchecks
+if exists (select * from sysobjects where id = object_id('hm_spamtraps') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraps
+
+if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
@@ -1238,6 +1241,14 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Re
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ReputationWatchAddresses', '', 0)
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapBanMinutes', '', 1440)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapBlockDays', '', 30)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapHitRetentionDays', '', 90)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapTeachSpamAssassin', '', 0)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5)
@@ -1541,6 +1552,37 @@ create table hm_dkimrotations
 ALTER TABLE hm_dkimrotations ADD CONSTRAINT hm_dkimrotations_pk PRIMARY KEY NONCLUSTERED (dkrid)
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_dkimrotations_domain ON hm_dkimrotations (dkrdomainid)
+
+create table hm_spamtraps
+(
+	stid int identity(1,1) not null,
+	stdomainid int not null,
+	stlocalpart nvarchar(64) not null,
+	stcreated datetime not null
+)
+
+ALTER TABLE hm_spamtraps ADD CONSTRAINT hm_spamtraps_pk PRIMARY KEY NONCLUSTERED (stid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_spamtraps_address ON hm_spamtraps (stdomainid, stlocalpart)
+
+create table hm_spamtraphits
+(
+	sthid int identity(1,1) not null,
+	sthdomainid int not null,
+	sthaddress nvarchar(255) not null,
+	sthipaddress nvarchar(64) not null,
+	sthsender nvarchar(255) not null,
+	sthtime datetime not null,
+	sthbanned tinyint not null,
+	sthblocked tinyint not null,
+	sthnote nvarchar(255) not null
+)
+
+ALTER TABLE hm_spamtraphits ADD CONSTRAINT hm_spamtraphits_pk PRIMARY KEY NONCLUSTERED (sthid)
+
+CREATE CLUSTERED INDEX idx_hm_spamtraphits_time ON hm_spamtraphits (sthtime)
+
+CREATE INDEX idx_hm_spamtraphits_domain ON hm_spamtraphits (sthdomainid)
 
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
@@ -1984,4 +2026,8 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid)
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6057)
+ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+insert into hm_dbversion values (6058)

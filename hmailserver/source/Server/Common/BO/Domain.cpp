@@ -11,6 +11,8 @@
 #include "DistributionLists.h"
 #include "DomainAliases.h"
 #include "SenderListEntries.h"
+#include "SpamTrap.h"
+#include "SpamTraps.h"
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
 
@@ -249,6 +251,17 @@ namespace HM
       if (!senderList->XMLStore(pNode, iBackupOptions))
          return false;
 
+      // The domain's spam traps (hm_spamtraps, schema 6049). A restore deletes
+      // every domain first and PersistentDomain::DeleteObject takes its traps
+      // with it, so the archive is the only place they can come back from - and
+      // a domain restored without them stops trapping without saying so.
+      std::shared_ptr<SpamTraps> spamTraps =
+         std::shared_ptr<SpamTraps>(new SpamTraps(id_));
+      if (!spamTraps->Refresh())
+         return false;
+      if (!spamTraps->XMLStore(pNode, iBackupOptions))
+         return false;
+
       return true;
    }
 
@@ -405,6 +418,14 @@ namespace HM
       if (!senderList->Refresh())
          return false;
       if (!senderList->XMLLoad(pNode, iRestoreOptions))
+         return false;
+
+      // Under the domain's new id; see SpamTraps::PreSaveObject.
+      std::shared_ptr<SpamTraps> spamTraps =
+         std::shared_ptr<SpamTraps>(new SpamTraps(id_));
+      if (!spamTraps->Refresh())
+         return false;
+      if (!spamTraps->XMLLoad(pNode, iRestoreOptions))
          return false;
 
       return true;

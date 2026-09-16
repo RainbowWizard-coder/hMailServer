@@ -47,6 +47,17 @@ namespace HM
       // TCPConnection::EnqueueDelay; none of them sleeps.
       static int TarpitDelaySeconds(int failuresOnThisConnection);
 
+      // A spam trap was addressed: the same expiring IP range a run of failed
+      // logons creates, under a name that says which trap it was, and the same
+      // notification below the server. Returns whether the range was saved,
+      // which is the only case in which the address is really banned.
+      //
+      // Whether this address MAY be banned at all is the caller's decision and
+      // is made before this is reached: an authenticated session, a trusted IP
+      // range, the white list, an incoming relay and AutoBanNeverBan never
+      // arrive here. See SpamTrapMonitor::OnHit.
+      bool BanForSpamTrap(const IPAddress &ipaddress, const String &trapAddress, int minutes);
+
    private:
 
       // True if the range was saved, which is the only case in which the address

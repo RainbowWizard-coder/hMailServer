@@ -28,6 +28,11 @@
 #include "../SMTP/TlsRptReporterTask.h"
 #include "../SMTP/DmarcRptReporterTask.h"
 #include "../Common/Persistence/MailboxMove.h"
+#include "../Common/AntiSpam/SpamTrapMonitor.h"
+#include "../Common/BO/Domain.h"
+#include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/AuditTrail.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/Application/RoleManager.h"
@@ -1868,6 +1873,103 @@ STDMETHODIMP InterfaceUtilities::GetReputationReport(BSTR *Report)
 
       HM::String json = HM::String(HM::ReputationWatch::ReportJson((__int64) time(nullptr)));
       *Report = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetSpamTrapHits(BSTR Domain, long MaxRows, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // The whole server's record, and one domain's: the server administrator's,
+      // like the metric history. A domain administrator reads their own domain's
+      // over REST, where the route is scoped to the domain in its path.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (MaxRows < 1 || MaxRows > 1000)
+         return COMError::GenerateError("MaxRows must be between 1 and 1000.");
+
+      __int64 domainId = 0;
+      HM::String domainName = Domain;
+      domainName.Trim();
+
+      if (!domainName.IsEmpty())
+      {
+         std::shared_ptr<const HM::Domain> domain = HM::CacheContainer::Instance()->GetDomain(domainName);
+
+         if (!domain)
+            return COMError::GenerateError("No such domain.");
+
+         domainId = domain->GetID();
+      }
+
+      bool readable = false;
+      const HM::AnsiString document = HM::SpamTrapMonitor::HitsDocument(domainId, (int) MaxRows, readable);
+
+      if (!readable)
+         return COMError::GenerateError("The record of spam trap hits could not be read; see the error log.");
+
+      HM::String json;
+      HM::Unicode::MultiByteToWide(document, json);
+
+      *Json = json.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::ClearSpamTrapHits(BSTR Domain, long *Removed)
+{
+   try
+   {
+      if (!Removed)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      __int64 domainId = 0;
+      HM::String domainName = Domain;
+      domainName.Trim();
+
+      if (!domainName.IsEmpty())
+      {
+         std::shared_ptr<const HM::Domain> domain = HM::CacheContainer::Instance()->GetDomain(domainName);
+
+         if (!domain)
+            return COMError::GenerateError("No such domain.");
+
+         domainId = domain->GetID();
+      }
+
+      const int removed = HM::SpamTrapMonitor::ClearHits(domainId);
+
+      if (removed < 0)
+         return COMError::GenerateError("The record of spam trap hits could not be cleared; see the error log.");
+
+      // hm_spamtraphits is traffic, so the statement chokepoint does not record
+      // the delete. Destroying the record of what walked into the traps is an
+      // administrative act all the same - and the one act whose whole effect is
+      // to remove evidence - so it is recorded here under the actor
+      // GetIsServerAdmin installed, as the REST route records it.
+      HM::AuditTrail::Instance()->RecordEvent(_T("spam trap hits"),
+         domainName.IsEmpty() ? HM::String(_T("every recorded hit")) : domainName, _T("cleared"),
+         _T("the record of what has addressed a spam trap was deleted; the bans and the blocked senders it made stay"));
+
+      *Removed = (long) removed;
+
       return S_OK;
    }
    catch (...)

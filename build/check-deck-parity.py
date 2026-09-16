@@ -102,6 +102,10 @@ PATH_SCOPE = {
     # The allow and block lists: the server's at /api/v1/sender-list and a
     # domain's at /api/v1/domains/{domain}/sender-list, one row shape for both.
     'sender-list': ['SenderListEntry', 'SenderListEntries'],
+    # Spam traps: a domain's at /api/v1/domains/{domain}/spam-traps, one taken
+    # back at /api/v1/spam-traps/{address}, and the record of hits under both.
+    'spam-traps': ['Domain'],
+    'hits': [],
     'incoming-relays': ['IncomingRelay'],
     'blocked-attachments': ['BlockedAttachment'],
     'greylisting-white-addresses': ['GreyListingWhiteAddress'],

@@ -6,6 +6,9 @@
 #include "AutoBanFirewall.h"
 
 #include "AlertManager.h"
+#include "../Application/Application.h"
+#include "../Threading/Task.h"
+#include "../Threading/WorkQueue.h"
 
 #include "ProcessLauncher.h"
 #include "VariantDateTime.h"
@@ -69,6 +72,19 @@ namespace HM
 
       const wchar_t *RangeNamePrefix = L"Auto-ban: ";
       const wchar_t *RuleNamePrefix = L"hMailServer auto-ban ";
+
+      // A reconciliation asked for by a thread that must not wait for it. See
+      // SynchroniseLater below for the one caller and why it is the only one.
+      class SynchroniseTask : public Task
+      {
+      public:
+         SynchroniseTask(const String &why) : Task("AutoBanFirewall::Synchronise"), why_(why) { }
+
+         virtual void DoWork() { AutoBanFirewall::Synchronise(why_); }
+
+      private:
+         String why_;
+      };
 
       std::string Trim(const std::string &s)
       {
@@ -301,6 +317,47 @@ namespace HM
       AlertManager::Instance()->NoteAutoBan();
 
       Synchronise(_T("ban"));
+   }
+
+   void
+   AutoBanFirewall::BannedForSpamTrap(const IPAddress &address, int minutes, const String &trapAddress)
+   {
+      // The same shape as the line above, with the reason a trap gives. Written
+      // whether or not anything below the server is told, because the ban itself
+      // has happened - and it is what the fail2ban filter counts.
+      LOG_APPLICATION(_T("Auto-ban: ") + String(address.ToString()) + _T(" is banned for ") + StringParser::IntToString(minutes) +
+         _T(" minutes after addressing the spam trap ") + trapAddress);
+
+      // Counted with the logon bans: a hundred bans in an hour is worth telling
+      // somebody about however they were earned.
+      AlertManager::Instance()->NoteAutoBan();
+
+      // NOT on this thread. This one is inside RCPT TO, and the reply that
+      // follows is supposed to be indistinguishable from the one an address
+      // this server has never had gets. Synchronise takes a global lock, reads
+      // every security range and may run a firewall API or spawn the packaged
+      // hook - hundreds of milliseconds that an unknown address does not spend,
+      // and a difference a harvester can time. The ban itself is already saved
+      // and already refuses the address at accept; this only mirrors it below
+      // the server, where a fraction of a second later is the same thing.
+      SynchroniseLater_(_T("spam trap"));
+   }
+
+   void
+   AutoBanFirewall::SynchroniseLater_(const String &why)
+   {
+      std::shared_ptr<WorkQueue> queue = Application::Instance()->GetAsyncWorkQueue();
+
+      if (queue)
+      {
+         queue->AddTask(std::shared_ptr<Task>(new SynchroniseTask(why)));
+         return;
+      }
+
+      // Before the queue exists or after it has stopped. Doing it here is the
+      // safe answer - and the once-a-minute pass from RemoveExpiredRecords would
+      // pick it up in any case, which is why nothing is lost either way.
+      Synchronise(why);
    }
 
    void

@@ -447,6 +447,16 @@ namespace HM
          RouteSenderListMeCreate,
          RouteSenderListMeUpdate,
          RouteSenderListMeDelete,
+
+         // Spam traps (RestApiSpamTraps.cpp): a domain's traps, one trap removed
+         // at its own address as an alias is, and the record of what has
+         // addressed them - one domain's, every domain's, and its clearing.
+         RouteSpamTrapDomainList,
+         RouteSpamTrapDomainCreate,
+         RouteSpamTrapDelete,
+         RouteSpamTrapDomainHits,
+         RouteSpamTrapHits,
+         RouteSpamTrapHitsClear,
          // An account's resources under its address (RestApiAccountResources.cpp):
          // its app passwords, its folders and their ACLs, its messages. Each
          // scoped to the address's domain in Authorize_ as the account routes are.
@@ -1307,6 +1317,12 @@ namespace HM
       // caller carrying the account for the /me routes.
       HttpResponse HandleSenderLists_(const Route &route, const Caller &caller, const AnsiString &requestBody);
       static AnsiString OpenApiSenderListPaths_();
+
+      // Spam traps and the record of what has addressed them
+      // (RestApiSpamTraps.cpp).
+      HttpResponse HandleSpamTraps_(const Route &route, const Caller &caller, const AnsiString &requestBody);
+      static AnsiString OpenApiSpamTrapPaths_();
+      static AnsiString TrapJson_(__int64 id, const String &address, const String &localPart, const String &created);
       // Whether the quarantine digest reaches the signed-in account, read and
       // written by its owner (RestApiSenderLists.cpp).
       HttpResponse HandleMeQuarantineDigest_(const Caller &caller, const AnsiString &method, const AnsiString &requestBody);

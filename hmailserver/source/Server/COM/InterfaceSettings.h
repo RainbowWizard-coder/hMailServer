@@ -366,6 +366,16 @@ END_COM_MAP()
    STDMETHOD(get_ReputationWatchAddresses)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_ReputationWatchAddresses)(/*[in]*/ BSTR newVal);
 
+   // Spam traps, which live in hm_settings as the digest does.
+   STDMETHOD(get_SpamTrapBanMinutes)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SpamTrapBanMinutes)(/*[in]*/ long newVal);
+   STDMETHOD(get_SpamTrapBlockDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SpamTrapBlockDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_SpamTrapHitRetentionDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SpamTrapHitRetentionDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_SpamTrapTeachSpamAssassin)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_SpamTrapTeachSpamAssassin)(/*[in]*/ VARIANT_BOOL newVal);
+
    STDMETHOD(TestLdapDirectory)(/*[in]*/ long MaxUsers, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);
 
    STDMETHOD(PreviewDirectorySync)(/*[in]*/ BSTR DomainName, /*[in]*/ VARIANT_BOOL DisableMissing, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);
