@@ -307,6 +307,13 @@
 #define PROPERTY_COMPLAINT_MAILBOX              _T("ComplaintMailbox")
 #define PROPERTY_COMPLAINT_THRESHOLD            _T("ComplaintSuppressionThreshold")
 #define PROPERTY_COMPLAINT_RETENTION_DAYS       _T("ComplaintRetentionDays")
+// The reputation watch (ReputationWatch), in hm_settings: whether the daily check
+// runs at all, the block lists it asks, and the addresses an administrator says
+// this server is seen as - which is the only way a server behind NAT can name its
+// public address, since nothing on the machine knows it.
+#define PROPERTY_REPUTATION_WATCH_ENABLED       _T("ReputationWatchEnabled")
+#define PROPERTY_REPUTATION_WATCH_LISTS         _T("ReputationWatchLists")
+#define PROPERTY_REPUTATION_WATCH_ADDRESSES     _T("ReputationWatchAddresses")
 
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
@@ -379,4 +386,13 @@
 //      so an upgraded database behaves exactly as it did; what it buys is that an
 //      interrupted move is visible afterwards instead of being guessed at from the
 //      store. The table starts empty and cascades away with its account.
-#define REQUIRED_DB_VERSION            6056
+// 6049 adds hm_reputationchecks, the last answer each DNS block list gave about
+//      each of the server's outbound addresses (ReputationWatch), seeds the
+//      reputation.listed alert rule, and seeds hm_settings rows
+//      ReputationWatchEnabled, ReputationWatchLists (four zones) and
+//      ReputationWatchAddresses (''). With no bind address, no rule binding one and
+//      nothing in ReputationWatchAddresses, the watch has nothing to look up - which
+//      is why a new installation is seeded on (1 in the create scripts) and an
+//      upgrade is seeded off (0 here): an existing server may already have a bind
+//      address, and an upgrade must not start sending it to third parties daily.
+#define REQUIRED_DB_VERSION            6057

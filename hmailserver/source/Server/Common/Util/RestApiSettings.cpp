@@ -49,6 +49,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "Utilities.h"
+#include "ReputationWatch.h"
 #include "MessageOrigin.h"
 #include "WebPush.h"
 #include "PasswordBreachCheck.h"
@@ -621,6 +622,28 @@ namespace
       { "ssl_cipher_list", KindString, ReadWrite, EffectRestart, nullptr,
         "The OpenSSL cipher list for TLS 1.2 and below.",
         ROW_TEXT(Config()->GetSslCipherList()), ROW_SET(Config()->SetSslCipherList(v.text)), ROW_NO_CHECK },
+
+      // The reputation watch (ReputationWatch). In hm_settings; what the check
+      // finds is at GET /api/v1/reputation. The two strings are refused by the
+      // watch's own validators, so a value the Control Panel refuses is refused
+      // here in the same words.
+      { "reputation_watch_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether the server checks its own outbound addresses against the DNS block lists once a day and raises reputation.listed when one of them is listed. On in a new installation and off after an upgrade, which may already have a bind address set; with no address to check it looks nothing up.",
+        ROW_FLAG(Config()->GetReputationWatchEnabled()), ROW_SET(Config()->SetReputationWatchEnabled(v.flag)), ROW_NO_CHECK },
+      { "reputation_watch_lists", KindString, ReadWrite, EffectNow, nullptr,
+        "The block lists to ask, one entry each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces - zen.spamhaus.org, ipv4:bl.spamcop.net. ipv4: or ipv6: says the list covers only that family; =127.0.0.2|127.0.0.4-7 says which answers mean listed.",
+        ROW_TEXT(Config()->GetReputationWatchLists()), ROW_SET(Config()->SetReputationWatchLists(v.text)),
+        [] (const Value &v) -> String
+        {
+           return ReputationWatch::ValidateLists(v.text);
+        } },
+      { "reputation_watch_addresses", KindString, ReadWrite, EffectNow, nullptr,
+        "The addresses other servers see this one as, beside the delivery bind address and the ones the global rules bind: the public address in front of a server behind NAT, which nothing on the machine can discover. Separated by commas or spaces.",
+        ROW_TEXT(Config()->GetReputationWatchAddresses()), ROW_SET(Config()->SetReputationWatchAddresses(v.text)),
+        [] (const Value &v) -> String
+        {
+           return ReputationWatch::ValidateAddresses(v.text);
+        } },
       { "tls_version_10_enabled", KindBoolean, ReadWrite, EffectRestart, nullptr,
         "Whether TLS 1.0 is accepted.",
         ROW_FLAG(Config()->GetSslVersionEnabled(TlsVersion10)), ROW_SET(Config()->SetSslVersionEnabled(TlsVersion10, v.flag)), ROW_NO_CHECK },

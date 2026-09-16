@@ -39,7 +39,7 @@ domains is refused them whatever it holds.
 |---|---|:-:|:-:|:-:|:-:|
 | `administer_server` | Everything, including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
 | `administer_domain` | Every COM gate that has always asked "is this a domain administrator?" | ✅ | ✅ | | |
-| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation, the bounce settings *(server-wide)* and how a bounce would be classifiedand complaint settings, how a bounce would be classified, and every domain's complaint rate — never a secret | ✅ | ✅ | | ✅ |
+| `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation, the bounce settings *(server-wide)* and how a bounce would be classifiedand complaint settings, how a bounce would be classified, and every domain's complaint rate — never a secret, what the reputation watch last found — never a secret the server holds | ✅ | ✅ | | ✅ |
 | `view_accounts` | Domains, accounts, aliases, lists, groups *(server-wide)*, fetch accounts, the OpenAPI document, and whether a mailbox could be moved now and what it has been through | ✅ | ✅ | ✅ | ✅ |
 | `view_mailbox` | Another account's folders and messages | ✅ | ✅ | | ✅ |
 | `view_queue` | The delivery queue *(server-wide)* | ✅ | | | ✅ |
@@ -57,7 +57,7 @@ domains is refused them whatever it holds.
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
 | `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, and the breach check's endpoint test *(server-wide)* | ✅ | | | |
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
-| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep now *(server-wide)* | ✅ | | | |
+| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep, the DKIM key rotation pass or a reputation check now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
 
 The REST API's **key store** (`/api/v1/apikeys`) and the `[Settings]` section of

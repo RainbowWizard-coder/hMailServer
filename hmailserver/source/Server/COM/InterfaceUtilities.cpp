@@ -28,6 +28,7 @@
 #include "../SMTP/TlsRptReporterTask.h"
 #include "../SMTP/DmarcRptReporterTask.h"
 #include "../Common/Persistence/MailboxMove.h"
+#include "../Common/Util/ReputationWatch.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/Application/RoleManager.h"
 #include "../Common/BO/Account.h"
@@ -1809,6 +1810,64 @@ STDMETHODIMP InterfaceUtilities::GetMailboxMoves(BSTR Address, long MaxRows, BST
 
       *Json = WideFromUtf8(HM::MailboxMove::RecordsJson(rows)).AllocSysString();
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RunReputationCheck(BSTR *Report)
+{
+   try
+   {
+      if (!Report)
+         return COMError::GenerateGenericMessage();
+
+      // The server's own addresses against third parties' lists, and a rewrite of
+      // what the report says: the server administrator's, like the alert pass.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      const __int64 now = (__int64) time(nullptr);
+
+      HM::Logger::Instance()->LogApplication(_T("Reputation watch: a check was run over COM."));
+
+      // TryRun rather than Run, for the same reason the REST route answers 409: a
+      // check makes a lookup per address per list, and DNSQueryTimeout of 0 means
+      // each of those waits for ever. A caller that queued behind the daily check
+      // would hold an out-of-process COM call open for the whole of it - a Control
+      // Panel that appears hung, with nothing said.
+      HM::ReputationWatch::RunSummary summary;
+
+      if (!HM::ReputationWatch::TryRun(now, summary))
+      {
+         return COMError::GenerateError("A reputation check is already running; ask again when it has finished.");
+      }
+
+      HM::String json = HM::String(HM::ReputationWatch::RunJson(summary, now));
+      *Report = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetReputationReport(BSTR *Report)
+{
+   try
+   {
+      if (!Report)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String json = HM::String(HM::ReputationWatch::ReportJson((__int64) time(nullptr)));
+      *Report = json.AllocSysString();
       return S_OK;
    }
    catch (...)

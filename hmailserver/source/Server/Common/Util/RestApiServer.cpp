@@ -1865,6 +1865,9 @@ namespace HM
          case RouteDkimRotationCancel:
          case RouteDkimRotationRun:
             return HandleDkimRotation_(caller, route, GetRequestBody_(request));
+         case RouteReputationGet:
+         case RouteReputationCheck:
+            return HandleReputation_(caller, route, GetRequestBody_(request));
          case RouteRuleList:
             return HandleListRules_();
          case RouteLogList:
@@ -3842,6 +3845,16 @@ namespace HM
          route.kind = RouteDkimRotationRun;
          return;
       }
+      if (method == "GET" && path == "/api/v1/reputation")
+      {
+         route.kind = RouteReputationGet;
+         return;
+      }
+      if (method == "POST" && path == "/api/v1/reputation/check")
+      {
+         route.kind = RouteReputationCheck;
+         return;
+      }
       if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/dkim"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -4720,6 +4733,9 @@ namespace HM
       case RouteDkimRotationRetire:
       case RouteDkimRotationCancel:
       case RouteDkimRotationRun:
+      // A check makes this server send queries to third parties and rewrites what
+      // the report says, neither of which a read-only credential should cause.
+      case RouteReputationCheck:
          return true;
 
       default:
@@ -4852,6 +4868,7 @@ namespace HM
       // be classified all the same - build/check-role-choke-point.py holds that,
       // because a route in no classification is a route nobody decided about -
       // and for these the classification says what kind of route it is, not what
+      case RouteReputationGet:
       // a role may read.
       case RouteUnknown:
       case RouteStatus:
@@ -5172,6 +5189,10 @@ namespace HM
       // logon-failure count that feeds the auto-ban.
       case RouteAccountUnlock:
       case RouteLogonFailuresClear:
+      // A check of this server's own addresses against third parties' block
+      // lists: it makes the server send the queries, and it rewrites what the
+      // report says. The same shape as the alert pass above.
+      case RouteReputationCheck:
          return RolePermission::UnlockAccount;
 
       // Every setting, listener, certificate, route, rule and anti-spam list.
@@ -5878,6 +5899,10 @@ namespace HM
       // One pass over every domain's DKIM key rotation, with a clock the caller
       // moves: a key issued for one domain would be advancing everybody's.
       case RouteDkimRotationRun:
+      // The addresses this server sends from are the same whichever domain's
+      // mail is leaving, so its reputation is not any one domain's business.
+      case RouteReputationGet:
+      case RouteReputationCheck:
          // IP ranges, certificates, global rules, the logs, the backup, the
          // server settings and the update check are all server-wide: none of
          // them belongs to a domain, and the logs in particular carry every
@@ -13173,6 +13198,7 @@ namespace HM
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();
+      openApiJson += OpenApiReputationPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiBouncesPaths_();
       openApiJson += OpenApiComplaintsPaths_();

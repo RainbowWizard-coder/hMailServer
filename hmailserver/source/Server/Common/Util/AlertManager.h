@@ -105,6 +105,10 @@ namespace HM
       // threshold 1000. See SMTP/ComplaintTracker.h.
       static const wchar_t *ConditionComplaintsRateHigh;
 
+      // An outbound address of this server on a DNS block list, from the rows the
+      // reputation watch's daily check writes. Seeded by schema 6049, on.
+      static const wchar_t *ConditionReputationListed;
+
       struct Rule
       {
          Rule() : id(0), enabled(false), threshold(0), actions(ActionMail), cooldown(60), digest(true) {}
@@ -152,6 +156,14 @@ namespace HM
       // cool-down decides whether it is sent now or waits for the digest.
       bool RaiseOccurrence(const String &condition, int severity, const String &summary, const String &detail);
 
+      // As Raise, for a state condition whose SUMMARY can change while it stays
+      // true: the set of addresses on a block list, where a second listing is news
+      // and the first one being still true is not. A raise with the same summary as
+      // the standing one writes nothing, so nothing flaps; a different summary is a
+      // fresh raise, which the rule's cool-down may hold for the digest. The
+      // condition stays raised throughout, so one clear ends it.
+      bool RaiseOrUpdate(const String &condition, int severity, const String &summary, const String &detail);
+
       // Records that a condition has stopped being true. Does nothing unless the
       // condition is currently raised.
       bool Clear(const String &condition, const String &summary);
@@ -180,6 +192,10 @@ namespace HM
       // threshold in the last hour, and whether a minidump has been written
       // since the last one that was recorded.
       int EvaluateScheduledConditions();
+
+      // The reputation watch's condition alone, evaluated from the rows a check has
+      // just written rather than at the next minute's pass. No lookup of any kind.
+      int EvaluateReputationWatch();
 
       // One auto-ban happened. Counted in memory - the ban itself is a row, but
       // "how many in the last hour" is a question about a rate, and a rate does
@@ -213,6 +229,7 @@ namespace HM
       int EvaluateAutoBans_();
       int EvaluateMinidumps_();
       int EvaluateDkimRotations_();
+      int EvaluateReputation_();
       int EvaluateComplaintRates_();
 
       boost::recursive_mutex mutex_;

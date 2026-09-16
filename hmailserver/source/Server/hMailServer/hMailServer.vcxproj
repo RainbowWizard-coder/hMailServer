@@ -285,6 +285,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\MetricsHistoryTask.cpp" />
     <ClCompile Include="..\Common\Application\QuarantineDigestTask.cpp" />
     <ClCompile Include="..\Common\Application\DkimRotationTask.cpp" />
+    <ClCompile Include="..\Common\Application\ReputationWatchTask.cpp" />
     <ClCompile Include="..\Common\Application\ScheduledMailTask.cpp" />
     <ClCompile Include="..\Common\Application\UpdateCheckTask.cpp" />
     <ClCompile Include="..\Common\Application\IMAPExpungeRetentionTask.cpp" />
@@ -607,6 +608,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\PushSubscriptions.cpp" />
     <ClCompile Include="..\Common\Util\PushNotifier.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPush.cpp" />
+    <ClCompile Include="..\Common\Util\ReputationWatch.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCertificates.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAdministration.cpp" />
@@ -646,6 +648,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiGroups.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRoles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDkimRotation.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiReputation.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />
     <ClCompile Include="..\Common\Util\OpenPgpKeyStore.cpp" />
@@ -1094,6 +1097,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\MetricsHistoryTask.h" />
     <ClInclude Include="..\Common\Application\QuarantineDigestTask.h" />
     <ClInclude Include="..\Common\Application\DkimRotationTask.h" />
+    <ClInclude Include="..\Common\Application\ReputationWatchTask.h" />
     <ClInclude Include="..\Common\Application\ScheduledMailTask.h" />
     <ClInclude Include="..\Common\Application\UpdateCheckTask.h" />
     <ClInclude Include="..\Common\Application\IMAPExpungeRetentionTask.h" />
@@ -1449,6 +1453,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\WebPush.h" />
     <ClInclude Include="..\Common\Util\PushSubscriptions.h" />
     <ClInclude Include="..\Common\Util\PushNotifier.h" />
+    <ClInclude Include="..\Common\Util\ReputationWatch.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />

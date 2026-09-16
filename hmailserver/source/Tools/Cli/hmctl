@@ -600,6 +600,106 @@ def quarantine_command(client, arguments):
     return EXIT_OK
 
 
+def print_reputation(answer):
+    """The report as a table - one row per address and list - then the reasons, then
+    what was deliberately not looked up, then when the last check was.
+
+    The status column carries the word the API sends rather than a yes or a no,
+    because "refused", "lookup_failed" and "list_not_answering" are not "not_listed",
+    and a client that folded them together would report as clean a server no list has
+    answered about.
+    """
+
+    rows = []
+    for address in answer.get("addresses") or []:
+        for result in address.get("results") or []:
+            rows.append({
+                "address": address.get("address", ""),
+                "list": result.get("list", ""),
+                "status": result.get("status", ""),
+                "answer": result.get("code", ""),
+                "listed since": when(result.get("listed_since")),
+                "checked": when(result.get("checked")),
+            })
+
+    if rows:
+        print_table(rows, ["address", "list", "status", "answer", "listed since", "checked"])
+    else:
+        print("(no outbound address is configured, so nothing is checked)")
+
+    # A list's reason is a sentence, so it goes under the table rather than into a
+    # column of it. A list that simply says no has nothing to explain.
+    for address in answer.get("addresses") or []:
+        for result in address.get("results") or []:
+            if result.get("reason") and result.get("status") != "not_listed":
+                print("")
+                print("%s on %s: %s" % (address.get("address", ""), result.get("list", ""), result["reason"]))
+
+    for skipped in answer.get("skipped") or []:
+        print("")
+        print("not looked up: %s (%s) %s" % (skipped.get("address", ""), skipped.get("source", ""),
+                                             skipped.get("detail") or skipped.get("reason", "")))
+
+    if answer.get("lists_problem"):
+        print("")
+        print("the lists: %s" % answer["lists_problem"])
+
+    # The one fact that explains every other line when it is false. Without it a
+    # table of "not_checked" reads as a server that is behind on its checks rather
+    # than one that was never asked to make any.
+    if not answer.get("enabled"):
+        print("")
+        print("the watch is off: nothing is checked and nothing will be, until")
+        print("reputation_watch_enabled is turned on (hmctl settings set --set")
+        print("reputation_watch_enabled=true, or the Deck's Settings page). An")
+        print("upgraded server starts with it off.")
+
+    print("")
+    print("last checked: %s" % (when(answer.get("last_checked")) or "never"))
+
+    run = answer.get("run")
+    if isinstance(run, dict):
+        print("this check: %s address(es), %s list(s), %s lookup(s)"
+              % (run.get("addresses", 0), run.get("lists", 0), run.get("lookups", 0)))
+
+
+def reputation_command(client, arguments):
+    if arguments.verb == "check":
+        answer = client.request("POST", "/api/v1/reputation/check", body={}) or {}
+    else:
+        answer = client.request("GET", "/api/v1/reputation") or {}
+
+    if arguments.json:
+        render(answer, True)
+    else:
+        print_reputation(answer)
+
+    # Exit 1 when an address is listed, when a list could not be asked, and when a
+    # pair has never been checked at all: a check nobody answered is not a clean
+    # one, and neither is a check nobody has made. A monitoring job reads the exit
+    # code rather than the table, so the code has to carry all three.
+    #
+    # not_checked is reachable for up to a day in ordinary use: an address added to
+    # reputation_watch_addresses, or a zone added to reputation_watch_lists, has no
+    # stored row until the next daily check, and the daily check is not brought
+    # forward by the addition.
+    #
+    # With the watch OFF, not_checked is not a fault at all - it is every pair,
+    # for ever, because nothing is being checked. An upgrade leaves the watch off
+    # with the lists seeded, so a server with a delivery bind address would alarm
+    # at every invocation with nothing in the table to explain it. A listing or an
+    # unanswered list still exits 1 with the watch off, because those are answers
+    # an earlier check got and they do not stop being true.
+    counts = answer.get("counts") or {}
+    if counts.get("listed") or counts.get("unknown"):
+        return EXIT_ERROR
+
+    if counts.get("not_checked") and answer.get("enabled"):
+        return EXIT_ERROR
+
+    return EXIT_OK
+
+
 def settings_command(client, arguments):
     if arguments.verb == "breach-test":
         # The password breach check's endpoint, asked for the prefix 00000, which is
@@ -1989,6 +2089,15 @@ def build_parser():
     for verb in ("release", "delete"):
         p = quarantine_verbs.add_parser(verb, parents=[common])
         p.add_argument("id")
+
+    reputation = commands.add_parser("reputation",
+                                     help="this server's own addresses against the DNS block lists")
+    reputation.set_defaults(handler=reputation_command)
+    reputation_verbs = reputation.add_subparsers(dest="verb")
+    reputation_verbs.add_parser("status", parents=[common],
+                                help="what the last check found; exits 1 when an address is listed, when a list could not be asked, and - while the watch is on - when a pair has not been checked yet")
+    reputation_verbs.add_parser("check", parents=[common],
+                                help="check now rather than waiting for the daily check; server administrators")
 
     settings = commands.add_parser("settings", help="the server settings, by group")
     settings.set_defaults(handler=settings_command)

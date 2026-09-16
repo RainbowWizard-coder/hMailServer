@@ -17,6 +17,7 @@
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/SettingsDiff.h"
 #include "../Common/Util/Unicode.h"
+#include "../Common/Util/ReputationWatch.h"
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/MessageOrigin.h"
@@ -3316,6 +3317,127 @@ STDMETHODIMP InterfaceSettings::put_QuarantineDigestLinkHours(long newVal)
          return COMError::GenerateError("A release link lives between 1 and 720 hours.");
 
       config_->SetQuarantineDigestLinkHours((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ReputationWatchEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetReputationWatchEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ReputationWatchEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetReputationWatchEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ReputationWatchLists(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetReputationWatchLists().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ReputationWatchLists(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // The same sentence the REST settings and the Deck show: a list that
+      // cannot be used is refused where it is typed, rather than stored and
+      // skipped every night with a line in a log nobody reads.
+      const HM::String refusal = HM::ReputationWatch::ValidateLists(newVal);
+
+      if (!refusal.IsEmpty())
+         return COMError::GenerateError(refusal);
+
+      config_->SetReputationWatchLists(newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_ReputationWatchAddresses(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetReputationWatchAddresses().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_ReputationWatchAddresses(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      const HM::String refusal = HM::ReputationWatch::ValidateAddresses(newVal);
+
+      if (!refusal.IsEmpty())
+         return COMError::GenerateError(refusal);
+
+      config_->SetReputationWatchAddresses(newVal);
 
       return S_OK;
    }

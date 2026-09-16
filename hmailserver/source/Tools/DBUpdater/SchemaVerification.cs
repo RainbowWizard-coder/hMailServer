@@ -1047,7 +1047,27 @@ namespace DBUpdater
          new SchemaProbe(6056, "hm_mailboxmoves.mmfinished",
                          "update hm_mailboxmoves set mmfinished = mmfinished where 1 = 0"),
          new SchemaProbe(6056, "hm_mailboxmoves.mmdetail",
-                         "update hm_mailboxmoves set mmdetail = mmdetail where 1 = 0")
+                         "update hm_mailboxmoves set mmdetail = mmdetail where 1 = 0"),
+         // Upgrade6056to6057* - the reputation watch: the last answer each block list
+         // gave about each outbound address (hm_reputationchecks).
+         new SchemaProbe(6057, "hm_reputationchecks.rcaddress",
+                         "update hm_reputationchecks set rcaddress = rcaddress where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rcsources",
+                         "update hm_reputationchecks set rcsources = rcsources where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rczone",
+                         "update hm_reputationchecks set rczone = rczone where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rcstatus",
+                         "update hm_reputationchecks set rcstatus = rcstatus where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rccode",
+                         "update hm_reputationchecks set rccode = rccode where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rcreason",
+                         "update hm_reputationchecks set rcreason = rcreason where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rcchecked",
+                         "update hm_reputationchecks set rcchecked = rcchecked where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rclistedsince",
+                         "update hm_reputationchecks set rclistedsince = rclistedsince where 1 = 0"),
+         new SchemaProbe(6057, "hm_reputationchecks.rcconfirmed",
+                         "update hm_reputationchecks set rcconfirmed = rcconfirmed where 1 = 0")
       };
 
       /// <summary>

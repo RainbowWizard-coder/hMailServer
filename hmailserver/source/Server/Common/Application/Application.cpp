@@ -87,6 +87,7 @@
 #include "../Util/PushNotifier.h"
 #include "../Util/WebhookManager.h"
 #include "DkimRotationTask.h"
+#include "ReputationWatchTask.h"
 #include "BackupScheduleTask.h"
 #include "../LDAP/DirectorySyncTask.h"
 
@@ -929,6 +930,16 @@ namespace HM
       dkimRotationTask->SetReoccurance(ScheduledTask::RunInfinitely);
       dkimRotationTask->SetMinutesBetweenRun(15);
       scheduler_->ScheduleTask(dkimRotationTask);
+
+      // The reputation watch. Registered unconditionally and hourly; the period it
+      // keeps is a day, measured from the rows the last check wrote, so a server
+      // restarted twice an hour still checks once a day and one restarted weekly
+      // checks within the hour - see ReputationWatchTask. A wake with nothing to
+      // check is one select and no lookup.
+      std::shared_ptr<ReputationWatchTask> reputationWatchTask = std::shared_ptr<ReputationWatchTask>(new ReputationWatchTask);
+      reputationWatchTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      reputationWatchTask->SetMinutesBetweenRun(60);
+      scheduler_->ScheduleTask(reputationWatchTask);
 
       // Scheduled backups. Only registered when a schedule is configured in
       // hMailServer.ini ([Settings] ScheduledBackupTime or

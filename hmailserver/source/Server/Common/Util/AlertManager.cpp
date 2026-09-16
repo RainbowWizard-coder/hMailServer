@@ -27,6 +27,7 @@
 
 #include "../../SMTP/RecipientParser.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
+#include "ReputationWatch.h"
 #include "../../SMTP/ComplaintTracker.h"
 
 #include <openssl/pem.h>
@@ -63,6 +64,7 @@ namespace HM
    const wchar_t *AlertManager::ConditionQueueStalled = L"queue.stalled";
    const wchar_t *AlertManager::ConditionAutoBanStorm = L"autoban.storm";
    const wchar_t *AlertManager::ConditionMinidumpWritten = L"minidump.written";
+   const wchar_t *AlertManager::ConditionReputationListed = L"reputation.listed";
    const wchar_t *AlertManager::ConditionDkimRotationStalled = L"dkim.rotation.stalled";
    const wchar_t *AlertManager::ConditionComplaintsRateHigh = L"complaints.rate.high";
 
@@ -521,6 +523,33 @@ namespace HM
       Rule rule;
       if (!GetRule(condition, rule) || !rule.enabled)
          return false;
+
+      return WriteEvent_(rule, severity, StateRaised, summary, detail);
+   }
+
+   bool
+   AlertManager::RaiseOrUpdate(const String &condition, int severity, const String &summary, const String &detail)
+   {
+      if (!Configuration::Instance()->GetAlertsEnabled())
+         return false;
+
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      Rule rule;
+      if (!GetRule(condition, rule) || !rule.enabled)
+         return false;
+
+      Event newest;
+
+      // Compared against what was STORED - one line, shortened to the column - so
+      // that the comparison is between the two sentences an administrator would
+      // read, and a summary that only differs past the 250th character is not a
+      // second message about the same thing.
+      if (ReadNewestEvent_(condition, newest) && newest.state == StateRaised &&
+          newest.summary == Shorten(OneLine(summary), MaxSummaryLength))
+      {
+         return false;
+      }
 
       return WriteEvent_(rule, severity, StateRaised, summary, detail);
    }
@@ -1133,6 +1162,64 @@ namespace HM
    }
 
    int
+   AlertManager::EvaluateReputation_()
+   {
+      Rule rule;
+      if (!GetRule(ConditionReputationListed, rule) || !rule.enabled)
+         return 0;
+
+      // With the watch off nothing is being checked, so the rows are as old as the
+      // day it was switched off and nothing may be raised from them. The condition
+      // is ended, though, rather than left standing: every path that could clear it
+      // is behind this check, so a raised condition left here would stay raised for
+      // ever - and an administrator who reacts to the alert by switching the watch
+      // off is the likeliest person to meet that. The clear says what has actually
+      // happened, which is not that the address was delisted.
+      if (!Configuration::Instance()->GetReputationWatchEnabled())
+      {
+         Clear(ConditionReputationListed,
+               _T("The reputation watch has been switched off, so this server's outbound addresses are no longer being ")
+               _T("checked against the block lists. Whatever this alert reported may still be true; nothing is looking any more."));
+
+         return 0;
+      }
+
+      // Stored answers only. The daily check does the lookups; a pass every minute
+      // must never make one.
+      String summary;
+      String detail;
+      String clearSummary;
+      bool known = false;
+
+      if (!ReputationWatch::CollectListed(summary, detail, known, clearSummary))
+      {
+         // Not knowing is not the same as nothing being listed: the rows could not
+         // be read, so the condition is left exactly as it was.
+         //
+         // And when they could be read, what the clear says is the watch's to
+         // decide: nothing being listed because every list said so, and nothing
+         // being listed because no list answered, arrive here as the same false.
+         if (known)
+            Clear(ConditionReputationListed, clearSummary);
+
+         return 0;
+      }
+
+      RaiseOrUpdate(ConditionReputationListed, ErrorManager::High, summary, detail);
+
+      return 1;
+   }
+
+   int
+   AlertManager::EvaluateReputationWatch()
+   {
+      if (!Configuration::Instance()->GetAlertsEnabled())
+         return 0;
+
+      return EvaluateReputation_();
+   }
+
+   int
    AlertManager::EvaluateMinidumps_()
    {
       Rule rule;
@@ -1189,6 +1276,7 @@ namespace HM
       raised += EvaluateAutoBans_();
       raised += EvaluateMinidumps_();
       raised += EvaluateDkimRotations_();
+      raised += EvaluateReputation_();
       raised += EvaluateComplaintRates_();
 
       return raised;

@@ -1060,6 +1060,7 @@ const ROLE_CATALOGUE = [
    { name: 'helpdesk', description: 'Resets a password, unlocks an account and reads a message trace.', builtin: true,
      permissions: 'view_accounts,view_message_trace,reset_password,unlock_account' },
    { name: 'auditor', description: 'Reads everything and changes nothing, the audit trail included.', builtin: true,
+   reputationChecks: 0,
      permissions: 'view_configuration,view_accounts,view_logs,view_audit' },
    { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
 ];
@@ -1239,6 +1240,38 @@ const state = {
         object_type: 'setting', object: 'AutoBanMinutes', action: 'updated', detail: 'AutoBanMinutes: 60 -> 120', hash: 'aa', previous_hash: '' }
    ],
    auditIntact: true,
+   // The reputation watch. Four answers on purpose, because the page has to draw
+   // each of them differently: an address listed, the same address on a list that
+   // refused the query, an address no list has anything against, and a list that
+   // does not cover that address's family.
+   reputation: {
+      enabled: true,
+      lists: [{ zone: 'bl.example.test', family: 'any', codes: '' }, { zone: 'ipv4.example.test', family: 'ipv4', codes: '' }],
+      lists_problem: '',
+      addresses: [
+         {
+            address: '192.0.2.25', family: 'ipv4', sources: ['bind'], checked: 1789000000, listed: true,
+            results: [
+               { list: 'bl.example.test', status: 'listed', listed: true, code: '127.0.0.2',
+                 reason: 'Listed for sending unsolicited mail', checked: 1789000000, listed_since: 1788900000 },
+               { list: 'ipv4.example.test', status: 'refused', listed: null, code: '127.255.255.254',
+                 reason: 'The list refuses queries that reach it through a public or open resolver.', checked: 1789000000, listed_since: 0 }
+            ]
+         },
+         {
+            address: '2001:db8::25', family: 'ipv6', sources: ['setting'], checked: 1789000000, listed: null,
+            results: [
+               { list: 'bl.example.test', status: 'not_listed', listed: false, code: '', reason: '', checked: 1789000000, listed_since: 0 },
+               { list: 'ipv4.example.test', status: 'not_applicable', listed: null, code: '',
+                 reason: 'The list covers IPv4 addresses only, so it has nothing to say about this one.', checked: 1789000000, listed_since: 0 }
+            ]
+         }
+      ],
+      skipped: [{ address: '10.0.0.5', source: 'rule', reason: 'private',
+                  detail: 'A private address. It is not what another server sees, and asking a block list about it would tell the list what this network looks like inside.' }],
+      last_checked: 1789000000, next_check: 1789086400, now: 1789000100,
+      counts: { addresses: 2, lists: 2, listed: 1, not_listed: 1, unknown: 1, not_applicable: 1, not_checked: 0, skipped: 1 }
+   },
    // What this server has changed from stock. Five entries chosen for the five
    // things the page has to get right: a plain ini key, a secret named and not
    // shown, a name the server ships no default for, a property of the other
@@ -1720,7 +1753,19 @@ function answer(method, path, headers, raw) {
       const range = Object.assign({ id: nextId++, priority: 0, expires: false, expires_time: '' }, RANGE_CREATE_DEFAULTS, parsed);
       if (!range.expires) { range.expires_time = ''; }
       state.ranges.push(range);
+
       return json(201, { id: range.id });
+   }
+   if (path === '/api/v1/reputation' && method === 'GET') { return json(200, state.reputation); }
+   if (path === '/api/v1/reputation/check' && method === 'POST') {
+      state.reputationChecks += 1;
+      // A check is what turns an unanswered list into an answer: after it, the list
+      // that refused the query answers, and says the address is not on it.
+      state.reputation.addresses[0].results[1] = { list: 'ipv4.example.test', status: 'not_listed', listed: false,
+         code: '', reason: '', checked: 1789000200, listed_since: 0 };
+      state.reputation.last_checked = 1789000200;
+      return json(200, Object.assign({ run: { as_of: 1789000200, addresses: 2, lists: 2, lookups: 8, listed: 1, unknown: 0, stored: true } },
+         state.reputation));
    }
    if (/^\/api\/v1\/ipranges\/\d+$/.test(path)) {
       const id = Number(segment(path, 4));
@@ -4083,6 +4128,57 @@ async function main() {
    check('with none configured the page says what that means',
       content().textContent.indexOf('no mail event leaves this server') >= 0, content().textContent.slice(0, 200));
    state.webhooks = keptWebhooks;
+
+   // ---- the outbound reputation
+   before = requests.length;
+   await goTo('reputation');
+   check('the reputation view reads the report', called(before, 'GET', '/api/v1/reputation').length === 1, paths(before));
+   check('one row per address and list, and one more for the address that is not looked up', rows().length === 5, String(rows().length));
+   check('a listing is drawn as bad, with the answer the list gave and when it started',
+      rows()[0].textContent.indexOf('192.0.2.25') >= 0 && rows()[0].textContent.indexOf('Listed') >= 0 &&
+      rows()[0].textContent.indexOf('127.0.0.2') >= 0 && rows()[0].textContent.indexOf('listed since') >= 0 &&
+      content().querySelectorAll('.pill[data-level="bad"]').length === 1, rows()[0].textContent);
+   check('a list that refused the query is neither listed nor clean',
+      rows()[1].textContent.indexOf('Refused') >= 0 && rows()[1].textContent.indexOf('127.255.255.254') >= 0 &&
+      rows()[1].textContent.indexOf('Not listed') < 0 && content().querySelectorAll('.pill[data-level="warn"]').length === 1,
+      rows()[1].textContent);
+   check('a list that says nothing is on it is drawn as good', rows()[2].textContent.indexOf('Not listed') >= 0 &&
+      content().querySelectorAll('.pill[data-level="good"]').length === 1, rows()[2].textContent);
+   check('a list that does not cover the address family says so rather than reading as clean',
+      rows()[3].textContent.indexOf('Not covered') >= 0 && rows()[3].textContent.indexOf('IPv4') >= 0, rows()[3].textContent);
+   check('an address that is deliberately not looked up is named, with the reason',
+      content().textContent.indexOf('10.0.0.5') >= 0 && content().textContent.indexOf('A private address') >= 0 &&
+      content().textContent.indexOf('Not looked up') >= 0);
+   check('and when the last check was, and when the next one is due', content().textContent.indexOf('Last checked') >= 0,
+      content().textContent.slice(0, 200));
+
+   before = requests.length;
+   click(act('repwatchcheck'));
+   await flush();
+   check('Check now asks the server for a check and reads the report back',
+      called(before, 'POST', '/api/v1/reputation/check').length === 1 && called(before, 'GET', '/api/v1/reputation').length === 1,
+      paths(before));
+   check('and the answer that was refused reads as not listed once the list answers',
+      rows()[1].textContent.indexOf('Not listed') >= 0 && content().querySelectorAll('.pill[data-level="warn"]').length === 0,
+      rows()[1].textContent);
+   check('the toast says what was checked', toastText().indexOf('2') >= 0, toastText());
+
+   nextRefusal = 'the reputation watch could not be run';
+   click(act('repwatchcheck'));
+   await flush();
+   check('a refused check is shown in the server\'s own words beside the button',
+      document.getElementById('err_repwatch').textContent.indexOf('could not be run') >= 0,
+      document.getElementById('err_repwatch').textContent);
+   nextRefusal = null;
+
+   state.reputation.enabled = false;
+   state.reputation.addresses = [];
+   state.reputation.skipped = [];
+   await goTo('reputation');
+   check('with the watch off and nothing to check, the view says both rather than drawing an empty table',
+      content().textContent.indexOf('The watch is off') >= 0 && content().textContent.indexOf('No outbound address is configured') >= 0,
+      content().textContent.slice(0, 300));
+   state.reputation.enabled = true;
 
    // ---- groups: the last thing the census counted as writable over REST and
    // reachable from no view here

@@ -358,6 +358,14 @@ END_COM_MAP()
    STDMETHOD(get_WebPushVapidPublicKey)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(GenerateWebPushKeys)(/*[out, retval]*/ BSTR *PublicKey);
 
+   // The reputation watch (ReputationWatch), in hm_settings.
+   STDMETHOD(get_ReputationWatchEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_ReputationWatchEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_ReputationWatchLists)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ReputationWatchLists)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_ReputationWatchAddresses)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ReputationWatchAddresses)(/*[in]*/ BSTR newVal);
+
    STDMETHOD(TestLdapDirectory)(/*[in]*/ long MaxUsers, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);
 
    STDMETHOD(PreviewDirectorySync)(/*[in]*/ BSTR DomainName, /*[in]*/ VARIANT_BOOL DisableMissing, /*[out]*/ BSTR *ResultText, /*[out, retval]*/ VARIANT_BOOL *pResult);

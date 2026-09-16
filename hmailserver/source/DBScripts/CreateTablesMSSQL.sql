@@ -12,6 +12,8 @@ if exists (select * from sysobjects where id = object_id('hm_remotedomainpolicie
 
 if exists (select * from sysobjects where id = object_id('hm_dkimrotations') and objectproperty(id, 'isusertable') = 1) drop table hm_dkimrotations
 
+if exists (select * from sysobjects where id = object_id('hm_reputationchecks') and objectproperty(id, 'isusertable') = 1) drop table hm_reputationchecks
+
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
 if exists (select * from sysobjects where id = object_id('hm_contacts') and objectproperty(id, 'isusertable') = 1) drop table hm_contacts
@@ -1230,6 +1232,12 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Se
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('SessionBindToAddress', '', 0)
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('ReputationWatchEnabled', '', 1)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('ReputationWatchLists', 'ipv4:zen.spamhaus.org, ipv4:bl.spamcop.net, ipv4:psbl.surriel.com, ipv4:bl.mailspike.net', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('ReputationWatchAddresses', '', 0)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASDMARCFailureScore', '', 5)
@@ -1634,6 +1642,24 @@ insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethresh
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1)
 
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('reputation.listed', 1, 0, 1, '', '', '', 1440, 0)
+
+create table hm_reputationchecks
+(
+	rcid bigint identity(1,1) not null,
+	rcaddress nvarchar(64) not null,
+	rcsources nvarchar(64) not null,
+	rczone nvarchar(255) not null,
+	rcstatus int not null,
+	rccode nvarchar(255) not null,
+	rcreason nvarchar(255) not null,
+	rcchecked bigint not null,
+	rclistedsince bigint not null,
+	rcconfirmed bigint not null
+)
+
+ALTER TABLE hm_reputationchecks ADD CONSTRAINT hm_reputationchecks_pk PRIMARY KEY CLUSTERED (rcid)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertsEnabled', '', 1)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AlertRecipient', '', 0)
@@ -1958,4 +1984,4 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid)
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6056)
+insert into hm_dbversion values (6057)

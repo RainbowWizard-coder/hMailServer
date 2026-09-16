@@ -24,6 +24,7 @@
 #include "../Cache/CacheConfiguration.h"
 #include "../Util/AWStats.h"
 #include "../Util/PasswordBreachCheck.h"
+#include "../Util/ReputationWatch.h"
 #include "../Util/WebPush.h"
 
 // BACKUP
@@ -121,6 +122,23 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_ENABLED, 0);
       property_set_->EnsureString(PROPERTY_BREACH_CHECK_URL, PasswordBreachCheck::DefaultUrl);
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
+
+      // The reputation watch: on, the four lists that answer an ordinary resolver
+      // for nothing, and no address of its own. Schema 6049 seeds the same three
+      // rows; these are here for the same reason the syslog sink's are, because a
+      // read of a property no row holds reports HM5015 every time.
+      //
+      // On here and in the create scripts, and OFF in the upgrade scripts. A new
+      // installation has no delivery bind address, no rule binding one and nothing
+      // in ReputationWatchAddresses, so an installation that is on looks nothing
+      // up until somebody points it at an address - which is the moment they chose
+      // it. An existing server may well have a bind address set already, and
+      // turning this on beneath it would start sending that address to four third
+      // parties daily on the strength of an upgrade. This value therefore only
+      // ever applies to a database with no row at all, which is a new one.
+      property_set_->EnsureLong(PROPERTY_REPUTATION_WATCH_ENABLED, 1);
+      property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, String(ReputationWatch::DefaultLists));
+      property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
 
       // Bounces read, and the suppression list. Off, and with it off nothing below
@@ -517,6 +535,42 @@ namespace HM
    Configuration::GetSessionBindToAddress() const
    {
       return GetSettings()->GetLong(PROPERTY_SESSION_BIND_TO_ADDRESS) != 0;
+   }
+
+   bool
+   Configuration::GetReputationWatchEnabled() const
+   {
+      return GetSettings()->GetBool(PROPERTY_REPUTATION_WATCH_ENABLED);
+   }
+
+   void
+   Configuration::SetReputationWatchEnabled(bool newVal)
+   {
+      GetSettings()->SetBool(PROPERTY_REPUTATION_WATCH_ENABLED, newVal);
+   }
+
+   String
+   Configuration::GetReputationWatchLists() const
+   {
+      return GetSettings()->GetString(PROPERTY_REPUTATION_WATCH_LISTS);
+   }
+
+   void
+   Configuration::SetReputationWatchLists(const String &newVal)
+   {
+      GetSettings()->SetString(PROPERTY_REPUTATION_WATCH_LISTS, newVal);
+   }
+
+   String
+   Configuration::GetReputationWatchAddresses() const
+   {
+      return GetSettings()->GetString(PROPERTY_REPUTATION_WATCH_ADDRESSES);
+   }
+
+   void
+   Configuration::SetReputationWatchAddresses(const String &newVal)
+   {
+      GetSettings()->SetString(PROPERTY_REPUTATION_WATCH_ADDRESSES, newVal);
    }
 
    bool

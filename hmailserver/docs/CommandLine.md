@@ -80,6 +80,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `complaints` | rates, expire | Every domain's complaint rate over the last seven days, and the feedback loops' hourly sweep run now. |
 | `openpgp` | list, show, store, remove, publish | The OpenPGP PUBLIC keys this server publishes ([OpenPGP.md](OpenPGP.md)): a domain's whole listing, one account's document, a key stored from a file or from standard input, one removed by fingerprint, and an account's own publishing switched on or off. |
 | `queue` | list, retry, delete | |
+| `reputation` | status, check | This server's own outbound addresses against the DNS block lists ([ReputationWatch.md](ReputationWatch.md)). Exits 1 when an address is listed, and when a list could not be asked - an unanswered check is not a clean one - so a monitoring job reads the exit code rather than the table. A pair no check has covered yet also exits 1 while the watch is on; with the watch off it does not, because then nothing is being checked and the output says so. |
 | `webhook` | list, get, create, update, delete | The outbound webhook subscriptions: where this server's mail events go, signed with what, and confined to which domains and addresses. The secret is write-only and never read back ([Webhooks.md](Webhooks.md)). |
 | `webhooks` | deliveries, run, test | The delivery queue with `--webhook`, `--state` and `--limit`; one delivery pass now; and one event raised through the path a real one takes, to see whether it arrives. |
 | `quarantine` | list, release, delete | |
@@ -170,6 +171,10 @@ hmctl dkim check example.com                      # look them up from the server
 hmctl dkim switch example.com --force             # before the propagation period is over
 hmctl dkim retire example.com                     # before the retention period is over
 hmctl dkim cancel example.com                     # drop the next key; signing is unchanged
+
+hmctl settings set --set reputation_watch_addresses=203.0.113.9   # what this server is seen as
+hmctl reputation status                           # what the last check found; exit 1 if listed
+hmctl reputation check                            # check now rather than at the daily check
 ```
 
 `status` prints the phase, then one block per key - current, next, retiring and
@@ -194,7 +199,9 @@ the server's own passes afterwards wait that much longer.
 In the PowerShell module the same verbs are `Get-HmDkimRotation` (with
 `-Records`, one object per record), `Start-HmDkimRotation`, `Test-HmDkimRotation`,
 `Complete-HmDkimRotation`, `Remove-HmDkimRetiringKey`, `Stop-HmDkimRotation` and
-`Invoke-HmDkimRotation`.
+`Invoke-HmDkimRotation`. The reputation watch is `Get-HmReputation` (with
+`-Results`, one object per address and list, where `Listed` is `$true`, `$false`
+or `$null` - and the third is not the second) and `Invoke-HmReputationCheck`.
 
 Bounces and the suppression list
 --------------------------------

@@ -320,14 +320,17 @@ TLS-RPT reporter makes, for the same reason.
 | `minidump.written` | no | `AlertTask`, when a dump newer than the last one recorded appears in the log directory. |
 | `complaints.rate.high` | **yes** | `AlertTask`, when a locally hosted domain's complaint rate over the feedback loops' seven-day window reaches the rule's threshold in parts per million (1000 by default - one complaint in a thousand messages, which the large providers describe as too high). A domain that has sent fewer than 100 messages in the window is not judged. With complaint processing off it clears the condition and reads no complaint data at all - though the pass and the clear still read the rule and the newest event, as every seeded rule's do. See [Complaints.md](Complaints.md). |
 | `dkim.rotation.stalled` | **yes** | `AlertTask`, from the DKIM key rotation's stored state: a next key whose record has not been seen for the rule's threshold in days (7 by default), or a running rotation (the schedule on, or a next or retiring selector in flight) whose last attempt to move failed. It never looks anything up. See [DkimKeyRotation.md](DkimKeyRotation.md). |
+| `reputation.listed` | **yes** | `AlertTask`, from the reputation watch's stored rows: an outbound address of this server that a DNS block list listed at the last check that got an answer. It never looks anything up - the daily check does - and a check that was refused or timed out does not clear it. See [ReputationWatch.md](ReputationWatch.md). |
 
 Four are off because they fire on a healthy server often enough to be noise
-until somebody has decided they want them. The three that are on are the three
+until somebody has decided they want them. The four that are on are the four
 whose whole value is arriving unasked: a backup that failed is not noticed until
 the day it is needed, which is the worst possible day to find out, and a DKIM key
 rotation waiting on a record nobody published waits for ever. The rotation's
 condition is raised only for a domain whose rotation is running, so on a server
-that does not rotate keys it never fires.
+that does not rotate keys it never fires. The reputation watch's is raised only
+for an address somebody has told the server it sends from, so on a server that has
+named none it never fires either.
 
 Nothing is mailed until `AlertRecipient` and `AlertSenderAddress` are set, which
 is what makes "on by default" safe in a stock install.

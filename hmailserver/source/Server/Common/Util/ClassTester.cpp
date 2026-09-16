@@ -17,6 +17,7 @@
 #include "../Util/PushSubscriptions.h"
 #include "../Util/PushNotifier.h"
 #include "../Util/ExternalSenderTagger.h"
+#include "../Util/ReputationWatch.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/InlineImageParts.h"
 #include "../Util/GeoIpDatabase.h"
@@ -225,6 +226,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ComplaintTracker\n"));
       ComplaintTrackerTester complaintTrackerTester;
       complaintTrackerTester.Test();
+
+      // The reputation watch's rules: the two settings as an administrator writes
+      // them, which answers mean listed, which addresses are worth asking about,
+      // and the precedence that keeps a refusal from reading as a verdict. None of
+      // it touches DNS or the database, which is why it is tested here.
+      OutputDebugString(_T("hMailServer: Testing ReputationWatch\n"));
+      ReputationWatchTester reputationWatchTester;
+      reputationWatchTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

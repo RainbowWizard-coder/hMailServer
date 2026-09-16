@@ -129,6 +129,9 @@ PATH_SCOPE = {
     'backup': ['BackupSettings', 'Backup'],
     'messages': ['ServerMessage'],
     'dkim': ['Domain'],
+    # GET /api/v1/reputation and POST /api/v1/reputation/check: what the watch
+    # checks is Settings' three keys, and the check itself is Utilities'.
+    'reputation': ['Settings', 'Utilities'],
     # A domain's DKIM key rotation (/api/v1/domains/{domain}/dkim/rotation and
     # the run at /api/v1/dkim/rotation/run), and its staged key (.../next).
     'rotation': ['Domain'],

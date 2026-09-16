@@ -139,6 +139,22 @@ namespace HM
       void SetKeepFilesOpen(bool newVal);
       bool GetKeepFilesOpen() const;
 
+      // The reputation watch (ReputationWatch), in hm_settings. Enabled is the
+      // daily check and the alert; the lists are the block lists to ask, one
+      // entry each, [ipv4:|ipv6:]zone[=codes]; the addresses are the ones an
+      // administrator says this server is seen as, beside the bind address and
+      // the ones its rules bind. Neither string is normalised on the way in or
+      // defaulted on the way out: an empty list of lists, or of addresses, means
+      // there is nothing to look up, and that is a decision somebody made.
+      bool GetReputationWatchEnabled() const;
+      void SetReputationWatchEnabled(bool newVal);
+
+      String GetReputationWatchLists() const;
+      void SetReputationWatchLists(const String &newVal);
+
+      String GetReputationWatchAddresses() const;
+      void SetReputationWatchAddresses(const String &newVal);
+
 
       int GetWorkerThreadPriority() const;
       void SetWorkerThreadPriority(int iNewVal);

@@ -301,6 +301,10 @@ NOT_AUDITED = {
                     "recorded, and docs/AlertsAndAuditTrail.md says so: both end in the same 'delete from hm_quarantine where "
                     "quarantineid = @ID', so a listed table would record a release and a delete as the same row, naming an id that "
                     "identifies nothing once the row is gone. Recording it needs a record of its own in QuarantineStore.",
+   "hm_reputationchecks": "the last answer each DNS block list gave about each of the server's outbound addresses, rewritten "
+                          "by the reputation watch's daily check under no actor and by an administrator's check on demand; a "
+                          "listing would record every lookup. What the watch checks - the three ReputationWatch settings - is "
+                          "in hm_settings, recorded by PropertySet with the value it had.",
    "hm_imapfolders": "every account's folders, which its mail client and its webmail create and delete as much as any administrator does - the webmail "
                      "under the account's own actor, so listing the table would record each folder a person makes in their own mailbox. Public "
                      "folders share the table, so an administrator creating, renaming or deleting one is NOT recorded, and "

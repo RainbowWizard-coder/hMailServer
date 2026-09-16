@@ -213,6 +213,11 @@ namespace HM
          RouteDkimRotationRetire,
          RouteDkimRotationCancel,
          RouteDkimRotationRun,
+         // This server's own reputation (RestApiReputation.cpp): what the last
+         // check of its outbound addresses found, and a check now. Both are the
+         // server's rather than a domain's.
+         RouteReputationGet,
+         RouteReputationCheck,
          RouteRuleList,
          RouteLogList,
          RouteLogTail,
@@ -1158,6 +1163,9 @@ namespace HM
       HttpResponse HandleDkim_(const String &domainName);
       HttpResponse HandleDkimRotation_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiDkimRotationPaths_();
+
+      HttpResponse HandleReputation_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiReputationPaths_();
       HttpResponse HandleListRules_();
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);

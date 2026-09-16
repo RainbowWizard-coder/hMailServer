@@ -396,7 +396,40 @@ ANSWERS = {
     ("POST", "/api/v1/webhooks/test"): {"queued": 1},
     ("POST", "/api/v1/dkim/rotation/run"): {"as_of": 1789000000, "domains": 2, "generated": 0, "checked": 1,
                                             "switched": 1, "retired": 0, "errors": 0},
+
+    # The reputation watch, with nothing listed: one address checked against two
+    # lists, an IPv6 address a list does not cover, and a private address that is
+    # deliberately not looked up at all.
+    ("GET", "/api/v1/reputation"): {
+        "enabled": True,
+        "lists": [{"zone": "bl.example.test", "family": "any", "codes": ""},
+                  {"zone": "ipv4.example.test", "family": "ipv4", "codes": ""}],
+        "lists_problem": "",
+        "addresses": [
+            {"address": "192.0.2.25", "family": "ipv4", "sources": ["bind"], "checked": 1789000000, "listed": False,
+             "results": [
+                 {"list": "bl.example.test", "status": "not_listed", "listed": False, "code": "", "reason": "",
+                  "checked": 1789000000, "listed_since": 0},
+                 {"list": "ipv4.example.test", "status": "not_listed", "listed": False, "code": "", "reason": "",
+                  "checked": 1789000000, "listed_since": 0}]},
+            {"address": "2001:db8::25", "family": "ipv6", "sources": ["setting"], "checked": 1789000000, "listed": False,
+             "results": [
+                 {"list": "bl.example.test", "status": "not_listed", "listed": False, "code": "", "reason": "",
+                  "checked": 1789000000, "listed_since": 0},
+                 {"list": "ipv4.example.test", "status": "not_applicable", "listed": None, "code": "",
+                  "reason": "The list covers IPv4 addresses only, so it has nothing to say about this one.",
+                  "checked": 1789000000, "listed_since": 0}]}],
+        "skipped": [{"address": "10.0.0.5", "source": "rule", "reason": "private",
+                     "detail": "A private address. It is not what another server sees."}],
+        "last_checked": 1789000000, "next_check": 1789086400, "now": 1789000100,
+        "counts": {"addresses": 2, "lists": 2, "listed": 0, "not_listed": 3, "unknown": 0,
+                   "not_applicable": 1, "not_checked": 0, "skipped": 1}},
 }
+
+# A check answers the same report with a run member saying what it did.
+ANSWERS[("POST", "/api/v1/reputation/check")] = dict(
+    ANSWERS[("GET", "/api/v1/reputation")],
+    run={"as_of": 1789000200, "addresses": 2, "lists": 2, "lookups": 8, "listed": 0, "unknown": 0, "stored": True})
 
 # Answers that are refusals, by (method, path): the status code and the body.
 REFUSALS = {
@@ -716,6 +749,10 @@ CASES = [
     ("dkim run", ["dkim", "run"], "POST", "/api/v1/dkim/rotation/run", {}, ["switched"]),
     ("dkim run --seconds-ahead", ["dkim", "run", "--seconds-ahead", "262800"],
      "POST", "/api/v1/dkim/rotation/run", {"seconds_ahead": 262800}, ["as_of"]),
+    ("reputation status", ["reputation", "status"], "GET", "/api/v1/reputation", None,
+     ["192.0.2.25", "not_listed", "not looked up", "10.0.0.5"]),
+    ("reputation check", ["reputation", "check"], "POST", "/api/v1/reputation/check", {},
+     ["bl.example.test", "lookup(s)"]),
 ]
 
 
@@ -812,6 +849,73 @@ def run_python_refusals(url):
           "hmctl settings breach-test against an endpoint that could not be used should say why and exit 1, exited %d: %s%s"
           % (completed.returncode, completed.stdout, completed.stderr))
 
+    # A listing is what the exit code is for: a monitoring job runs this and reads
+    # the code rather than the table. An unanswered list counts the same way.
+    key = ("GET", "/api/v1/reputation")
+    clean = ANSWERS[key]
+    listed = json.loads(json.dumps(clean))
+    listed["addresses"][0]["results"][0] = {"list": "bl.example.test", "status": "listed", "listed": True,
+                                            "code": "127.0.0.2", "reason": "Listed for sending unsolicited mail",
+                                            "checked": 1789000000, "listed_since": 1788900000}
+    listed["addresses"][0]["listed"] = True
+    listed["counts"]["listed"] = 1
+    ANSWERS[key] = listed
+    try:
+        completed = run(["reputation", "status"])
+    finally:
+        ANSWERS[key] = clean
+    check(completed.returncode == 1 and "listed" in completed.stdout and "127.0.0.2" in completed.stdout,
+          "hmctl reputation status with an address on a list should print it and exit 1, exited %d: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+
+    # And a pair no check has covered - a list or an address added since the last
+    # one - is not clean either. The report says so in its own words; the exit code
+    # has to say it too, because nothing else a monitoring job reads does.
+    unchecked = json.loads(json.dumps(clean))
+    unchecked["addresses"][0]["results"][0] = {"list": "added.example.test", "status": "not_checked",
+                                              "listed": None, "code": "", "reason": "",
+                                              "checked": 0, "listed_since": 0}
+    unchecked["addresses"][0]["listed"] = None
+    unchecked["counts"]["not_listed"] = 2
+    unchecked["counts"]["not_checked"] = 1
+    ANSWERS[key] = unchecked
+    try:
+        completed = run(["reputation", "status"])
+    finally:
+        ANSWERS[key] = clean
+    check(completed.returncode == 1 and "not_checked" in completed.stdout,
+          "hmctl reputation status with a pair no check has covered should print it and exit 1, exited %d: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+
+    # Unless the watch is off, which is how every upgraded server starts: the
+    # lists are seeded and nothing is checked against them, so every pair is
+    # not_checked for ever. Alarming at every invocation, with nothing in the
+    # table saying why, is what this case exists to stop.
+    off = json.loads(json.dumps(unchecked))
+    off["enabled"] = False
+    ANSWERS[key] = off
+    try:
+        completed = run(["reputation", "status"])
+    finally:
+        ANSWERS[key] = clean
+    check(completed.returncode == 0 and "the watch is off" in completed.stdout
+          and "reputation_watch_enabled" in completed.stdout,
+          "hmctl reputation status with the watch off should say so and exit 0, exited %d: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+
+    # But an answer an earlier check got does not stop being true because the
+    # watch was switched off afterwards.
+    offListed = json.loads(json.dumps(listed))
+    offListed["enabled"] = False
+    ANSWERS[key] = offListed
+    try:
+        completed = run(["reputation", "status"])
+    finally:
+        ANSWERS[key] = clean
+    check(completed.returncode == 1,
+          "hmctl reputation status with the watch off and an address listed should still exit 1, exited %d: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+
     completed = subprocess.run(
         [sys.executable, HMCTL, "--url", "https://example.invalid:8045", "--insecure", "--password", "x", "status"],
         capture_output=True, text=True, timeout=60)
@@ -870,6 +974,13 @@ POWERSHELL_CASES = [
      "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812"]),
     ("Get-HmQueue", "Get-HmQueue | Select-Object -ExpandProperty to_address", "GET", "/api/v1/queue", None, ["far@away.test"]),
     ("Get-HmStatus", "Get-HmStatus | Select-Object -ExpandProperty version", "GET", "/api/v1/status", None, ["6.3.3"]),
+    ("Get-HmReputation", "Get-HmReputation | Select-Object -ExpandProperty last_checked",
+     "GET", "/api/v1/reputation", None, ["1789000000"]),
+    ("Get-HmReputation -Results",
+     "Get-HmReputation -Results | Where-Object Status -eq not_applicable | ForEach-Object { $_.Address + ' ' + $_.List }",
+     "GET", "/api/v1/reputation", None, ["2001:db8::25 ipv4.example.test"]),
+    ("Invoke-HmReputationCheck", "(Invoke-HmReputationCheck).run.lookups",
+     "POST", "/api/v1/reputation/check", {}, ["8"]),
     ("Get-HmDevice", "Get-HmDevice -Address ann@example.com | ForEach-Object { $_.protocol + ' ' + $_.credential_name }",
      "GET", "/api/v1/accounts/ann@example.com/devices", None, ["imap phone", "web "]),
     ("Revoke-HmDevice",

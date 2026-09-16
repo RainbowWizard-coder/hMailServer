@@ -320,6 +320,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="roles" data-needs="view_configuration" title="Roles"><span class="ico">⚑</span><span>Roles</span></button>
         <button data-view="devices" data-needs="view_accounts" title="Devices"><span class="ico">⌗</span><span>Devices</span></button>
         <button data-view="logs" data-serverwide="1" data-needs="view_logs" title="Logs"><span class="ico">≡</span><span>Logs</span></button>
+        <button data-view="reputation" data-serverwide="1" data-needs="view_configuration" title="Outbound reputation"><span class="ico">⊘</span><span>Outbound reputation</span></button>
         <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
         <button data-view="webhooks" data-serverwide="1" data-needs="view_configuration" title="Webhooks"><span class="ico">↱</span><span>Webhooks</span></button>
@@ -747,7 +748,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock")};
+const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -758,6 +759,7 @@ async function render(silent){
     else if(view==="ipranges")await renderIpRanges();
     else if(view==="fetch")await renderFetch();
     else if(view==="lists")await renderLists();
+    else if(view==="reputation")await renderReputation();
     else if(view==="queue")await renderQueue();
     else if(view==="tlsa")await renderTlsa();
     else if(view==="settings")await renderSettings();
@@ -1117,6 +1119,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="roledel")deleteRole(d.name);
   else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
   else if(d.act==="auditverify")verifyAuditChain();
+  else if(d.act==="repwatchcheck")runReputationCheck();
   else if(d.act==="rdnew")openRemoteDomain(0);
   else if(d.act==="devshow")showDevices();
   else if(d.act==="devrevoke")revokeDevice(d.id);
@@ -4183,6 +4186,73 @@ async function verifyAuditChain(){
     if(answer.intact)toast(tf("The chain is intact. {0} row(s) checked.",Number(answer.rows_checked)||0));
     else setErr("err_audit",tf("The chain is broken at row {0}. {1}",Number(answer.first_broken_id)||0,answer.reason||""));
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_audit",e.message);}
+}
+/* ---------- Outbound reputation ----------
+   The addresses this server sends from, against the DNS block lists other
+   servers use. The page decides nothing: the API answers listed as true, false
+   or null, and the third one - the list did not say, because it refused the
+   query, was not answering, or could not be reached - is drawn as its own thing
+   rather than as clean. A page that drew "nobody answered" the way it draws
+   "not listed" would be the reason somebody believed a check that never ran.
+
+   What is checked, and which lists, are settings (reputation_watch_addresses,
+   reputation_watch_lists) and so live on the Settings page with every other one;
+   this view is the answer and the button that asks again. */
+const REPUTATION_STATUS={listed:K("Listed"),not_listed:K("Not listed"),refused:K("Refused"),
+  lookup_failed:K("Lookup failed"),unexpected_answer:K("Unexpected answer"),
+  list_not_answering:K("List not answering"),list_lists_everything:K("List lists everything"),
+  not_applicable:K("Not covered"),not_checked:K("Not checked yet")};
+function reputationLevel(status){
+  if(status==="listed")return "bad";
+  if(status==="not_listed")return "good";
+  if(status==="not_applicable"||status==="not_checked")return "info";
+  return "warn";
+}
+async function renderReputation(){
+  const answer=await api("/api/v1/reputation");
+  const addresses=answer.addresses||[];
+  const skipped=answer.skipped||[];
+  const rows=[];
+  addresses.forEach(a=>{
+    const sources=(a.sources||[]).join(", ");
+    (a.results||[]).forEach(r=>{
+      rows.push(`<tr><td><b>${escHtml(a.address)}</b><div class="hint muted">${escHtml(sources)}</div></td>
+        <td>${escHtml(r.list)}</td>
+        <td><span class="pill" data-level="${reputationLevel(r.status)}"><span class="mark">●</span>${escHtml(t(REPUTATION_STATUS[r.status]||r.status))}</span>
+          ${r.listed_since?'<div class="hint muted">'+escHtml(tf("listed since {0}",auditWhen(r.listed_since)))+'</div>':""}</td>
+        <td>${escHtml(r.code||"—")}</td>
+        <td>${escHtml(r.reason||"")}</td>
+        <td>${escHtml(r.checked?auditWhen(r.checked):"—")}</td></tr>`);
+    });
+  });
+  const skippedRows=skipped.map(s=>`<tr><td><b>${escHtml(s.address)}</b></td><td>${escHtml(s.source)}</td>
+    <td>${escHtml(s.detail||s.reason)}</td></tr>`).join("");
+  const when=answer.last_checked?tf("Last checked {0}, next {1}",auditWhen(answer.last_checked),
+    answer.next_check?auditWhen(answer.next_check):"—"):t("Not checked yet");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <p class="note">${t("The addresses this server sends from, checked once a day against the DNS block lists other servers use. Which addresses, and which lists, are on the Settings page.")}</p>
+      ${answer.enabled?"":'<p class="note">'+t("The watch is off. reputation_watch_enabled on the Settings page turns it on.")+"</p>"}
+      <div class="row" style="gap:10px;align-items:center">
+        <span class="muted">${escHtml(when)}</span>
+        ${may("manage_server")?'<button class="btn ghost sm" data-act="repwatchcheck">'+t("Check now")+"</button>":""}
+      </div>
+      <div class="err" id="err_repwatch">${escHtml(answer.lists_problem||"")}</div>
+    </div>
+    <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("List")}</th><th>${t("Status")}</th>
+      <th>${t("Answer")}</th><th>${t("Reason")}</th><th>${t("When")}</th></tr></thead>
+    <tbody>${rows.join("")||'<tr><td colspan="6" class="empty">'+t("No outbound address is configured, so nothing is checked: set the delivery bind address, or name this server\'s public address in reputation_watch_addresses on the Settings page.")+"</td></tr>"}</tbody></table></div>
+    ${skippedRows?'<div class="sect"><h2>'+t("Not looked up")+'</h2><div class="card flat"><div class="tablewrap"><table><thead><tr><th>'+t("Address")+"</th><th>"+t("Source")+"</th><th>"+t("Detail")+'</th></tr></thead><tbody>'+skippedRows+"</tbody></table></div></div></div>":""}
+    </div>`;
+}
+async function runReputationCheck(){
+  setErr("err_repwatch","");
+  try{
+    const answer=await api("/api/v1/reputation/check",{method:"POST",body:"{}"});
+    const run=answer.run||{};
+    toast(tf("Checked {0} address(es) against {1} list(s)",Number(run.addresses)||0,Number(run.lists)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_repwatch",e.message);}
 }
 async function showLog(name,lines){
   setErr("err_log","");

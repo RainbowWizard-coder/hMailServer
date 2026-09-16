@@ -78,6 +78,8 @@ public:
    STDMETHOD(SearchArchive)(/*[in]*/ BSTR Domain, /*[in]*/ BSTR Mailbox, /*[in]*/ BSTR Sender, /*[in]*/ BSTR Recipient, /*[in]*/ BSTR Subject, /*[in]*/ BSTR Since, /*[in]*/ BSTR Until, /*[in]*/ VARIANT_BOOL HoldOnly, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(SetArchiveHold)(/*[in]*/ long ArchiveID, /*[in]*/ VARIANT_BOOL Hold, /*[out, retval]*/ VARIANT_BOOL *Found);
    STDMETHOD(RunDkimRotation)(/*[in]*/ long SecondsAhead, /*[out, retval]*/ BSTR *Summary);
+   STDMETHOD(RunReputationCheck)(/*[out, retval]*/ BSTR *Report);
+   STDMETHOD(GetReputationReport)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetSuppressionList)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(AddSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[in]*/ BSTR Note, /*[in]*/ long ExpiresDays, /*[out, retval]*/ VARIANT_BOOL *Added);
    STDMETHOD(RemoveSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[out, retval]*/ VARIANT_BOOL *Removed);

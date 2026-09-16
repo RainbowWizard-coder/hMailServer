@@ -1091,6 +1091,58 @@ function Get-HmDkimRotationPath {
     '/api/v1/domains/' + [uri]::EscapeDataString($Domain) + '/dkim/rotation'
 }
 
+function Get-HmReputation {
+    <#
+    .SYNOPSIS
+        What the last check of this server's own outbound addresses found.
+    .DESCRIPTION
+        GET /api/v1/reputation. Without -Results the report itself; with it, one
+        object per address and list, which is what Where-Object and Format-Table
+        want. Listed is True, False or $null, and the third one - the list refused
+        the query, was not answering, or could not be reached - is not False.
+    .EXAMPLE
+        Get-HmReputation -Results | Where-Object Listed -eq $true
+    #>
+    [CmdletBinding()]
+    param([switch] $Results)
+
+    $report = Invoke-HmApi -Method GET -Path '/api/v1/reputation'
+    if (-not $Results) { return $report }
+
+    foreach ($address in @($report.addresses)) {
+        foreach ($result in @($address.results)) {
+            [pscustomobject] @{
+                Address     = $address.address
+                List        = $result.list
+                Status      = $result.status
+                Listed      = $result.listed
+                Answer      = $result.code
+                Reason      = $result.reason
+                ListedSince = $result.listed_since
+                Checked     = $result.checked
+            }
+        }
+    }
+}
+
+function Invoke-HmReputationCheck {
+    <#
+    .SYNOPSIS
+        Checks this server's outbound addresses against the DNS block lists now,
+        rather than waiting for the daily check.
+    .DESCRIPTION
+        POST /api/v1/reputation/check. Answers the report with a run member saying
+        what the check did. Server administrators only; it makes a handful of DNS
+        queries while the call waits.
+    .EXAMPLE
+        (Invoke-HmReputationCheck).run.listed
+    #>
+    [CmdletBinding()]
+    param()
+
+    Invoke-HmApi -Method POST -Path '/api/v1/reputation/check' -Body @{}
+}
+
 # ---------------------------------------------------------------------------
 # Bounces and the suppression list
 # ---------------------------------------------------------------------------
@@ -2325,6 +2377,7 @@ Export-ModuleMember -Function @(
     'Get-HmQuarantine', 'Restore-HmQuarantineMessage',
     'Get-HmLog', 'Get-HmBackup', 'Start-HmBackup', 'Test-HmRuleCriterion',
     'Get-HmDkimRotation', 'Start-HmDkimRotation', 'Test-HmDkimRotation', 'Complete-HmDkimRotation',
+    'Get-HmReputation', 'Invoke-HmReputationCheck',
     'Remove-HmDkimRetiringKey', 'Stop-HmDkimRotation', 'Invoke-HmDkimRotation',
     'Get-HmSuppression', 'Add-HmSuppression', 'Remove-HmSuppression', 'Get-HmBounceCount',
     'Get-HmChangedSetting',
