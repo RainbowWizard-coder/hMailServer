@@ -418,8 +418,9 @@ namespace RegressionTests.API
          Assert.AreEqual(200, overRest.status, overRest.body);
          Assert.AreEqual(policy, overRest.body, "REST and COM answer one document.");
 
-         (int status, string body) domainRow = Http("GET", "/api/v1/domains/" + _domain.Name, AdminHeader());
-         StringAssert.Contains("\"session_idle_seconds\":1", domainRow.body);
+         (int status, string body) domainRows = Http("GET", "/api/v1/domains", AdminHeader());
+         Assert.AreEqual(200, domainRows.status, domainRows.body);
+         StringAssert.Contains("\"session_idle_seconds\":1", domainRows.body, "The domain's row carries its own policy.");
 
          Response started = Raw("POST", "/api/v1/session", UserHeader(UserPassword), null, "User-Agent: Domain/1.0\r\n");
          Assert.AreEqual(201, started.Status, started.Body);

@@ -14,7 +14,9 @@
 #include "../Application/Application.h"
 #include "../Application/Logger.h"
 #include "../Application/Configuration.h"
+#include "../BO/Account.h"
 #include "../BO/Message.h"
+#include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../SQL/DALRecordset.h"
@@ -208,8 +210,12 @@ namespace HM
 
       // The path is taken now, while the message object is in hand. Working it out
       // later would need the account, and the account may have been deleted by
-      // then - in which case there is nothing to announce anyway.
-      note.file_name = PersistentMessage::GetFileName(message);
+      // then - in which case there is nothing to announce anyway. The account is
+      // what places the file: without it the path is the data directory's root,
+      // where no delivered message is, and the subject would read as empty.
+      std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(accountId);
+      note.file_name = account ? PersistentMessage::GetFileName(account, message)
+                               : PersistentMessage::GetFileName(message);
 
       bool post = false;
 
@@ -335,7 +341,6 @@ namespace HM
       headers.push_back("Content-Encoding: aes128gcm");
       headers.push_back("Urgency: normal");
       headers.push_back("Authorization: " + authorization);
-      headers.push_back("User-Agent: hMailServer");
 
       HttpsClient::Response response;
 
@@ -385,7 +390,29 @@ namespace HM
          return false;
       }
 
+      // A test that failed is a failure like any other: counted against the
+      // subscription with the reason shown, and a next attempt set, so that the
+      // page says what happened rather than showing a device that looks fine and
+      // never hears anything.
+      RecordFailure_(subscription.id, subscription.failures, (__int64) time(nullptr), error);
+
       return false;
+   }
+
+   void
+   PushNotifier::RecordFailure_(__int64 subscriptionId, int failuresSoFar, __int64 now, const String &error)
+   {
+      const int failures = failuresSoFar + 1;
+      const int maximumAttempts = Configuration::Instance()->GetWebPushMaxAttempts();
+
+      if (failures >= maximumAttempts)
+      {
+         PushSubscriptions::MarkFailed(subscriptionId, failures, 0, PushSubscriptions::StateDeadLettered, error);
+         return;
+      }
+
+      const __int64 next = now + (__int64) BackoffMinutes(failures - 1) * 60;
+      PushSubscriptions::MarkFailed(subscriptionId, failures, next, PushSubscriptions::StateActive, error);
    }
 
    int

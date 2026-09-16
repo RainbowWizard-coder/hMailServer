@@ -353,7 +353,11 @@ namespace RegressionTests.API
          if (status != 200)
             return;
 
-         foreach (object entry in MiniJson.List(MiniJson.Object(body), "domains"))
+         object parsed = MiniJson.Parse(body);
+         IEnumerable<object> entries = parsed as List<object> ??
+                                       (IEnumerable<object>) MiniJson.List((Dictionary<string, object>) parsed, "domains");
+
+         foreach (object entry in entries)
          {
             var domain = entry as Dictionary<string, object>;
             object name;

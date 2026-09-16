@@ -163,6 +163,11 @@ namespace HM
             nodes_.push_back(BuildNode());
          }
 
+         size_t DataBytes() const
+         {
+            return data_.size();
+         }
+
          // A country record, as a GeoLite2-Country file holds one. Returns its
          // offset in the data section, which is what a network is pointed at.
          size_t AddCountry(const AnsiString &iso, const AnsiString &name, const char *section = "country")
@@ -568,8 +573,10 @@ namespace HM
          // The front of the file removed, with the marker and the metadata left
          // where they are: the tree the metadata describes is now longer than
          // the file that is supposed to hold it, which is what a download that
-         // stopped part way looks like from the reader's side.
-         std::vector<unsigned char> truncated(bytes.begin() + 40, bytes.end());
+         // stopped part way looks like from the reader's side. The cut has to be
+         // longer than the data section, or the tree still fits in what is left
+         // and the reader has nothing to refuse.
+         std::vector<unsigned char> truncated(bytes.begin() + builder.DataBytes() + 1, bytes.end());
 
          GeoIpDatabase database;
          String error;

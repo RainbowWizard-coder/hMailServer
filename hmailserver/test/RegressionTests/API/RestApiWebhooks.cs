@@ -72,6 +72,7 @@ namespace RegressionTests.API
       public void StartRestApi()
       {
          _changed = false;
+         _domainName = _domain.Name;
 
          if (TestPorts.Host != "127.0.0.1" && !string.Equals(TestPorts.Host, "localhost", StringComparison.OrdinalIgnoreCase))
             Assert.Ignore("The fake endpoint listens on this machine's loopback address, and the server under test is on " + TestPorts.Host + ".");
@@ -177,7 +178,7 @@ namespace RegressionTests.API
             };
 
             foreach (string name in events)
-               Assert.AreEqual("1", Extract(RaiseTest(name, _domain.Name), "queued"), name + " was queued for nobody.");
+               Assert.AreEqual("1", Extract(RaiseTest(name, _domainName), "queued"), name + " was queued for nobody.");
 
             Run();
 
@@ -224,7 +225,7 @@ namespace RegressionTests.API
             // The subscription asks for subjects; the domain has not agreed.
             Create("suite", "\"include_subject\":true");
 
-            RaiseTest("message.received", _domain.Name, "\"subject\":\"The quarterly figures\"");
+            RaiseTest("message.received", _domainName, "\"subject\":\"The quarterly figures\"");
             Run();
 
             List<string> first = WaitForRequests(endpoint, 1);
@@ -233,7 +234,7 @@ namespace RegressionTests.API
 
             SetDomainWebhooks(true, true);
 
-            RaiseTest("message.received", _domain.Name, "\"subject\":\"The quarterly figures\"");
+            RaiseTest("message.received", _domainName, "\"subject\":\"The quarterly figures\"");
             Run();
 
             List<string> second = WaitForRequests(endpoint, 2);
@@ -246,9 +247,9 @@ namespace RegressionTests.API
       [Description("A subscription confined to one domain hears nothing about another, because a scope that quietly does not apply is worse than no scope.")]
       public void ASubscriptionConfinedToOneDomainHearsNothingFromAnother()
       {
-         Create("suite", "\"domains\":\"" + _domain.Name + "\"");
+         Create("suite", "\"domains\":\"" + _domainName + "\"");
 
-         Assert.AreEqual("1", Extract(RaiseTest("message.received", _domain.Name), "queued"));
+         Assert.AreEqual("1", Extract(RaiseTest("message.received", _domainName), "queued"));
          Assert.AreEqual("0", Extract(RaiseTest("message.received", "somewhere-else.example"), "queued"),
             "The subscription names one domain, and the event was about another.");
 
@@ -262,8 +263,8 @@ namespace RegressionTests.API
       {
          Create("suite", "\"events\":\"message.bounced\"");
 
-         Assert.AreEqual("0", Extract(RaiseTest("account.locked", _domain.Name), "queued"));
-         Assert.AreEqual("1", Extract(RaiseTest("message.bounced", _domain.Name), "queued"));
+         Assert.AreEqual("0", Extract(RaiseTest("account.locked", _domainName), "queued"));
+         Assert.AreEqual("1", Extract(RaiseTest("message.bounced", _domainName), "queued"));
       }
 
       [Test]
@@ -274,12 +275,12 @@ namespace RegressionTests.API
 
          SetDomainWebhooks(false, false);
 
-         Assert.AreEqual("0", Extract(RaiseTest("message.received", _domain.Name), "queued"),
+         Assert.AreEqual("0", Extract(RaiseTest("message.received", _domainName), "queued"),
             "The domain's own switch is off, so nothing about it is raised.");
 
          SetDomainWebhooks(true, false);
 
-         Assert.AreEqual("1", Extract(RaiseTest("message.received", _domain.Name), "queued"));
+         Assert.AreEqual("1", Extract(RaiseTest("message.received", _domainName), "queued"));
       }
 
       [Test]
@@ -295,10 +296,10 @@ namespace RegressionTests.API
          if (DateTime.UtcNow.Second > 55)
             Thread.Sleep(TimeSpan.FromSeconds(61 - DateTime.UtcNow.Second));
 
-         Assert.AreEqual("1", Extract(RaiseTest("message.received", _domain.Name), "queued"));
-         Assert.AreEqual("0", Extract(RaiseTest("message.received", _domain.Name), "queued"),
+         Assert.AreEqual("1", Extract(RaiseTest("message.received", _domainName), "queued"));
+         Assert.AreEqual("0", Extract(RaiseTest("message.received", _domainName), "queued"),
             "The second event in the same minute is past the ceiling of one.");
-         Assert.AreEqual("0", Extract(RaiseTest("message.received", _domain.Name), "queued"));
+         Assert.AreEqual("0", Extract(RaiseTest("message.received", _domainName), "queued"));
 
          string listing = Read(WebhooksPath + "/suite");
          Assert.AreEqual(2, Extract(listing, "dropped").ToInt(), listing);
@@ -312,7 +313,7 @@ namespace RegressionTests.API
          Http("PUT", "/api/v1/settings", "{\"webhook_max_attempts\":2}");
 
          Create("suite");
-         RaiseTest("message.bounced", _domain.Name);
+         RaiseTest("message.bounced", _domainName);
 
          Run();
 
@@ -340,8 +341,8 @@ namespace RegressionTests.API
       {
          Create("suite");
 
-         RaiseTest("message.received", _domain.Name);
-         RaiseTest("message.bounced", _domain.Name);
+         RaiseTest("message.received", _domainName);
+         RaiseTest("message.bounced", _domainName);
 
          // One pass with nothing listening. The first row gets a failure recorded
          // against it; the second is left untouched for the next pass, because an
@@ -381,7 +382,7 @@ namespace RegressionTests.API
       {
          using (var endpoint = new FakeHttpEndpoint(IPAddress.Loopback, EndpointPort, 200, "{}", "application/json"))
          {
-            string address = "hookwatch@" + _domain.Name;
+            string address = "hookwatch@" + _domainName;
             Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, "secret-password");
 
             Create("suite", "\"events\":\"message.received\"");
@@ -398,7 +399,7 @@ namespace RegressionTests.API
             StringAssert.Contains("\"event\":\"message.received\"", sent, sent);
             StringAssert.Contains("\"sender\":\"outsider@example.net\"", sent, sent);
             StringAssert.Contains("\"recipient\":\"" + address + "\"", sent, sent);
-            StringAssert.Contains("\"domain\":\"" + _domain.Name + "\"", sent, sent);
+            StringAssert.Contains("\"domain\":\"" + _domainName + "\"", sent, sent);
             StringAssert.Contains("\"queue_id\":", sent, sent);
             StringAssert.DoesNotContain("A message for the hook", sent,
                "The subject travels only where the domain and the subscription both allow it.");
@@ -434,7 +435,7 @@ namespace RegressionTests.API
       public void DeletingASubscriptionTakesItsQueueWithIt()
       {
          Create("suite");
-         RaiseTest("message.received", _domain.Name);
+         RaiseTest("message.received", _domainName);
 
          StringAssert.Contains("\"webhook\":\"suite\"", Read(WebhooksPath + "/deliveries?limit=50"));
 
@@ -469,7 +470,7 @@ namespace RegressionTests.API
 
       private string CreateApiKey()
       {
-         (int status, string body) answer = Http("POST", "/api/v1/apikeys", "{\"name\":\"webhook-suite\"}");
+         (int status, string body) answer = Http("POST", "/api/v1/apikeys", "{\"label\":\"webhook-suite\"}");
          Assert.AreEqual(201, answer.status, answer.body);
 
          Match match = Regex.Match(answer.body, "\"key\"\\s*:\\s*\"([^\"]+)\"");
@@ -487,6 +488,11 @@ namespace RegressionTests.API
          Assert.AreEqual(201, answer.status, answer.body);
       }
 
+      // The domain's name rather than the Domain object: TheQueueSurvivesARestart
+      // restarts the service, after which the COM proxy the fixture was given
+      // in SetUp answers nothing, and TearDown still has to put the domain back.
+      private string _domainName;
+
       private void RemoveEverySubscription()
       {
          (int status, string body) listing = Http("GET", WebhooksPath);
@@ -499,7 +505,7 @@ namespace RegressionTests.API
 
       private void SetDomainWebhooks(bool enabled, bool subjects)
       {
-         (int status, string body) answer = Http("PUT", "/api/v1/domains/" + _domain.Name,
+         (int status, string body) answer = Http("PUT", "/api/v1/domains/" + _domainName,
             "{\"active\":true,\"webhooks_enabled\":" + (enabled ? "true" : "false") +
             ",\"webhook_subjects\":" + (subjects ? "true" : "false") + "}");
          Assert.AreEqual(200, answer.status, answer.body);

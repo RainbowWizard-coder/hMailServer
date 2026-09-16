@@ -53,7 +53,7 @@ namespace RegressionTests.Security
       [SetUp]
       public new void SetUp()
       {
-         _account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "geo@test.com", "test");
+         _account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "geo@example.test", "test");
 
          _databasePath = Paths.Combine(_settings.Directories.DataDirectory, "GeoIP", "RegressionTests-Country.mmdb");
 
@@ -211,7 +211,7 @@ namespace RegressionTests.Security
 
          try
          {
-            ClassicAssert.IsTrue(client.ConnectAndLogon("geo@test.com", "test"),
+            ClassicAssert.IsTrue(client.ConnectAndLogon("geo@example.test", "test"),
                "The session must be established while nothing is being judged.");
 
             // Now refuse this country on IMAP. Nothing consults the policy again
@@ -266,13 +266,13 @@ namespace RegressionTests.Security
          // The listener policies stay off: this is the per-domain policy, which
          // is about signing in rather than about connecting, because a domain is
          // not known when a connection is accepted.
-         string ordinaryRefusal = PopLogon("geo@test.com", "wrong");
+         string ordinaryRefusal = PopLogon("geo@example.test", "wrong");
          StringAssert.Contains("-ERR", ordinaryRefusal);
 
          _domain.CountryPolicy = "block:" + LoopbackCountry;
          _domain.Save();
 
-         string refused = PopLogon("geo@test.com", "test");
+         string refused = PopLogon("geo@example.test", "test");
          ClassicAssert.AreEqual(ordinaryRefusal, refused,
             "A sign-in refused on its country must be byte-identical to a wrong password. Anything else tells the " +
             "person on the other end what the policy is.");
@@ -282,7 +282,7 @@ namespace RegressionTests.Security
          _domain.CountryPolicy = "allow:" + LoopbackCountry;
          _domain.Save();
 
-         StringAssert.Contains("+OK", PopLogon("geo@test.com", "test"));
+         StringAssert.Contains("+OK", PopLogon("geo@example.test", "test"));
       }
 
       [Test]
@@ -292,7 +292,7 @@ namespace RegressionTests.Security
          JudgeTheLoopbackAddress();
 
          ClassicAssert.AreEqual("", _domain.CountryPolicy);
-         StringAssert.Contains("+OK", PopLogon("geo@test.com", "test"));
+         StringAssert.Contains("+OK", PopLogon("geo@example.test", "test"));
       }
 
       [Test]

@@ -89,6 +89,7 @@ namespace HM
       // 15, 60, 60 ... Public because the documentation states it and a test pins
       // it.
       static int BackoffMinutes(int attemptsSoFar);
+      static void RecordFailure_(__int64 subscriptionId, int failuresSoFar, __int64 now, const String &error);
 
       // The payload one message becomes at a given detail level, as JSON. Public
       // and pure: it is the promise about what leaves the server, and a test reads

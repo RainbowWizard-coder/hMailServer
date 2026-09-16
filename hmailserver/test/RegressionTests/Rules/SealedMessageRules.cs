@@ -71,6 +71,14 @@ namespace RegressionTests.Rules
          action.Save();
 
          rule.Save();
+
+         // The folder the rule moves into exists from the start, so that a test
+         // can ask it for a count of zero: a rule that never fires never creates
+         // it, and a folder that is not there cannot be examined.
+         var imap = new ImapClientSimulator();
+         Assert.IsTrue(imap.ConnectAndLogon(_account.Address, Password));
+         Assert.IsTrue(imap.CreateFolder(HeldFolderName));
+         imap.Disconnect();
       }
 
       private static string PlainMessage(string recipient, string body)

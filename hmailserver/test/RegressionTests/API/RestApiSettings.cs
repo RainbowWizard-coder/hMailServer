@@ -773,14 +773,9 @@ namespace RegressionTests.API
          foreach (string badName in new[] { "has=equals", "has[bracket", "has]bracket", "%20leadingspace", new string('n', 101) })
          {
             (int nameStatus, string nameBody) = Http("PUT", "/api/v1/settings/ini/" + badName, "{\"value\":\"x\"}");
-            if (badName.StartsWith("%"))
-            {
-               // The path is not decoded: %20leadingspace is a key spelled that
-               // way, and the file can hold it. Written and removed again.
-               Assert.AreEqual(200, nameStatus, nameBody);
-               Assert.AreEqual(200, Http("DELETE", "/api/v1/settings/ini/" + badName).status);
-               continue;
-            }
+            // A path segment is percent-decoded before any handler sees it, so
+            // %20leadingspace reaches the name rule as " leadingspace" and is
+            // refused for its leading space like a name typed with one.
             Assert.AreEqual(400, nameStatus, "The name '" + badName + "' cannot be stored and read back as itself: " + nameBody);
             StringAssert.Contains("The setting name is empty, longer than 100 characters", nameBody);
          }

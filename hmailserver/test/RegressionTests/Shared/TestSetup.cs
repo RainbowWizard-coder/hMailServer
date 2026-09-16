@@ -387,8 +387,8 @@ namespace RegressionTests.Shared
          if (ComplaintTestSupport.ComComplaintMailbox(_settings) != "")
             ComplaintTestSupport.ComSetComplaintMailbox(_settings, "");
 
-         if (ComplaintTestSupport.ComComplaintSuppressionThreshold(_settings) != 1)
-            ComplaintTestSupport.ComSetComplaintSuppressionThreshold(_settings, 1);
+         if (ComplaintTestSupport.ComComplaintSuppressionThreshold(_settings) != 0)
+            ComplaintTestSupport.ComSetComplaintSuppressionThreshold(_settings, 0);
 
          if (ComplaintTestSupport.ComComplaintRetentionDays(_settings) != 180)
             ComplaintTestSupport.ComSetComplaintRetentionDays(_settings, 180);

@@ -404,6 +404,14 @@ namespace HM
 
       for (auto attachment : pAttachments->GetVector())
       {
+         // The detached signature of a signed message is not a file the sender
+         // attached; it is what makes the message verifiable. It is left alone
+         // whatever it is called, because replacing it removes nothing and only
+         // makes every client report the message as tampered with - and the
+         // real attachments of the same message are still checked below.
+         if (signedMessage && IsDetachedSignaturePart_(attachment->GetContentType()))
+            continue;
+
          // Check if attachment matches blocked file.
          auto matching_wildcard = std::find_if(blocked_attachment_wildcards.begin(), blocked_attachment_wildcards.end(), [&attachment](std::shared_ptr<BlockedAttachment> blocked_attachment)
             {
@@ -460,6 +468,17 @@ namespace HM
       }
 
 
+   }
+
+   bool
+   VirusScanner::IsDetachedSignaturePart_(const AnsiString &contentType)
+   {
+      String type = contentType;
+      type.ToLower();
+
+      return type.StartsWith(_T("application/pkcs7-signature")) ||
+             type.StartsWith(_T("application/x-pkcs7-signature")) ||
+             type.StartsWith(_T("application/pgp-signature"));
    }
 
    VirusScanningResult

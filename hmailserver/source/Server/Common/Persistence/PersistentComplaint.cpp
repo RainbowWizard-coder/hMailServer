@@ -170,9 +170,12 @@ namespace HM
 
       // The unique index on the key decides a race between two nodes reading the
       // same report at once, and recognises a provider that sends the same report
-      // twice. The loser is not an error, so none is written: the insert is read
-      // back, and a row with this key means the complaint is already recorded.
-      if (Db()->Execute(statement, 0, DALConnection::DALErrorInSQL))
+      // twice. The loser is not an error, so none is written - and an error that
+      // is ignored is answered as success, so it is the identity that says
+      // whether a row was written: none means the insert lost, and the key is
+      // read back to tell "already recorded" from "could not be written".
+      __int64 inserted = 0;
+      if (Db()->Execute(statement, &inserted, DALConnection::DALErrorInSQL) && inserted > 0)
          return 1;
 
       SQLCommand command(_T("select cpid from hm_complaints where cpkey = @KEY"));

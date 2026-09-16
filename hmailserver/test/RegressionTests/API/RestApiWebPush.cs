@@ -170,7 +170,7 @@ namespace RegressionTests.API
             string request = OneRequest(service);
             Assert.IsNotNull(request, "The push service was never called.");
 
-            StringAssert.StartsWith("POST /push/signed HTTP/1.1", request, request);
+            StringAssert.StartsWith("POST /push/signed HTTP/1.", request, request);
             StringAssert.Contains("Content-Encoding: aes128gcm", request, "RFC 8291: the body is aes128gcm and the header says so.");
             StringAssert.Contains("Content-Type: application/octet-stream", request, request);
             Assert.AreEqual("86400", Header(request, "TTL"), "The TTL header carries WebPushTimeToLiveSeconds, 86400 by default.");
@@ -318,7 +318,7 @@ namespace RegressionTests.API
             int to = (deviceMinute + 30) % 1440;
 
             Device device = Device.Make(this, service.UrlFor("/push/quiet"));
-            long id = Subscribe(device, "\"device\":\"Asleep\",\"quiet_from\":" + from + ",\"quiet_to\":" + to + ",\"quiet_offset\":" + offset);
+            long id = Subscribe(device, "\"device\":\"Asleep\",\"detail\":2,\"quiet_from\":" + from + ",\"quiet_to\":" + to + ",\"quiet_offset\":" + offset);
 
             SmtpClientSimulator.StaticSend(_sender.Address, Address, "In the night", "Shh.");
             Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);

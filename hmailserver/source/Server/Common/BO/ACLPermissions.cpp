@@ -97,9 +97,14 @@ namespace HM
       // it here would fail the whole restore over the order two mailboxes happen
       // to appear in. It waits instead, and ACLManager::ApplyRestoredGrants writes
       // it when everything it could name is back.
+      //
+      // A GROUP grant always waits, even when a group of that name exists now:
+      // the settings phase deletes and recreates every group, with new ids, so a
+      // row written against the group's id during the domain phase named a
+      // group that did not exist by the end of the restore, and the grant
+      // silently vanished. Written at the end, it names the group that is there.
       bool holderIsBack = pPermission->GetPermissionType() == ACLPermission::PTAnyone ||
-                          (pPermission->GetPermissionType() == ACLPermission::PTUser && pPermission->GetPermissionAccountID() != 0) ||
-                          (pPermission->GetPermissionType() == ACLPermission::PTGroup && pPermission->GetPermissionGroupID() != 0);
+                          (pPermission->GetPermissionType() == ACLPermission::PTUser && pPermission->GetPermissionAccountID() != 0);
 
       if (!holderIsBack)
       {

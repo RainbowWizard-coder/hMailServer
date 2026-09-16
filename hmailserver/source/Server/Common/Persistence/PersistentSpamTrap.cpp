@@ -120,6 +120,15 @@ namespace HM
    {
       out_id = 0;
 
+      // stlocalpart is nvarchar(64), and Fit() cuts a trap's local part to 64 on
+      // the way in, so nothing longer is ever in the table. SQL Server Compact
+      // does not merely find nothing for a longer parameter: it fails the
+      // statement, and the failure was reported as a server error every time an
+      // account with a long local part was saved (the pre-save check asks this
+      // question for every account, alias and list).
+      if (localPart.IsEmpty() || localPart.GetLength() > 64)
+         return false;
+
       SQLCommand command("select stid from hm_spamtraps where stdomainid = @DOMAINID and stlocalpart = @LOCALPART");
       command.AddParameter("@DOMAINID", domainId);
       command.AddParameter("@LOCALPART", localPart);

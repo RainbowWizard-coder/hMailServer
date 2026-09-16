@@ -681,7 +681,7 @@ namespace RegressionTests.API
 
       private static (string id, string key) CreateKey(string name, string scope, string domains)
       {
-         string body = "{\"name\":\"" + name + "\",\"scope\":\"" + scope + "\"" +
+         string body = "{\"label\":\"" + name + "\",\"scope\":\"" + scope + "\"" +
                        (domains == null ? "" : ",\"domains\":\"" + domains + "\"") + "}";
 
          (int status, string created) = Http("POST", "/api/v1/apikeys", body);

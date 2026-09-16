@@ -44,6 +44,33 @@ namespace RegressionTests.Shared
       public const string SuiteKeyFingerprint = "866ac3a0785f51afd5eada4635efb5d13db90a11";
 
       /// <summary>
+      ///    "Ann Example &lt;ann@example.org&gt;" and a second user id, RSA 2048,
+      ///    expiring a year after it was made: 1030 bytes, which is what makes it
+      ///    the key for the size-cap case, since 1024 is the lowest cap there is.
+      ///    The same bytes as AnnKeyBase64 in the server's OpenPgpKeyTester.
+      /// </summary>
+      public const string RsaKeyBase64 =
+         "mQENBGqqAiEBCADFsurRCxIYwqBxuwUf9vktSLk3PkTNlDCklnFzS7R18aq/nnKVfK6iQK1YHFxr" +
+         "Tam53W9V7mH8H68uysFupWca7Btar+fX4LhmTeo6A44yiZXQlw6u6hZisA/GaLWsuGKvFQVBufbd" +
+         "AsIfXByY5ZVdDnF35DaEJPKZUESWXPHedISljkYB2gl7MtvNF5uMnKnDlzQNS+VRiEXhf9pTltLm" +
+         "wulM7c7pNzHpTw+kC1bvG5uhJwEXFes/f02rzWorXvrz8+ZP3/+kOgQp6B6jeORAsioG8HERC/us" +
+         "oR93PiUiDPuAMvSLVDsaY6hJdD7S1VXnz3wPj7ZL+ABHUaU07mjHABEBAAG0HUFubiBFeGFtcGxl" +
+         "IDxhbm5AZXhhbXBsZS5vcmc+iQFXBBMBCABBFiEEgAsmzMNuDjtKYaJrGf56L+kF3yAFAmqqAiEC" +
+         "GwMFCQHhM4AFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQGf56L+kF3yAcLwgAoLJBC96F" +
+         "/vOtmOu5DCelFeiRGWxYiq4Rm0W9KN/cHYNvTNamD5BSb/aiXXZqzlbGvMA9zqebYvxMStX/OLZt" +
+         "8TBLxjV5bV3QAykDtATJW1T7tmqjgy355E9yeRd06t+kBmSmmY6HiSykqd+9Z9YfGyiygOlpKA+N" +
+         "Kk7qxFBrcL4w6UOWBdM2w7X65eR9BcDydfMJHrwNS/Gtv/3ZrVclCXrk5E1+BL0cKL+TSbUXjns+" +
+         "LhSc69ggi3D60H/a8R/pWcCPTFmplpeCFO+ygwS8bOoSv9LdZ09CjSuPwUmrzHHKsMVMuA11wNPi" +
+         "moIlj+S8cqLYiQfsP1srRTfDgWeIfLQhQW5uIEUgRXhhbXBsZSA8YW5uLmVAZXhhbXBsZS5vcmc+" +
+         "iQFXBBMBCABBFiEEgAsmzMNuDjtKYaJrGf56L+kF3yAFAmqqAiUCGwMFCQHhM4AFCwkIBwICIgIG" +
+         "FQoJCAsCBBYCAwECHgcCF4AACgkQGf56L+kF3yDkWgf/T1/tjVq1T6G+LZMwt0LIF5pbqBglDqfm" +
+         "c6xqr4huHQA9tAhqupAT7o/mfRxqRD5CdfzRTfY087Gv9u51KAkRvEbMjnq6oWxQ+YDwtotFSZeY" +
+         "TTFChNTkrM2WLRjhipoJW7/+ulcYVE4VUDmDkIChaApsT90m28GGqcvDiQhxsyxPV6xy3VqJOFg7" +
+         "kOS/A3/GANaOgk7D9aPy44JcnDTlCNZksU4JkktHY2GCyB+5Pjk3ZI9Fq+omDecdokfn67868rDv" +
+         "84C6PqbVF7xiuKYsU4z63S/Kzj6TCDVe20Hi8T/ylRQE8PV9zHacExOkEIj/vwpo2WPcWps/meuw" +
+         "owKaAQ==";
+
+      /// <summary>
       ///    "Joe Doe &lt;joe.doe@example.org&gt;", Ed25519 with a Curve25519 subkey.
       ///    Its user id names an address OUTSIDE the suite's domain, which is what
       ///    makes it the key for the address-mismatch cases.

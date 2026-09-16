@@ -349,14 +349,13 @@ namespace RegressionTests.API
 
          Http("DELETE", "/api/v1/me/openpgp/" + OpenPgpTestSupport.SuiteKeyFingerprint, UserHeader());
 
-         // And below it, the same key is refused with the cap in the sentence.
-         OpenPgpTestSupport.SetKeyMaximumBytes(_settings, 100);
-
+         // And a key past it - 1024 is the lowest cap the setting allows, and
+         // the RSA key is 1030 bytes - is refused with the cap in the sentence.
          (int status, string body) refused = Http("PUT", "/api/v1/me/openpgp", UserHeader(),
-            "{\"key\":\"" + OpenPgpTestSupport.SuiteKeyBase64 + "\"}");
+            "{\"key\":\"" + OpenPgpTestSupport.RsaKeyBase64 + "\"}");
 
          Assert.AreEqual(400, refused.status, "Body: " + refused.body);
-         StringAssert.Contains("100", refused.body);
+         StringAssert.Contains("1024", refused.body);
       }
 
       // ---- COM ----------------------------------------------------------------

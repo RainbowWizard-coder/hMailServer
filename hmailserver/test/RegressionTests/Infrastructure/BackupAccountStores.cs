@@ -287,7 +287,8 @@ namespace RegressionTests.Infrastructure
          // The wrapped key above all. This server cannot open it, so if a restore
          // dropped it nothing here would fail - the account would simply never be
          // able to read its own encrypted mail again.
-         StringAssert.Contains("\"key\":" + key, listed.Body);
+         StringAssert.Contains("\"key\":{\"v\":1," + key.Substring(1), listed.Body,
+            "The wrapped key comes back as it was stored, with the version the store stamps on it.");
          StringAssert.Contains("\"not_after\":2000000000", listed.Body);
       }
 

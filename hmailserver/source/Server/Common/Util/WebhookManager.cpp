@@ -869,6 +869,14 @@ namespace HM
          return false;
       }
 
+      // The minute's count is kept by name, so a subscription created under a
+      // name that was deleted a moment ago must not inherit what the old one
+      // had already spent of this minute.
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+         rates_.erase(name);
+      }
+
       Invalidate();
       return true;
    }
@@ -887,6 +895,11 @@ namespace HM
 
       if (!Application::Instance()->GetDBManager()->Execute(command))
          return false;
+
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+         rates_.erase(existing.name);
+      }
 
       Invalidate();
       return true;

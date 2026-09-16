@@ -2546,8 +2546,11 @@ namespace HM
       {
          // A device is named by its key: thirty-two hex characters, which is
          // what SignInStore::DeviceKey answers and what the listing shows.
+         // Any non-empty remainder is the route; the handler is what answers 400
+         // for one that is not thirty-two hex digits, so that a garbage id gets
+         // that sentence and not the authorisation's one about an unknown route.
          AnsiString rest = path.Mid(meDevicesPath.GetLength() + 1);
-         if (method == "DELETE" && rest.GetLength() == 32)
+         if (method == "DELETE" && !rest.IsEmpty())
          {
             route.identifier = rest;
             route.kind = RouteMeDeviceDelete;

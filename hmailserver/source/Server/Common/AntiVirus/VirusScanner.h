@@ -106,6 +106,7 @@ namespace HM
       // scannerError is set when any enabled scanner reported an error for this
       // file, whether or not a later scanner then answered.
       static VirusScanningResult ScanFile_(const String &fileName, bool &scannerError);
+      static bool IsDetachedSignaturePart_(const AnsiString &contentType);
 
       static void ReportScanningError_(const VirusScanningResult &scanningResult);
    };

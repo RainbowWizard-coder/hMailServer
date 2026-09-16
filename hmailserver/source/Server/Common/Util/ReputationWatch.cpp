@@ -1778,7 +1778,10 @@ namespace HM
                notApplicable++;
                break;
             case StatusNotChecked:
+               // A list that has not been asked has not said "no", so the
+               // address is not clean until it has: the verdict stays null.
                notChecked++;
+               anyUnknown = true;
                break;
             default:
                unknown++;
