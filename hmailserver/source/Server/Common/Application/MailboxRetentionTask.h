@@ -38,5 +38,8 @@ namespace HM
       // Returns the number of messages removed. Public and static so the COM
       // Utilities object can run it on demand.
       static int Sweep();
+      // The same, telling how many Inbox messages were archived on the account
+      // holders' own choices (see the reader's choices in the .cpp).
+      static int Sweep(int &archived);
    };
 }

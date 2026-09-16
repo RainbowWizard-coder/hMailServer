@@ -1653,6 +1653,27 @@ async function main() {
    await flush();
    check('and put back under the message', prefsStore.reply_place === 'below', String(prefsStore.reply_place));
 
+   // ---- auto-delete and auto-archive, the reader's own choices, kept with the account
+   check('the retention choices read as Never until the reader makes one',
+      document.getElementById('pref-retention-trash').value === '0' && document.getElementById('pref-retention-archive').value === '0',
+      document.getElementById('pref-retention-trash').value + '/' + document.getElementById('pref-retention-archive').value);
+   document.getElementById('pref-retention-trash').value = '30';
+   document.getElementById('pref-retention-junk').value = '7';
+   document.getElementById('pref-retention-archive').value = '365';
+   const beforeRetention = requests.length;
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const retentionPref = since(beforeRetention).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/preferences')[0];
+   const retentionBody = retentionPref ? JSON.parse(retentionPref.body) : {};
+   check('the three choices go to the account as days, for the server\'s sweep to read',
+      retentionBody.retention_trash_days === '30' && retentionBody.retention_junk_days === '7' && retentionBody.retention_archive_days === '365',
+      retentionPref ? retentionPref.body : 'no preferences call');
+   document.getElementById('pref-retention-trash').value = '0';
+   document.getElementById('pref-retention-junk').value = '0';
+   document.getElementById('pref-retention-archive').value = '0';
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+
    // ---- quick steps: a button of the reader's own, kept with the account, run by a click or a key
    location.hash = '#/settings';
    await flush();
