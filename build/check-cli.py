@@ -671,8 +671,19 @@ def run_powershell_config_cases(url, tmp, verbose):
                 % (MODULE.replace("'", "''"), url, PASSWORD))
 
     def run(script):
-        return subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", prologue + script],
-                              capture_output=True, text=True, timeout=180)
+        completed = subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", prologue + script],
+                                   capture_output=True, text=True, timeout=180)
+        # PowerShell wraps an error record to the width of the host it is
+        # running under: 120 columns on a developer's machine, 80 on the
+        # Linux runner. A refusal this file reads as one sentence therefore
+        # arrives with a line break inside it in CI and not here, which is how
+        # "first_name and last_name" passed on a bench and failed the pull
+        # request. The text is folded to single spaces before anything reads
+        # it, so these checks are about what the module SAYS and not about
+        # where the console chose to break it. Only the ERROR text is folded:
+        # the answers on stdout are read line by line by other checks.
+        completed.stderr = " ".join((completed.stderr or "").split())
+        return completed
 
     with Recorder.lock:
         Recorder.requests = []
@@ -1315,6 +1326,11 @@ def run_powershell_import_cases(url, tmp):
             Recorder.requests = []
         completed = subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", prologue + script],
                                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
+        # Folded for the reason given on the other runner: PowerShell breaks an
+        # error record at the host width, which is not the same in CI as it is
+        # on a bench, and these checks are about the sentence and not the break.
+        # stdout is left alone - other checks read its lines.
+        completed.stderr = " ".join((completed.stderr or "").split())
         with Recorder.lock:
             return completed, list(Recorder.requests)
 
