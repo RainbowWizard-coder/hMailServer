@@ -328,6 +328,14 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
         <button data-view="webhooks" data-serverwide="1" data-needs="view_configuration" title="Webhooks"><span class="ico">↱</span><span>Webhooks</span></button>
+        <button data-view="quarantine" data-serverwide="1" data-needs="view_quarantine" title="Quarantine"><span class="ico">⛔</span><span>Quarantine</span></button>
+        <button data-view="archive" data-needs="view_archive" title="Archive and holds"><span class="ico">⌸</span><span>Archive and holds</span></button>
+        <button data-view="folders" data-needs="view_accounts" title="Shared folders"><span class="ico">⊟</span><span>Shared folders</span></button>
+        <button data-view="dns" data-needs="view_configuration" title="DNS records"><span class="ico">⌁</span><span>DNS records</span></button>
+        <button data-view="diagnostics" data-serverwide="1" data-needs="manage_server" title="Diagnostics"><span class="ico">⚕</span><span>Diagnostics</span></button>
+        <button data-view="metrics" data-serverwide="1" data-needs="view_configuration" title="Metrics history"><span class="ico">∿</span><span>Metrics history</span></button>
+        <button data-view="update" data-serverwide="1" data-needs="view_configuration" title="Update"><span class="ico">⇪</span><span>Update</span></button>
+        <button data-view="apikeys" data-serverwide="1" data-admin="1" title="API keys"><span class="ico">⚿</span><span>API keys</span></button>
       </nav>
       <div class="foot">v<span id="ver">—</span></div>
     </aside>
@@ -752,7 +760,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),quarantine:K("Quarantine"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -783,6 +791,14 @@ async function render(silent){
     else if(view==="logs")await renderLogs();
     else if(view==="audit")await renderAudit();
     else if(view==="webhooks")await renderWebhooks();
+    else if(view==="quarantine")await renderQuarantine();
+    else if(view==="archive")await renderArchive();
+    else if(view==="folders")await renderFolders();
+    else if(view==="dns")await renderDns();
+    else if(view==="diagnostics")await renderDiagnostics();
+    else if(view==="metrics")await renderMetrics();
+    else if(view==="update")await renderUpdate();
+    else if(view==="apikeys")await renderApiKeys();
     $("#connState").textContent=t("Connected");
     connection("good",K("Connected"));
   }catch(err){
@@ -1100,6 +1116,26 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="repshow")reportShow();
   else if(d.act==="repdays")reportLastDays(d.days);
   else if(d.act==="copy")navigator.clipboard.writeText($("#tlsaPre").textContent).then(()=>toast(t("Copied to clipboard")));
+  else if(d.act==="keynew")createApiKey();
+  else if(d.act==="keyrevoke")revokeApiKey(d.id,d.label);
+  else if(d.act==="keycopy")navigator.clipboard.writeText($("#keyToken").textContent).then(()=>toast(t("Copied to clipboard")));
+  else if(d.act==="keyhide"){apiKeyToken="";render();}
+  else if(d.act==="qrelease")quarantineAct(d.id,true);
+  else if(d.act==="qdelete")quarantineAct(d.id,false);
+  else if(d.act==="arcsearch"){readArchiveForm();render();}
+  else if(d.act==="archold")archiveHold(d.id,true);
+  else if(d.act==="arcunhold")archiveHold(d.id,false);
+  else if(d.act==="metload"){metricsChoice={metric:$("#metName").value,range:$("#metRange").value};render();}
+  else if(d.act==="upcheck")updateAct("check");
+  else if(d.act==="updownload")updateAct("download");
+  else if(d.act==="upinstall")updateAct("install");
+  else if(d.act==="dnscopy")navigator.clipboard.writeText($("#dnsPre").textContent).then(()=>toast(t("Copied to clipboard")));
+  else if(d.act==="fldshow"){foldersFor=$("#fldAddress").value.trim();foldersPick=0;permEditing=null;render();}
+  else if(d.act==="permsave")savePermission();
+  else if(d.act==="permcancel"){permEditing=null;render();}
+  else if(d.act==="permedit")editPermission(d.id);
+  else if(d.act==="permdel")deletePermission(d.id);
+  else if(d.act==="diagrun")runDiagnostics();
   else if(d.act==="setsave")saveSettings(d.group);
   else if(d.act==="setpost")settingsPost(d.group,d.path,d.label);
   else if(d.act==="rulenew")openRule(0);
@@ -1155,6 +1191,7 @@ $("#content").addEventListener("change",e=>{
   const el=e.target.closest("[data-r]");if(!el)return;
   if(el.dataset.r==="crit-field"||el.dataset.r==="act-type"){readRuleForm();renderRuleEditor();}
   else if(el.dataset.r==="rule-scope"){ruleScope=el.value;editing=null;render();}
+  else if(el.dataset.r==="fld-folder"){foldersPick=Number(el.value)||0;permEditing=null;render();}
   else if(el.dataset.r==="fetch-domain"){cache.fetch.domain=el.value;cache.fetch.address="";render();}
   else if(el.dataset.r==="fetch-account"){cache.fetch.address=el.value;render();}
 });
@@ -2822,6 +2859,417 @@ async function renderTlsa(){
       <pre id="tlsaPre">${escHtml(recs||t("No TLSA records available — assign an SSL certificate first."))}</pre>
       <div style="margin-top:12px"><button class="btn ghost sm" data-act="copy">${t("Copy all")}</button></div>
     </div></div>`;
+}
+
+/* ---------- API keys ----------
+   The credentials other programs hold: listed without their tokens, made with
+   a scope or a role and the domains they may reach, revoked. The token is
+   shown once, when it is made, and never again - which is what the route does. */
+let apiKeyToken="";
+async function renderApiKeys(){
+  const answer=await api("/api/v1/apikeys");
+  const keys=asList(answer,"keys");
+  const rows=keys.map(k=>`
+    <tr><td>${escHtml(k.label||"")}${k.expired?' <span class="badge warn">'+t("Expired")+'</span>':""}</td>
+        <td>${escHtml(k.role||k.scope||"")}</td>
+        <td>${escHtml(k.domains||t("every domain"))}</td>
+        <td>${escHtml(k.expires||"—")}</td>
+        <td>${escHtml(k.allowed_from||t("anywhere"))}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="btn danger sm" data-act="keyrevoke" data-id="${escHtml(k.id)}" data-label="${escHtml(k.label||"")}">${t("Revoke")}</button></td></tr>`).join("");
+  const token=apiKeyToken?`<div class="card" style="margin-bottom:14px"><h3>${t("Your new key")}</h3>
+      <p class="note">${t("Copy it now: the server keeps only a hash, and it is not shown again.")}</p>
+      <pre id="keyToken">${escHtml(apiKeyToken)}</pre>
+      <div class="row" style="margin-top:8px"><button class="btn ghost sm" data-act="keycopy">${t("Copy the key")}</button><button class="btn quiet sm" data-act="keyhide">${t("Hide it")}</button></div></div>`:"";
+  $("#content").innerHTML=`<div class="view">${token}
+    <div class="card flat"><h3>${t("Make a key")}</h3>
+      <p class="note">${escHtml(operation("/api/v1/apikeys","post").description||"")}</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <input id="key_label" placeholder="${t("Label")}" maxlength="64" style="flex:1 1 200px">
+        <select id="key_scope" title="${t("Scope")}"><option value="full">${t("Full access")}</option><option value="readonly">${t("Read-only")}</option></select>
+        <input id="key_role" placeholder="${t("Role (optional)")}" style="flex:1 1 140px">
+        <input id="key_domains" placeholder="${t("Domains, comma-separated (empty: all)")}" style="flex:2 1 220px">
+        <input id="key_expires" placeholder="${t("Expires (YYYY-MM-DD, optional)")}" style="flex:1 1 180px">
+        <input id="key_allowed" placeholder="${t("Allowed from (addresses or CIDR, optional)")}" style="flex:2 1 220px">
+        <button class="btn" data-act="keynew">${t("Make the key")}</button>
+      </div>
+      <div class="err" id="err_keys" style="margin-top:10px"></div>
+    </div>
+    <div class="card view" style="margin-top:14px">
+      <div class="tablewrap"><table><thead><tr><th>${t("Label")}</th><th>${t("Scope or role")}</th><th>${t("Domains")}</th><th>${t("Expires")}</th><th>${t("Allowed from")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No API keys. Make one above for a program that should reach this server without the administrator password.")+'</td></tr>'}</tbody></table></div>
+    </div></div>`;
+}
+async function createApiKey(){
+  setErr("err_keys","");
+  const body={label:$("#key_label").value.trim(),scope:$("#key_scope").value};
+  if($("#key_role").value.trim())body.role=$("#key_role").value.trim();
+  if($("#key_domains").value.trim())body.domains=$("#key_domains").value.trim();
+  if($("#key_expires").value.trim())body.expires=$("#key_expires").value.trim();
+  if($("#key_allowed").value.trim())body.allowed_from=$("#key_allowed").value.trim();
+  if(!body.label){setErr("err_keys",t("Give the key a label."));return;}
+  try{
+    const made=await api("/api/v1/apikeys",{method:"POST",body:JSON.stringify(body)});
+    apiKeyToken=made.key||made.token||"";
+    toast(t("Key made"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_keys",e.message);}
+}
+async function revokeApiKey(id,label){
+  if(!confirm(tf("Revoke the key {0}? Programs holding it are refused from now on.",label||id)))return;
+  setErr("err_keys","");
+  try{await api("/api/v1/apikeys/"+encodeURIComponent(id),{method:"DELETE"});toast(t("Key revoked"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_keys",e.message);}
+}
+
+/* ---------- Quarantine ----------
+   What the filters held back rather than delivered, newest first: released to
+   its recipients as an administrator's overruling, or deleted. The search box
+   above narrows the rows as it does everywhere. */
+async function renderQuarantine(){
+  const answer=await api("/api/v1/quarantine");
+  const list=asList(answer,"messages");
+  const rows=list.map(m=>`
+    <tr><td>${escHtml(m.created||"")}</td>
+        <td style="word-break:break-all">${escHtml(m.sender||"")}</td>
+        <td style="word-break:break-all">${escHtml(m.recipients||"")}</td>
+        <td>${escHtml(m.subject||"")}</td>
+        <td>${escHtml(m.reason||"")}${m.score?' <span class="badge warn">'+escHtml(String(m.score))+'</span>':""}</td>
+        <td>${escHtml(fmtBytes(m.size))}</td>
+        <td style="text-align:right;white-space:nowrap">${may("manage_quarantine")?`<button class="btn ghost sm" data-act="qrelease" data-id="${escHtml(m.id)}">${t("Release")}</button>
+          <button class="btn danger sm" data-act="qdelete" data-id="${escHtml(m.id)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view"><div class="card view">
+    <p class="note">${escHtml(operation("/api/v1/quarantine","get").summary||"")}. ${escHtml(operation("/api/v1/quarantine/{id}/release","post").description||"")}</p>
+    <div class="err" id="err_quarantine"></div>
+    <div class="tablewrap"><table><thead><tr><th>${t("Held")}</th><th>${t("From")}</th><th>${t("To")}</th><th>${t("Subject")}</th><th>${t("Reason")}</th><th>${t("Size")}</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("Nothing is held. ✦")+'</td></tr>'}</tbody></table></div>
+    </div></div>`;
+}
+async function quarantineAct(id,release){
+  setErr("err_quarantine","");
+  if(!release&&!confirm(t("Delete this held message for good?")))return;
+  try{
+    await api("/api/v1/quarantine/"+encodeURIComponent(id)+(release?"/release":""),{method:release?"POST":"DELETE",body:release?"{}":undefined});
+    toast(release?t("Released to its recipients"):t("Deleted"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
+}
+
+/* ---------- Archive and legal holds ----------
+   The archive index searched by domain, mailbox, sender, recipient, subject and
+   time; a copy put on hold is kept through the retention sweep and an erasure,
+   and let go again. */
+let archiveQuery={domain:"",mailbox:"",sender:"",recipient:"",subject:"",since:"",until:"",hold:false,limit:200};
+let archiveSearched=false;
+function archiveQueryString(){
+  const q=[];
+  ["domain","mailbox","sender","recipient","subject","since","until"].forEach(k=>{if(archiveQuery[k])q.push(k+"="+encodeURIComponent(archiveQuery[k]));});
+  if(archiveQuery.hold)q.push("hold=1");
+  q.push("limit="+(Number(archiveQuery.limit)||200));
+  return q.join("&");
+}
+async function renderArchive(){
+  if(!cache.domains.length){try{cache.domains=asList(await api("/api/v1/domains"),"domains");}catch(_){cache.domains=[];}}
+  let entries=[];
+  let problem="";
+  if(archiveSearched){
+    try{entries=asList(await api("/api/v1/archive?"+archiveQueryString()),"entries");}
+    catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}problem=e.message;}
+  }
+  const domainOptions=['<option value="">'+t("Any domain")+'</option>'].concat(cache.domains.map(d=>`<option value="${escHtml(d.name)}"${d.name===archiveQuery.domain?" selected":""}>${escHtml(d.name)}</option>`)).join("");
+  const rows=entries.map(x=>`
+    <tr><td>${escHtml(x.time||"")}</td><td>${escHtml(x.domain||"")}</td><td>${escHtml(x.mailbox||"")}</td><td>${escHtml(x.direction||"")}</td>
+        <td style="word-break:break-all">${escHtml(x.sender||"")}</td><td style="word-break:break-all">${escHtml(x.recipients||"")}</td><td>${escHtml(x.subject||"")}</td>
+        <td>${escHtml(fmtBytes(x.size))}</td>
+        <td>${x.hold?'<span class="badge info">'+t("On hold")+'</span>':""}</td>
+        <td style="text-align:right;white-space:nowrap">${may("manage_archive")?(x.hold?`<button class="btn ghost sm" data-act="arcunhold" data-id="${escHtml(x.id)}">${t("Lift the hold")}</button>`:`<button class="btn ghost sm" data-act="archold" data-id="${escHtml(x.id)}">${t("Put on hold")}</button>`):""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat"><p class="note">${escHtml(operation("/api/v1/archive","get").description||"")}</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <select id="arc_domain" title="${t("Domain")}">${domainOptions}</select>
+        <input id="arc_mailbox" placeholder="${t("Mailbox")}" value="${escHtml(archiveQuery.mailbox)}" style="flex:1 1 160px">
+        <input id="arc_sender" placeholder="${t("Sender contains")}" value="${escHtml(archiveQuery.sender)}" style="flex:1 1 160px">
+        <input id="arc_recipient" placeholder="${t("Recipient contains")}" value="${escHtml(archiveQuery.recipient)}" style="flex:1 1 160px">
+        <input id="arc_subject" placeholder="${t("Subject contains")}" value="${escHtml(archiveQuery.subject)}" style="flex:1 1 160px">
+        <input id="arc_since" placeholder="${t("Since (YYYY-MM-DD HH:MM:SS)")}" value="${escHtml(archiveQuery.since)}" style="flex:1 1 180px">
+        <input id="arc_until" placeholder="${t("Until (YYYY-MM-DD HH:MM:SS)")}" value="${escHtml(archiveQuery.until)}" style="flex:1 1 180px">
+        <label class="row" style="gap:6px"><input type="checkbox" id="arc_hold"${archiveQuery.hold?" checked":""}> <span>${t("Held copies only")}</span></label>
+        <input id="arc_limit" type="number" min="1" max="1000" value="${Number(archiveQuery.limit)||200}" title="${t("At most")}" style="width:6rem">
+        <button class="btn" data-act="arcsearch">${t("Search the archive")}</button>
+      </div>
+      <div class="err" id="err_archive" style="margin-top:10px">${escHtml(problem)}</div>
+    </div>
+    <div class="card view" style="margin-top:14px">
+      <div class="tablewrap"><table><thead><tr><th>${t("Time")}</th><th>${t("Domain")}</th><th>${t("Mailbox")}</th><th>${t("Direction")}</th><th>${t("From")}</th><th>${t("To")}</th><th>${t("Subject")}</th><th>${t("Size")}</th><th>${t("Hold")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="10" class="empty">'+(archiveSearched?t("Nothing in the archive matches. ✦"):t("Choose what to look for and press Search."))+'</td></tr>'}</tbody></table></div>
+    </div></div>`;
+}
+function readArchiveForm(){
+  archiveQuery={domain:$("#arc_domain").value,mailbox:$("#arc_mailbox").value.trim(),sender:$("#arc_sender").value.trim(),recipient:$("#arc_recipient").value.trim(),
+    subject:$("#arc_subject").value.trim(),since:$("#arc_since").value.trim(),until:$("#arc_until").value.trim(),hold:$("#arc_hold").checked,limit:Number($("#arc_limit").value)||200};
+  archiveSearched=true;
+}
+async function archiveHold(id,hold){
+  setErr("err_archive","");
+  try{
+    await api("/api/v1/archive/"+encodeURIComponent(id)+"/hold",{method:hold?"POST":"DELETE",body:hold?"{}":undefined});
+    toast(hold?t("On hold: kept through the retention sweep and any erasure"):t("Hold lifted"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_archive",e.message);}
+}
+
+/* ---------- Metrics history ----------
+   One metric over a day, a week or a month, from the samples the server keeps
+   when MetricsHistoryDays is on: a counter is drawn as the rate between two
+   samples, a gauge as it was. */
+const METRIC_NAMES=["sessions_smtp","sessions_imap","processed_messages_total","messages_delivered_total","messages_deferred_total","messages_bounced_total",
+  "spam_messages_total","spam_trap_hits_total","viruses_removed_total","auth_success_total","auth_failures_total","tls_handshakes_total","tls_handshake_failures_total","messagestore_missing_files"];
+let metricsChoice={metric:"processed_messages_total",range:"24h"};
+function metricsChartHtml(points,counter){
+  const W=640,H=180,L=44,R=12,T=12,B=28,plotW=W-L-R,plotH=H-T-B;
+  if(points.length<2)return '<div class="empty">'+t("Not enough samples yet. The history fills as the server runs.")+'</div>';
+  const values=points.map(p=>p.value);
+  const max=Math.max.apply(null,values.concat([1]));
+  const min=Math.min(0,Math.min.apply(null,values));
+  const span=max-min||1;
+  const x=i=>L+i/(points.length-1)*plotW;
+  const y=v=>T+plotH-(v-min)/span*plotH;
+  const line=points.map((p,i)=>x(i).toFixed(1)+","+y(p.value).toFixed(1)).join(" ");
+  const dots=points.map((p,i)=>'<circle cx="'+x(i).toFixed(1)+'" cy="'+y(p.value).toFixed(1)+'" r="1.6" fill="#1a73e8"><title>'+escHtml(p.time+": "+p.value)+'</title></circle>').join("");
+  const ticks=[0,Math.floor(points.length/2),points.length-1].map(i=>'<text x="'+x(i).toFixed(1)+'" y="'+(H-10)+'" font-size="10" fill="#8b949e" text-anchor="'+(i===0?"start":i===points.length-1?"end":"middle")+'">'+escHtml(String(points[i].time).slice(5,16))+'</text>').join("");
+  return '<div class="tablewrap"><svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" role="img" aria-label="'+escHtml(t("The metric over time"))+'">'+
+    '<line x1="'+L+'" y1="'+(T+plotH)+'" x2="'+(W-R)+'" y2="'+(T+plotH)+'" stroke="#8b949e" stroke-width="0.5"></line>'+
+    '<text x="'+(L-6)+'" y="'+(T+8)+'" font-size="10" fill="#8b949e" text-anchor="end">'+escHtml(String(Math.round(max*100)/100))+'</text>'+
+    '<text x="'+(L-6)+'" y="'+(T+plotH)+'" font-size="10" fill="#8b949e" text-anchor="end">'+escHtml(String(Math.round(min*100)/100))+'</text>'+
+    '<polyline points="'+line+'" fill="none" stroke="#1a73e8" stroke-width="1.5"></polyline>'+dots+ticks+'</svg></div>'+
+    '<p class="note">'+(counter?t("A counter: each point is the change since the sample before it."):t("A gauge: each point is the value as it was."))+'</p>';
+}
+async function renderMetrics(){
+  const answer=await api("/api/v1/metrics/history?metric="+encodeURIComponent(metricsChoice.metric)+"&range="+encodeURIComponent(metricsChoice.range));
+  const samples=asList(answer,"samples");
+  const counter=/_total$/.test(metricsChoice.metric);
+  let points=samples.map(s=>({time:s.time,value:Number(s.value)||0}));
+  if(counter){
+    const rates=[];
+    for(let i=1;i<points.length;i++)rates.push({time:points[i].time,value:Math.max(0,points[i].value-points[i-1].value)});
+    points=rates;
+  }
+  const values=points.map(p=>p.value);
+  const last=values.length?values[values.length-1]:0;
+  const total=values.reduce((a,b)=>a+b,0);
+  const options=METRIC_NAMES.map(n=>`<option value="${n}"${n===metricsChoice.metric?" selected":""}>${escHtml(n)}</option>`).join("");
+  const ranges=[["24h",t("Last 24 hours")],["7d",t("Last 7 days")],["30d",t("Last 30 days")]].map(r=>`<option value="${r[0]}"${r[0]===metricsChoice.range?" selected":""}>${escHtml(r[1])}</option>`).join("");
+  $("#content").innerHTML=`<div class="view"><div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/metrics/history","get").description||"")}</p>
+      <div class="row" style="gap:8px"><select id="metName">${options}</select><select id="metRange">${ranges}</select><button class="btn" data-act="metload">${t("Show")}</button></div>
+      ${answer.enabled===false?'<p class="note" style="margin-top:8px"><span class="badge warn">'+t("Off")+'</span> '+t("The history is not being kept: MetricsHistoryDays is 0. Set it under Settings, Server.")+'</p>':""}
+    </div>
+    <div class="card view" style="margin-top:14px">
+      <h3>${escHtml(metricsChoice.metric)} <code class="muted">${escHtml(metricsChoice.range)}</code></h3>
+      ${metricsChartHtml(points,counter)}
+      <div class="tablewrap"><table><thead><tr><th>${t("Samples")}</th><th>${counter?t("Total over the window"):t("Last value")}</th><th>${t("Highest")}</th><th>${t("Bucket")}</th></tr></thead>
+      <tbody><tr><td>${points.length}</td><td>${escHtml(String(Math.round((counter?total:last)*100)/100))}</td><td>${escHtml(String(values.length?Math.max.apply(null,values):0))}</td><td>${escHtml(String(answer.bucket_minutes||""))} ${t("min")}</td></tr></tbody></table></div>
+    </div></div>`;
+}
+
+/* ---------- Update ----------
+   What the release feed says, the installer downloaded and verified against its
+   Sigstore bundle, and the install handed to the helper - the desktop program's
+   update page, with the same three verbs. */
+const UPDATE_STATES={0:K("Not checked since the service started"),1:K("Up to date"),2:K("A newer release is available"),3:K("The installer is downloaded and verified"),4:K("Installing"),5:K("The last check failed")};
+async function renderUpdate(){
+  const v=await api("/api/v1/update");
+  const state=Number(v.state)||0;
+  const badge=state===1?"good":state===5?"bad":state===2||state===3?"info":"warn";
+  const installer=v.installer||{};
+  const downloaded=v.downloaded||{};
+  const rows=[[t("Running version"),v.runningVersion||""],[t("Channel"),v.channel||""],[t("Scheduled check"),v.checkEnabled?t("On"):t("Off")],
+    [t("Available version"),v.availableVersion||"—"],[t("Release"),v.releaseName||"—"],[t("Published"),v.publishedAt||"—"],
+    [t("Installer"),installer.name?installer.name+" ("+fmtBytes(installer.size)+")":"—"],[t("Verified"),downloaded.verifiedAt||"—"],[t("Signed by"),downloaded.signer||"—"],[t("Last error"),v.lastError||"—"]];
+  const applied=v.apply&&typeof v.apply==="object"?Object.keys(v.apply).filter(k=>String(v.apply[k]||"")!==""):[];
+  const apply=applied.map(k=>"<tr><td>"+escHtml(humanise(k))+"</td><td>"+escHtml(String(v.apply[k]))+"</td></tr>").join("");
+  $("#content").innerHTML=`<div class="view"><div class="card view">
+    <p class="note">${escHtml(operation("/api/v1/update","get").description||"")}</p>
+    <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${v.releaseUrl?'<a href="'+escHtml(v.releaseUrl)+'" target="_blank" rel="noopener">'+t("Release notes")+'</a>':""}</p>
+    <div class="tablewrap"><table><tbody>${rows.map(r=>"<tr><td>"+escHtml(r[0])+"</td><td>"+escHtml(String(r[1]))+"</td></tr>").join("")}</tbody></table></div>
+    ${apply?'<h3 style="margin-top:14px">'+t("The last install")+'</h3><div class="tablewrap"><table><tbody>'+apply+'</tbody></table></div>':""}
+    <div class="row" style="margin-top:14px;gap:8px">
+      ${may("manage_server")?`<button class="btn ghost" data-act="upcheck">${t("Check now")}</button>`:""}
+      ${may("manage_server")&&state===2?`<button class="btn" data-act="updownload">${t("Download and verify")}</button>`:""}
+      ${may("manage_server")&&state===3?`<button class="btn danger" data-act="upinstall">${t("Install the update")}</button>`:""}
+    </div>
+    <div class="err" id="err_update" style="margin-top:10px"></div>
+    </div></div>`;
+}
+async function updateAct(verb){
+  setErr("err_update","");
+  if(verb==="install"&&!confirm(t("Install the verified update now? The service stops and starts while it runs, and comes back on the new version - or on this one if the install fails.")))return;
+  try{
+    const v=await api("/api/v1/update/"+verb,{method:"POST",body:"{}"});
+    toast(t(UPDATE_STATES[Number(v.state)]||"")||t("Done"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_update",e.message);}
+}
+
+/* ---------- DNS records ----------
+   The records a domain publishes for this server, gathered from the routes that
+   derive them: the DKIM keys a rotation keeps or wants, the SRV records for
+   client discovery, the TLSA records for the certificates, and the SPF and DMARC
+   starting points. Copy all, paste at the registrar. */
+async function renderDns(){
+  cache.domains=asList(await api("/api/v1/domains"),"domains");
+  let srv=[];
+  try{srv=asList(await api("/api/v1/srv"),"records");}catch(e){if(e.message==="auth")throw e;}
+  let tlsa=[];
+  try{tlsa=asList(await api("/api/v1/tlsa"),"records");}catch(e){if(e.message==="auth")throw e;}
+  const blocks=[];
+  for(const d of cache.domains.filter(x=>x.active!==false)){
+    const lines=[];
+    lines.push("; "+d.name);
+    lines.push(d.name+". IN TXT \"v=spf1 mx -all\"");
+    lines.push("_dmarc."+d.name+". IN TXT \"v=DMARC1; p=quarantine; rua=mailto:dmarc@"+d.name+"\"");
+    try{
+      const rotation=await api("/api/v1/domains/"+encodeURIComponent(d.name)+"/dkim/rotation");
+      ["current","next","retiring"].forEach(slot=>{
+        const s=rotation[slot];
+        if(!s||!Array.isArray(s.records))return;
+        s.records.forEach(r=>{lines.push((r.host||"")+". IN "+(r.type||"TXT")+" \""+String(r.value||"").replace(/"/g,'\\"')+"\""+(r.action&&r.action!=="keep"?"  ; "+r.action:""));});
+      });
+    }catch(e){if(e.message==="auth")throw e;}
+    srv.filter(r=>!r.domain||r.domain===d.name).forEach(r=>lines.push(r.record||JSON.stringify(r)));
+    blocks.push(lines.join("\n"));
+  }
+  if(tlsa.length)blocks.push(["; TLSA"].concat(tlsa.map(r=>r.record||JSON.stringify(r))).join("\n"));
+  const text=blocks.join("\n\n");
+  $("#content").innerHTML=`<div class="view"><div class="card view">
+    <p class="note">${t("What each domain publishes for this server: SPF and DMARC starting points, the DKIM keys the rotation keeps or wants, the SRV records that let a phone find the server by the address alone, and the TLSA records for DANE. Copy them to your DNS; the checklist and the DKIM rotation say when they are seen.")}</p>
+    <pre id="dnsPre">${escHtml(text||t("No active domain yet."))}</pre>
+    <div style="margin-top:12px"><button class="btn ghost sm" data-act="dnscopy">${t("Copy all")}</button></div>
+    </div></div>`;
+}
+
+/* ---------- Shared folders ----------
+   An account's folders and who else may reach each: the ACL a client sets
+   with SETACL, edited here by right. */
+let foldersFor="",foldersPick=0,foldersList=[],permEditing=null;
+/* The one place the path of a folder's access-control list is written. */
+function permissionsBase(){return "/api/v1/accounts/"+encodeURIComponent(foldersFor)+"/folders/"+foldersPick+"/permissions";}
+const RIGHTS=["lookup","read","write_seen","write_others","insert","post","create","delete_mailbox","write_deleted","expunge","administer"];
+function flattenFolders(list,depth,out){
+  (list||[]).forEach(f=>{out.push({id:f.id,path:f.path||f.name,depth:depth});flattenFolders(f.subfolders,depth+1,out);});
+  return out;
+}
+async function renderFolders(){
+  const shown=escHtml(foldersFor);
+  const form=`<div class="card flat">
+    <p class="note">${t("Who may reach an account's folders, by folder: the rights a client sets with SETACL. Type an account address and press Show, then pick a folder.")}</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <input id="fldAddress" placeholder="${t("Account address")}" value="${shown}" style="flex:1 1 260px">
+      <button class="btn" data-act="fldshow">${t("Show")}</button>
+    </div>
+    <div class="err" id="err_folders" style="margin-top:10px"></div>
+  </div>`;
+  if(!foldersFor){
+    $("#content").innerHTML=`<div class="view">${form}<div class="card view" style="margin-top:14px"><div class="empty">${t("Type an account address and press Show. ✦")}</div></div></div>`;
+    return;
+  }
+  let tree;
+  try{tree=await api("/api/v1/accounts/"+encodeURIComponent(foldersFor)+"/folders");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+    $("#content").innerHTML=`<div class="view">${form}</div>`;setErr("err_folders",e.message);return;}
+  foldersList=flattenFolders(tree.folders,0,[]);
+  if(!foldersPick&&foldersList.length)foldersPick=foldersList[0].id;
+  const picker=`<select data-r="fld-folder" id="fldPick">${foldersList.map(f=>`<option value="${f.id}"${f.id===foldersPick?" selected":""}>${escHtml("\u00a0".repeat(f.depth*2)+f.path)}</option>`).join("")}</select>`;
+  let permissions=[];
+  if(foldersPick){
+    try{permissions=asList(await api(permissionsBase()),"permissions");}
+    catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_folders",e.message);}
+  }
+  const who=p=>p.type==="anyone"?t("anyone"):p.type==="group"?t("group")+" "+(p.group||p.group_id):(p.account||p.account_id);
+  const rows=permissions.map(p=>`
+    <tr><td>${escHtml(who(p))}</td><td><code>${escHtml(p.rights_text||"")}</code> <span class="muted">${escHtml(RIGHTS.filter(r=>p.rights&&p.rights[r]).join(", "))}</span></td>
+        <td style="text-align:right;white-space:nowrap">${may("manage_accounts")?`<button class="btn ghost sm" data-act="permedit" data-id="${escHtml(p.id)}">${t("Edit")}</button>
+          <button class="btn danger sm" data-act="permdel" data-id="${escHtml(p.id)}">${t("Revoke")}</button>`:""}</td></tr>`).join("");
+  const e=permEditing||{type:"user",account:"",group:"",rights:{}};
+  const boxes=RIGHTS.map(r=>`<label class="row" style="gap:4px"><input type="checkbox" data-right="${r}"${e.rights&&e.rights[r]?" checked":""}> <span>${escHtml(r)}</span></label>`).join("");
+  const editor=may("manage_accounts")?`<div class="card flat" style="margin-top:14px"><h3>${permEditing&&permEditing.id?t("Change the permission"):t("Grant a permission")}</h3>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <select id="permType"><option value="user"${e.type==="user"?" selected":""}>${t("An account")}</option><option value="group"${e.type==="group"?" selected":""}>${t("A group")}</option><option value="anyone"${e.type==="anyone"?" selected":""}>${t("Anyone")}</option></select>
+        <input id="permWho" placeholder="${t("Account address or group name")}" value="${escHtml(e.type==="group"?(e.group||""):(e.account||""))}" style="flex:1 1 240px">
+      </div>
+      <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${boxes}</div>
+      <div class="row" style="margin-top:10px;gap:8px"><button class="btn" data-act="permsave">${permEditing&&permEditing.id?t("Save the permission"):t("Grant")}</button>${permEditing&&permEditing.id?`<button class="btn quiet" data-act="permcancel">${t("Cancel")}</button>`:""}</div>
+    </div>`:"";
+  $("#content").innerHTML=`<div class="view">${form}
+    <div class="card view" style="margin-top:14px">
+      <div class="row" style="gap:8px;margin-bottom:10px"><label>${t("Folder")} ${picker}</label></div>
+      <div class="tablewrap"><table><thead><tr><th>${t("Who")}</th><th>${t("Rights")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="3" class="empty">'+t("Nobody else reaches this folder. ✦")+'</td></tr>'}</tbody></table></div>
+    </div>${editor}</div>`;
+}
+async function savePermission(){
+  setErr("err_folders","");
+  const body={type:$("#permType").value,rights:{}};
+  const who=$("#permWho").value.trim();
+  if(body.type==="user")body.account=who;
+  else if(body.type==="group")body.group=who;
+  document.querySelectorAll("#content input[data-right]").forEach(b=>{body.rights[b.dataset.right]=!!b.checked;});
+  if(body.type!=="anyone"&&!who){setErr("err_folders",t("Name the account or the group."));return;}
+  try{
+    if(permEditing&&permEditing.id)await api(permissionsBase()+"/"+permEditing.id,{method:"PUT",body:JSON.stringify(body)});
+    else await api(permissionsBase(),{method:"POST",body:JSON.stringify(body)});
+    permEditing=null;toast(t("Permission saved"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_folders",e.message);}
+}
+async function deletePermission(id){
+  if(!confirm(t("Revoke this permission?")))return;
+  setErr("err_folders","");
+  try{await api(permissionsBase()+"/"+encodeURIComponent(id),{method:"DELETE"});toast(t("Permission revoked"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_folders",e.message);}
+}
+async function editPermission(id){
+  try{
+    const list=asList(await api(permissionsBase()),"permissions");
+    permEditing=list.filter(p=>String(p.id)===String(id))[0]||null;
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_folders",e.message);}
+}
+
+/* ---------- Diagnostics ----------
+   The desktop program's diagnostic run - the MX records of a domain, an
+   outbound connection on port 25, a connection to this server's own ports, the
+   data and backup directories, the IP ranges - over the route that runs it. */
+let diagResults=null,diagLocal="",diagTest="";
+async function renderDiagnostics(){
+  if(!diagLocal&&!cache.domains.length){try{cache.domains=asList(await api("/api/v1/domains"),"domains");}catch(_){cache.domains=[];}}
+  if(!diagLocal&&cache.domains.length)diagLocal=cache.domains[0].name;
+  if(!diagTest)diagTest="example.com";
+  const rows=(diagResults||[]).map(r=>`
+    <tr><td>${r.success?'<span class="badge good">'+t("OK")+'</span>':'<span class="badge bad">'+t("Failed")+'</span>'}</td>
+        <td><b>${escHtml(r.name||"")}</b><div class="muted">${escHtml(r.description||"")}</div></td>
+        <td style="white-space:pre-wrap;word-break:break-word">${escHtml(r.details||"")}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view"><div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/diagnostics/run","post").description||t("Runs the server's own diagnostic tests: MX records, an outbound connection, connecting to this server, the data and backup directories, the IP ranges."))}</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <input id="diagLocal" placeholder="${t("A domain hosted here")}" value="${escHtml(diagLocal)}" style="flex:1 1 200px">
+        <input id="diagTest" placeholder="${t("A domain to send to")}" value="${escHtml(diagTest)}" style="flex:1 1 200px">
+        <button class="btn" data-act="diagrun">${t("Run the tests")}</button>
+      </div>
+      <div class="err" id="err_diag" style="margin-top:10px"></div>
+    </div>
+    <div class="card view" style="margin-top:14px">
+      <div class="tablewrap"><table><thead><tr><th></th><th>${t("Test")}</th><th>${t("Details")}</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="3" class="empty">'+(diagResults?t("No results came back."):t("Press Run the tests. They take a few seconds; a connection test waits for its timeout."))+'</td></tr>'}</tbody></table></div>
+    </div></div>`;
+}
+async function runDiagnostics(){
+  diagLocal=$("#diagLocal").value.trim();diagTest=$("#diagTest").value.trim();
+  setErr("err_diag","");
+  $("#err_diag").textContent=t("Running…");
+  try{
+    const answer=await api("/api/v1/diagnostics/run",{method:"POST",body:JSON.stringify({local_domain:diagLocal,test_domain:diagTest})});
+    diagResults=asList(answer,"results");
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_diag",e.message);}
 }
 
 /* ---------- Settings ----------

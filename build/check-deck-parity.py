@@ -959,12 +959,16 @@ def read_rest(interfaces):
 # 4. The Control Deck
 # ---------------------------------------------------------------------------
 
-# A path helper: a function of no arguments whose body is one return of a
-# conditional between two path expressions, such as the rules page's choice
-# between the server's rules and a domain's. A call of it at the front of an
-# api(...) path stands for either branch, with whatever follows appended.
+# A path helper: a function of no arguments whose body is one return of a path
+# expression - the folders page's address of an access-control list - or of a
+# conditional between two of them, such as the rules page's choice between the
+# server's rules and a domain's. A call of it at the front of an api(...) path
+# stands for the expression, or for either branch, with whatever follows
+# appended. A page that builds one path in several places names it once, and
+# the census still reads every route it reaches.
 PATH_HELPERS = {}
-HELPER_RE = re.compile(r'function\s+\w+\s*\(\)\s*\{\s*return\s+[^?;]+\?\s*(.+?)\s*:\s*(.+?)\s*;\s*\}')
+HELPER_RE = re.compile(r'function\s+\w+\s*\(\)\s*\{\s*return\s+(.+?)\s*;\s*\}', re.S)
+HELPER_CHOICE = re.compile(r'^[^?;]+\?\s*(.+?)\s*:\s*(.+)$', re.S)
 
 
 def deck_path(arg, groups):
@@ -1031,8 +1035,12 @@ def read_deck():
                 act_fns[act].add(fn)
     for name, body in functions.items():
         helper = HELPER_RE.match(body)
-        if helper and '/api/v1/' in helper.group(1) + helper.group(2):
-            PATH_HELPERS[name] = (helper.group(1), helper.group(2))
+        if not helper:
+            continue
+        choice = HELPER_CHOICE.match(helper.group(1))
+        branches = (choice.group(1), choice.group(2)) if choice else (helper.group(1),)
+        if '/api/v1/' in ''.join(branches):
+            PATH_HELPERS[name] = branches
     calls = defaultdict(set)   # function -> {(norm path, METHOD)}
     for name, body in functions.items():
         for m in re.finditer(r'\bapi\s*\(', body):

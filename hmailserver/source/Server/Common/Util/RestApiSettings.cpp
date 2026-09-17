@@ -751,6 +751,38 @@ namespace
         "Whether signing in from a client that already has a session for that account ends the earlier one, so somebody who signs in on a shared machine and forgets leaves nothing behind the next time they sign in there. Off by default.",
         ROW_FLAG(Config()->GetSessionOnePerDevice()), ROW_SET(Config()->SetSessionOnePerDevice(v.flag)), ROW_NO_CHECK },
 
+      // The daily list of what the quarantine holds for an account, and the
+      // links in it. Both are refused here exactly as Settings refuses them
+      // over COM: a base URL that is not absolute switches the whole digest
+      // off silently - the sender checks the same thing - and a link that
+      // lives no time at all, or for a month, is not a release link.
+      { "quarantine_digest_base_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Where the links in a quarantine digest point - the address the webmail answers on, such as https://mail.example.com. Absolute, beginning with http:// or https://; empty sends no digest at all, whatever a domain asks for.",
+        ROW_TEXT(Config()->GetQuarantineDigestBaseUrl()),
+        [] (const Value &v) { String url = v.text; url.Trim(); Config()->SetQuarantineDigestBaseUrl(url); return Applied(); },
+        [] (const Value &v) -> String
+        {
+           String url = v.text;
+           url.Trim();
+           if (url.IsEmpty())
+              return String();
+           String lowered = url;
+           lowered.MakeLower();
+           if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
+              return String(_T("The base URL is absolute and begins with http:// or https://, such as https://mail.example.com."));
+           return String();
+        } },
+      { "quarantine_digest_link_hours", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long a release link in a quarantine digest works for, in hours. Between 1 and 720; the digest is sent once a day, so anything under 24 expires before the next one.",
+        ROW_NUMBER(Config()->GetQuarantineDigestLinkHours()),
+        ROW_SET(Config()->SetQuarantineDigestLinkHours((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 1 || v.number > 720)
+              return String(_T("A release link lives between 1 and 720 hours."));
+           return String();
+        } },
+
       // Spam traps (Common/AntiSpam/SpamTrapMonitor.h). In hm_settings, read
       // when a trap is addressed, so a change applies to the next hit. Nothing
       // here does anything until a domain has a trap.

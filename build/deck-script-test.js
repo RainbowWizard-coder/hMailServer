@@ -1058,6 +1058,35 @@ const spec = {
       '/api/v1/settings/indexing': settingsPath('/api/v1/settings/indexing'),
       '/api/v1/settings/indexing/index': { post: { summary: 'Index the messages not yet indexed, now', description: 'What Settings.MessageIndexing.Index does over COM: the indexer runs at once rather than at its next tick; the answer does not wait for it.' } },
       '/api/v1/settings/indexing/clear': { post: { summary: 'Empty the message index', description: 'What Settings.MessageIndexing.Clear does over COM: every indexed message\'s metadata, the full-text terms and the backfill cursor go.' } },
+      '/api/v1/apikeys': {
+         get: { summary: 'List API keys', description: 'Administrator password only.' },
+         post: { summary: 'Create an API key', description: 'Administrator password only. The token is returned once, at creation.' }
+      },
+      '/api/v1/apikeys/{id}': { delete: { summary: 'Revoke an API key', description: 'Administrator password only.' } },
+      '/api/v1/quarantine': { get: { summary: 'List quarantined messages', description: 'Server-wide; refused for domain-restricted keys. Bounded to the newest 1000.' } },
+      '/api/v1/quarantine/{id}': { delete: { summary: 'Delete a quarantined message' } },
+      '/api/v1/quarantine/{id}/release': { post: { summary: 'Release a quarantined message to its original recipients', description: 'Delivery is direct rather than back through the filters: a release is an administrator overruling them.' } },
+      '/api/v1/archive': { get: { summary: 'Search the archive index', description: 'Query parameters: domain and mailbox (exact), sender, recipient and subject (contains), since and until (YYYY-MM-DD HH:MM:SS), hold=1 for held copies only, limit (1-1000, default 200). Newest first.' } },
+      '/api/v1/archive/{id}/hold': {
+         post: { summary: 'Put an archived copy on legal hold', description: 'A held copy is never removed by the retention sweep or by an address erasure.' },
+         delete: { summary: 'Lift the hold' }
+      },
+      '/api/v1/metrics/history': { get: { summary: 'The history of one metric', description: 'Query parameters: metric (a name from the exporter without the hmailserver_ prefix, e.g. sessions_smtp or processed_messages_total) and range (24h, 7d or 30d - samples averaged per minute, per ten minutes and per hour).' } },
+      '/api/v1/update': { get: { summary: 'The update check\'s verdict', description: 'state: 0 not checked since the service started, 1 up to date, 2 a newer release is available, 3 its installer is downloaded and verified, 4 installing, 5 the last check failed (lastError).' } },
+      '/api/v1/update/check': { post: { summary: 'Read the release feed now', description: 'Runs the update check on this request, whether or not the scheduled check is on, and returns the verdict as GET /api/v1/update does. Refused for read-only keys.' } },
+      '/api/v1/update/download': { post: { summary: 'Download and verify the newer release\'s installer', description: 'Fetches the installer the last check found and its Sigstore bundle into the data directory\'s Updates folder and verifies the installer against the bundle.' } },
+      '/api/v1/update/install': { post: { summary: 'Apply the verified installer', description: 'Verifies the downloaded installer once more and hands it to the update helper, which stops the service, installs and starts it again.' } },
+      '/api/v1/srv': { get: { summary: 'Recommended client-discovery SRV records for the enabled listeners', description: 'One record set per active domain; a domain-restricted key sees only its own domains.' } },
+      '/api/v1/accounts/{address}/folders': { get: { summary: 'An account\'s folders (administrator)', description: 'The account\'s own folder tree - what Account.IMAPFolders is over COM: delimiter, and folders each with its id, name, path, parent_id and subfolders.' } },
+      '/api/v1/accounts/{address}/folders/{id}/permissions': {
+         get: { summary: 'A folder\'s access-control list (administrator)', description: 'The rows of the folder\'s ACL - IMAPFolder.Permissions over COM, GETACL over IMAP. Each: id, folder_id, type (user, group or anyone), account_id and account, group_id and group, rights - the eleven RFC 4314 rights - and rights_text, the letters SETACL takes.' },
+         post: { summary: 'Grant a permission on a folder (administrator)', description: 'Body: type (required: user, group or anyone); for a user permission account_id or account, for a group permission group_id or group; rights, an object of the eleven names.' }
+      },
+      '/api/v1/accounts/{address}/folders/{id}/permissions/{pid}': {
+         put: { summary: 'Change a permission on a folder (administrator)', description: 'The whole permission, as POST takes it.' },
+         delete: { summary: 'Revoke a permission on a folder (administrator)' }
+      },
+      '/api/v1/diagnostics/run': { post: { summary: 'Run the server\'s diagnostic tests', description: 'What the desktop program\'s Diagnostics page runs over COM: the MX records of a domain hosted here, an outbound connection on port 25 to a domain elsewhere, a connection to this server\'s own ports, the data and backup directories, the IP ranges. Body: local_domain and test_domain. Each result: name, description, success and details. The tests connect out and wait for their timeouts, so the answer can take some seconds. Refused for read-only keys.' } },
       '/api/v1/backup': {
          get: { summary: 'The backup manager\'s status text and the last lines of the backup log' },
          post: { summary: 'Start a backup with the configured settings', description: 'Runs on the maintenance queue; poll GET for the outcome.' }
@@ -1232,6 +1261,68 @@ const state = {
       { id: 42, from: 'bob@example.com', recipients: 'gone@nowhere.example', next_try: '2026-09-14 10:05:00' }
    ],
    tlsa: { records: [{ record: '_25._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }, { record: '_465._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }] },
+   /* The eight pages the Deck gained last: what each of their routes answers,
+      in the shape the server answers it - the listings that are bare arrays
+      are bare arrays here, because a page that reads an envelope round one of
+      them reads undefined and shows nothing. */
+   apikeys: [
+      { id: 'a1b2c3d4e5f60718', label: 'the monitor', scope: 'readonly', role: '', domains: '', expires: '', allowed_from: '10.0.0.0/8', expired: false },
+      { id: '0718f6e5d4c3b2a1', label: 'the old importer', scope: 'full', role: 'helpdesk', domains: 'example.com', expires: '2026-01-01 00:00:00', allowed_from: '', expired: true }
+   ],
+   // What the filters held back. The subject is hostile, as a held message's
+   // is: it was written by whoever the server refused to deliver for.
+   quarantine: [
+      { id: 41, sender: 'seller@spammer.example', recipients: 'anna@example.com', subject: 'Your invoice is ready', reason: 'Score 12 (SURBL, SPF)', score: 12, size: 34816, created: '2026-09-16 21:04:11' },
+      { id: 42, sender: 'notice@' + HOSTILE, recipients: 'bob@example.com', subject: HOSTILE, reason: 'Rule: Hold for review', score: 0, size: 2048, created: '2026-09-16 22:15:00' }
+   ],
+   archive: [
+      { id: 2750, time: '2026-09-16 09:00:00', domain: 'example.com', mailbox: 'anna', direction: 'received', sender: 'client@partner.example', subject: 'The signed contract', recipients: 'anna@example.com', message_id: '<a@partner.example>', path: 'C:\\archive\\example.com\\anna\\a.eml', size: 51200, hold: false },
+      { id: 2751, time: '2026-09-16 10:30:00', domain: 'example.com', mailbox: 'anna', direction: 'sent', sender: 'anna@example.com', subject: 'Re: The signed contract', recipients: 'client@partner.example', message_id: '<b@example.com>', path: 'C:\\archive\\example.com\\anna\\b.eml', size: 20480, hold: true },
+      { id: 2752, time: '2026-09-15 08:00:00', domain: 'second.example', mailbox: 'carla', direction: 'received', sender: 'list@announce.example', subject: 'The weekly notice', recipients: 'carla@second.example', message_id: '<c@announce.example>', path: 'C:\\archive\\second.example\\carla\\c.eml', size: 8192, hold: false }
+   ],
+   // The history is kept, and the counter climbs by five, six and seven over
+   // the four samples: the page draws the differences, not the totals.
+   metricsEnabled: true,
+   metricsSamples: {
+      processed_messages_total: [0, 5, 11, 18],
+      sessions_smtp: [3, 9, 4, 6]
+   },
+   update: {
+      state: 0, stateName: 'not-checked', runningVersion: '6.3.3', channel: 'stable', checkEnabled: false,
+      availableVersion: '', releaseName: '', publishedAt: '', releaseUrl: '',
+      installer: { name: '', url: '', size: 0, digest: '', bundleUrl: '' },
+      downloaded: { path: '', signer: '', logTime: '', verifiedAt: '' },
+      apply: { status: '', version: '', detail: '' },
+      window: { text: '', open: false, error: '' },
+      autoDownload: false, backupBeforeApply: true, lastChecked: '', lastError: ''
+   },
+   srv: {
+      target: 'mail.example.com', count: 2,
+      records: [
+         { domain: 'example.com', service: '_imap._tcp', record: '_imap._tcp.example.com. IN SRV 0 1 143 mail.example.com.' },
+         { domain: 'second.example', service: '_submission._tcp', record: '_submission._tcp.second.example. IN SRV 0 1 587 mail.example.com.' }
+      ]
+   },
+   // One tree for every account there is, so the view is asked with whichever
+   // address the run still has by the time it reaches it.
+   folders: { delimiter: '.', folders: [
+      { id: 101, name: 'INBOX', path: 'INBOX', parent_id: -1, subfolders: [
+         { id: 102, name: 'Contracts', path: 'INBOX.Contracts', parent_id: 101, subfolders: [] }] },
+      { id: 103, name: 'Sent', path: 'Sent', parent_id: -1, subfolders: [] }
+   ] },
+   permissions: {
+      101: [{ id: 9001, folder_id: 101, type: 'user', account_id: 2, account: 'bob@example.com', group_id: 0, group: '',
+         rights: { lookup: true, read: true, write_seen: true, write_others: false, insert: false, post: false, create: false, delete_mailbox: false, write_deleted: false, expunge: false, administer: false },
+         rights_text: 'lrs' }],
+      102: [],
+      103: []
+   },
+   diagnostics: [
+      { name: 'Test MX records', description: 'Looks up the MX records of the local domain.', success: true, details: 'mail.example.com (10)' },
+      { name: 'Test outbound connection', description: 'Connects to the test domain on port 25.', success: false, details: 'Connection to mx.example.com:25 timed out.' },
+      { name: 'Test local connect', description: 'Connects to this server on its own ports.', success: true, details: 'SMTP, IMAP and POP3 answered.' }
+   ],
+   diagnosticRuns: [],
    webhooks: [
       { name: 'billing', url: 'https://hooks.example/mail', secret_set: true, events: 'message.bounced', domains: 'example.com',
         addresses: '', enabled: true, include_subject: false, max_per_minute: 0, created: 1789000000,
@@ -2336,6 +2427,153 @@ function answer(method, path, headers, raw) {
          return { status: 200, body: lines.join('\r\n') + '\r\n', headers: { 'Content-Type': 'text/csv; charset=utf-8' } };
       }
       return json(200, Object.assign({ from, to, domain, top }, built(section)));
+   }
+
+   // ---- the eight pages the Deck gained last -------------------------------
+   //
+   // Each route answers the shape the server's own answers have: the API keys
+   // in an envelope with a count, the quarantine and the archive as bare
+   // arrays, the metric history and the update verdict as objects.
+
+   if (path === '/api/v1/apikeys' && method === 'GET') {
+      return json(200, { count: state.apikeys.length, keys: state.apikeys });
+   }
+   if (path === '/api/v1/apikeys' && method === 'POST') {
+      if (!parsed || !parsed.label) { return json(400, { error: 'label is required' }); }
+      nextId += 1;
+      const made = { id: 'k' + nextId, label: parsed.label, scope: parsed.scope || 'full', role: parsed.role || '',
+         domains: parsed.domains || '', expires: parsed.expires || '', allowed_from: parsed.allowed_from || '', expired: false };
+      state.apikeys.push(made);
+      // The token, once. What the server keeps is a hash of it.
+      return json(201, Object.assign({ key: 'hmapi_' + nextId + 'shown-this-once-only' }, made));
+   }
+   if (/^\/api\/v1\/apikeys\/[^/]+$/.test(path) && method === 'DELETE') {
+      const id = segment(path, 4);
+      const at = state.apikeys.findIndex((k) => k.id === id);
+      if (at < 0) { return json(404, { error: 'no such key' }); }
+      state.apikeys.splice(at, 1);
+      return json(200, { revoked: true });
+   }
+
+   if (path === '/api/v1/quarantine' && method === 'GET') { return json(200, state.quarantine); }
+   if (/^\/api\/v1\/quarantine\/\d+\/release$/.test(path) && method === 'POST') {
+      const id = Number(segment(path, 4));
+      const at = state.quarantine.findIndex((m) => m.id === id);
+      if (at < 0) { return json(404, { error: 'quarantined message not found' }); }
+      state.quarantine.splice(at, 1);
+      return json(200, { released: true });
+   }
+   if (/^\/api\/v1\/quarantine\/\d+$/.test(path) && method === 'DELETE') {
+      const id = Number(segment(path, 4));
+      const at = state.quarantine.findIndex((m) => m.id === id);
+      if (at < 0) { return json(404, { error: 'quarantined message not found' }); }
+      state.quarantine.splice(at, 1);
+      return json(200, { deleted: true });
+   }
+
+   if (/^\/api\/v1\/archive(\?|$)/.test(path) && method === 'GET') {
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      const parameter = (name) => {
+         const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0];
+         return hit ? decodeURIComponent(hit.split('=').slice(1).join('=')) : '';
+      };
+      const has = (value, text) => !text || String(value).toLowerCase().indexOf(text.toLowerCase()) >= 0;
+      const limit = Number(parameter('limit') || 200);
+      const entries = state.archive.filter((e) =>
+         (!parameter('domain') || e.domain === parameter('domain')) &&
+         (!parameter('mailbox') || e.mailbox === parameter('mailbox')) &&
+         has(e.sender, parameter('sender')) && has(e.recipients, parameter('recipient')) && has(e.subject, parameter('subject')) &&
+         (!parameter('since') || e.time >= parameter('since')) && (!parameter('until') || e.time <= parameter('until')) &&
+         (parameter('hold') !== '1' || e.hold));
+      return json(200, entries.slice(0, limit));
+   }
+   if (/^\/api\/v1\/archive\/\d+\/hold$/.test(path)) {
+      const id = Number(segment(path, 4));
+      const entry = state.archive.filter((e) => e.id === id)[0];
+      if (!entry) { return json(404, { error: 'no such archived message' }); }
+      if (method === 'POST') { entry.hold = true; return json(200, { held: true }); }
+      if (method === 'DELETE') { entry.hold = false; return json(200, { released: true }); }
+   }
+
+   if (/^\/api\/v1\/metrics\/history(\?|$)/.test(path) && method === 'GET') {
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      const parameter = (name) => {
+         const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0];
+         return hit ? decodeURIComponent(hit.split('=').slice(1).join('=')) : '';
+      };
+      const metric = parameter('metric');
+      const range = parameter('range') || '24h';
+      const bucket = range === '30d' ? 60 : range === '7d' ? 10 : 1;
+      const back = range === '30d' ? 43200 : range === '7d' ? 10080 : 1440;
+      const values = state.metricsEnabled ? (state.metricsSamples[metric] || []) : [];
+      const samples = values.map((value, i) => ({ time: '2026-09-16 1' + i + ':00:00', value }));
+      return json(200, { metric, known: metric in state.metricsSamples, enabled: state.metricsEnabled,
+         retention_days: state.metricsEnabled ? 7 : 0, minutes_back: back, bucket_minutes: bucket, samples });
+   }
+
+   if (path === '/api/v1/update' && method === 'GET') { return json(200, state.update); }
+   if (/^\/api\/v1\/update\/(check|download|install)$/.test(path) && method === 'POST') {
+      const verb = segment(path, 4);
+      if (verb === 'check') {
+         Object.assign(state.update, { state: 2, stateName: 'update-available', availableVersion: '6.3.4',
+            releaseName: 'hMailServer 6.3.4', publishedAt: '2026-09-16 12:00:00', releaseUrl: 'https://example.invalid/releases/6.3.4',
+            lastChecked: '2026-09-17 09:00:00', lastError: '',
+            installer: { name: 'hMailServer-6.3.4.exe', url: 'https://example.invalid/hMailServer-6.3.4.exe', size: 12582912, digest: 'sha256:abc', bundleUrl: 'https://example.invalid/hMailServer-6.3.4.exe.sigstore' } });
+      } else if (verb === 'download') {
+         if (state.update.state !== 2) { return json(409, { error: 'there is nothing to download' }); }
+         Object.assign(state.update, { state: 3, stateName: 'downloaded',
+            downloaded: { path: 'C:\\hMailServer\\Data\\Updates\\hMailServer-6.3.4.exe', signer: 'Progressive Robot Ltd',
+               logTime: '2026-09-17 09:05:00', verifiedAt: '2026-09-17 09:05:02' } });
+      } else {
+         if (state.update.state !== 3) { return json(409, { error: 'there is no verified installer to apply' }); }
+         Object.assign(state.update, { state: 4, stateName: 'installing',
+            apply: { status: 'started', version: '6.3.4', detail: 'handed to the update helper' } });
+      }
+      return json(200, state.update);
+   }
+
+   if (path === '/api/v1/srv' && method === 'GET') { return json(200, state.srv); }
+
+   const folderAcl = /^\/api\/v1\/accounts\/([^/]+)\/folders\/(\d+)\/permissions(?:\/(\d+))?$/.exec(path);
+   if (folderAcl) {
+      const address = decodeURIComponent(folderAcl[1]);
+      if (!Object.keys(state.accounts).some((d) => state.accounts[d].some((a) => a.address === address))) {
+         return json(404, { error: 'account not found' });
+      }
+      const folder = Number(folderAcl[2]);
+      const list = state.permissions[folder];
+      if (!list) { return json(404, { error: 'no folder with that id in the account\'s tree' }); }
+      if (method === 'GET') { return json(200, list); }
+      if (method === 'POST') {
+         if (parsed.type !== 'anyone' && !parsed.account && !parsed.group) { return json(400, { error: 'name the account or the group' }); }
+         nextId += 1;
+         const rights = parsed.rights || {};
+         list.push({ id: nextId, folder_id: folder, type: parsed.type, account_id: 0, account: parsed.account || '',
+            group_id: 0, group: parsed.group || '', rights,
+            rights_text: Object.keys(rights).filter((r) => rights[r]).map((r) => r.charAt(0)).join('') });
+         return json(201, list[list.length - 1]);
+      }
+      const id = Number(folderAcl[3]);
+      const at = list.findIndex((p) => p.id === id);
+      if (at < 0) { return json(404, { error: 'no such permission' }); }
+      if (method === 'PUT') {
+         list[at] = Object.assign({}, list[at], parsed, { id, folder_id: folder });
+         return json(200, list[at]);
+      }
+      if (method === 'DELETE') { list.splice(at, 1); return json(200, { deleted: true }); }
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/folders$/.test(path) && method === 'GET') {
+      const address = segment(path, 4);
+      if (!Object.keys(state.accounts).some((d) => state.accounts[d].some((a) => a.address === address))) {
+         return json(404, { error: 'account not found' });
+      }
+      return json(200, state.folders);
+   }
+
+   if (path === '/api/v1/diagnostics/run' && method === 'POST') {
+      state.diagnosticRuns.push(parsed);
+      return json(200, { local_domain: (parsed && parsed.local_domain) || '', test_domain: (parsed && parsed.test_domain) || '',
+         results: state.diagnostics });
    }
 
    return json(404, { error: 'No such route: ' + method + ' ' + path });
@@ -4421,6 +4659,352 @@ async function main() {
    check('with none configured the page says what that means',
       content().textContent.indexOf('no mail event leaves this server') >= 0, content().textContent.slice(0, 200));
    state.webhooks = keptWebhooks;
+
+   /* ---- the eight pages the Deck gained last ------------------------------
+      API keys, the quarantine, the archive and its holds, the metric history,
+      the update, the DNS records, a folder's access-control list and the
+      diagnostic run: the last administrative pages that were in the desktop
+      program and not here. Each is walked as a person walks it - read it, act
+      on it, read what the page did - because the failure worth catching is a
+      button that sends the wrong thing, not one that sends nothing. */
+   {
+      // ---- the API keys
+      before = requests.length;
+      await goTo('apikeys');
+      check('the API keys view reads the keys once', called(before, 'GET', '/api/v1/apikeys').length === 1, paths(before));
+      check('a row per key', rows().length === 2, String(rows().length));
+      check('an expired key is marked and a key that names no domain and no address says so',
+         rows()[1].textContent.indexOf('Expired') >= 0 && rows()[0].textContent.indexOf('every domain') >= 0 &&
+         rows()[1].textContent.indexOf('anywhere') >= 0, rows().map((r) => r.textContent).join(' | '));
+      check('the form says what the route makes of it',
+         content().textContent.indexOf('token is returned once') >= 0, content().textContent.slice(0, 400));
+
+      before = requests.length;
+      setValue('key_label', '  ');
+      click(act('keynew'));
+      await flush();
+      check('a key with no label is refused here and never sent',
+         called(before, 'POST', '/api/v1/apikeys').length === 0 && $('#err_keys').textContent.indexOf('label') >= 0,
+         $('#err_keys').textContent + ' ' + paths(before));
+
+      before = requests.length;
+      setValue('key_label', 'the reporting job');
+      setValue('key_scope', 'readonly');
+      setValue('key_domains', 'example.com, second.example');
+      setValue('key_expires', '2027-01-01');
+      setValue('key_allowed', '192.0.2.0/24');
+      click(act('keynew'));
+      await flush();
+      posted = lastBody(before, 'POST', '/api/v1/apikeys');
+      check('making one sends the label, the scope, the domains, the expiry and where it may be used from',
+         posted !== null && posted.label === 'the reporting job' && posted.scope === 'readonly' &&
+         posted.domains === 'example.com, second.example' && posted.expires === '2027-01-01' && posted.allowed_from === '192.0.2.0/24',
+         JSON.stringify(posted));
+      check('and the token is shown once, with the warning that it will not be again',
+         $('#keyToken') !== null && $('#keyToken').textContent.indexOf('hmapi_') === 0 &&
+         content().textContent.indexOf('not shown again') >= 0, $('#keyToken') && $('#keyToken').textContent);
+      check('the new key is in the list', rows().length === 3, String(rows().length));
+
+      click(act('keycopy'));
+      await flush();
+      check('Copy the key puts the token on the clipboard', clipboard === $('#keyToken').textContent, String(clipboard));
+
+      click(act('keyhide'));
+      await flush();
+      check('and Hide it takes the token off the page', $('#keyToken') === null);
+
+      before = requests.length;
+      click(act('keyrevoke', { id: 'a1b2c3d4e5f60718' }));
+      await flush();
+      check('revoking asks with the label in the question and revokes by id',
+         confirmations[confirmations.length - 1].indexOf('the monitor') >= 0 &&
+         called(before, 'DELETE', '/api/v1/apikeys/a1b2c3d4e5f60718').length === 1 && rows().length === 2,
+         confirmations[confirmations.length - 1] + ' ' + paths(before));
+
+      // ---- the quarantine
+      before = requests.length;
+      await goTo('quarantine');
+      check('the quarantine view reads what is held, once', called(before, 'GET', '/api/v1/quarantine').length === 1, paths(before));
+      check('a row per held message, with the reason and the score', rows().length === 2 &&
+         rows()[0].textContent.indexOf('SURBL') >= 0 && rows()[0].textContent.indexOf('12') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+      check('a held message\'s subject is drawn as text, tags and all',
+         content().textContent.indexOf(HOSTILE) >= 0 && content().querySelector('img') === null,
+         content().textContent.slice(0, 300));
+
+      before = requests.length;
+      click(act('qrelease', { id: 41 }));
+      await flush();
+      check('releasing posts to the message\'s own release route and reads the queue again',
+         called(before, 'POST', '/api/v1/quarantine/41/release').length === 1 &&
+         called(before, 'GET', '/api/v1/quarantine').length === 1 && rows().length === 1, paths(before));
+      check('and says what happened to it', toastText().indexOf('recipients') >= 0, toastText());
+
+      before = requests.length;
+      click(act('qdelete', { id: 42 }));
+      await flush();
+      check('deleting one asks first, because nothing brings it back',
+         confirmations[confirmations.length - 1].indexOf('for good') >= 0, confirmations[confirmations.length - 1]);
+      check('and deletes it', called(before, 'DELETE', '/api/v1/quarantine/42').length === 1, paths(before));
+      check('with nothing held the page says so', content().textContent.indexOf('Nothing is held') >= 0, content().textContent.slice(0, 200));
+
+      // ---- the archive and its holds
+      before = requests.length;
+      await goTo('archive');
+      check('the archive view searches nothing until it is asked to',
+         called(before, 'GET', /^\/api\/v1\/archive/).length === 0 &&
+         content().textContent.indexOf('press Search') >= 0, paths(before));
+
+      before = requests.length;
+      setValue('arc_subject', 'contract');
+      setValue('arc_limit', '50');
+      click(act('arcsearch'));
+      await flush();
+      check('Search sends what the form holds, in the query string',
+         called(before, 'GET', /^\/api\/v1\/archive\?.*subject=contract.*limit=50/).length === 1, paths(before));
+      check('a row per copy, the held one marked', rows().length === 2 &&
+         rows().filter((r) => r.textContent.indexOf('On hold') >= 0).length === 1,
+         rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      click(act('archold', { id: 2750 }));
+      await flush();
+      check('putting a copy on hold posts to its hold route and searches again with the same query',
+         called(before, 'POST', '/api/v1/archive/2750/hold').length === 1 &&
+         called(before, 'GET', /^\/api\/v1\/archive\?.*subject=contract/).length === 1, paths(before));
+      check('and says what a hold means', toastText().indexOf('retention') >= 0, toastText());
+      check('both copies are now held', rows().filter((r) => r.textContent.indexOf('On hold') >= 0).length === 2,
+         rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      click(act('arcunhold', { id: 2751 }));
+      await flush();
+      check('lifting one is a DELETE of the same route',
+         called(before, 'DELETE', '/api/v1/archive/2751/hold').length === 1 &&
+         rows().filter((r) => r.textContent.indexOf('On hold') >= 0).length === 1, paths(before));
+
+      setValue('arc_subject', 'nothing like this was ever sent');
+      click(act('arcsearch'));
+      await flush();
+      check('a search that matches nothing says so rather than showing an empty table',
+         content().textContent.indexOf('Nothing in the archive matches') >= 0, content().textContent.slice(0, 300));
+
+      // ---- the metric history
+      before = requests.length;
+      await goTo('metrics');
+      check('the metrics view reads the metric it opens on, over a day',
+         called(before, 'GET', /^\/api\/v1\/metrics\/history\?metric=processed_messages_total&range=24h$/).length === 1, paths(before));
+      check('a counter is drawn as what changed between samples, not as the running total',
+         content().textContent.indexOf('Total over the window') >= 0 && rows()[0].textContent.indexOf('18') >= 0 &&
+         rows()[0].textContent.indexOf('7') >= 0 && rows()[0].textContent.indexOf('3') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+      check('and the chart is drawn as a line with a point per sample',
+         content().querySelectorAll('polyline').length === 1 && content().querySelectorAll('circle').length === 3,
+         String(content().querySelectorAll('circle').length));
+
+      before = requests.length;
+      setValue('metName', 'sessions_smtp');
+      setValue('metRange', '7d');
+      click(act('metload'));
+      await flush();
+      check('choosing another metric and window reads that one',
+         called(before, 'GET', /^\/api\/v1\/metrics\/history\?metric=sessions_smtp&range=7d$/).length === 1, paths(before));
+      check('a gauge is drawn as it stood, with the last value rather than a total',
+         content().textContent.indexOf('Last value') >= 0 && rows()[0].textContent.indexOf('6') >= 0 &&
+         rows()[0].textContent.indexOf('9') >= 0 && rows()[0].textContent.indexOf('10 min') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      state.metricsEnabled = false;
+      await goTo('metrics');
+      check('with the history switched off the page names the setting that turns it on',
+         content().textContent.indexOf('MetricsHistoryDays') >= 0, content().textContent.slice(0, 400));
+      state.metricsEnabled = true;
+
+      // ---- the update
+      before = requests.length;
+      await goTo('update');
+      check('the update view reads the verdict once', called(before, 'GET', '/api/v1/update').length === 1, paths(before));
+      check('a server that has not checked since it started says exactly that, and offers the check',
+         content().textContent.indexOf('Not checked since the service started') >= 0 &&
+         content().querySelectorAll('button[data-act="upcheck"]').length === 1 &&
+         content().querySelectorAll('button[data-act="updownload"]').length === 0 &&
+         content().querySelectorAll('button[data-act="upinstall"]').length === 0,
+         content().textContent.slice(0, 200));
+
+      before = requests.length;
+      click(act('upcheck'));
+      await flush();
+      check('Check now reads the feed and the page shows what it found',
+         called(before, 'POST', '/api/v1/update/check').length === 1 &&
+         content().textContent.indexOf('A newer release is available') >= 0 &&
+         content().textContent.indexOf('6.3.4') >= 0, paths(before) + ' ' + content().textContent.slice(0, 200));
+      check('and only then is there anything to download',
+         content().querySelectorAll('button[data-act="updownload"]').length === 1 &&
+         content().querySelectorAll('button[data-act="upinstall"]').length === 0);
+
+      before = requests.length;
+      click(act('updownload'));
+      await flush();
+      check('the download verifies the installer and the page names its signer and the hour it was verified',
+         called(before, 'POST', '/api/v1/update/download').length === 1 &&
+         content().textContent.indexOf('Progressive Robot Ltd') >= 0 &&
+         content().textContent.indexOf('2026-09-17 09:05:02') >= 0, paths(before) + ' ' + content().textContent.slice(0, 400));
+      check('and only a verified installer may be installed',
+         content().querySelectorAll('button[data-act="upinstall"]').length === 1);
+
+      before = requests.length;
+      click(act('upinstall'));
+      await flush();
+      check('installing asks first, saying that the service stops and starts',
+         confirmations[confirmations.length - 1].indexOf('stops and starts') >= 0, confirmations[confirmations.length - 1]);
+      check('and what the helper was handed is on the page afterwards',
+         called(before, 'POST', '/api/v1/update/install').length === 1 &&
+         content().textContent.indexOf('handed to the update helper') >= 0, paths(before));
+
+      // ---- the DNS records
+      const rotationWas = state.rotations['second.example'];
+      state.rotations['second.example'] = rotationDoc('second.example', 'sep2026', null);
+      const activeDomains = state.domains.filter((d) => d.active !== false).map((d) => d.name);
+      before = requests.length;
+      await goTo('dns');
+      check('the DNS view reads the domains, the SRV records and the TLSA records once each',
+         called(before, 'GET', '/api/v1/domains').length === 1 && called(before, 'GET', '/api/v1/srv').length === 1 &&
+         called(before, 'GET', '/api/v1/tlsa').length === 1, paths(before));
+      check('and one key rotation per active domain, and none for a domain that is switched off',
+         called(before, 'GET', /\/dkim\/rotation$/).length === activeDomains.length,
+         activeDomains.join(', ') + ' :: ' + paths(before));
+      const dns = $('#dnsPre').textContent;
+      check('every active domain has an SPF and a DMARC line to start from',
+         activeDomains.every((d) => dns.indexOf(d + '. IN TXT "v=spf1 mx -all"') >= 0 && dns.indexOf('_dmarc.' + d + '. IN TXT "v=DMARC1;') >= 0),
+         dns.slice(0, 400));
+      check('a domain that is switched off is not in the block',
+         state.domains.filter((d) => d.active === false).every((d) => dns.indexOf('; ' + d.name) < 0), dns.slice(0, 400));
+      check('the key a rotation holds for a domain is published under that domain, as a record to paste',
+         dns.indexOf('sep2026._domainkey.second.example. IN TXT "v=DKIM1; k=rsa; p=KEYsep2026"') >= 0, dns.slice(0, 800));
+      check('an SRV record is shown under the domain it belongs to and nowhere else',
+         state.srv.records.every((r) => (activeDomains.indexOf(r.domain) >= 0) === (dns.indexOf(r.record) >= 0)),
+         activeDomains.join(', ') + ' :: ' + dns.slice(0, 500));
+      check('and the TLSA records are a block of their own, one to a line',
+         dns.indexOf('; TLSA\n' + state.tlsa.records.map((r) => r.record).join('\n')) >= 0, dns.slice(-400));
+
+      click(act('dnscopy'));
+      await flush();
+      check('Copy all puts the whole block on the clipboard', clipboard === dns);
+      state.rotations['second.example'] = rotationWas;
+
+      // ---- a folder's access-control list
+      const aclDomain = Object.keys(state.accounts).filter((d) => state.accounts[d].length > 0 && d.indexOf('<') < 0)[0];
+      const aclAddress = state.accounts[aclDomain][0].address;
+      before = requests.length;
+      await goTo('folders');
+      check('the folders view reads nothing until it is given an address',
+         called(before, 'GET', /\/folders/).length === 0 && content().textContent.indexOf('press Show') >= 0, paths(before));
+
+      before = requests.length;
+      setValue('fldAddress', 'nobody@nowhere.invalid');
+      click(act('fldshow'));
+      await flush();
+      check('an address nothing answers for is reported rather than left blank',
+         $('#err_folders').textContent.length > 0, $('#err_folders').textContent);
+
+      before = requests.length;
+      setValue('fldAddress', aclAddress);
+      click(act('fldshow'));
+      await flush();
+      check('Show reads the account\'s folders and the first folder\'s permissions',
+         called(before, 'GET', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders').length === 1 &&
+         called(before, 'GET', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders/101/permissions').length === 1,
+         paths(before));
+      check('the whole tree is offered, a subfolder indented under its parent',
+         $('#fldPick').querySelectorAll('option').length === 3 &&
+         $('#fldPick').querySelectorAll('option')[1].textContent.indexOf('INBOX.Contracts') >= 0,
+         $('#fldPick').querySelectorAll('option').map((o) => o.textContent).join(' | '));
+      check('a permission names who holds it, the letters SETACL takes and the rights in words',
+         rows().length === 1 && rows()[0].textContent.indexOf('bob@example.com') >= 0 &&
+         rows()[0].textContent.indexOf('lrs') >= 0 && rows()[0].textContent.indexOf('write_seen') >= 0,
+         rows()[0].textContent);
+
+      before = requests.length;
+      $('#fldPick').value = '103';
+      $('#fldPick').dispatchEvent(makeEvent('change', { target: $('#fldPick') }));
+      await flush();
+      check('choosing another folder reads that folder\'s permissions',
+         called(before, 'GET', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders/103/permissions').length === 1,
+         paths(before));
+      check('and a folder nobody else reaches says so',
+         content().textContent.indexOf('Nobody else reaches this folder') >= 0, content().textContent.slice(0, 300));
+
+      before = requests.length;
+      setValue('permWho', '   ');
+      click(act('permsave'));
+      await flush();
+      check('granting to nobody is refused here and never sent',
+         called(before, 'POST', /\/permissions$/).length === 0 && $('#err_folders').textContent.indexOf('account') >= 0,
+         $('#err_folders').textContent + ' ' + paths(before));
+
+      before = requests.length;
+      setValue('permType', 'user');
+      setValue('permWho', 'carla@example.com');
+      content().querySelectorAll('input[data-right="lookup"]')[0].checked = true;
+      content().querySelectorAll('input[data-right="read"]')[0].checked = true;
+      click(act('permsave'));
+      await flush();
+      posted = lastBody(before, 'POST', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders/103/permissions');
+      check('granting sends the kind, who it is for and every right as true or false',
+         posted !== null && posted.type === 'user' && posted.account === 'carla@example.com' &&
+         posted.rights.lookup === true && posted.rights.read === true && posted.rights.administer === false,
+         JSON.stringify(posted));
+      check('and the new permission is in the table', rows().length === 1 && rows()[0].textContent.indexOf('carla@example.com') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      const granted = state.permissions[103][0].id;
+      before = requests.length;
+      click(act('permedit', { id: granted }));
+      await flush();
+      check('Edit fills the form with the permission as it stands',
+         $('#permWho').value === 'carla@example.com' &&
+         content().querySelectorAll('input[data-right="read"]')[0].checked === true &&
+         content().textContent.indexOf('Change the permission') >= 0, $('#permWho').value);
+
+      before = requests.length;
+      content().querySelectorAll('input[data-right="insert"]')[0].checked = true;
+      click(act('permsave'));
+      await flush();
+      put = lastBody(before, 'PUT', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders/103/permissions/' + granted);
+      check('and saving it is a PUT of the whole permission to its own address',
+         put !== null && put.rights.insert === true && put.rights.read === true, JSON.stringify(put));
+
+      before = requests.length;
+      click(act('permdel', { id: granted }));
+      await flush();
+      check('revoking asks first and deletes the permission alone',
+         confirmations[confirmations.length - 1].indexOf('Revoke') >= 0 &&
+         called(before, 'DELETE', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders/103/permissions/' + granted).length === 1 &&
+         content().textContent.indexOf('Nobody else reaches this folder') >= 0, paths(before));
+
+      // ---- the diagnostic run
+      before = requests.length;
+      await goTo('diagnostics');
+      check('the diagnostics view runs nothing until it is asked to, and says why it waits',
+         called(before, 'POST', '/api/v1/diagnostics/run').length === 0 &&
+         content().textContent.indexOf('waits for its timeout') >= 0, paths(before));
+      check('the local domain is filled in from the domains this server has',
+         $('#diagLocal').value === state.domains[0].name && $('#diagTest').value === 'example.com',
+         $('#diagLocal').value + ' / ' + $('#diagTest').value);
+
+      before = requests.length;
+      setValue('diagTest', 'elsewhere.example');
+      click(act('diagrun'));
+      await flush();
+      posted = lastBody(before, 'POST', '/api/v1/diagnostics/run');
+      check('running sends both domains to the route that runs the tests',
+         posted !== null && posted.local_domain === state.domains[0].name && posted.test_domain === 'elsewhere.example',
+         JSON.stringify(posted));
+      check('a row per test, each said to have passed or failed, with what it found',
+         rows().length === 3 && rows()[0].textContent.indexOf('OK') >= 0 &&
+         rows()[1].textContent.indexOf('Failed') >= 0 && rows()[1].textContent.indexOf('timed out') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+   }
 
    // ---- the outbound reputation
    before = requests.length;

@@ -34,6 +34,7 @@
 #include "../Cache/AccountSizeCache.h"
 #include "AcmeClient.h"
 #include "UpdateChecker.h"
+#include "../Diagnostics/Diagnostic.h"
 #include "UpdateDownloader.h"
 #include "UpdateInstaller.h"
 #include "WebServicesServer.h"
@@ -1767,6 +1768,8 @@ namespace HM
             return HandleUpdateDownload_();
          case RouteUpdateInstall:
             return HandleUpdateInstall_();
+         case RouteDiagnosticsRun:
+            return HandleDiagnosticsRun_(GetRequestBody_(request));
 
          case RouteQuarantineList:
             return HandleListQuarantine_();
@@ -3699,6 +3702,12 @@ namespace HM
          return;
       }
 
+      if (method == "POST" && path == "/api/v1/diagnostics/run")
+      {
+         route.kind = RouteDiagnosticsRun;
+         return;
+      }
+
       // /api/v1/quarantine, /api/v1/quarantine/<id>/release, /api/v1/quarantine/<id>
       if (method == "GET" && path == "/api/v1/quarantine")
       {
@@ -5125,6 +5134,7 @@ namespace HM
       case RouteUpdateCheck:
       case RouteUpdateDownload:
       case RouteUpdateInstall:
+      case RouteDiagnosticsRun:
       case RouteMePassword:
       case RouteMeVacation:
       case RouteMeQuarantineRelease:
@@ -5775,6 +5785,7 @@ namespace HM
       case RouteUpdateCheck:
       case RouteUpdateDownload:
       case RouteUpdateInstall:
+      case RouteDiagnosticsRun:
       case RouteScheduledRun:
       // The alert pass run now rather than in a minute, which is the scheduled
       // sends' shape exactly.
@@ -6406,6 +6417,7 @@ namespace HM
       case RouteUpdateCheck:
       case RouteUpdateDownload:
       case RouteUpdateInstall:
+      case RouteDiagnosticsRun:
       // A group holds accounts of any domain and is an ACL principal on any
       // folder: a key issued for one domain could add its own account to a
       // group another domain's folders trust, so the groups are the server's.
@@ -13889,6 +13901,7 @@ namespace HM
          "\"/api/v1/update/check\":{\"post\":{\"summary\":\"Read the release feed now\",\"description\":\"Runs the update check on this request, whether or not the scheduled check is on, and returns the verdict as GET /api/v1/update does. Refused for read-only keys.\",\"responses\":{\"200\":{\"description\":\"The verdict after the check; state 5 with lastError when the feed could not be read\"}}}},"
          "\"/api/v1/update/download\":{\"post\":{\"summary\":\"Download and verify the newer release\'s installer\",\"description\":\"Fetches the installer the last check found and its Sigstore bundle into the data directory\'s Updates folder and verifies the installer against the bundle: digest, certificate chain at the time the transparency log recorded the signature, the release workflow\'s identity, the signature, and the log\'s own signature. A file that fails is deleted. Nothing is run. Returns the verdict as GET /api/v1/update does; state 3 when the installer is in place and verified, 5 with lastError when it is not. Refused for read-only keys.\",\"responses\":{\"200\":{\"description\":\"The verdict after the download\"}}}},"
          "\"/api/v1/update/install\":{\"post\":{\"summary\":\"Apply the verified installer\",\"description\":\"Verifies the downloaded installer once more, fetches and verifies the running version\'s installer as the rollback image where the feed offers it, and hands the installer to the update helper, which runs it silently, waits for the service to come back, runs the rollback image if it does not, and writes an outcome the service reports at its next start (apply in GET /api/v1/update). The service stops and starts during the update. Returns state 4 when the helper was started. Refused for read-only keys.\",\"responses\":{\"200\":{\"description\":\"The verdict; state 4 when the helper was started, 5 with lastError when it was not\"}}}},"
+         "\"/api/v1/diagnostics/run\":{\"post\":{\"summary\":\"Run the server's diagnostic tests\",\"description\":\"What the desktop program's Diagnostics page runs over COM (Diagnostics.PerformTests): the MX records of a domain hosted here, an outbound connection on port 25 to a domain elsewhere, a connection to this server's own ports, IPv6, the data and backup directories, the IP ranges, the error logs and the installation paths. Body: local_domain (a domain hosted here) and test_domain (one to send to; example.com when absent). Each result: name, description, success and details. The tests connect out and wait for their timeouts, so the answer can take some seconds. Refused for read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"local_domain\":{\"type\":\"string\"},\"test_domain\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"local_domain, test_domain, results\"}}}},"
          "\"/api/v1/metrics/history\":{\"get\":{\"summary\":\"The history of one metric\",\"description\":\"Query parameters: metric (a name from the exporter without the hmailserver_ prefix, e.g. sessions_smtp or processed_messages_total) and range (24h, 7d or 30d - samples averaged per minute, per ten minutes or per hour). Counters are totals; a rate is the difference between two samples. Empty when MetricsHistoryDays is 0.\",\"responses\":{\"200\":{\"description\":\"The samples\"},\"400\":{\"description\":\"Unknown metric or range\"}}}},"
          "\"/api/v1/apikeys\":{"
          "\"get\":{\"summary\":\"List API keys\",\"description\":\"Administrator password only.\",\"responses\":{\"200\":{\"description\":\"Array of keys, never the clear-text tokens\"}}},"
@@ -14566,6 +14579,38 @@ namespace HM
       String error;
       UpdateDownloader::DownloadAndVerify(error);
       return BuildResponse_(200, UpdateChecker::ToJson(UpdateChecker::Current()));
+   }
+
+   HttpResponse
+   RestApiServer::HandleDiagnosticsRun_(const AnsiString &requestBody)
+   {
+      String localDomain = JsonUtf8Value_(requestBody, "local_domain");
+      localDomain.TrimLeft();
+      localDomain.TrimRight();
+      String testDomain = JsonUtf8Value_(requestBody, "test_domain");
+      testDomain.TrimLeft();
+      testDomain.TrimRight();
+      if (testDomain.IsEmpty())
+         testDomain = _T("example.com");
+
+      Diagnostic diagnostic;
+      diagnostic.SetLocalDomain(localDomain);
+      diagnostic.SetTestDomain(testDomain);
+      std::vector<DiagnosticResult> results = diagnostic.PerformTests();
+
+      AnsiString json = "{\"local_domain\":\"" + JsonEscape_(Utf8_(localDomain)) + "\",\"test_domain\":\"" + JsonEscape_(Utf8_(testDomain)) + "\",\"results\":[";
+      for (size_t i = 0; i < results.size(); i++)
+      {
+         if (i > 0)
+            json += ",";
+         json += "{\"name\":\"" + JsonEscape_(Utf8_(results[i].GetName())) +
+            "\",\"description\":\"" + JsonEscape_(Utf8_(results[i].GetDescription())) +
+            "\",\"success\":" + AnsiString(results[i].GetSuccess() ? "true" : "false") +
+            ",\"details\":\"" + JsonEscape_(Utf8_(results[i].GetDetails())) + "\"}";
+      }
+      json += "]}";
+      LOG_DEBUG("REST: the diagnostic tests were run for " + localDomain + " against " + testDomain + ".");
+      return BuildResponse_(200, json);
    }
 
    HttpResponse

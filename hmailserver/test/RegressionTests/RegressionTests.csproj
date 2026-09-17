@@ -716,6 +716,7 @@
     <Compile Include="API\RestApiSignatureImages.cs" />
     <Compile Include="API\RestApiArchive.cs" />
     <Compile Include="API\RestApiParityGaps.cs" />
+    <Compile Include="API\RestApiDeckPages.cs" />
     <Compile Include="Infrastructure\PrometheusConventions.cs" />
     <Compile Include="SMTP\DistributionListHeaders.cs" />
     <Compile Include="SMTP\TlsRptInertReporting.cs" />
