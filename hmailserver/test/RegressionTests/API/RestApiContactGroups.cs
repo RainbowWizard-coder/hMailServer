@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -120,10 +121,17 @@ namespace RegressionTests.API
          StringAssert.Contains("\"kind\":\"group\"", listed.body);
          (int status, string body) groupsOnly = Rest("GET", "/api/v1/me/contacts?kind=group");
          StringAssert.Contains("\"name\":\"Family\"", groupsOnly.body);
-         StringAssert.DoesNotContain("Alice Example", groupsOnly.body);
+         // Alice's name IS in this body: she is a member of Family, and the
+         // listing carries a group's members so the completion can expand it
+         // without asking again. What says the filter worked is that no ENTRY
+         // is a person, which is what the row promises and what this assertion
+         // meant before it was written as a search for a name.
+         Assert.AreEqual(0, EntriesOfKind(groupsOnly.body, "person"), "kind=group answers groups alone: " + groupsOnly.body);
+         Assert.GreaterOrEqual(EntriesOfKind(groupsOnly.body, "group"), 1, groupsOnly.body);
          (int status, string body) peopleOnly = Rest("GET", "/api/v1/me/contacts?kind=person");
          StringAssert.Contains("Alice Example", peopleOnly.body);
          StringAssert.DoesNotContain("\"name\":\"Family\"", peopleOnly.body);
+         Assert.AreEqual(0, EntriesOfKind(peopleOnly.body, "group"), "kind=person answers people alone: " + peopleOnly.body);
          Assert.AreEqual(400, Rest("GET", "/api/v1/me/contacts?kind=nonsense").status, "kind is person or group");
 
          // What the completion asks for: the name, narrowed.
@@ -705,6 +713,25 @@ namespace RegressionTests.API
                return response;
             }
          }
+      }
+
+      /// <summary>
+      ///    How many ENTRIES of the listing are of that kind. A group entry
+      ///    carries its members, and a member has a kind of its own, so counting
+      ///    the word in the whole body counts the members too; an entry is what
+      ///    "id" opens, and its own kind is the one that follows its address.
+      /// </summary>
+      private static int EntriesOfKind(string body, string kind)
+      {
+         int found = 0;
+         foreach (Dictionary<string, object> entry in MiniJson.List(MiniJson.Object(body), "contacts").Cast<Dictionary<string, object>>())
+         {
+            object value;
+            if (entry.TryGetValue("kind", out value) && (string) value == kind)
+               found += 1;
+         }
+
+         return found;
       }
    }
 }

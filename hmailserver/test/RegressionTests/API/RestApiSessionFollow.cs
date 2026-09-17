@@ -82,8 +82,8 @@ namespace RegressionTests.API
       [Description("An IMAP session is listed as open with its account once it signs in; a follow from the start carries its LOGIN lines; a follow from the cursor carries the NOOP sent next, nothing from before the cursor and nothing from a second session running beside it; after the logout the session is listed as ended and the follow says so; an unknown id is 404 and no credential is 401.")]
       public void AnImapSessionIsListedAndFollowedLive()
       {
-         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "follow@test.com", Password);
-         Account other = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "follow-other@test.com", Password);
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "follow@example.test", Password);
+         Account other = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "follow-other@example.test", Password);
 
          var imap = new ImapClientSimulator();
          Assert.IsTrue(imap.ConnectAndLogon(account.Address, Password), "The IMAP logon failed.");
@@ -171,7 +171,7 @@ namespace RegressionTests.API
       [Description("A follow with a wait is answered when the session's next line is logged, not when the wait runs out: a request for the lines after the cursor with wait=10 returns within a few seconds of a NOOP sent a second after it was made, carries the NOOP, and says it waited.")]
       public void AFollowWaitsForTheNextLineRatherThanPolling()
       {
-         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "waiter@test.com", Password);
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "waiter@example.test", Password);
 
          var imap = new ImapClientSimulator();
          Assert.IsTrue(imap.ConnectAndLogon(account.Address, Password), "The IMAP logon failed.");
