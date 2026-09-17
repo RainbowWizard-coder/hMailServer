@@ -1360,7 +1360,7 @@ const state = {
          metric_history: { table: 'hm_metricsamples', enabled: true, retention_days: 7, oldest: '2026-09-08 00:00:00' },
          message_store: { table: 'hm_messages', enabled: true, retention_days: 0, oldest: '' }
       },
-      not_answerable: ['Spam and virus counts per domain.', 'Storage growth per domain.']
+      not_answerable: ['Messages processed, delivered, deferred and bounced per domain.']
    },
    reportOmitted: [],
    reportSections: {
@@ -4666,7 +4666,7 @@ async function main() {
    check('the sources are drawn with their retention and how far back they go',
       content().textContent.indexOf('2026-09-01 08:00:00') >= 0 && content().textContent.indexOf('Message trace') >= 0, '');
    check('and what cannot be answered is shown, not hidden',
-      content().textContent.indexOf('Spam and virus counts per domain.') >= 0);
+      content().textContent.indexOf('Messages processed, delivered, deferred and bounced per domain.') >= 0);
    check('a section whose source is off says so in the server\'s own words and is marked',
       content().textContent.indexOf('The metric history is switched off') >= 0 && content().textContent.indexOf('Not recorded') >= 0);
    const trafficTable = content().querySelectorAll('table')[1];

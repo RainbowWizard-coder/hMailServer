@@ -169,6 +169,47 @@ namespace HM
    }
 
    bool
+   Reports::ReadDomainDays(const String &fromDay, const String &toDay, const String &domain, std::vector<DomainDay> &rows)
+   {
+      rows.clear();
+
+      AnsiString sql = "select dsday, dsdomain, dsspam, dsviruses, dsstorebytes, dsstoremessages from hm_domainsamples "
+                       "where dsday >= @FROM and dsday <= @TO";
+      if (!domain.IsEmpty())
+         sql += " and dsdomain = @DOMAIN";
+      sql += " order by dsday, dsdomain";
+
+      SQLCommand command(sql);
+      command.AddParameter("@FROM", fromDay);
+      command.AddParameter("@TO", toDay);
+      if (!domain.IsEmpty())
+      {
+         String lowered = domain;
+         lowered.ToLower();
+         command.AddParameter("@DOMAIN", lowered);
+      }
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         DomainDay row;
+         row.day = recordset->GetStringValue("dsday");
+         row.domain = recordset->GetStringValue("dsdomain");
+         row.spam = recordset->GetLongValue("dsspam");
+         row.viruses = recordset->GetLongValue("dsviruses");
+         row.storeBytes = recordset->GetInt64Value("dsstorebytes");
+         row.storeMessages = recordset->GetInt64Value("dsstoremessages");
+         rows.push_back(row);
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
    Reports::ReadMailboxes(std::vector<MailboxRow> &rows)
    {
       rows.clear();

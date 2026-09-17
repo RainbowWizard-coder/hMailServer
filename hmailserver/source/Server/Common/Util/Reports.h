@@ -105,6 +105,25 @@ namespace HM
          __int64 count;
       };
 
+      // One day of one domain from hm_domainsamples (schema 6062): spam and
+      // viruses counted by recipient domain, and the store's size per domain
+      // as sampled that day.
+      struct DomainDay
+      {
+         DomainDay() : spam(0), viruses(0), storeBytes(0), storeMessages(0) { }
+
+         String day;
+         String domain;
+         int spam;
+         int viruses;
+         __int64 storeBytes;
+         __int64 storeMessages;
+      };
+
+      // The per-domain rows between fromDay and toDay inclusive ("YYYY-MM-DD"),
+      // one domain when named, every domain otherwise; day then domain.
+      static bool ReadDomainDays(const String &fromDay, const String &toDay, const String &domain, std::vector<DomainDay> &rows);
+
       // One mailbox as it is now.
       struct MailboxRow
       {

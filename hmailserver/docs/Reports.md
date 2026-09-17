@@ -27,15 +27,21 @@ as "nothing happened" — the index, and each section's own `note`, say which it
 
 ## What cannot be answered, and what it would take
 
-Two of the seven numbers the roadmap row asked for are only available server-wide:
+Four of the volume counters are only available server-wide:
 
-* **Spam and virus counts per domain.** The counters are server-wide and the trace has no
-  spam or virus event. Attributing either to a domain would mean inventing the attribution.
-* **Storage growth per domain.** The store-size sample is server-wide. A domain's size *now*
-  is in the `mailboxes` section; its size last Tuesday was never recorded.
+* **Messages processed, delivered, deferred and bounced per domain.** Those four counters
+  carry no domain. The `traffic` section, from the message trace, is the per-domain count of
+  deliveries.
 
-Both would need a per-domain sample taken daily — a new table and a schema step. That is a
-roadmap row, not something a page can do by extrapolating from the size now.
+Spam and virus counts per domain, and storage growth per domain, were on this list until
+schema 6062 added the daily per-domain sample: `hm_domainsamples` holds one row per day and
+domain with the spam messages and removed viruses counted by the domain of each local
+recipient as they happen (`DomainSamples`, fed by the SMTP session, the fetcher and the
+deliverer), and each domain's store size and message count as sampled once an hour by the
+metric sampler. The `volume` and `storage` sections read it: per domain when a domain is
+named or the credential is restricted to domains, and as a `by_domain` table beside the
+server-wide form otherwise. The series starts the day the sample started, and the rows are
+kept as long as the metric history is (`MetricsHistoryDays`).
 
 One further limit, inherited from the trace itself: it correlates by queue id, so a message
 followed across a forward, a distribution list or a rule that re-sends appears as a separate
@@ -59,8 +65,8 @@ GET /api/v1/reports/<section>        one section
 | `senders` | domain | the trace | The local addresses that sent the most, with how many of their deliveries failed. |
 | `recipients` | domain | the trace | The local addresses that received the most, with how many deliveries to them failed. |
 | `mailboxes` | domain | the store | The largest mailboxes now, and the same totalled per domain. |
-| `volume` | **server** | the metric history | Per day: processed, delivered, deferred, bounced, spam, viruses. |
-| `storage` | **server** | the metric history | Per day: the size of the message store, and `growth_bytes` over the window. |
+| `volume` | server, and domain | the metric history, and the daily sample | Per day: processed, delivered, deferred, bounced, spam, viruses, with `by_domain` rows of spam and viruses per domain; named a domain, or restricted to domains, the per-domain rows alone. |
+| `storage` | server, and domain | the metric history, and the daily sample | Per day: the size of the message store and `growth_bytes` over the window, with `by_domain` rows of each domain's size; named a domain, the per-domain rows and a `growth` list per domain. |
 | `summary` | mixed | all three | Every section the credential may see, in one document, with an `omitted` list naming the ones it may not and why. |
 
 ### Parameters

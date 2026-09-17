@@ -18,6 +18,7 @@
 #include "../Common/Cache/InboxIDCache.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/ServerStatus.h"
+#include "../Common/Application/DomainSamples.h"
 #include "../Common/Util/MailerDaemonAddressDeterminer.h"
 #include "../Common/TCPIP/TCPConnection.h"
 
@@ -1136,8 +1137,9 @@ namespace HM
 
       if (VirusScanner::Scan(pMessage, virusName, &scannerFailed))
       {
-         // Virus found.
+         // Virus found: the server's counter, and the recipient domains'.
          ServerStatus::Instance()->OnVirusRemoved();
+         DomainSamples::Instance()->RecordFor(pMessage->GetRecipients(), false);
 
          if (!HandleInfectedMessage_(pMessage, virusName))
             return false;

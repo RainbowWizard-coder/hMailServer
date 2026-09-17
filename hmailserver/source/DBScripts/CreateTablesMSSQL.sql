@@ -1540,6 +1540,21 @@ ALTER TABLE hm_autoreplies ADD CONSTRAINT hm_autoreplies_pk PRIMARY KEY NONCLUST
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_autoreplies_account ON hm_autoreplies (araccountid, arsender)
 
+create table hm_domainsamples
+(
+	dsid int identity(1,1) not null,
+	dsday nvarchar(10) not null,
+	dsdomain nvarchar(255) not null,
+	dsspam int not null,
+	dsviruses int not null,
+	dsstorebytes bigint not null,
+	dsstoremessages bigint not null
+)
+
+ALTER TABLE hm_domainsamples ADD CONSTRAINT hm_domainsamples_pk PRIMARY KEY NONCLUSTERED (dsid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_domainsamples_day_domain ON hm_domainsamples (dsday, dsdomain)
+
 create table hm_dkimrotations
 (
 	dkrid bigint identity(1,1) not null,
@@ -2056,4 +2071,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6060)
+insert into hm_dbversion values (6062)

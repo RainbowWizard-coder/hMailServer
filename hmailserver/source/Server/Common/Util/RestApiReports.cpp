@@ -85,10 +85,10 @@ namespace HM
            "The largest mailboxes as they are now, and the same totalled per domain. A size now, not a history." },
          { "quota", false, "hm_messages",
            "Who is nearest their limit: every mailbox with one, by the share of it used, with the point its owner is warned at and the point sending stops. A share now, not a history." },
-         { "volume", true, "hm_metricsamples",
-           "Messages processed, delivered, deferred and bounced, spam detected and viruses removed, per day. Server-wide: these counters carry no domain." },
-         { "storage", true, "hm_metricsamples",
-           "The size of the message store per day, and what it grew by over the window. Server-wide." },
+         { "volume", false, "hm_metricsamples",
+           "Messages processed, delivered, deferred and bounced, spam detected and viruses removed, per day. The spam and virus counts are also per domain, from the daily sample; the other four carry no domain." },
+         { "storage", false, "hm_domainsamples",
+           "The size of the message store per day and what it grew by over the window, server-wide, and per domain from the daily sample." },
          { "countries", true, "hm_metricsamples",
            "Connections and sign-ins refused by a country policy: the daily total from the metric history, and the split by country since the server started. Server-wide." }
       };
@@ -917,16 +917,90 @@ namespace HM
 
       const int VolumeMetricCount = (int) (sizeof(VOLUME_METRICS) / sizeof(VOLUME_METRICS[0]));
 
+      // Whether the caller gets the per-domain form: a domain was named, or the
+      // credential is confined to domains and the server-wide columns are not
+      // its to see.
+      bool PerDomain(const Context &context)
+      {
+         return !context.domain.IsEmpty() || !context.allowed.empty();
+      }
+
+      AnsiString DomainDaysJson(const Context &context, const std::vector<Reports::DomainDay> &rows, bool store)
+      {
+         AnsiString json = "[";
+         bool first = true;
+
+         for (const Reports::DomainDay &row : rows)
+         {
+            if (!context.Wanted(AnsiString(row.domain)))
+               continue;
+
+            AnsiString entry;
+            if (store)
+               entry.Format("%s{\"day\":\"%hs\",\"domain\":\"%hs\",\"bytes\":%I64d,\"megabytes\":%I64d,\"messages\":%I64d}",
+                  first ? "" : ",", context.escape(AnsiString(row.day)).c_str(), context.escape(AnsiString(row.domain)).c_str(),
+                  row.storeBytes, row.storeBytes / (1024 * 1024), row.storeMessages);
+            else
+               entry.Format("%s{\"day\":\"%hs\",\"domain\":\"%hs\",\"spam\":%d,\"viruses\":%d}",
+                  first ? "" : ",", context.escape(AnsiString(row.day)).c_str(), context.escape(AnsiString(row.domain)).c_str(),
+                  row.spam, row.viruses);
+
+            json += entry;
+            first = false;
+         }
+
+         json += "]";
+         return json;
+      }
+
       Section BuildVolume(Context &context)
       {
          Section section;
          section.name = "volume";
          section.source = "hm_metricsamples";
          section.enabled = IniFileSettings::Instance()->GetMetricsHistoryDays() > 0;
+
+         std::vector<Reports::DomainDay> domainDays;
+         Reports::ReadDomainDays(String(context.from_day), String(context.to_day), String(context.domain), domainDays);
+
+         if (PerDomain(context))
+         {
+            // The per-domain form: spam and viruses counted by recipient
+            // domain as they happened, one row per day and domain. The other
+            // four counters carry no domain and are not here.
+            section.source = "hm_domainsamples";
+            section.enabled = true;
+            section.note = "Spam detected and viruses removed, counted by the domain of each local recipient as they happened "
+                           "and kept per day (hm_domainsamples). Messages processed, delivered, deferred and bounced carry no "
+                           "domain and are in the server-wide form of this section; the traffic section, from the message "
+                           "trace, is the per-domain count of deliveries.";
+
+            section.table.Column("day", false);
+            section.table.Column("domain", false);
+            section.table.Column("spam", true);
+            section.table.Column("viruses", true);
+
+            for (const Reports::DomainDay &row : domainDays)
+            {
+               if (!context.Wanted(AnsiString(row.domain)))
+                  continue;
+
+               std::vector<AnsiString> line;
+               line.push_back(AnsiString(row.day));
+               line.push_back(AnsiString(row.domain));
+               line.push_back(WholeNumber(row.spam));
+               line.push_back(WholeNumber(row.viruses));
+               section.table.rows.push_back(line);
+            }
+
+            return section;
+         }
+
          section.note = "Counted from the server-wide metric history. These counters carry no domain, so this "
-                        "section is the whole server whatever domain the request named - which is why the spam and "
-                        "virus figures cannot be given per domain. A day's figure is the counter's increase across "
-                        "that day, with a restart read as a restart rather than as a negative rate.";
+                        "section is the whole server; the spam and virus counts per domain are in by_domain, from the "
+                        "daily sample, and are what a request that names a domain gets. A day's figure is the counter's "
+                        "increase across that day, with a restart read as a restart rather than as a negative rate.";
+         section.extra = ",\"by_domain\":" + DomainDaysJson(context, domainDays, false);
 
          section.table.Column("day", false);
 
@@ -975,10 +1049,69 @@ namespace HM
          section.name = "storage";
          section.source = "hm_metricsamples";
          section.enabled = IniFileSettings::Instance()->GetMetricsHistoryDays() > 0;
+
+         std::vector<Reports::DomainDay> domainDays;
+         Reports::ReadDomainDays(String(context.from_day), String(context.to_day), String(context.domain), domainDays);
+
+         if (PerDomain(context))
+         {
+            // The per-domain form: each domain's store size as sampled each
+            // day, and the growth over the window per domain.
+            section.source = "hm_domainsamples";
+            section.note = "The size of each domain's mailboxes as sampled once an hour into its day's row "
+                           "(hm_domainsamples); the sample runs with the metric history. growth_bytes is the last day's "
+                           "size less the first day's, per domain, and is negative when mail was deleted.";
+
+            section.table.Column("day", false);
+            section.table.Column("domain", false);
+            section.table.Column("bytes", true);
+            section.table.Column("megabytes", true);
+            section.table.Column("messages", true);
+
+            std::map<AnsiString, std::pair<__int64, __int64> > firstLast;
+            std::map<AnsiString, bool> seen;
+
+            for (const Reports::DomainDay &row : domainDays)
+            {
+               AnsiString domain = AnsiString(row.domain);
+               if (!context.Wanted(domain))
+                  continue;
+
+               std::vector<AnsiString> line;
+               line.push_back(AnsiString(row.day));
+               line.push_back(domain);
+               line.push_back(WholeNumber(row.storeBytes));
+               line.push_back(WholeNumber(row.storeBytes / (1024 * 1024)));
+               line.push_back(WholeNumber(row.storeMessages));
+               section.table.rows.push_back(line);
+
+               if (!seen[domain])
+               {
+                  firstLast[domain].first = row.storeBytes;
+                  seen[domain] = true;
+               }
+               firstLast[domain].second = row.storeBytes;
+            }
+
+            AnsiString growth = ",\"growth\":[";
+            bool first = true;
+            for (std::map<AnsiString, std::pair<__int64, __int64> >::const_iterator it = firstLast.begin(); it != firstLast.end(); ++it)
+            {
+               AnsiString entry;
+               entry.Format("%s{\"domain\":\"%hs\",\"growth_bytes\":%I64d,\"first_day_bytes\":%I64d,\"last_day_bytes\":%I64d}",
+                  first ? "" : ",", context.escape(it->first).c_str(), it->second.second - it->second.first, it->second.first, it->second.second);
+               growth += entry;
+               first = false;
+            }
+            growth += "]";
+            section.extra = growth;
+
+            return section;
+         }
+
          section.note = "The size of the whole message store, sampled into the metric history as store_bytes and "
-                        "store_messages and recomputed at most once an hour. Server-wide: there is no per-domain "
-                        "sample, so a domain's growth over time cannot be answered - only its size now, which is "
-                        "in the mailboxes section.";
+                        "store_messages and recomputed at most once an hour; each domain's size per day is in by_domain, "
+                        "from the daily sample, and is what a request that names a domain gets.";
 
          section.table.Column("day", false);
          section.table.Column("bytes", true);
@@ -1027,6 +1160,7 @@ namespace HM
          section.extra.Format(",\"growth_bytes\":%I64d,\"first_day_bytes\":%I64d,\"last_day_bytes\":%I64d,\"retention_days\":%d",
             (__int64) (lastBytes - firstBytes), (__int64) firstBytes, (__int64) lastBytes,
             IniFileSettings::Instance()->GetMetricsHistoryDays());
+         section.extra += ",\"by_domain\":" + DomainDaysJson(context, domainDays, true);
 
          return section;
       }
@@ -1218,8 +1352,8 @@ namespace HM
          "traffic, failures, senders and recipients are counted from hm_messagetrace, which is OFF by default (MessageTraceEnabled) and which records "
          "only deliveries and failures - there is no spam or virus event in it. mailboxes is the size of every mailbox as it is NOW, not over the "
          "window, and quota is the same store read as a share of each mailbox's limit, nearest first, with the warning and send-stop points that apply. "
-         "window. volume, storage and countries are counted from the server-wide metric history and carry no domain at all, which is why spam and virus counts "
-         "and storage growth cannot be given per domain; all three are refused for a domain-restricted key. "
+         "volume and storage answer server-wide with a by_domain table beside them, and per domain - spam and viruses by recipient domain, each domain's store size per day, from the daily sample hm_domainsamples (schema 6062) - when a domain is named or the credential is restricted to domains. "
+         "countries is counted from the server-wide metric history and carries no domain at all; it is refused for a domain-restricted key. "
          "countries also carries a by_country split that is NOT windowed - nothing records a refusal per country per day, so it is the counters as they stand since the server started. Every per-domain section counts only domains "
          "this server hosts, and a domain-restricted key sees its own domains and no others. Every section needs view_configuration and view_message_trace, both: "
          "senders and recipients list who mails whom, and a role that may read the configuration is not thereby a role that may read that.\","
@@ -1349,8 +1483,7 @@ namespace HM
             "\"metric_history\":{\"table\":\"hm_metricsamples\",\"enabled\":%hs,\"retention_days\":%d,\"oldest\":\"%hs\"},"
             "\"message_store\":{\"table\":\"hm_messages\",\"enabled\":true,\"retention_days\":0,\"oldest\":\"\"}},"
             "\"not_answerable\":["
-            "\"Spam and virus counts per domain. The counters are server-wide and the message trace has no spam or virus event, so there is no honest way to attribute either to a domain.\","
-            "\"Storage growth per domain. The store-size sample is server-wide; a domain's size is known only as it is now.\","
+            "\"Messages processed, delivered, deferred and bounced per domain. Those four counters carry no domain; the traffic section, from the message trace, is the per-domain count of deliveries. Spam, viruses and the store's size are per domain since schema 6062, from the day the daily sample started.\","
             "\"Anything from before a source was switched on, or older than that source's retention.\","
             "\"A message followed across a forward, a distribution list or a rule that re-sends: each of those makes a new queue entry with a new id, and the trace correlates by queue id.\""
             "]}",

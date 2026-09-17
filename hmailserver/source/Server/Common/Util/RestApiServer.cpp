@@ -5097,9 +5097,10 @@ namespace HM
       // (IsApiKeyRoute_): an export writes wherever on the server's disk the
       // caller names, an erasure reaches every domain's tables, and the second
       // factor is the credential store itself. Classified here for the same
-      // reason the key routes are - no custom role may name them.
+      // reason the key routes are - no custom role may name them. The archive
+      // download is a read and is classified with the mailbox reads below; it
+      // stays the administrator password's through IsApiKeyRoute_.
       case RouteAccountExport:
-      case RouteAccountExportArchive:
       case RouteAddressErase:
       case RouteAdminSecondFactorEnrol:
       case RouteAdminSecondFactorDisable:
@@ -5270,6 +5271,7 @@ namespace HM
       // without being able to find the account it was rung up about.
       case RouteDomainList:
       case RouteAccountList:
+      case RouteAccountExportArchive:
       case RouteAccountGet:
       case RouteAccountRuleList:
       case RouteAliasList:

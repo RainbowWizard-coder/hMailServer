@@ -1133,6 +1133,22 @@ namespace DBUpdater
                          "update hm_domains set domainquotagracepercent = domainquotagracepercent where 1 = 0"),
          new SchemaProbe(6061, "hm_domains.domainquotasendstoppercent",
                          "update hm_domains set domainquotasendstoppercent = domainquotasendstoppercent where 1 = 0"),
+         // Upgrade6061to6062* - the per-domain daily sample: spam and viruses
+         // counted by recipient domain, and the store's size per domain, one
+         // row per day and domain (hm_domainsamples). The identity column is
+         // never probed.
+         new SchemaProbe(6062, "hm_domainsamples.dsday",
+                         "update hm_domainsamples set dsday = dsday where 1 = 0"),
+         new SchemaProbe(6062, "hm_domainsamples.dsdomain",
+                         "update hm_domainsamples set dsdomain = dsdomain where 1 = 0"),
+         new SchemaProbe(6062, "hm_domainsamples.dsspam",
+                         "update hm_domainsamples set dsspam = dsspam where 1 = 0"),
+         new SchemaProbe(6062, "hm_domainsamples.dsviruses",
+                         "update hm_domainsamples set dsviruses = dsviruses where 1 = 0"),
+         new SchemaProbe(6062, "hm_domainsamples.dsstorebytes",
+                         "update hm_domainsamples set dsstorebytes = dsstorebytes where 1 = 0"),
+         new SchemaProbe(6062, "hm_domainsamples.dsstoremessages",
+                         "update hm_domainsamples set dsstoremessages = dsstoremessages where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

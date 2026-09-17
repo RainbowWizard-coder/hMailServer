@@ -54,6 +54,8 @@ namespace HM
       std::shared_ptr<FetchAccountUIDList> GetUIDList_();
 
       std::shared_ptr<FetchAccount> account_;
+
+      void RecordSpamForOwner_();
       std::shared_ptr<Message> current_message_;
       bool download_finalized_;
       String receiving_account_address_;

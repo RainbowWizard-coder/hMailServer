@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "MetricsHistoryTask.h"
+#include "DomainSamples.h"
 
 #include "IniFileSettings.h"
 #include "../SQL/SQLCommand.h"
@@ -85,6 +86,11 @@ namespace HM
    void
    MetricsHistoryTask::DoWork()
    {
+      // The per-domain spam and virus counts go to their day's row whether or
+      // not the history is on: they are counts, not samples, and a count kept
+      // only in memory is lost with the process.
+      DomainSamples::Instance()->Flush();
+
       if (IniFileSettings::Instance()->GetMetricsHistoryDays() <= 0)
          return;
 
@@ -160,6 +166,13 @@ namespace HM
 
       int written = 0;
 
+      // The per-domain half: the counts since the last flush, and the store's
+      // size per domain at most once an hour - forced when the sampler is asked
+      // by name (Utilities.SampleMetricsNow), so a report drawn straight after
+      // it reads today.
+      DomainSamples::Instance()->Flush();
+      written += DomainSamples::Instance()->SampleStore(true);
+
       for (const std::pair<AnsiString, double> &value : values)
       {
          // The value goes in as a numeric literal: it is a double of our own
@@ -191,6 +204,8 @@ namespace HM
 
       if (days <= 0)
          return false;
+
+      DomainSamples::Prune(days);
 
       SQLStatement statement;
       statement.SetStatementType(SQLStatement::STDelete);

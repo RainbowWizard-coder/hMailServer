@@ -244,6 +244,29 @@ function Test-SchemaModel
       $problems += ('REQUIRED_DB_VERSION is {0} but DBUpdater''s chain ends at {1}. The server would refuse to start against a database DBUpdater considers fully upgraded.' -f $Model.RequiredVersion, $terminus)
    }
 
+   # 3b. A fresh install is stamped by the create scripts, and it must be stamped
+   #     at REQUIRED_DB_VERSION: stamped lower, DBUpdater would run the steps above
+   #     the stamp over a database that already has their columns and tables, and
+   #     the first ALTER TABLE ADD of a column that exists ends the upgrade.
+   foreach ($dialect in @('MSSQL', 'MySQL', 'PGSQL'))
+   {
+      $text = $Model.CreateText[$dialect]
+      if (-not $text) { continue }
+      $stamps = @()
+      foreach ($m in [regex]::Matches($text, '(?is)insert\s+into\s+hm_dbversion\s*(?:\([^)]*\))?\s*values\s*\(\s*(\d+)\s*\)'))
+      {
+         $stamps += [int] $m.Groups[1].Value
+      }
+      if ($stamps.Count -ne 1)
+      {
+         $problems += ('CreateTables{0}.sql stamps hm_dbversion {1} times; it must do so exactly once.' -f $dialect, $stamps.Count)
+      }
+      elseif ($Model.RequiredVersion -ne 0 -and $stamps[0] -ne $Model.RequiredVersion)
+      {
+         $problems += ('CreateTables{0}.sql stamps a fresh database at {1} but REQUIRED_DB_VERSION is {2}; DBUpdater would then run the steps from {1} over tables that already have their columns.' -f $dialect, $stamps[0], $Model.RequiredVersion)
+      }
+   }
+
    # 4. Every step needs its scripts, and every version in the chain needs a name
    #    or the tool shows the operator a bare number.
    foreach ($step in $steps)

@@ -617,6 +617,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\AuditRevert.cpp" />
     <ClCompile Include="..\Common\Util\QuotaPolicy.cpp" />
     <ClCompile Include="..\Common\Util\PersonExport.cpp" />
+    <ClCompile Include="..\Common\Application\DomainSamples.cpp" />
     <ClCompile Include="..\Common\Util\ZipWriter.cpp" />
     <ClCompile Include="..\Common\Util\MessageExport.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
@@ -1475,6 +1476,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AuditRevert.h" />
     <ClInclude Include="..\Common\Util\QuotaPolicy.h" />
     <ClInclude Include="..\Common\Util\PersonExport.h" />
+    <ClInclude Include="..\Common\Application\DomainSamples.h" />
     <ClInclude Include="..\Common\Util\ZipWriter.h" />
     <ClInclude Include="..\Common\Util\MessageExport.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />

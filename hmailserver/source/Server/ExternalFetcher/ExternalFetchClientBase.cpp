@@ -19,6 +19,7 @@
 #include "../Common/Util/Parsing/AddresslistParser.h"
 #include "../Common/Util/Utilities.h"
 #include "../Common/Util/ServerStatus.h"
+#include "../Common/Application/DomainSamples.h"
 #include "../Common/Mime/Mime.h"
 #include "../Common/BO/FetchAccountUID.h"
 #include "../Common/BO/MessageRecipients.h"
@@ -240,8 +241,9 @@ namespace HM
 
       if (iSpamDeleteThreshold > 0 && iTotalSpamScore >= iSpamDeleteThreshold)
       {
-         // Increase the spam-counter
+         // Increase the spam-counter, and the fetching account's domain's.
          ServerStatus::Instance()->OnSpamMessageDetected();
+         RecordSpamForOwner_();
 
          FileUtilities::DeleteFile(fileName);
          return false;
@@ -256,8 +258,9 @@ namespace HM
 
          std::shared_ptr<MessageData> messageData = SpamProtection::AddSpamScoreHeaders(current_message_, setSpamTestResults, classifiedAsSpam);
          
-         // Increase the spam-counter
+         // Increase the spam-counter, and the fetching account's domain's.
          ServerStatus::Instance()->OnSpamMessageDetected();
+         RecordSpamForOwner_();
 
          if (messageData)
             messageData->Write(fileName);
@@ -608,4 +611,19 @@ namespace HM
       return fetch_account_uidlist_;
    }
    // This is temp function to log ETRN client commands to SMTP
+
+   void
+   ExternalFetchClientBase::RecordSpamForOwner_()
+   {
+      if (!account_)
+         return;
+
+      std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(account_->GetAccountID());
+      if (!owner)
+         return;
+
+      String domain = StringParser::ExtractDomain(owner->GetAddress());
+      domain.ToLower();
+      DomainSamples::Instance()->RecordSpam(domain);
+   }
 }

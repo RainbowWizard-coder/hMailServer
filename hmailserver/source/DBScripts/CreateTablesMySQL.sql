@@ -1393,6 +1393,19 @@ create table hm_autoreplies
 
 CREATE UNIQUE INDEX idx_hm_autoreplies_account ON hm_autoreplies (araccountid, arsender);
 
+create table hm_domainsamples
+(
+	dsid int auto_increment not null, primary key(`dsid`), unique(`dsid`),
+	dsday varchar(10) not null,
+	dsdomain varchar(255) character set utf8 collate utf8_bin not null,
+	dsspam int not null,
+	dsviruses int not null,
+	dsstorebytes bigint not null,
+	dsstoremessages bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_domainsamples_day_domain ON hm_domainsamples (dsday, dsdomain);
+
 create table hm_dkimrotations
 (
 	dkrid bigint auto_increment not null, primary key(`dkrid`), unique(`dkrid`),
@@ -1897,4 +1910,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6060);
+insert into hm_dbversion values (6062);

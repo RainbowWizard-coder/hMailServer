@@ -277,9 +277,11 @@ namespace RegressionTests.API
 
          // The half that keeps the feature honest.
          StringAssert.Contains("not_answerable", index.body);
-         StringAssert.Contains("Spam and virus counts per domain", index.body,
-            "A report that cannot attribute spam to a domain must say so rather than leave the reader to assume it could.");
-         StringAssert.Contains("Storage growth per domain", index.body);
+         StringAssert.Contains("Messages processed, delivered, deferred and bounced per domain", index.body,
+            "A report that cannot attribute a counter to a domain must say so rather than leave the reader to assume it could.");
+         StringAssert.DoesNotContain("Spam and virus counts per domain", index.body,
+            "Spam and viruses are per domain since the daily sample; the index must not still say they cannot be.");
+         StringAssert.DoesNotContain("Storage growth per domain", index.body);
          StringAssert.Contains("\"enabled\":true", index.body,
             "The trace was switched on in SetUp, so the index must say it is recording.");
       }
@@ -485,18 +487,30 @@ namespace RegressionTests.API
          Assert.IsFalse(unnamed.body.Contains(OtherDomain),
             "A domain-restricted key must not be handed another domain's traffic in an unfiltered listing. Body: " + unnamed.body);
 
-         // The server-wide sections: refused outright, as the delivery queue is,
-         // because these counters carry no domain and narrowing them would mean
-         // inventing an attribution.
+         // volume and storage: answered in their per-domain form - the daily
+         // sample's rows for the key's domains - with none of the server-wide
+         // columns and nothing of another domain in them.
          foreach (string section in new[] { "volume", "storage" })
          {
-            (int status, string body, string headers) wide =
+            (int status, string body, string headers) narrowed =
                Bearer("GET", "/api/v1/reports/" + section + "?" + Window(), token);
 
-            Assert.AreEqual(403, wide.status,
-               "The " + section + " section is counted from server-wide metrics and must be refused to a domain-restricted key. Body: " + wide.body);
-            StringAssert.Contains("server-wide", wide.body);
+            Assert.AreEqual(200, narrowed.status,
+               "The " + section + " section has a per-domain form since the daily sample and must answer a domain-restricted key with it. Body: " + narrowed.body);
+            StringAssert.Contains("hm_domainsamples", narrowed.body, "The per-domain form says what it is counted from.");
+            Assert.IsFalse(narrowed.body.Contains("\"processed\"") || narrowed.body.Contains("growth_bytes\":") && !narrowed.body.Contains("\"growth\":["),
+               "The server-wide columns are not for a restricted key. Body: " + narrowed.body);
+            Assert.IsFalse(narrowed.body.Contains(OtherDomain), "Nothing of another domain. Body: " + narrowed.body);
          }
+
+         // countries is server-wide with nothing per domain in it: refused
+         // outright, as the delivery queue is, because narrowing it would mean
+         // inventing an attribution.
+         (int status, string body, string headers) wide =
+            Bearer("GET", "/api/v1/reports/countries?" + Window(), token);
+         Assert.AreEqual(403, wide.status,
+            "The countries section is counted from server-wide metrics and must be refused to a domain-restricted key. Body: " + wide.body);
+         StringAssert.Contains("server-wide", wide.body);
 
          // And the summary tells it which sections it did not get, rather than
          // handing it a quietly smaller document.
@@ -576,6 +590,64 @@ namespace RegressionTests.API
             Basic("GET", "/api/v1/reports/traffic?domain=not-hosted.example");
          Assert.AreEqual(404, domain.status, "Body: " + domain.body);
          StringAssert.Contains("no such domain", domain.body);
+      }
+
+      [Test]
+      [Description("Spam and the store's size are counted per domain: a message the blacklist marks counts for its recipient's domain in the day's sample, the sampler writes each domain's store size into the same row, and the volume and storage sections answer per domain when a domain is named, with a by_domain table beside the server-wide form otherwise")]
+      public void SpamAndTheStoreAreCountedPerDomain()
+      {
+         hMailServer.AntiSpam antiSpam = _settings.AntiSpam;
+         int markBefore = antiSpam.SpamMarkThreshold;
+         int deleteBefore = antiSpam.SpamDeleteThreshold;
+         antiSpam.SpamDeleteThreshold = 5;
+         antiSpam.SpamMarkThreshold = 2;
+         antiSpam.BlockedSenders.Clear();
+         try
+         {
+            var entry = antiSpam.BlockedSenders.Add();
+            entry.Address = "junk@remote.example";
+            entry.Score = 2;
+            entry.Save();
+
+            Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "spammed@example.test", "test");
+            SmtpClientSimulator.StaticSend("junk@remote.example", account.Address, "Marked", "A body the blacklist marks as spam.");
+            Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
+
+            // The sampler by name: the counts go to today's row and the store
+            // is sampled now rather than on the hour.
+            _application.Utilities.SampleMetricsNow();
+
+            (int status, string body, string headers) volume =
+               Basic("GET", "/api/v1/reports/volume?" + Window() + "&domain=example.test");
+            Assert.AreEqual(200, volume.status, "Body: " + volume.body);
+            Match spam = Regex.Match(volume.body,
+               "\\{\"day\":\"" + Day(0) + "\",\"domain\":\"example\\.test\",\"spam\":(\\d+),\"viruses\":(\\d+)\\}");
+            Assert.IsTrue(spam.Success, "Today's row for the domain is not in the per-domain volume. Body: " + volume.body);
+            ClassicAssert.GreaterOrEqual(int.Parse(spam.Groups[1].Value, CultureInfo.InvariantCulture), 1,
+               "The marked message counts for its recipient's domain. Body: " + volume.body);
+            StringAssert.DoesNotContain("\"processed\"", volume.body, "The per-domain form carries no server-wide column.");
+
+            (int status, string body, string headers) storage =
+               Basic("GET", "/api/v1/reports/storage?" + Window() + "&domain=example.test");
+            Assert.AreEqual(200, storage.status, "Body: " + storage.body);
+            Match size = Regex.Match(storage.body,
+               "\\{\"day\":\"" + Day(0) + "\",\"domain\":\"example\\.test\",\"bytes\":(\\d+),\"megabytes\":\\d+,\"messages\":(\\d+)\\}");
+            Assert.IsTrue(size.Success, "Today's row for the domain is not in the per-domain storage. Body: " + storage.body);
+            ClassicAssert.Greater(long.Parse(size.Groups[1].Value, CultureInfo.InvariantCulture), 0L, "The domain's store has the delivered message in it.");
+            StringAssert.Contains("\"growth\":[", storage.body, "The growth per domain rides along.");
+
+            (int status, string body, string headers) wide = Basic("GET", "/api/v1/reports/volume?" + Window());
+            Assert.AreEqual(200, wide.status, "Body: " + wide.body);
+            StringAssert.Contains("\"processed\"", wide.body, "The unrestricted form keeps the server-wide columns.");
+            StringAssert.Contains("\"by_domain\":[", wide.body, "And the per-domain rows ride along.");
+            StringAssert.Contains("\"domain\":\"example.test\"", wide.body);
+         }
+         finally
+         {
+            antiSpam.BlockedSenders.Clear();
+            antiSpam.SpamMarkThreshold = markBefore;
+            antiSpam.SpamDeleteThreshold = deleteBefore;
+         }
       }
 
       [Test]

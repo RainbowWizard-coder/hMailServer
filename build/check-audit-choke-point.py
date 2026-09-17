@@ -343,6 +343,7 @@ NOT_AUDITED = {
    "hm_greylisting_triplets": "greylisting's record of the senders it has seen; traffic.",
    "hm_logon_failures": "failed logons, which are traffic and the auto-ban's business.",
    "hm_metricsamples": "metric history; traffic.",
+   "hm_domainsamples": "the per-domain daily sample of spam, viruses and store size, written by DomainSamples; traffic.",
    "hm_alertevents": "what an alert condition raised; the alert rules that decide it (hm_alertrules) are audited.",
    "hm_complaints": "one row per RFC 5965 abuse report a provider's feedback loop posted to the complaint mailbox, written by the "
                     "arriving report with no actor at all - nobody here decided it - and pruned by the sweep; traffic. What an "

@@ -42,6 +42,7 @@
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/ServerStatus.h"
+#include "../Common/Application/DomainSamples.h"
 #include "../Common/Util/AWStats.h"
 #include "../Common/Util/WebhookManager.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
@@ -1837,8 +1838,10 @@ namespace HM
 
       if (iSpamDeleteThreshold > 0 && iTotalSpamScore >= iSpamDeleteThreshold)
       {
-         // Increase the spam-counter
+         // Increase the spam-counter, and the recipient domains' (none yet
+         // when the refusal comes at MAIL FROM).
          ServerStatus::Instance()->OnSpamMessageDetected();
+         DomainSamples::Instance()->RecordFor(current_message_->GetRecipients(), true);
 
          // Generate a text string to send to the client.
          String messageText = GetSpamTestResultMessage_(spam_test_results_);
@@ -2514,8 +2517,9 @@ namespace HM
 
          pMsgData = SpamProtection::AddSpamScoreHeaders(current_message_, spam_test_results_, classifiedAsSpam);
 
-         // Increase the spam-counter
+         // Increase the spam-counter, and the recipient domains'.
          ServerStatus::Instance()->OnSpamMessageDetected();
+         DomainSamples::Instance()->RecordFor(current_message_->GetRecipients(), true);
       }
 
       // The sender's signature and the sender domain's legal footer, on the same
