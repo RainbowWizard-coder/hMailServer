@@ -262,9 +262,16 @@ namespace RegressionTests.Rules
             StringAssert.Contains("5500 0000 0000 0004", server.MessageData, "The message left on the second attempt.");
          }
 
-         string notice = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test");
-         StringAssert.Contains("Subject: Policy notice: Card numbers by mail", notice);
+         // One notice for the two attempts. The count comes before the read,
+         // since reading a message deletes it: counting afterwards would count
+         // what a second notice left behind and so pass on the failure it is
+         // meant to catch. One is there before the read, none after it - and
+         // the empty count asks the delivery queue too, so a second notice on
+         // its way would be seen rather than missed.
          Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+         string notice = Decoded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
+         StringAssert.Contains("Subject: Policy notice: Card numbers by mail", notice);
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 0);
       }
 
       [Test]
@@ -338,12 +345,16 @@ namespace RegressionTests.Rules
             ClassicAssert.AreEqual("", server.MessageData ?? "", "The message did not leave.");
          }
 
-         string notice = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test");
+         // One notice, counted before it is read and again after: reading a
+         // message deletes it, so the order is what says one arrived and
+         // nothing took its place.
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+         string notice = Decoded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
          StringAssert.Contains("Subject: Policy notice: Board papers stay inside", notice);
          StringAssert.Contains("X-hMailServer-Policy-Outcome: not-sent", notice);
          StringAssert.Contains("was not sent", notice);
          StringAssert.Contains("Board papers are not sent outside.", notice);
-         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 0);
       }
 
       [Test]
@@ -392,7 +403,7 @@ namespace RegressionTests.Rules
             StringAssert.Contains("5500 0000 0000 0004", server.MessageData, "The message itself was not held.");
          }
 
-         string notice = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test");
+         string notice = Decoded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
          StringAssert.Contains("Subject: Policy notice: Card numbers by mail", notice);
          StringAssert.Contains("X-hMailServer-Policy: Card numbers by mail", notice);
          StringAssert.Contains("Auto-Submitted: auto-generated", notice);
@@ -514,6 +525,22 @@ namespace RegressionTests.Rules
             RestRequest.Send("127.0.0.1", RestPort, "PUT", "/api/v1/settings", "Basic " + credentials, "{\"dlp_account_number_pattern\":\"\"}");
             RestListener.Stop();
          }
+      }
+
+      /// <summary>
+      ///    A notice as its reader sees it. The server writes the body
+      ///    quoted-printable, so a soft line break falls wherever the seventy-sixth
+      ///    column does - inside a word as readily as between two ("matche=\r\nd the
+      ///    outbound content policy") - and a space that ends a line arrives as =20.
+      ///    The assertions here are about the words the sender is told, not about
+      ///    where the encoder wrapped them, so the encoding is undone first; the
+      ///    headers, which are not encoded, come through it unchanged.
+      /// </summary>
+      private static string Decoded(string raw)
+      {
+         string joined = raw.Replace("=\r\n", "").Replace("=\n", "");
+         return Regex.Replace(joined, "=([0-9A-Fa-f]{2})",
+            match => ((char) Convert.ToInt32(match.Groups[1].Value, 16)).ToString());
       }
 
       private static string MarkedInternal(string from, string to)
