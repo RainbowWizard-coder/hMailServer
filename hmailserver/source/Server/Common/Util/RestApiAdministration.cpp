@@ -810,6 +810,22 @@ namespace HM
    }
 
    HttpResponse
+   RestApiServer::HandleGetDomain_(const String &domainName)
+   {
+      // One domain, read: the same entry the listing renders and the update
+      // answers with, so that a caller reading a domain, changing one field and
+      // sending it back sends the server what it gave. hmctl domain get and
+      // Get-HmDomain -Name have asked for this document since they were
+      // written; until now the API had no GET under /api/v1/domains/{domain} at
+      // all and both were answered "not found" for a domain that is there.
+      std::shared_ptr<Domain> domain = DomainByName(domainName);
+      if (!domain)
+         return BuildResponse_(404, "{\"error\":\"domain not found\"}");
+
+      return BuildResponse_(200, DomainEntryJson_(domain));
+   }
+
+   HttpResponse
    RestApiServer::HandleUpdateDomain_(const Caller &caller, const String &domainName, const AnsiString &requestBody)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };

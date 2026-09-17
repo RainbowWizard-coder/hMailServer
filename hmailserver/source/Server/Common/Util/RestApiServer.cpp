@@ -1741,6 +1741,9 @@ namespace HM
          case RouteDomainList:
             return HandleListDomains_(caller.domains);
 
+         case RouteDomainGet:
+            return HandleGetDomain_(String(route.identifier));
+
          case RouteDomainCreate:
             return HandleCreateDomain_(GetRequestBody_(request));
 
@@ -3560,17 +3563,19 @@ namespace HM
       // /api/v1/domains/<name>/accounts
       const AnsiString domainsPrefix = "/api/v1/domains/";
 
-      // /api/v1/domains/<name> - the domain itself. The remainder has no slash
-      // in it, which is what keeps this apart from every
-      // /api/v1/domains/<name>/<resource> route below: those all end in a
+      // /api/v1/domains/<name> - the domain itself, read, changed or deleted.
+      // The remainder has no slash in it, which is what keeps this apart from
+      // every /api/v1/domains/<name>/<resource> route below: those all end in a
       // resource segment and this one ends in the name.
-      if ((method == "PUT" || method == "DELETE") && path.StartsWith(domainsPrefix))
+      if ((method == "GET" || method == "PUT" || method == "DELETE") && path.StartsWith(domainsPrefix))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength());
 
          if (!domainName.IsEmpty() && domainName.Find("/") < 0)
          {
-            route.kind = method == "PUT" ? RouteDomainUpdate : RouteDomainDelete;
+            route.kind = method == "GET" ? RouteDomainGet
+                       : method == "PUT" ? RouteDomainUpdate
+                       : RouteDomainDelete;
             route.identifier = domainName;
             return;
          }
@@ -5890,6 +5895,11 @@ namespace HM
       // and nothing else that reads, because it cannot answer the telephone
       // without being able to find the account it was rung up about.
       case RouteDomainList:
+      // One domain read whole says no more than the listing's entry for it
+      // says, and a credential confined to a list of domains is refused
+      // another's by DomainNamedByRoute_ below - so reading one sits with the
+      // listing rather than with the update that changes it.
+      case RouteDomainGet:
       case RouteAccountList:
       case RouteAccountExportArchive:
       case RouteAccountGet:
@@ -6329,6 +6339,10 @@ namespace HM
       {
       case RouteAccountList:
       case RouteAccountCreate:
+      // Reading one domain names it, exactly as changing it does. Left out of
+      // this list a confined credential could read any domain it could name,
+      // which is every field of another tenant's configuration.
+      case RouteDomainGet:
       case RouteDomainUpdate:
       case RouteAliasList:
       case RouteAliasCreate:
@@ -14618,6 +14632,7 @@ namespace HM
          "\"get\":{\"summary\":\"List domains\",\"description\":\"A domain-restricted key sees only its own domains. Each entry: name, active, postmaster.\",\"responses\":{\"200\":{\"description\":\"Array of domains\"}}},"
          "\"post\":{\"summary\":\"Create a domain\",\"description\":\"Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: name, active, postmaster\"},\"400\":{\"description\":\"name missing, not a domain name, or taken by a domain alias (the reason is in error)\"},\"409\":{\"description\":\"A domain with that name exists\"}}}},"
          "\"/api/v1/domains/{domain}\":{"
+         "\"get\":{\"summary\":\"One domain, whole\",\"description\":\"The domain by name, with every field the listing shows and the update takes - the document hmctl domain get and Get-HmDomain -Name answer with. Nothing here is a secret: a relay password is never in it, and a DKIM key is named by its file and not by its content. A domain-restricted key may read the domains it is issued for, and is refused another's with 403.\",\"parameters\":[{\"name\":\"domain\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{\"description\":\"The domain, as one entry of the listing\"},\"404\":{\"description\":\"Unknown domain\"}}},"
          "\"put\":{\"summary\":\"Change a domain: on or off, its postmaster, its limits and everything else the Control Panel's domain pages hold, or its name\",\"description\":\"Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_header_canonicalization and dkim_body_canonicalization (simple or relaxed), dkim_secondary_selector and dkim_secondary_private_key_file (the key a rotation promotes), dkim_sign_aliases, dkim_rotation_enabled (rotate the key on a schedule), dkim_rotation_interval_days (1 to 3650), dkim_rotation_propagation_hours (1 to 720), dkim_rotation_retention_days (1 to 365) and dkim_rotation_key_bits (2048, 3072 or 4096) - the rotation's policy; its state and its operations are under /dkim/rotation, and while a rotation manages the domain a save that would change its four selector and key file keys is refused with 409, message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, vacation_internal_subject and vacation_internal_message (the reply a sender in the same domain gets, when set), vacation_external_override, ad_domain_name (the Active Directory domain the domain's AD accounts log on to), external_tag_subject and external_tag_header (tag mail from outside this installation in the subject, in a header, or both), external_tag_text (the subject tag, at most 100 characters; empty is [EXTERNAL]), first_contact_tip (tell the reader when an outside sender has not written to the account before), disclaimer_enabled, disclaimer_plain_text and disclaimer_html (the legal footer appended to mail leaving the organisation), quarantine_digest and quarantine_digest_hour (whether each account of the domain is sent a daily list of what the quarantine holds for it, and at what local hour; the links in it need Settings.QuarantineDigestBaseUrl), openpgp_publish (publish this domain's accounts' OpenPGP public keys in the Web Key Directory; the server setting and each account's own switch have to be on as well) and openpgp_publish_new_accounts (what an account CREATED in this domain from now on starts with; it never changes an account that already exists), webhooks_enabled (whether anything this domain's mail or accounts do raises an outbound webhook event at all - on by default, and an off switch a domain administrator holds whatever the subscriptions at /api/v1/webhooks ask for) and webhook_subjects (whether a webhook body about this domain may carry a message subject - OFF by default on every domain, because a subject line is what a message is about; a subject travels only where this and the subscription's include_subject both say so), and country_policy (the country policy applied when an account of this domain signs in, on any protocol: empty is off, allow:GB,IE admits only those countries, block:CN,RU refuses those; a refused sign-in is the ordinary invalid-credentials answer and is counted against neither the account nor the address), session_idle_seconds and session_lifetime_seconds (how long a signed-in browser session of this domain's accounts may go unused, and live at all; 0 takes the server-wide value, at most 2592000), session_one_per_device and session_bind_to_address (0 takes the server-wide answer, 1 is on, 2 is off), and report_mailbox (the address this domain's DMARC aggregate and TLS-RPT reports are posted to - what its rua= tags name - and the one address they are read from into /dmarc-reports and /tls-reports; one address in a domain this server hosts, or empty, which is the default and reads nothing; the account or alias at it is the administrator's to make). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"active\"],\"properties\":{\"active\":{\"type\":\"boolean\"},\"postmaster\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The domain as saved, every field the listing shows\"},\"400\":{\"description\":\"active missing, a field refused, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"The save would change the selectors or key files a DKIM key rotation manages\"}}},"
          "\"delete\":{\"summary\":\"Delete a domain with everything in it\",\"description\":\"The accounts and their messages, the aliases, the distribution lists, the domain aliases and the domain's directories go with it, exactly as when the Control Panel deletes a domain. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{domain}/accounts\":{"

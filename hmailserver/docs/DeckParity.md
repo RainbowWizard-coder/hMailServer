@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 413, 185 of them writes |
+| REST routes (path and method) | 414, 185 of them writes |
 | Deck views | 35 |
 
 ## Missing over REST, by interface

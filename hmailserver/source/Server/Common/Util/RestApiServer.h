@@ -182,6 +182,11 @@ namespace HM
          RouteApiKeyRevoke,
          RouteStatus,
          RouteDomainList,
+         // One domain by name, whole: the same document an entry of the listing
+         // is, and the one hmctl domain get and Get-HmDomain -Name have always
+         // asked for. Scoped in DomainNamedByRoute_ to the domain it names, so
+         // a key confined to a list of domains reads its own and not another's.
+         RouteDomainGet,
          // The domain's own writes. Create and delete are server-wide - the set
          // of domains is the server's, not any one domain's - and are refused
          // for a domain-restricted key in Authorize_; the update is scoped to
@@ -1307,6 +1312,10 @@ namespace HM
       // One domain as the listing renders it, so that what a create or an
       // update answers is exactly what the next listing will show.
       static AnsiString DomainEntryJson_(const std::shared_ptr<Domain> &domain);
+
+      // That same entry for one domain by name, and a 404 when this server
+      // hosts no such domain.
+      static HttpResponse HandleGetDomain_(const String &domainName);
       static HttpResponse HandleCreateDomain_(const AnsiString &requestBody);
       static HttpResponse HandleUpdateDomain_(const Caller &caller, const String &domainName, const AnsiString &requestBody);
       static HttpResponse HandleDeleteDomain_(const String &domainName);

@@ -104,7 +104,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A domain is created, listed, read back through COM, refused as a duplicate, switched off and on, deleted, and gone; a second delete is 404.")]
+      [Description("A domain is created, listed, read by name and back through COM, refused as a duplicate, switched off and on, deleted, and gone; a second delete and a read of it are 404.")]
       public void DomainRoundTrip()
       {
          string name = UniqueDomainName();
@@ -120,6 +120,16 @@ namespace RegressionTests.API
          (int listStatus, string list) = Http("GET", "/api/v1/domains");
          Assert.AreEqual(200, listStatus, list);
          StringAssert.Contains("\"name\":\"" + name + "\",\"active\":true", list);
+
+         // And by name: that same entry alone, which is the document hmctl
+         // domain get and Get-HmDomain -Name ask for and what a caller reads
+         // before sending one field of it back.
+         (int oneStatus, string one) = Http("GET", "/api/v1/domains/" + name);
+         Assert.AreEqual(200, oneStatus, one);
+         StringAssert.Contains("\"name\":\"" + name + "\",\"active\":true", one);
+         StringAssert.Contains("\"postmaster\":\"postmaster@" + name + "\"", one);
+         StringAssert.Contains("\"plus_addressing_enabled\":", one);
+         StringAssert.DoesNotContain("relay_password", one, "A domain read whole must not carry the relay password.");
 
          // COM sees the same domain the Control Panel would show, with every
          // default a domain made there gets.
@@ -178,8 +188,9 @@ namespace RegressionTests.API
          Assert.IsFalse(Directory.Exists(Paths.Combine(dataDirectory, name)),
             "The domain's data directory must be removed with it, as COM's delete removes it.");
 
-         // Deleting it again, and switching it, are 404 - it is not there.
+         // Deleting it again, reading it and switching it are 404 - it is not there.
          Assert.AreEqual(404, Http("DELETE", "/api/v1/domains/" + name).status);
+         Assert.AreEqual(404, Http("GET", "/api/v1/domains/" + name).status);
          Assert.AreEqual(404, Http("PUT", "/api/v1/domains/" + name, "{\"active\":true}").status);
       }
 
