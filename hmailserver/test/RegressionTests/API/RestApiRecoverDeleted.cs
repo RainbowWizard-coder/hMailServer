@@ -69,7 +69,7 @@ namespace RegressionTests.API
          Assert.IsTrue(imap.CreateFolder("Archive"));
          Assert.IsTrue(imap.SelectFolder("INBOX"));
          // The second is moved, which is not a delete.
-         StringAssert.Contains("OK", imap.Send("A1 MOVE 2 Archive"));
+         StringAssert.Contains("A1 OK", imap.SendSingleCommand("A1 MOVE 2 Archive"));
          Assert.IsTrue(imap.SetSeenFlag(1));
          Assert.IsTrue(imap.SetDeletedFlag(1));
          Assert.IsTrue(imap.Expunge());
