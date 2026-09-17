@@ -986,6 +986,9 @@
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Адреса, на яку більше не надсилати</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Адреса, домен або URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Адреси</value>
   </data>
@@ -3331,6 +3334,9 @@
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Спливає</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Спливає (yyyy-mm-dd hh:mm:ss, коли перестає діяти)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Спливає {0} ({1})</value>
@@ -7642,6 +7648,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Зупиняється</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Перестає діяти на дату</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Зупиняє рушій поштового сервера, тоді як служба Windows працює далі: нові з'єднання не приймаються і нічого не доставляється, доки роботу не буде відновлено.</value>

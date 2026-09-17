@@ -986,6 +986,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Indirizzo a cui smettere di inviare</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Indirizzo, dominio o URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Indirizzi</value>
   </data>
@@ -3331,6 +3334,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Scade</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Scade il (yyyy-mm-dd hh:mm:ss, quando smette di valere)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Scade il {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Riavviarlo adesso?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Arresto in corso</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Smette di valere a una data</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Arresta il motore del server di posta mentre il servizio Windows resta in esecuzione: non viene accettata alcuna nuova connessione e nulla viene consegnato finché non lo si riprende.</value>

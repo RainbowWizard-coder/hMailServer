@@ -119,9 +119,11 @@ namespace hMailServer.ControlPanel.Views
          GetCollection = () => AntiSpam.SenderList,
          Fields =
          {
-            new FieldSpec { Prop = "Value", Label = L("Address or domain"), GridWidth = 260 },
+            new FieldSpec { Prop = "Value", Label = L("Address, domain or URL (https://host/...)"), GridWidth = 260 },
             new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "Reason", Label = L("Reason") }
+            new FieldSpec { Prop = "Reason", Label = L("Reason") },
+            new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
+            new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)"), ShowInGrid = false }
          }
       });
 
@@ -278,9 +280,11 @@ namespace hMailServer.ControlPanel.Views
          },
          Fields =
          {
-            new FieldSpec { Prop = "Value", Label = L("Address or domain"), GridWidth = 240 },
+            new FieldSpec { Prop = "Value", Label = L("Address, domain or URL (https://host/...)"), GridWidth = 240 },
             new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "Reason", Label = L("Reason") }
+            new FieldSpec { Prop = "Reason", Label = L("Reason") },
+            new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
+            new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)"), ShowInGrid = false }
          }
       }, embedded: true);
 

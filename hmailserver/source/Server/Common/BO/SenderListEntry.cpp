@@ -51,6 +51,18 @@ namespace HM
    }
 
    bool
+   SenderListEntry::IsUrl() const
+   {
+      return SenderPattern::IsUrl(value_);
+   }
+
+   bool
+   SenderListEntry::MatchesUrlHost(const String &host) const
+   {
+      return SenderPattern::MatchesUrlHost(value_, host);
+   }
+
+   bool
    SenderListEntry::HasExpired() const
    {
       if (!expires_)

@@ -986,6 +986,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Adresse à laquelle ne plus envoyer</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Adresse, domaine ou URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresses</value>
   </data>
@@ -3331,6 +3334,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Expire</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Expire le (yyyy-mm-dd hh:mm:ss, quand il cesse de s'appliquer)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Expire {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Arrêt en cours</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Cesse de s'appliquer à une date</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Arrête le moteur du serveur de messagerie pendant que le service Windows continue de tourner : aucune nouvelle connexion n'est acceptée et rien n'est livré tant qu'il n'a pas repris.</value>

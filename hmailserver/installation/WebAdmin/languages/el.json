@@ -94,7 +94,7 @@
   "An address is required.": "Απαιτείται διεύθυνση.",
   "An address or a domain": "Μια διεύθυνση ή ένας τομέας",
   "An address or a domain is required.": "Απαιτείται διεύθυνση ή τομέας.",
-  "An address, or a domain that covers its subdomains.": "Μια διεύθυνση, ή ένας τομέας που καλύπτει και τους υποτομείς του.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Μια διεύθυνση, ένας τομέας που καλύπτει τους υποτομείς του, ή ένα URL όπως https://host/oτιδήποτε, που καλύπτει συνδέσμους προς αυτόν τον κεντρικό υπολογιστή.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Μια διεύθυνση, ή ένα μοτίβο όπως 192.168.* ή 2001:db8:*.",
   "An administrator": "Ένας διαχειριστής",
   "An alias address and the address it delivers to are required.": "Απαιτούνται η διεύθυνση του ψευδωνύμου και η διεύθυνση στην οποία παραδίδει.",

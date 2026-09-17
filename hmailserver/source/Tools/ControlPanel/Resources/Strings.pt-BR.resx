@@ -986,6 +986,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Endereço para o qual parar de enviar</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Endereço, domínio ou URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Endereços</value>
   </data>
@@ -3331,6 +3334,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Expira</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Expira em (yyyy-mm-dd hh:mm:ss, quando deixa de valer)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Expira em {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Reiniciá-lo agora?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Parando</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Deixa de valer em uma data</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Para o mecanismo do servidor de e-mail enquanto o serviço do Windows continua rodando: nenhuma conexão nova é aceita e nada é entregue até que ele seja retomado.</value>

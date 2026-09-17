@@ -89,6 +89,10 @@ namespace HM
       // How specific this entry is, for the tie-break between two entries of
       // the same scope that both match. See SenderPattern::Specificity.
       int Specificity() const;
+      // Whether this entry is a URL host ("host/") rather than a sender, and
+      // whether it covers a link to the given host. See SenderPattern.
+      bool IsUrl() const;
+      bool MatchesUrlHost(const String &host) const;
 
       // True when the entry has an expiry and it has passed. An expired entry
       // is treated as absent by everything that reads the list, and is swept

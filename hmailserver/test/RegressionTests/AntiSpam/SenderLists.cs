@@ -301,6 +301,68 @@ namespace RegressionTests.AntiSpam
          ClassicAssert.AreEqual(201, accepted.status, accepted.body);
          StringAssert.Contains("\"value\":\"example.org\"", accepted.body);
          StringAssert.Contains("\"blocked\":false", accepted.body, "An entry that does not say otherwise allows.");
+
+         // A URL is stored as its host and a slash, the scheme, the path, the
+         // query and a leading www. gone; a scheme with no host is refused.
+         (int status, string body) url = Me(account.Address, "POST", "/api/v1/me/sender-list", "{\"value\":\"https://www.Bad.Example/x?y=1\",\"blocked\":true}");
+         ClassicAssert.AreEqual(201, url.status, url.body);
+         StringAssert.Contains("\"value\":\"bad.example/\"", url.body);
+
+         foreach (string value in new[] { "https://", "http:///deals", "https://nodot/x" })
+         {
+            (int status, string body) refusedUrl = Me(account.Address, "POST", "/api/v1/me/sender-list", "{\"value\":\"" + value + "\"}");
+            ClassicAssert.AreEqual(400, refusedUrl.status, "'" + value + "' must be refused. Body: " + refusedUrl.body);
+         }
+      }
+
+      [Test]
+      [Description("A URL entry blocks a message that links to that host - or a subdomain of it, whatever the path - for the account that listed it, and for no other recipient; the sender is not what decided")]
+      public void AUrlEntryBlocksTheLinkForItsOwnAccountAlone()
+      {
+         Account blocking = AddAccount("linkblocking");
+         Account other = AddAccount("linkother");
+
+         AddOwnEntry(blocking.Address, "https://Shop.Example/deals?x=1", true);
+
+         new SmtpClientSimulator().Send("friend@example.com", new List<string> { blocking.Address, other.Address }, "Look at this",
+            "A sale: http://www.cdn.shop.example/sale/today - and nothing else objectionable.");
+
+         string otherCopy = Pop3ClientSimulator.AssertGetFirstMessageText(other.Address, Password);
+         StringAssert.DoesNotContain("X-hMailServer-Spam", otherCopy, "Somebody else's URL entry is not this recipient's business.");
+
+         string blockingCopy = Pop3ClientSimulator.AssertGetFirstMessageText(blocking.Address, Password);
+         StringAssert.Contains("X-hMailServer-Spam: YES", blockingCopy);
+         StringAssert.Contains("[SPAM] Look at this", blockingCopy);
+         StringAssert.Contains("account block list", blockingCopy, "The reason header names the list that decided.");
+         StringAssert.Contains("shop.example/", blockingCopy, "And the entry.");
+
+         // The same sender, no link: the entry is about the link, not the sender.
+         Account plain = AddAccount("linkplain");
+         AddOwnEntry(plain.Address, "https://shop.example/", true);
+         new SmtpClientSimulator().Send("friend@example.com", plain.Address, "No link this time", CleanBody);
+         string plainCopy = Pop3ClientSimulator.AssertGetFirstMessageText(plain.Address, Password);
+         StringAssert.DoesNotContain("X-hMailServer-Spam", plainCopy, "A URL entry says nothing about a message with no link to it.");
+      }
+
+      [Test]
+      [Description("A URL entry that allows rescues a message whose link the URL blacklists list, for the account that listed it and for no other recipient")]
+      public void AUrlEntryRescuesALinkTheBlacklistsList()
+      {
+         Account trusting = AddAccount("linktrusting");
+         Account other = AddAccount("linkunbothered");
+
+         AddOwnEntry(trusting.Address, "http://surbl-org-permanent-test-point.com/", false);
+
+         new SmtpClientSimulator().Send("editor@example.com", new List<string> { trusting.Address, other.Address }, "Weekly links", SpamBody);
+
+         string otherCopy = Pop3ClientSimulator.AssertGetFirstMessageText(other.Address, Password);
+         StringAssert.Contains("X-hMailServer-Spam", otherCopy, "The blacklist marked the other recipient's copy; without that the rescue below proves nothing.");
+         StringAssert.Contains("[SPAM] Weekly links", otherCopy);
+
+         string trustingCopy = Pop3ClientSimulator.AssertGetFirstMessageText(trusting.Address, Password);
+         StringAssert.DoesNotContain("X-hMailServer-Spam", trustingCopy,
+            "The account listed the link's host as allowed, so its copy must arrive as though it had never been classified.");
+         StringAssert.DoesNotContain("[SPAM]", trustingCopy);
       }
 
       [Test]

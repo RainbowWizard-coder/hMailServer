@@ -94,7 +94,7 @@
   "An address is required.": "Je vyžadována adresa.",
   "An address or a domain": "Adresa nebo doména",
   "An address or a domain is required.": "Adresa nebo doména je povinná.",
-  "An address, or a domain that covers its subdomains.": "Adresa nebo doména, která zahrnuje své subdomény.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Adresa, doména pokrývající své subdomény, nebo URL jako https://host/cokoli, které pokrývá odkazy na tohoto hostitele.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Adresa nebo vzor jako 192.168.* či 2001:db8:*.",
   "An administrator": "Administrátor",
   "An alias address and the address it delivers to are required.": "Je vyžadována adresa aliasu a adresa, na kterou doručuje.",

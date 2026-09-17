@@ -986,6 +986,9 @@ Control Panel может читать файлы сообщений только
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Адрес, на который больше не отправлять</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Адрес, домен или URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Адреса</value>
   </data>
@@ -3331,6 +3334,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Срок действия</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Истекает (yyyy-mm-dd hh:mm:ss, когда перестаёт действовать)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Срок действия истекает {0} ({1})</value>
@@ -7642,6 +7648,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Останавливается</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Перестаёт действовать в дату</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Останавливает движок почтового сервера, оставляя службу Windows работать: новые подключения не принимаются и ничего не доставляется, пока работа не будет возобновлена.</value>

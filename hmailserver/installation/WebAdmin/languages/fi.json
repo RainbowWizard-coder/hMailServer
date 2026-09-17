@@ -94,7 +94,7 @@
   "An address is required.": "Osoite on pakollinen.",
   "An address or a domain": "Osoite tai verkkotunnus",
   "An address or a domain is required.": "Osoite tai verkkotunnus vaaditaan.",
-  "An address, or a domain that covers its subdomains.": "Osoite tai verkkotunnus, joka kattaa aliverkkotunnuksensa.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Osoite, verkkotunnus joka kattaa aliverkkotunnuksensa, tai URL kuten https://host/mitävain, joka kattaa linkit tuohon palvelimeen.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Osoite tai malli, kuten 192.168.* tai 2001:db8:*.",
   "An administrator": "Ylläpitäjä",
   "An alias address and the address it delivers to are required.": "Aliasosoite ja osoite, johon se toimittaa, ovat pakollisia.",

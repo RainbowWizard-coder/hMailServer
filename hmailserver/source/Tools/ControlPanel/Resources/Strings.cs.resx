@@ -986,6 +986,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Adresa, na kterou se už nemá odesílat</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Adresa, doména nebo URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresy</value>
   </data>
@@ -3331,6 +3334,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Vyprší</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Vyprší (yyyy-mm-dd hh:mm:ss, kdy přestane platit)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Vyprší {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Zastavuje se</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Přestane platit k datu</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Zastaví engine poštovního serveru, zatímco služba Windows běží dál: nepřijímají se žádná nová připojení a nic se nedoručuje, dokud jej znovu nespustíte.</value>

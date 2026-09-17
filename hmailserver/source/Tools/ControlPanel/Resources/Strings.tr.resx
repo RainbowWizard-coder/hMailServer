@@ -986,6 +986,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Artık gönderilmeyecek adres</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Adres, alan adı veya URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresler</value>
   </data>
@@ -3331,6 +3334,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Süre sonu</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Sona erme (yyyy-mm-dd hh:mm:ss, geçerliliğini yitirdiği an)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Süre sonu {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Durduruluyor</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Bir tarihte geçerliliğini yitirir</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Windows hizmeti çalışmaya devam ederken posta sunucusu motorunu durdurur: sürdürülene kadar yeni bağlantı kabul edilmez ve hiçbir şey teslim edilmez.</value>

@@ -10,15 +10,15 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 393 |
-| of them writable over REST | 391 |
-| of them reachable from a Deck view | 387 |
+| COM properties the desktop program writes | 395 |
+| of them writable over REST | 393 |
+| of them reachable from a Deck view | 389 |
 | missing over REST | 2 |
 | over REST but not reached by any Deck view | 4 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 61 |
-| REST routes (path and method) | 347, 156 of them writes |
+| REST routes (path and method) | 349, 157 of them writes |
 | Deck views | 26 |
 
 ## Missing over REST, by interface
@@ -596,6 +596,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Blocked` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
+| `Expires` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
+| `ExpiresTime` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
 | `Reason` | CollectionSpecs | `POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter)<br>`POST /api/v1/backup/restore` (name, scope unknown)<br>`POST /api/v1/calendar/expand` (name, scope unknown) | backup, domains, lists, settings |
 | `Value` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
 
@@ -858,8 +860,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/rules/match` | Rule, RuleCriteria, RuleAction | `domain`, `greater_than`, `keys`, `less_than`, `match`, `match_type`, `match_value`, `not_contains`, `not_equals`, `read`, `test_value`, `text`, `type`, `value`, `wildcard` | - |
 | `PUT /api/v1/rules/{id}` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `action`, `actions`, `active`, `all_criteria`, `bind_to_address`, `body`, `cc`, `criteria`, `delivery_attempts`, `domain`, `field`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `recipient_list`, `route_id`, `script_function`, `send_using_route`, `set_header`, `subject`, `to`, `type`, `value`, `wildcard` | yes |
 | `POST /api/v1/scheduled/run` | - | - | - |
-| `POST /api/v1/sender-list` | SenderListEntry, SenderListEntries | `address`, `blocked`, `domain`, `expires`, `expires_time`, `note`, `reason`, `to`, `value` | yes |
-| `PUT /api/v1/sender-list/{id}` | SenderListEntry, SenderListEntries | `address`, `blocked`, `domain`, `expires`, `expires_time`, `note`, `reason`, `to`, `value` | - |
+| `POST /api/v1/sender-list` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | yes |
+| `PUT /api/v1/sender-list` | SenderListEntry, SenderListEntries | `account`, `digest`, `domain`, `enabled` | yes |
+| `PUT /api/v1/sender-list/{id}` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | - |
 | `POST /api/v1/server/reinitialize` | - | - | yes |
 | `POST /api/v1/session` | - | - | - |
 | `PUT /api/v1/settings` | Settings, MessageIndexing, Directories, BackupSettings, Cache, AntiVirus | `add_delivered_to_header`, `alert_digest_enabled`, `alert_digest_hour`, `alert_max_per_hour`, `alert_recipient`, `alert_sender_address`, `alert_webhook_max_attempts`, `alerts_enabled`, `allow_incorrect_line_endings`, `allow_smtp_auth_plain`, `audit_retention_days`, `audit_trail_enabled`, `auto_ban_on_logon_failure`, `breach_check_enabled`, `breach_check_minimum_count`, `breach_check_unreachable_action`, `breach_check_url`, `country_blocking_exempt_ranges`, `country_policy_http`, `country_policy_imap`, `country_policy_pop3`, `country_policy_smtp`, `create_default_special_use_folders`, `default_domain`, `deny_mail_from_null`, `disconnect_invalid_clients`, `geoip_database_file`, `geoip_database_max_age_days`, `host_name`, `imap_acl_enabled`, `imap_hierarchy_delimiter`, `imap_idle_enabled`, `imap_master_user`, `imap_public_folder_name`, `imap_quota_enabled`, `imap_sasl_initial_response_enabled`, `imap_sasl_plain_enabled`, `imap_sort_enabled`, `ipv6_preferred`, `log_imap_conversations`, `log_pop3_conversations`, `log_smtp_conversations`, `max_asynchronous_threads`, `max_delivery_threads`, `max_imap_connections`, `max_invalid_logon_attempts`, `max_message_size_kb`, `max_number_of_invalid_commands`, `max_number_of_mx_hosts`, `max_pop3_connections`, `max_smtp_connections`, `max_smtp_recipients_in_batch`, `minutes_before_reset`, `minutes_to_ban`, `mirror_email_address`, `reputation_watch_addresses`, `reputation_watch_enabled`, `reputation_watch_lists`, `rewrite_envelope_from_when_forwarding`, `rule_loop_limit`, `service_imap`, `service_pop3`, `service_smtp`, `session_bind_to_address`, `session_idle_seconds`, `session_lifetime_seconds`, `session_one_per_device`, `smtp_connection_security`, `smtp_delivery_bind_to_ip`, `smtp_minutes_between_try`, `smtp_no_of_tries`, `smtp_relayer`, `smtp_relayer_connection_security`, `smtp_relayer_password`, `smtp_relayer_port`, `smtp_relayer_requires_authentication`, `smtp_relayer_username`, `spam_trap_ban_minutes`, `spam_trap_block_days`, `spam_trap_hit_retention_days`, `spam_trap_teach_spamassassin`, `ssl_cipher_list`, `tcpip_threads`, `tls_prefer_server_ciphers`, `tls_prioritize_chacha`, `tls_version_10_enabled`, `tls_version_11_enabled`, `tls_version_12_enabled`, `tls_version_13_enabled`, `user_interface_language`, `verify_remote_ssl_certificate`, `webhook_max_attempts`, `webhook_max_per_minute`, `webhook_retention_days`, `webhooks_enabled`, `welcome_imap`, `welcome_pop3`, `welcome_smtp`, `worker_thread_priority` | yes |

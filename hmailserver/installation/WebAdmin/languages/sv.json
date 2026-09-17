@@ -94,7 +94,7 @@
   "An address is required.": "En adress krävs.",
   "An address or a domain": "En adress eller en domän",
   "An address or a domain is required.": "En adress eller en domän krävs.",
-  "An address, or a domain that covers its subdomains.": "En adress, eller en domän som täcker sina underdomäner.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "En adress, en domän som täcker sina underdomäner, eller en URL som https://host/vadsomhelst, som täcker länkar till den värden.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "En adress, eller ett mönster som 192.168.* eller 2001:db8:*.",
   "An administrator": "En administratör",
   "An alias address and the address it delivers to are required.": "En aliasadress och adressen den levererar till krävs.",

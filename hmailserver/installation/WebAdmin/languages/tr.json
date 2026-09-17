@@ -94,7 +94,7 @@
   "An address is required.": "Bir adres gerekli.",
   "An address or a domain": "Bir adres veya alan adı",
   "An address or a domain is required.": "Bir adres veya alan adı gerekli.",
-  "An address, or a domain that covers its subdomains.": "Bir adres veya alt etki alanlarını da kapsayan bir etki alanı.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Bir adres, alt alan adlarını kapsayan bir alan adı veya https://host/herhangi gibi bir URL; URL o ana bilgisayara giden bağlantıları kapsar.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Bir adres veya 192.168.* ya da 2001:db8:* gibi bir desen.",
   "An administrator": "Bir yönetici",
   "An alias address and the address it delivers to are required.": "Bir takma ad adresi ve teslim edeceği adres gerekli.",

@@ -31,6 +31,13 @@ namespace HM
    //     "example.com".
    //   * The null sender (an empty address) matches nothing. <> carries
    //     bounces, and a list that could swallow those breaks RFC 5321.
+   //   * An entry ending in '/' is a URL host - what somebody typed as
+   //     https://host/anything and Canonical reduced to "host/" - and covers a
+   //     link in the message whose host is that host or a subdomain of it,
+   //     anchored at a label boundary as a domain entry is. It never matches
+   //     a sender: a URL entry is about what the message points at, not who
+   //     sent it, and the two are decided separately (SenderListCache::Decide
+   //     and DecideUrls).
    class SenderPattern
    {
    public:
@@ -46,6 +53,11 @@ namespace HM
       // "co.uk" (3) loses to "example.co.uk" (4). Label count rather than
       // string length, because a long name is not a specific one.
       static int Specificity(const String &pattern);
+      // Whether the pattern is a URL host: the canonical form ends in '/'.
+      static bool IsUrl(const String &pattern);
+      // Whether a URL entry covers a link's host: the host itself or a
+      // subdomain of it. False for an entry that is not a URL.
+      static bool MatchesUrlHost(const String &pattern, const String &host);
 
       // What a person may type into one of these lists. Empty is refused, a
       // pattern with a space in it is refused, and an address entry has to have
@@ -55,7 +67,9 @@ namespace HM
 
       // The pattern as it is stored: trimmed, lower-cased, and with a leading
       // '@' removed, so that "@Example.COM " and "example.com" are one row and
-      // not two. Called by the setter, so nothing downstream has to remember.
+      // not two; a URL - a scheme, or a '/' after the host - reduced to its host
+      // and a trailing '/', with a leading "www." dropped as the link extractor
+      // drops it. Called by the setter, so nothing downstream has to remember.
       static String Canonical(const String &pattern);
    };
 }

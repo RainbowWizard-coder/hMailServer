@@ -98,6 +98,19 @@ namespace HM
       // 0 for a recipient that has none (nothing can then match at domain scope).
       static Decision Decide(const String &envelopeSender, const String &headerFrom, __int64 accountId, __int64 domainId);
 
+      // The same decision for the links in a message: hosts are what
+      // SURBL::ExtractUrls found, and a URL entry (SenderPattern::IsUrl) at the
+      // nearest scope with an opinion about any of them decides, the more
+      // specific entry winning within a scope and a block winning a tie, as
+      // for senders. `matched` names the host. Nothing is decided by an entry
+      // that is not a URL, and nothing about a message with no links.
+      static Decision DecideUrls(const std::vector<String> &hosts, __int64 accountId, __int64 domainId);
+
+      // Whether any unexpired URL entry exists at the three scopes this
+      // recipient is under, so that the links are extracted from a message
+      // only when somebody has listed one.
+      static bool HasUrlEntries(__int64 accountId, __int64 domainId);
+
       static void SetNeedRefresh();
 
       // True when no entry exists at any scope, which lets the delivery path
@@ -115,6 +128,8 @@ namespace HM
 
       static void Refresh_();
       static Decision Evaluate_(const String &envelopeSender, const String &headerFrom, int scope, __int64 ownerId);
+      static Decision EvaluateUrls_(const std::vector<String> &hosts, int scope, __int64 ownerId);
+      static bool OwnerAtScope_(int scope, __int64 accountId, __int64 domainId, __int64 &ownerId);
 
       static std::vector<std::shared_ptr<SenderListEntry> > entries_;
       static bool need_refresh_;

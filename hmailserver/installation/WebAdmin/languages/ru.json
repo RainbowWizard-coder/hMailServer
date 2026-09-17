@@ -94,7 +94,7 @@
   "An address is required.": "Требуется адрес.",
   "An address or a domain": "Адрес или домен",
   "An address or a domain is required.": "Нужен адрес или домен.",
-  "An address, or a domain that covers its subdomains.": "Адрес или домен, охватывающий свои поддомены.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Адрес, домен, покрывающий свои поддомены, или URL вида https://host/anything, покрывающий ссылки на этот узел.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Адрес или шаблон вида 192.168.* либо 2001:db8:*.",
   "An administrator": "Администратор",
   "An alias address and the address it delivers to are required.": "Требуются адрес псевдонима и адрес, на который он доставляет.",

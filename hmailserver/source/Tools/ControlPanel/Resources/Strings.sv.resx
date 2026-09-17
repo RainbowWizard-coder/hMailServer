@@ -986,6 +986,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Adress som inte längre ska få e-post</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Adress, domän eller URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresser</value>
   </data>
@@ -3331,6 +3334,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Går ut</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Går ut (yyyy-mm-dd hh:mm:ss, när den slutar gälla)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Går ut {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Starta om den nu?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stoppar</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Slutar gälla ett datum</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Stoppar e-postserverns motor medan Windows-tjänsten fortsätter köra: inga nya anslutningar tas emot och inget levereras förrän den återupptas.</value>

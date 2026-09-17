@@ -19,6 +19,7 @@
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
 #include "../Common/AntiSpam/SenderListCache.h"
+#include "../Common/AntiSpam/SURBL.h"
 #include "../Common/AntiSpam/DMARC/DMARC.h"
 
 #include "../Common/Cache/CacheContainer.h"
@@ -1088,9 +1089,27 @@ namespace HM
       if (SenderListCache::IsEmpty())
          return true;
 
-      const SenderListCache::Decision decision =
+      SenderListCache::Decision decision =
          SenderListCache::Decide(original_message_->GetFromAddress(), HeaderFromAddress_(account, accountLevelMessage),
                                  account->GetID(), account->GetDomainID());
+
+      // Nobody listed the sender: the links, if somebody listed a URL for this
+      // recipient's account, domain or server. The message is parsed for them
+      // only then - the extraction is the same one the SURBL test makes, and
+      // costs a read of the body per recipient that has such an entry.
+      if (decision.verdict == SenderListCache::NoOpinion &&
+          SenderListCache::HasUrlEntries(account->GetID(), account->GetDomainID()))
+      {
+         const String fileName = PersistentMessage::GetFileName(account, accountLevelMessage);
+         std::shared_ptr<MessageData> messageData = std::shared_ptr<MessageData>(new MessageData());
+         if (messageData->LoadFromMessage(fileName, accountLevelMessage))
+         {
+            std::vector<String> hosts;
+            SURBL extractor;
+            if (extractor.ExtractUrls(messageData, hosts))
+               decision = SenderListCache::DecideUrls(hosts, account->GetID(), account->GetDomainID());
+         }
+      }
 
       if (decision.verdict == SenderListCache::NoOpinion)
          return true;

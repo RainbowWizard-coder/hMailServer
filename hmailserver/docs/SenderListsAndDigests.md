@@ -28,6 +28,7 @@ and optionally when it stops mattering.
 | `someone@example.com` | That one address, in any case. No wildcards. |
 | `example.com` | `example.com` and every subdomain of it — `mail.example.com`, not `notexample.com`, not `example.com.attacker.net`. |
 | `@example.com` | The same as `example.com`. Stored as `example.com`. |
+| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. A leading `www.` is dropped, as the link extractor drops it. |
 
 An entry covers a message when it matches **either** the envelope sender
 (`MAIL FROM`) **or** the address in the message's `From` header. The header is
@@ -38,6 +39,16 @@ trying to block or to rescue.
 
 A message with the null sender — a bounce, a delivery status notification — is
 never decided by any list, whatever its `From` header says.
+
+A URL entry is about what the message points at, not who sent it, and is
+consulted only when neither address decided anything: the links are extracted
+from the body the way the SURBL check extracts them, and the nearest scope with
+a URL entry covering any of them decides, with the same precedence and the same
+tie-break as for senders. Block, and the message is held or marked for that
+recipient like a blocked sender's; allow, and a link the URL blacklists list —
+a shortener, a newsletter service — no longer marks the message for that
+recipient. The body is read for links only for a recipient whose account,
+domain or server has a URL entry, so an installation with none pays nothing.
 
 The matching rule is the one the server-wide **Blocked senders** list has always
 used: both now call the same code.

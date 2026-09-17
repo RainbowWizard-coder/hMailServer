@@ -94,7 +94,7 @@
   "An address is required.": "Потрібна адреса.",
   "An address or a domain": "Адреса або домен",
   "An address or a domain is required.": "Потрібна адреса або домен.",
-  "An address, or a domain that covers its subdomains.": "Адреса або домен, що охоплює свої піддомени.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Адреса, домен, що покриває свої піддомени, або URL на кшталт https://host/anything, що покриває посилання на цей вузол.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Адреса або шаблон на кшталт 192.168.* чи 2001:db8:*.",
   "An administrator": "Адміністратор",
   "An alias address and the address it delivers to are required.": "Потрібні адреса псевдоніма та адреса, на яку він доставляє.",

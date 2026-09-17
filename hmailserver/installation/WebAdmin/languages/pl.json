@@ -94,7 +94,7 @@
   "An address is required.": "Wymagany jest adres.",
   "An address or a domain": "Adres lub domena",
   "An address or a domain is required.": "Wymagany jest adres lub domena.",
-  "An address, or a domain that covers its subdomains.": "Adres albo domena, która obejmuje swoje subdomeny.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Adres, domena obejmująca swoje subdomeny albo URL taki jak https://host/cokolwiek, obejmujący linki do tego hosta.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Adres albo wzorzec taki jak 192.168.* lub 2001:db8:*.",
   "An administrator": "Administrator",
   "An alias address and the address it delivers to are required.": "Wymagane są adres aliasu i adres, na który doręcza.",

@@ -94,7 +94,7 @@
   "An address is required.": "Een adres is vereist.",
   "An address or a domain": "Een adres of een domein",
   "An address or a domain is required.": "Een adres of een domein is verplicht.",
-  "An address, or a domain that covers its subdomains.": "Een adres, of een domein dat zijn subdomeinen omvat.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "Een adres, een domein dat zijn subdomeinen dekt, of een URL zoals https://host/watdanook, die koppelingen naar die host dekt.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "Een adres, of een patroon zoals 192.168.* of 2001:db8:*.",
   "An administrator": "Een beheerder",
   "An alias address and the address it delivers to are required.": "Een aliasadres en het adres waaraan het bezorgt zijn vereist.",

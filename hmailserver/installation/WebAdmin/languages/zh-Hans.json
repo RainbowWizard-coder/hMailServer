@@ -94,7 +94,7 @@
   "An address is required.": "需要地址。",
   "An address or a domain": "地址或域名",
   "An address or a domain is required.": "需要地址或域名。",
-  "An address, or a domain that covers its subdomains.": "一个地址，或一个涵盖其子域的域。",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "一个地址、一个涵盖其子域的域，或形如 https://host/anything 的 URL，它涵盖指向该主机的链接。",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "一个地址，或形如 192.168.* 或 2001:db8:* 的模式。",
   "An administrator": "管理员",
   "An alias address and the address it delivers to are required.": "需要别名地址和投递目标地址。",

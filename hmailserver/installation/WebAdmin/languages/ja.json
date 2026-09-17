@@ -94,7 +94,7 @@
   "An address is required.": "アドレスが必要です。",
   "An address or a domain": "アドレスまたはドメイン",
   "An address or a domain is required.": "アドレスまたはドメインが必要です。",
-  "An address, or a domain that covers its subdomains.": "アドレス、またはサブドメインを含むドメインです。",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "アドレス、サブドメインも含むドメイン、または https://host/anything のような URL。URL はそのホストへのリンクを対象にします。",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "アドレス、または 192.168.* や 2001:db8:* のようなパターンです。",
   "An administrator": "管理者",
   "An alias address and the address it delivers to are required.": "エイリアスのアドレスと配送先のアドレスが必要です。",

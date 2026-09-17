@@ -986,6 +986,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Adresse det ikke lenger skal sendes til</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Adresse, domene eller URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Adresser</value>
   </data>
@@ -3331,6 +3334,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Utløper</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Utløper (yyyy-mm-dd hh:mm:ss, når den slutter å gjelde)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Utløper {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stopper</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Slutter å gjelde på en dato</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Stopper postservermotoren mens Windows-tjenesten fortsetter å kjøre: ingen nye forbindelser godtas, og ingenting leveres før den gjenopptas.</value>

@@ -202,4 +202,146 @@ namespace HM
       Decision none;
       return none;
    }
+
+   bool
+   SenderListCache::OwnerAtScope_(int scope, __int64 accountId, __int64 domainId, __int64 &ownerId)
+   {
+      ownerId = 0;
+
+      if (scope == SenderListEntry::ScopeAccount)
+      {
+         if (accountId == 0)
+            return false;
+         ownerId = accountId;
+      }
+      else if (scope == SenderListEntry::ScopeDomain)
+      {
+         if (domainId == 0)
+            return false;
+         ownerId = domainId;
+      }
+
+      return true;
+   }
+
+   SenderListCache::Decision
+   SenderListCache::EvaluateUrls_(const std::vector<String> &hosts, int scope, __int64 ownerId)
+   {
+      Decision decision;
+      decision.scope = scope;
+
+      int bestSpecificity = -1;
+
+      for (const std::shared_ptr<SenderListEntry> &entry : entries_)
+      {
+         if (entry->GetScope() != scope || entry->GetOwnerID() != ownerId || entry->HasExpired() || !entry->IsUrl())
+            continue;
+
+         String matched;
+         for (const String &host : hosts)
+         {
+            if (entry->MatchesUrlHost(host))
+            {
+               matched = host;
+               break;
+            }
+         }
+
+         if (matched.IsEmpty())
+            continue;
+
+         const int specificity = entry->Specificity();
+         const Verdict verdict = entry->GetBlocked() ? Blocked : Allowed;
+
+         if (specificity > bestSpecificity)
+         {
+            bestSpecificity = specificity;
+            decision.verdict = verdict;
+            decision.value = entry->GetValue();
+            decision.reason = entry->GetReason();
+            decision.matched = matched;
+            continue;
+         }
+
+         // The same tie-break as for senders: on equal specificity, block wins.
+         if (specificity == bestSpecificity && verdict == Blocked && decision.verdict != Blocked)
+         {
+            decision.verdict = Blocked;
+            decision.value = entry->GetValue();
+            decision.reason = entry->GetReason();
+            decision.matched = matched;
+         }
+      }
+
+      return decision;
+   }
+
+   bool
+   SenderListCache::HasUrlEntries(__int64 accountId, __int64 domainId)
+   {
+      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+      if (need_refresh_)
+      {
+         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+         Refresh_();
+      }
+
+      for (const std::shared_ptr<SenderListEntry> &entry : entries_)
+      {
+         if (!entry->IsUrl() || entry->HasExpired())
+            continue;
+
+         __int64 ownerId = 0;
+         if (!OwnerAtScope_(entry->GetScope(), accountId, domainId, ownerId))
+            continue;
+
+         if (entry->GetOwnerID() == ownerId)
+            return true;
+      }
+
+      return false;
+   }
+
+   SenderListCache::Decision
+   SenderListCache::DecideUrls(const std::vector<String> &hosts, __int64 accountId, __int64 domainId)
+   {
+      Decision decision;
+
+      if (hosts.empty())
+         return decision;
+
+      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+      if (need_refresh_)
+      {
+         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+         Refresh_();
+      }
+
+      if (entries_.empty())
+         return decision;
+
+      const int scopes[] =
+      {
+         SenderListEntry::ScopeAccount,
+         SenderListEntry::ScopeDomain,
+         SenderListEntry::ScopeServer
+      };
+
+      for (const int scope : scopes)
+      {
+         __int64 ownerId = 0;
+         if (!OwnerAtScope_(scope, accountId, domainId, ownerId))
+            continue;
+
+         decision = EvaluateUrls_(hosts, scope, ownerId);
+
+         if (decision.verdict != NoOpinion)
+            return decision;
+      }
+
+      Decision none;
+      return none;
+   }
 }

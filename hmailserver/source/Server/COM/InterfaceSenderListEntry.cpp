@@ -10,6 +10,7 @@
 #include "../Common/AntiSpam/SenderPattern.h"
 #include "../Common/BO/SenderListEntry.h"
 #include "../Common/Persistence/PersistentSenderListEntry.h"
+#include "../Common/Util/Time.h"
 
 // InterfaceSenderListEntry
 
@@ -241,6 +242,22 @@ STDMETHODIMP InterfaceSenderListEntry::put_ExpiresTime(VARIANT newVal)
    {
       if (!object_)
          return GetAccessDenied();
+
+      // A date, or the text of one - "2026-10-01 09:00:00" - which is what a
+      // text box hands over: the Control Panel's list editor has no date
+      // control, and a text it cannot read is refused rather than stored as
+      // an expiry that has already passed.
+      if (newVal.vt == VT_BSTR)
+      {
+         HM::String text = newVal.bstrVal;
+         text.Trim();
+         HM::DateTime parsed = HM::Time::GetDateFromSystemDate(text);
+         if (text.IsEmpty() || parsed.GetStatus() != HM::DateTime::valid)
+            return COMError::GenerateError("ExpiresTime must be a date and time written as yyyy-mm-dd hh:mm:ss.");
+
+         object_->SetExpiresTime(parsed);
+         return S_OK;
+      }
 
       object_->SetExpiresTime(newVal);
       return S_OK;

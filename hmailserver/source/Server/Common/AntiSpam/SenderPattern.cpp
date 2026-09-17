@@ -26,7 +26,80 @@ namespace HM
       if (entry.Left(1) == _T("@"))
          entry = entry.Mid(1);
 
+      // A URL: the host, and a '/' to say so. "https://www.Bad.Example/x?y",
+      // "http://bad.example" and "bad.example/" are all "bad.example/".
+      bool url = false;
+      if (entry.StartsWith(_T("http://")))
+      {
+         entry = entry.Mid(7);
+         url = true;
+      }
+      else if (entry.StartsWith(_T("https://")))
+      {
+         entry = entry.Mid(8);
+         url = true;
+      }
+
+      const int slash = entry.Find(_T("/"));
+      if (slash >= 0)
+      {
+         entry = entry.Left(slash);
+         url = true;
+      }
+
+      if (url)
+      {
+         if (entry.StartsWith(_T("www.")))
+            entry = entry.Mid(4);
+
+         // The port and the credentials a link may carry are not part of the host.
+         const int at = entry.Find(_T("@"));
+         if (at >= 0)
+            entry = entry.Mid(at + 1);
+         const int colon = entry.Find(_T(":"));
+         if (colon >= 0)
+            entry = entry.Left(colon);
+
+         entry.Trim();
+         entry += _T("/");
+      }
+
       return entry;
+   }
+
+   bool
+   SenderPattern::IsUrl(const String &pattern)
+   {
+      const String entry = Canonical(pattern);
+      return entry.GetLength() > 1 && entry.Right(1) == _T("/");
+   }
+
+   bool
+   SenderPattern::MatchesUrlHost(const String &pattern, const String &host)
+   {
+      if (!IsUrl(pattern) || host.IsEmpty())
+         return false;
+
+      const String entry = Canonical(pattern);
+      const String entryHost = entry.Left(entry.GetLength() - 1);
+
+      String linkHost = host;
+      linkHost.Trim();
+      linkHost.MakeLower();
+      if (linkHost.StartsWith(_T("www.")))
+         linkHost = linkHost.Mid(4);
+
+      if (linkHost == entryHost)
+         return true;
+
+      // A subdomain, anchored at a label boundary: "bad.example/" covers
+      // "cdn.bad.example" and not "notbad.example".
+      if (linkHost.GetLength() > entryHost.GetLength() &&
+          linkHost.Right(entryHost.GetLength()) == entryHost &&
+          linkHost.GetAt(linkHost.GetLength() - entryHost.GetLength() - 1) == _T('.'))
+         return true;
+
+      return false;
    }
 
    bool
@@ -40,6 +113,10 @@ namespace HM
       const String entry = Canonical(pattern);
 
       if (entry.IsEmpty())
+         return false;
+
+      // A URL entry is about the links in a message, never about its sender.
+      if (entry.Right(1) == _T("/"))
          return false;
 
       String from = address;
@@ -84,6 +161,7 @@ namespace HM
          return 1000;
       }
 
+      // A URL host counts its labels as a domain does; the '/' is not one.
       int labels = 1;
       for (int i = 0; i < entry.GetLength(); i++)
       {
@@ -97,6 +175,20 @@ namespace HM
    bool
    SenderPattern::Validate(const String &pattern, String &out_error)
    {
+      // A URL entry is judged on its host, which has to be a domain: a scheme
+      // or a path alone names nothing a link could have.
+      if (IsUrl(pattern))
+      {
+         const String canonical = Canonical(pattern);
+         const String host = canonical.Left(canonical.GetLength() - 1);
+         if (host.IsEmpty() || host.Find(_T(".")) < 0 || host.Find(_T(" ")) >= 0 || host.Left(1) == _T(".") || host.Right(1) == _T("."))
+         {
+            out_error = _T("A URL entry needs a host name after its scheme, such as https://example.com/, and the host has to be a domain name.");
+            return false;
+         }
+         return true;
+      }
+
       const String entry = Canonical(pattern);
 
       if (entry.IsEmpty())

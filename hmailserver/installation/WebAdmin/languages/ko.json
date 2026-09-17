@@ -94,7 +94,7 @@
   "An address is required.": "주소가 필요합니다.",
   "An address or a domain": "주소 또는 도메인",
   "An address or a domain is required.": "주소 또는 도메인이 필요합니다.",
-  "An address, or a domain that covers its subdomains.": "주소, 또는 하위 도메인까지 포함하는 도메인입니다.",
+  "An address, a domain that covers its subdomains, or a URL such as https://host/anything, which covers links to that host.": "주소, 하위 도메인을 포함하는 도메인, 또는 https://host/anything 같은 URL. URL은 해당 호스트로의 링크를 대상으로 합니다.",
   "An address, or a pattern such as 192.168.* or 2001:db8:*.": "주소, 또는 192.168.* 이나 2001:db8:* 같은 패턴입니다.",
   "An administrator": "관리자",
   "An alias address and the address it delivers to are required.": "별칭 주소와 배달 대상 주소가 필요합니다.",

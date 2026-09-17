@@ -986,6 +986,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Address to stop sending to" xml:space="preserve">
     <value>Osoite, johon ei enää lähetetä</value>
   </data>
+  <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
+    <value>Osoite, verkkotunnus tai URL (https://host/...)</value>
+  </data>
   <data name="Addresses" xml:space="preserve">
     <value>Osoitteet</value>
   </data>
@@ -3331,6 +3334,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Vanhenee</value>
+  </data>
+  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
+    <value>Vanhenee (yyyy-mm-dd hh:mm:ss, milloin lakkaa pätemästä)</value>
   </data>
   <data name="Expires {0} ({1})" xml:space="preserve">
     <value>Vanhenee {0} ({1})</value>
@@ -7642,6 +7648,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Pysähtyy</value>
+  </data>
+  <data name="Stops mattering at a date" xml:space="preserve">
+    <value>Lakkaa pätemästä päivämääränä</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Pysäyttää postipalvelinmoottorin, kun Windows-palvelu jatkaa toimintaansa: uusia yhteyksiä ei hyväksytä eikä mitään toimiteta, ennen kuin toimintaa jatketaan.</value>
