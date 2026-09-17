@@ -668,6 +668,36 @@ namespace HM
    }
 
    bool
+   HttpsClient::HostIsPublic(const AnsiString &host, String &error)
+   {
+      try
+      {
+         const Clock::time_point deadline = Clock::now() + std::chrono::seconds(5);
+         const std::vector<boost::asio::ip::tcp::endpoint> endpoints = ResolveWithin_(std::string(host.c_str()), "143", deadline);
+         if (endpoints.empty())
+         {
+            error = Formatter::Format(_T("{0} does not resolve."), String(host));
+            return false;
+         }
+         for (const boost::asio::ip::tcp::endpoint &endpoint : endpoints)
+         {
+            if (!IsPublicAddress(endpoint.address()))
+            {
+               error = Formatter::Format(_T("{0} is at {1}, which is not a public address (loopback, private, link-local or reserved)."),
+                  String(host), String(endpoint.address().to_string().c_str()));
+               return false;
+            }
+         }
+         return true;
+      }
+      catch (...)
+      {
+         error = Formatter::Format(_T("{0} does not resolve."), String(host));
+         return false;
+      }
+   }
+
+   bool
    HttpsClient::RequestPublic(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                               const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                               int timeout_seconds, size_t max_response_bytes)

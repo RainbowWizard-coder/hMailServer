@@ -130,6 +130,9 @@ namespace HM
       // only this class can do. See SignInStore.h.
       static int EndSessionsForDevice(__int64 accountId, const String &device);
 
+      // JsonEscape_ of Utf8_, for the helpers of a route file outside the class.
+      static AnsiString JsonEscapeUtf8(const String &value);
+
       // One address the signed-in account may write as (RestApiIdentities.cpp).
       struct Identity
       {
@@ -330,6 +333,25 @@ namespace HM
          RouteMeOpenPgpPublish,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
+         RouteMeSubscriptions,
+         RouteMeBrandLogo,
+         RouteMeFetchAccounts,
+         RouteMeFetchAccountCreate,
+         RouteMeFetchAccount,
+         RouteMeFetchAccountUpdate,
+         RouteMeFetchAccountDelete,
+         RouteMeFetchAccountDownload,
+         RouteMeFetchImport,
+         RouteMeFetchImportStart,
+         RouteMeSenderAddresses,
+         RouteMeSenderAddressCreate,
+         RouteMeSenderAddressVerify,
+         RouteMeSenderAddressResend,
+         RouteMeSenderAddressDelete,
+         RouteMeMaskedAddresses,
+         RouteMeMaskedAddressCreate,
+         RouteMeMaskedAddressUpdate,
+         RouteMeMaskedAddressDelete,
          RouteMeDraftSchedule,
          RouteMeDraftUnschedule,
          RouteMeMessageSnooze,
@@ -1064,6 +1086,24 @@ namespace HM
       // list's own method, and the queueing they share (RestApiMessageReplies.cpp).
       static HttpResponse HandleMeMessageReceipt_(const Caller &caller, __int64 messageId);
       static HttpResponse HandleMeMessageUnsubscribe_(const Caller &caller, __int64 messageId);
+      static HttpResponse HandleMeSubscriptions_(const Caller &caller, const AnsiString &query);
+      static HttpResponse HandleMeBrandLogo_(const AnsiString &query);
+      HttpResponse HandleMeFetchAccounts_(const Caller &caller, RouteKind kind, __int64 fetchAccountId, const AnsiString &requestBody);
+      // Importing from the old provider with a sign-in (ReaderOAuth.h): what is
+      // offered, the start that hands the page the provider's address and the
+      // browser its cookie, and the unauthenticated callback the provider sends
+      // the browser back to. Not static: the cookie is Secure over TLS.
+      HttpResponse HandleMeFetchImport_(const Caller &caller, RouteKind kind, const AnsiString &requestBody);
+      // Addresses elsewhere, proved with a code and then sent as (RestApiSenderAddresses.cpp).
+      static HttpResponse HandleMeSenderAddresses_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiSenderAddressesPaths_();
+      // Masked addresses, the reader's own (RestApiMaskedAddresses.cpp).
+      static HttpResponse HandleMeMaskedAddresses_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiMaskedAddressesPaths_();
+      HttpResponse HandlePortalOAuthCallback_(const AnsiString &request, const AnsiString &query);
+      static AnsiString OpenApiReaderFetchAccountsPaths_();
+      static AnsiString OpenApiReaderFetchImportPaths_();
+      static AnsiString BrandJson_(const AnsiString &brand);
       static int QueueRawMessage_(std::shared_ptr<const Account> account, const String &toAddress, const AnsiString &rawText, AnsiString &problem);
 
       // Later: a draft sent at a time, a message snoozed until a time, what is

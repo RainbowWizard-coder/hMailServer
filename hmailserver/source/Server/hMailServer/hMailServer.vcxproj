@@ -637,6 +637,12 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiContacts.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCalendar.cpp" />
     <ClCompile Include="..\Common\Util\Imip.cpp" />
+    <ClCompile Include="..\Common\Util\BrandLogo.cpp" />
+    <ClCompile Include="..\Common\Util\ReaderOAuth.cpp" />
+    <ClCompile Include="..\Common\Util\MaskedAddresses.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiMaskedAddresses.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSenderAddresses.cpp" />
+    <ClCompile Include="..\Common\Util\SenderAddresses.cpp" />
     <ClCompile Include="..\Common\Util\ContactStore.cpp" />
     <ClCompile Include="..\Common\Util\VCard.cpp" />
     <ClCompile Include="..\Common\Util\CardDavServer.cpp" />
@@ -1449,6 +1455,10 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ICalendar.h" />
     <ClInclude Include="..\Common\Util\CalendarStore.h" />
     <ClInclude Include="..\Common\Util\Imip.h" />
+    <ClInclude Include="..\Common\Util\BrandLogo.h" />
+    <ClInclude Include="..\Common\Util\ReaderOAuth.h" />
+    <ClInclude Include="..\Common\Util\MaskedAddresses.h" />
+    <ClInclude Include="..\Common\Util\SenderAddresses.h" />
     <ClInclude Include="..\Common\Util\CalDavServer.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKeyStore.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKey.h" />

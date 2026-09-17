@@ -91,6 +91,23 @@ namespace HM
       bool GetMirrorFolders() const {return mirror_folders_; }
       void SetMirrorFolders(bool bNewVal) {mirror_folders_ = bNewVal; }
 
+      // Signed in with a provider rather than a password (ReaderOAuth.h): the
+      // provider's word - google, microsoft - and the refresh token its grant
+      // gave, stored protected as the password is. Empty for a password account.
+      String GetOAuthProvider() const {return oauth_provider_; }
+      void SetOAuthProvider(const String &value) {oauth_provider_ = value; }
+      String GetOAuthToken() const {return oauth_token_; }
+      void SetOAuthToken(const String &value) {oauth_token_ = value; }
+
+      // The mirror's folder choice, one remote name per line as LIST gives it:
+      // the folders not to bring over, or "*" for "list them for the reader and
+      // bring nothing until they have chosen"; and the folders the other server
+      // listed the last time it was asked, which is what the reader chooses from.
+      String GetMirrorSkip() const {return mirror_skip_; }
+      void SetMirrorSkip(const String &value) {mirror_skip_ = value; }
+      String GetMirrorSeen() const {return mirror_seen_; }
+      void SetMirrorSeen(const String &value) {mirror_seen_ = value; }
+
       bool XMLStore(XNode *pFetchAccountsNode, int iOptions);
       bool XMLLoad(XNode *pNode, int iOptions);
       bool XMLLoadSubItems(XNode *pNode, int iOptions);
@@ -120,7 +137,10 @@ namespace HM
 
       bool enable_route_recipients_;
       bool mirror_folders_;
-
+      String oauth_provider_;
+      String oauth_token_;
+      String mirror_skip_;
+      String mirror_seen_;
       ConnectionSecurity connection_security_;
    };
 }

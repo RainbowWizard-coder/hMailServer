@@ -110,6 +110,11 @@ namespace HM
       oFA->SetUseAntiVirus(pRS->GetLongValue("fauseantivirus") == 1);
       oFA->SetEnableRouteRecipients(pRS->GetLongValue("faenablerouterecipients") == 1);
       oFA->SetMirrorFolders(pRS->GetLongValue("famirrorfolders") == 1);
+      oFA->SetOAuthProvider(pRS->GetStringValue("faoauthprovider"));
+      const String protectedToken = pRS->GetStringValue("faoauthtoken");
+      oFA->SetOAuthToken(protectedToken.IsEmpty() ? String() : Crypt::Instance()->UnprotectSecret(protectedToken));
+      oFA->SetMirrorSkip(pRS->GetStringValue("famirrorskip"));
+      oFA->SetMirrorSeen(pRS->GetStringValue("famirrorseen"));
 
       
       return true;
@@ -176,6 +181,10 @@ namespace HM
       oStatement.AddColumn("fauseantivirus", pFA->GetUseAntiVirus());
       oStatement.AddColumn("faenablerouterecipients", pFA->GetEnableRouteRecipients());
       oStatement.AddColumn("famirrorfolders", pFA->GetMirrorFolders() ? 1 : 0);
+      oStatement.AddColumn("faoauthprovider", pFA->GetOAuthProvider());
+      oStatement.AddColumn("faoauthtoken", pFA->GetOAuthToken().IsEmpty() ? String() : Crypt::Instance()->ProtectSecret(pFA->GetOAuthToken()));
+      oStatement.AddColumn("famirrorskip", pFA->GetMirrorSkip());
+      oStatement.AddColumn("famirrorseen", pFA->GetMirrorSeen());
 
       if (bNewObject)
       {
@@ -211,6 +220,36 @@ namespace HM
       Application::Instance()->GetDBManager()->Execute(command);
    }
       
+   void
+   PersistentFetchAccount::SaveOAuthToken(__int64 iFAID, const String &token)
+   {
+      SQLCommand command("update hm_fetchaccounts set faoauthtoken = @TOKEN where faid = @FAID");
+      command.AddParameter("@TOKEN", token.IsEmpty() ? String() : Crypt::Instance()->ProtectSecret(token));
+      command.AddParameter("@FAID", iFAID);
+      Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   void
+   PersistentFetchAccount::SaveMirrorSeen(__int64 iFAID, const String &seen)
+   {
+      SQLCommand command("update hm_fetchaccounts set famirrorseen = @SEEN where faid = @FAID");
+      command.AddParameter("@SEEN", seen);
+      command.AddParameter("@FAID", iFAID);
+      Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   int
+   PersistentFetchAccount::CountUIDs(__int64 iFAID)
+   {
+      SQLCommand command("select count(*) as c from hm_fetchaccounts_uids where uidfaid = @FAID");
+      command.AddParameter("@FAID", iFAID);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return 0;
+      return (int) recordset->GetLongValue("c");
+   }
+
    void
    PersistentFetchAccount::SetNextTryTime(std::shared_ptr<FetchAccount> pFA)
    {

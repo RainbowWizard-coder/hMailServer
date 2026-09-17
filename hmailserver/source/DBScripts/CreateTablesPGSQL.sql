@@ -50,6 +50,10 @@ select hm_drop_table('hm_scheduled');
 select hm_drop_table('hm_files');
 select hm_drop_table('hm_smimekeys');
 
+select hm_drop_table('hm_maskedaddresses');
+
+select hm_drop_table('hm_senderaddresses');
+
 select hm_drop_table('hm_accounts');
 
 select hm_drop_table('hm_aliases');
@@ -451,7 +455,11 @@ create table hm_fetchaccounts
     fauseantivirus smallint not null,
     faenablerouterecipients smallint not null,
     famirrorfolders smallint not null DEFAULT 0,
-	famimerecipientheaders varchar(255) not null DEFAULT 'To,CC,X-RCPT-TO,X-Envelope-To'
+	famimerecipientheaders varchar(255) not null DEFAULT 'To,CC,X-RCPT-TO,X-Envelope-To',
+	faoauthprovider varchar(16) not null DEFAULT '',
+	faoauthtoken text not null DEFAULT '',
+	famirrorskip text not null DEFAULT '',
+	famirrorseen text not null DEFAULT ''
 );
 
 create table hm_fetchaccounts_uids
@@ -597,6 +605,33 @@ create table hm_calendarshares
 );
 
 CREATE UNIQUE INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid);
+
+create table hm_senderaddresses
+(
+	said serial not null primary key,
+	saaccountid int not null,
+	saaddress varchar(255) not null,
+	saname varchar(255) not null,
+	saverified smallint not null,
+	sacreated timestamp not null
+);
+
+CREATE UNIQUE INDEX idx_hm_senderaddresses_address ON hm_senderaddresses (saaccountid, saaddress);
+
+create table hm_maskedaddresses
+(
+	maid serial not null primary key,
+	maaccountid int not null,
+	maaddress varchar(255) not null,
+	malabel varchar(255) not null,
+	maactive smallint not null,
+	mareceived int not null,
+	macreated timestamp not null
+);
+
+CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
+
+CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1422,6 +1457,10 @@ ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOR
 
 ALTER TABLE hm_calendarshares ADD CONSTRAINT fk_hm_calendarshares_calendar FOREIGN KEY (sharecalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
 
+ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FOREIGN KEY (saaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_autoreplies ADD CONSTRAINT fk_hm_autoreplies_account FOREIGN KEY (araccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
@@ -1832,4 +1871,4 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6064);
+insert into hm_dbversion values (6067);

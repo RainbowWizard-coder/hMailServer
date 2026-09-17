@@ -173,6 +173,23 @@
 // links stays usable.
 #define PROPERTY_QUARANTINE_DIGEST_BASE_URL     _T("QuarantineDigestBaseUrl")
 #define PROPERTY_QUARANTINE_DIGEST_LINK_HOURS   _T("QuarantineDigestLinkHours")
+#define PROPERTY_BRAND_LOGOS_ENABLED            _T("BrandLogosEnabled")
+#define PROPERTY_READER_FETCH_ACCOUNTS_MAX      _T("ReaderFetchAccountsMax")
+#define PROPERTY_READER_FETCH_PRIVATE_ADDRESSES _T("ReaderFetchAccountsPrivateAddresses")
+#define PROPERTY_READER_SENDER_ADDRESSES_MAX    _T("ReaderSenderAddressesMax")
+#define PROPERTY_READER_MASKED_ADDRESSES_MAX    _T("ReaderMaskedAddressesMax")
+// Importing from the old provider with a sign-in (Util/ReaderOAuth.h): the base
+// URL the providers send the reader back to, and per provider the client this
+// server is registered as and the two endpoints of the authorization code flow.
+#define PROPERTY_IMPORT_OAUTH_REDIRECT_BASE_URL          _T("ImportOAuthRedirectBaseUrl")
+#define PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID           _T("ImportOAuthGoogleClientId")
+#define PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET       _T("ImportOAuthGoogleClientSecret")
+#define PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL       _T("ImportOAuthGoogleAuthorizeUrl")
+#define PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL           _T("ImportOAuthGoogleTokenUrl")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID        _T("ImportOAuthMicrosoftClientId")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET    _T("ImportOAuthMicrosoftClientSecret")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL    _T("ImportOAuthMicrosoftAuthorizeUrl")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL        _T("ImportOAuthMicrosoftTokenUrl")
 
 // Country blocking. Seven rows in hm_settings, which is where a setting belongs:
 // the MaxMind database the administrator supplies (this project ships none and
@@ -419,4 +436,4 @@
 //      the backup archive is encrypted with, protected by the platform's secret
 //      store, with the integer as "a passphrase is set". Empty on every existing
 //      installation, where backups go on being written unencrypted.
-#define REQUIRED_DB_VERSION            6064
+#define REQUIRED_DB_VERSION            6067

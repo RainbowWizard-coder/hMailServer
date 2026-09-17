@@ -2136,6 +2136,64 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("GET /me/subscriptions lists each sender whose mail offers a way out, once, with how much came and how many are unread, the newest message's id and the way out it names - one-click, mail or a page with its address - most first; mail with no List-Unsubscribe is not in it, and a days outside 1 to 365 is refused")]
+      public void TheSubscriptionsPageListsEachSenderOnce()
+      {
+         string to = "To: " + Address + "\r\n";
+         SmtpClientSimulator.StaticSendRaw("news@example.com", Address,
+            "From: \"Weekly News\" <news@example.com>\r\n" + to + "Subject: Issue one\r\nList-Id: Weekly <weekly.example.com>\r\n" +
+            "List-Unsubscribe: <mailto:leave@example.com>, <https://news.example.com/leave?u=1>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n\r\nThe first.\r\n");
+         SmtpClientSimulator.StaticSendRaw("news@example.com", Address,
+            "From: \"Weekly News\" <news@example.com>\r\n" + to + "Subject: Issue two\r\nList-Id: Weekly <weekly.example.com>\r\n" +
+            "List-Unsubscribe: <mailto:leave@example.com>, <https://news.example.com/leave?u=2>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n\r\nThe second.\r\n");
+         SmtpClientSimulator.StaticSendRaw("shop@example.com", Address,
+            "From: shop@example.com\r\n" + to + "Subject: Offers\r\nList-Unsubscribe: <mailto:shop-leave@example.com?subject=stop>\r\n\r\nOffers.\r\n");
+         SmtpClientSimulator.StaticSendRaw("blog@example.com", Address,
+            "From: Blog <blog@example.com>\r\n" + to + "Subject: New post\r\nList-Unsubscribe: <https://blog.example.com/settings>\r\n\r\nA post.\r\n");
+         SmtpClientSimulator.StaticSendRaw("friend@example.com", Address,
+            "From: friend@example.com\r\n" + to + "Subject: Lunch\r\n\r\nThursday?\r\n");
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 5);
+
+         (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+         long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+         (int status, string body) page = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword));
+         long issueTwo = IdBefore(page.body, "\"subject\":\"Issue two\"");
+
+         (int status, string body) listed = Http("GET", "/api/v1/me/subscriptions", UserHeader(UserPassword));
+         Assert.AreEqual(200, listed.status, "Body: " + listed.body);
+
+         var answer = MiniJson.Object(listed.body);
+         Assert.AreEqual(90.0, answer["days"]);
+         Assert.AreEqual(true, answer["complete"]);
+         var subscriptions = (System.Collections.Generic.List<object>) answer["subscriptions"];
+         Assert.AreEqual(3, subscriptions.Count, "Three senders offer a way out; the friend does not. Body: " + listed.body);
+
+         var news = (System.Collections.Generic.Dictionary<string, object>) subscriptions[0];
+         Assert.AreEqual("news@example.com", news["address"], "Most first.");
+         Assert.AreEqual("Weekly News", news["name"]);
+         StringAssert.Contains("weekly.example.com", (string) news["list_id"]);
+         Assert.AreEqual(2.0, news["count"]);
+         Assert.AreEqual(2.0, news["unread"]);
+         Assert.AreEqual((double) issueTwo, news["message_id"], "The newest message is the one the unsubscribe is asked of.");
+         Assert.AreEqual("one-click", news["method"]);
+         Assert.AreEqual("", news["url"], "A way out the server takes itself has no page to open.");
+
+         var byAddress = subscriptions.Cast<System.Collections.Generic.Dictionary<string, object>>().ToDictionary(s => (string) s["address"]);
+         Assert.AreEqual("mail", byAddress["shop@example.com"]["method"]);
+         Assert.AreEqual(1.0, byAddress["shop@example.com"]["count"]);
+         Assert.AreEqual("page", byAddress["blog@example.com"]["method"]);
+         Assert.AreEqual("https://blog.example.com/settings", byAddress["blog@example.com"]["url"]);
+         Assert.IsFalse(byAddress.ContainsKey("friend@example.com"));
+
+         foreach (string days in new[] { "0", "366", "ninety", "1000000000000" })
+         {
+            (int status, string body) refused = Http("GET", "/api/v1/me/subscriptions?days=" + days, UserHeader(UserPassword));
+            Assert.AreEqual(400, refused.status, days + ": " + refused.body);
+         }
+         StringAssert.Contains("\"days\":7,", Http("GET", "/api/v1/me/subscriptions?days=7", UserHeader(UserPassword)).body);
+      }
+
+      [Test]
       [Description("POST /unsubscribe writes to the list's mailto with its subject; a message with no List-Unsubscribe is refused; the JSON names the headers")]
       public void AnUnsubscribeByMailIsQueued()
       {

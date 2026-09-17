@@ -17,6 +17,8 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraps') and obj
 
 if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
+if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
+if exists (select * from sysobjects where id = object_id('hm_senderaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_senderaddresses
 if exists (select * from sysobjects where id = object_id('hm_calendarshares') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarshares
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
@@ -578,7 +580,11 @@ create table hm_fetchaccounts
 	fauseantivirus tinyint not null,
 	faenablerouterecipients tinyint not null,
 	famirrorfolders tinyint not null DEFAULT 0,
-	famimerecipientheaders nvarchar(255) not null DEFAULT 'To,CC,X-RCPT-TO,X-Envelope-To'
+	famimerecipientheaders nvarchar(255) not null DEFAULT 'To,CC,X-RCPT-TO,X-Envelope-To',
+	faoauthprovider nvarchar(16) not null DEFAULT '',
+	faoauthtoken ntext not null DEFAULT '',
+	famirrorskip ntext not null DEFAULT '',
+	famirrorseen ntext not null DEFAULT ''
 ) 
 
 ALTER TABLE hm_fetchaccounts ADD CONSTRAINT hm_fetchaccounts_pk PRIMARY KEY NONCLUSTERED (faid) 
@@ -749,6 +755,37 @@ create table hm_calendarshares
 ALTER TABLE hm_calendarshares ADD CONSTRAINT hm_calendarshares_pk PRIMARY KEY NONCLUSTERED (shareid)
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid)
+
+create table hm_senderaddresses
+(
+	said int identity(1,1) not null,
+	saaccountid int not null,
+	saaddress nvarchar(255) not null,
+	saname nvarchar(255) not null,
+	saverified tinyint not null,
+	sacreated datetime not null
+)
+
+ALTER TABLE hm_senderaddresses ADD CONSTRAINT hm_senderaddresses_pk PRIMARY KEY NONCLUSTERED (said)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_senderaddresses_address ON hm_senderaddresses (saaccountid, saaddress)
+
+create table hm_maskedaddresses
+(
+	maid int identity(1,1) not null,
+	maaccountid int not null,
+	maaddress nvarchar(255) not null,
+	malabel nvarchar(255) not null,
+	maactive tinyint not null,
+	mareceived int not null,
+	macreated datetime not null
+)
+
+ALTER TABLE hm_maskedaddresses ADD CONSTRAINT hm_maskedaddresses_pk PRIMARY KEY NONCLUSTERED (maid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress)
+
+CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid)
 
 create table hm_remotedomainpolicies
 (
@@ -1644,6 +1681,10 @@ ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOR
 
 ALTER TABLE hm_calendarshares ADD CONSTRAINT fk_hm_calendarshares_calendar FOREIGN KEY (sharecalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE
 
+ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FOREIGN KEY (saaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
 
 ALTER TABLE hm_rule_actions ADD CONSTRAINT fk_hm_rule_actions_rule FOREIGN KEY (actionruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
@@ -2088,4 +2129,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6064)
+insert into hm_dbversion values (6067)

@@ -153,6 +153,59 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual(card, fetched.Body, "The stored vCard did not come back byte for byte.");
       }
 
+      // ---------------------------------------------------- hm_maskedaddresses
+
+      [Test]
+      [Description("hm_maskedaddresses: a masked address survives a backup and a restore that deleted the domain, "
+                   + "and mail to it still arrives, so a restore does not bounce the mail of every shop signed up with")]
+      public void TheMaskedAddressesComeBack()
+      {
+         Response made = Rest("POST", "/api/v1/me/masked-addresses", User(), "{\"label\":\"Bookshop\"}");
+         Assert.AreEqual(201, made.Status, "Body: " + made.Body);
+         string masked = Regex.Match(made.Body, "\"address\":\"([^\"]+)\"").Groups[1].Value;
+
+         BackupDeleteAndRestore();
+
+         Response listed = Rest("GET", "/api/v1/me/masked-addresses", User());
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.Contains("\"address\":\"" + masked + "\"", listed.Body);
+         StringAssert.Contains("\"label\":\"Bookshop\"", listed.Body);
+
+         SmtpClientSimulator.StaticSend("shop@dummy-example.com", masked, "After the restore", "Body");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         StringAssert.Contains("After the restore", Pop3ClientSimulator.AssertGetFirstMessageText(_address, UserPassword));
+      }
+
+      // ---------------------------------------------------- hm_senderaddresses
+
+      [Test]
+      [Description("hm_senderaddresses: an address elsewhere the account added to send as survives a backup and a "
+                   + "restore that deleted the domain, with the name it was given")]
+      public void TheAddressesElsewhereComeBack()
+      {
+         // Adding one mails a code to it; the route takes that message to a local
+         // server so it goes nowhere else.
+         int port = TestSetup.GetNextFreePort();
+         using (var server = new SmtpServerSimulator(1, port))
+         {
+            server.AddRecipientResult(new System.Collections.Generic.Dictionary<string, int> { { "elsewhere@dummy-example.com", 250 } });
+            server.StartListen();
+            TestSetup.AddRoutePointingAtLocalhost(1, port, false);
+
+            Response added = Rest("POST", "/api/v1/me/sender-addresses", User(),
+               "{\"address\":\"Elsewhere@dummy-example.com\",\"name\":\"Me Elsewhere\"}");
+            Assert.AreEqual(201, added.Status, "Body: " + added.Body);
+            server.WaitForCompletion();
+         }
+
+         BackupDeleteAndRestore();
+
+         Response listed = Rest("GET", "/api/v1/me/sender-addresses", User());
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.Contains("\"address\":\"elsewhere@dummy-example.com\"", listed.Body);
+         StringAssert.Contains("\"name\":\"Me Elsewhere\"", listed.Body);
+      }
+
       // ------------------------------------------------------- hm_accountprefs
 
       [Test]

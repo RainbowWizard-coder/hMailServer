@@ -23,6 +23,74 @@ The routes at a glance
 | The upstream hMailServer, in place | The installer, over the existing installation | Everything | Nothing - see [Upgrading.md](Upgrading.md) |
 | Accounts in bulk | The Import Tool's text-file import | Addresses, passwords, quotas | Mail - pair it with one of the routes above |
 
+From the webmail, by the person moving
+--------------------------------------
+
+A person can do the IMAP route for their own mailbox without an administrator:
+**Settings, Other accounts** in the webmail. They pick their old provider (Gmail,
+Outlook.com, Yahoo Mail and iCloud Mail fill in the server, port and encryption, and
+say what each asks for - an app password for three of them), give the user name and
+password, choose whether to leave the mail there, and tick **Bring the folders over
+too** for a move. It is an external account like any other, made through
+`/api/v1/me/fetch-accounts`, with these differences from one an administrator makes:
+
+- The spam and virus filters are on for new mail and the recipients are never read
+  out of the collected messages; a request that asks otherwise is refused by name.
+  (Folders brought over arrive as copies, as described below, without the filters.)
+- The host has to resolve to public addresses only. An administrator who wants
+  people to collect from a mail server inside the network turns on
+  `reader_fetch_accounts_private_addresses`. The check is made when the account is
+  saved.
+- The interval is at least 15 minutes, and a person has at most
+  `reader_fetch_accounts_max` of them (3 by default; 0 takes the page away).
+- An external account an administrator set up with what a person cannot set - the
+  recipients read from the message, routing by them, a filter off - is listed on the
+  page and can be collected now, but not changed or removed from there.
+
+Outlook.com no longer accepts a password from another mail server, and Gmail takes
+only an app password. Where an administrator has registered the server with them (below),
+the page offers **Sign in to Gmail** and **Sign in to Outlook.com** instead.
+
+### Signing in rather than giving a password
+
+The person presses the button, signs in at Google or Microsoft and agrees to let the
+server read their mail over IMAP, and comes back to the Other accounts page with an
+external account made for them: the provider's IMAP server on port 993 with TLS, the
+address they signed in as, the filters on, and a login with XOAUTH2 using the grant
+rather than a password. No password is stored; the refresh token is kept protected in
+the database as a password is, and the person can take the permission back at the
+provider at any time. Signing in again as the same address gives the existing account
+the new grant instead of adding a second one.
+
+With **Bring the folders over** ticked, the first collection lists the folders there and
+brings nothing. The page then offers them as a list to tick: a folder that only shows
+mail kept in the others - Gmail's All Mail, Starred and Important, which the server
+recognises by the `\All`, `\Flagged` and `\Important` attributes the provider sends,
+whatever language their names are in - starts unticked, so nothing arrives twice. What
+is left unticked stays where it is; the choice can be changed later with **Folders**.
+
+The flow is OAuth 2.0's authorization code grant with PKCE (S256). The state is good for
+ten minutes and once; the browser that started it carries a nonce in an HttpOnly,
+SameSite=Lax cookie that the callback checks, so a link someone else sends cannot attach
+their mailbox to this account. An account signed in this way keeps its server, port,
+address and encryption: the person can pause it, collect now, choose folders or remove
+it, but a change that would carry the grant to another host is refused.
+
+To offer it, register the server with each provider and set, on `PUT /api/v1/settings`:
+
+| Setting | What it is |
+|---|---|
+| `import_oauth_redirect_base_url` | The address the webmail is reached at from outside, e.g. `https://mail.example.com`. The redirect URI to register is this plus `/portal/oauth/callback`. |
+| `import_oauth_google_client_id`, `import_oauth_google_client_secret` | A **Web application** OAuth client in the Google Cloud console, with the Gmail API enabled and the `https://mail.google.com/` scope on the consent screen. Google requires the secret. |
+| `import_oauth_microsoft_client_id`, `import_oauth_microsoft_client_secret` | An app registration in Microsoft Entra that accepts personal Microsoft accounts (for Outlook.com), with the delegated `IMAP.AccessAsUser.All` and `offline_access` permissions and a Web redirect URI. The secret is for a Web platform registration. |
+| `import_oauth_google_authorize_url`, `import_oauth_google_token_url`, `import_oauth_microsoft_authorize_url`, `import_oauth_microsoft_token_url` | The endpoints; the public ones by default. A single tenant or a national cloud has its own. |
+
+The secrets are write-only and stored protected. A provider is offered once it has a
+client id (and, for Google, the secret) and the base URL is set. Until Google verifies an
+app that asks for the Gmail scope, only the test users named on its consent screen can
+sign in - which is enough for an organisation moving its own people.
+
+
 From another IMAP server
 ------------------------
 

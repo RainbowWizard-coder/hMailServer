@@ -26,6 +26,9 @@
 #include "../Util/OpenPgpKey.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
+#include "BrandLogo.h"
+#include "ReaderOAuth.h"
+#include "MaskedAddresses.h"
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
@@ -206,6 +209,23 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the bounce report key\n"));
       BounceKeyTester bounceKeyTester;
       bounceKeyTester.Test();
+
+      // Brand logos: the BIMI record, the DMARC policy that has to enforce, and
+      // the SVG Tiny PS check a logo from a stranger's server has to pass.
+      OutputDebugString(_T("hMailServer: Testing BrandLogo\n"));
+      BrandLogoTester brandLogoTester;
+      brandLogoTester.Test();
+
+      // Importing with a sign-in: base64url both ways, the S256 challenge against
+      // RFC 7636's example, and the address an id_token names.
+      OutputDebugString(_T("hMailServer: Testing ReaderOAuth\n"));
+      ReaderOAuthTester readerOAuthTester;
+      readerOAuthTester.Test();
+
+      // Masked addresses: the local part a label gives.
+      OutputDebugString(_T("hMailServer: Testing MaskedAddresses\n"));
+      MaskedAddressesTester maskedAddressesTester;
+      maskedAddressesTester.Test();
 
       // The OpenPGP key reader the Web Key Directory stands on: the packet
       // framing, the fingerprint of each key version against vectors GnuPG and

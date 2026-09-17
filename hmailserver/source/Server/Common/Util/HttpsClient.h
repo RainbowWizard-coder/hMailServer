@@ -85,6 +85,14 @@ namespace HM
       // that merely starts with 127. is not.
       static bool IsLoopbackHost(const AnsiString &host);
 
+      // Whether a host - a name, or an address written as one - leads only to
+      // public addresses, judged as RequestPublic judges them: every address the
+      // name resolves to within five seconds, none loopback, private, link-local
+      // or reserved. False with error set otherwise, and when it does not resolve.
+      // For a connection made later by something else (a fetch account), this is
+      // the check at the moment it is asked, not a guarantee about the next lookup.
+      static bool HostIsPublic(const AnsiString &host, String &error);
+
       // application/x-www-form-urlencoded, one value.
       static AnsiString FormEncode(const AnsiString &value);
 

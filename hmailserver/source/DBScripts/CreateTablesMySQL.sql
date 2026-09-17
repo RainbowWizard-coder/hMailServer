@@ -26,6 +26,10 @@ drop table if exists hm_spamtraps;
 
 drop table if exists hm_spamtraphits;
 
+drop table if exists hm_maskedaddresses;
+
+drop table if exists hm_senderaddresses;
+
 drop table if exists hm_calendarshares;
 
 drop table if exists hm_calendarobjects;
@@ -441,7 +445,11 @@ create table hm_fetchaccounts
 	fauseantivirus tinyint not null,
 	faenablerouterecipients tinyint not null,
 	famirrorfolders tinyint not null DEFAULT 0,
-	famimerecipientheaders varchar(255) not null DEFAULT 'To,CC,X-RCPT-TO,X-Envelope-To'
+	famimerecipientheaders varchar(255) not null DEFAULT 'To,CC,X-RCPT-TO,X-Envelope-To',
+	faoauthprovider varchar(16) not null DEFAULT '',
+	faoauthtoken text not null,
+	famirrorskip text not null,
+	famirrorseen text not null
 ) DEFAULT CHARSET=utf8;
 
 create table hm_fetchaccounts_uids
@@ -590,6 +598,33 @@ create table hm_calendarshares
 ) DEFAULT CHARSET=utf8;
 
 CREATE UNIQUE INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid);
+
+create table hm_senderaddresses
+(
+	said int auto_increment not null, primary key(`said`), unique(`said`),
+	saaccountid int not null,
+	saaddress varchar(255) not null,
+	saname varchar(255) not null,
+	saverified tinyint not null,
+	sacreated datetime not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_senderaddresses_address ON hm_senderaddresses (saaccountid, saaddress);
+
+create table hm_maskedaddresses
+(
+	maid int auto_increment not null, primary key(`maid`), unique(`maid`),
+	maaccountid int not null,
+	maaddress varchar(255) not null,
+	malabel varchar(255) not null,
+	maactive tinyint not null,
+	mareceived int not null,
+	macreated datetime not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
+
+CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1327,6 +1362,10 @@ ALTER TABLE hm_calendars ENGINE=InnoDB;
 
 ALTER TABLE hm_calendarshares ENGINE=InnoDB;
 
+ALTER TABLE hm_senderaddresses ENGINE=InnoDB;
+
+ALTER TABLE hm_maskedaddresses ENGINE=InnoDB;
+
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;
 
 ALTER TABLE hm_remotedomainpolicies ENGINE=InnoDB;
@@ -1493,6 +1532,10 @@ ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (cal
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
 
 ALTER TABLE hm_calendarshares ADD CONSTRAINT fk_hm_calendarshares_calendar FOREIGN KEY (sharecalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
+
+ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FOREIGN KEY (saaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -1928,4 +1971,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6064);
+insert into hm_dbversion values (6067);

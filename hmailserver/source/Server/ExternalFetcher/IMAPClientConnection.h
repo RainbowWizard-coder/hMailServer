@@ -140,6 +140,9 @@ namespace HM
       {
          String name;
          String delimiter;
+         // RFC 6154 \All, \Flagged or \Important: a view of mail kept in the other
+         // mailboxes (Gmail's All Mail, Starred, Important), whatever it is called.
+         bool copy = false;
       };
       bool mirror_;
       std::vector<RemoteMailbox> mailboxes_;

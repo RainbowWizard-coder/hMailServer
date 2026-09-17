@@ -26,6 +26,8 @@
 #include "../SQL/DALRecordset.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../SMTP/SMTPConnection.h"
+#include "SenderAddresses.h"
+#include "MaskedAddresses.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -188,10 +190,8 @@ namespace HM
       command.AddParameter("@ACCOUNTID", account->GetID());
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!recordset)
-         return;
 
-      while (!recordset->IsEOF() && (int) identities.size() < IdentityMaximum)
+      while (recordset && !recordset->IsEOF() && (int) identities.size() < IdentityMaximum)
       {
          __int64 ownerId = recordset->GetInt64Value("folderaccountid");
          recordset->MoveNext();
@@ -218,6 +218,42 @@ namespace HM
          granted.name = FullName(owner);
          granted.kind = "granted";
          identities.push_back(granted);
+      }
+
+      // Addresses elsewhere the account proved with a code (SenderAddresses.h),
+      // under the name it gave each, or its own.
+      std::vector<SenderAddresses::Entry> elsewhere;
+      SenderAddresses::List(account->GetID(), elsewhere);
+      for (const SenderAddresses::Entry &entry : elsewhere)
+      {
+         if ((int) identities.size() >= IdentityMaximum)
+            break;
+         if (!entry.verified || Listed(identities, entry.address))
+            continue;
+
+         Identity verified;
+         verified.address = entry.address;
+         verified.name = entry.name.IsEmpty() ? own.name : entry.name;
+         verified.kind = "verified";
+         identities.push_back(verified);
+      }
+
+      // Masked addresses that are on (MaskedAddresses.h), under the account's
+      // name: a reply to mail that came through one goes out from it.
+      std::vector<MaskedAddresses::Entry> masked;
+      MaskedAddresses::List(account->GetID(), masked);
+      for (const MaskedAddresses::Entry &entry : masked)
+      {
+         if ((int) identities.size() >= IdentityMaximum)
+            break;
+         if (!entry.active || Listed(identities, entry.address))
+            continue;
+
+         Identity maskedIdentity;
+         maskedIdentity.address = entry.address;
+         maskedIdentity.name = own.name;
+         maskedIdentity.kind = "masked";
+         identities.push_back(maskedIdentity);
       }
    }
 

@@ -153,6 +153,16 @@ namespace RegressionTests.ExternalAccounts
       /// <summary>The UIDVALIDITY announced on SELECT. Change it between sessions to say "a different mailbox".</summary>
       public int UidValidity { get; set; }
 
+      /// <summary>
+      ///    Answer AUTHENTICATE XOAUTH2 with its initial response with OK, keeping the
+      ///    response. Off, every AUTHENTICATE is refused, as a server offering only
+      ///    LOGIN refuses it.
+      /// </summary>
+      public bool AcceptXOAuth2 { get; set; }
+
+      /// <summary>The XOAUTH2 initial response as it arrived, base64.</summary>
+      public string XOAuth2Blob { get; private set; }
+
       /// <summary>Answer every LOGIN with a tagged NO.</summary>
       public bool RefuseLogin { get; set; }
 
@@ -239,6 +249,13 @@ namespace RegressionTests.ExternalAccounts
             }
 
             Send(tag + " OK LOGIN completed\r\n");
+            return true;
+         }
+
+         if (AcceptXOAuth2 && upper.StartsWith("AUTHENTICATE XOAUTH2 "))
+         {
+            XOAuth2Blob = rest.Substring("AUTHENTICATE XOAUTH2 ".Length).Trim();
+            Send(tag + " OK AUTHENTICATE completed\r\n");
             return true;
          }
 

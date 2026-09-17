@@ -34,6 +34,7 @@
 #include "../Cache/AccountSizeCache.h"
 #include "AcmeClient.h"
 #include "UpdateChecker.h"
+#include "BrandLogo.h"
 #include "../Diagnostics/Diagnostic.h"
 #include "UpdateDownloader.h"
 #include "UpdateInstaller.h"
@@ -1537,6 +1538,12 @@ namespace HM
       // The two links a quarantine digest carries. No credentials: the token in
       // the query string is the whole capability, it names one account and one
       // entry, it works once and it expires. See RestApiQuarantineDigest.cpp.
+      // The provider sending the browser back from an import sign-in. No
+      // credentials: the state names the sign-in, and the cookie the browser
+      // was given when it started it proves this is the same browser.
+      if (method == "GET" && path == "/portal/oauth/callback")
+         return HandlePortalOAuthCallback_(request, query);
+
       if ((method == "GET" || method == "POST") && path == "/held/release")
          return HandleDigestRelease_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
 
@@ -2351,6 +2358,37 @@ namespace HM
          case RouteMeMessageUnsubscribe:
             return HandleMeMessageUnsubscribe_(caller, route.message_id);
 
+         case RouteMeSubscriptions:
+            return HandleMeSubscriptions_(caller, route.query);
+
+         case RouteMeBrandLogo:
+            return HandleMeBrandLogo_(route.query);
+
+         case RouteMeFetchAccounts:
+         case RouteMeFetchAccountCreate:
+         case RouteMeFetchAccount:
+         case RouteMeFetchAccountUpdate:
+         case RouteMeFetchAccountDelete:
+         case RouteMeFetchAccountDownload:
+            return HandleMeFetchAccounts_(caller, route.kind, route.record_id, GetRequestBody_(request));
+
+         case RouteMeFetchImport:
+         case RouteMeFetchImportStart:
+            return HandleMeFetchImport_(caller, route.kind, GetRequestBody_(request));
+
+         case RouteMeSenderAddresses:
+         case RouteMeSenderAddressCreate:
+         case RouteMeSenderAddressVerify:
+         case RouteMeSenderAddressResend:
+         case RouteMeSenderAddressDelete:
+            return HandleMeSenderAddresses_(caller, route.kind, route.record_id, GetRequestBody_(request));
+
+         case RouteMeMaskedAddresses:
+         case RouteMeMaskedAddressCreate:
+         case RouteMeMaskedAddressUpdate:
+         case RouteMeMaskedAddressDelete:
+            return HandleMeMaskedAddresses_(caller, route.kind, route.record_id, GetRequestBody_(request));
+
          case RouteMeDraftSchedule:
             return HandleMeDraftSchedule_(caller, route.message_id, GetRequestBody_(request));
 
@@ -2970,6 +3008,130 @@ namespace HM
 
          if (method == "DELETE" && ParseQueueId(rest, route.message_id))
             route.kind = RouteMeQuarantineDelete;
+
+         return;
+      }
+
+      // The other mailboxes the reader collects into this one.
+      if (path == "/api/v1/me/fetch-accounts")
+      {
+         if (method == "GET")
+            route.kind = RouteMeFetchAccounts;
+         else if (method == "POST")
+            route.kind = RouteMeFetchAccountCreate;
+
+         return;
+      }
+
+      // Masked addresses: the reader's own, for one sign-up each.
+      if (path == "/api/v1/me/masked-addresses")
+      {
+         if (method == "GET")
+            route.kind = RouteMeMaskedAddresses;
+         else if (method == "POST")
+            route.kind = RouteMeMaskedAddressCreate;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/masked-addresses/"))
+      {
+         if (!ParseQueueId(path.Mid(AnsiString("/api/v1/me/masked-addresses/").GetLength()), route.record_id))
+            return;
+
+         if (method == "PUT")
+            route.kind = RouteMeMaskedAddressUpdate;
+         else if (method == "DELETE")
+            route.kind = RouteMeMaskedAddressDelete;
+
+         return;
+      }
+
+      // Addresses elsewhere the reader has proved and sends as.
+      if (path == "/api/v1/me/sender-addresses")
+      {
+         if (method == "GET")
+            route.kind = RouteMeSenderAddresses;
+         else if (method == "POST")
+            route.kind = RouteMeSenderAddressCreate;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/sender-addresses/"))
+      {
+         AnsiString rest = path.Mid(AnsiString("/api/v1/me/sender-addresses/").GetLength());
+         AnsiString action;
+         const int slash = rest.Find("/");
+         if (slash >= 0)
+         {
+            action = rest.Mid(slash + 1);
+            rest = rest.Mid(0, slash);
+         }
+
+         if (!ParseQueueId(rest, route.record_id))
+            return;
+
+         if (action.IsEmpty() && method == "DELETE")
+            route.kind = RouteMeSenderAddressDelete;
+         else if (action == "verify" && method == "POST")
+            route.kind = RouteMeSenderAddressVerify;
+         else if (action == "resend" && method == "POST")
+            route.kind = RouteMeSenderAddressResend;
+
+         return;
+      }
+
+      // Another account signed in to with a provider rather than a password.
+      if (path == "/api/v1/me/fetch-accounts/import")
+      {
+         if (method == "GET")
+            route.kind = RouteMeFetchImport;
+         else if (method == "POST")
+            route.kind = RouteMeFetchImportStart;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/fetch-accounts/"))
+      {
+         AnsiString rest = path.Mid(AnsiString("/api/v1/me/fetch-accounts/").GetLength());
+         const bool download = rest.EndsWith("/download");
+         if (download)
+            rest = rest.Mid(0, rest.GetLength() - AnsiString("/download").GetLength());
+
+         if (!ParseQueueId(rest, route.record_id))
+            return;
+
+         if (download)
+         {
+            if (method == "POST")
+               route.kind = RouteMeFetchAccountDownload;
+         }
+         else if (method == "GET")
+            route.kind = RouteMeFetchAccount;
+         else if (method == "PUT")
+            route.kind = RouteMeFetchAccountUpdate;
+         else if (method == "DELETE")
+            route.kind = RouteMeFetchAccountDelete;
+
+         return;
+      }
+
+      // The logo a sender's domain publishes, for the avatar of its mail.
+      if (path == "/api/v1/me/brand-logo")
+      {
+         if (method == "GET")
+            route.kind = RouteMeBrandLogo;
+
+         return;
+      }
+
+      // The senders whose mail offers a way out, gathered from the mailbox.
+      if (path == "/api/v1/me/subscriptions")
+      {
+         if (method == "GET")
+            route.kind = RouteMeSubscriptions;
 
          return;
       }
@@ -4941,6 +5103,18 @@ namespace HM
       case RouteWebhookDelete:
       case RouteWebhookRun:
       case RouteWebhookTest:
+      case RouteMeFetchAccountCreate:
+      case RouteMeFetchAccountUpdate:
+      case RouteMeFetchAccountDelete:
+      case RouteMeFetchAccountDownload:
+      case RouteMeFetchImportStart:
+      case RouteMeSenderAddressCreate:
+      case RouteMeSenderAddressVerify:
+      case RouteMeSenderAddressResend:
+      case RouteMeSenderAddressDelete:
+      case RouteMeMaskedAddressCreate:
+      case RouteMeMaskedAddressUpdate:
+      case RouteMeMaskedAddressDelete:
       case RouteMeFileCreate:
       case RouteMeFileContent:
       case RouteMeFileUpdate:
@@ -8885,6 +9059,25 @@ namespace HM
       case RouteMeFolderImport:
       case RouteMeMessageReceipt:
       case RouteMeMessageUnsubscribe:
+      case RouteMeSubscriptions:
+      case RouteMeBrandLogo:
+      case RouteMeFetchAccounts:
+      case RouteMeFetchAccountCreate:
+      case RouteMeFetchAccount:
+      case RouteMeFetchAccountUpdate:
+      case RouteMeFetchAccountDelete:
+      case RouteMeFetchAccountDownload:
+      case RouteMeFetchImport:
+      case RouteMeFetchImportStart:
+      case RouteMeSenderAddresses:
+      case RouteMeSenderAddressCreate:
+      case RouteMeSenderAddressVerify:
+      case RouteMeSenderAddressResend:
+      case RouteMeSenderAddressDelete:
+      case RouteMeMaskedAddresses:
+      case RouteMeMaskedAddressCreate:
+      case RouteMeMaskedAddressUpdate:
+      case RouteMeMaskedAddressDelete:
       case RouteMeAppPasswords:
       case RouteMeAppPasswordCreate:
       case RouteMeAppPasswordDelete:
@@ -11740,6 +11933,31 @@ namespace HM
          return "";
       }
 
+      // The domain a dmarc=pass verdict was for: header.from in the dmarc clause,
+      // which is what a brand logo may be shown for. Empty for any other verdict.
+      AnsiString BrandOf(const AnsiString &results)
+      {
+         if (VerdictOf(results, "dmarc") != "pass")
+            return "";
+         AnsiString lower = results;
+         lower.ToLower();
+         int at = lower.Find("dmarc=");
+         if (at < 0)
+            return "";
+         int clauseEnd = lower.Find(";", at);
+         if (clauseEnd < 0)
+            clauseEnd = lower.GetLength();
+         int from = lower.Find("header.from=", at);
+         if (from < 0 || from >= clauseEnd)
+            return "";
+         int start = from + 12;
+         int end = start;
+         while (end < clauseEnd && lower[end] != ' ' && lower[end] != '\t' && lower[end] != '\r' && lower[end] != '\n' && lower[end] != ')')
+            end++;
+         const String domain = BrandLogo::NormaliseDomain(String(lower.Mid(start, end - start)));
+         return AnsiString(domain);
+      }
+
       // The domain a DKIM verdict was for: header.d in the dkim clause.
       AnsiString DkimDomainOf(const AnsiString &results)
       {
@@ -12034,6 +12252,8 @@ namespace HM
          JsonEscape_(Utf8_(listText)).c_str(),
          listUnsubscribePost.Find("list-unsubscribe=one-click") >= 0 ? "true" : "false",
          JsonEscape_(Utf8_(receiptText)).c_str());
+      const AnsiString brand = Configuration::Instance()->GetBrandLogosEnabled() ? BrandOf(results) : AnsiString("");
+      json += ",\"brand\":\"" + JsonEscape_(brand) + "\"";
       return json;
    }
 
@@ -13150,6 +13370,9 @@ namespace HM
       struct ListingExtras
       {
          AnsiString json;
+         // The domain a dmarc=pass was recorded for; whether it is shown is the
+         // switch's, read as the listing is written, so it is kept apart.
+         AnsiString brand;
       };
 
       boost::mutex listingExtrasLock;
@@ -13311,18 +13534,20 @@ namespace HM
          boost::lock_guard<boost::mutex> guard(listingExtrasLock);
          std::map<__int64, ListingExtras>::const_iterator known = listingExtras.find(id);
          if (known != listingExtras.end())
-            return known->second.json;
+            return known->second.json + BrandJson_(known->second.brand);
       }
 
       String to;
       bool attachments = false;
       AnsiString category = "primary";
+      AnsiString brand;
       AnsiString header = PersistentMessage::LoadHeader(fileName, false);
       if (!header.IsEmpty())
       {
          MimeHeader mimeHeader;
          mimeHeader.Load(header.c_str(), header.GetLength(), true);
          to = mimeHeader.GetUnicodeFieldValue("To");
+         brand = BrandOf(OwnAuthenticationResults_(mimeHeader));
          category = CategoryOf(mimeHeader);
 
          AnsiString lower = header;
@@ -13351,7 +13576,16 @@ namespace HM
       if (listingExtras.size() >= ListingExtrasKept)
          listingExtras.clear();
       listingExtras[id].json = json;
-      return json;
+      listingExtras[id].brand = brand;
+      return json + BrandJson_(brand);
+   }
+
+   AnsiString
+   RestApiServer::BrandJson_(const AnsiString &brand)
+   {
+      if (brand.IsEmpty() || !Configuration::Instance()->GetBrandLogosEnabled())
+         return "";
+      return ",\"brand\":\"" + JsonEscape_(brand) + "\"";
    }
 
    // "First Last" <address>, or the bare address when the account has no name.
@@ -13875,6 +14109,8 @@ namespace HM
          "\"/api/v1/me/folders/{id}/export\":{\"get\":{\"summary\":\"The folder as mbox\",\"description\":\"application/mbox, as a download: every message after a From_ line, body lines beginning with From quoted. Larger than 200 MB is 413.\",\"responses\":{\"200\":{\"description\":\"The file\"},\"413\":{\"description\":\"Too large for this route\"}}}},"
          "\"/api/v1/me/folders/{id}/messages\":{\"post\":{\"summary\":\"Import a message into the folder\",\"description\":\"The body is the message itself (message/rfc822, a .eml file), at most 25 MB; stored unread, as IMAP APPEND would store it.\",\"responses\":{\"201\":{\"description\":\"id, folder_id\"},\"400\":{\"description\":\"Not a message\"},\"403\":{\"description\":\"The folder does not allow it\"},\"413\":{\"description\":\"Too large\"}}}},"
          "\"/api/v1/me/messages/{id}/receipt\":{\"post\":{\"summary\":\"Send a read receipt\",\"description\":\"For a message that carries Disposition-Notification-To: an RFC 8098 disposition notification (displayed, sent manually) queued from the account to that address, under the recipient checks a send makes. A message that did not ask is 400.\",\"responses\":{\"201\":{\"description\":\"queued, to\"},\"400\":{\"description\":\"No receipt was asked for, or the address is refused\"},\"404\":{\"description\":\"No such message\"}}}},"
+         "\"/api/v1/me/brand-logo\":{\"get\":{\"summary\":\"The logo a sender's domain publishes (BIMI)\",\"description\":\"Query parameter: domain - the brand a message listing or a message names, which it does only for mail this server judged dmarc=pass and recorded so in its own Authentication-Results header. The answer is the logo itself, image/svg+xml, when default._bimi at the domain (or its organizational domain) is a v=BIMI1 record with an l= location, the domain's DMARC policy is quarantine or reject for all of its mail, the location is https at a public address and answers within ten seconds and 32 KB, and the SVG is Tiny PS - a tiny-ps root, a title, and no script, foreignObject, image, link, animation, style element, event attribute, entity or external reference. A Verified Mark Certificate (a=) is not checked. Every answer, found or not, is kept a day per domain. Otherwise 404 with error (the reason) and outcome: no_record, declined, weak_policy, not_https, fetch_failed, not_tiny_ps or switched_off (BrandLogosEnabled is off); a domain that is not a domain name is 400 bad_domain.\",\"responses\":{\"200\":{\"description\":\"The logo, image/svg+xml\"},\"400\":{\"description\":\"outcome bad_domain\"},\"404\":{\"description\":\"error and outcome\"}}}},"
+         "\"/api/v1/me/subscriptions\":{\"get\":{\"summary\":\"The senders whose mail offers a way to unsubscribe\",\"description\":\"Every sender of the mail in the signed-in account's own folders - not Drafts, Sent, Junk or Trash - that carries a List-Unsubscribe header and arrived in the last days days (1 to 365, default 90), one entry per From address: address, name, list_id, count and unread in the window, first and last (when the first and the newest arrived), message_id (the newest message, which is what POST /api/v1/me/messages/{id}/unsubscribe is given), method - one-click when the newest offers RFC 8058's one-click POST to an https address, mail when it offers a mailto, page when it offers only an https address a person has to visit, and url, that address, for page alone. Most first, then newest. At most 5000 message headers are read per request, newest first in each folder: scanned says how many were, complete whether that was all of the window.\",\"responses\":{\"200\":{\"description\":\"days, since, scanned, complete, subscriptions\"},\"400\":{\"description\":\"days is not a whole number from 1 to 365\"}}}},"
          "\"/api/v1/me/messages/{id}/unsubscribe\":{\"post\":{\"summary\":\"Unsubscribe by the list's own method\",\"description\":\"With List-Unsubscribe-Post: List-Unsubscribe=One-Click and an https address in List-Unsubscribe, the one RFC 8058 POST (method one-click, with the list's status) - made only to a public address, judged by what the name resolves to and connected to those addresses, never through HttpProxy, within ten seconds and 32 KB; else a message to the mailto address with its subject (method mail, queued). Neither is 400. A mailto address carrying a control character is refused.\",\"responses\":{\"200\":{\"description\":\"one-click: ok, status\"},\"201\":{\"description\":\"mail: queued, to\"},\"400\":{\"description\":\"No method, or a mailto address that cannot be written into a header\"},\"502\":{\"description\":\"The list could not be reached, or its address is not public (error says which)\"}}}},"
          "\"/api/v1/me/messages/{id}/source\":{\"get\":{\"summary\":\"The message as it is on disk\",\"description\":\"message/rfc822, as a download named message-{id}.eml, under the same right as reading the message. Larger than 25 MB is 413.\",\"responses\":{\"200\":{\"description\":\"The file\"},\"404\":{\"description\":\"No such message\"},\"413\":{\"description\":\"Too large for this route\"}}}},"
          "\"/api/v1/me/folders/{id}/empty\":{\"post\":{\"summary\":\"Empty a Junk or Trash folder\",\"description\":\"Every message in the folder is expunged for good - or, with older_than_days=N (digits, 0 to 36500; 0 is everything), only what arrived more than N days ago; any other value is refused rather than read as everything. At most 500 go per call: remaining says how many more match, so call again until it is 0. Any other folder is 400: emptying is what those two are for.\",\"responses\":{\"200\":{\"description\":\"deleted (how many), remaining, folder_id, older_than_days\"},\"400\":{\"description\":\"Not a Junk or Trash folder, or older_than_days is not a number of days\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"No such folder\"}}}},"
@@ -13952,6 +14188,10 @@ namespace HM
       openApiJson += OpenApiRoutesPaths_();
       openApiJson += OpenApiRemoteDomainsPaths_();
       openApiJson += OpenApiFetchAccountsPaths_();
+      openApiJson += OpenApiReaderFetchAccountsPaths_();
+      openApiJson += OpenApiReaderFetchImportPaths_();
+      openApiJson += OpenApiSenderAddressesPaths_();
+      openApiJson += OpenApiMaskedAddressesPaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();

@@ -13,6 +13,7 @@
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/QuotaPolicy.h"
+#include "../Common/Util/MaskedAddresses.h"
 
 #include "../Common/BO/Domain.h"
 #include "../Common/BO/Alias.h"
@@ -246,6 +247,24 @@ namespace HM
 
                bDomainIsLocal = true;
                return DP_Possible;
+            }
+
+            // A masked address a reader made (MaskedAddresses.h), after the
+            // accounts, aliases and lists so that an administrator's address
+            // always wins: delivered to its owner while it is on, and refused as
+            // an unknown address once it is off - not handed to a catch-all.
+            MaskedAddresses::Entry masked;
+            if (MaskedAddresses::FindByAddress(primaryAddress, masked))
+            {
+               std::shared_ptr<const Account> owner = masked.active ? CacheContainer::Instance()->GetAccount(masked.account_id) : std::shared_ptr<const Account>();
+               if (!owner)
+               {
+                  sErrMsg = CONST_UNKNOWN_USER;
+                  return DP_RecipientUnknown;
+               }
+
+               recipientAddress = owner->GetAddress();
+               continue;
             }
 
             // OK, we are now finished looking through the domain.
@@ -497,6 +516,18 @@ namespace HM
             return;
          }
 
+         // A masked address: its owner, counted, while it is on.
+         MaskedAddresses::Entry masked;
+         if (MaskedAddresses::FindByAddress(primaryAddress, masked))
+         {
+            std::shared_ptr<const Account> owner = masked.active ? CacheContainer::Instance()->GetAccount(masked.account_id) : std::shared_ptr<const Account>();
+            if (!owner)
+               return;
+
+            MaskedAddresses::CountDelivery(masked.id);
+            CreateMessageRecipientList_(owner->GetAddress(), sOriginalAddress, lRecurse, pRecipients, recipientOK);
+            return;
+         }
       }
       
       // Check for routes. This happens under two circumstances:

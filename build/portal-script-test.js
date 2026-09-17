@@ -260,6 +260,7 @@ window.confirm = (text) => { confirms.push(String(text)); return confirmAnswer; 
 const opened = [];
 window.open = (url, name, features) => { opened.push({ url: String(url), name: String(name || ''), features: String(features || '') }); return null; };
 const historyStack = [''];
+const navigatedTo = [];
 let historyAt = 0;
 
 function fireHashChange() {
@@ -269,6 +270,7 @@ function fireHashChange() {
 const location = {
    origin: 'http://portal.test',
    get href() { return this.origin + '/portal' + this.hash; },
+   set href(value) { navigatedTo.push(String(value)); },
    get hash() { return historyStack[historyAt] ? '#' + historyStack[historyAt] : ''; },
    set hash(value) {
       const wanted = String(value).replace(/^#/, '');
@@ -414,7 +416,7 @@ const LISTING = {
    messages: [
       // Received five days ago, asks a question, never answered: the shape a nudge is for.
       { id: 103, uid: 13, subject: 'Third', from: 'c@example.net', to: 'user@example.com', date: stampDaysAgo(5), size: 900, snippet: 'Can you send the figures?', flags: { seen: false, flagged: false, draft: false } },
-      { id: 102, uid: 12, subject: 'Second', from: 'b@example.net', to: 'user@example.com', date: '2026-09-08 09:00', size: 800, flags: { seen: false, flagged: false, draft: false }, in_reply_to: '<one@example.net>' },
+      { id: 102, uid: 12, subject: 'Second', from: 'b@example.net', to: 'user@example.com', date: '2026-09-08 09:00', size: 800, flags: { seen: false, flagged: false, draft: false }, in_reply_to: '<one@example.net>', brand: 'example.net' },
       { id: 101, uid: 11, subject: 'First', from: 'a@example.net', to: 'user@example.com', date: '2026-09-07 09:00', size: 700, flags: { seen: true, flagged: false, draft: false } }
    ]
 };
@@ -445,7 +447,7 @@ const OLDER = [
 const ARRIVAL = { id: 104, uid: 14, subject: 'Just in', from: 'd@example.net', to: 'user@example.com', date: '2026-09-09 12:00', size: 400, flags: { seen: false, flagged: false, draft: false } };
 
 const WITH_IMAGE = {
-   id: 102, folder_id: 1, uid: 12, subject: 'Second', from: 'Bee <b@example.net>', to: 'user@example.com', cc: '',
+   id: 102, folder_id: 1, uid: 12, subject: 'Second', from: 'Bee <b@example.net>', to: 'user@example.com', cc: '', brand: 'example.net',
    date: '2026-09-08 09:00', size: 800, message_id: '<two@example.net>', references: '', in_reply_to: '<one@example.net>',
    text: '', html: '<p>Hello</p><img src="cid:logo@example.net" alt="logo"><img src="cid:chart@example.net" alt="chart"><img src="https://tracker.example.org/pixel.gif">',
    html_remote: true,
@@ -596,11 +598,138 @@ function answerCalendar(method, path, body) {
    return null;
 }
 
+// The Subscriptions page: three senders offering a way out - one-click, a
+// mailto and a page only - and what the page does with each. The answer can
+// be made partial or empty, or refused, by the checks.
+let subscriptionsMode = 'full';
+const subscriptionDeletes = [];
+function answerSubscriptions(method, path, body) {
+   if (method === 'GET' && /^\/api\/v1\/me\/subscriptions(\?|$)/.test(path)) {
+      if (subscriptionsMode === 'refused') { return json(500, { error: 'the mailbox could not be read' }); }
+      const days = Number((/days=(\d+)/.exec(path) || [0, 90])[1]);
+      const all = [
+         { address: 'news@example.com', name: 'Weekly News', list_id: 'Weekly <weekly.example.com>', count: 12, unread: 4, first: '2026-06-20 08:00:00', last: '2026-09-15 08:00:00', message_id: 902, method: 'one-click', url: '' },
+         { address: 'shop@example.com', name: '', list_id: '', count: 5, unread: 0, first: '2026-08-01 10:00:00', last: '2026-09-10 10:00:00', message_id: 911, method: 'mail', url: '' },
+         { address: 'blog@example.com', name: 'A Blog', list_id: '', count: 2, unread: 2, first: '2026-09-01 12:00:00', last: '2026-09-12 12:00:00', message_id: 931, method: 'page', url: 'https://blog.example.com/settings' }
+      ];
+      const list = subscriptionsMode === 'empty' ? [] : all;
+      return json(200, { days: days, since: '2026-06-19 00:00:00', scanned: subscriptionsMode === 'partial' ? 5000 : 19, complete: subscriptionsMode !== 'partial', subscriptions: list });
+   }
+   if (method === 'POST' && path === '/api/v1/me/messages/902/unsubscribe') { return json(200, { method: 'one-click', ok: true, status: 200, error: '' }); }
+   if (method === 'POST' && path === '/api/v1/me/messages/911/unsubscribe') { return json(201, { method: 'mail', queued: true, to: 'shop-leave@example.com' }); }
+   if (method === 'GET' && path.startsWith('/api/v1/me/search?q=' + encodeURIComponent('from:blog@example.com'))) {
+      return json(200, { query: 'from:blog@example.com', scanned: 40, complete: true, more: false, messages: [
+         { folder_id: 1, folder: 'INBOX', id: 931, uid: 31, size: 900, received: '2026-09-12 12:00:00', subject: 'New post', from: 'A Blog <blog@example.com>', date: '', flags: { seen: false, flagged: false, answered: false, draft: false, deleted: false, keywords: [] } },
+         { folder_id: 3, folder: 'Work', id: 932, uid: 7, size: 800, received: '2026-09-01 12:00:00', subject: 'First post', from: 'A Blog <blog@example.com>', date: '', flags: { seen: false, flagged: false, answered: false, draft: false, deleted: false, keywords: [] } },
+         { folder_id: 1, folder: 'INBOX', id: 933, uid: 33, size: 700, received: '2026-09-02 12:00:00', subject: 'Not theirs', from: 'someone@blog.example.com.evil.test', date: '', flags: { seen: false, flagged: false, answered: false, draft: false, deleted: false, keywords: [] } }
+      ] });
+   }
+   if (method === 'DELETE' && /^\/api\/v1\/me\/messages\/93\d$/.test(path)) {
+      subscriptionDeletes.push(Number(path.split('/').pop()));
+      return json(200, { deleted: true, id: 9000 + subscriptionDeletes.length });
+   }
+   return null;
+}
+// The Other accounts page: one account the reader added and one an
+// administrator set up to read recipients from the message, which the page
+// shows and does not offer to change.
+let fetchMode = 'on';
+let fetchAccountsState = [
+   { id: 71, name: 'Old provider', server_address: 'pop.old-provider.example', port: 995, server_type: 'pop3', username: 'me@old-provider.example',
+     minutes_between_fetch: 30, days_to_keep_messages: -1, connection_security: 'tls', mime_recipient_headers: '', enabled: true,
+     process_mime_recipients: false, process_mime_date: false, use_antispam: true, use_antivirus: true, enable_route_recipients: false,
+     mirror_folders: false, locked: false, next_download_time: '2026-09-17 14:00:00' },
+   { id: 72, name: 'Catch-all', server_address: 'mail.example.com', port: 110, server_type: 'pop3', username: 'catchall',
+     minutes_between_fetch: 5, days_to_keep_messages: 0, connection_security: 'none', mime_recipient_headers: 'To,CC', enabled: true,
+     process_mime_recipients: true, process_mime_date: false, use_antispam: true, use_antivirus: true, enable_route_recipients: false,
+     mirror_folders: false, locked: false, next_download_time: '2026-09-17 13:05:00' }
+];
+// Send mail as: one address waiting for its code, at a domain that rejects
+// mail it did not send, and one verified.
+let senderAddresses = [
+   { id: 5, address: 'me@strict.example', name: 'Me Elsewhere', verified: false, created: '2026-09-17 10:00:00', dmarc_policy: 'reject' },
+   { id: 6, address: 'old@relaxed.example', name: '', verified: true, created: '2026-09-16 10:00:00', dmarc_policy: 'none' }
+];
+function answerSenderAddresses(method, path, body) {
+   if (!path.startsWith('/api/v1/me/sender-addresses')) { return null; }
+   if (path === '/api/v1/me/sender-addresses' && method === 'GET') { return json(200, { addresses: senderAddresses.slice(), max: 5 }); }
+   if (path === '/api/v1/me/sender-addresses' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const made = { id: 10 + senderAddresses.length, address: String(wanted.address).toLowerCase(), name: wanted.name || '', verified: false, created: '2026-09-17 12:00:00', dmarc_policy: '', code_sent: true };
+      senderAddresses.push(made);
+      return json(201, made);
+   }
+   const m = /^\/api\/v1\/me\/sender-addresses\/(\d+)(\/verify|\/resend)?$/.exec(path);
+   if (!m) { return json(404, { error: 'not found' }); }
+   const at = senderAddresses.findIndex((a) => a.id === Number(m[1]));
+   if (at < 0) { return json(404, { error: 'not one of your addresses' }); }
+   if (m[2] === '/verify') {
+      const typed = JSON.parse(body || '{}').code;
+      if (typed === '123456') { senderAddresses[at].verified = true; return json(200, senderAddresses[at]); }
+      return json(400, { error: 'that is not the code', attempts_left: 4 });
+   }
+   if (m[2] === '/resend') { return json(429, { error: 'a code went out less than a minute ago', retry_after: 42 }); }
+   if (method === 'DELETE') { senderAddresses.splice(at, 1); return json(200, { deleted: true }); }
+   return json(404, { error: 'not found' });
+}
+// Masked addresses: one on, one switched off.
+let maskedAddresses = [
+   { id: 3, address: 'bookshop.k3v9qa@example.com', label: 'Bookshop', active: true, received: 12, created: '2026-09-17 10:00:00' },
+   { id: 2, address: 'news.a2b3c4@example.com', label: 'Newsletter', active: false, received: 340, created: '2026-09-01 10:00:00' }
+];
+function answerMaskedAddresses(method, path, body) {
+   if (!path.startsWith('/api/v1/me/masked-addresses')) { return null; }
+   if (path === '/api/v1/me/masked-addresses' && method === 'GET') { return json(200, { addresses: maskedAddresses.slice(), max: 20 }); }
+   if (path === '/api/v1/me/masked-addresses' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const made = { id: 10 + maskedAddresses.length, address: 'garden.p7q8r9@example.com', label: wanted.label || '', active: true, received: 0, created: '2026-09-17 12:00:00' };
+      maskedAddresses.unshift(made);
+      return json(201, made);
+   }
+   const m = /^\/api\/v1\/me\/masked-addresses\/(\d+)$/.exec(path);
+   const at = m ? maskedAddresses.findIndex((a) => a.id === Number(m[1])) : -1;
+   if (at < 0) { return json(404, { error: 'not one of your masked addresses' }); }
+   if (method === 'PUT') { Object.assign(maskedAddresses[at], JSON.parse(body || '{}')); return json(200, maskedAddresses[at]); }
+   if (method === 'DELETE') { maskedAddresses.splice(at, 1); return json(200, { deleted: true }); }
+   return json(404, { error: 'not found' });
+}
+let importOffer = { google: true, microsoft: false };
+function answerFetchAccounts(method, path, body) {
+   if (!path.startsWith('/api/v1/me/fetch-accounts')) { return null; }
+   if (fetchMode === 'off') { return json(403, { error: 'adding other accounts is not offered on this server' }); }
+   if (path === '/api/v1/me/fetch-accounts/import' && method === 'GET') { return json(200, importOffer); }
+   if (path === '/api/v1/me/fetch-accounts/import' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      if (!importOffer[wanted.provider]) { return json(403, { error: 'signing in with that provider is not set up on this server' }); }
+      return json(200, { url: 'https://accounts.google.example/auth?state=abc&code_challenge=xyz' });
+   }
+   if (path === '/api/v1/me/fetch-accounts' && method === 'GET') { return json(200, fetchAccountsState.slice()); }
+   if (path === '/api/v1/me/fetch-accounts' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const made = Object.assign({ id: 80 + fetchAccountsState.length, enabled: true, locked: false, next_download_time: '2026-09-17 13:30:00',
+         use_antispam: true, use_antivirus: true, process_mime_recipients: false, enable_route_recipients: false, mime_recipient_headers: '' }, wanted);
+      delete made.password;
+      fetchAccountsState.push(made);
+      return json(201, made);
+   }
+   const m = /^\/api\/v1\/me\/fetch-accounts\/(\d+)(\/download)?$/.exec(path);
+   if (!m) { return json(404, { error: 'not found' }); }
+   const at = fetchAccountsState.findIndex((f) => f.id === Number(m[1]));
+   if (at < 0) { return json(404, { error: 'fetch account not found' }); }
+   if (m[2] && method === 'POST') { return json(202, { queued: true }); }
+   if (method === 'PUT') { const wanted = JSON.parse(body || '{}'); delete wanted.password; Object.assign(fetchAccountsState[at], wanted); return json(200, fetchAccountsState[at]); }
+   if (method === 'DELETE') { fetchAccountsState.splice(at, 1); return json(200, { deleted: true }); }
+   return json(404, { error: 'not found' });
+}
 function answer(method, path, body) {
    if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
    { const calendar = answerCalendar(method, path, body); if (calendar) { return calendar; } }
+   { const subscriptions = answerSubscriptions(method, path, body); if (subscriptions) { return subscriptions; } }
+   { const fetches = answerFetchAccounts(method, path, body); if (fetches) { return fetches; } }
+   { const senders = answerSenderAddresses(method, path, body); if (senders) { return senders; } }
+   { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    if (path === '/api/v1/me') {
       return json(200, {
          address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
@@ -949,8 +1078,10 @@ const serviceWorkerStub = {
    register: () => Promise.resolve(registrationStub),
    ready: Promise.resolve(registrationStub)
 };
+let clipboardText = '';
 const navigatorStub = {
    language: 'en', languages: ['en'],
+   clipboard: { writeText: (text) => { clipboardText = String(text); return Promise.resolve(); } },
    userAgent: 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36',
    serviceWorker: serviceWorkerStub,
    setAppBadge: (n) => { badges.push(Number(n)); return Promise.resolve(); },
@@ -3111,6 +3242,393 @@ async function main() {
    await flush();
    check('a message without an invitation shows no card', document.getElementById('message-invitation').hidden === true);
 
+   }
+
+   // ---- the Subscriptions page: each sender that offers a way out, and the
+   // one button that takes it
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const subsRows = () => walkAll(document.getElementById('subs-rows'), (n) => n.tagName === 'TR');
+      const rowOf = (address) => subsRows().filter((r) => r.textContent.indexOf(address) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+      const beforeSubs = requests.length;
+      location.hash = '#/subscriptions';
+      await flush();
+      check('the Subscriptions page reads the senders of the last ninety days', called(beforeSubs, 'GET', '/api/v1/me/subscriptions?days=90'),
+         JSON.stringify(since(beforeSubs).map((r) => r.path)));
+      check('it is a page of the settings, beside Safe senders', document.getElementById('subscriptions-section').hidden === false && document.getElementById('settings-head').hidden === false);
+      check('a row per sender, the most first', subsRows().length === 3 && subsRows()[0].textContent.indexOf('news@example.com') >= 0, subsRows().map((r) => r.textContent).join(' | '));
+      check('a row names the sender, the list and how much came',
+         rowOf('news@example.com').textContent.indexOf('Weekly News') >= 0 && rowOf('news@example.com').textContent.indexOf('weekly.example.com') >= 0 &&
+         rowOf('news@example.com').textContent.indexOf('12') >= 0 && rowOf('news@example.com').textContent.indexOf('4') >= 0, rowOf('news@example.com').textContent);
+      const pageLink = walkAll(rowOf('blog@example.com'), (n) => n.tagName === 'A')[0];
+      check('a list that offers only a page is a link to it, opened apart and told nothing of this page',
+         !!pageLink && pageLink.getAttribute('href') === 'https://blog.example.com/settings' && pageLink.getAttribute('target') === '_blank' &&
+         pageLink.getAttribute('rel') === 'noopener noreferrer' && !buttonIn(rowOf('blog@example.com'), 'Unsubscribe'), pageLink ? pageLink.getAttribute('href') : 'no link');
+
+      const beforeLeave = requests.length;
+      buttonIn(rowOf('news@example.com'), 'Unsubscribe').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Unsubscribe asks the newest message of the sender to be unsubscribed from', called(beforeLeave, 'POST', '/api/v1/me/messages/902/unsubscribe'),
+         JSON.stringify(since(beforeLeave).map((r) => r.method + ' ' + r.path)));
+      check('and says it was done, naming the sender', document.getElementById('subs-status').textContent.indexOf('news@example.com') >= 0, document.getElementById('subs-status').textContent);
+      const leftPref = since(beforeLeave).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/preferences')[0];
+      const leftMap = leftPref ? JSON.parse(JSON.parse(leftPref.body).unsubscribed || '{}') : {};
+      check('what was left is kept with the account, with the day', /^\d{4}-\d{2}-\d{2}$/.test(leftMap['news@example.com'] || ''), leftPref ? leftPref.body : 'no PUT');
+      check('and the row says so from then on, and offers to ask again',
+         walkAll(rowOf('news@example.com'), (n) => String(n.className || '').indexOf('badge') >= 0).length === 1 && !!buttonIn(rowOf('news@example.com'), 'Unsubscribe again'),
+         rowOf('news@example.com').textContent);
+
+      const beforeMail = requests.length;
+      buttonIn(rowOf('shop@example.com'), 'Unsubscribe').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a list that is left by mail says where the request went',
+         called(beforeMail, 'POST', '/api/v1/me/messages/911/unsubscribe') && document.getElementById('subs-status').textContent.indexOf('shop-leave@example.com') >= 0,
+         document.getElementById('subs-status').textContent);
+
+      const beforeBlock = requests.length;
+      buttonIn(rowOf('shop@example.com'), 'Block').dispatchEvent(makeEvent('click'));
+      await flush();
+      const blocked = since(beforeBlock).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/sender-list')[0];
+      check('Block puts the sender on the reader\'s own blocked list', !!blocked && JSON.parse(blocked.body).value === 'shop@example.com' && JSON.parse(blocked.body).blocked === true,
+         blocked ? blocked.body : 'no POST');
+
+      confirmAnswer = false;
+      const beforeNoDelete = requests.length;
+      buttonIn(rowOf('blog@example.com'), 'Delete their mail').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('deleting a sender\'s mail asks first, and a no deletes nothing', confirms[confirms.length - 1].indexOf('blog@example.com') >= 0 && !called(beforeNoDelete, 'GET', /^\/api\/v1\/me\/search/),
+         confirms[confirms.length - 1]);
+      confirmAnswer = true;
+      const beforeDelete = requests.length;
+      buttonIn(rowOf('blog@example.com'), 'Delete their mail').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a yes finds their mail in every folder and deletes what is from that address alone',
+         called(beforeDelete, 'GET', /^\/api\/v1\/me\/search\?q=from%3Ablog%40example\.com/) &&
+         subscriptionDeletes.join(',') === '931,932', subscriptionDeletes.join(','));
+      check('and the page reads the senders again', called(beforeDelete, 'GET', '/api/v1/me/subscriptions?days=90'), JSON.stringify(since(beforeDelete).map((r) => r.path)));
+
+      const beforeDays = requests.length;
+      subscriptionsMode = 'partial';
+      document.getElementById('subs-days').value = '30';
+      document.getElementById('subs-days').dispatchEvent(makeEvent('change'));
+      await flush();
+      check('another window reads that window', called(beforeDays, 'GET', '/api/v1/me/subscriptions?days=30'), JSON.stringify(since(beforeDays).map((r) => r.path)));
+      check('and when not all of it was read, the page says how much was',
+         document.getElementById('subs-partial').hidden === false && document.getElementById('subs-partial').textContent.indexOf('5000') >= 0, document.getElementById('subs-partial').textContent);
+
+      subscriptionsMode = 'empty';
+      document.getElementById('subs-days').dispatchEvent(makeEvent('change'));
+      await flush();
+      check('with nothing to leave the page says so rather than showing an empty table',
+         document.getElementById('subs-empty').hidden === false && document.getElementById('subs-table').hidden === true && document.getElementById('subs-partial').hidden === true);
+
+      subscriptionsMode = 'refused';
+      document.getElementById('subs-days').dispatchEvent(makeEvent('change'));
+      await flush();
+      check('a refused read is said as an error', String(document.getElementById('subs-status').className).indexOf('error') >= 0, document.getElementById('subs-status').className);
+      subscriptionsMode = 'full';
+      document.getElementById('subs-days').value = '90';
+   }
+
+   // ---- brand logos: the avatar of mail the server judged dmarc=pass for a brand
+   {
+      const findIn = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const brandImages = (root) => findIn(root, (n) => n.tagName === 'IMG' && String(n.className || '') === 'brand');
+      location.hash = '#/f/1';
+      await flush();
+      const listRows = () => Array.from(document.getElementById('message-list').children);
+      const branded = listRows().filter((r) => r.textContent.indexOf('Second') >= 0)[0];
+      const plain = listRows().filter((r) => r.textContent.indexOf('First') >= 0)[0];
+      const logos = branded ? brandImages(branded) : [];
+      check('a row the server names a brand for shows the brand\'s logo in its avatar, from the logo route',
+         logos.length === 1 && logos[0].getAttribute('src') === '/api/v1/me/brand-logo?domain=example.net' && logos[0].getAttribute('alt') === '',
+         logos.length ? logos[0].getAttribute('src') : 'no logo in ' + (branded ? branded.textContent : 'no row'));
+      check('and a row with no brand keeps its initials', !!plain && brandImages(plain).length === 0);
+      if (logos.length) {
+         const holder = logos[0].parentNode;
+         logos[0].dispatchEvent(makeEvent('error'));
+         check('a logo the server will not give puts the initials back', brandImages(branded).length === 0 && !!holder && holder.textContent.length > 0, holder ? holder.textContent : 'no holder');
+      }
+      location.hash = '#/m/102';
+      await flush();
+      const paneLogos = brandImages(document.getElementById('message-avatar'));
+      check('the open message\'s avatar shows the logo too', paneLogos.length === 1 && paneLogos[0].getAttribute('src') === '/api/v1/me/brand-logo?domain=example.net', String(paneLogos.length));
+      location.hash = '#/m/106';
+      await flush();
+      check('and the next message without a brand has its initials, not the last one\'s logo', brandImages(document.getElementById('message-avatar')).length === 0 && document.getElementById('message-avatar').textContent.length > 0,
+         document.getElementById('message-avatar').textContent);
+      location.hash = '#/f/1';
+      await flush();
+   }
+
+   // ---- Other accounts: another mailbox collected into this one
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const fetchRows = () => walkAll(document.getElementById('fetch-rows'), (n) => n.tagName === 'TR');
+      const rowNamed = (name) => fetchRows().filter((r) => r.textContent.indexOf(name) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+      const bodyOf = (from, method, path) => { const hit = since(from).filter((r) => r.method === method && r.path === path)[0]; return hit ? JSON.parse(hit.body || '{}') : null; };
+      const beforeAccounts = requests.length;
+      location.hash = '#/accounts';
+      await flush();
+      check('the Other accounts page reads the reader\'s other accounts', called(beforeAccounts, 'GET', '/api/v1/me/fetch-accounts'));
+      check('it is a page of the settings', document.getElementById('accounts-section').hidden === false && document.getElementById('settings-head').hidden === false);
+      check('a row per account, with where it collects from', fetchRows().length === 2 && rowNamed('Old provider').textContent.indexOf('pop.old-provider.example:995') >= 0,
+         fetchRows().map((r) => r.textContent).join(' | '));
+      check('an account an administrator set up is shown and not offered for a change',
+         !!rowNamed('Catch-all') && !buttonIn(rowNamed('Catch-all'), 'Edit') && !buttonIn(rowNamed('Catch-all'), 'Remove') && !!buttonIn(rowNamed('Catch-all'), 'Collect now'),
+         rowNamed('Catch-all') ? rowNamed('Catch-all').textContent : 'no row');
+
+      document.getElementById('fetch-preset').value = 'gmail';
+      document.getElementById('fetch-preset').dispatchEvent(makeEvent('change'));
+      await flush();
+      check('choosing Gmail fills its server and says what Gmail asks for',
+         document.getElementById('fetch-host').value === 'imap.gmail.com' && document.getElementById('fetch-port').value === '993' &&
+         document.getElementById('fetch-type').value === 'imap' && document.getElementById('fetch-security').value === 'tls' &&
+         document.getElementById('fetch-hint').hidden === false && document.getElementById('fetch-name').value === 'Gmail',
+         document.getElementById('fetch-host').value + ' ' + document.getElementById('fetch-hint').textContent);
+
+      document.getElementById('fetch-name').value = '';
+      document.getElementById('fetch-host').value = '';
+      const beforeEmpty = requests.length;
+      document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('an account with no name or server is refused here and never sent', !called(beforeEmpty, 'POST', '/api/v1/me/fetch-accounts') &&
+         String(document.getElementById('fetch-status').className).indexOf('error') >= 0);
+
+      document.getElementById('fetch-name').value = 'Gmail';
+      document.getElementById('fetch-host').value = 'imap.gmail.com';
+      document.getElementById('fetch-user').value = 'me@gmail.example';
+      document.getElementById('fetch-password').value = 'app-password';
+      document.getElementById('fetch-keep').value = '-1';
+      document.getElementById('fetch-mirror').checked = true;
+      const beforeAdd = requests.length;
+      document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const added = bodyOf(beforeAdd, 'POST', '/api/v1/me/fetch-accounts');
+      check('adding sends the server, the account, the password, what to leave there and the folders',
+         !!added && added.server_address === 'imap.gmail.com' && added.port === 993 && added.server_type === 'imap' && added.connection_security === 'tls' &&
+         added.username === 'me@gmail.example' && added.password === 'app-password' && added.days_to_keep_messages === -1 && added.mirror_folders === true &&
+         added.minutes_between_fetch === 30, JSON.stringify(added));
+      check('and the page lists it and clears the password', fetchRows().length === 3 && document.getElementById('fetch-password').value === '');
+
+      const beforeCollect = requests.length;
+      buttonIn(rowNamed('Old provider'), 'Collect now').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Collect now asks that account to collect', called(beforeCollect, 'POST', '/api/v1/me/fetch-accounts/71/download') &&
+         document.getElementById('fetch-status').textContent.indexOf('Old provider') >= 0, document.getElementById('fetch-status').textContent);
+
+      const beforePause = requests.length;
+      buttonIn(rowNamed('Old provider'), 'Pause').dispatchEvent(makeEvent('click'));
+      await flush();
+      const paused = bodyOf(beforePause, 'PUT', '/api/v1/me/fetch-accounts/71');
+      check('Pause switches it off and the row says so', !!paused && paused.enabled === false && !!buttonIn(rowNamed('Old provider'), 'Resume'), JSON.stringify(paused));
+
+      buttonIn(rowNamed('Old provider'), 'Edit').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Edit puts the account in the form, the password left blank',
+         document.getElementById('fetch-host').value === 'pop.old-provider.example' && document.getElementById('fetch-port').value === '995' &&
+         document.getElementById('fetch-password').value === '' && document.getElementById('fetch-cancel').hidden === false);
+      document.getElementById('fetch-port').value = '110';
+      const beforeSave = requests.length;
+      document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const saved = bodyOf(beforeSave, 'PUT', '/api/v1/me/fetch-accounts/71');
+      check('saving it changes it where it is, and a password left blank is not sent, so the one saved stays',
+         !!saved && saved.port === 110 && !('password' in saved) && !called(beforeSave, 'POST', '/api/v1/me/fetch-accounts'), JSON.stringify(saved));
+
+      confirmAnswer = true;
+      const beforeRemove = requests.length;
+      buttonIn(rowNamed('Old provider'), 'Remove').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Remove asks, saying the mail collected stays, and removes it', confirms[confirms.length - 1].indexOf('Old provider') >= 0 &&
+         called(beforeRemove, 'DELETE', '/api/v1/me/fetch-accounts/71') && !rowNamed('Old provider'), confirms[confirms.length - 1]);
+
+      fetchMode = 'off';
+      location.hash = '#/settings';
+      await flush();
+      location.hash = '#/accounts';
+      await flush();
+      check('a server that does not offer it says so and shows no form',
+         document.getElementById('fetch-off').hidden === false && document.getElementById('fetch-form').hidden === true);
+      fetchMode = 'on';
+   }
+
+   // ---- Importing with a sign-in: the provider, the folders the reader picks
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const fetchRows = () => walkAll(document.getElementById('fetch-rows'), (n) => n.tagName === 'TR');
+      const rowNamed = (name) => fetchRows().filter((r) => r.textContent.indexOf(name) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english) && !n.hidden)[0];
+      const bodyOf = (from, method, path) => { const hit = since(from).filter((r) => r.method === method && r.path === path)[0]; return hit ? JSON.parse(hit.body || '{}') : null; };
+
+      fetchAccountsState.push({ id: 90, name: 'Gmail - reader@gmail.example', server_address: 'imap.gmail.com', port: 993, server_type: 'imap', username: 'reader@gmail.example',
+         minutes_between_fetch: 30, days_to_keep_messages: -1, connection_security: 'tls', mime_recipient_headers: '', enabled: true,
+         process_mime_recipients: false, process_mime_date: false, use_antispam: true, use_antivirus: true, enable_route_recipients: false,
+         mirror_folders: true, locked: false, next_download_time: '2026-09-17 14:00:00', oauth_provider: 'google', mirror_pending: true,
+         mirror_seen: ['INBOX', 'Receipts', '[Gmail]/Alle Nachrichten', '[Gmail]/Markiert'], mirror_copies: ['[Gmail]/Alle Nachrichten', '[Gmail]/Markiert'], mirror_skip: [], collected_messages: 0 });
+
+      const beforeOffer = requests.length;
+      location.hash = '#/settings';
+      await flush();
+      location.hash = '#/accounts?imported=90';
+      await flush();
+      check('the page asks which providers it can sign in to', called(beforeOffer, 'GET', '/api/v1/me/fetch-accounts/import'));
+      check('Gmail is offered and Outlook.com, not set up, is not',
+         document.getElementById('import-signin').hidden === false && document.getElementById('import-google').hidden === false && document.getElementById('import-microsoft').hidden === true);
+      check('back from the provider, the page says it is signed in and puts the address back',
+         String(document.getElementById('fetch-status').className).indexOf('ok') >= 0 && location.hash === '#/accounts', location.hash + ' ' + document.getElementById('fetch-status').textContent);
+      const signedIn = rowNamed('reader@gmail.example');
+      check('an account signed in with Google says so, and offers no edit of its server', !!signedIn &&
+         signedIn.textContent.indexOf(words('Signed in with Google')) >= 0 && !buttonIn(signedIn, 'Edit') && !!buttonIn(signedIn, 'Choose the folders'),
+         signedIn ? signedIn.textContent : 'no row');
+
+      buttonIn(rowNamed('reader@gmail.example'), 'Choose the folders').dispatchEvent(makeEvent('click'));
+      await flush();
+      const boxes = walkAll(document.getElementById('fetch-folder-list'), (n) => n.tagName === 'INPUT');
+      const box = (name) => boxes.filter((b) => b.getAttribute('data-folder') === name)[0];
+      check('the folders the other server listed are offered, the views of the others unticked whatever they are called',
+         document.getElementById('fetch-folders').hidden === false && boxes.length === 4 && box('INBOX').checked && box('Receipts').checked &&
+         !box('[Gmail]/Alle Nachrichten').checked && !box('[Gmail]/Markiert').checked, boxes.map((b) => b.getAttribute('data-folder') + '=' + b.checked).join(' '));
+
+      box('Receipts').checked = false;
+      const beforeChoice = requests.length;
+      document.getElementById('fetch-folders-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      const choice = bodyOf(beforeChoice, 'PUT', '/api/v1/me/fetch-accounts/90');
+      check('bringing them sends the folders not ticked, and starts the collection',
+         !!choice && JSON.stringify(choice.mirror_skip) === JSON.stringify(['Receipts', '[Gmail]/Alle Nachrichten', '[Gmail]/Markiert']) &&
+         called(beforeChoice, 'POST', '/api/v1/me/fetch-accounts/90/download') && document.getElementById('fetch-folders').hidden === true, JSON.stringify(choice));
+
+      document.getElementById('import-mirror').checked = true;
+      document.getElementById('import-keep').value = '-1';
+      const beforeStart = requests.length;
+      document.getElementById('import-google').dispatchEvent(makeEvent('click'));
+      await flush();
+      const start = bodyOf(beforeStart, 'POST', '/api/v1/me/fetch-accounts/import');
+      check('Sign in to Gmail starts the sign-in with the reader\'s choices and goes to the provider',
+         !!start && start.provider === 'google' && start.mirror_folders === true && start.days_to_keep_messages === -1 &&
+         navigatedTo[navigatedTo.length - 1] === 'https://accounts.google.example/auth?state=abc&code_challenge=xyz', JSON.stringify(start) + ' ' + navigatedTo.join(' '));
+
+      location.hash = '#/settings';
+      await flush();
+      location.hash = '#/accounts?import_error=' + encodeURIComponent('this sign-in was started in another browser');
+      await flush();
+      check('a sign-in that did not finish is said, with the server\'s reason',
+         String(document.getElementById('fetch-status').className).indexOf('error') >= 0 &&
+         document.getElementById('fetch-status').textContent.indexOf('this sign-in was started in another browser') >= 0, document.getElementById('fetch-status').textContent);
+      fetchAccountsState.pop();
+   }
+
+   // ---- Send mail as: an address elsewhere, proved with a code
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const items = () => walkAll(document.getElementById('sendas-list'), (n) => n.tagName === 'LI');
+      const itemFor = (address) => items().filter((li) => li.textContent.indexOf(address) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+      const status = () => document.getElementById('sendas-status');
+
+      const beforeLoad = requests.length;
+      location.hash = '#/settings';
+      await flush();
+      location.hash = '#/accounts';
+      await flush();
+      check('the Other accounts page reads the addresses sent as', called(beforeLoad, 'GET', '/api/v1/me/sender-addresses') && document.getElementById('sendas').hidden === false);
+      const waiting = itemFor('me@strict.example');
+      check('an address waiting for its code offers the code, a new one and removal, and says its domain may refuse the mail',
+         !!waiting && !!buttonIn(waiting, 'Verify') && !!buttonIn(waiting, 'Send a new code') && !!buttonIn(waiting, 'Remove') &&
+         walkAll(waiting, (n) => n.getAttribute && n.getAttribute('data-sendas-code') === '5').length === 1 && waiting.textContent.indexOf('strict.example') >= 0,
+         waiting ? waiting.textContent : 'no item');
+      const proved = itemFor('old@relaxed.example');
+      check('a verified address offers only its removal', !!proved && !buttonIn(proved, 'Verify') && !!buttonIn(proved, 'Remove'), proved ? proved.textContent : 'no item');
+
+      walkAll(itemFor('me@strict.example'), (n) => n.getAttribute && n.getAttribute('data-sendas-code') === '5')[0].value = '000000';
+      buttonIn(itemFor('me@strict.example'), 'Verify').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a wrong code says how many tries are left', String(status().className).indexOf('error') >= 0 && status().textContent.indexOf('4') >= 0, status().textContent);
+
+      walkAll(itemFor('me@strict.example'), (n) => n.getAttribute && n.getAttribute('data-sendas-code') === '5')[0].value = ' 123456 ';
+      const beforeVerify = requests.length;
+      buttonIn(itemFor('me@strict.example'), 'Verify').dispatchEvent(makeEvent('click'));
+      await flush();
+      const verifyBody = since(beforeVerify).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/sender-addresses/5/verify')[0];
+      check('the right code, trimmed, verifies it and the From picker is read again',
+         !!verifyBody && JSON.parse(verifyBody.body).code === '123456' && called(beforeVerify, 'GET', '/api/v1/me/identities') && !buttonIn(itemFor('me@strict.example'), 'Verify'),
+         verifyBody ? verifyBody.body : 'no request');
+
+      senderAddresses.push({ id: 7, address: 'new@later.example', name: '', verified: false, created: '2026-09-17 12:00:00', dmarc_policy: '' });
+      location.hash = '#/settings';
+      await flush();
+      location.hash = '#/accounts';
+      await flush();
+      buttonIn(itemFor('new@later.example'), 'Send a new code').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a new code asked for too soon says how long to wait', status().textContent.indexOf('42') >= 0, status().textContent);
+
+      document.getElementById('sendas-address').value = 'Second@Elsewhere.example';
+      document.getElementById('sendas-name').value = 'Second';
+      const beforeAdd = requests.length;
+      document.getElementById('sendas-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const added = since(beforeAdd).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/sender-addresses')[0];
+      check('adding one sends the address and the name, and says the code is on its way',
+         !!added && JSON.parse(added.body).address === 'Second@Elsewhere.example' && JSON.parse(added.body).name === 'Second' &&
+         String(status().className).indexOf('ok') >= 0 && !!itemFor('second@elsewhere.example'), added ? added.body : 'no request');
+
+      confirmAnswer = true;
+      const beforeRemove = requests.length;
+      buttonIn(itemFor('old@relaxed.example'), 'Remove').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('removing one asks and removes it', called(beforeRemove, 'DELETE', '/api/v1/me/sender-addresses/6') && !itemFor('old@relaxed.example'));
+   }
+
+   // ---- Masked addresses: one for each sign-up, switched off when it turns to spam
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const rows = () => walkAll(document.getElementById('masked-rows'), (n) => n.tagName === 'TR');
+      const rowFor = (address) => rows().filter((r) => r.textContent.indexOf(address) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+      const status = () => document.getElementById('masked-status');
+
+      const beforeLoad = requests.length;
+      location.hash = '#/masked';
+      await flush();
+      check('the Masked addresses page reads them and is a page of the settings',
+         called(beforeLoad, 'GET', '/api/v1/me/masked-addresses') && document.getElementById('masked-section').hidden === false && document.getElementById('settings-head').hidden === false);
+      check('each is listed with what it is for and how much it has brought, and the one switched off says so',
+         rows().length === 2 && rowFor('bookshop.k3v9qa@example.com').textContent.indexOf('Bookshop') >= 0 &&
+         rowFor('news.a2b3c4@example.com').textContent.indexOf(words('Switched off: mail to it is refused')) >= 0 && !!buttonIn(rowFor('news.a2b3c4@example.com'), 'Switch on'),
+         rows().map((r) => r.textContent).join(' | '));
+
+      document.getElementById('masked-label').value = ' Garden centre ';
+      const beforeMake = requests.length;
+      document.getElementById('masked-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const made = since(beforeMake).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/masked-addresses')[0];
+      check('making one sends the label, lists the address, copies it and reads the From picker again',
+         !!made && JSON.parse(made.body).label === 'Garden centre' && !!rowFor('garden.p7q8r9@example.com') &&
+         clipboardText === 'garden.p7q8r9@example.com' && called(beforeMake, 'GET', '/api/v1/me/identities'), made ? made.body : 'no request');
+
+      const beforeOff = requests.length;
+      buttonIn(rowFor('bookshop.k3v9qa@example.com'), 'Switch off').dispatchEvent(makeEvent('click'));
+      await flush();
+      const off = since(beforeOff).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/masked-addresses/3')[0];
+      check('Switch off switches it off and says mail to it is refused from now on',
+         !!off && JSON.parse(off.body).active === false && !!buttonIn(rowFor('bookshop.k3v9qa@example.com'), 'Switch on') &&
+         status().textContent.indexOf('bookshop.k3v9qa@example.com') >= 0, off ? off.body : 'no request');
+
+      confirmAnswer = true;
+      const beforeRemove = requests.length;
+      buttonIn(rowFor('news.a2b3c4@example.com'), 'Remove').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Remove asks, saying mail to it will be refused, and removes it',
+         confirms[confirms.length - 1].indexOf('news.a2b3c4@example.com') >= 0 && called(beforeRemove, 'DELETE', '/api/v1/me/masked-addresses/2') && !rowFor('news.a2b3c4@example.com'));
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

@@ -238,8 +238,8 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section'];
-  var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'security-section', 'password-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section'];
+  var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
     el('settings-head').hidden = SETTINGS_PANELS.indexOf(id) < 0;
@@ -681,7 +681,7 @@
     if (box.checked) { row.classList.add('selected'); }
     entry.star = starButton(m);
     row.appendChild(entry.star);
-    row.appendChild(avatarFor(m.from));
+    row.appendChild(avatarFor(m.from, false, m.brand));
     var outgoing = folderIs(folderId, 'Sent') || folderIs(folderId, 'Drafts');
     var who = node('div', outgoing ? t('To: ') + (recipientsOf(m.to).slice(0, 2).join(', ') || '?') : nameOf(m.from), 'who');
     who.setAttribute('title', (outgoing ? m.to : m.from) || '');
@@ -770,7 +770,7 @@
       entry.box = box;
       entry.star = starButton(newest);
       row.appendChild(entry.star);
-      row.appendChild(avatarFor(newest.from));
+      row.appendChild(avatarFor(newest.from, false, newest.brand));
       var senders = [];
       g.messages.forEach(function (m) { var s = nameOf(m.from); if (senders.indexOf(s) < 0) { senders.push(s); } });
       var who = node('div', senders.slice(0, 3).join(', ') + (senders.length > 3 ? ', ...' : ''), 'who');
@@ -1072,8 +1072,11 @@
     closeMenus();
     el('message-subject').textContent = m.subject || t('(no subject)');
     var avatar = el('message-avatar');
+    clear(avatar);
+    avatar.removeAttribute('title');
     avatar.textContent = initialsOf(m.from);
     if (avatar.style) { avatar.style.background = avatarColour(addressOf(m.from)); }
+    brandInto(avatar, m.from, m.brand);
     el('message-from-name').textContent = nameOf(m.from);
     var address = addressOf(m.from);
     el('message-from-address').textContent = address && address !== nameOf(m.from) ? '<' + address + '>' : '';
@@ -1824,6 +1827,9 @@
     if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
     if (head === 'storage') { showPanel('storage-section', 'Storage'); markNav('/storage'); loadStorage(); loadFiles(); return; }
     if (head === 'senders') { showPanel('senders-section', t('Safe senders')); markNav('/senders'); loadSenderList(); loadDigestSetting(); return; }
+    if (head === 'subscriptions') { showPanel('subscriptions-section', t('Subscriptions')); markNav('/subscriptions'); loadSubscriptions(); return; }
+    if (head === 'masked') { showPanel('masked-section', t('Masked addresses')); markNav('/masked'); loadMaskedAddresses(); return; }
+    if (head === 'accounts') { showPanel('accounts-section', t('Other accounts')); markNav('/accounts'); loadFetchAccounts().then(function () { importOutcome(r.params); }); loadSenderAddresses(); return; }
     if (head === 'security') { showPanel('security-section', 'Security'); markNav('/security'); loadSecurity(); return; }
     if (head === 'password') {
       if (directoryLinked) { replaceWith('/f/' + inboxId); return; }
@@ -5130,6 +5136,9 @@
     add('Away and forwarding', 'page', function () { go('/away'); });
     add('Storage', 'page', function () { go('/storage'); });
     add('Safe senders', 'page', function () { go('/senders'); });
+    add('Subscriptions', 'page', function () { go('/subscriptions'); });
+    add('Other accounts', 'page', function () { go('/accounts'); });
+    add('Masked addresses', 'page', function () { go('/masked'); });
     add('Security', 'page', function () { go('/security'); });
     if (!directoryLinked) { add('Change password', 'page', function () { go('/password'); }); }
     add('Light or dark', 'action', function () { el('theme-btn').click(); });
@@ -5278,11 +5287,27 @@
     for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
     return 'var(--a' + ((h % 10) + 1) + ')';
   };
-  var avatarFor = function (header, large) {
+  // A brand's logo (BIMI) in the avatar, for mail the server judged dmarc=pass
+  // for that brand and says so in brand; the initials stay underneath and come
+  // back if the logo cannot be had - the server answers 404 when the domain
+  // publishes none, its policy does not enforce, or the logo is not SVG Tiny PS.
+  var brandInto = function (a, header, brand) {
+    if (!brand) { return a; }
+    var img = document.createElement('img');
+    img.className = 'brand';
+    img.setAttribute('alt', '');
+    img.setAttribute('src', '/api/v1/me/brand-logo?domain=' + encodeURIComponent(brand));
+    img.addEventListener('error', function () { if (img.parentNode === a) { a.removeChild(img); a.textContent = initialsOf(header); } });
+    a.textContent = '';
+    a.appendChild(img);
+    a.setAttribute('title', brand);
+    return a;
+  };
+  var avatarFor = function (header, large, brand) {
     var a = node('span', initialsOf(header), 'avatar' + (large ? ' lg' : ''));
     if (a.style) { a.style.background = avatarColour(addressOf(header)); }
     a.setAttribute('aria-hidden', 'true');
-    return a;
+    return brandInto(a, header, brand);
   };
   var recipientsOf = function (header) {
     return String(header || '').split(',').map(function (s) { return s.trim() ? nameOf(s.trim()) : ''; }).filter(Boolean);
@@ -6143,7 +6168,7 @@
     others.forEach(function (x) {
       var card = node('div', undefined, 'msg-card collapsed');
       var head = node('div', undefined, 'msg-head');
-      head.appendChild(avatarFor(x.from, true));
+      head.appendChild(avatarFor(x.from, true, x.brand));
       var from = node('div', undefined, 'from');
       var line = node('div'); line.appendChild(node('b', nameOf(x.from))); from.appendChild(line);
       from.appendChild(node('div', x.snippet || '', 'snip'));
@@ -6479,6 +6504,524 @@
       ? (state.last_sent ? tf('The last one was sent {0}.', state.last_sent) : t('None has been sent to you yet.'))
       : t('Your server does not send a digest, so there is nothing to switch on here.');
   };
+  // ---- Subscriptions -------------------------------------------------------
+  // Every sender whose mail offers a way out, how much it sent in the window,
+  // and one button to leave - Gmail's Manage subscriptions. The unsubscribe is
+  // the message route's own, asked of the sender's newest message, which names
+  // the list's current way out. What was left is remembered with the account,
+  // so a list that keeps writing shows that it was asked to stop, and when.
+  var unsubscribedOf = function () {
+    try { var map = JSON.parse(pref('unsubscribed') || '{}'); return map && typeof map === 'object' ? map : {}; } catch (why) { return {}; }
+  };
+  var rememberUnsubscribed = function (address) {
+    var map = unsubscribedOf();
+    map[address] = dayKey(new Date());
+    // The newest forty: a preference is at most 4,000 characters.
+    var keys = Object.keys(map).sort(function (a, b) { return String(map[b]).localeCompare(String(map[a])); }).slice(0, 40);
+    var kept = {};
+    keys.forEach(function (k) { kept[k] = map[k]; });
+    return savePrefs({ unsubscribed: JSON.stringify(kept) });
+  };
+  var deleteMailFrom = function (address) {
+    return call('GET', '/api/v1/me/search?q=' + encodeURIComponent('from:' + address) + '&limit=200').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('subs-status', describe(result, t('Could not find their mail')), false); return false; }
+      var hits = (result.data.messages || []).filter(function (m) { return addressOf(m.from).toLowerCase() === address.toLowerCase(); });
+      if (!hits.length) { toast(tf('Nothing from {0} to delete.', address)); return false; }
+      return fileMany(hits.map(function (m) { return { id: m.id, folderId: m.folder_id }; }), 'delete');
+    });
+  };
+  var renderSubscriptions = function (data) {
+    var rows = el('subs-rows');
+    clear(rows);
+    var list = data.subscriptions || [];
+    var left = unsubscribedOf();
+    list.forEach(function (s) {
+      var tr = document.createElement('tr');
+      var who = document.createElement('td');
+      who.appendChild(node('div', s.name || s.address));
+      if (s.name) { who.appendChild(node('div', s.address, 'muted')); }
+      if (s.list_id) { who.appendChild(node('div', s.list_id, 'muted')); }
+      tr.appendChild(who);
+      var much = document.createElement('td');
+      much.appendChild(node('div', tf('{0} messages', s.count)));
+      if (s.unread) { much.appendChild(node('div', tf('{0} unread', s.unread), 'muted')); }
+      tr.appendChild(much);
+      tr.appendChild(node('td', whenText({ received: s.last })));
+      var actions = document.createElement('td');
+      if (left[s.address]) {
+        actions.appendChild(node('span', tf('Unsubscribed {0}', left[s.address]), 'badge good'));
+      }
+      if (s.method === 'one-click' || s.method === 'mail') {
+        var leave = button(left[s.address] ? t('Unsubscribe again') : t('Unsubscribe'), 'btn sm');
+        leave.addEventListener('click', function () {
+          leave.disabled = true;
+          call('POST', '/api/v1/me/messages/' + s.message_id + '/unsubscribe').then(function (result) {
+            var d = result.data || {};
+            if (result.status === 200 && d.method === 'one-click' && d.ok) { say('subs-status', tf('Unsubscribed from {0}: the list answered {1}.', s.address, d.status), true); }
+            else if (result.status === 201 && d.method === 'mail') { say('subs-status', tf('An unsubscribe request for {0} was sent to {1}.', s.address, d.to), true); }
+            else { leave.disabled = false; say('subs-status', describe(result, t('Could not unsubscribe')), false); return; }
+            rememberUnsubscribed(s.address).then(function () { renderSubscriptions(data); });
+          });
+        });
+        actions.appendChild(leave);
+      } else if (s.method === 'page' && /^https:\/\//i.test(s.url || '')) {
+        // A list that offers only a page: the person has to go there, as they
+        // would from the link at the bottom of the message.
+        var open = node('a', t('Open their page'), 'btn ghost sm');
+        open.setAttribute('href', s.url);
+        open.setAttribute('target', '_blank');
+        open.setAttribute('rel', 'noopener noreferrer');
+        open.addEventListener('click', function () { rememberUnsubscribed(s.address).then(function () { renderSubscriptions(data); }); });
+        actions.appendChild(open);
+      }
+      var block = button(t('Block'));
+      block.addEventListener('click', function () { blockSender(s.address); });
+      actions.appendChild(block);
+      var sweep = button(t('Delete their mail'));
+      sweep.addEventListener('click', function () {
+        if (!window.confirm(tf('Delete the mail from {0}? It goes to Trash.', s.address))) { return; }
+        deleteMailFrom(s.address).then(function (ok) { if (ok) { loadSubscriptions(); } });
+      });
+      actions.appendChild(sweep);
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('subs-table').hidden = !list.length;
+    el('subs-empty').hidden = list.length > 0;
+    el('subs-partial').hidden = data.complete !== false;
+    el('subs-partial').textContent = data.complete === false ? tf('Only the newest {0} messages were read; there is more mail in that time than that.', data.scanned) : '';
+  };
+  var loadSubscriptions = function () {
+    say('subs-status', t('Reading your mail...'), true);
+    return call('GET', '/api/v1/me/subscriptions?days=' + encodeURIComponent(el('subs-days').value || '90')).then(function (result) {
+      if (result.status !== 200 || !result.data) { say('subs-status', describe(result, t('Could not read your subscriptions')), false); return; }
+      say('subs-status', '', true);
+      renderSubscriptions(result.data);
+    });
+  };
+  el('subs-days').addEventListener('change', function () { loadSubscriptions(); });
+  // ---- Other accounts ------------------------------------------------------
+  // Another mailbox collected into this one - Gmail's "check mail from other
+  // accounts" - through the reader's own fetch-account routes. The server keeps
+  // the filters on and reads no recipients out of the collected mail whatever
+  // the page sends; the page's part is the form, the four providers' settings,
+  // and saying plainly what each of them asks for.
+  var FETCH_PRESETS = {
+    gmail: { name: 'Gmail', host: 'imap.gmail.com', port: 993, type: 'imap', security: 'tls', hint: K('Gmail refuses your usual password here. Turn on 2-Step Verification in your Google Account, create an app password under Security, and use that.') },
+    outlook: { name: 'Outlook.com', host: 'outlook.office365.com', port: 993, type: 'imap', security: 'tls', hint: K('Outlook.com no longer accepts a password from another mail server; it asks for a Microsoft sign-in. Until that is offered here, forward your mail from Outlook.com instead: Settings, Mail, Forwarding.'),
+      signIn: 'microsoft', signInHint: K('Outlook.com asks for a Microsoft sign-in: use Sign in to Outlook.com above.') },
+    yahoo: { name: 'Yahoo Mail', host: 'imap.mail.yahoo.com', port: 993, type: 'imap', security: 'tls', hint: K('Yahoo asks for an app password: Account Info, Account security, Generate app password.') },
+    icloud: { name: 'iCloud Mail', host: 'imap.mail.me.com', port: 993, type: 'imap', security: 'tls', hint: K('iCloud asks for an app-specific password, made at account.apple.com under Sign-In and Security.') }
+  };
+  var fetchEditing = null;
+  var fetchPoll = null;
+  var importOffered = { google: false, microsoft: false };
+  var fetchChoosing = null;
+  var fetchFormReset = function () {
+    fetchEditing = null;
+    ['fetch-name', 'fetch-host', 'fetch-user', 'fetch-password'].forEach(function (id) { el(id).value = ''; });
+    el('fetch-preset').value = '';
+    el('fetch-port').value = '993';
+    el('fetch-type').value = 'imap';
+    el('fetch-security').value = 'tls';
+    el('fetch-keep').value = '-1';
+    el('fetch-every').value = '30';
+    el('fetch-mirror').checked = false;
+    el('fetch-hint').hidden = true;
+    el('fetch-save').textContent = t('Add the account');
+    el('fetch-cancel').hidden = true;
+  };
+  // Set up by an administrator: something a reader cannot set, which the
+  // server keeps out of a reader's change, so the page offers none.
+  var fetchIsAdministrators = function (f) {
+    return f.process_mime_recipients || f.enable_route_recipients || f.use_antispam === false || f.use_antivirus === false || !!f.mime_recipient_headers;
+  };
+  var renderFetchAccounts = function (list) {
+    var rows = el('fetch-rows');
+    clear(rows);
+    var anyLocked = false;
+    list.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var who = document.createElement('td');
+      who.appendChild(node('div', f.name));
+      if (f.username) { who.appendChild(node('div', f.username, 'muted')); }
+      if (f.oauth_provider) { who.appendChild(node('div', f.oauth_provider === 'google' ? t('Signed in with Google') : t('Signed in with Microsoft'), 'muted')); }
+      tr.appendChild(who);
+      tr.appendChild(node('td', String(f.server_type).toUpperCase() + ' ' + f.server_address + ':' + f.port + (f.mirror_folders ? ' \u00b7 ' + t('with its folders') : '')));
+      var seen = f.mirror_seen || [];
+      var state = f.locked ? t('Collecting now') : !f.enabled ? t('Paused') :
+        f.mirror_pending ? (seen.length ? t('Waiting for you to choose the folders') : t('Reading the folders there')) :
+        f.next_download_time ? tf('Next collection {0}', whenText({ received: f.next_download_time })) : t('Waiting');
+      if (f.collected_messages) { state += ' \u00b7 ' + tf('{0} messages', f.collected_messages); }
+      // Still to list its folders: look again, as for a collection running.
+      anyLocked = anyLocked || !!f.locked || (!!f.mirror_pending && !seen.length && !!f.enabled);
+      tr.appendChild(node('td', state));
+      var actions = document.createElement('td');
+      var now = button(t('Collect now'));
+      now.disabled = !f.enabled || !!f.locked;
+      now.addEventListener('click', function () {
+        call('POST', '/api/v1/me/fetch-accounts/' + f.id + '/download').then(function (result) {
+          if (result.status !== 202) { say('fetch-status', describe(result, t('Could not start the collection')), false); return; }
+          say('fetch-status', tf('Collecting from {0}.', f.name), true);
+          loadFetchAccounts();
+        });
+      });
+      actions.appendChild(now);
+      if (f.mirror_folders && seen.length && !fetchIsAdministrators(f)) {
+        var folders = button(f.mirror_pending ? t('Choose the folders') : t('Folders'), f.mirror_pending ? 'btn sm' : 'btn ghost sm');
+        folders.addEventListener('click', function () { openFolderChoice(f); });
+        actions.appendChild(folders);
+      }
+      if (fetchIsAdministrators(f)) {
+        actions.appendChild(node('span', t('Set up by your administrator'), 'muted'));
+      } else {
+        var pause = button(f.enabled ? t('Pause') : t('Resume'));
+        pause.addEventListener('click', function () {
+          call('PUT', '/api/v1/me/fetch-accounts/' + f.id, { enabled: !f.enabled }).then(function (result) {
+            if (result.status !== 200) { say('fetch-status', describe(result, t('Could not change it')), false); return; }
+            loadFetchAccounts();
+          });
+        });
+        actions.appendChild(pause);
+        var edit = button(t('Edit'));
+        // Signed in with a provider: its server and address are the grant's.
+        edit.hidden = !!f.oauth_provider;
+        edit.addEventListener('click', function () {
+          fetchEditing = f.id;
+          el('fetch-preset').value = '';
+          el('fetch-hint').hidden = true;
+          el('fetch-name').value = f.name;
+          el('fetch-host').value = f.server_address;
+          el('fetch-port').value = String(f.port);
+          el('fetch-type').value = f.server_type;
+          el('fetch-security').value = f.connection_security === 'starttls_optional' ? 'starttls_required' : f.connection_security;
+          el('fetch-user').value = f.username || '';
+          el('fetch-password').value = '';
+          el('fetch-keep').value = String(f.days_to_keep_messages === 0 || f.days_to_keep_messages === -1 ? f.days_to_keep_messages : 30);
+          el('fetch-every').value = String(f.minutes_between_fetch >= 360 ? 360 : f.minutes_between_fetch >= 60 ? 60 : f.minutes_between_fetch >= 30 ? 30 : 15);
+          el('fetch-mirror').checked = !!f.mirror_folders;
+          el('fetch-save').textContent = t('Save the account');
+          el('fetch-cancel').hidden = false;
+          el('fetch-name').focus();
+        });
+        actions.appendChild(edit);
+        var remove = button(t('Remove'));
+        remove.addEventListener('click', function () {
+          if (!window.confirm(tf('Stop collecting from {0}? The mail already collected stays.', f.name))) { return; }
+          call('DELETE', '/api/v1/me/fetch-accounts/' + f.id).then(function (result) {
+            if (result.status !== 200) { say('fetch-status', describe(result, t('Could not remove it')), false); return; }
+            say('fetch-status', t('Removed.'), true);
+            if (fetchEditing === f.id) { fetchFormReset(); }
+            loadFetchAccounts();
+          });
+        });
+        actions.appendChild(remove);
+      }
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('fetch-table').hidden = !list.length;
+    el('fetch-empty').hidden = list.length > 0;
+    // While a collection runs, look again in a few seconds, as the list of a
+    // folder does for new mail.
+    if (fetchPoll) { clearTimeout(fetchPoll); fetchPoll = null; }
+    if (anyLocked && !el('accounts-section').hidden) { fetchPoll = setTimeout(function () { fetchPoll = null; loadFetchAccounts(); }, 4000); }
+  };
+  var loadFetchAccounts = function () {
+    return call('GET', '/api/v1/me/fetch-accounts').then(function (result) {
+      if (result.status === 403) {
+        el('fetch-off').hidden = false;
+        el('fetch-form').hidden = true;
+        el('fetch-table').hidden = true;
+        el('fetch-empty').hidden = true;
+        el('import-signin').hidden = true;
+        return;
+      }
+      el('fetch-off').hidden = true;
+      el('fetch-form').hidden = false;
+      if (result.status !== 200 || !Array.isArray(result.data)) { say('fetch-status', describe(result, t('Could not read your other accounts')), false); return; }
+      renderFetchAccounts(result.data);
+      return call('GET', '/api/v1/me/fetch-accounts/import').then(function (offered) {
+        importOffered = offered.status === 200 && offered.data ? offered.data : { google: false, microsoft: false };
+        el('import-google').hidden = !importOffered.google;
+        el('import-microsoft').hidden = !importOffered.microsoft;
+        el('import-signin').hidden = !importOffered.google && !importOffered.microsoft;
+      });
+    });
+  };
+  // Back from the provider: what the callback said, once, and the address
+  // bar put back to the page itself so a reload does not say it again.
+  var importOutcome = function (params) {
+    if (!params || (params.imported === undefined && params.import_error === undefined)) { return; }
+    if (params.import_error !== undefined) {
+      say('fetch-status', tf('The sign-in did not finish: {0}', params.import_error), false);
+    } else {
+      say('fetch-status', t('Signed in. Your server is reading what is there; when the folders are listed, choose which to bring.'), true);
+    }
+    try { history.replaceState(null, '', '#/accounts'); } catch (e) { /* the message is shown; the address stays */ }
+  };
+  var startImport = function (provider) {
+    var body = { provider: provider, mirror_folders: !!el('import-mirror').checked, days_to_keep_messages: el('import-keep').value === '0' ? 0 : -1 };
+    el('import-google').disabled = true;
+    el('import-microsoft').disabled = true;
+    call('POST', '/api/v1/me/fetch-accounts/import', body).then(function (result) {
+      el('import-google').disabled = false;
+      el('import-microsoft').disabled = false;
+      if (result.status !== 200 || !result.data || !result.data.url) { say('fetch-status', describe(result, t('Could not start the sign-in')), false); return; }
+      say('fetch-status', t('Taking you to sign in...'), true);
+      location.href = result.data.url;
+    });
+  };
+  el('import-google').addEventListener('click', function () { startImport('google'); });
+  el('import-microsoft').addEventListener('click', function () { startImport('microsoft'); });
+  var openFolderChoice = function (f) {
+    fetchChoosing = f;
+    var list = el('fetch-folder-list');
+    clear(list);
+    var skipped = f.mirror_pending ? null : (f.mirror_skip || []);
+    // The views of the other folders (\\All, \\Flagged, \\Important) start unticked.
+    var copies = f.mirror_copies || [];
+    (f.mirror_seen || []).forEach(function (name) {
+      var label = document.createElement('label');
+      label.className = 'inline';
+      var box = document.createElement('input');
+      box.type = 'checkbox';
+      box.setAttribute('data-folder', name);
+      box.checked = skipped === null ? copies.indexOf(name) < 0 : skipped.indexOf(name) < 0;
+      label.appendChild(box);
+      label.appendChild(node('span', ' ' + name));
+      list.appendChild(label);
+    });
+    el('fetch-folders-title').textContent = tf('Folders to bring from {0}', f.name);
+    el('fetch-folders').hidden = false;
+  };
+  el('fetch-folders-cancel').addEventListener('click', function () { fetchChoosing = null; el('fetch-folders').hidden = true; });
+  el('fetch-folders-save').addEventListener('click', function () {
+    var f = fetchChoosing;
+    if (!f) { return; }
+    var skip = [];
+    var labels = el('fetch-folder-list').childNodes;
+    for (var i = 0; i < labels.length; i++) {
+      var box = labels[i].firstChild;
+      if (box && box.getAttribute && box.getAttribute('data-folder') !== null && !box.checked) { skip.push(box.getAttribute('data-folder')); }
+    }
+    call('PUT', '/api/v1/me/fetch-accounts/' + f.id, { mirror_skip: skip }).then(function (result) {
+      if (result.status !== 200) { say('fetch-status', describe(result, t('Could not save the choice')), false); return; }
+      fetchChoosing = null;
+      el('fetch-folders').hidden = true;
+      return call('POST', '/api/v1/me/fetch-accounts/' + f.id + '/download').then(function () {
+        say('fetch-status', tf('Bringing the folders over from {0}.', f.name), true);
+        loadFetchAccounts();
+      });
+    });
+  });
+  el('fetch-preset').addEventListener('change', function () {
+    var p = FETCH_PRESETS[el('fetch-preset').value];
+    el('fetch-hint').hidden = !p;
+    if (!p) { return; }
+    if (!el('fetch-name').value.trim()) { el('fetch-name').value = p.name; }
+    el('fetch-host').value = p.host;
+    el('fetch-port').value = String(p.port);
+    el('fetch-type').value = p.type;
+    el('fetch-security').value = p.security;
+    el('fetch-hint').textContent = p.signIn && importOffered[p.signIn] ? t(p.signInHint) : t(p.hint);
+  });
+  el('fetch-type').addEventListener('change', function () {
+    var imap = el('fetch-type').value === 'imap';
+    var port = el('fetch-port').value;
+    if (imap && port === '995') { el('fetch-port').value = '993'; }
+    if (!imap && port === '993') { el('fetch-port').value = '995'; }
+    el('fetch-mirror').disabled = !imap;
+    if (!imap) { el('fetch-mirror').checked = false; }
+  });
+  el('fetch-cancel').addEventListener('click', function () { fetchFormReset(); say('fetch-status', '', true); });
+  el('fetch-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = {
+      name: el('fetch-name').value.trim(),
+      server_address: el('fetch-host').value.trim(),
+      port: Number(el('fetch-port').value) || 0,
+      server_type: el('fetch-type').value,
+      connection_security: el('fetch-security').value,
+      username: el('fetch-user').value.trim(),
+      days_to_keep_messages: el('fetch-keep').value === '' ? -1 : Number(el('fetch-keep').value),
+      minutes_between_fetch: Number(el('fetch-every').value) || 30,
+      mirror_folders: el('fetch-type').value === 'imap' && el('fetch-mirror').checked
+    };
+    if (!body.name || !body.server_address || !body.port) { say('fetch-status', t('Give the account a name, a server and a port.'), false); return; }
+    var password = el('fetch-password').value;
+    if (password || fetchEditing === null) { body.password = password; }
+    var editing = fetchEditing;
+    el('fetch-save').disabled = true;
+    call(editing === null ? 'POST' : 'PUT', editing === null ? '/api/v1/me/fetch-accounts' : '/api/v1/me/fetch-accounts/' + editing, body).then(function (result) {
+      el('fetch-save').disabled = false;
+      if (result.status !== 201 && result.status !== 200) { say('fetch-status', describe(result, t('Could not save the account')), false); return; }
+      el('fetch-password').value = '';
+      say('fetch-status', editing === null ? tf('{0} added. The first collection starts now.', body.name) : t('Saved.'), true);
+      fetchFormReset();
+      loadFetchAccounts();
+    });
+  });
+  // ---- Masked addresses -------------------------------------------------------
+  // An address of the reader's own for one sign-up: made in a click, copied,
+  // switched off when it turns to spam. The server makes the address and
+  // refuses mail to it once it is off; the page lists, copies and switches.
+  var renderMaskedAddresses = function (list) {
+    var rows = el('masked-rows');
+    clear(rows);
+    list.forEach(function (m) {
+      var tr = document.createElement('tr');
+      var cell = document.createElement('td');
+      cell.appendChild(node('div', m.address));
+      if (!m.active) { cell.appendChild(node('div', t('Switched off: mail to it is refused'), 'muted')); }
+      tr.appendChild(cell);
+      tr.appendChild(node('td', m.label || ''));
+      tr.appendChild(node('td', tf('{0} messages', m.received || 0)));
+      var actions = document.createElement('td');
+      var copy = button(t('Copy'));
+      copy.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(m.address).then(function () { say('masked-status', tf('{0} is copied.', m.address), true); }, function () { say('masked-status', m.address, true); });
+        } else {
+          say('masked-status', m.address, true);
+        }
+      });
+      actions.appendChild(copy);
+      var toggle = button(m.active ? t('Switch off') : t('Switch on'));
+      toggle.addEventListener('click', function () {
+        call('PUT', '/api/v1/me/masked-addresses/' + m.id, { active: !m.active }).then(function (result) {
+          if (result.status !== 200) { say('masked-status', describe(result, t('Could not change it')), false); return; }
+          say('masked-status', m.active ? tf('{0} is off: mail to it is refused from now on.', m.address) : tf('{0} is on again.', m.address), true);
+          loadMaskedAddresses();
+          loadIdentities();
+        });
+      });
+      actions.appendChild(toggle);
+      var remove = button(t('Remove'));
+      remove.addEventListener('click', function () {
+        if (!window.confirm(tf('Remove {0}? Mail to it will be refused, and it cannot be made again.', m.address))) { return; }
+        call('DELETE', '/api/v1/me/masked-addresses/' + m.id).then(function (result) {
+          if (result.status !== 200) { say('masked-status', describe(result, t('Could not remove it')), false); return; }
+          say('masked-status', t('Removed.'), true);
+          loadMaskedAddresses();
+          loadIdentities();
+        });
+      });
+      actions.appendChild(remove);
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('masked-table').hidden = !list.length;
+    el('masked-empty').hidden = list.length > 0;
+  };
+  var loadMaskedAddresses = function () {
+    return call('GET', '/api/v1/me/masked-addresses').then(function (result) {
+      var off = result.status === 403;
+      el('masked-off').hidden = !off;
+      el('masked-form').hidden = off;
+      if (off) { el('masked-table').hidden = true; el('masked-empty').hidden = true; return; }
+      if (result.status !== 200 || !result.data) { say('masked-status', describe(result, t('Could not read your masked addresses')), false); return; }
+      renderMaskedAddresses(result.data.addresses || []);
+    });
+  };
+  el('masked-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    el('masked-make').disabled = true;
+    call('POST', '/api/v1/me/masked-addresses', { label: el('masked-label').value.trim() }).then(function (result) {
+      el('masked-make').disabled = false;
+      if (result.status !== 201 || !result.data) { say('masked-status', describe(result, t('Could not make the address')), false); return; }
+      el('masked-label').value = '';
+      say('masked-status', tf('{0} is yours: give it out, and mail to it comes here.', result.data.address), true);
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(result.data.address).then(function () {}, function () {}); }
+      loadMaskedAddresses();
+      loadIdentities();
+    });
+  });
+  // ---- Send mail as ----------------------------------------------------------
+  // An address at another provider, proved with a code mailed to it, and then
+  // one of the addresses the compose From offers. The server keeps the code and
+  // counts the tries; the page shows what it answers, and says plainly when the
+  // other domain's policy means mail sent as it from here may not arrive.
+  var renderSenderAddresses = function (list) {
+    var ul = el('sendas-list');
+    clear(ul);
+    list.forEach(function (a) {
+      var li = document.createElement('li');
+      li.appendChild(node('strong', a.address));
+      if (a.name) { li.appendChild(node('span', ' ' + a.name, 'muted')); }
+      li.appendChild(node('span', ' \u00b7 ' + (a.verified ? t('Verified') : t('Waiting for the code')), a.verified ? 'ok' : 'muted'));
+      if (a.dmarc_policy === 'reject' || a.dmarc_policy === 'quarantine') {
+        li.appendChild(node('div', tf('{0} asks other servers to refuse mail from it that it did not send itself, so mail sent as this address from here may not arrive.', a.address.split('@')[1] || a.address), 'hint'));
+      }
+      if (!a.verified) {
+        var code = document.createElement('input');
+        code.type = 'text';
+        code.setAttribute('inputmode', 'numeric');
+        code.setAttribute('maxlength', '6');
+        code.setAttribute('aria-label', t('Code'));
+        code.setAttribute('data-sendas-code', String(a.id));
+        li.appendChild(code);
+        var verify = button(t('Verify'), 'btn sm');
+        verify.addEventListener('click', function () {
+          call('POST', '/api/v1/me/sender-addresses/' + a.id + '/verify', { code: String(code.value || '').trim() }).then(function (result) {
+            if (result.status === 200) {
+              say('sendas-status', tf('{0} is verified: you can write as it now.', a.address), true);
+              loadSenderAddresses();
+              loadIdentities();
+              return;
+            }
+            if (result.status === 400 && result.data && result.data.attempts_left !== undefined) { say('sendas-status', tf('That is not the code. {0} tries left.', result.data.attempts_left), false); return; }
+            if (result.status === 410) { say('sendas-status', t('That code no longer works: send a new one.'), false); return; }
+            say('sendas-status', describe(result, t('Could not check the code')), false);
+          });
+        });
+        li.appendChild(verify);
+        var resend = button(t('Send a new code'));
+        resend.addEventListener('click', function () {
+          call('POST', '/api/v1/me/sender-addresses/' + a.id + '/resend').then(function (result) {
+            if (result.status === 202) { say('sendas-status', tf('A new code is on its way to {0}.', a.address), true); return; }
+            if (result.status === 429 && result.data) { say('sendas-status', tf('Wait {0} seconds before sending another.', result.data.retry_after), false); return; }
+            say('sendas-status', describe(result, t('Could not send a new code')), false);
+          });
+        });
+        li.appendChild(resend);
+      }
+      var remove = button(t('Remove'));
+      remove.addEventListener('click', function () {
+        if (!window.confirm(tf('Stop sending as {0}?', a.address))) { return; }
+        call('DELETE', '/api/v1/me/sender-addresses/' + a.id).then(function (result) {
+          if (result.status !== 200) { say('sendas-status', describe(result, t('Could not remove it')), false); return; }
+          say('sendas-status', t('Removed.'), true);
+          loadSenderAddresses();
+          loadIdentities();
+        });
+      });
+      li.appendChild(remove);
+      ul.appendChild(li);
+    });
+  };
+  var loadSenderAddresses = function () {
+    return call('GET', '/api/v1/me/sender-addresses').then(function (result) {
+      if (result.status === 403) { el('sendas').hidden = true; return; }
+      el('sendas').hidden = false;
+      if (result.status !== 200 || !result.data) { say('sendas-status', describe(result, t('Could not read your addresses')), false); return; }
+      renderSenderAddresses(result.data.addresses || []);
+    });
+  };
+  el('sendas-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = { address: el('sendas-address').value.trim(), name: el('sendas-name').value.trim() };
+    if (!body.address) { say('sendas-status', t('Give the address.'), false); return; }
+    el('sendas-add').disabled = true;
+    call('POST', '/api/v1/me/sender-addresses', body).then(function (result) {
+      el('sendas-add').disabled = false;
+      if (result.status !== 201) { say('sendas-status', describe(result, t('Could not add the address')), false); return; }
+      el('sendas-address').value = '';
+      el('sendas-name').value = '';
+      say('sendas-status', result.data && result.data.code_sent ? tf('A code is on its way to {0}. Type it below.', body.address) : t('The address is added, but the code could not be sent: send a new one.'), !!(result.data && result.data.code_sent));
+      loadSenderAddresses();
+    });
+  });
   var loadDigestSetting = function () {
     return call('GET', '/api/v1/me/quarantine-digest').then(function (result) {
       if (result.status !== 200 || !result.data) { return; }

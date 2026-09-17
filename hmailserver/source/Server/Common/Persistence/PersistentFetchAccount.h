@@ -29,6 +29,14 @@ namespace HM
       static void DeleteByAccountID(__int64 ID);
 
       static void SetRetryNow(__int64 iFAID);
+
+      // One column each, written without the rest of the row: the fetcher's,
+      // which must not put back a change the reader saved while it ran.
+      static void SaveOAuthToken(__int64 iFAID, const String &token);
+      static void SaveMirrorSeen(__int64 iFAID, const String &seen);
+
+      // How many messages the fetch account has on record as collected.
+      static int CountUIDs(__int64 iFAID);
       static void SetNextTryTime(std::shared_ptr<FetchAccount> pFA);
    };
 }

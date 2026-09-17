@@ -37,6 +37,8 @@
 #include "../Common/Util/Math.h"
 #include "../Common/Util/OutgoingFooters.h"
 #include "../Common/Persistence/PersistentKnownSender.h"
+#include "../Common/Util/SenderAddresses.h"
+#include "../Common/Util/MaskedAddresses.h"
 #include "../Common/BO/Routes.h"
 #include "../Common/BO/RouteAddresses.h"
 #include "../Common/BO/RemoteDomainPolicies.h"
@@ -5596,6 +5598,15 @@ namespace HM
          reason = "the authenticated account " + account + " has not been granted the post (p) right on the INBOX of " + resolved + ".";
          return false;
       }
+
+      // An address elsewhere the account proved it owns, with a code mailed to it.
+      if (self && SenderAddresses::IsVerified(self->GetID(), claimed))
+         return true;
+
+      // A masked address the account made, while it is on.
+      MaskedAddresses::Entry masked;
+      if (self && MaskedAddresses::FindByAddress(claimed, masked) && masked.active && masked.account_id == self->GetID())
+         return true;
 
       reason = "the authenticated account " + account + " does not own " + claimed + ", and no account with that address has granted it anything.";
       return false;

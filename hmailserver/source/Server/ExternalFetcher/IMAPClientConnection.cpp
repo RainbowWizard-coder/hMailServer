@@ -12,6 +12,8 @@
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
+#include "../Common/Util/ReaderOAuth.h"
+#include "../Common/Persistence/PersistentFetchAccount.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/VariantDateTime.h"
@@ -221,6 +223,31 @@ namespace HM
       // with a continuation is telling us the token was refused.
       String fetchHosts = IniFileSettings::Instance()->GetFetchOAuth2Hosts();
       String serverAddress = account_->GetServerAddress();
+
+      // An account the reader signed in to with a provider carries its own grant
+      // (ReaderOAuth.h), whatever FetchOAuth2Hosts says: the token is the reader's,
+      // for their mailbox there, and never the server-wide one.
+      if (!account_->GetOAuthProvider().IsEmpty())
+      {
+         String token;
+         String problem;
+         if (!ReaderOAuth::AccessToken(account_, token, problem))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5908, "IMAPClientConnection::SendLogin_",
+               Formatter::Format("External account {0}: no access token from {1}: {2}", account_->GetName(), account_->GetOAuthProvider(), problem));
+            QuitNow_();
+            return;
+         }
+
+         String blob = _T("user=") + account_->GetUsername() + _T("\x01") +
+                       _T("auth=Bearer ") + token + _T("\x01\x01");
+         String encoded;
+         StringParser::Base64Encode(blob, encoded);
+         Send_(_T("AUTHENTICATE XOAUTH2 ") + encoded);
+         current_state_ = StateLoginSent;
+         return;
+      }
+
       bool oauthApplies = false;
       std::vector<String> hosts = StringParser::SplitString(fetchHosts, ",");
       for (String host : hosts)
@@ -279,6 +306,10 @@ namespace HM
 
       if (!TaggedOk_(line))
       {
+         // A refused bearer may be a revoked one: the next poll asks for a new one.
+         if (!account_->GetOAuthProvider().IsEmpty())
+            ReaderOAuth::Forget(account_->GetID());
+
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5907, "IMAPClientConnection::HandleLogin_",
             Formatter::Format("The remote IMAP server for external account {0} refused the logon: {1}", account_->GetName(), line));
          QuitNow_();
@@ -335,6 +366,11 @@ namespace HM
             RemoteMailbox mailbox;
             mailbox.name = name;
             mailbox.delimiter = delimiter;
+            const int open = line.Find(_T("("));
+            const int close = open >= 0 ? line.Find(_T(")"), open) : -1;
+            const String attributes = close > open ? line.Mid(open + 1, close - open - 1) : String();
+            mailbox.copy = attributes.FindNoCase(_T("\\All")) >= 0 || attributes.FindNoCase(_T("\\Flagged")) >= 0 ||
+                           attributes.FindNoCase(_T("\\Important")) >= 0;
             mailboxes_.push_back(mailbox);
          }
 
@@ -354,6 +390,34 @@ namespace HM
          QuitNow_();
          EnqueueRead();
          return;
+      }
+
+      // What the other server listed, kept for the reader to choose from, and
+      // what the reader chose: "*" is "nothing yet", a list of names is the
+      // folders not to bring.
+      // One line each; a mailbox that is a view of the others carries a tab and
+      // a star after its name, which a mailbox name does not contain.
+      String seen;
+      for (const RemoteMailbox &mailbox : mailboxes_)
+         seen += mailbox.name + (mailbox.copy ? _T("\t*\n") : _T("\n"));
+      if (seen != account_->GetMirrorSeen())
+      {
+         account_->SetMirrorSeen(seen);
+         PersistentFetchAccount::SaveMirrorSeen(account_->GetID(), seen);
+      }
+
+      const String skip = account_->GetMirrorSkip();
+      if (skip == _T("*"))
+      {
+         LOG_DEBUG("IMAP mirror: the folders are listed for the reader to choose from; nothing is collected until they have.");
+         mailboxes_.clear();
+      }
+      else if (!skip.IsEmpty())
+      {
+         std::vector<String> skipped = StringParser::SplitString(skip, _T("\n"));
+         mailboxes_.erase(std::remove_if(mailboxes_.begin(), mailboxes_.end(),
+            [&skipped](const RemoteMailbox &mailbox) { return std::find(skipped.begin(), skipped.end(), mailbox.name) != skipped.end(); }),
+            mailboxes_.end());
       }
 
       LOG_DEBUG(Formatter::Format("IMAP mirror: {0} mailbox(es) to collect.", (int) mailboxes_.size()));

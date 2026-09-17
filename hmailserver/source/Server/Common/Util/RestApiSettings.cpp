@@ -431,6 +431,27 @@ namespace
    // as a table. v is the Value being applied.
    // ---------------------------------------------------------------------
 
+   namespace
+   {
+      // An import endpoint or base URL: https, or http to this machine (which is
+      // what a test's local provider is). The base URL may be empty; an endpoint
+      // may not, since a provider without one could never finish a sign-in.
+      String ImportUrlProblem(const String &value, bool emptyAllowed)
+      {
+         String url = value;
+         url.Trim();
+         if (url.IsEmpty())
+            return emptyAllowed ? String() : String(_T("An endpoint cannot be empty."));
+         if (url.GetLength() > 500)
+            return String(_T("At most 500 characters."));
+         if (url.Left(8).CompareNoCase(_T("https://")) == 0)
+            return String();
+         if (url.Left(17).CompareNoCase(_T("http://127.0.0.1:")) == 0 || url.Left(17).CompareNoCase(_T("http://localhost:")) == 0)
+            return String();
+         return String(_T("An https:// address, or http:// to 127.0.0.1 or localhost."));
+      }
+   }
+
 #define ROW_TEXT(expr)      [] { return Text(expr); }
 #define ROW_NUMBER(expr)    [] { return Number((long) (expr)); }
 #define ROW_FLAG(expr)      [] { return Flag((expr) ? true : false); }
@@ -782,6 +803,85 @@ namespace
               return String(_T("A release link lives between 1 and 720 hours."));
            return String();
         } },
+
+      // Brand logos (Util/BrandLogo.h): the logo a sender's domain publishes,
+      // beside mail this server judged dmarc=pass.
+      { "brand_logos_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether the webmail shows the logo a sender's domain publishes (BIMI) as the avatar of its mail. Only for mail this server judged dmarc=pass and recorded so in its Authentication-Results header (AuthenticationResultsEnabled), from a domain whose DMARC policy is quarantine or reject for all of its mail, and only an SVG Tiny PS logo fetched over https from a public address. On by default; one lookup a day per domain.",
+        ROW_FLAG(Config()->GetBrandLogosEnabled()), ROW_SET(Config()->SetBrandLogosEnabled(v.flag)), ROW_NO_CHECK },
+
+      // The other accounts a reader adds in the webmail (RestApiFetchAccounts.cpp).
+      { "reader_fetch_accounts_max", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many other POP3 or IMAP accounts a reader may add in the webmail to collect into their own mailbox. 0 offers none; at most 20. An administrator's fetch accounts are not counted and not limited.",
+        ROW_NUMBER(Config()->GetReaderFetchAccountsMax()), ROW_SET(Config()->SetReaderFetchAccountsMax((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 0 || v.number > 20)
+              return String(_T("reader_fetch_accounts_max is between 0 and 20."));
+           return String();
+        } },
+      { "reader_fetch_accounts_private_addresses", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a reader's other account may be on a host that resolves to a private, loopback or link-local address. Off by default: the server makes the connection from inside its own network, on the reader's word. Turn it on to let people collect from an old mail server inside the network.",
+        ROW_FLAG(Config()->GetReaderFetchAccountsPrivateAddresses()), ROW_SET(Config()->SetReaderFetchAccountsPrivateAddresses(v.flag)), ROW_NO_CHECK },
+
+      // Masked addresses a reader makes (Util/MaskedAddresses.h).
+      { "reader_masked_addresses_max", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many masked addresses a reader may make in the webmail: an address in their own domain for one sign-up, delivering to their mailbox and switched off when it starts to receive spam. 0 offers none; at most 200. An account, alias or list an administrator makes later with the same address takes it over.",
+        ROW_NUMBER(Config()->GetReaderMaskedAddressesMax()), ROW_SET(Config()->SetReaderMaskedAddressesMax((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 0 || v.number > 200)
+              return String(_T("reader_masked_addresses_max is between 0 and 200."));
+           return String();
+        } },
+
+      // Addresses elsewhere a reader proves with a code and sends as (Util/SenderAddresses.h).
+      { "reader_sender_addresses_max", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many addresses at other providers a reader may add in the webmail and send as, once each has been proved with a code mailed to it. 0 offers none; at most 20. Mail sent as such an address is not aligned with its domain, so a domain whose DMARC policy is quarantine or reject will see it refused; the page says so for each address.",
+        ROW_NUMBER(Config()->GetReaderSenderAddressesMax()), ROW_SET(Config()->SetReaderSenderAddressesMax((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 0 || v.number > 20)
+              return String(_T("reader_sender_addresses_max is between 0 and 20."));
+           return String();
+        } },
+
+      // Importing from the old provider with a sign-in (Util/ReaderOAuth.h). A
+      // provider is offered once it has a client id (and, for Google, a secret)
+      // and the base URL is set. The secrets are write-only, as the relayer's
+      // password is.
+      { "import_oauth_redirect_base_url", KindString, ReadWrite, EffectNow, nullptr,
+        "The address the webmail is reached at from outside, such as https://mail.example.com: Google and Microsoft send a reader back to it plus /portal/oauth/callback, and that whole address is the redirect URI to register with each. Empty offers no sign-in import at all.",
+        ROW_TEXT(Config()->GetImportOAuthRedirectBaseUrl()), ROW_SET(Config()->SetImportOAuthRedirectBaseUrl(v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, true); } },
+      { "import_oauth_google_client_id", KindString, ReadWrite, EffectNow, nullptr,
+        "The OAuth client id this server is registered under in the Google Cloud console (a Web application client, with the Gmail API's https://mail.google.com/ scope). Empty offers no Gmail sign-in.",
+        ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, v.text)), ROW_NO_CHECK },
+      { "import_oauth_google_client_secret", KindString, WriteOnly, EffectNow, nullptr,
+        "That client's secret. Stored protected and never emitted; Google requires it for a Web application client.",
+        nullptr, ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, v.text)), ROW_NO_CHECK },
+      { "import_oauth_google_authorize_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Google's authorization endpoint. The public one by default.",
+        ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, false); } },
+      { "import_oauth_google_token_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Google's token endpoint. The public one by default.",
+        ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL, v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, false); } },
+      { "import_oauth_microsoft_client_id", KindString, ReadWrite, EffectNow, nullptr,
+        "The application (client) id this server is registered under in Microsoft Entra, with the delegated IMAP.AccessAsUser.All and offline_access permissions and personal Microsoft accounts allowed for Outlook.com. Empty offers no Outlook.com sign-in.",
+        ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID, v.text)), ROW_NO_CHECK },
+      { "import_oauth_microsoft_client_secret", KindString, WriteOnly, EffectNow, nullptr,
+        "That application's client secret, for a Web platform registration. Stored protected and never emitted; empty for a registration that needs none.",
+        nullptr, ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET, v.text)), ROW_NO_CHECK },
+      { "import_oauth_microsoft_authorize_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Microsoft's authorization endpoint: the common one by default, a tenant's own or a national cloud's otherwise.",
+        ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL, v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, false); } },
+      { "import_oauth_microsoft_token_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Microsoft's token endpoint, matching the authorization endpoint.",
+        ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL, v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, false); } },
 
       // Spam traps (Common/AntiSpam/SpamTrapMonitor.h). In hm_settings, read
       // when a trap is addressed, so a change applies to the next hit. Nothing

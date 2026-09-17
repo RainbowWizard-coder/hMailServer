@@ -217,6 +217,37 @@ namespace HM
       // overrides them; these are what a domain that sets none inherits.
       property_set_->EnsureLong(PROPERTY_QUOTA_GRACE_PERCENT, 0);
       property_set_->EnsureLong(PROPERTY_QUOTA_SEND_STOP_PERCENT, 0);
+
+      // Brand logos: on. Nothing is fetched until a reader opens a list holding
+      // mail this server judged dmarc=pass and recorded so, which needs the
+      // Authentication-Results header on; then one lookup a day per domain.
+      property_set_->EnsureLong(PROPERTY_BRAND_LOGOS_ENABLED, 1);
+
+      // Other accounts a reader adds in the webmail: three each, on public hosts
+      // only. A private address is the administrator's to allow - an old mail
+      // server inside the network being moved from - because the server makes the
+      // connection, from inside that network, on the reader's word.
+      property_set_->EnsureLong(PROPERTY_READER_FETCH_ACCOUNTS_MAX, 3);
+      property_set_->EnsureLong(PROPERTY_READER_FETCH_PRIVATE_ADDRESSES, 0);
+
+      // Importing with a sign-in: nothing is offered until an administrator
+      // registers this server with a provider and says where it is reached from.
+      // The endpoints are the providers' public ones.
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_REDIRECT_BASE_URL, _T(""));
+
+      // Addresses elsewhere a reader proves with a code and sends as: five each.
+      property_set_->EnsureLong(PROPERTY_READER_SENDER_ADDRESSES_MAX, 5);
+
+      // Masked addresses a reader makes for one sign-up each: twenty.
+      property_set_->EnsureLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, 20);
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL, _T("https://oauth2.googleapis.com/token"));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID, _T(""));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET, _T(""));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"));
+      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/token"));
    }
 
    void
@@ -415,6 +446,90 @@ namespace HM
    Configuration::GetQuarantineDigestLinkHours() const
    {
       return (int) GetSettings()->GetLong(PROPERTY_QUARANTINE_DIGEST_LINK_HOURS);
+   }
+
+   bool
+   Configuration::GetBrandLogosEnabled() const
+   {
+      return GetSettings()->GetLong(PROPERTY_BRAND_LOGOS_ENABLED) != 0;
+   }
+
+   void
+   Configuration::SetBrandLogosEnabled(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_BRAND_LOGOS_ENABLED, enabled ? 1 : 0);
+   }
+
+   int
+   Configuration::GetReaderFetchAccountsMax() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_READER_FETCH_ACCOUNTS_MAX);
+   }
+
+   void
+   Configuration::SetReaderFetchAccountsMax(int count)
+   {
+      GetSettings()->SetLong(PROPERTY_READER_FETCH_ACCOUNTS_MAX, count);
+   }
+
+   bool
+   Configuration::GetReaderFetchAccountsPrivateAddresses() const
+   {
+      return GetSettings()->GetLong(PROPERTY_READER_FETCH_PRIVATE_ADDRESSES) != 0;
+   }
+
+   void
+   Configuration::SetReaderFetchAccountsPrivateAddresses(bool allowed)
+   {
+      GetSettings()->SetLong(PROPERTY_READER_FETCH_PRIVATE_ADDRESSES, allowed ? 1 : 0);
+   }
+
+   int
+   Configuration::GetReaderSenderAddressesMax() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_READER_SENDER_ADDRESSES_MAX);
+   }
+
+   void
+   Configuration::SetReaderSenderAddressesMax(int count)
+   {
+      GetSettings()->SetLong(PROPERTY_READER_SENDER_ADDRESSES_MAX, count);
+   }
+
+   int
+   Configuration::GetReaderMaskedAddressesMax() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_READER_MASKED_ADDRESSES_MAX);
+   }
+
+   void
+   Configuration::SetReaderMaskedAddressesMax(int count)
+   {
+      GetSettings()->SetLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, count);
+   }
+
+   String
+   Configuration::GetImportOAuthRedirectBaseUrl() const
+   {
+      return GetSettings()->GetString(PROPERTY_IMPORT_OAUTH_REDIRECT_BASE_URL);
+   }
+
+   void
+   Configuration::SetImportOAuthRedirectBaseUrl(const String &url)
+   {
+      GetSettings()->SetString(PROPERTY_IMPORT_OAUTH_REDIRECT_BASE_URL, url);
+   }
+
+   String
+   Configuration::GetImportOAuthString(const String &propertyName) const
+   {
+      return GetSettings()->GetString(propertyName);
+   }
+
+   void
+   Configuration::SetImportOAuthString(const String &propertyName, const String &value)
+   {
+      GetSettings()->SetString(propertyName, value);
    }
 
    // Country blocking. Nothing here validates: the policy grammar is

@@ -358,6 +358,8 @@ NOT_AUDITED = {
    "hm_calendarobjects": "the events in an account's own calendars.",
    "hm_calendarshares": "who else an account shares a calendar with, written by the account itself over the portal and CalDAV.",
    "hm_contacts": "an account's own address book, written by it over CardDAV and the portal.",
+   "hm_maskedaddresses": "the masked addresses an account made for itself in the portal, switched off and removed by it there; the delivery count is traffic.",
+   "hm_senderaddresses": "the addresses elsewhere an account proved with a code and sends as, added and removed by the account itself in the portal.",
    "hm_files": "files an account attached as links from webmail; the account's own data.",
    "hm_scheduled": "an account's own scheduled sends and snoozed messages.",
    "hm_smimekeys": "an account's own S/MIME certificates, kept for it by the portal.",

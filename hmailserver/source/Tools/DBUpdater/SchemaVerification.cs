@@ -1159,6 +1159,25 @@ namespace DBUpdater
                          "update hm_calendars set calendarcolor = calendarcolor where 1 = 0"),
          new SchemaProbe(6064, "hm_calendarshares.sharewrite",
                          "update hm_calendarshares set sharewrite = sharewrite where 1 = 0"),
+         // Upgrade6064to6065* - an external account signed in with OAuth (the
+         // provider and the refresh token, protected), and the folders a
+         // migration skips and last saw on the other server.
+         new SchemaProbe(6065, "hm_fetchaccounts.faoauthprovider",
+                         "update hm_fetchaccounts set faoauthprovider = faoauthprovider where 1 = 0"),
+         new SchemaProbe(6065, "hm_fetchaccounts.faoauthtoken",
+                         "update hm_fetchaccounts set faoauthtoken = faoauthtoken where 1 = 0"),
+         new SchemaProbe(6065, "hm_fetchaccounts.famirrorskip",
+                         "update hm_fetchaccounts set famirrorskip = famirrorskip where 1 = 0"),
+         new SchemaProbe(6065, "hm_fetchaccounts.famirrorseen",
+                         "update hm_fetchaccounts set famirrorseen = famirrorseen where 1 = 0"),
+         // Upgrade6065to6066* - the addresses elsewhere an account has proved it owns
+         // with a code sent to them, and sends as.
+         new SchemaProbe(6066, "hm_senderaddresses.sacreated",
+                         "update hm_senderaddresses set sacreated = sacreated where 1 = 0"),
+         // Upgrade6066to6067* - masked addresses: an address a reader makes for one
+         // sign-up that delivers to the mailbox and can be switched off.
+         new SchemaProbe(6067, "hm_maskedaddresses.macreated",
+                         "update hm_maskedaddresses set macreated = macreated where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

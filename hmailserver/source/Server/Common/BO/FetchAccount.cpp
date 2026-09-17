@@ -78,6 +78,10 @@ namespace HM
       pNode->AppendAttr(_T("UseAntiVirus"), use_anti_virus_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("EnableRouteRecipients"), enable_route_recipients_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("MirrorFolders"), mirror_folders_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("OAuthProvider"), oauth_provider_);
+      pNode->AppendAttr(_T("OAuthToken"), oauth_token_.IsEmpty() ? String() : Crypt::Instance()->EnCrypt(oauth_token_, Crypt::ETBlowFish));
+      pNode->AppendAttr(_T("MirrorSkip"), mirror_skip_);
+      pNode->AppendAttr(_T("MirrorSeen"), mirror_seen_);
       pNode->AppendAttr(_T("ConnectionSecurity"), StringParser::IntToString(connection_security_));
 
       if (!GetUIDs()->XMLStore(pNode, iOptions))
@@ -105,6 +109,11 @@ namespace HM
       use_anti_virus_ = (pNode->GetAttrValue(_T("UseAntiVirus")) == _T("1"));
       enable_route_recipients_ = (pNode->GetAttrValue(_T("EnableRouteRecipients")) == _T("1"));
       mirror_folders_ = (pNode->GetAttrValue(_T("MirrorFolders")) == _T("1"));
+      oauth_provider_ = pNode->GetAttrValue(_T("OAuthProvider"));
+      const String protectedToken = pNode->GetAttrValue(_T("OAuthToken"));
+      oauth_token_ = protectedToken.IsEmpty() ? String() : Crypt::Instance()->DeCrypt(protectedToken, Crypt::ETBlowFish);
+      mirror_skip_ = pNode->GetAttrValue(_T("MirrorSkip"));
+      mirror_seen_ = pNode->GetAttrValue(_T("MirrorSeen"));
 
       // Backwards compatibiltiy
       if (pNode->GetAttrValue(_T("UseSSL")) == _T("1"))

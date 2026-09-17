@@ -76,6 +76,13 @@ namespace HM
       // password beside them. A restore that dropped these would silently let
       // every account go back to a password it had been made to change.
       { _T("hm_passwordhistory"), 0 },
+      // Addresses elsewhere the account proved with a code and sends as (schema
+      // 6066). The account's own choice, carried so a restore does not quietly
+      // take away the From addresses a person uses; the codes were never stored.
+      { _T("hm_senderaddresses"), 0 },
+      // Masked addresses (schema 6067). Mail from every shop a person signed up
+      // with arrives through them; a restore that dropped them would bounce it.
+      { _T("hm_maskedaddresses"), 0 },
 
       // The calendar (schema 6041), and its objects under it. The objects are a
       // child store because their row points at the calendar rather than at the
@@ -195,6 +202,19 @@ namespace HM
       { _T("hm_pgpkeys"), _T("pgpkuploaded"),        AccountStores::RoleNumber },
       { _T("hm_pgpkeys"), _T("pgpkuploadedby"),      AccountStores::RoleText },
 
+      { _T("hm_maskedaddresses"), _T("maid"),        AccountStores::RoleIdentity },
+      { _T("hm_maskedaddresses"), _T("maaccountid"), AccountStores::RoleAccount },
+      { _T("hm_maskedaddresses"), _T("maaddress"),   AccountStores::RoleText },
+      { _T("hm_maskedaddresses"), _T("malabel"),     AccountStores::RoleText },
+      { _T("hm_maskedaddresses"), _T("maactive"),    AccountStores::RoleNumber },
+      { _T("hm_maskedaddresses"), _T("mareceived"),  AccountStores::RoleNumber },
+      { _T("hm_maskedaddresses"), _T("macreated"),   AccountStores::RoleTimestamp },
+      { _T("hm_senderaddresses"), _T("said"),        AccountStores::RoleIdentity },
+      { _T("hm_senderaddresses"), _T("saaccountid"), AccountStores::RoleAccount },
+      { _T("hm_senderaddresses"), _T("saaddress"),   AccountStores::RoleText },
+      { _T("hm_senderaddresses"), _T("saname"),      AccountStores::RoleText },
+      { _T("hm_senderaddresses"), _T("saverified"),  AccountStores::RoleNumber },
+      { _T("hm_senderaddresses"), _T("sacreated"),   AccountStores::RoleTimestamp },
       { _T("hm_passwordhistory"), _T("phid"),        AccountStores::RoleIdentity },
       { _T("hm_passwordhistory"), _T("phaccountid"), AccountStores::RoleAccount },
       { _T("hm_passwordhistory"), _T("phhash"),      AccountStores::RoleText },

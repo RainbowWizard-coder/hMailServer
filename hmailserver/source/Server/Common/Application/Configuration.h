@@ -200,6 +200,35 @@ namespace HM
       int GetQuarantineDigestLinkHours() const;
       void SetQuarantineDigestLinkHours(int hours);
 
+      // Whether the webmail shows the logo a sender's domain publishes (BIMI)
+      // beside mail this server judged dmarc=pass. See BrandLogo.h.
+      bool GetBrandLogosEnabled() const;
+      void SetBrandLogosEnabled(bool enabled);
+
+      // The other accounts a reader may add in the webmail: how many per
+      // account (0 offers none), and whether a host on a private address may
+      // be one of them, which only an administrator can allow.
+      int GetReaderFetchAccountsMax() const;
+      void SetReaderFetchAccountsMax(int count);
+      bool GetReaderFetchAccountsPrivateAddresses() const;
+      void SetReaderFetchAccountsPrivateAddresses(bool allowed);
+
+      // Importing from the old provider with a sign-in (ReaderOAuth.h). The base
+      // URL has its own pair; the eight provider settings are read and written by
+      // their PROPERTY_IMPORT_OAUTH_* names, the two secrets stored protected.
+      // How many addresses elsewhere a reader may prove and send as (SenderAddresses.h); 0 offers none.
+      int GetReaderSenderAddressesMax() const;
+      void SetReaderSenderAddressesMax(int count);
+
+      // How many masked addresses a reader may make (MaskedAddresses.h); 0 offers none.
+      int GetReaderMaskedAddressesMax() const;
+      void SetReaderMaskedAddressesMax(int count);
+
+      String GetImportOAuthRedirectBaseUrl() const;
+      void SetImportOAuthRedirectBaseUrl(const String &url);
+      String GetImportOAuthString(const String &propertyName) const;
+      void SetImportOAuthString(const String &propertyName, const String &value);
+
       // COUNTRY BLOCKING. Seven rows in hm_settings; see CountryBlocking.h for
       // what each means and why nothing here is compiled in. The file is the
       // MaxMind database the administrator supplies - empty means no connection

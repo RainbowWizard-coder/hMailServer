@@ -265,6 +265,13 @@ namespace HM
       if (sPropertyName == PROPERTY_BACKUPENCRYPTIONPASSPHRASE)
          return true;
 
+      // The client secrets this server signs readers in to Gmail and Outlook.com
+      // with: the relayer password's reason again - a database dump must not
+      // carry the credential that lets whoever has it act as this server.
+      if (sPropertyName == PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET ||
+          sPropertyName == PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET)
+         return true;
+
       return false;
    }
 

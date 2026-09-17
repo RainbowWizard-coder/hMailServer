@@ -152,6 +152,7 @@ kbd{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1p
 .avatar{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;background:var(--a1);flex:none;text-transform:uppercase;letter-spacing:.3px}
 .avatar.lg{width:40px;height:40px;font-size:15px}
 img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
+.avatar>img.brand{width:100%;height:100%;border-radius:50%;object-fit:contain;background:#fff;display:block}
 #account-btn{padding:0;width:40px;height:40px}
 .menu{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:240px;background:var(--surface);border-radius:12px;box-shadow:var(--shadow-2);padding:8px;z-index:40;animation:rise .12s ease-out}
 .menu .who{padding:10px 12px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
@@ -988,6 +989,9 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button type="button" data-route="/folders">Folders</button>
 <button type="button" data-route="/storage">Storage</button>
 <button type="button" data-route="/senders">Safe senders</button>
+<button type="button" data-route="/subscriptions">Subscriptions</button>
+<button type="button" data-route="/accounts">Other accounts</button>
+<button type="button" data-route="/masked">Masked addresses</button>
 <button type="button" data-route="/security">Security</button>
 <button type="button" data-route="/password">Password</button>
 </nav>
@@ -1242,6 +1246,78 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label class="inline"><input id="digest-enabled" type="checkbox"> Send me the digest</label>
 <div id="digest-note" class="hint"></div>
 <div id="digest-status" class="status" aria-live="polite"></div>
+</div>
+</section>
+<section id="subscriptions-section" class="view page" hidden>
+<div class="card">
+<h2>Subscriptions</h2>
+<p class="note">The senders whose mail says how to stop it - newsletters, shops, notifications, mailing lists - with how much each has sent you. Unsubscribe asks the list to stop in the way it offers: a request your server makes for you, or a message it sends. Nothing is deleted unless you ask.</p>
+<div class="row">
+<label class="inline" for="subs-days">Mail from the last</label>
+<select id="subs-days"><option value="30">30 days</option><option value="90" selected>90 days</option><option value="365">365 days</option></select>
+</div>
+<div id="subs-status" class="status" aria-live="polite"></div>
+<table class="list" id="subs-table" hidden><thead><tr><th>Sender</th><th>Mail</th><th>Latest</th><th></th></tr></thead><tbody id="subs-rows"></tbody></table>
+<div id="subs-empty" class="hint" hidden>No mail in that time offers a way to unsubscribe.</div>
+<div id="subs-partial" class="hint" hidden></div>
+</div>
+</section>
+<section id="masked-section" class="view page" hidden>
+<div class="card">
+<h2>Masked addresses</h2>
+<p class="note">An address of your own for one shop, one sign-up or one newsletter. Mail to it comes to your inbox, you can reply from it, and the day it starts to bring spam you switch it off: mail to it is then refused, and nothing else of yours is given away.</p>
+<form id="masked-form" class="row">
+<label class="inline" for="masked-label">What it is for</label><input id="masked-label" type="text" maxlength="255" placeholder="The bookshop">
+<button class="btn" type="submit" id="masked-make">Make an address</button>
+</form>
+<p id="masked-off" class="hint" hidden>Your server does not offer this. Ask whoever runs it.</p>
+<div id="masked-status" class="status" aria-live="polite"></div>
+<table class="list" id="masked-table" hidden><thead><tr><th>Address</th><th>For</th><th>Mail</th><th></th></tr></thead><tbody id="masked-rows"></tbody></table>
+<div id="masked-empty" class="hint" hidden>No masked addresses yet.</div>
+</div>
+</section>
+<section id="accounts-section" class="view page" hidden>
+<div class="card">
+<h2>Other accounts</h2>
+<p class="note">Mail from another mailbox - an old provider, a second address - collected into this one on a schedule. Your server signs in there with the password you give it and brings new mail here through the same spam and virus filters as everything else. Leave a copy there while you try it. When you are moving for good, bring the folders over: what is already there arrives as it is, in folders of the same names, with its flags and dates.</p>
+<p id="fetch-off" class="hint" hidden>Your server does not offer this. Ask whoever runs it.</p>
+<div id="import-signin" hidden>
+<h3>Moving from Gmail or Outlook.com</h3>
+<p class="hint">Sign in there, and your server collects with the permission you give it. No password is kept here, and you can take the permission back there at any time.</p>
+<div class="row"><label for="import-keep">After collecting</label><select id="import-keep"><option value="-1">Leave the mail there</option><option value="0">Delete it there</option></select></div>
+<label class="inline"><input id="import-mirror" type="checkbox" checked> Bring the folders over: you choose which once the other server has listed them</label>
+<div class="row"><button class="btn" type="button" id="import-google" hidden>Sign in to Gmail</button><button class="btn" type="button" id="import-microsoft" hidden>Sign in to Outlook.com</button></div>
+</div>
+<div id="fetch-folders" hidden>
+<h3 id="fetch-folders-title">Folders to bring over</h3>
+<p class="hint">What is not ticked stays where it is. A folder that only shows mail kept in the others - All Mail, Starred, Important - starts unticked, so nothing arrives twice.</p>
+<div id="fetch-folder-list"></div>
+<div class="row"><button class="btn" type="button" id="fetch-folders-save">Bring these folders</button><button class="btn ghost" type="button" id="fetch-folders-cancel">Cancel</button></div>
+</div>
+<form id="fetch-form">
+<div class="row"><label for="fetch-preset">Provider</label><select id="fetch-preset"><option value="">Another mail server</option><option value="gmail">Gmail</option><option value="outlook">Outlook.com</option><option value="yahoo">Yahoo Mail</option><option value="icloud">iCloud Mail</option></select></div>
+<p id="fetch-hint" class="hint" hidden></p>
+<div class="row"><label for="fetch-name">Name</label><input id="fetch-name" type="text" maxlength="255" required></div>
+<div class="row"><label for="fetch-host">Server</label><input id="fetch-host" type="text" maxlength="255" placeholder="imap.example.com" required><label for="fetch-port">Port</label><input id="fetch-port" type="number" min="1" max="65535" value="993"></div>
+<div class="row"><label for="fetch-type">Protocol</label><select id="fetch-type"><option value="imap">IMAP</option><option value="pop3">POP3</option></select><label for="fetch-security">Encryption</label><select id="fetch-security"><option value="tls">TLS</option><option value="starttls_required">STARTTLS</option><option value="none">None - the password travels in the clear</option></select></div>
+<div class="row"><label for="fetch-user">User name</label><input id="fetch-user" type="text" maxlength="255" autocomplete="off"><label for="fetch-password">Password</label><input id="fetch-password" type="password" autocomplete="new-password"></div>
+<div class="row"><label for="fetch-keep">After collecting</label><select id="fetch-keep"><option value="-1">Leave the mail there</option><option value="0">Delete it there</option><option value="30">Delete it there after 30 days</option></select><label for="fetch-every">Every</label><select id="fetch-every"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">hour</option><option value="360">6 hours</option></select></div>
+<label class="inline"><input id="fetch-mirror" type="checkbox"> Bring the folders over too (IMAP only): each folder there becomes a folder here</label>
+<div class="row"><button class="btn" type="submit" id="fetch-save">Add the account</button><button class="btn ghost" type="button" id="fetch-cancel" hidden>Cancel</button></div>
+</form>
+<div id="fetch-status" class="status" aria-live="polite"></div>
+<table class="list" id="fetch-table" hidden><thead><tr><th>Account</th><th>Server</th><th>State</th><th></th></tr></thead><tbody id="fetch-rows"></tbody></table>
+<div id="fetch-empty" class="hint" hidden>No other accounts yet.</div>
+<div id="sendas" hidden>
+<h3>Send mail as</h3>
+<p class="hint">An address you have at another provider, to write from here as well. A code is mailed to it: type it here to show the address is yours.</p>
+<form id="sendas-form">
+<div class="row"><label for="sendas-address">Address</label><input id="sendas-address" type="email" maxlength="255" required><label for="sendas-name">Name</label><input id="sendas-name" type="text" maxlength="255"></div>
+<div class="row"><button class="btn" type="submit" id="sendas-add">Send the code</button></div>
+</form>
+<div id="sendas-status" class="status" aria-live="polite"></div>
+<ul id="sendas-list" class="plain"></ul>
+</div>
 </div>
 </section>
 <section id="security-section" class="view page" hidden>

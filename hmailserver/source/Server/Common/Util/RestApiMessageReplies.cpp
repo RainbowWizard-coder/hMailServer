@@ -9,6 +9,12 @@
 // /api/v1/me/messages/{id}/unsubscribe - the RFC 8058 one-click HTTPS POST when
 // the list offers it, else a message to its mailto). Both go out under the
 // account's own address and the same recipient checks a send makes.
+//
+// And the page those unsubscribes are made from: GET /api/v1/me/subscriptions,
+// every sender whose recent mail offers a way out, how much of it came, and the
+// newest message of each, which is the one the unsubscribe is asked of - the
+// newest names the list's current way out, and an old one may name a retired
+// address.
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
@@ -22,6 +28,15 @@
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
 #include "../BO/IMAPFolder.h"
+#include "../BO/IMAPFolders.h"
+#include "../BO/Messages.h"
+#include "../../IMAP/IMAPFolderContainer.h"
+#include "../Application/Configuration.h"
+#include "../../IMAP/IMAPConfiguration.h"
+#include "../../IMAP/IMAPSpecialUse.h"
+#include "BrandLogo.h"
+#include <algorithm>
+#include <map>
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Application/Application.h"
@@ -372,5 +387,213 @@ namespace HM
       }
 
       return BuildResponse_(400, "{\"error\":\"the message names no unsubscribe method this server can use: no one-click https address and no mailto\"}");
+   }
+
+   HttpResponse
+   RestApiServer::HandleMeSubscriptions_(const Caller &caller, const AnsiString &query)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      int days = 90;
+      AnsiString daysText = QueryParameter_(query, "days");
+      if (!daysText.IsEmpty())
+      {
+         bool digits = daysText.GetLength() <= 3;
+         for (int i = 0; digits && i < daysText.GetLength(); i++)
+            digits = isdigit((unsigned char) daysText[i]) != 0;
+         days = digits ? atoi(daysText.c_str()) : 0;
+         if (days < 1 || days > 365)
+            return BuildResponse_(400, "{\"error\":\"days is a whole number of days, 1 to 365\"}");
+      }
+
+      DateTimeSpan window;
+      window.SetDateTimeSpan(days, 0, 0, 0);
+      const String since = Time::GetTimeStampFromDateTime(DateTime::GetCurrentTime() - window);
+
+      const String delimiter = Configuration::Instance()->GetIMAPConfiguration()->GetHierarchyDelimiter();
+      std::shared_ptr<IMAPFolders> tree = IMAPFolderContainer::Instance()->GetFoldersForAccount(account->GetID());
+
+      // Mail the reader wrote, is writing or has thrown away is not mail a list
+      // sent them: the effective designation, name fallback and all, as the
+      // folder listing reports it.
+      std::map<__int64, int> designations;
+      IMAPSpecialUse::Resolve(tree, designations);
+      const int notReceived = IMAPSpecialUse::DesignationDrafts | IMAPSpecialUse::DesignationSent |
+                              IMAPSpecialUse::DesignationJunk | IMAPSpecialUse::DesignationTrash;
+
+      std::vector<std::pair<std::shared_ptr<IMAPFolder>, String>> folders;
+      CollectReadableFolders_(account, tree, String(), delimiter, folders, 0);
+
+      struct Sender
+      {
+         AnsiString address;
+         AnsiString name;
+         AnsiString listId;
+         AnsiString method;
+         AnsiString url;
+         int count = 0;
+         int unread = 0;
+         String first;
+         String last;
+         __int64 messageId = 0;
+      };
+
+      std::map<AnsiString, Sender> senders;
+
+      // A header read is a file opened, so the request has a budget of them, as
+      // the search has; the messages outside the window cost nothing, because
+      // their time is on the row.
+      const int MaxHeaderReads = 5000;
+      int scanned = 0;
+      bool complete = true;
+
+      for (size_t f = 0; f < folders.size() && complete; f++)
+      {
+         std::map<__int64, int>::const_iterator designation = designations.find(folders[f].first->GetID());
+         if (designation != designations.end() && (designation->second & notReceived) != 0)
+            continue;
+
+         std::shared_ptr<Messages> messages = folders[f].first->GetMessages();
+         if (!messages)
+            continue;
+
+         std::vector<std::shared_ptr<Message>> snapshot = messages->GetCopy();
+         for (std::vector<std::shared_ptr<Message>>::reverse_iterator it = snapshot.rbegin(); it != snapshot.rend(); ++it)
+         {
+            std::shared_ptr<Message> message = *it;
+            if (!message || message->GetFlagDeleted())
+               continue;
+
+            const String received = message->GetCreateTime();
+            if (received < since)
+               continue;
+
+            if (scanned >= MaxHeaderReads)
+            {
+               complete = false;
+               break;
+            }
+            scanned++;
+
+            AnsiString header = PersistentMessage::LoadHeader(MessageFile_(message), false);
+            MimeHeader mimeHeader;
+            mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+            AnsiString list = HeaderValue(mimeHeader, "List-Unsubscribe");
+            if (list.IsEmpty())
+               continue;
+
+            // Decoded, so a name in an encoded word reads as the person sees it,
+            // and in UTF-8, which is what the answer is written in.
+            const AnsiString from = Utf8_(mimeHeader.GetUnicodeFieldValue("From"));
+            const AnsiString address = FirstAddressIn(from);
+            if (address.IsEmpty() || address.Find("@") <= 0 || HasControlCharacters(address))
+               continue;
+
+            Sender &sender = senders[address];
+            sender.address = address;
+            sender.count++;
+            if (!message->GetFlagSeen())
+               sender.unread++;
+            if (sender.first.IsEmpty() || received < sender.first)
+               sender.first = received;
+            if (!(received > sender.last) && sender.messageId != 0)
+               continue;
+
+            // The newest message decides the name, the list and the way out.
+            sender.last = received;
+            sender.messageId = message->GetID();
+
+            AnsiString name;
+            const int open = from.Find("<");
+            if (open > 0)
+            {
+               name = from.Mid(0, open);
+               name.TrimLeft();
+               name.TrimRight();
+               if (name.GetLength() >= 2 && name[0] == '"' && name[name.GetLength() - 1] == '"')
+                  name = name.Mid(1, name.GetLength() - 2);
+            }
+            sender.name = OneLine(name);
+            sender.listId = OneLine(Utf8_(mimeHeader.GetUnicodeFieldValue("List-Id")));
+
+            AnsiString post = HeaderValue(mimeHeader, "List-Unsubscribe-Post");
+            post.ToLower();
+            AnsiString https, mailto;
+            const bool hasHttps = FindAngleUrl(list, "https://", https) && IsAscii(https);
+            sender.url = "";
+            if (hasHttps && post.Find("list-unsubscribe=one-click") >= 0)
+               sender.method = "one-click";
+            else if (FindAngleUrl(list, "mailto:", mailto))
+               sender.method = "mail";
+            else if (hasHttps)
+            {
+               sender.method = "page";
+               sender.url = https;
+            }
+            else
+               sender.method = "";
+         }
+      }
+
+      std::vector<const Sender *> ordered;
+      for (std::map<AnsiString, Sender>::const_iterator it = senders.begin(); it != senders.end(); ++it)
+         ordered.push_back(&it->second);
+      std::sort(ordered.begin(), ordered.end(), [](const Sender *a, const Sender *b)
+      {
+         if (a->count != b->count)
+            return a->count > b->count;
+         return a->last > b->last;
+      });
+      if (ordered.size() > 1000)
+         ordered.resize(1000);
+
+      AnsiString json;
+      json.Format("{\"days\":%d,\"since\":\"%hs\",\"scanned\":%d,\"complete\":%hs,\"subscriptions\":[",
+         days, JsonEscape_(Utf8_(since)).c_str(), scanned, complete ? "true" : "false");
+      for (size_t i = 0; i < ordered.size(); i++)
+      {
+         const Sender &s = *ordered[i];
+         if (i > 0)
+            json += ",";
+         AnsiString entry;
+         entry.Format("{\"address\":\"%hs\",\"name\":\"%hs\",\"list_id\":\"%hs\",\"count\":%d,\"unread\":%d,\"first\":\"%hs\",\"last\":\"%hs\",\"message_id\":%I64d,\"method\":\"%hs\",\"url\":\"%hs\"}",
+            JsonEscape_(s.address).c_str(), JsonEscape_(s.name).c_str(), JsonEscape_(s.listId).c_str(),
+            s.count, s.unread, JsonEscape_(Utf8_(s.first)).c_str(), JsonEscape_(Utf8_(s.last)).c_str(),
+            s.messageId, JsonEscape_(s.method).c_str(), JsonEscape_(s.url).c_str());
+         json += entry;
+      }
+      json += "]}";
+      return BuildResponse_(200, json);
+   }
+
+   // GET /api/v1/me/brand-logo?domain=: the logo itself, or why there is none.
+   // Served as an image the page puts in an <img>, where an SVG runs nothing;
+   // the policy header says so again for a reader who opens the address itself.
+   HttpResponse
+   RestApiServer::HandleMeBrandLogo_(const AnsiString &query)
+   {
+      String domain;
+      Unicode::MultiByteToWide(QueryParameter_(query, "domain"), domain);
+
+      AnsiString svg, reason;
+      const BrandLogo::Outcome outcome = BrandLogo::Lookup(domain, svg, reason);
+      if (outcome != BrandLogo::Found)
+      {
+         AnsiString body = "{\"error\":\"" + JsonEscape_(reason) + "\",\"outcome\":\"" + AnsiString(BrandLogo::Word(outcome)) + "\"}";
+         return BuildResponse_(outcome == BrandLogo::BadDomain ? 400 : 404, body);
+      }
+
+      HttpResponse response;
+      response.status = 200;
+      response.content_type = "image/svg+xml";
+      response.body = svg;
+      response.extra_headers =
+         "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox\r\n"
+         "X-Content-Type-Options: nosniff\r\n"
+         "Cache-Control: private, max-age=86400\r\n";
+      return response;
    }
 }
