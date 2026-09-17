@@ -2123,6 +2123,7 @@ function answer(method, path, headers, raw) {
       return json(200, { reset: true });
    }
    if (/^\/api\/v1\/accounts\/[^/]+\/unlock$/.test(path) && method === 'POST') { return json(200, { unlocked: true }); }
+   if (path === '/api/v1/addresses/erase' && method === 'POST') { state.erasures = (state.erasures || 0) + 1; return json(200, { removed: 7, include_archive: true, include_logs: true }); }
    if (/^\/api\/v1\/accounts\/[^/]+\/push$/.test(path) && method === 'DELETE') { return json(200, { removed: 2 }); }
    if (path.indexOf('/api/v1/role-assignments/') === 0) {
       const address = decodeURIComponent(path.slice('/api/v1/role-assignments/'.length));
@@ -2579,6 +2580,18 @@ async function main() {
    await flush();
    check('a refusal is shown beside the form in the server\'s words', $('#err_account').textContent === 'The address is already taken by an alias.', $('#err_account').textContent);
    check('and went to the console with the whole exchange', consoleErrors.length > 0 && JSON.stringify(consoleErrors[consoleErrors.length - 1]).indexOf('400') >= 0);
+
+   check('every account row offers everything the server holds as one download, at the account\'s own export route',
+      !!$('a[href="/api/v1/accounts/bob%40example.com/export.zip"]') && 'download' in $('a[href="/api/v1/accounts/bob%40example.com/export.zip"]').attributes,
+      content().innerHTML.slice(0, 300));
+   before = requests.length;
+   click(act('erasetraces', { address: 'bob@example.com' }));
+   await flush();
+   put = lastBody(before, 'POST', '/api/v1/addresses/erase');
+   check('erasing the traces asks first, naming the address, and posts the address with the archive and the logs included',
+      confirmations[confirmations.length - 1].indexOf('bob@example.com') >= 0 && put && put.address === 'bob@example.com' && put.include_archive === true && put.include_logs === true,
+      paths(before));
+   check('and says how many traces went', toastText().indexOf('7') >= 0 && toastText().indexOf('bob@example.com') >= 0, toastText());
 
    confirmAnswer = false;
    before = requests.length;

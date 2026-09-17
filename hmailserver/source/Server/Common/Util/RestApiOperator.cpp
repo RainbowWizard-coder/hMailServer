@@ -20,6 +20,9 @@
 #include "AddressTraceEraser.h"
 #include "JsonDocument.h"
 #include "MessageExport.h"
+#include "PersonExport.h"
+#include "FileUtilities.h"
+#include "GUIDCreator.h"
 #include "Totp.h"
 #include "Unicode.h"
 #include "../Application/IniFileSettings.h"
@@ -27,6 +30,8 @@
 #include "../Persistence/PersistentAccount.h"
 
 #include <string>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -69,8 +74,32 @@ namespace HM
 
       String directory = StringMember(body, "directory");
       directory.Trim();
-      if (directory.IsEmpty())
-         return BuildResponse_(400, "{\"error\":\"directory is required: a directory on the server's disk the export is written into.\"}");
+      String archive = StringMember(body, "archive");
+      archive.Trim();
+
+      if (directory.IsEmpty() && archive.IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"directory or archive is required: a directory on the server's disk the .eml files are written into, or the path of the .zip archive to write everything the server holds on the account into.\"}");
+
+      if (!archive.IsEmpty())
+      {
+         // One archive rather than a directory of files: everything the server
+         // holds on the person, in the form GET /export.zip downloads, written
+         // to the server's disk for the sizes a download will not carry.
+         PersonExport::Summary summary;
+         String error;
+         if (!PersonExport::ExportArchive(account, archive, summary, error))
+            return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+
+         String logMessage;
+         logMessage.Format(_T("Exported everything held on %s - %d message(s), %d contact(s), %d calendar object(s), %d log line(s) - to an archive on an operator's request over the REST API."),
+                           account->GetAddress().c_str(), summary.messages, summary.contacts, summary.calendarObjects, summary.logLines);
+         LOG_APPLICATION(logMessage);
+
+         AnsiString answer;
+         answer.Format("{\"exported\":%d,\"folders\":%d,\"contacts\":%d,\"calendar_objects\":%d,\"log_lines\":%d,\"archive\":\"",
+                       summary.messages, summary.folders, summary.contacts, summary.calendarObjects, summary.logLines);
+         return BuildResponse_(200, answer + JsonEscape_(Utf8_(archive)) + "\"}");
+      }
 
       int exported = 0;
       String error;
@@ -84,6 +113,100 @@ namespace HM
       AnsiString answer;
       answer.Format("{\"exported\":%d,\"directory\":\"", exported);
       return BuildResponse_(200, answer + JsonEscape_(Utf8_(directory)) + "\"}");
+   }
+
+   // The archive built into the temp directory, read, and removed: what the
+   // Deck's link and the person's own page download. In memory once, which is
+   // why there is a ceiling; past it, the operator writes it to disk.
+   HttpResponse
+   RestApiServer::ArchiveDownload_(std::shared_ptr<Account> account)
+   {
+      const size_t Ceiling = 500 * 1024 * 1024;
+
+      String temporary = IniFileSettings::Instance()->GetTempDirectory();
+      if (temporary.IsEmpty())
+         return BuildResponse_(500, "{\"error\":\"The server has no temporary directory to build the archive in.\"}");
+
+      String zipPath = temporary + FileUtilities::PathSeparator + _T("export-") + GUIDCreator::GetGUID() + _T(".zip");
+
+      PersonExport::Summary summary;
+      String error;
+      if (!PersonExport::ExportArchive(account, zipPath, summary, error))
+      {
+         FileUtilities::DeleteFile(zipPath);
+         return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+      }
+
+      unsigned __int64 size = 0;
+      FileUtilities::FileSize64(zipPath, size);
+      if (size > (unsigned __int64) Ceiling)
+      {
+         FileUtilities::DeleteFile(zipPath);
+         return BuildResponse_(413, "{\"error\":\"The archive is larger than 500 MB, which a download does not carry; an administrator can write it to the server's disk with POST /api/v1/accounts/{address}/export and archive.\"}");
+      }
+
+      AnsiString bytes;
+      {
+         boost::filesystem::path path(zipPath.begin(), zipPath.end());
+         boost::filesystem::ifstream in(path, std::ios::in | std::ios::binary);
+         if (in)
+         {
+            std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+            bytes = content;
+         }
+      }
+      FileUtilities::DeleteFile(zipPath);
+
+      if (bytes.empty())
+         return BuildResponse_(500, "{\"error\":\"The archive could not be read back.\"}");
+
+      String logMessage;
+      logMessage.Format(_T("Everything held on %s - %d message(s), %d contact(s), %d calendar object(s), %d log line(s) - was downloaded as one archive."),
+                        account->GetAddress().c_str(), summary.messages, summary.contacts, summary.calendarObjects, summary.logLines);
+      LOG_APPLICATION(logMessage);
+
+      std::string fileName = Utf8_(account->GetAddress());
+      for (size_t i = 0; i < fileName.size(); i++)
+      {
+         if (fileName[i] == '"' || fileName[i] == '\\' || fileName[i] == '/' || fileName[i] < 0x20)
+            fileName[i] = '_';
+      }
+
+      HttpResponse response;
+      response.status = 200;
+      response.content_type = "application/zip";
+      response.body = bytes;
+      response.extra_headers =
+         "Content-Disposition: attachment; filename=\"" + AnsiString(fileName) + ".zip\"\r\n"
+         "X-Content-Type-Options: nosniff\r\n"
+         "Content-Security-Policy: sandbox\r\n"
+         "Cache-Control: no-store\r\n";
+      return response;
+   }
+
+   HttpResponse
+   RestApiServer::HandleAccountExportArchive_(const Route &route)
+   {
+      std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
+      if (!PersistentAccount::ReadObject(account, String(route.identifier)) || account->GetID() == 0)
+         return BuildResponse_(404, "{\"error\":\"account not found\"}");
+
+      return ArchiveDownload_(account);
+   }
+
+   HttpResponse
+   RestApiServer::HandleMeExportArchive_(const Caller &caller)
+   {
+      if (!caller.account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // Read afresh rather than the session's const copy: the export walks the
+      // folder tree and the stores through the account object.
+      std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
+      if (!PersistentAccount::ReadObject(account, caller.account->GetAddress()) || account->GetID() == 0)
+         return BuildResponse_(404, "{\"error\":\"account not found\"}");
+
+      return ArchiveDownload_(account);
    }
 
    HttpResponse
@@ -103,17 +226,22 @@ namespace HM
          return BuildResponse_(400, "{\"error\":\"include_archive must be true or false.\"}");
       const bool includeArchive = archive && archive->IsBool() && archive->AsBool();
 
+      const JsonValue *logs = body.Get("include_logs");
+      if (logs && !logs->IsNull() && !logs->IsBool())
+         return BuildResponse_(400, "{\"error\":\"include_logs must be true or false.\"}");
+      const bool includeLogs = logs && logs->IsBool() && logs->AsBool();
+
       int removed = 0;
-      if (!AddressTraceEraser::Erase(address, includeArchive, removed))
+      if (!AddressTraceEraser::Erase(address, includeArchive, includeLogs, removed))
          return BuildResponse_(500, "{\"error\":\"Some traces could not be removed - the hMailServer error log names the stores to retry. What could be removed was; run the erasure again once the cause is dealt with.\"}");
 
       String logMessage;
-      logMessage.Format(_T("Erased %d trace(s) of %s on an operator's request over the REST API%s."), removed, address.c_str(),
-         includeArchive ? _T(", the archive included") : _T(""));
+      logMessage.Format(_T("Erased %d trace(s) of %s on an operator's request over the REST API%s%s."), removed, address.c_str(),
+         includeArchive ? _T(", the archive included") : _T(""), includeLogs ? _T(", the logs rewritten") : _T(""));
       LOG_APPLICATION(logMessage);
 
       AnsiString answer;
-      answer.Format("{\"removed\":%d,\"include_archive\":%s}", removed, includeArchive ? "true" : "false");
+      answer.Format("{\"removed\":%d,\"include_archive\":%s,\"include_logs\":%s}", removed, includeArchive ? "true" : "false", includeLogs ? "true" : "false");
       return BuildResponse_(200, answer);
    }
 
@@ -163,13 +291,16 @@ namespace HM
    RestApiServer::OpenApiOperatorPaths_()
    {
       static const char *paths =
-         ",\"/api/v1/accounts/{address}/export\":{\"post\":{\"summary\":\"Write the mailbox to a directory on the server's disk as .eml files\","
+         ",\"/api/v1/accounts/{address}/export.zip\":{\"get\":{\"summary\":\"Everything the server holds on the account, as one archive\","
+         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) and a manifest.json that counts what is there - what a person exercising article 20 is handed. Built in the temp directory and held in memory once, so an archive past 500 MB is refused with 413: write it to disk with the POST and archive instead. The administrator password's alone.\","
+         "\"responses\":{\"200\":{\"description\":\"The archive\"},\"404\":{\"description\":\"Unknown account\"},\"413\":{\"description\":\"Past 500 MB\"},\"500\":{\"description\":\"The archive could not be built\"}}}}"
+         ",\"/api/v1/accounts/{address}/export\":{\"post\":{\"summary\":\"Write the mailbox to a directory on the server's disk as .eml files, or everything held on the account to one .zip archive there\","
          "\"description\":\"Every message of the account, one .eml file per message named by its UID, in directories mirroring the folder tree under the directory named - what a person exercising a data-access right is handed, and what Account.ExportMessages does over COM. Stops on the first failure with 500 naming the file, so a partial export never reports success. The administrator password's alone: the directory is anywhere on the server's disk the service can write.\","
-         "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"directory\":{\"type\":\"string\"}},\"required\":[\"directory\"]}}}},"
+         "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"directory\":{\"type\":\"string\"},\"archive\":{\"type\":\"string\",\"description\":\"The path of the .zip to write on the server's disk; what GET /export.zip downloads, with no size ceiling. One of directory and archive.\"}}}}}},"
          "\"responses\":{\"200\":{\"description\":\"exported (the count) and directory\"},\"400\":{\"description\":\"No directory\"},\"404\":{\"description\":\"Unknown account\"},\"500\":{\"description\":\"A file could not be copied; the export is incomplete\"}}}}"
          ",\"/api/v1/addresses/erase\":{\"post\":{\"summary\":\"Erase every trace of an address that deleting its account leaves\","
-         "\"description\":\"Quarantine entries, message-trace rows, greylisting triplets, distribution-list memberships and aliases on either side, and with include_archive the address's archive tree - what Utilities.EraseAddressTraces does over COM. Nothing found is success with removed 0; 500 means a step failed and the error log names the store to retry. The administrator password's alone: it reaches every domain's tables.\","
-         "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"address\":{\"type\":\"string\"},\"include_archive\":{\"type\":\"boolean\"}},\"required\":[\"address\"]}}}},"
+         "\"description\":\"Quarantine entries, message-trace rows, greylisting triplets, distribution-list memberships and aliases on either side, the rows naming the address in other accounts' address books and first-contact memory, with include_archive the address's archive tree (copies under legal hold keep their files and rows), and with include_logs the server's own log files rewritten so that every occurrence of the address reads [erased] - what Utilities.EraseAddressTraces and Utilities.EraseAddressLogLines do over COM. Nothing found is success with removed 0; 500 means a step failed and the error log names the store to retry. The administrator password's alone: it reaches every domain's tables.\","
+         "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"address\":{\"type\":\"string\"},\"include_archive\":{\"type\":\"boolean\"},\"include_logs\":{\"type\":\"boolean\"}},\"required\":[\"address\"]}}}},"
          "\"responses\":{\"200\":{\"description\":\"removed (the count) and include_archive\"},\"400\":{\"description\":\"No address, or include_archive not a boolean\"},\"500\":{\"description\":\"A store could not be cleared\"}}}}"
          ",\"/api/v1/administrator/second-factor\":{"
          "\"get\":{\"summary\":\"Whether the administrator password has a second factor\",\"description\":\"enrolled: true when a one-time code is asked for beside the administrator password. The administrator password's alone.\",\"responses\":{\"200\":{\"description\":\"enrolled\"}}},"

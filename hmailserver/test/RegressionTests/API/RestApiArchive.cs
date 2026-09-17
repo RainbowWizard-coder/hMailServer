@@ -232,6 +232,32 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An erasure with the archive included sweeps the person's archive tree file by file: a copy under legal hold keeps its file and its row, and the rest go.")]
+      public void AHeldCopySurvivesAnErasure()
+      {
+         string held = Unique("Hold me");
+         string swept = Unique("Sweep me");
+         ArchiveOneMessage(held);
+         ArchiveOneMessage(swept);
+
+         (int status, string body) = Http("GET", "/api/v1/archive?domain=example.test&mailbox=bob&subject=" + Uri.EscapeDataString(held));
+         Assert.AreEqual(200, status, body);
+         long heldId = FirstId(body);
+         Assert.AreEqual(200, Http("POST", "/api/v1/archive/" + heldId + "/hold").status);
+
+         string bobsTree = Paths.Combine(archiveRoot_, "example.test", "bob");
+         Assert.IsTrue(Directory.Exists(bobsTree), "Bob's archive tree is where the archiver writes it: " + bobsTree);
+         Assert.AreEqual(2, Directory.GetFiles(bobsTree, "*", SearchOption.AllDirectories).Length, "Two received copies before the erasure.");
+
+         int removed = _application.Utilities.EraseAddressTraces("bob@example.test", true);
+         ClassicAssert.Greater(removed, 0);
+
+         Assert.AreEqual(1, Directory.GetFiles(bobsTree, "*", SearchOption.AllDirectories).Length, "The held copy's file stays; the other went.");
+         StringAssert.Contains("\"hold\":true", Http("GET", "/api/v1/archive/" + heldId).body, "The held row stays too.");
+         StringAssert.DoesNotContain(swept, Http("GET", "/api/v1/archive?domain=example.test&mailbox=bob").body, "The swept copy's row went with its file.");
+      }
+
+      [Test]
       [Description("A domain-restricted key must name one of its domains to search, sees only rows in them, and cannot touch a row of another domain or an Inbound copy.")]
       public void ADomainRestrictedKeyStaysInItsDomains()
       {

@@ -217,6 +217,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Collections.Immutable, Version=10.0.0.12, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\System.Collections.Immutable.10.0.12\lib\net462\System.Collections.Immutable.dll</HintPath>
       <Private>True</Private>
@@ -317,6 +319,7 @@
     <Compile Include="Infrastructure\WindowsEventLog.cs" />
     <Compile Include="Infrastructure\Utf16FileFormat.cs" />
     <Compile Include="Infrastructure\PrivacyTools.cs" />
+    <Compile Include="API\RestApiPersonExport.cs" />
     <Compile Include="IMAP\CapabilityAuthAdvertisement.cs" />
     <Compile Include="IMAP\Utf8Append.cs" />
     <Compile Include="IMAP\MasterUserImpersonation.cs" />

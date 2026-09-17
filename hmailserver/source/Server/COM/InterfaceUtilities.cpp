@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "InterfaceUtilities.h"
 #include "../Common/Util/AddressTraceEraser.h"
+#include "../Common/Application/Logger.h"
 #include "../Common/Util/Unicode.h"
 #include "../SMTP/BounceTracker.h"
 #include "../SMTP/ComplaintTracker.h"
@@ -2150,6 +2151,47 @@ STDMETHODIMP InterfaceUtilities::BackupArchiveIsEncrypted(BSTR File, VARIANT_BOO
          return COMError::GenerateError("The file " + file + " is not a 7-Zip archive whose header could be read: it is not an archive, or it is cut short before the index at its end.");
 
       *Encrypted = encryption == HM::Compression::EncryptionHeaders ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::EraseAddressLogLines(BSTR Address, long *LinesChanged)
+{
+   try
+   {
+      if (!LinesChanged)
+         return COMError::GenerateGenericMessage();
+
+      *LinesChanged = 0;
+
+      // Rewrites the server's own records: the server administrator's call,
+      // as EraseAddressTraces is.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String address = Address;
+      address.Trim();
+
+      if (address.IsEmpty() || address.Find(_T("@")) <= 0)
+         return COMError::GenerateError("A full email address must be given.");
+
+      int changed = 0;
+      if (!HM::Logger::Instance()->EraseFromLogs(address, changed))
+      {
+         *LinesChanged = changed;
+         return COMError::GenerateError("Some log files could not be rewritten; the hMailServer error log says which. What could be rewritten was.");
+      }
+
+      HM::String logMessage;
+      logMessage.Format(_T("Rewrote %d occurrence(s) of an address in the log files on an operator's request."), changed);
+      LOG_APPLICATION(logMessage);
+
+      *LinesChanged = changed;
+
       return S_OK;
    }
    catch (...)

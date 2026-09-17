@@ -13,6 +13,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "PersonExport.h"
 #include "HttpServer.h"
 #include "Time.h"
 #include "FileUtilities.h"
@@ -377,25 +378,7 @@ namespace HM
          AnsiString from = Utf8_(message->GetFromAddress());
          if (from.IsEmpty())
             from = "MAILER-DAEMON";
-         mbox += "From " + from + " " + Utf8_(message->GetCreateTime()) + "\r\n";
-         // A body line that begins "From " is quoted; the first line is a header.
-         AnsiString quoted;
-         int start = 0;
-         while (start <= bytes.GetLength())
-         {
-            int end = bytes.Find("\n", start);
-            AnsiString line = end < 0 ? bytes.Mid(start) : bytes.Mid(start, end - start + 1);
-            if (line.Find("From ") == 0)
-               quoted += ">";
-            quoted += line;
-            if (end < 0)
-               break;
-            start = end + 1;
-         }
-         mbox += quoted;
-         if (mbox.GetLength() < 2 || mbox.Mid(mbox.GetLength() - 2) != "\r\n")
-            mbox += "\r\n";
-         mbox += "\r\n";
+         PersonExport::AppendMbox(mbox, bytes, from, Utf8_(message->GetCreateTime()));
       }
 
       HttpResponse response;

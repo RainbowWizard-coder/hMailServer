@@ -2220,8 +2220,14 @@
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>DKIM 署名を有効にできませんでした: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>消去できませんでした: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>すべての警告を評価できませんでした: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>エクスポートできませんでした: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>DKIM 鍵を生成して保存できませんでした: {0}</value>
@@ -3233,6 +3239,18 @@
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>エンベロープ送信者を無条件に拒否するか、スコアを付けます。@ を含むエントリは 1 つの正確なアドレスで、含まないエントリはサブドメインを含むドメイン全体です。既定のスコア 100 は削除しきい値を超え、SMTP のやり取り中にメッセージを拒否します。これは送信者が「名乗る」アドレスと照合するため、1 つのアドレスを使い続ける相手を止めることはできますが、なりすまし対策のツールではなく、アドレスを次々に変えるものは何も止められません。</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>痕跡を消去(_T)...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>{0} の保存されたあらゆる痕跡を消去しますか: 隔離エントリ、追跡行、グレイリスト、リストのメンバーシップ、エイリアス、他の人のアドレス帳の項目と初回連絡の記憶、アーカイブツリー (保全中のコピーを除く)、そのアドレスを含むログ行。元に戻せません。</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>痕跡を消去</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>保存された痕跡 {0} 件を消去し、ログ行 {1} 件を書き換えました。</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>エラー項目にはサーバー自身が記録した重大度 (critical、error、warning、notice) が付きます。それ以外はすべて informational で、TCP/IP とデバッグだけが debug です。</value>
   </data>
@@ -3373,6 +3391,12 @@
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>有効期限をここから読み取れません: 証明書ファイルはサーバー上にあり、このコントロールパネルはサーバーにリモート接続しています。このページのそれ以外の項目は COM 経由で取得しており、正確です。</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>すべてをエクスポート(_G)...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>{0} 件のメッセージとサーバーが保持するその他すべてを {1} にエクスポートしました。</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>/metrics でドメインごとのメッセージ カウンターを公開する</value>
@@ -6876,6 +6900,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>カウンターを N 秒ごとにディスクに保存 (既定 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>エクスポートの保存先</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>選択した証明書の秘密鍵パスフレーズを保存</value>
   </data>
@@ -8292,6 +8319,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>有効期限は署名が対象とするバイト列の内側にあるため、第三者が追加できるものではなく、送信ドメイン自身の指示です。これをオフにすると、捕捉された署名済みメッセージを無期限に再送できてしまいます。</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>エクスポートはこのコンピューター上の 1 つの .zip です: フォルダーごとの mbox 形式のメール、vCard 形式の連絡先、カレンダー、Web メールの設定、Sieve スクリプト、アドレスを含むログ行、残りを収めた account.xml。消去は、アカウント削除が残すものを取り除きます: 隔離・追跡・グレイリストの行、リストのメンバーシップ、エイリアス、他の人のアドレス帳の項目、初回連絡の記憶、保全中のコピーを除くアーカイブツリー。そしてログ行を書き換えます。</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>外部セットアップを確認できませんでした。サーバーに接続されていません。</value>
   </data>
@@ -8500,6 +8530,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>プロトコルごとのアイドル タイムアウトは、接続が閉じられるまでに何もせずに待機できる時間を決めます。</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>本人のデータ</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>ポリシーは HTTPS で提供されています。このコンピューターからは、mta-sts.{0} が解決でき、証明書がその名前に対して検証され、リスナーが応答することも証明されます。ファイアウォールがこのコンピューターを特別扱いしている場合、インターネットからの見え方は異なることがあります。提供された内容: {1}</value>
@@ -9648,6 +9681,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>ドメインはこの一覧にあります。開くと、そのアカウント、エイリアス、配布リストが表示されます。</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip アーカイブ (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>アカウントのアドレス(_A)</value>

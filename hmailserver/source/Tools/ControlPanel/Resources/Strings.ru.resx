@@ -2220,8 +2220,14 @@ Control Panel может читать файлы сообщений только
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Не удалось включить подписывание DKIM: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Не удалось стереть: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Не удалось проверить все предупреждения: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Не удалось экспортировать: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Не удалось создать и сохранить ключ DKIM: {0}</value>
@@ -3233,6 +3239,18 @@ Control Panel может читать файлы сообщений только
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Отправители конверта, которым отказывают сразу или которым начисляется оценка. Запись с символом @ — это один точный адрес; запись без него — целый домен вместе с его поддоменами. Оценка по умолчанию, равная 100, превышает порог удаления и приводит к отказу от сообщения прямо во время SMTP-диалога. Сопоставление идёт с тем адресом, который отправитель ЗАЯВЛЯЕТ, поэтому оно останавливает корреспондента, продолжающего пользоваться одним адресом; это не средство против подделки отправителя, и никого, кто меняет адреса, оно не останавливает.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Стереть с_леды...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Стереть каждый сохранённый след адреса {0}: записи карантина, строки трассировки, greylisting, членство в списках, псевдонимы, записи в адресных книгах других людей и память первого контакта, дерево архива (кроме копий под удержанием) и строки журнала, называющие его? Отменить нельзя.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Стереть следы</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>Стёрто сохранённых следов: {0}, переписано строк журнала: {1}.</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Записи об ошибках несут ту важность, которую зафиксировал сам сервер: critical, error, warning или notice. Всё остальное - informational, кроме TCP/IP и отладки, которые относятся к debug.</value>
   </data>
@@ -3373,6 +3391,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Срок действия отсюда прочитать нельзя: файлы сертификата находятся на сервере, а этот Control Panel подключён к нему удалённо. Всё остальное на этой странице приходит по COM и является достоверным.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>Экспортировать вс_ё...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>Экспортировано сообщений: {0} и всё остальное, что хранит сервер, в {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Отдавать в /metrics счётчики сообщений по каждому домену</value>
@@ -6876,6 +6900,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Сохранять счётчики на диск каждые N секунд (по умолчанию 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Сохранить экспорт как</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Сохранить парольную фразу закрытого ключа для выбранного сертификата</value>
   </data>
@@ -8292,6 +8319,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>Срок действия находится внутри байтов, которые покрывает подпись, поэтому это указание самого отправляющего домена, а не что-то, что может добавить третья сторона. Если это выключить, перехваченное подписанное сообщение можно воспроизводить бесконечно.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>Экспорт — один .zip на этом компьютере: почта в формате mbox по папкам, контакты в формате vCard, календари, настройки веб-почты, скрипт Sieve, строки журнала с адресом и account.xml с остальным. Стирание удаляет то, что оставляет удаление учётной записи: строки карантина, трассировки и greylisting, членство в списках, псевдонимы, записи в адресных книгах других людей, память первого контакта, дерево архива кроме копий под удержанием, и переписывает строки журнала.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Внешнюю настройку не удалось проверить - нет подключения к серверу.</value>
   </data>
@@ -8500,6 +8530,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Тайм-ауты простоя по протоколам решают, как долго соединение может бездействовать, прежде чем его закроют.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>Данные человека</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Политика отдаётся по HTTPS. С этой машины это также доказывает, что mta-sts.{0} разрешается, сертификат проходит проверку для этого имени, а прослушиватель отвечает - вид из интернета всё же может отличаться, если брандмауэр обращается с этой машиной особо. Отданное содержимое: {1}</value>
@@ -9648,6 +9681,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Ваши домены находятся в этом списке. Открыв домен, вы получите его учётные записи, псевдонимы и списки рассылки.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip-архивы (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Адрес учётной записи</value>

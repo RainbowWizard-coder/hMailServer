@@ -2220,8 +2220,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>DKIM imzalama etkinleştirilemedi: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Silinemedi: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Tüm uyarılar değerlendirilemedi: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Dışa aktarılamadı: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>DKIM anahtarı üretilip saklanamadı: {0}</value>
@@ -3233,6 +3239,18 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Doğrudan reddedilen ya da puanlanan zarf gönderenleri. @ içeren bir girdi tek bir tam adrestir; içermeyen, alt etki alanları dâhil bütün bir etki alanıdır. Varsayılan 100 puan silme eşiğini aşar ve iletiyi SMTP görüşmesi sırasında reddeder. Bu, gönderenin İDDİA ETTİĞİ adresle eşleşir; dolayısıyla tek bir adresi kullanmayı sürdüren bir muhabiri durdurur - bir sahtecilik önleme aracı değildir ve adres değiştiren hiçbir şeyi durdurmaz.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>_İzleri sil...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>{0} adresinin saklanan her izi silinsin mi: karantina kayıtları, izleme satırları, greylisting, liste üyelikleri, takma adlar, başkalarının adres defteri kayıtları ve ilk temas belleği, arşiv ağacı (bekletme altındaki kopyalar hariç) ve onu anan günlük satırları? Geri alınamaz.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>İzleri sil</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>{0} saklanan iz silindi ve {1} günlük satırı yeniden yazıldı.</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Hata girdileri sunucunun kendi kaydettiği önem düzeyini taşır: critical, error, warning veya notice. Geri kalan her şey informational'dır; TCP/IP ve hata ayıklama ise debug'dır.</value>
   </data>
@@ -3373,6 +3391,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Süre sonu buradan okunamıyor: sertifika dosyaları sunucuda ve bu Denetim Masası ona uzaktan bağlı. Bu sayfadaki diğer her şey COM üzerinden gelir ve doğrudur.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>_Her şeyi dışa aktar...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>{0} ileti ve sunucunun tuttuğu diğer her şey {1} konumuna aktarıldı.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>/metrics üzerinde etki alanı başına ileti sayaçlarını sun</value>
@@ -6876,6 +6900,9 @@ Devam edilsin mi?</value>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Sayaçları her N saniyede diske kaydet (varsayılan 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Dışa aktarmayı farklı kaydet</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Seçili sertifika için özel anahtar parola ifadesini kaydet</value>
   </data>
@@ -8292,6 +8319,9 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>Süre sonu, imzanın kapsadığı baytların içindedir; bu yüzden üçüncü bir tarafın ekleyebileceği bir şey değil, gönderen etki alanının kendi talimatıdır. Bunu kapatmak, yakalanan imzalı bir iletinin süresiz olarak yeniden oynatılabileceği anlamına gelir.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>Dışa aktarma bu bilgisayarda tek bir .zip'tir: klasör başına mbox olarak posta, vCard olarak kişiler, takvimler, web postasının tercihleri, Sieve betiği, adresi anan günlük satırları ve geri kalanıyla bir account.xml. Silme, hesabı silmenin geride bıraktığını kaldırır: karantina, izleme ve greylisting satırları, liste üyelikleri, takma adlar, başkalarının adres defteri kayıtları, ilk temas belleği, bekletme altındaki kopyalar hariç arşiv ağacı ve günlük satırlarını yeniden yazar.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Dış kurulum denetlenemedi - sunucuya bağlı değil.</value>
   </data>
@@ -8500,6 +8530,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Protokol başına boşta kalma zaman aşımları, bir bağlantının kapatılmadan önce ne kadar süre hiçbir şey yapmadan durabileceğine karar verir.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>Kişinin verileri</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>İlke HTTPS üzerinden sunuluyor. Bu makineden bakıldığında bu ayrıca mta-sts.{0} adının çözümlendiğini, sertifikanın o ad için doğrulandığını ve dinleyicinin yanıt verdiğini de kanıtlar - bir güvenlik duvarı bu makineye özel davranıyorsa internetin görüşü yine de farklı olabilir. Sunulan içerik: {1}</value>
@@ -9648,6 +9681,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Etki alanlarınız bu listede yer alır. Birini açtığınızda hesaplarına, diğer adlarına ve dağıtım listelerine ulaşırsınız.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip arşivleri (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Hesap adresi</value>

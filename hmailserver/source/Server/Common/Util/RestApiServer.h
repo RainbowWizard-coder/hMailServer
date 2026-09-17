@@ -311,6 +311,7 @@ namespace HM
          RouteMeScheduledCancel,
          RouteScheduledRun,
          RouteMeFolderExport,
+         RouteMeExportArchive,
          RouteMeFolderImport,
          RoutePortalBrandingPut,
          RouteAccountSupportSession,
@@ -542,6 +543,7 @@ namespace HM
          // password's alone: a mailbox exported to the server's disk, an
          // address's traces erased, the administrator's second factor.
          RouteAccountExport,
+         RouteAccountExportArchive,
          RouteAddressErase,
          RouteAdminSecondFactorGet,
          RouteAdminSecondFactorEnrol,
@@ -1021,6 +1023,7 @@ namespace HM
       static HttpResponse HandleMeScheduledCancel_(const Caller &caller, __int64 schedId);
       static HttpResponse HandleScheduledRun_();
       static HttpResponse HandleMeFolderExport_(const Caller &caller, __int64 folderId);
+      static HttpResponse HandleMeExportArchive_(const Caller &caller);
       static HttpResponse HandleMeFolderImport_(const Caller &caller, __int64 folderId, const AnsiString &requestBody);
       static AnsiString ThreadFieldsJson_(const String &fileName);
       static AnsiString ListingExtrasJson_(const String &fileName, std::shared_ptr<Message> message);
@@ -1274,6 +1277,8 @@ namespace HM
       static AnsiString OpenApiRulesPaths_();
       static AnsiString OpenApiAccountRulesPaths_();
       HttpResponse HandleAccountExport_(const Route &route, const AnsiString &requestBody);
+      HttpResponse HandleAccountExportArchive_(const Route &route);
+      static HttpResponse ArchiveDownload_(std::shared_ptr<Account> account);
       HttpResponse HandleAddressErase_(const AnsiString &requestBody);
       HttpResponse HandleAdministratorSecondFactor_(const Route &route);
       static AnsiString OpenApiOperatorPaths_();

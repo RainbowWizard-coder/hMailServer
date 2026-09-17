@@ -1124,6 +1124,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="resetpick")pickReset(d.address);
   else if(d.act==="resetpass")resetPassword(d.domain);
   else if(d.act==="unlock")unlockAccount(d.address);
+  else if(d.act==="erasetraces")eraseTraces(d.address);
   else if(d.act==="stoppush")stopPush(d.address);
   else if(d.act==="assign")assignRole();
   else if(d.act==="unassign")unassignRole(d.address);
@@ -1954,6 +1955,7 @@ async function showAccounts(domain){
           ${may("reset_password")?`<button class="btn ghost sm" data-act="resetpick" data-address="${escHtml(x.address)}">${t("Reset password")}</button>`:""}
           ${may("unlock_account")?`<button class="btn ghost sm" data-act="unlock" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Unlock")}</button>`:""}
           ${may("manage_accounts")?`<button class="btn ghost sm" data-act="stoppush" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Stop notifications")}</button>`:""}
+          ${may("administer_server")?`<a class="btn ghost sm" href="/api/v1/accounts/${encodeURIComponent(x.address)}/export.zip" download="${escHtml(x.address)}.zip">${t("Everything (.zip)")}</a><button class="btn ghost sm" data-act="erasetraces" data-address="${escHtml(x.address)}">${t("Erase traces")}</button>`:""}
           ${may("view_accounts")?`<button class="btn ghost sm" data-act="accountedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>`:""}
           ${may("manage_accounts")?`<button class="btn danger sm" data-act="del" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
   $("#content").innerHTML=`
@@ -2000,6 +2002,19 @@ async function resetPassword(domain){
     $("#helpPass").value="";
     toast(tf("Password reset: {0}",address));
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_help",refusalText(e));}
+}
+/* Article 17: every stored trace of an address, the archive tree (held copies
+   excepted) and the log lines naming it - what Utilities.EraseAddressTraces and
+   EraseAddressLogLines do over COM. Asked first, because nothing brings it
+   back. The administrator password's alone: a role session is refused by the
+   server and told so. */
+async function eraseTraces(address){
+  setErr("err_accountrow","");
+  if(!confirm(tf("Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines that name the address. This cannot be undone.",address)))return;
+  try{
+    const answer=await api("/api/v1/addresses/erase",{method:"POST",body:JSON.stringify({address:address,include_archive:true,include_logs:true})});
+    toast(tf("Erased {0} trace(s) of {1}.",answer.removed,address));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountrow",e.message);}
 }
 async function unlockAccount(address){
   setErr("err_accountrow","");

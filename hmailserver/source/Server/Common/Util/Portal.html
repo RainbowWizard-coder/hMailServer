@@ -920,6 +920,11 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 
 <section id="settings-section" class="view page" hidden>
 <div class="card">
+<h2>Your data</h2>
+<p class="note">Everything the server holds for you, as one file: your mail as mbox per folder, your contacts as vCard, your calendars, your settings, rules and filters, and the log lines that name you. Up to 500 MB here; for more, ask your administrator.</p>
+<a class="btn" id="export-everything" href="/api/v1/me/export.zip" download="my-mail.zip">Download everything (.zip)</a>
+</div>
+<div class="card">
 <h2>Name and signature</h2>
 <form id="settings-form">
 <div class="row"><div style="flex:1"><label for="name-first">First name</label><input id="name-first" type="text" maxlength="100"></div><div style="flex:1"><label for="name-last">Last name</label><input id="name-last" type="text" maxlength="100"></div></div>

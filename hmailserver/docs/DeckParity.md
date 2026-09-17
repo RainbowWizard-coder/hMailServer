@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 350, 158 of them writes |
+| REST routes (path and method) | 352, 158 of them writes |
 | Deck views | 26 |
 
 ## Missing over REST, by interface
@@ -678,11 +678,13 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Account | `DeleteMessages` | AccountDialog | - |
 | Account | `DisableTOTP` | AccountTwoFactorPanel | - |
 | Account | `EnrolTOTP` | AccountTwoFactorPanel | - |
+| Account | `ExportArchive` | AccountDialog | `POST /api/v1/accounts/{address}/export` |
 | Account | `MoveTo` | MailboxMoveDialog | `POST /api/v1/accounts/{address}/move` |
 | Account | `UnlockMailbox` | AccountDialog | `POST /api/v1/accounts/{address}/unlock` |
 | Aliases | `Add` | DomainsView | - |
 | Utilities | `AddSuppression` | SuppressionListView | - |
 | Utilities | `EmailAllAccounts` | UtilityViews | - |
+| Utilities | `EraseAddressTraces` | AccountDialog | `POST /api/v1/addresses/erase` |
 | Utilities | `GetAuditTrail` | AuditTrailView | - |
 | Utilities | `GetBounceCounts` | SuppressionListView | - |
 | Utilities | `GetMetricHistory` | DashboardView | - |
@@ -754,7 +756,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}` | Account | `active`, `ad_domain`, `ad_enabled`, `ad_username`, `admin_level`, `antispam_enabled`, `breach_check_enabled`, `first_name`, `forward_abort_spam_flagged`, `forward_address`, `forward_enabled`, `forward_keep_original`, `last_name`, `max_size_mb`, `message_retention_days`, `openpgp_publish`, `password`, `sieve_script`, `signature_enabled`, `signature_html`, `signature_plain_text`, `spam_delete_threshold`, `spam_mark_threshold`, `vacation_abort_spam_flagged`, `vacation_begin_date`, `vacation_days`, `vacation_enabled`, `vacation_expires`, `vacation_expires_date`, `vacation_external_override`, `vacation_internal_message`, `vacation_internal_only`, `vacation_internal_subject`, `vacation_message`, `vacation_subject` | yes |
 | `POST /api/v1/accounts/{address}/app-passwords` | AppPassword | `account`, `active`, `name`, `password`, `secret`, `text` | - |
 | `PUT /api/v1/accounts/{address}/app-passwords/{id}` | AppPassword | `account`, `active`, `field`, `name`, `password`, `secret`, `text`, `value` | - |
-| `POST /api/v1/accounts/{address}/export` | ? | `directory` | - |
+| `POST /api/v1/accounts/{address}/export` | ? | `archive`, `directory` | - |
 | `POST /api/v1/accounts/{address}/fetch-accounts` | FetchAccount | `connection_security`, `days_to_keep_messages`, `enable_route_recipients`, `enabled`, `field`, `first`, `message`, `mime_recipient_headers`, `minutes_between_fetch`, `mirror_folders`, `name`, `password`, `port`, `process_mime_date`, `process_mime_recipients`, `server_address`, `server_type`, `starttls_optional`, `starttls_required`, `type`, `use_antispam`, `use_antivirus`, `username`, `value` | yes |
 | `PUT /api/v1/accounts/{address}/fetch-accounts/{id}` | FetchAccount | `connection_security`, `days_to_keep_messages`, `enable_route_recipients`, `enabled`, `field`, `first`, `message`, `mime_recipient_headers`, `minutes_between_fetch`, `mirror_folders`, `name`, `password`, `port`, `process_mime_date`, `process_mime_recipients`, `server_address`, `server_type`, `starttls_optional`, `starttls_required`, `type`, `use_antispam`, `use_antivirus`, `username`, `value` | yes |
 | `POST /api/v1/accounts/{address}/fetch-accounts/{id}/download` | FetchAccount | - | yes |
@@ -763,14 +765,14 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` | IMAPFolderPermission | `account`, `account_id`, `administer`, `body`, `create`, `delete_mailbox`, `expunge`, `field`, `folder`, `force`, `group`, `group_id`, `insert`, `lookup`, `name`, `new`, `post`, `read`, `rights`, `to`, `type`, `value`, `write_deleted`, `write_others`, `write_seen` | - |
 | `PUT /api/v1/accounts/{address}/messages/{id}` | ServerMessage | `answered`, `deleted`, `draft`, `flagged`, `folder`, `seen`, `value` | - |
 | `POST /api/v1/accounts/{address}/messages/{id}/copy` | ServerMessage | `account`, `destination`, `file`, `folder`, `folder_id`, `to` | - |
-| `POST /api/v1/accounts/{address}/move` | ? | `account`, `addresses`, `domain`, `folder`, `group`, `keep_alias`, `mailbox`, `manage_accounts`, `message`, `new`, `new_address`, `password`, `permissions`, `role`, `sender`, `senders`, `to` | yes |
+| `POST /api/v1/accounts/{address}/move` | ? | `account`, `addresses`, `archive`, `domain`, `folder`, `group`, `keep_alias`, `mailbox`, `manage_accounts`, `message`, `new`, `new_address`, `password`, `permissions`, `role`, `sender`, `senders`, `to` | yes |
 | `PUT /api/v1/accounts/{address}/openpgp` | Settings | `account`, `allow_address_mismatch`, `domains`, `key`, `publish`, `to` | yes |
 | `POST /api/v1/accounts/{address}/password` | ? | `account`, `breach_check_enabled`, `breach_check_unavailable`, `directory`, `domain`, `password`, `reason`, `reset_password`, `role`, `to` | yes |
 | `POST /api/v1/accounts/{address}/rules` | Rule, RuleCriteria, RuleAction | `all_criteria` | - |
 | `PUT /api/v1/accounts/{address}/rules/{id}` | Rule, RuleCriteria, RuleAction | `all_criteria` | - |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
 | `POST /api/v1/accounts/{address}/unlock` | ? | `unlock_account` | yes |
-| `POST /api/v1/addresses/erase` | ? | `address`, `include_archive` | - |
+| `POST /api/v1/addresses/erase` | ? | `address`, `include_archive`, `include_logs` | yes |
 | `POST /api/v1/administrator/second-factor` | ? | - | - |
 | `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |
 | `POST /api/v1/alerts/run` | ? | `manage_server` | - |
@@ -779,7 +781,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/archive/{id}/hold` | - | - | - |
 | `POST /api/v1/audit/{id}/revert` | ? | `manage_settings` | yes |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
-| `POST /api/v1/backup/restore` | ? | `account`, `domain`, `domains`, `file`, `folder`, `from`, `keys`, `passphrase`, `reason`, `restore_domains`, `restore_messages`, `restore_settings` | yes |
+| `POST /api/v1/backup/restore` | ? | `account`, `archive`, `domain`, `domains`, `file`, `folder`, `from`, `keys`, `passphrase`, `reason`, `restore_domains`, `restore_messages`, `restore_settings` | yes |
 | `POST /api/v1/blocked-attachments` | BlockedAttachment | `description`, `domain`, `file`, `keys`, `message`, `name`, `read`, `wildcard` | yes |
 | `PUT /api/v1/blocked-attachments/{id}` | BlockedAttachment | `body`, `description`, `domain`, `field`, `file`, `keys`, `message`, `name`, `read`, `value`, `wildcard` | - |
 | `POST /api/v1/blocked-senders` | BlockedSender | `address`, `blocked`, `description`, `domain`, `keys`, `message`, `read`, `score`, `sender` | yes |
@@ -831,7 +833,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/folders/{id}/messages` | ServerMessage | - | - |
 | `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `data`, `folder`, `from`, `html`, `in_reply_to`, `message`, `name`, `post`, `read`, `references`, `sender`, `subject`, `text`, `to`, `type`, `value` | - |
 | `PUT /api/v1/me/messages/{id}/flags` | ? | `answered`, `deleted`, `draft`, `flagged`, `folder`, `permissions`, `rights`, `seen` | - |
-| `POST /api/v1/me/messages/{id}/move` | ? | `account`, `destination`, `folder`, `folder_id`, `name`, `new`, `to` | - |
+| `POST /api/v1/me/messages/{id}/move` | ? | `account`, `archive`, `destination`, `folder`, `folder_id`, `name`, `new`, `to` | - |
 | `POST /api/v1/me/messages/{id}/receipt` | ? | - | - |
 | `POST /api/v1/me/messages/{id}/snooze` | ? | `account`, `folder`, `message`, `to`, `until` | - |
 | `POST /api/v1/me/messages/{id}/unsubscribe` | ? | - | - |
@@ -916,7 +918,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 |---|---|
 | `dash` | `GET /api/v1/status` |
 | `checklist` | `GET /api/v1/setup/checklist` |
-| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
+| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `POST /api/v1/addresses/erase`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |
 | `fetch` | `GET /api/v1/accounts/{}/fetch-accounts`, `POST /api/v1/accounts/{}/fetch-accounts`, `DELETE /api/v1/accounts/{}/fetch-accounts/{}`, `PUT /api/v1/accounts/{}/fetch-accounts/{}`, `POST /api/v1/accounts/{}/fetch-accounts/{}/download`, `GET /api/v1/domains`, `GET /api/v1/domains/{}/accounts`, `GET /api/v1/openapi.json` |

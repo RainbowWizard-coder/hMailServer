@@ -131,6 +131,13 @@ namespace HM
       void LogAWStats(const String &sData);
       void LogBackup(const String &sData);
 
+      // Rewrites every hmailserver_*.log and ERROR_hmailserver_*.log in the log
+      // directory so that no line carries the needle: each occurrence becomes
+      // [erased], case-insensitively. The open log files are closed first and
+      // reopened by the next line written. False when a file could not be
+      // rewritten; the count is occurrences replaced.
+      bool EraseFromLogs(const String &needle, int &occurrencesChanged);
+
       bool GetLogPOP3() { return (GetLogMask() & Logger::LSPOP3) != 0; }
       bool GetLogIMAP() { return (GetLogMask() & Logger::LSIMAP) != 0; }
       bool GetLogSMTP() { return (GetLogMask() & Logger::LSSMTP) != 0; }

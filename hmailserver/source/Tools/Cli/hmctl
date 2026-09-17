@@ -604,6 +604,20 @@ def queue_command(client, arguments):
     return EXIT_OK
 
 
+def privacy_command(client, arguments):
+    if arguments.verb == "export":
+        path = "/api/v1/accounts/%s/export" % urllib.parse.quote(arguments.address, safe="")
+        answer = client.request("POST", path, {"archive": arguments.archive}) or {}
+        print("exported %s message(s), %s contact(s), %s calendar object(s) and %s log line(s) to %s."
+              % (answer.get("exported", 0), answer.get("contacts", 0), answer.get("calendar_objects", 0),
+                 answer.get("log_lines", 0), answer.get("archive", arguments.archive)))
+    elif arguments.verb == "erase":
+        body = {"address": arguments.address, "include_archive": bool(arguments.archive), "include_logs": bool(arguments.logs)}
+        answer = client.request("POST", "/api/v1/addresses/erase", body) or {}
+        print("erased %s trace(s) of %s." % (answer.get("removed", 0), arguments.address))
+    return EXIT_OK
+
+
 def quarantine_command(client, arguments):
     if arguments.verb == "list":
         answer = client.request("GET", "/api/v1/quarantine")
@@ -2243,6 +2257,19 @@ def build_parser():
                                 help="what the last check found; exits 1 when an address is listed, when a list could not be asked, and - while the watch is on - when a pair has not been checked yet")
     reputation_verbs.add_parser("check", parents=[common],
                                 help="check now rather than waiting for the daily check; server administrators")
+
+    privacy = commands.add_parser("privacy", help="a person's data: everything the server holds as one archive, and every trace erased")
+    privacy.set_defaults(handler=privacy_command)
+    privacy_verbs = privacy.add_subparsers(dest="verb")
+    export_parser = privacy_verbs.add_parser("export", parents=[common],
+                                             help="write everything the server holds on the account to one .zip on the server's disk")
+    export_parser.add_argument("address")
+    export_parser.add_argument("--archive", required=True, metavar="FILE", help="the path of the .zip to write, on the server")
+    erase_parser = privacy_verbs.add_parser("erase", parents=[common],
+                                            help="erase every stored trace of an address that deleting its account leaves")
+    erase_parser.add_argument("address")
+    erase_parser.add_argument("--archive", action="store_true", help="the address's archive tree too, copies under hold excepted")
+    erase_parser.add_argument("--logs", action="store_true", help="rewrite the log files so no line names the address")
 
     settings = commands.add_parser("settings", help="the server settings, by group")
     settings.set_defaults(handler=settings_command)

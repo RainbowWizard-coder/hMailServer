@@ -504,6 +504,22 @@ namespace hMailServer.ControlPanel.Views
          maint.Children.Add(unlock);
          panel.Children.Add(maint);
 
+         // The person's data: everything the server holds as one archive, and
+         // every trace of the address erased - the two halves of a data-subject
+         // request, over Account.ExportArchive, Utilities.EraseAddressTraces and
+         // Utilities.EraseAddressLogLines.
+         panel.Children.Add(DialogFields.Separator());
+         panel.Children.Add(DialogFields.Caption(L("The person's data")));
+         var privacy = new StackPanel { Orientation = Orientation.Horizontal };
+         var exportAll = new Wpf.Ui.Controls.Button { Content = L("Export everythin_g...") };
+         exportAll.Click += (s, e) => ExportEverything();
+         var erase = new Wpf.Ui.Controls.Button { Content = L("Erase _traces..."), Appearance = Wpf.Ui.Controls.ControlAppearance.Danger, Margin = new Thickness(8, 0, 0, 0) };
+         erase.Click += (s, e) => EraseTraces();
+         privacy.Children.Add(exportAll);
+         privacy.Children.Add(erase);
+         panel.Children.Add(privacy);
+         panel.Children.Add(DialogFields.Note(L("The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines.")));
+
          return DialogFields.Scroll(panel);
       }
 
@@ -628,6 +644,61 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(domains);
          }
          LoadFolders();
+      }
+
+      private void ExportEverything()
+      {
+         folderNotice_.Hide();
+         var save = new Microsoft.Win32.SaveFileDialog
+         {
+            Title = L("Save the export as"),
+            Filter = L("Zip archives (*.zip)|*.zip"),
+            FileName = address_.Replace("@", "_") + ".zip"
+         };
+         if (save.ShowDialog() != true)
+            return;
+
+         dynamic domains = ServerSession.Current.Application.Domains;
+         try
+         {
+            dynamic a = OpenAccount(domains);
+            int exported = (int) a.ExportArchive(save.FileName);
+            ServerSession.Release(a);
+            folderNotice_.Show(StatusLevel.Good, F("Exported {0} message(s) and everything else the server holds to {1}.", exported, save.FileName));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            folderNotice_.Show(StatusLevel.Critical, F("Could not export: {0}", ex.Message));
+         }
+         finally
+         {
+            ServerSession.Release(domains);
+         }
+      }
+
+      private void EraseTraces()
+      {
+         folderNotice_.Hide();
+         if (MessageBox.Show(
+               F("Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone.", address_),
+               L("Erase traces"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+         dynamic utilities = ServerSession.Current.Application.Utilities;
+         try
+         {
+            int removed = (int) utilities.EraseAddressTraces(address_, true);
+            int lines = (int) utilities.EraseAddressLogLines(address_);
+            folderNotice_.Show(StatusLevel.Good, F("Erased {0} stored trace(s) and rewrote {1} log line(s).", removed, lines));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            folderNotice_.Show(StatusLevel.Critical, F("Could not erase: {0}", ex.Message));
+         }
+         finally
+         {
+            ServerSession.Release((object) utilities);
+         }
       }
 
       private void UnlockMailbox()

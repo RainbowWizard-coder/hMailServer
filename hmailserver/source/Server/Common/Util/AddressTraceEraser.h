@@ -28,11 +28,11 @@ namespace HM
 
       What it deliberately does NOT touch, and why:
 
-      * Protocol logs and the AWStats journal. Addresses inside log lines are
-        bounded by log retention rather than edited; a log that can be
-        selectively rewritten is worthless as a record, which is a worse
-        property than briefly retaining an address the retention window will
-        remove anyway.
+      * Protocol logs and the AWStats journal, unless asked (includeLogs): by
+        default addresses inside log lines are bounded by log retention rather
+        than edited, because a log that has been selectively rewritten is a
+        weaker record. Asked, every occurrence becomes [erased], so the line
+        itself says it was changed.
       * The archive's Inbound folder. Messages from non-local senders land
         there under the message's own filename, attributed to nobody; finding
         one address's messages in it would mean parsing every message in the
@@ -51,6 +51,15 @@ namespace HM
       // because the caller's honest report is "how many things were removed",
       // not which tables they were rows in.
       static bool Erase(const String &address, bool includeArchive, int &removedCount);
+
+      // The same, and with includeLogs the server's own log files rewritten so
+      // that no line names the address (every occurrence becomes [erased]);
+      // the occurrences count towards removedCount. A log that has been
+      // rewritten says so in its own lines, which is the honest form of a
+      // record that had to change: the alternative, retaining a person's
+      // address for as long as the retention window runs, is what article 17
+      // does not allow once the request is made.
+      static bool Erase(const String &address, bool includeArchive, bool includeLogs, int &removedCount);
 
    private:
 

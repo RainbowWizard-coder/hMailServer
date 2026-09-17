@@ -1889,6 +1889,8 @@ namespace HM
             return HandleAccountRules_(route, GetRequestBody_(request));
          case RouteAccountExport:
             return HandleAccountExport_(route, GetRequestBody_(request));
+         case RouteAccountExportArchive:
+            return HandleAccountExportArchive_(route);
          case RouteAddressErase:
             return HandleAddressErase_(GetRequestBody_(request));
          case RouteAdminSecondFactorGet:
@@ -2330,6 +2332,8 @@ namespace HM
 
          case RouteMeFolderExport:
             return HandleMeFolderExport_(caller, route.folder_id);
+         case RouteMeExportArchive:
+            return HandleMeExportArchive_(caller);
 
          case RouteMeFolderImport:
             return HandleMeFolderImport_(caller, route.folder_id, GetRequestBody_(request));
@@ -2908,6 +2912,12 @@ namespace HM
          return;
       }
 
+      if (path == "/api/v1/me/export.zip" && method == "GET")
+      {
+         route.kind = RouteMeExportArchive;
+         return;
+      }
+
       if (path == "/api/v1/me/settings")
       {
          if (method == "GET")
@@ -3265,6 +3275,19 @@ namespace HM
             route.kind = method == "PUT" ? RouteAccountRuleUpdate : RouteAccountRuleDelete;
             route.identifier = address;
             route.record_id = id;
+            return;
+         }
+      }
+
+      // Everything the server holds on the account, as one download
+      // (RestApiOperator.cpp).
+      if (method == "GET" && path.StartsWith(accountsPrefix) && path.EndsWith("/export.zip"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/export.zip").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteAccountExportArchive;
+            route.identifier = address;
             return;
          }
       }
@@ -4644,6 +4667,7 @@ namespace HM
       // The operator's tools (RestApiOperator.cpp): see PermissionFor_. Reading
       // whether a second factor is enrolled is not among them.
       case RouteAccountExport:
+      case RouteAccountExportArchive:
       case RouteAddressErase:
       case RouteAdminSecondFactorEnrol:
       case RouteAdminSecondFactorDisable:
@@ -5075,6 +5099,7 @@ namespace HM
       // factor is the credential store itself. Classified here for the same
       // reason the key routes are - no custom role may name them.
       case RouteAccountExport:
+      case RouteAccountExportArchive:
       case RouteAddressErase:
       case RouteAdminSecondFactorEnrol:
       case RouteAdminSecondFactorDisable:
@@ -5718,6 +5743,7 @@ namespace HM
       case RouteAccountRuleUpdate:
       case RouteAccountRuleDelete:
       case RouteAccountExport:
+      case RouteAccountExportArchive:
       case RouteFetchAccountList:
       case RouteFetchAccountCreate:
       case RouteFetchAccountGet:
@@ -8636,6 +8662,7 @@ namespace HM
       case RouteMeScheduled:
       case RouteMeScheduledCancel:
       case RouteMeFolderExport:
+      case RouteMeExportArchive:
       case RouteMeFolderImport:
       case RouteMeMessageReceipt:
       case RouteMeMessageUnsubscribe:
@@ -13576,6 +13603,7 @@ namespace HM
          "\"/api/v1/me/scheduled\":{\"get\":{\"summary\":\"What the signed-in account has put off\",\"responses\":{\"200\":{\"description\":\"scheduled: id, action (send | return), message_id, at, folder_id, subject\"}}}},"
          "\"/api/v1/me/scheduled/{id}\":{\"delete\":{\"summary\":\"Cancel one\",\"description\":\"A cancelled send leaves the draft where it is; a cancelled snooze brings the message back now.\",\"responses\":{\"200\":{\"description\":\"cancelled, returned\"},\"404\":{\"description\":\"Nothing by that id\"}}}},"
          "\"/api/v1/scheduled/run\":{\"post\":{\"summary\":\"Run what is due now\",\"description\":\"Administrator. What the minute task would do at its next tick, done now; answers how many rows were acted on.\",\"responses\":{\"200\":{\"description\":\"ran\"}}}},"
+         "\"/api/v1/me/export.zip\":{\"get\":{\"summary\":\"Everything the server holds for the signed-in account, as one archive\",\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form with the rules, app passwords, fetch accounts, S/MIME keys and the rest, and a manifest.json that counts what is there. Data portability from the person's own page, with no administrator involved. An archive past 500 MB is refused with 413; an administrator writes it to disk with POST /api/v1/accounts/{address}/export instead.\",\"responses\":{\"200\":{\"description\":\"The archive\"},\"413\":{\"description\":\"Past 500 MB\"},\"500\":{\"description\":\"The archive could not be built\"}}}},"
          "\"/api/v1/me/folders/{id}/export\":{\"get\":{\"summary\":\"The folder as mbox\",\"description\":\"application/mbox, as a download: every message after a From_ line, body lines beginning with From quoted. Larger than 200 MB is 413.\",\"responses\":{\"200\":{\"description\":\"The file\"},\"413\":{\"description\":\"Too large for this route\"}}}},"
          "\"/api/v1/me/folders/{id}/messages\":{\"post\":{\"summary\":\"Import a message into the folder\",\"description\":\"The body is the message itself (message/rfc822, a .eml file), at most 25 MB; stored unread, as IMAP APPEND would store it.\",\"responses\":{\"201\":{\"description\":\"id, folder_id\"},\"400\":{\"description\":\"Not a message\"},\"403\":{\"description\":\"The folder does not allow it\"},\"413\":{\"description\":\"Too large\"}}}},"
          "\"/api/v1/me/messages/{id}/receipt\":{\"post\":{\"summary\":\"Send a read receipt\",\"description\":\"For a message that carries Disposition-Notification-To: an RFC 8098 disposition notification (displayed, sent manually) queued from the account to that address, under the recipient checks a send makes. A message that did not ask is 400.\",\"responses\":{\"201\":{\"description\":\"queued, to\"},\"400\":{\"description\":\"No receipt was asked for, or the address is refused\"},\"404\":{\"description\":\"No such message\"}}}},"

@@ -2290,6 +2290,21 @@ namespace hMailServer
          return (int) ServerApi.LongOf(answer.Json.Value, "removed");
       }
 
+      /// <summary>
+      ///    Utilities.EraseAddressLogLines: the erase route with include_logs and
+      ///    nothing else, which on this bench also sweeps the stored traces again -
+      ///    a second sweep finds nothing, so the count is the log lines rewritten.
+      /// </summary>
+      public int EraseAddressLogLines(string address)
+      {
+         var answer = ServerApi.Post("/api/v1/addresses/erase",
+            "{\"address\":" + ServerApi.Quote(address) + ",\"include_archive\":false,\"include_logs\":true}");
+         if (answer.Status == 400 || answer.Status == 500)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(200, "POST /api/v1/addresses/erase");
+         return (int) ServerApi.LongOf(answer.Json.Value, "removed");
+      }
+
       private const string SyntaxAccountAddress = "sieve-syntax@example.test";
       private const string SyntaxAccountPassword = "sieve-syntax-secret";
 
@@ -3931,6 +3946,20 @@ namespace hMailServer
       {
          string path = "/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/export";
          var answer = ServerApi.Post(path, "{\"directory\":" + ServerApi.Quote(directory) + "}");
+         if (answer.Status == 400 || answer.Status == 500)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(200, "POST " + path);
+         return (int) ServerApi.LongOf(answer.Json.Value, "exported");
+      }
+
+      /// <summary>
+      ///    Account.ExportArchive: the same route with archive, the path of the
+      ///    .zip on the server's disk, answering the message count.
+      /// </summary>
+      public int ExportArchive(string file)
+      {
+         string path = "/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/export";
+         var answer = ServerApi.Post(path, "{\"archive\":" + ServerApi.Quote(file) + "}");
          if (answer.Status == 400 || answer.Status == 500)
             throw new System.Runtime.InteropServices.COMException(answer.Error);
          answer.Expect(200, "POST " + path);

@@ -6,6 +6,8 @@
 
 #include "AddressTraceEraser.h"
 #include "../Persistence/PersistentArchiveIndex.h"
+#include "../Application/Logger.h"
+#include <boost/filesystem.hpp>
 #include "../Persistence/PersistentBounce.h"
 #include "../Persistence/PersistentComplaint.h"
 
@@ -31,6 +33,12 @@ namespace HM
 {
    bool
    AddressTraceEraser::Erase(const String &address, bool includeArchive, int &removedCount)
+   {
+      return Erase(address, includeArchive, false, removedCount);
+   }
+
+   bool
+   AddressTraceEraser::Erase(const String &address, bool includeArchive, bool includeLogs, int &removedCount)
    {
       removedCount = 0;
 
@@ -104,6 +112,27 @@ namespace HM
       else
          removedCount += count;
 
+      // The first-contact memory: the address as a sender other accounts have
+      // heard from, and as a recipient they have written to. The person's own
+      // memory went with their account.
+      String lowered = address;
+      lowered.ToLower();
+      count = DeleteAddressRows_("hm_knownsenders", "ksaddress", "", lowered);
+      if (count < 0)
+         failedStores.push_back(_T("the first-contact memory"));
+      else
+         removedCount += count;
+
+      // Other people's address books: the rows that name the address, collected
+      // from mail or written by hand. The row goes rather than the address being
+      // blanked, because a card with no address is not the contact the owner
+      // made, and the vCard column would still carry it.
+      count = DeleteAddressRows_("hm_contacts", "contactaddress", "", lowered);
+      if (count < 0)
+         failedStores.push_back(_T("the address books"));
+      else
+         removedCount += count;
+
       bool quarantineFailed = false;
       removedCount += EraseQuarantine_(address, quarantineFailed);
       if (quarantineFailed)
@@ -115,6 +144,14 @@ namespace HM
          removedCount += EraseArchive_(address, archiveFailed);
          if (archiveFailed)
             failedStores.push_back(_T("the archive"));
+      }
+
+      if (includeLogs)
+      {
+         int linesChanged = 0;
+         if (!Logger::Instance()->EraseFromLogs(address, linesChanged))
+            failedStores.push_back(_T("the logs"));
+         removedCount += linesChanged;
       }
 
       if (!failedStores.empty())
@@ -274,12 +311,71 @@ namespace HM
       if (!FileUtilities::Exists(userArchive))
          return 0;
 
-      if (!FileUtilities::DeleteDirectory(userArchive, true))
+      // File by file rather than the tree at once: a copy under legal hold keeps
+      // its file as well as its index row, because a hold that kept the row and
+      // lost the file would be a promise the server broke while appearing to
+      // keep it. Directories left empty go; the person's directory itself goes
+      // when nothing held remains in it.
+      boost::system::error_code errorCode;
+      boost::filesystem::path root(userArchive.begin(), userArchive.end());
+      std::vector<boost::filesystem::path> directories;
+      int deleted = 0;
+      int kept = 0;
+
+      for (boost::filesystem::recursive_directory_iterator it(root, errorCode);
+           it != boost::filesystem::recursive_directory_iterator(); it.increment(errorCode))
       {
-         failed = true;
-         return 0;
+         if (errorCode)
+            break;
+
+         const boost::filesystem::path current = it->path();
+
+         if (boost::filesystem::is_directory(current, errorCode))
+         {
+            directories.push_back(current);
+            continue;
+         }
+
+         if (!boost::filesystem::is_regular_file(current, errorCode))
+            continue;
+
+         const String filePath = String(current.wstring().c_str());
+
+         if (PersistentArchiveIndex::IsHeld(filePath))
+         {
+            kept++;
+            continue;
+         }
+
+         if (!boost::filesystem::remove(current, errorCode) || errorCode)
+         {
+            failed = true;
+            errorCode.clear();
+            continue;
+         }
+
+         deleted++;
       }
 
-      return 1;
+      // Deepest first, so a directory is tried after its children were.
+      std::sort(directories.begin(), directories.end(),
+                [](const boost::filesystem::path &a, const boost::filesystem::path &b) { return a.wstring().size() > b.wstring().size(); });
+      directories.push_back(root);
+
+      for (const boost::filesystem::path &directory : directories)
+      {
+         if (boost::filesystem::is_empty(directory, errorCode) && !errorCode)
+            boost::filesystem::remove(directory, errorCode);
+         errorCode.clear();
+      }
+
+      if (kept > 0)
+      {
+         String logMessage;
+         logMessage.Format(_T("The archive sweep for %s left %d cop%s under legal hold in place."), address.c_str(), kept, kept == 1 ? _T("y") : _T("ies"));
+         LOG_APPLICATION(logMessage);
+      }
+
+      return deleted > 0 ? 1 : 0;
    }
 }

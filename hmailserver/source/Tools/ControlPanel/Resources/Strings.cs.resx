@@ -2220,8 +2220,14 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Nepodařilo se zapnout podepisování DKIM: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Nelze smazat: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Nepodařilo se vyhodnotit všechna varování: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Nelze exportovat: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Nepodařilo se vygenerovat a uložit klíč DKIM: {0}</value>
@@ -3233,6 +3239,18 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Odesílatelé obálky odmítaní rovnou, nebo skórovaní. Položka s @ je jedna přesná adresa; bez něj je to celá doména včetně subdomén. Výchozí skóre 100 překročí práh mazání a odmítne zprávu během konverzace SMTP. Porovnává se adresa, kterou odesílatel TVRDÍ, takže to zastaví korespondenta, který stále používá jednu adresu - není to nástroj proti spoofingu a nezastaví nic, co adresy střídá.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Smazat s_topy...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Smazat každou uloženou stopu adresy {0}: položky karantény, řádky trasování, greylisting, členství v seznamech, aliasy, záznamy v adresářích ostatních lidí a paměť prvního kontaktu, strom archivu (kromě kopií pod zadržením) a řádky logu, které ji jmenují? Nelze vrátit zpět.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Smazat stopy</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>Smazáno uložených stop: {0}, přepsáno řádků logu: {1}.</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Chybové záznamy nesou závažnost, kterou zaznamenal sám server: critical, error, warning nebo notice. Vše ostatní je informational, kromě TCP/IP a ladění, které jsou debug.</value>
   </data>
@@ -3373,6 +3391,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vypršení odsud nelze přečíst: soubory certifikátů jsou na serveru a tento Control Panel je k němu připojen vzdáleně. Vše ostatní na této stránce přichází přes COM a je přesné.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>_Exportovat vše...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>Exportováno zpráv: {0} a vše ostatní, co server uchovává, do {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Zveřejňovat čítače zpráv per doména na /metrics</value>
@@ -6876,6 +6900,9 @@ Pokračovat?</value>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Ukládat čítače na disk každých N sekund (výchozí 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Uložit export jako</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Uložit přístupové heslo soukromého klíče pro vybraný certifikát</value>
   </data>
@@ -8292,6 +8319,9 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>Vypršení leží uvnitř bajtů, které podpis pokrývá, takže je to pokyn samotné odesílající domény, ne něco, co by mohla přidat třetí strana. Vypnutí znamená, že zachycenou podepsanou zprávu lze přehrávat donekonečna.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>Export je jeden .zip na tomto počítači: pošta jako mbox po složkách, kontakty jako vCard, kalendáře, nastavení webmailu, skript Sieve, řádky logu jmenující adresu a account.xml se zbytkem. Smazání odstraní to, co po smazání účtu zůstává: řádky karantény, trasování a greylistingu, členství v seznamech, aliasy, záznamy v adresářích ostatních lidí, paměť prvního kontaktu, strom archivu kromě kopií pod zadržením, a přepíše řádky logu.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Externí nastavení nešlo zkontrolovat - není připojení k serveru.</value>
   </data>
@@ -8500,6 +8530,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Timeouty nečinnosti pro jednotlivé protokoly rozhodují, jak dlouho může spojení nečinně stát, než se zavře.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>Data osoby</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Politika se podává přes HTTPS. Z tohoto počítače to zároveň dokazuje, že mta-sts.{0} se překládá, certifikát pro ten název prochází ověřením a listener odpovídá - pohled z internetu se přesto může lišit, pokud firewall s tímto počítačem zachází zvlášť. Podávaný obsah: {1}</value>
@@ -9648,6 +9681,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Vaše domény najdete v tomto seznamu. Otevřením domény získáte její účty, aliasy a distribuční seznamy.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Archivy zip (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Adresa účtu</value>

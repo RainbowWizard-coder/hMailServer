@@ -2220,8 +2220,14 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Impossibile attivare la firma DKIM: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Impossibile cancellare: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Impossibile valutare tutti gli avvisi: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Impossibile esportare: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Impossibile generare e memorizzare la chiave DKIM: {0}</value>
@@ -3233,6 +3239,18 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Mittenti della busta rifiutati senz'altro, o a cui viene assegnato un punteggio. Una voce con una @ è un indirizzo esatto; senza, è un intero dominio compresi i suoi sottodomini. Il punteggio predefinito di 100 supera la soglia di eliminazione e rifiuta il messaggio durante la conversazione SMTP. Il confronto avviene con l'indirizzo che il mittente DICHIARA, quindi ferma un corrispondente che continua a usare un solo indirizzo - non è uno strumento anti-spoofing, e non ferma nulla che cambi indirizzo di continuo.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Cancella le _tracce...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Cancellare ogni traccia memorizzata di {0}: voci di quarantena, righe di tracciamento, greylisting, appartenenze alle liste, alias, voci nelle rubriche altrui e la memoria del primo contatto, l'albero dell'archivio (copie sotto conservazione escluse) e le righe di log che la nominano? Non si può annullare.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Cancella le tracce</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>Cancellate {0} tracce memorizzate e riscritte {1} righe di log.</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Le voci di errore portano la gravità registrata dal server stesso: critical, error, warning o notice. Tutto il resto è informational, tranne TCP/IP e debug, che sono debug.</value>
   </data>
@@ -3373,6 +3391,12 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>La scadenza non può essere letta da qui: i file del certificato si trovano sul server e questo Control Panel vi è connesso da remoto. Tutto il resto in questa pagina arriva tramite COM ed è accurato.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>Esporta tutt_o...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>Esportati {0} messaggi e tutto il resto che il server conserva in {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Esponi su /metrics i contatori di messaggi per dominio</value>
@@ -6876,6 +6900,9 @@ Continuare?</value>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Salva i contatori su disco ogni N secondi (predefinito 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Salva l'esportazione come</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Salva la passphrase della chiave privata per il certificato selezionato</value>
   </data>
@@ -8292,6 +8319,9 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>La scadenza si trova all'interno dei byte coperti dalla firma, quindi è un'istruzione del dominio mittente stesso e non qualcosa che una terza parte possa aggiungere. Disattivarla significa che un messaggio firmato e intercettato può essere riutilizzato all'infinito.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>L'esportazione è un solo .zip su questo computer: la posta come mbox per cartella, i contatti come vCard, i calendari, le preferenze della webmail, lo script Sieve, le righe di log che nominano l'indirizzo e un account.xml con il resto. La cancellazione rimuove ciò che l'eliminazione dell'account lascia: righe di quarantena, tracciamento e greylisting, appartenenze alle liste, alias, voci nelle rubriche altrui, la memoria del primo contatto, l'albero dell'archivio salvo le copie sotto conservazione, e riscrive le righe di log.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Non è stato possibile verificare la configurazione esterna - non connesso al server.</value>
   </data>
@@ -8500,6 +8530,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>I timeout di inattività per protocollo decidono per quanto tempo una connessione può restare senza fare nulla prima di essere chiusa.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>I dati della persona</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Il criterio viene servito su HTTPS. Da questa macchina ciò dimostra anche che mta-sts.{0} si risolve, che il certificato è valido per quel nome e che il listener risponde - la vista da internet può comunque essere diversa se un firewall tratta questa macchina in modo speciale. Contenuto servito: {1}</value>
@@ -9648,6 +9681,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>I tuoi domini si trovano in questo elenco. Aprendone uno ottieni i suoi account, alias e liste di distribuzione.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Archivi zip (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Indirizzo dell'account</value>

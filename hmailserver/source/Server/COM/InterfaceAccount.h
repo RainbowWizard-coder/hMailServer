@@ -79,6 +79,7 @@ public:
    STDMETHOD(EnrolTOTP)(BSTR *pVal);
    STDMETHOD(DisableTOTP)();
    STDMETHOD(ExportMessages)(BSTR Directory, long *ExportedCount);
+   STDMETHOD(ExportArchive)(BSTR File, long *ExportedCount);
    STDMETHOD(Delete)(); 
 
    STDMETHOD(DeleteMessages)();

@@ -928,6 +928,9 @@ async function main() {
    check('a reload lands where the reader was', document.getElementById('settings-section').hidden === false,
       'hash=' + location.hash + ' title=' + document.getElementById('view-title').textContent);
    check('the sign-in did not lose the address', location.hash === '#/settings', location.hash);
+   check('the settings page offers everything the server holds as one download, at the reader\'s own export route',
+      document.getElementById('export-everything').getAttribute('href') === '/api/v1/me/export.zip' && document.getElementById('export-everything').getAttribute('download') === 'my-mail.zip',
+      document.getElementById('export-everything') ? document.getElementById('export-everything').getAttribute('href') : 'no link');
 
    // ---- the app shell: folders in the sidebar, with their unseen counts
    const nav = document.getElementById('folder-nav');

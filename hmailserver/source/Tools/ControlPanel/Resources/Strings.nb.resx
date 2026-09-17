@@ -2220,8 +2220,14 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Kunne ikke aktivere DKIM-signering: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Kunne ikke slette: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Kunne ikke evaluere alle advarsler: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Kunne ikke eksportere: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Kunne ikke generere og lagre DKIM-nøkkelen: {0}</value>
@@ -3233,6 +3239,18 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Konvoluttavsendere som avvises rett ut, eller gis poeng. En oppføring med @ er én nøyaktig adresse; uten er det et helt domene inkludert underdomener. Standardpoengsummen 100 krysser sletteterskelen og avviser meldingen under SMTP-samtalen. Dette samsvarer med adressen avsenderen HEVDER, så det stopper en korrespondent som fortsetter å bruke én adresse - det er ikke et verktøy mot forfalskning, og stopper ingenting som bytter adresser.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Slett s_por...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Slette hvert lagrede spor av {0}: karanteneoppføringer, sporingsrader, greylisting, listemedlemskap, aliaser, andres adressebokoppføringer og førstekontakt-minne, arkivtreet (kopier under tilbakehold unntatt) og logglinjene som nevner den? Dette kan ikke angres.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Slett spor</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>Slettet {0} lagrede spor og skrev om {1} logglinje(r).</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Feilposter bærer alvorsgraden serveren selv registrerte: critical, error, warning eller notice. Alt annet er informational, bortsett fra TCP/IP og feilsøking, som er debug.</value>
   </data>
@@ -3373,6 +3391,12 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Utløp kan ikke leses herfra: sertifikatfilene er på serveren, og dette Control Panel er koblet til den eksternt. Alt annet på denne siden kommer over COM og er riktig.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>Eksporter _alt...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>Eksporterte {0} melding(er) og alt annet serveren har til {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Eksponer meldingstellere per domene på /metrics</value>
@@ -6876,6 +6900,9 @@ Fortsette?</value>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Lagre tellerne til disk hvert N. sekund (standard 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Lagre eksporten som</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Lagre passfrasen til den private nøkkelen for det valgte sertifikatet</value>
   </data>
@@ -8292,6 +8319,9 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>Utløpet ligger inne i bytene signaturen dekker, så det er avsenderdomenets egen instruks og ikke noe en tredjepart kan legge til. Slås dette av, kan en fanget signert melding spilles av igjen i det uendelige.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>Eksporten er én .zip på denne datamaskinen: post som mbox per mappe, kontakter som vCard, kalendere, webpostens innstillinger, Sieve-skriptet, logglinjene som nevner adressen og en account.xml med resten. Sletting fjerner det sletting av kontoen etterlater: karantene-, sporings- og greylistingrader, listemedlemskap, aliaser, andres adressebokoppføringer, førstekontakt-minnet, arkivtreet unntatt kopier under tilbakehold, og skriver om logglinjene.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Det eksterne oppsettet kunne ikke sjekkes - ikke koblet til serveren.</value>
   </data>
@@ -8500,6 +8530,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Tidsavbruddene for inaktivitet per protokoll avgjør hvor lenge en forbindelse kan stå og gjøre ingenting før den lukkes.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>Personens data</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Policyen serveres over HTTPS. Fra denne maskinen beviser det også at mta-sts.{0} kan slås opp, at sertifikatet validerer for det navnet, og at lytteren svarer - internettets syn kan fortsatt avvike hvis en brannmur behandler denne maskinen spesielt. Servert innhold: {1}</value>
@@ -9648,6 +9681,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domenene dine ligger i denne listen. Åpner du ett, får du kontoene, aliasene og distribusjonslistene til det.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip-arkiver (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Kontoadresse</value>

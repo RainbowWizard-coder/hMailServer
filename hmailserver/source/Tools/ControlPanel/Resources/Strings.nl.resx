@@ -2220,8 +2220,14 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Kon DKIM-ondertekening niet inschakelen: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Kon niet wissen: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Kon niet alle waarschuwingen evalueren: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Kon niet exporteren: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Kon de DKIM-sleutel niet genereren en opslaan: {0}</value>
@@ -3233,6 +3239,18 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Envelopafzenders die meteen worden geweigerd, of een score krijgen. Een vermelding met een @ is één exact adres; zonder @ is het een heel domein inclusief zijn subdomeinen. De standaardscore van 100 overschrijdt de verwijderdrempel en weigert het bericht tijdens het SMTP-gesprek. Dit vergelijkt met het adres dat de afzender BEWEERT, dus het houdt een correspondent tegen die één adres blijft gebruiken - het is geen middel tegen spoofing, en het houdt niets tegen dat van adres wisselt.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Sporen _wissen...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Elk opgeslagen spoor van {0} wissen: quarantaine-items, traceerrijen, greylisting, lijstlidmaatschappen, aliassen, adresboekvermeldingen van anderen en het eerste-contactgeheugen, de archiefboom (kopieën onder bewaarplicht uitgezonderd) en de logregels die het noemen? Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Sporen wissen</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>{0} opgeslagen spo(o)r(en) gewist en {1} logregel(s) herschreven.</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Foutregels dragen de ernst die de server zelf heeft vastgelegd: critical, error, warning of notice. Al het overige is informational, behalve TCP/IP en debug, die debug zijn.</value>
   </data>
@@ -3373,6 +3391,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>De vervaldatum kan vanaf hier niet worden gelezen: de certificaatbestanden staan op de server en dit Control Panel is er op afstand mee verbonden. Al het andere op deze pagina komt via COM en klopt.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>Alles e_xporteren...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>{0} bericht(en) en al het andere dat de server bewaart geëxporteerd naar {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Berichttellers per domein blootstellen op /metrics</value>
@@ -6876,6 +6900,9 @@ Doorgaan?</value>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>De tellers elke N seconden naar schijf schrijven (standaard 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>De export opslaan als</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>De wachtwoordzin van de privésleutel voor het geselecteerde certificaat opslaan</value>
   </data>
@@ -8292,6 +8319,9 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>De vervaldatum valt binnen de bytes die de handtekening dekt, dus het is de eigen instructie van het verzendende domein en niet iets dat een derde partij kan toevoegen. Dit uitzetten betekent dat een opgevangen ondertekend bericht onbeperkt opnieuw kan worden afgespeeld.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>De export is één .zip op deze computer: mail als mbox per map, contacten als vCard, agenda's, de voorkeuren van de webmail, het Sieve-script, de logregels die het adres noemen en een account.xml met de rest. Wissen verwijdert wat het verwijderen van het account achterlaat: quarantaine-, traceer- en greylistingrijen, lijstlidmaatschappen, aliassen, adresboekvermeldingen van anderen, het eerste-contactgeheugen, de archiefboom behalve kopieën onder bewaarplicht, en herschrijft de logregels.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>De externe configuratie kon niet worden gecontroleerd - geen verbinding met de server.</value>
   </data>
@@ -8500,6 +8530,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>De inactiviteitstime-outs per protocol bepalen hoe lang een verbinding niets mag doen voordat hij wordt gesloten.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>De gegevens van de persoon</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Het beleid wordt via HTTPS geserveerd. Vanaf deze machine bewijst dat ook dat mta-sts.{0} resolvet, dat het certificaat voor die naam valideert en dat de listener antwoordt - het beeld vanaf het internet kan alsnog afwijken als een firewall deze machine speciaal behandelt. Geserveerde inhoud: {1}</value>
@@ -9648,6 +9681,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Uw domeinen staan in deze lijst. Als u er een opent, krijgt u de accounts, aliassen en distributielijsten ervan.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip-archieven (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Accountadres</value>

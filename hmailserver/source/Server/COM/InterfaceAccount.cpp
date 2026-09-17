@@ -12,6 +12,7 @@
 
 #include "../Common/Persistence/MailboxMove.h"
 #include "../Common/Util/Unicode.h"
+#include "../Common/Util/PersonExport.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/BO/Accounts.h"
 #include "../Common/Util/Math.h"
@@ -2346,6 +2347,45 @@ STDMETHODIMP InterfaceAccount::RemovePushSubscriptions(long *RemovedCount)
       }
 
       *RemovedCount = removed;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::ExportArchive(BSTR File, long *ExportedCount)
+{
+   try
+   {
+      if (!ExportedCount)
+         return COMError::GenerateGenericMessage();
+
+      *ExportedCount = 0;
+
+      if (!object_)
+         return GetAccessDenied();
+
+      // Server admin, as ExportMessages: this writes to the server's own file
+      // system, and where a file may be written is a machine-level trust.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String file = File;
+      file.Trim();
+
+      if (file.IsEmpty())
+         return COMError::GenerateError("The path of the archive to write must be given.");
+
+      HM::PersonExport::Summary summary;
+      HM::String error;
+
+      if (!HM::PersonExport::ExportArchive(object_, file, summary, error))
+         return COMError::GenerateError(error);
+
+      *ExportedCount = summary.messages;
+
       return S_OK;
    }
    catch (...)

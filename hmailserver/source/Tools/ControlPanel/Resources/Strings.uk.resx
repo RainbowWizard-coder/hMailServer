@@ -2220,8 +2220,14 @@
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Не вдалося ввімкнути підписування DKIM: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Не вдалося стерти: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Не вдалося обчислити всі попередження: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Не вдалося експортувати: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Не вдалося створити та зберегти ключ DKIM: {0}</value>
@@ -3233,6 +3239,18 @@
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Відправники конверта, яких відхиляють одразу або оцінюють. Запис із @ - це одна точна адреса; без нього - цілий домен разом із піддоменами. Типова оцінка 100 перетинає поріг видалення і відхиляє повідомлення під час діалогу SMTP. Це зіставляє адресу, яку відправник ЗАЯВЛЯЄ, тому зупиняє кореспондента, який і далі використовує одну адресу - це не засіб проти підробки, і воно не зупиняє нічого, що змінює адреси.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Стерти с_ліди...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Стерти кожен збережений слід адреси {0}: записи карантину, рядки трасування, greylisting, членство в списках, псевдоніми, записи в адресних книгах інших людей і пам'ять першого контакту, дерево архіву (крім копій під утриманням) і рядки журналу, що його називають? Скасувати не можна.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Стерти сліди</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>Стерто збережених слідів: {0}, переписано рядків журналу: {1}.</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Записи про помилки несуть ту важливість, яку зафіксував сам сервер: critical, error, warning або notice. Усе інше - informational, окрім TCP/IP та налагодження, які є debug.</value>
   </data>
@@ -3373,6 +3391,12 @@
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Термін дії звідси прочитати неможливо: файли сертифікатів на сервері, а ця Панель керування під'єднана до нього віддалено. Усе інше на цій сторінці надходить через COM і є точним.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>_Експортувати все...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>Експортовано повідомлень: {0} і все інше, що зберігає сервер, до {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Відкривати лічильники повідомлень на домен у /metrics</value>
@@ -6876,6 +6900,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Зберігати лічильники на диск кожні N секунд (типово 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Зберегти експорт як</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Зберегти парольну фразу закритого ключа для вибраного сертифіката</value>
   </data>
@@ -8292,6 +8319,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>Термін дії міститься всередині байтів, які покриває підпис, тому це вказівка самого домену-відправника, а не щось, що може додати третя сторона. Якщо це вимкнути, перехоплене підписане повідомлення можна відтворювати нескінченно.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>Експорт — один .zip на цьому комп'ютері: пошта у форматі mbox за теками, контакти у форматі vCard, календарі, налаштування вебпошти, скрипт Sieve, рядки журналу з адресою і account.xml з рештою. Стирання прибирає те, що лишає видалення облікового запису: рядки карантину, трасування і greylisting, членство в списках, псевдоніми, записи в адресних книгах інших людей, пам'ять першого контакту, дерево архіву крім копій під утриманням, і переписує рядки журналу.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Зовнішнє налаштування не вдалося перевірити - немає підключення до сервера.</value>
   </data>
@@ -8500,6 +8530,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Часи очікування простою за протоколами вирішують, як довго з'єднання може бездіяти, перш ніж його закриють.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>Дані особи</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Політика віддається через HTTPS. З цього комп'ютера це також доводить, що mta-sts.{0} розв'язується, сертифікат проходить перевірку для цього імені, а слухач відповідає - погляд з інтернету все ж може відрізнятися, якщо брандмауер поводиться з цим комп'ютером особливо. Відданий вміст: {1}</value>
@@ -9648,6 +9681,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Ваші домени перебувають у цьому списку. Відкривши домен, ви отримаєте його облікові записи, псевдоніми та списки розсилки.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip-архіви (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Адреса облікового запису</value>

@@ -2220,8 +2220,14 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not enable DKIM signing: {0}" xml:space="preserve">
     <value>Kunde inte aktivera DKIM-signering: {0}</value>
   </data>
+  <data name="Could not erase: {0}" xml:space="preserve">
+    <value>Kunde inte radera: {0}</value>
+  </data>
   <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
     <value>Kunde inte utvärdera alla varningar: {0}</value>
+  </data>
+  <data name="Could not export: {0}" xml:space="preserve">
+    <value>Kunde inte exportera: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
     <value>Kunde inte generera och lagra DKIM-nyckeln: {0}</value>
@@ -3233,6 +3239,18 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
     <value>Kuvertavsändare som avvisas direkt, eller poängsätts. En post med ett @ är en exakt adress; utan ett är den en hel domän inklusive dess underdomäner. Standardpoängen 100 passerar borttagningströskeln och avvisar meddelandet under SMTP-konversationen. Detta matchar den adress avsändaren PÅSTÅR sig ha, så det stoppar en korrespondent som fortsätter använda en adress - det är inte ett verktyg mot förfalskning, och stoppar inget som byter adresser.</value>
   </data>
+  <data name="Erase _traces..." xml:space="preserve">
+    <value>Radera s_pår...</value>
+  </data>
+  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
+    <value>Radera varje lagrat spår av {0}: karantänposter, spårningsrader, greylisting, listmedlemskap, alias, andras adressboksposter och förstakontaktminnet, arkivträdet (kopior under kvarhållning undantagna) och loggraderna som nämner den? Detta kan inte ångras.</value>
+  </data>
+  <data name="Erase traces" xml:space="preserve">
+    <value>Radera spår</value>
+  </data>
+  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
+    <value>Raderade {0} lagrade spår och skrev om {1} loggrad(er).</value>
+  </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Felposter bär den allvarsgrad servern själv registrerade: critical, error, warning eller notice. Allt annat är informational, utom TCP/IP och felsökning, som är debug.</value>
   </data>
@@ -3373,6 +3391,12 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Utgångstiden kan inte läsas härifrån: certifikatfilerna finns på servern och den här Kontrollpanelen är ansluten till den på distans. Allt annat på den här sidan kommer över COM och är korrekt.</value>
+  </data>
+  <data name="Export everythin_g..." xml:space="preserve">
+    <value>E_xportera allt...</value>
+  </data>
+  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
+    <value>Exporterade {0} meddelande(n) och allt annat servern håller till {1}.</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Exponera meddelanderäknare per domän på /metrics</value>
@@ -6876,6 +6900,9 @@ Fortsätt?</value>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Spara räknarna till disk var N:e sekund (standard 10)</value>
   </data>
+  <data name="Save the export as" xml:space="preserve">
+    <value>Spara exporten som</value>
+  </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Spara lösenfrasen för det valda certifikatets privata nyckel</value>
   </data>
@@ -8292,6 +8319,9 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely." xml:space="preserve">
     <value>Utgångstiden ligger inom de byte signaturen täcker, så den är den sändande domänens egen instruktion snarare än något en tredje part kan lägga till. Att stänga av detta betyder att ett infångat signerat meddelande kan spelas upp igen i all oändlighet.</value>
   </data>
+  <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
+    <value>Exporten är en enda .zip på den här datorn: post som mbox per mapp, kontakter som vCard, kalendrar, webbpostens inställningar, Sieve-skriptet, loggraderna som nämner adressen och en account.xml med resten. Raderingen tar bort det som borttagning av kontot lämnar: karantän-, spårnings- och greylistingrader, listmedlemskap, alias, andras adressboksposter, förstakontaktminnet, arkivträdet utom kopior under kvarhållning, och skriver om loggraderna.</value>
+  </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Den externa konfigurationen kunde inte kontrolleras - inte ansluten till servern.</value>
   </data>
@@ -8500,6 +8530,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Inaktivitetsgränserna per protokoll avgör hur länge en anslutning får sitta utan att göra något innan den stängs.</value>
+  </data>
+  <data name="The person's data" xml:space="preserve">
+    <value>Personens uppgifter</value>
   </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Policyn serveras över HTTPS. Från den här datorn bevisar det också att mta-sts.{0} slås upp, att certifikatet validerar för det namnet, och att lyssnaren svarar - internets bild kan ändå skilja sig om en brandvägg behandlar den här datorn speciellt. Serverat innehåll: {1}</value>
@@ -9648,6 +9681,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Dina domäner finns i den här listan. Öppnar du en får du dess konton, alias och distributionslistor.</value>
+  </data>
+  <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
+    <value>Zip-arkiv (*.zip)|*.zip</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Kontoadress</value>

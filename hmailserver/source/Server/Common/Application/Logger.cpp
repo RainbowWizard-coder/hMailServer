@@ -5,6 +5,10 @@
 #include "stdafx.h"
 
 #include "../Util/Time.h"
+#include "../Util/Unicode.h"
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <algorithm>
 #include "../Util/File.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/OtelLogExporter.h"
@@ -536,6 +540,113 @@ namespace HM
       }
 
       return sFilename;
+   }
+
+   bool
+   Logger::EraseFromLogs(const String &needle, int &occurrencesChanged)
+   {
+      occurrencesChanged = 0;
+
+      AnsiString wanted;
+      Unicode::WideToMultiByte(needle, wanted);
+      std::transform(wanted.begin(), wanted.end(), wanted.begin(), ::tolower);
+      if (wanted.empty())
+         return true;
+
+      boost::lock_guard<boost::recursive_mutex> guard(mtx_);
+
+      File *open[] = { &normal_log_file_, &error_log_file_, &awstats_log_file_, &backup_log_file_,
+                       &events_log_file_, &imaplog_file_, &pop3log_file_, &smtplog_file_ };
+      for (File *file : open)
+      {
+         if (file->IsOpen())
+            file->Close();
+      }
+
+      String logDirectory = log_dir_;
+      if (logDirectory.IsEmpty())
+         logDirectory = IniFileSettings::Instance()->GetLogDirectory();
+      if (logDirectory.IsEmpty())
+         return true;
+
+      boost::system::error_code errorCode;
+      boost::filesystem::path directory(logDirectory.begin(), logDirectory.end());
+      if (!boost::filesystem::is_directory(directory, errorCode))
+         return true;
+
+      bool allRewritten = true;
+      const AnsiString replacement = "[erased]";
+
+      for (boost::filesystem::directory_iterator file(directory, errorCode);
+           file != boost::filesystem::directory_iterator(); file.increment(errorCode))
+      {
+         boost::filesystem::path current = file->path();
+         if (!boost::filesystem::is_regular_file(current, errorCode))
+            continue;
+
+         String fileName = String(current.filename().wstring().c_str());
+         String lowerName = fileName;
+         lowerName.ToLower();
+
+         if (!((lowerName.StartsWith(_T("hmailserver_")) || lowerName.StartsWith(_T("error_hmailserver_"))) && lowerName.EndsWith(_T(".log"))))
+            continue;
+
+         // A log past a quarter of a gigabyte is not rewritten in memory; it is
+         // reported, and log retention is the answer for it.
+         if (boost::filesystem::file_size(current, errorCode) > 256 * 1024 * 1024 || errorCode)
+         {
+            allRewritten = false;
+            errorCode.clear();
+            continue;
+         }
+
+         std::string content;
+         {
+            boost::filesystem::ifstream in(current, std::ios::in | std::ios::binary);
+            if (!in)
+            {
+               allRewritten = false;
+               continue;
+            }
+            content.assign((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+         }
+
+         std::string lowered = content;
+         std::transform(lowered.begin(), lowered.end(), lowered.begin(), ::tolower);
+
+         std::string rewritten;
+         size_t from = 0;
+         int changed = 0;
+         for (;;)
+         {
+            size_t at = lowered.find(wanted, from);
+            if (at == std::string::npos)
+            {
+               rewritten.append(content, from, std::string::npos);
+               break;
+            }
+            rewritten.append(content, from, at - from);
+            rewritten += replacement;
+            from = at + wanted.size();
+            changed++;
+         }
+
+         if (changed == 0)
+            continue;
+
+         boost::filesystem::ofstream out(current, std::ios::out | std::ios::binary | std::ios::trunc);
+         if (!out)
+         {
+            allRewritten = false;
+            continue;
+         }
+         out.write(rewritten.data(), (std::streamsize) rewritten.size());
+         out.close();
+
+         occurrencesChanged += changed;
+      }
+
+      return allRewritten;
    }
 
    File*

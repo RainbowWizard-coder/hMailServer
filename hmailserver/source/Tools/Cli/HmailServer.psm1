@@ -496,6 +496,47 @@ function Remove-HmAccount {
     }
 }
 
+function Export-HmAccountArchive {
+    <#
+    .SYNOPSIS
+        Writes everything the server holds on an account to one .zip on the
+        server's disk: mail as mbox per folder, contacts as vCard, calendars,
+        preferences, the Sieve script, the log lines naming the address and an
+        account.xml with the rest.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [string] $Address,
+        [Parameter(Mandatory = $true)]
+        [string] $Path
+    )
+    process {
+        Invoke-HmApi -Method POST -Path ("/api/v1/accounts/" + [uri]::EscapeDataString($Address) + "/export") -Body @{ archive = $Path }
+    }
+}
+
+function Remove-HmAddressTraces {
+    <#
+    .SYNOPSIS
+        Erases every stored trace of an address that deleting its account
+        leaves; with -IncludeArchive the archive tree (held copies excepted),
+        with -IncludeLogs the log lines rewritten.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
+        [string] $Address,
+        [switch] $IncludeArchive,
+        [switch] $IncludeLogs
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess($Address, 'Erase every stored trace of the address')) {
+            Invoke-HmApi -Method POST -Path '/api/v1/addresses/erase' -Body @{ address = $Address; include_archive = [bool] $IncludeArchive; include_logs = [bool] $IncludeLogs }
+        }
+    }
+}
+
 # ---------------------------------------------------------------------------
 # Aliases, groups
 # ---------------------------------------------------------------------------
@@ -2565,7 +2606,7 @@ Export-ModuleMember -Function @(
     'Connect-HmServer', 'Disconnect-HmServer', 'Get-HmSession', 'Invoke-HmApi', 'Get-HmCollection',
     'Get-HmStatus',
     'Get-HmDomain', 'New-HmDomain', 'Set-HmDomain', 'Remove-HmDomain',
-    'Get-HmAccount', 'New-HmAccount', 'Set-HmAccount', 'Remove-HmAccount',
+    'Get-HmAccount', 'New-HmAccount', 'Set-HmAccount', 'Remove-HmAccount', 'Export-HmAccountArchive', 'Remove-HmAddressTraces',
     'Get-HmAlias', 'New-HmAlias', 'Remove-HmAlias',
     'Get-HmSpamTrap', 'Add-HmSpamTrap', 'Remove-HmSpamTrap', 'Get-HmSpamTrapHit', 'Clear-HmSpamTrapHit',
     'Get-HmGroup', 'New-HmGroup', 'Remove-HmGroup', 'Get-HmGroupMember', 'Add-HmGroupMember', 'Remove-HmGroupMember',
