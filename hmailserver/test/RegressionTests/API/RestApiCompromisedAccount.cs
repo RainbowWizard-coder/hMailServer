@@ -43,6 +43,16 @@ namespace RegressionTests.API
 
       private readonly List<string> _locked = new List<string>();
 
+      // The newest alert event when this test started. The alert events live in
+      // the database and nothing empties them - there is no route that does, and
+      // this fixture is reachable over REST alone - so a bench that has run this
+      // fixture before still holds the alerts the last run raised, for the same
+      // addresses this run makes again. Every assertion about account.compromised
+      // counts from this mark, and so counts what THIS test raised: without it
+      // the second run of the fixture on a bench found the watch-mode alert twice
+      // and read "one alert for the surge, not one per message" as broken.
+      private static long _alertBaseline;
+
       [SetUp]
       public void StartRestApi()
       {
@@ -52,6 +62,7 @@ namespace RegressionTests.API
          Assert.AreEqual(200, Admin("GET", "/api/v1/status", null).status, "REST API did not answer /api/v1/status.");
 
          _locked.Clear();
+         _alertBaseline = NewestEventId();
 
          // Three messages to three strangers are the shape; the mode is each test's.
          (int status, string body) floors = Admin("PUT", "/api/v1/settings", "{\"compromise_volume_floor\":3,\"compromise_recipient_floor\":3,\"alerts_enabled\":true}");
@@ -484,7 +495,23 @@ namespace RegressionTests.API
          return loggedOn;
       }
 
-      /// <summary>The newest account.compromised event, or null.</summary>
+      /// <summary>The id of the newest alert event of any condition, or 0.</summary>
+      private static long NewestEventId()
+      {
+         (int status, string body) = Admin("GET", "/api/v1/alerts/events?limit=1", null);
+         Assert.AreEqual(200, status, body);
+
+         foreach (Dictionary<string, object> entry in MiniJson.List(MiniJson.Object(body), "events").Cast<Dictionary<string, object>>())
+            return Convert.ToInt64(entry["id"]);
+
+         return 0;
+      }
+
+      /// <summary>
+      ///    The newest account.compromised event this test raised, or null when it
+      ///    raised none. Anything older than the baseline is another test's, or an
+      ///    earlier run's on the same bench.
+      /// </summary>
       private static Dictionary<string, object> NewestAlert()
       {
          (int status, string body) = Admin("GET", "/api/v1/alerts/events?limit=50", null);
@@ -492,21 +519,26 @@ namespace RegressionTests.API
 
          foreach (Dictionary<string, object> entry in MiniJson.List(MiniJson.Object(body), "events").Cast<Dictionary<string, object>>())
          {
-            if ((string) entry["condition"] == "account.compromised")
+            if ((string) entry["condition"] == "account.compromised" && Convert.ToInt64(entry["id"]) > _alertBaseline)
                return entry;
          }
 
          return null;
       }
 
-      /// <summary>How many account.compromised events name the address.</summary>
+      /// <summary>
+      ///    How many account.compromised events this test raised that name the
+      ///    address - those past the baseline, and no others.
+      /// </summary>
       private static int CountAlerts(string address)
       {
          (int status, string body) = Admin("GET", "/api/v1/alerts/events?limit=200", null);
          Assert.AreEqual(200, status, body);
 
          return MiniJson.List(MiniJson.Object(body), "events").Cast<Dictionary<string, object>>()
-            .Count(entry => (string) entry["condition"] == "account.compromised" && ((string) entry["summary"]).Contains(address));
+            .Count(entry => (string) entry["condition"] == "account.compromised" &&
+                            Convert.ToInt64(entry["id"]) > _alertBaseline &&
+                            ((string) entry["summary"]).Contains(address));
       }
 
       // -- OAuth2 bearer tokens, as Security/OAuth2Bearer.cs mints and presents them --
