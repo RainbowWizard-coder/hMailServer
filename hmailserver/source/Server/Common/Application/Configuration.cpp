@@ -245,6 +245,10 @@ namespace HM
       // keeps a copy of everything a person deletes for as long as it says.
       property_set_->EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
 
+      // Offline in the webmail: the last thirty days, as the roadmap row says;
+      // the reader chooses under it, and chooses nothing until they do.
+      property_set_->EnsureLong(PROPERTY_READER_OFFLINE_DAYS_MAX, 30);
+
       // Messages that expire: no base URL of their own until one is set; the
       // digest's or the import sign-in's serves until then.
       property_set_->EnsureString(PROPERTY_CONFIDENTIAL_BASE_URL, _T(""));
@@ -526,6 +530,18 @@ namespace HM
    Configuration::SetRecoverDeletedDays(int days)
    {
       GetSettings()->SetLong(PROPERTY_RECOVER_DELETED_DAYS, days);
+   }
+
+   int
+   Configuration::GetReaderOfflineDaysMax() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_READER_OFFLINE_DAYS_MAX);
+   }
+
+   void
+   Configuration::SetReaderOfflineDaysMax(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_READER_OFFLINE_DAYS_MAX, days);
    }
 
    String

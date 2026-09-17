@@ -644,6 +644,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRecoverable.cpp" />
     <ClCompile Include="..\Common\Util\ConfidentialMessages.cpp" />
     <ClCompile Include="..\Common\Util\RestApiConfidential.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiOffline.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMaskedAddresses.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSenderAddresses.cpp" />
     <ClCompile Include="..\Common\Util\SenderAddresses.cpp" />

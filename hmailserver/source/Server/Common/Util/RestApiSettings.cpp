@@ -835,6 +835,17 @@ namespace
            return String();
         } },
 
+      // Offline in the webmail (Util/RestApiOffline.cpp).
+      { "reader_offline_days_max", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most days of mail a reader may keep in their browser for reading and searching without a connection: the bodies and attachments of the messages received within that many days, in the browser's own storage, chosen by the reader under this ceiling on the webmail's Settings page and kept nowhere until they choose. 30 by default; 0 offers none, and the webmail then keeps only the inbox listing and the last opened messages as it always has. At most 365. What is kept lives in the browser it was kept in and is removed at sign-out.",
+        ROW_NUMBER(Config()->GetReaderOfflineDaysMax()), ROW_SET(Config()->SetReaderOfflineDaysMax((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 0 || v.number > 365)
+              return String(_T("reader_offline_days_max is between 0 and 365."));
+           return String();
+        } },
+
       // Messages that expire (Util/ConfidentialMessages.h): where the link in
       // the notice points. The same shape as the digest's base URL, and the
       // digest's or the import sign-in's serves when this one is empty.

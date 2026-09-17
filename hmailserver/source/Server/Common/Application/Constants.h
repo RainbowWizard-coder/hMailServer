@@ -179,6 +179,9 @@
 #define PROPERTY_READER_SENDER_ADDRESSES_MAX    _T("ReaderSenderAddressesMax")
 #define PROPERTY_READER_MASKED_ADDRESSES_MAX    _T("ReaderMaskedAddressesMax")
 #define PROPERTY_RECOVER_DELETED_DAYS           _T("RecoverDeletedDays")
+// Offline in the webmail (Util/RestApiOffline.cpp): the most days of bodies
+// and attachments a reader may keep in their browser; 0 offers none.
+#define PROPERTY_READER_OFFLINE_DAYS_MAX        _T("ReaderOfflineDaysMax")
 // Messages that expire (Util/ConfidentialMessages.h): the absolute address the
 // links in the notices are written against. Empty falls back to the digest's
 // and then the import sign-in's base URL; with none set, none can be sent.

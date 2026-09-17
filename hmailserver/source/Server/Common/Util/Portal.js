@@ -370,7 +370,14 @@
   };
   var loadFolders = function () {
     return call('GET', '/api/v1/me/folders').then(function (result) {
-      if (result.status === 200 && result.data) { renderFolders(result.data); renderQuickSteps(); }
+      if (result.status === 200 && result.data) {
+        renderFolders(result.data);
+        renderQuickSteps();
+        // The tree goes into the offline store too, so a page opened with no
+        // connection has folders to show the kept messages under.
+        folderTreeLast = result.data;
+        if (offline.days) { metaPut('folders', result.data); }
+      }
       return result;
     });
   };
@@ -847,12 +854,20 @@
     if (current) { listRows.forEach(function (r) { r.row.classList.toggle('open', r.id === current.id || (r.ids || []).indexOf(current.id) >= 0); }); }
   };
   var listingKey = function () { return state.everywhere + '|' + state.folderId + '|' + state.query + '|' + state.before; };
+  // No connection: the inbox listing the last visit saved, else whatever the
+  // offline store holds for this folder - or, for a search, the kept messages
+  // whose subject, sender or text carry the words.
   var loadMessagesOffline = function (result) {
-    if (result.status !== 0 || state.everywhere || state.query || state.before || state.folderId !== inboxId) { return false; }
-    var saved = offlineRead('list');
-    if (!saved) { return false; }
-    offlineNote(true);
-    renderMessages(saved);
+    if (result.status !== 0) { return false; }
+    if (!state.everywhere && !state.query && !state.before && state.folderId === inboxId) {
+      var saved = offlineRead('list');
+      if (saved) { offlineNote(true); renderMessages(saved); return true; }
+    }
+    if (state.before) { return false; }
+    offlineListing().then(function (page) {
+      if (page) { offlineNote(true); renderMessages(page); }
+      else { say('mail-status', describe(result, t('Could not read the folder')), false); }
+    });
     return true;
   };
   var loadMessages = function () {
@@ -1178,15 +1193,21 @@
       renderMessage(data);
       if (!data.flags.seen) { setFlags({ seen: true }, true); }
       offlineKeep('m' + data.id, data);
+      offlineKeepMessage(data);
       return data;
     };
     if (prefetched[id]) { var ready = prefetched[id]; delete prefetched[id]; return Promise.resolve(show(ready)); }
     return call('GET', '/api/v1/me/messages/' + id).then(function (result) {
       if (result.status === 200 && result.data) { return show(result.data); }
-      var saved = result.status === 0 ? offlineRead('m' + id) : null;
+      if (result.status !== 0) { say('mail-status', describe(result, t('Could not open the message')), false); return null; }
+      // No connection: one of the last opened, else one the offline store holds.
+      var saved = offlineRead('m' + id);
       if (saved) { offlineNote(true); return show(saved); }
-      say('mail-status', describe(result, t('Could not open the message')), false);
-      return null;
+      return offlineMessage(id).then(function (kept) {
+        if (kept) { offlineNote(true); return show(kept); }
+        say('mail-status', describe(result, t('Could not open the message')), false);
+        return null;
+      });
     });
   };
   var setFlags = function (flags, quiet) {
@@ -1195,6 +1216,7 @@
     return call('PUT', '/api/v1/me/messages/' + id + '/flags', flags).then(function (result) {
       if (result.status === 200 && result.data) {
         if (current && current.id === id) { current.flags = result.data.flags; renderActions(); }
+        if (offline.days) { offlineFlagsSync({ id: id, flags: result.data.flags, folder_id: 0 }); }
         loadFolders();
         return;
       }
@@ -1625,6 +1647,8 @@
           loadFolders().then(function () {
             if (!el('mail-section').hidden && !el('message-list').hidden) { reloadKeepingPlace(); }
           });
+          // What this browser keeps for reading offline follows the change too.
+          offlineFillSoon();
         }
       } else if (result.status === 404 || result.status === 403) {
         // An older server, serving this page with no change route behind it -
@@ -1828,7 +1852,7 @@
     }
     if (head === 'held') { showPanel('quarantine-section', 'Held as suspected spam'); markNav('/held'); loadQuarantine(); return; }
     if (head === 'folders') { showPanel('folders-section', 'Manage folders'); markNav('/folders'); renderFolderAdmin(); return; }
-    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); return; }
+    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); loadOffline(); return; }
     if (head === 'filters') { showPanel('filter-section', 'Filters'); markNav('/filters'); renderColourRules(); return; }
     if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadContacts(); return; }
     if (head === 'calendar') { showPanel('calendar-section', t('Calendar')); markNav('/calendar'); openCalendar(r.params); return; }
@@ -1960,6 +1984,9 @@
       if (result.status === 200 && result.data) {
         me = String(result.data.address || '').toLowerCase();
         smimeViaAppPassword = result.data.via_app_password === true;
+        offline.only = false;
+        offlineRetryStop();
+        offlineNote(false);
         render(result.data);
         loadQuarantine();
         loadSettings();
@@ -1973,9 +2000,14 @@
           else { route(); }
           probeNow();
           followUpsCheck();
+          loadOffline();
           return true;
         });
       }
+      // The server could not be reached at all, and this browser holds mail
+      // kept for reading offline: show that, and ask again when the
+      // connection is back. A refusal - a session that ended - is not this.
+      if (result.status === 0 && offlineOwner()) { enterOffline(); return false; }
       if (!quiet) { say('signin-status', describe(result, t('Could not sign in')), false); }
       pending = parseHash().hash;
       showSignIn();
@@ -4025,7 +4057,7 @@
     offlineWrite(d);
   };
   var offlineRead = function (key) { var d = offlineData(); return d.items && d.items[key] ? d.items[key] : null; };
-  var offlineForget = function () { try { localStorage.removeItem('hmPortalOffline'); } catch (e) { /* nothing to forget */ } };
+  var offlineForget = function () { try { localStorage.removeItem('hmPortalOffline'); } catch (e) { /* nothing to forget */ } offlineForgetAll(); };
   var offlineNote = function (on) { el('offline-note').hidden = !on; };
   var outboxAdd = function (body) { var d = offlineData(); d.outbox = d.outbox || []; d.outbox.push(body); offlineWrite(d); };
   var outboxFlush = function () {
@@ -4045,12 +4077,474 @@
       });
     });
   };
-  window.addEventListener('online', function () { offlineNote(false); outboxFlush(); });
+  window.addEventListener('online', function () {
+    offlineNote(false);
+    // A page that was opened with no connection now has one: the account is
+    // asked for as it is at every start, and the kept mail gives way to the real thing.
+    if (offline.only) { offlineRetryStop(); load(true); return; }
+    outboxFlush();
+    offlineFill();
+  });
   window.addEventListener('offline', function () { offlineNote(true); });
   if (typeof navigator !== 'undefined' && navigator.serviceWorker && navigator.serviceWorker.register) {
     navigator.serviceWorker.register('/portal-sw.js').then(function () { pushWords(); }).catch(function () { /* the page works without it */ });
   }
   var setTimeout0 = function (fn) { if (typeof window.requestAnimationFrame === 'function') { window.requestAnimationFrame(fn); } };
+
+  // ---- Offline for the last N days, Gmail's offline mail: the bodies and
+  // attachments of the messages received within the window the reader chose -
+  // under the ceiling the administrator set - kept in the browser's IndexedDB
+  // as they are opened and in the background, read and searched without a
+  // connection, forgotten at sign-out. The server's part is GET/PUT
+  // /api/v1/me/offline (the ceiling, the choice, the window's start) and
+  // /api/v1/me/offline/messages, the listing the store is filled from and
+  // pruned by; the service worker answers a kept message's HTML body and
+  // attachments out of the same store when the network fails. Four stores:
+  // rows (what a listing and a search need, read whole), messages (the body
+  // JSON and the keys of its parts), parts (the HTML document and the
+  // attachments as blobs) and meta (the folder tree). It lives in this
+  // browser: the Settings card says so, counts it, and clears it.
+  var OFFLINE_DB = 'hmPortalOffline';
+  var OFFLINE_PART_EACH = 8 * 1024 * 1024;       // an attachment above this is not kept
+  var OFFLINE_MESSAGE_MOST = 32 * 1024 * 1024;   // and a message's parts together stop here
+  var OFFLINE_SLICE = 25;                        // bodies fetched per background run
+  var OFFLINE_STEPS = [7, 14, 30, 60, 90, 180, 365];
+  var offline = { ceiling: 0, days: 0, since: '', count: 0, bytes: 0, kept: 0, keptBytes: 0, walked: false, filling: false, again: false, full: false, only: false, retry: 0, quota: null };
+  var offlineRows = null;   // id -> the rows record, read once from the store and kept in step with it
+  var folderTreeLast = null;   // the tree as the server last listed it, for the store
+  var offlineDbPromise = null;
+  var offlineSchema = function (db) {
+    ['rows', 'messages', 'parts', 'meta'].forEach(function (name) {
+      if (!db.objectStoreNames.contains(name)) { db.createObjectStore(name, { keyPath: name === 'parts' || name === 'meta' ? 'key' : 'id' }); }
+    });
+  };
+  var offlineDb = function () {
+    if (offlineDbPromise) { return offlineDbPromise; }
+    offlineDbPromise = new Promise(function (resolve) {
+      if (typeof indexedDB === 'undefined' || !indexedDB || !indexedDB.open) { resolve(null); return; }
+      var request;
+      try { request = indexedDB.open(OFFLINE_DB, 1); } catch (e) { resolve(null); return; }
+      request.onupgradeneeded = function () { offlineSchema(request.result); };
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { resolve(null); };
+      request.onblocked = function () { resolve(null); };
+    });
+    return offlineDbPromise;
+  };
+  // One request on one store, as a promise; a store that cannot be reached
+  // answers null, and nothing here throws at a browser without the API.
+  var idb = function (store, mode, act) {
+    return offlineDb().then(function (db) {
+      if (!db) { return null; }
+      return new Promise(function (resolve) {
+        var request;
+        try { request = act(db.transaction(store, mode).objectStore(store)); } catch (e) { resolve(null); return; }
+        request.onsuccess = function () { resolve(request.result === undefined ? null : request.result); };
+        request.onerror = function () { resolve(null); };
+      });
+    });
+  };
+  var metaGet = function (key) { return idb('meta', 'readonly', function (s) { return s.get(key); }).then(function (r) { return r ? r.value : null; }); };
+  var metaPut = function (key, value) { return idb('meta', 'readwrite', function (s) { return s.put({ key: key, value: value }); }); };
+  var offlineOwner = function () { try { return localStorage.getItem('hmPortalOfflineOwner') || ''; } catch (e) { return ''; } };
+  var offlineOwnerWrite = function (address) { try { if (address) { localStorage.setItem('hmPortalOfflineOwner', address); } else { localStorage.removeItem('hmPortalOfflineOwner'); } } catch (e) { /* a browser that keeps nothing */ } };
+  var offlineTally = function () {
+    var n = 0, b = 0;
+    Object.keys(offlineRows || {}).forEach(function (k) { n++; b += offlineRows[k].bytes || 0; });
+    offline.kept = n; offline.keptBytes = b;
+  };
+  var offlineRowsRead = function () {
+    if (offlineRows) { return Promise.resolve(offlineRows); }
+    return idb('rows', 'readonly', function (s) { return s.getAll(); }).then(function (all) {
+      offlineRows = {};
+      (all || []).forEach(function (r) { if (r && r.id) { offlineRows[r.id] = r; } });
+      offlineTally();
+      return offlineRows;
+    });
+  };
+  var offlineWithin = function (received) { return !!offline.since && String(received || '') >= offline.since; };
+  // The text a search looks through: subject, sender, recipients and the
+  // body - the plain part, or the words of the HTML one.
+  var offlineWords = function (m) {
+    var text = m.text || '';
+    if (!text && m.html) { try { text = new DOMParser().parseFromString(m.html, 'text/html').body.textContent || ''; } catch (e) { text = ''; } }
+    return ((m.subject || '') + '\n' + (m.from || '') + '\n' + (m.to || '') + '\n' + (m.cc || '') + '\n' + text).toLowerCase();
+  };
+  // The listing row the folder view draws, from the message's own JSON.
+  var offlineRowOf = function (m) {
+    var text = m.text || '';
+    if (!text && m.html) { try { text = new DOMParser().parseFromString(m.html, 'text/html').body.textContent || ''; } catch (e) { text = ''; } }
+    return { id: m.id, uid: m.uid, folder_id: m.folder_id, size: m.size, received: m.received, subject: m.subject || '', from: m.from || '', to: m.to || '', date: m.date || '',
+             flags: m.flags, message_id: m.message_id || '', references: m.references || '', in_reply_to: m.in_reply_to || '', has_attachments: !!(m.attachments || []).length,
+             snippet: text.replace(/\s+/g, ' ').trim().slice(0, 120), brand: m.brand || '', category: m.category || '',
+             // The attachments' names, for filename: asked with no connection.
+             names: (m.attachments || []).map(function (a) { return String(a.name || '').toLowerCase(); }).join('\n') };
+  };
+  var offlineFetchPart = function (url) {
+    return fetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+      if (response.status !== 200) { return null; }
+      return response.blob().then(function (blob) { return { blob: blob, type: response.headers.get('Content-Type') || blob.type || 'application/octet-stream' }; });
+    }, function () { return null; });
+  };
+  // The HTML document the server renders for the message (its cid: images
+  // inlined) and the attachments, each within a size and all within a budget.
+  var offlineParts = function (m) {
+    var wanted = [];
+    if (m.html) { wanted.push({ key: m.id + '/html', url: '/api/v1/me/messages/' + m.id + '/html', size: m.html.length, name: '' }); }
+    var budget = OFFLINE_MESSAGE_MOST;
+    (m.attachments || []).forEach(function (a) {
+      if (a.size > OFFLINE_PART_EACH || a.size > budget) { return; }
+      budget -= a.size;
+      wanted.push({ key: m.id + '/' + a.index, url: '/api/v1/me/messages/' + m.id + '/attachments/' + a.index, size: a.size, name: a.name || '' });
+    });
+    var keys = [], bytes = 0;
+    var chain = Promise.resolve();
+    wanted.forEach(function (w) {
+      chain = chain.then(function () {
+        return offlineFetchPart(w.url).then(function (part) {
+          if (!part) { return; }
+          return idb('parts', 'readwrite', function (s) { return s.put({ key: w.key, id: m.id, type: part.type, name: w.name, blob: part.blob }); }).then(function (ok) {
+            if (ok !== null) { keys.push(w.key); bytes += (part.blob && part.blob.size) || w.size || 0; }
+          });
+        });
+      });
+    });
+    return chain.then(function () { return { keys: keys, bytes: bytes }; });
+  };
+  // A message the reader opened, or the background run fetched: kept when the
+  // window covers it. One already kept has only its flags brought up to date.
+  var offlineKeepMessage = function (m) {
+    if (!offline.days || !m || !m.id || m.truncated || !offlineWithin(m.received)) { return Promise.resolve(false); }
+    return offlineRowsRead().then(function (rows) {
+      if (rows[m.id]) { return offlineFlagsSync(m); }
+      return offlineParts(m).then(function (parts) {
+        var row = { id: m.id, folder_id: m.folder_id, received: m.received, bytes: (m.size || 0) + parts.bytes, row: offlineRowOf(m), words: offlineWords(m) };
+        return idb('messages', 'readwrite', function (s) { return s.put({ id: m.id, data: m, parts: parts.keys }); }).then(function (ok) {
+          if (ok === null) { return false; }
+          return idb('rows', 'readwrite', function (s) { return s.put(row); }).then(function (ok2) {
+            if (ok2 === null) { return false; }
+            rows[m.id] = row;
+            if (offline.quota) { offline.quota.usage += row.bytes; }
+            offlineTally();
+            renderOfflineCard();
+            return true;
+          });
+        });
+      });
+    });
+  };
+  // A flag or a folder that moved on the server, or was moved from this page.
+  var offlineFlagsSync = function (m) {
+    return offlineRowsRead().then(function (rows) {
+      var row = rows[m.id];
+      if (!row) { return false; }
+      var seen = !!(m.flags && m.flags.seen), flagged = !!(m.flags && m.flags.flagged);
+      var folderId = m.folder_id || row.folder_id;
+      if (row.row.flags && !!row.row.flags.seen === seen && !!row.row.flags.flagged === flagged && row.folder_id === folderId) { return true; }
+      row.row.flags = m.flags || row.row.flags;
+      row.folder_id = folderId; row.row.folder_id = folderId;
+      return idb('rows', 'readwrite', function (s) { return s.put(row); }).then(function () {
+        return idb('messages', 'readonly', function (s) { return s.get(m.id); });
+      }).then(function (record) {
+        if (!record || !record.data) { return true; }
+        record.data.flags = row.row.flags; record.data.folder_id = folderId;
+        return idb('messages', 'readwrite', function (s) { return s.put(record); }).then(function () { return true; });
+      });
+    });
+  };
+  var offlineDrop = function (id) {
+    return idb('messages', 'readonly', function (s) { return s.get(id); }).then(function (record) {
+      var chain = Promise.resolve();
+      ((record && record.parts) || []).forEach(function (key) { chain = chain.then(function () { return idb('parts', 'readwrite', function (s) { return s.delete(key); }); }); });
+      return chain.then(function () { return idb('messages', 'readwrite', function (s) { return s.delete(id); }); })
+        .then(function () { return idb('rows', 'readwrite', function (s) { return s.delete(id); }); })
+        .then(function () { if (offlineRows) { delete offlineRows[id]; } offlineTally(); });
+    });
+  };
+  var offlineClear = function () {
+    offlineRows = {};
+    offlineTally();
+    return idb('parts', 'readwrite', function (s) { return s.clear(); })
+      .then(function () { return idb('messages', 'readwrite', function (s) { return s.clear(); }); })
+      .then(function () { return idb('rows', 'readwrite', function (s) { return s.clear(); }); });
+  };
+  // Sign-out: the database goes, and the name of whose mail it held.
+  var offlineForgetAll = function () {
+    offlineRows = null;
+    offline.kept = 0; offline.keptBytes = 0; offline.walked = false; offline.only = false;
+    offlineRetryStop();
+    offlineFillStop();
+    offlineOwnerWrite('');
+    var opened = offlineDbPromise;
+    offlineDbPromise = null;
+    Promise.resolve(opened).then(function (db) {
+      if (db && db.close) { try { db.close(); } catch (e) { /* closed already */ } }
+      try { if (typeof indexedDB !== 'undefined' && indexedDB && indexedDB.deleteDatabase) { indexedDB.deleteDatabase(OFFLINE_DB); } } catch (e) { /* nothing to delete */ }
+    });
+  };
+  var offlineMessage = function (id) {
+    return idb('messages', 'readonly', function (s) { return s.get(id); }).then(function (record) { return record && record.data ? record.data : null; });
+  };
+  // What the browser allows this site, asked once per run and kept in step
+  // as messages are kept, so a slice that will not fit stops before it fails.
+  var offlineEstimate = function () {
+    if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.estimate) { offline.quota = null; return Promise.resolve(null); }
+    return Promise.resolve().then(function () { return navigator.storage.estimate(); }).then(function (e) {
+      offline.quota = e && e.quota ? { usage: Number(e.usage) || 0, quota: Number(e.quota) } : null;
+      return offline.quota;
+    }, function () { offline.quota = null; return null; });
+  };
+  var offlineRoom = function (size) { return !offline.quota || offline.quota.usage + size * 2 < offline.quota.quota * 0.9; };
+  // The reader's window, then the store brought into step with it.
+  var loadOffline = function () {
+    if (offline.only) { return Promise.resolve(); }
+    return call('GET', '/api/v1/me/offline').then(function (result) {
+      // Only an answer that really carries the choice is acted on. A request
+      // that never arrived, a server that could not read the choice (500),
+      // an older server without the route: none of these is a reader who
+      // chose nothing, and what is kept stays as it is until one answers.
+      // Emptying the store on a failed read would throw away a window of
+      // mail over a database that was unreachable for a moment.
+      if (result.status !== 200 || !result.data || typeof result.data.days !== 'number' || typeof result.data.days_max !== 'number') { return; }
+      offline.ceiling = Number(result.data.days_max) || 0;
+      offline.days = Number(result.data.days) || 0;
+      offline.since = offline.days ? String(result.data.since || '') : '';
+      renderOfflineCard();
+      if (offline.days) { offlineOwnerWrite(me); return offlineFill(); }
+      // Nothing chosen - here, or from another browser: whatever was kept goes.
+      offlineOwnerWrite('');
+      return offlineRowsRead().then(function (rows) { if (Object.keys(rows).length) { return offlineClear().then(renderOfflineCard); } });
+    });
+  };
+  var offlineWalk = function (afterId, listed) {
+    return call('GET', '/api/v1/me/offline/messages?after_id=' + afterId + '&limit=500').then(function (result) {
+      if (result.status !== 200 || !result.data) { return null; }
+      var d = result.data;
+      // A listing that says nothing is chosen while this page holds a choice
+      // is not a listing to prune by: a walk that answered nothing would
+      // drop everything. The next GET /api/v1/me/offline settles it.
+      if (!Number(d.days) && offline.days) { return null; }
+      offline.count = Number(d.count) || 0; offline.bytes = Number(d.bytes) || 0;
+      if (d.since) { offline.since = String(d.since); }
+      (d.messages || []).forEach(function (row) { listed[row.id] = row; });
+      if (d.more && Number(d.next_after_id) > afterId) { return offlineWalk(Number(d.next_after_id), listed); }
+      return listed;
+    });
+  };
+  // The background run: what the window no longer holds goes, a flag or a
+  // folder that moved is moved here, then the bodies still missing come in
+  // newest first, a slice at a time, while the browser has room for them.
+  var offlineFill = function () {
+    if (!offline.days || el('account').hidden || offline.only) { return Promise.resolve(); }
+    if (offline.filling) { offline.again = true; return Promise.resolve(); }
+    offline.filling = true;
+    var listed = {};
+    if (folderTreeLast) { metaPut('folders', folderTreeLast); }
+    return Promise.all([offlineRowsRead(), offlineEstimate(), offlineWalk(0, listed)]).then(function (got) {
+      var rows = got[0];
+      if (!got[2]) { return; }
+      var chain = Promise.resolve();
+      Object.keys(rows).forEach(function (id) { if (!listed[id]) { chain = chain.then(function () { return offlineDrop(Number(id)); }); } });
+      Object.keys(listed).forEach(function (id) { if (rows[id]) { chain = chain.then(function () { return offlineFlagsSync(listed[id]); }); } });
+      var missing = Object.keys(listed).filter(function (id) { return !rows[id]; }).map(Number).sort(function (a, b) { return b - a; });
+      offline.full = false;
+      var taken = 0;
+      missing.forEach(function (id) {
+        chain = chain.then(function () {
+          if (taken >= OFFLINE_SLICE || offline.full || el('account').hidden || !offline.days) { return; }
+          if (!offlineRoom(listed[id].size || 0)) { offline.full = true; return; }
+          taken++;
+          return call('GET', '/api/v1/me/messages/' + id).then(function (result) {
+            if (result.status === 200 && result.data) { return offlineKeepMessage(result.data); }
+          });
+        });
+      });
+      return chain.then(function () {
+        offline.walked = true;
+        renderOfflineCard();
+        if (taken >= OFFLINE_SLICE && !offline.full && missing.length > taken) { offline.again = true; }
+      });
+    }).then(function () { offlineFillDone(); }, function () { offlineFillDone(); });
+  };
+  var offlineFillDone = function () {
+    offline.filling = false;
+    if (offline.again) { offline.again = false; offlineAgainTimer = setTimeout(function () { offlineAgainTimer = 0; offlineFill(); }, 1500); }
+  };
+  // A change the probe reports - mail that arrived, a move or a delete made
+  // here or elsewhere - brings the store into step a few seconds later: one
+  // walk for a burst of changes, none while nothing is kept. Both timers are
+  // dropped at sign-out, so no run armed for one account fires for the next.
+  var offlineFillTimer = 0, offlineAgainTimer = 0;
+  var offlineFillStop = function () {
+    if (offlineFillTimer) { clearTimeout(offlineFillTimer); offlineFillTimer = 0; }
+    if (offlineAgainTimer) { clearTimeout(offlineAgainTimer); offlineAgainTimer = 0; }
+    offline.again = false;
+  };
+  var offlineFillSoon = function () {
+    if (!offline.days || offline.only) { return; }
+    if (offlineFillTimer) { clearTimeout(offlineFillTimer); }
+    offlineFillTimer = setTimeout(function () { offlineFillTimer = 0; offlineFill(); }, 5000);
+  };
+  // A size as the reader writes one - 750, 10k, 2M, 1G, with or without a B -
+  // and a span - 7d, 2w, 3m, 1y - as the moment that long ago, in the
+  // received time's own form so the two compare as text; read the way the
+  // server reads them, but on this browser's clock, which is the one there
+  // is with no connection. -1 and '' when the value is not one.
+  var offlineSizeOf = function (value) {
+    var m = /^(\d{1,13})(k|kb|m|mb|g|gb)?$/.exec(value);
+    if (!m) { return -1; }
+    var unit = (m[2] || '').charAt(0);
+    return Number(m[1]) * (unit === 'k' ? 1024 : unit === 'm' ? 1048576 : unit === 'g' ? 1073741824 : 1);
+  };
+  var offlineMomentAgo = function (value) {
+    var m = /^(\d{1,5})([dwmy])$/.exec(value);
+    if (!m || !Number(m[1])) { return ''; }
+    var n = Number(m[1]), d = new Date();
+    if (m[2] === 'd') { d.setDate(d.getDate() - n); } else if (m[2] === 'w') { d.setDate(d.getDate() - 7 * n); } else if (m[2] === 'm') { d.setMonth(d.getMonth() - n); } else { d.setFullYear(d.getFullYear() - n); }
+    var two = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate()) + ' ' + two(d.getHours()) + ':' + two(d.getMinutes()) + ':' + two(d.getSeconds());
+  };
+  // No connection: the kept messages of this folder, or a search over all of
+  // them - the operators this store can answer (from:, to:, subject:, in:,
+  // label:, category:, has:attachment, is:unread and the rest of is:, a
+  // quoted phrase, -word; larger: and smaller: against the size, before:,
+  // after:, older_than: and newer_than: against the received time, filename:
+  // against the kept attachments' names); an operator it cannot (has:link,
+  // in_reply_to:) and a value that is not one let a message through rather
+  // than hide it. OR is ignored.
+  var offlineMatches = function (r, query) {
+    var terms = String(query || '').toLowerCase().match(/"[^"]*"|\S+/g) || [];
+    var row = r.row, words = r.words || '';
+    var keywords = (row.flags && row.flags.keywords) || [];
+    var received = String(row.received || r.received || '');
+    return terms.every(function (term) {
+      if (term === 'or') { return true; }
+      var negative = term.charAt(0) === '-' && term.length > 1;
+      if (negative) { term = term.slice(1); }
+      var at = term.indexOf(':');
+      var key = at > 0 ? term.slice(0, at) : '';
+      var value = (at > 0 ? term.slice(at + 1) : term).replace(/^"|"$/g, '');
+      var hit, size, moment;
+      if (key === 'from') { hit = String(row.from).toLowerCase().indexOf(value) >= 0; }
+      else if (key === 'to' || key === 'cc' || key === 'bcc') { hit = String(row.to).toLowerCase().indexOf(value) >= 0; }
+      else if (key === 'subject') { hit = String(row.subject).toLowerCase().indexOf(value) >= 0; }
+      else if (key === 'in') { hit = folderName(r.folder_id).toLowerCase().indexOf(value) >= 0; }
+      else if (key === 'label') { hit = keywords.some(function (k) { return String(k).toLowerCase() === value; }); }
+      else if (key === 'category') { hit = String(row.category || '').toLowerCase() === value; }
+      else if (key === 'has') { hit = value === 'attachment' ? !!row.has_attachments : true; }
+      else if (key === 'is') {
+        hit = value === 'unread' ? !row.flags.seen : value === 'read' ? !!row.flags.seen : value === 'flagged' ? !!row.flags.flagged : value === 'unflagged' ? !row.flags.flagged
+            : value === 'answered' ? !!row.flags.answered : true;
+      }
+      else if (key === 'larger' || key === 'smaller') { size = offlineSizeOf(value); hit = size < 0 ? true : key === 'larger' ? (row.size || 0) > size : (row.size || 0) < size; }
+      else if (key === 'before' || key === 'after') { hit = !/^\d{4}-\d{2}-\d{2}$/.test(value) ? true : key === 'before' ? received.slice(0, 10) < value : received.slice(0, 10) > value; }
+      else if (key === 'older_than' || key === 'newer_than') { moment = offlineMomentAgo(value); hit = !moment ? true : key === 'older_than' ? received < moment : received >= moment; }
+      else if (key === 'filename') { hit = typeof row.names !== 'string' ? true : !!value && row.names.indexOf(value) >= 0; }
+      else if (key) { hit = true; }
+      else { hit = words.indexOf(value) >= 0; }
+      return negative ? !hit : hit;
+    });
+  };
+  var offlineListing = function () {
+    return offlineRowsRead().then(function (rows) {
+      var ids = Object.keys(rows).map(Number);
+      if (!ids.length) { return null; }
+      if (!state.query) { ids = ids.filter(function (id) { return rows[id].folder_id === state.folderId; }); }
+      ids.sort(function (a, b) { return b - a; });
+      var hits = ids.map(function (id) { return rows[id]; }).filter(function (r) { return !state.query || offlineMatches(r, state.query); });
+      var page = { total: hits.length, scanned: ids.length, complete: true, more: false, query: state.query, offline: true,
+                   messages: hits.map(function (r) { var row = r.row; row.folder = folderName(r.folder_id); return row; }) };
+      if (!state.query) { page.folder_id = state.folderId; }
+      return page;
+    });
+  };
+  // A page opened with no connection, in a browser that holds mail kept for
+  // exactly that: the account view with the kept folders and messages, no
+  // session asked for, and load() again the moment the connection is back.
+  // "Back" is the browser's online event when the network went, and a timer
+  // when it did not: a listener that is restarting, or a proxy that is down,
+  // fails the request the same way with the network up all along, and no
+  // online event will ever come for that. So the account is asked for again
+  // at the probe's slow pace until it answers - with the real thing, or with
+  // a refusal that puts the sign-in gate up - and the probe itself rests
+  // meanwhile, since its answer would be the same.
+  var offlineRetryStop = function () { if (offline.retry) { clearTimeout(offline.retry); offline.retry = 0; } };
+  var offlineRetryArm = function () {
+    offlineRetryStop();
+    offline.retry = setTimeout(function () { offline.retry = 0; if (offline.only) { load(true); } }, probeSlowly);
+  };
+  var enterOffline = function () {
+    var owner = offlineOwner();
+    if (!owner) { return; }
+    probeStop();
+    offlineRetryArm();
+    // Already showing the kept mail: the retry is re-armed and nothing is
+    // drawn again over what the reader is looking at.
+    if (offline.only) { return; }
+    offline.only = true;
+    me = owner;
+    el('who').textContent = owner;
+    el('account-avatar').textContent = initialsOf(owner);
+    el('signin').hidden = true;
+    el('account').hidden = false;
+    offlineNote(true);
+    setProbeState(t('No connection'), true);
+    metaGet('folders').then(function (tree) {
+      if (tree) { renderFolders(tree); }
+      if (pending) { var wanted = pending; pending = ''; replaceWith(wanted); } else { route(); }
+    });
+  };
+  // The Settings card: the choice under the ceiling, what is kept and how
+  // much, whether the window will fit, and a way to clear it.
+  var renderOfflineCard = function () {
+    var select = el('pref-offline-days');
+    clear(select);
+    var steps = OFFLINE_STEPS.filter(function (n) { return n <= offline.ceiling; });
+    if (offline.ceiling && steps.indexOf(offline.ceiling) < 0) { steps.push(offline.ceiling); }
+    if (offline.days && steps.indexOf(offline.days) < 0) { steps.push(offline.days); }
+    steps.sort(function (a, b) { return a - b; });
+    var off = document.createElement('option'); off.value = '0'; off.textContent = t('Nothing beyond the inbox listing'); select.appendChild(off);
+    steps.forEach(function (n) { var o = document.createElement('option'); o.value = String(n); o.textContent = tf('The last {0} days', n); select.appendChild(o); });
+    select.value = String(offline.days);
+    el('offline-form').hidden = !offline.ceiling;
+    el('offline-off').hidden = !!offline.ceiling;
+    el('offline-clear').hidden = !offline.kept;
+    var kept = el('offline-kept');
+    if (!offline.days) { kept.textContent = offline.kept ? tf('{0} messages are still kept here.', offline.kept) : ''; }
+    else if (!offline.walked) { kept.textContent = tf('{0} messages are kept here, {1}.', offline.kept, format(offline.keptBytes)); }
+    else { kept.textContent = tf('{0} of the {1} messages of the last {2} days are kept here, {3}.', offline.kept, offline.count, offline.days, format(offline.keptBytes)); }
+    if (offline.quota && offline.days) { kept.textContent += ' ' + tf('This browser allows this site about {0}.', format(offline.quota.quota)); }
+    var room = el('offline-room');
+    var free = offline.quota ? Math.max(0, offline.quota.quota * 0.9 - offline.quota.usage + offline.keptBytes) : 0;
+    var fits = !offline.quota || !offline.walked || offline.bytes * 1.5 <= free;
+    room.hidden = !offline.days || fits;
+    room.textContent = room.hidden ? '' : tf('The last {0} days are about {1} and this browser has room for about {2}: the newest are kept and the rest are not.', offline.days, format(offline.bytes), format(free));
+  };
+  el('offline-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var days = Number(el('pref-offline-days').value) || 0;
+    call('PUT', '/api/v1/me/offline', { days: days }).then(function (result) {
+      if (result.status !== 200 || !result.data) { say('offline-status', describe(result, t('Could not save the choice')), false); return; }
+      offline.ceiling = Number(result.data.days_max) || 0;
+      offline.days = Number(result.data.days) || 0;
+      offline.since = offline.days ? String(result.data.since || '') : '';
+      offline.walked = false;
+      say('offline-status', offline.days ? t('Saved. The mail is being kept as you read, and in the background.') : t('Saved. Nothing more is kept in this browser.'), true);
+      renderOfflineCard();
+      if (offline.days) { offlineOwnerWrite(me); offlineFill(); }
+      else { offlineOwnerWrite(''); offlineClear().then(renderOfflineCard); }
+    });
+  });
+  // Clear: what is kept goes now, and the choice goes to nothing, so it does
+  // not come straight back.
+  el('offline-clear').addEventListener('click', function () {
+    call('PUT', '/api/v1/me/offline', { days: 0 }).then(function (result) {
+      if (result.status !== 200) { say('offline-status', describe(result, t('Could not save the choice')), false); return; }
+      offline.days = 0; offline.since = ''; offline.walked = false;
+      offlineOwnerWrite('');
+      offlineClear().then(function () { renderOfflineCard(); say('offline-status', t('Cleared. Nothing more is kept in this browser until you choose again.'), true); });
+    });
+  });
 
   // ---- Later: send later, snooze, what is scheduled ----------------------------
   var pad2 = function (n) { return (n < 10 ? '0' : '') + n; };

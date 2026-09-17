@@ -1121,6 +1121,19 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </form>
 </div>
 <div class="card">
+<h2>Offline in this browser</h2>
+<p class="note">The mail of the last days you choose - the text, the formatting and the attachments - is kept in this browser's own storage, so it can be read and searched with no connection, and a message written then is sent when one is back. It lives in this browser and nowhere else: anyone who can open this browser can read it, and signing out removes it.</p>
+<form id="offline-form" class="row" hidden>
+<div style="flex:1;min-width:12rem"><label for="pref-offline-days">Keep for reading offline</label><select id="pref-offline-days"></select></div>
+<div style="align-self:flex-end"><button class="btn" type="submit">Save</button></div>
+</form>
+<p class="note" id="offline-off" hidden>Your administrator has switched offline mail off for this server. The inbox listing and the last messages you opened are still kept for reading without a connection.</p>
+<p class="note" id="offline-kept"></p>
+<p class="note" id="offline-room" hidden></p>
+<div class="row"><button class="btn ghost sm" id="offline-clear" type="button" hidden>Clear what is kept</button></div>
+<div id="offline-status" class="status" aria-live="polite"></div>
+</div>
+<div class="card">
 <h2>Notifications on this device</h2>
 <p class="note">A notification can reach this phone or browser even when the page is closed. What it may say is your choice, and each device is asked separately.</p>
 <div class="row"><button class="btn" type="button" id="push-subscribe">Turn notifications on for this device</button></div>

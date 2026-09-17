@@ -357,6 +357,9 @@ namespace HM
          RouteMeRecoverableDelete,
          RouteMeConfidential,
          RouteMeConfidentialRevoke,
+         RouteMeOffline,
+         RouteMeOfflinePut,
+         RouteMeOfflineMessages,
          RouteMeDraftSchedule,
          RouteMeDraftUnschedule,
          RouteMeMessageSnooze,
@@ -1027,6 +1030,19 @@ namespace HM
       static HttpResponse HandleSettingsPushPut_(const AnsiString &requestBody);
       static HttpResponse HandleSettingsPushVapid_();
       static AnsiString PreferencesJson_(__int64 accountId);
+      // One preference read or written from another route (RestApiPreferences.cpp).
+      // The read is false when the query failed - which is not the same as no
+      // row: a route that treats a failed read as "nothing chosen" would have
+      // the page act on a choice nobody made - and true with the empty string
+      // when there is none. The write is false when it failed; full says
+      // whether that was the hundred-preference cap, which is the reader's
+      // to answer (400) rather than the server's (500).
+      static bool ReadPreference_(__int64 accountId, const String &name, String &value);
+      static bool WritePreference_(__int64 accountId, const String &name, const String &value, bool &full);
+      // Offline in the webmail: the reader's window under the administrator's
+      // ceiling, and the listing the page fills its store from (RestApiOffline.cpp).
+      static HttpResponse HandleMeOffline_(const Caller &caller, RouteKind kind, const AnsiString &query, const AnsiString &requestBody);
+      static AnsiString OpenApiOfflinePaths_();
 
       // Archive, Junk and Trash as actions: a designated folder made on demand,
       // spamd taught by a move into or out of Junk, a Junk or Trash folder

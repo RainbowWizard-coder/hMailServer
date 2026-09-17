@@ -75,6 +75,78 @@ self.addEventListener('notificationclick', function (e) {
 // notifications on again.
 self.addEventListener('pushsubscriptionchange', function () { /* the page recovers this */ });
 
+// ---- Offline ------------------------------------------------------------------
+//
+// The page keeps the bodies and attachments of the last N days in IndexedDB
+// (hmPortalOffline, the parts store: '<id>/html' is the HTML document the server
+// rendered for the message, '<id>/<n>' its n-th attachment). A message's HTML is
+// shown in a frame whose source is the server's route, and an attachment is a
+// link to its route; when the network fails, this answers both out of that
+// store, under the headers the server sends them with, so a kept message reads
+// offline exactly as it read online. The network is always tried first: the
+// store is a fallback, never a cache that could show a stale part.
+var OFFLINE_DB = 'hmPortalOffline';
+var OFFLINE_PART = /^\/api\/v1\/me\/messages\/(\d+)\/(html|attachments\/(\d+))$/;
+var OFFLINE_HTML_POLICY = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox allow-popups allow-popups-to-escape-sandbox; form-action 'none'; base-uri 'none'; frame-ancestors 'self'";
+function offlineDb() {
+  return new Promise(function (resolve) {
+    if (typeof indexedDB === 'undefined' || !indexedDB || !indexedDB.open) { resolve(null); return; }
+    var request;
+    try { request = indexedDB.open(OFFLINE_DB, 1); } catch (e) { resolve(null); return; }
+    // The same four stores the page makes, so whichever opens first leaves
+    // the other nothing to upgrade.
+    request.onupgradeneeded = function () {
+      var db = request.result;
+      ['rows', 'messages', 'parts', 'meta'].forEach(function (name) {
+        if (!db.objectStoreNames.contains(name)) { db.createObjectStore(name, { keyPath: name === 'parts' || name === 'meta' ? 'key' : 'id' }); }
+      });
+    };
+    request.onsuccess = function () { resolve(request.result); };
+    request.onerror = function () { resolve(null); };
+    request.onblocked = function () { resolve(null); };
+  });
+}
+function offlinePart(key) {
+  return offlineDb().then(function (db) {
+    if (!db) { return null; }
+    return new Promise(function (resolve) {
+      var request;
+      try { request = db.transaction('parts', 'readonly').objectStore('parts').get(key); } catch (e) { resolve(null); return; }
+      request.onsuccess = function () { resolve(request.result || null); };
+      request.onerror = function () { resolve(null); };
+    }).then(function (part) { try { db.close(); } catch (e) { /* closed already */ } return part; });
+  });
+}
+function asciiName(name) {
+  var out = '';
+  var text = String(name || 'attachment');
+  for (var i = 0; i < text.length; i++) {
+    var c = text.charCodeAt(i);
+    out += c >= 32 && c < 127 && text.charAt(i) !== '"' && text.charAt(i) !== '\\' ? text.charAt(i) : '_';
+  }
+  return out || 'attachment';
+}
+function offlineAnswer(match) {
+  var isHtml = match[3] === undefined;
+  var key = match[1] + '/' + (isHtml ? 'html' : match[3]);
+  return offlinePart(key).then(function (part) {
+    if (!part || !part.blob) { return new Response('', { status: 503, headers: { 'Cache-Control': 'no-store' } }); }
+    var headers = {
+      'Content-Type': isHtml ? 'text/html; charset=utf-8' : (part.type || 'application/octet-stream'),
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'no-referrer',
+      'Cache-Control': 'no-store'
+    };
+    if (isHtml) {
+      headers['Content-Security-Policy'] = OFFLINE_HTML_POLICY;
+    } else {
+      headers['Content-Security-Policy'] = 'sandbox';
+      headers['Content-Disposition'] = 'attachment; filename="' + asciiName(part.name) + '"; filename*=UTF-8\'\'' + encodeURIComponent(String(part.name || 'attachment'));
+    }
+    return new Response(part.blob, { status: 200, headers: headers });
+  });
+}
+
 // A share from another app arrives as a POST to the share target. The
 // title, text, link and files go into a cache of their own and the page is
 // sent to a new message, which reads them once and deletes the cache.
@@ -91,6 +163,11 @@ self.addEventListener('fetch', function (e) {
         return Promise.all(puts);
       }).then(function () { return Response.redirect('/portal#/compose?share=1', 303); });
     }).catch(function () { return Response.redirect('/portal#/compose', 303); }));
+    return;
+  }
+  var part = e.request.method === 'GET' ? OFFLINE_PART.exec(url.pathname) : null;
+  if (part) {
+    e.respondWith(fetch(e.request).catch(function () { return offlineAnswer(part); }));
     return;
   }
   if (e.request.method !== 'GET' || SHELL.indexOf(url.pathname) < 0) { return; }

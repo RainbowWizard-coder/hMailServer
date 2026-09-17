@@ -123,6 +123,46 @@ namespace HM
       }
    }
 
+   // A failed query and a missing row are two different answers: the first is
+   // false, and the caller says so; the second is true with nothing in value.
+   bool
+   RestApiServer::ReadPreference_(__int64 accountId, const String &name, String &value)
+   {
+      value.Empty();
+
+      SQLCommand command("select prefvalue from hm_accountprefs where prefaccountid = @ACCOUNTID and prefname = @NAME");
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@NAME", name);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      if (!recordset->IsEOF())
+         value = recordset->GetStringValue("prefvalue");
+
+      return true;
+   }
+
+   // The same cap PUT keeps: a route that writes one key of its own may not
+   // take the hundred-and-first slot either. That refusal is reported apart
+   // from a write that failed, so the route can answer it as PUT
+   // /api/v1/me/preferences does, with a 400 and the same words.
+   bool
+   RestApiServer::WritePreference_(__int64 accountId, const String &name, const String &value, bool &full)
+   {
+      full = false;
+
+      __int64 existing = 0;
+      if (!FindPreference(accountId, name, existing) && CountPreferences(accountId) >= PreferencesPerAccount)
+      {
+         full = true;
+         return false;
+      }
+
+      return WritePreference(accountId, name, value);
+   }
+
    AnsiString
    RestApiServer::PreferencesJson_(__int64 accountId)
    {

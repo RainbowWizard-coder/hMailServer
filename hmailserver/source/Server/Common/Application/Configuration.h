@@ -228,6 +228,11 @@ namespace HM
       int GetRecoverDeletedDays() const;
       void SetRecoverDeletedDays(int days);
 
+      // The most days of mail a reader may keep in their browser for reading
+      // without a connection (RestApiOffline.cpp); 0 offers none.
+      int GetReaderOfflineDaysMax() const;
+      void SetReaderOfflineDaysMax(int days);
+
       // The address the links to messages that expire are written against
       // (ConfidentialMessages.h); empty falls back to the two base URLs below.
       String GetConfidentialBaseUrl() const;

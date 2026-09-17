@@ -2406,6 +2406,11 @@ namespace HM
          case RouteMeConfidentialRevoke:
             return HandleMeConfidential_(caller, route.kind, route.record_id);
 
+         case RouteMeOffline:
+         case RouteMeOfflinePut:
+         case RouteMeOfflineMessages:
+            return HandleMeOffline_(caller, route.kind, route.query, GetRequestBody_(request));
+
          case RouteMeDraftSchedule:
             return HandleMeDraftSchedule_(caller, route.message_id, GetRequestBody_(request));
 
@@ -3063,6 +3068,26 @@ namespace HM
             route.kind = RouteMeRecoverableRestore;
          else if (!restore && method == "DELETE")
             route.kind = RouteMeRecoverableDelete;
+
+         return;
+      }
+
+      // Offline in the webmail: the reader's window, and the listing the page
+      // fills its browser store from.
+      if (path == "/api/v1/me/offline")
+      {
+         if (method == "GET")
+            route.kind = RouteMeOffline;
+         else if (method == "PUT")
+            route.kind = RouteMeOfflinePut;
+
+         return;
+      }
+
+      if (path == "/api/v1/me/offline/messages")
+      {
+         if (method == "GET")
+            route.kind = RouteMeOfflineMessages;
 
          return;
       }
@@ -5185,6 +5210,7 @@ namespace HM
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
       case RouteMeConfidentialRevoke:
+      case RouteMeOfflinePut:
       case RouteMeFileCreate:
       case RouteMeFileContent:
       case RouteMeFileUpdate:
@@ -9153,6 +9179,9 @@ namespace HM
       case RouteMeRecoverableDelete:
       case RouteMeConfidential:
       case RouteMeConfidentialRevoke:
+      case RouteMeOffline:
+      case RouteMeOfflinePut:
+      case RouteMeOfflineMessages:
       case RouteMeAppPasswords:
       case RouteMeAppPasswordCreate:
       case RouteMeAppPasswordDelete:
@@ -14416,6 +14445,7 @@ namespace HM
       openApiJson += OpenApiMaskedAddressesPaths_();
       openApiJson += OpenApiRecoverablePaths_();
       openApiJson += OpenApiConfidentialPaths_();
+      openApiJson += OpenApiOfflinePaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();

@@ -724,6 +724,7 @@
     <Compile Include="API\RestApiMaskedAddresses.cs" />
     <Compile Include="API\RestApiRecoverDeleted.cs" />
     <Compile Include="API\RestApiConfidential.cs" />
+    <Compile Include="API\RestApiOffline.cs" />
     <Compile Include="Infrastructure\PrometheusConventions.cs" />
     <Compile Include="SMTP\DistributionListHeaders.cs" />
     <Compile Include="SMTP\TlsRptInertReporting.cs" />

@@ -363,6 +363,8 @@ let prefsStore = {};
 // A server that does not answer the change route at all - an older one, or one
 // built before that route existed.
 let changesMissing = false;
+// One more change reported by the next probe, whatever step it is at.
+let changeAgain = false;
 // Which account the recorded server answers as. The sign-out checks at the
 // end sign in twice, as two different people in one browser, which is the
 // only way to see what one of them left behind for the other.
@@ -448,7 +450,7 @@ const ARRIVAL = { id: 104, uid: 14, subject: 'Just in', from: 'd@example.net', t
 
 const WITH_IMAGE = {
    id: 102, folder_id: 1, uid: 12, subject: 'Second', from: 'Bee <b@example.net>', to: 'user@example.com', cc: '', brand: 'example.net',
-   date: '2026-09-08 09:00', size: 800, message_id: '<two@example.net>', references: '', in_reply_to: '<one@example.net>',
+   date: '2026-09-08 09:00', received: '2026-09-08 09:00:00', size: 800, message_id: '<two@example.net>', references: '', in_reply_to: '<one@example.net>',
    text: '', html: '<p>Hello</p><img src="cid:logo@example.net" alt="logo"><img src="cid:chart@example.net" alt="chart"><img src="https://tracker.example.org/pixel.gif">',
    html_remote: true,
    flags: { seen: false, flagged: false, draft: false },
@@ -724,6 +726,47 @@ function answerConfidential(method, path) {
    if (method === 'POST') { confidential[at].revoked = true; return json(200, { revoked: true }); }
    return json(404, { error: 'not found' });
 }
+// Offline in the browser: a ceiling of 30 days and a reader who has chosen
+// nothing yet, so nothing is fetched in the background until a check says so.
+// The window's listing carries the three inbox messages, by id from the oldest
+// up, with only what the page needs to decide what to fetch and what to drop.
+let offlineWindow = { days_max: 30, days: 0 };
+const offlineSince = '2026-08-26 00:00:00';
+// And the one that arrived, once a probe has reported it into the window.
+let offlineArrival = false;
+// A server that could not read the choice - the database gone for a moment -
+// answers 500, never "nothing chosen"; and a listing that says days 0 while
+// the page holds a choice, which the page must not prune by.
+let offlineRefused = false;
+let offlineListingBlank = false;
+function offlineRows() {
+   return [101, 102, 103].concat(offlineArrival ? [104] : []).map((id) => {
+      const m = LISTING.messages.concat([ARRIVAL]).find((x) => x.id === id);
+      return { id, folder_id: 1, uid: m.uid, size: m.size, received: m.date + ':00', flags: withState(m).flags };
+   });
+}
+function answerOffline(method, path, body) {
+   if (!path.startsWith('/api/v1/me/offline')) { return null; }
+   const days = Math.min(offlineWindow.days, offlineWindow.days_max);
+   const window = () => json(200, { days_max: offlineWindow.days_max, days, since: days ? offlineSince : '' });
+   if (offlineRefused && method === 'GET') { return json(500, { error: 'the choice could not be read' }); }
+   if (offlineListingBlank && path.startsWith('/api/v1/me/offline/messages')) { return json(200, { days: 0, since: '', count: 0, bytes: 0, messages: [], more: false, next_after_id: 0 }); }
+   if (path === '/api/v1/me/offline' && method === 'GET') { return window(); }
+   if (path === '/api/v1/me/offline' && method === 'PUT') {
+      const wanted = JSON.parse(body || '{}');
+      if (typeof wanted.days !== 'number' || wanted.days < 0 || wanted.days > offlineWindow.days_max || wanted.days !== Math.floor(wanted.days)) {
+         return json(400, { error: 'days is a whole number between 0 and ' + offlineWindow.days_max, days_max: offlineWindow.days_max });
+      }
+      offlineWindow.days = wanted.days;
+      return json(200, { days_max: offlineWindow.days_max, days: wanted.days, since: wanted.days ? offlineSince : '' });
+   }
+   if (path.startsWith('/api/v1/me/offline/messages') && method === 'GET') {
+      if (!days) { return json(200, { days: 0, since: '', count: 0, bytes: 0, messages: [], more: false, next_after_id: 0 }); }
+      const rows = offlineRows();
+      return json(200, { days, since: offlineSince, count: rows.length, bytes: rows.reduce((n, r) => n + r.size, 0), messages: rows, more: false, next_after_id: 0 });
+   }
+   return json(404, { error: 'not found' });
+}
 let importOffer = { google: true, microsoft: false };
 function answerFetchAccounts(method, path, body) {
    if (!path.startsWith('/api/v1/me/fetch-accounts')) { return null; }
@@ -763,6 +806,7 @@ function answer(method, path, body) {
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
    { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
+   { const window = answerOffline(method, path, body); if (window) { return window; } }
    if (path === '/api/v1/me') {
       return json(200, {
          address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
@@ -933,6 +977,13 @@ function answer(method, path, body) {
       return { status: 200, body: 'PNGBYTES', headers: { 'Content-Type': types[index] || 'application/octet-stream' } };
    }
    if (path === '/api/v1/me/messages/102' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(WITH_IMAGE)))); }
+   if (path === '/api/v1/me/messages/104' && method === 'GET') {
+      return json(200, withState(Object.assign({}, ARRIVAL, { folder_id: 1, received: ARRIVAL.date + ':00', cc: '', text: 'just in', html: '', attachments: [], message_id: '<four@example.net>', references: '', in_reply_to: '' })));
+   }
+   // The HTML document the server renders for the message, which the offline store keeps.
+   if (path.startsWith('/api/v1/me/messages/102/html') && method === 'GET') {
+      return { status: 200, body: '<!doctype html><html><head><meta charset="utf-8"></head><body><p>Hello</p></body></html>', headers: { 'Content-Type': 'text/html; charset=utf-8' } };
+   }
    if (/^\/api\/v1\/me\/messages\/105\/attachments\/(\d+)$/.test(path)) {
       const types = { 0: 'text/plain', 1: 'image/png', 2: 'image/png', 3: 'image/jpeg' };
       return { status: 200, body: 'FILEBYTES', headers: { 'Content-Type': types[Number(path.split('/').pop())] || 'application/octet-stream' } };
@@ -983,6 +1034,7 @@ function answer(method, path, body) {
    }
    if (path.startsWith('/api/v1/me/changes')) {
       if (changesMissing) { return json(404, { error: 'Not found.' }); }
+      if (changeAgain) { changeAgain = false; return json(200, { token: 't3', changed: true, folders: [{ id: 1, count: 4, unseen: 3 }, { id: 2, count: 1, unseen: 0 }, { id: 3, count: 0, unseen: 0 }] }); }
       changeStep += 1;
       if (changeStep === 1) { return json(200, { token: 't1', folders: [{ id: 1, count: 3, unseen: 2 }, { id: 2, count: 1, unseen: 0 }, { id: 3, count: 0, unseen: 0 }] }); }
       if (changeStep === 2) { arrived = true; return json(200, { token: 't2', changed: true, folders: [{ id: 1, count: 4, unseen: 3 }, { id: 2, count: 1, unseen: 0 }, { id: 3, count: 0, unseen: 0 }] }); }
@@ -1009,11 +1061,19 @@ function answer(method, path, body) {
    return json(404, { error: 'No such route: ' + path });
 }
 
+// No connection: every request is recorded and then fails the way a browser
+// fails it, with a rejection and no status, which is what the page reads as 0.
+let networkDown = false;
+// Or the connection goes the moment this one request ('METHOD /path') has
+// been answered - a laptop leaving the Wi-Fi as the page re-asks for the account.
+let networkDownAfter = '';
 function fetchStub(path, options) {
    const method = (options && options.method) || 'GET';
    const headers = (options && options.headers) || {};
    requests.push({ method, path, headers, body: options && options.body });
+   if (networkDown) { return Promise.reject(new TypeError('Failed to fetch')); }
    const reply = answer(method, path, options && options.body);
+   if (networkDownAfter && networkDownAfter === method + ' ' + path) { networkDownAfter = ''; networkDown = true; }
    return Promise.resolve({
       status: reply.status,
       ok: reply.status >= 200 && reply.status < 300,
@@ -1021,7 +1081,9 @@ function fetchStub(path, options) {
       text: () => Promise.resolve(reply.body),
       arrayBuffer: () => Promise.resolve(Uint8Array.from(Buffer.from(reply.body, 'binary')).buffer),
       json: () => Promise.resolve(JSON.parse(reply.body)),
-      blob: () => Promise.resolve({ type: reply.headers['Content-Type'] || 'application/octet-stream', base64: 'QUJD' })
+      // A real Blob, so the worker can answer it as a Response, with the base64
+      // the FileReader stub reads off it.
+      blob: () => Promise.resolve(Object.assign(new Blob(['ABC'], { type: reply.headers['Content-Type'] || 'application/octet-stream' }), { base64: 'QUJD' }))
    });
 }
 
@@ -1134,8 +1196,63 @@ const cachesStub = {
    },
    delete: async (name) => cacheStores.delete(name)
 };
+// An IndexedDB, in memory: enough of the API for the page's offline store and
+// the worker's reading of it - open with an upgrade, object stores by keyPath,
+// put/get/delete/clear/getAll, requests answering on a microtask - and no more,
+// so that the page reaching for anything else fails here by name. One map
+// serves the page and the worker, as one origin's storage serves both.
+const idbDatabases = new Map();
+function idbRequest(run) {
+   const request = { result: undefined, error: null, onsuccess: null, onerror: null };
+   Promise.resolve().then(() => {
+      try { request.result = run(); if (request.onsuccess) { request.onsuccess({ target: request }); } }
+      catch (e) { request.error = e; if (request.onerror) { request.onerror({ target: request }); } }
+   });
+   return request;
+}
+class IdbStore {
+   constructor(keyPath) { this.keyPath = keyPath; this.records = new Map(); }
+   put(value) { return idbRequest(() => { const key = value[this.keyPath]; if (key === undefined) { throw new Error('no key'); } this.records.set(key, value); return key; }); }
+   get(key) { return idbRequest(() => this.records.get(key)); }
+   delete(key) { return idbRequest(() => { this.records.delete(key); return undefined; }); }
+   clear() { return idbRequest(() => { this.records.clear(); return undefined; }); }
+   getAll() { return idbRequest(() => Array.from(this.records.values())); }
+   getAllKeys() { return idbRequest(() => Array.from(this.records.keys())); }
+   count() { return idbRequest(() => this.records.size); }
+}
+class IdbDatabase {
+   constructor(name) { this.name = name; this.version = 0; this.stores = new Map(); this.closed = false; }
+   get objectStoreNames() { const names = Array.from(this.stores.keys()); return { contains: (n) => names.indexOf(n) >= 0, length: names.length }; }
+   createObjectStore(name, options) { const store = new IdbStore(options && options.keyPath); this.stores.set(name, store); return store; }
+   transaction(names, mode) {
+      const db = this;
+      const wanted = Array.isArray(names) ? names : [names];
+      wanted.forEach((n) => { if (!db.stores.has(n)) { throw new Error('no such store: ' + n); } });
+      return { mode: mode || 'readonly', objectStore: (n) => { if (wanted.indexOf(n) < 0) { throw new Error('store not in transaction: ' + n); } return db.stores.get(n); } };
+   }
+   close() { this.closed = true; }
+}
+const indexedDBStub = {
+   open: (name, version) => {
+      const request = { result: undefined, error: null, onsuccess: null, onerror: null, onupgradeneeded: null, onblocked: null };
+      Promise.resolve().then(() => {
+         let db = idbDatabases.get(name);
+         const fresh = !db;
+         if (fresh) { db = new IdbDatabase(name); idbDatabases.set(name, db); }
+         request.result = db;
+         if (fresh || (version && version > db.version)) { db.version = version || 1; if (request.onupgradeneeded) { request.onupgradeneeded({ target: request }); } }
+         if (request.onsuccess) { request.onsuccess({ target: request }); }
+      });
+      return request;
+   },
+   deleteDatabase: (name) => idbRequest(() => { idbDatabases.delete(name); return undefined; })
+};
+const idbStore = (name) => { const db = idbDatabases.get('hmPortalOffline'); return db && db.stores.get(name) ? db.stores.get(name).records : new Map(); };
+// What the browser says it allows this site, as navigator.storage.estimate answers it.
+let storageEstimate = { usage: 5 * 1024 * 1024, quota: 2 * 1024 * 1024 * 1024 };
+navigatorStub.storage = { estimate: () => Promise.resolve(Object.assign({}, storageEstimate)) };
 const world = {
-   navigator: navigatorStub, caches: cachesStub, Notification: NotificationStub,
+   navigator: navigatorStub, caches: cachesStub, Notification: NotificationStub, indexedDB: indexedDBStub,
    document, window, location, history, localStorage,
    fetch: fetchStub,
    confirm: window.confirm,
@@ -3780,6 +3897,285 @@ async function main() {
          String(document.getElementById('confidential-status').className).indexOf('ok') >= 0,
          rowFor('The board pack') ? rowFor('The board pack').textContent : 'no row');
       confidential[0].revoked = false;
+   }
+
+   // ---- Offline for the last N days: the choice under the ceiling, the store
+   // filled in the background, a message and a search answered from it with no
+   // connection, the worker answering a kept part, Clear, and a ceiling of 0
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const fill = (text, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), words(text));
+      const sizeText = (bytes) => bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : bytes >= 1024 ? (bytes / 1024).toFixed(0) + ' KB' : bytes + ' bytes';
+      const listRows = () => document.getElementById('message-list').children.filter((n) => n.tagName === 'DIV' && String(n.className).indexOf('msg') === 0);
+      const select = document.getElementById('pref-offline-days');
+      const values = () => select.children.map((o) => o.value);
+
+      location.hash = '#/settings';
+      await flush();
+      check('the Settings card offers the steps up to the ceiling and nothing above it, and the reader has chosen nothing yet',
+         document.getElementById('offline-form').hidden === false && values().join(' ') === '0 7 14 30' && select.value === '0' && called(0, 'GET', '/api/v1/me/offline'),
+         values().join(' ') + ' value=' + select.value);
+      check('nothing is fetched in the background while nothing is chosen', !called(0, 'GET', /^\/api\/v1\/me\/offline\/messages/) && idbStore('rows').size === 0);
+
+      // Fourteen days: the choice goes to the server, then the window is walked
+      // and the bodies come in newest first, each with its HTML document and its
+      // attachments, into the store beside the folder tree.
+      const beforeChoice = requests.length;
+      select.value = '14';
+      document.getElementById('offline-form').dispatchEvent(makeEvent('submit'));
+      await flush(); await flush();
+      const put = since(beforeChoice).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/offline')[0];
+      check('the choice is saved on the server as a number of days', !!put && JSON.parse(put.body).days === 14, put ? put.body : 'no PUT');
+      const fetched = since(beforeChoice).filter((r) => r.method === 'GET' && /^\/api\/v1\/me\/messages\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
+      check('the window is walked and the bodies are fetched newest first',
+         called(beforeChoice, 'GET', /^\/api\/v1\/me\/offline\/messages\?after_id=0/) && fetched.join(' ') === '103 102 101', fetched.join(' '));
+      check('the HTML document and every attachment of a kept message are fetched with it',
+         called(beforeChoice, 'GET', '/api/v1/me/messages/102/html') && [0, 1, 2].every((i) => called(beforeChoice, 'GET', '/api/v1/me/messages/102/attachments/' + i)));
+      check('the three messages are in the store with their listing rows, their bodies and the parts',
+         idbStore('rows').size === 3 && idbStore('messages').size === 3 && ['102/html', '102/0', '102/1', '102/2'].every((k) => idbStore('parts').has(k)),
+         'rows=' + idbStore('rows').size + ' messages=' + idbStore('messages').size + ' parts=' + Array.from(idbStore('parts').keys()).join(','));
+      check('the words a search looks through are the subject, the sender and the body, from the HTML when there is no text',
+         String(idbStore('rows').get(102).words).indexOf('hello') >= 0 && String(idbStore('rows').get(101).words).indexOf('plain') >= 0);
+      check('the folder tree is kept with them, for a page opened with no connection', idbStore('meta').has('folders') && !!store.get('hmPortalOfflineOwner'));
+      const keptBytes = Array.from(idbStore('rows').values()).reduce((n, r) => n + r.bytes, 0);
+      check('the card says how much of the window is kept here, and what the browser allows',
+         document.getElementById('offline-kept').textContent === fill('{0} of the {1} messages of the last {2} days are kept here, {3}.', 3, 3, 14, sizeText(keptBytes)) + ' ' + fill('This browser allows this site about {0}.', '2.0 GB') &&
+         document.getElementById('offline-room').hidden === true && document.getElementById('offline-clear').hidden === false,
+         document.getElementById('offline-kept').textContent);
+
+      // A server that cannot read the choice for a moment says so with a 500,
+      // and the page leaves what it keeps alone: a failed read is not a
+      // reader who chose nothing. Then a listing that says nothing is chosen
+      // while the page holds fourteen days is not pruned by either.
+      const partsKept = idbStore('parts').size;
+      offlineRefused = true;
+      location.hash = '#/f/1';
+      await flush();
+      const beforeRefused = requests.length;
+      location.hash = '#/settings';
+      await flush(); await flush();
+      check('a window the server could not read (500) leaves the store, the owner and the choice as they were',
+         called(beforeRefused, 'GET', '/api/v1/me/offline') && !called(beforeRefused, 'GET', /^\/api\/v1\/me\/offline\/messages/) &&
+         idbStore('rows').size === 3 && idbStore('parts').size === partsKept && store.get('hmPortalOfflineOwner') === account && select.value === '14' && document.getElementById('offline-form').hidden === false,
+         'rows=' + idbStore('rows').size + ' owner=' + store.get('hmPortalOfflineOwner') + ' value=' + select.value);
+      offlineRefused = false;
+      offlineListingBlank = true;
+      location.hash = '#/f/1';
+      await flush();
+      const beforeBlank = requests.length;
+      location.hash = '#/settings';
+      await flush(); await flush();
+      check('a listing that says nothing is chosen, while the page holds a choice, drops nothing',
+         called(beforeBlank, 'GET', /^\/api\/v1\/me\/offline\/messages/) && idbStore('rows').size === 3 && idbStore('parts').size === partsKept,
+         'rows=' + idbStore('rows').size + ' parts=' + idbStore('parts').size);
+      offlineListingBlank = false;
+
+      // A browser with room for less than the window: said plainly, and the run stops keeping.
+      storageEstimate = { usage: 3000, quota: 4000 };
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/settings';
+      await flush(); await flush();
+      check('a window that will not fit is said to be kept newest first, as far as it goes', document.getElementById('offline-room').hidden === false &&
+         document.getElementById('offline-room').textContent.indexOf('14') >= 0, document.getElementById('offline-room').textContent);
+      storageEstimate = { usage: 5 * 1024 * 1024, quota: 2 * 1024 * 1024 * 1024 };
+
+      // No connection. The last visit's saved copies are put aside, so what is
+      // read comes from the store: a message, the folder, and a search.
+      store.delete('hmPortalOffline');
+      networkDown = true;
+      location.hash = '#/m/101';
+      await flush();
+      check('with no connection a kept message opens from the store, and the page says so',
+         document.getElementById('message-subject').textContent === idbStore('messages').get(101).data.subject && document.getElementById('message-text').textContent === 'plain' &&
+         document.getElementById('offline-note').hidden === false, document.getElementById('message-subject').textContent + ' / ' + document.getElementById('message-text').textContent);
+      location.hash = '#/f/1';
+      await flush();
+      // The three kept copies answer to one message id, so the folder shows them as one conversation of three.
+      const conversation = listRows()[0];
+      const tally = conversation ? conversation.children.map((c) => c.children || []).reduce((a, b) => a.concat(b), []).filter((n) => n.className === 'tc')[0] : null;
+      check('the folder lists what the store holds for it', listRows().length === 1 && !!tally && tally.textContent === '3',
+         listRows().length + ' rows, tally ' + (tally ? tally.textContent : 'none'));
+      location.hash = '#/search?q=hello';
+      await flush();
+      check('a search with no connection is answered from the kept words', listRows().length === 1 && listRows()[0].textContent.indexOf('Second') >= 0, listRows().length + ' rows');
+      location.hash = '#/search?q=plain%20-hello';
+      await flush();
+      check('with the operators the words can answer: -word', listRows().length === 2, listRows().length + ' rows');
+      // The walk brought the server's flags in: the listing says the first is read.
+      location.hash = '#/search?q=is:unread%20has:attachment';
+      await flush();
+      const unread = listRows().length;
+      location.hash = '#/search?q=is:read';
+      await flush();
+      check('and is: and has:, with the flags as the server last listed them', unread === 2 && listRows().length === 1 && String(idbStore('rows').get(101).row.flags.seen) === 'true', unread + ' unread, ' + listRows().length + ' read');
+      // The three kept copies are 800 bytes, received 2026-09-08 09:00:00, with
+      // notes.txt, logo.png and chart.svg: a size, a day, a span and a file
+      // name are answered against those, each way, on this browser's clock.
+      const rowsFor = async (q) => { location.hash = '#/search?q=' + encodeURIComponent(q); await flush(); return listRows().length; };
+      const counts = [await rowsFor('larger:750'), await rowsFor('larger:800'), await rowsFor('smaller:1k'), await rowsFor('before:2026-09-09'), await rowsFor('before:2026-09-08'),
+                      await rowsFor('after:2026-09-07'), await rowsFor('older_than:1d'), await rowsFor('newer_than:1d')];
+      check('and larger:, smaller:, before:, after:, older_than: and newer_than:, against the kept size and received time', counts.join(' ') === '3 0 3 3 0 3 3 0', counts.join(' '));
+      const named = [await rowsFor('filename:logo'), await rowsFor('filename:nope'), await rowsFor('-filename:logo'), await rowsFor('has:link'), await rowsFor('larger:lots')];
+      check('and filename: against the kept attachments\' names; an operator the store cannot answer, or a value that is not one, lets a message through', named.join(' ') === '3 0 0 3 3', named.join(' '));
+
+      // The worker answers a kept message's parts when the network fails, under
+      // the server's own headers, and nothing for a message it does not hold.
+      const workerPath = scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\')) + 1) + 'PortalServiceWorker.js';
+      const worker = { listeners: Object.create(null), addEventListener(name, fn) { this.listeners[name] = fn; }, skipWaiting: () => Promise.resolve(), clients: { claim: () => Promise.resolve() }, registration: {} };
+      const workerContext = vm.createContext({ self: worker, caches: cachesStub, indexedDB: indexedDBStub, Response, URL, console, fetch: () => Promise.reject(new TypeError('Failed to fetch')), Promise, JSON, String, Number, Object, Array });
+      vm.runInContext(fs.readFileSync(workerPath, 'utf8'), workerContext, { filename: 'portal-sw.js' });
+      const ask = async (path) => {
+         let answered = null;
+         worker.listeners.fetch({ request: { method: 'GET', url: 'http://portal.test' + path }, respondWith: (p) => { answered = p; } });
+         return answered ? await answered : null;
+      };
+      const image = await ask('/api/v1/me/messages/102/attachments/1');
+      check('the worker answers a kept attachment from the store when the network fails, as a download under a sandbox',
+         !!image && image.status === 200 && image.headers.get('content-type') === 'image/png' && image.headers.get('content-security-policy') === 'sandbox' &&
+         String(image.headers.get('content-disposition')).indexOf('logo.png') >= 0, image ? image.status + ' ' + image.headers.get('content-type') : 'not answered');
+      const html = await ask('/api/v1/me/messages/102/html');
+      check('and the HTML document under the policy the server sends it with', !!html && html.status === 200 && String(html.headers.get('content-type')).indexOf('text/html') === 0 &&
+         String(html.headers.get('content-security-policy')).indexOf("default-src 'none'") === 0 && String(html.headers.get('content-security-policy')).indexOf('https:') < 0);
+      const unknown = await ask('/api/v1/me/messages/999/attachments/0');
+      check('a part it does not hold is not made up', !!unknown && unknown.status === 503);
+      check('a request of another shape is left to the network', worker.listeners.fetch({ request: { method: 'GET', url: 'http://portal.test/api/v1/me/folders' }, respondWith: () => { throw new Error('answered'); } }) === undefined);
+
+      // The connection is back: the page carries on.
+      networkDown = false;
+      window.dispatchEvent(makeEvent('online'));
+      await flush();
+
+      // The page asks for the account again - the same load() a cold open
+      // takes, here the one a password change makes - and the connection goes
+      // the moment the change is answered. What this browser kept is shown
+      // under the kept folders, no session is asked for, a folder and a
+      // message read from the store; and when the connection is back the
+      // account is asked for and the kept mail gives way to the real thing.
+      location.hash = '#/settings';
+      await flush();
+      const beforeCut = requests.length;
+      networkDownAfter = 'POST /api/v1/me/password';
+      document.getElementById('current').value = 'a-real-password';
+      document.getElementById('new').value = 'Offline-Passw0rd';
+      document.getElementById('confirm').value = 'Offline-Passw0rd';
+      document.getElementById('password-form').dispatchEvent(makeEvent('submit'));
+      await flush(); await flush();
+      const folderNav = document.getElementById('folder-nav');
+      check('a page that cannot reach the server, in a browser that kept mail, shows the account under the kept folders and asks for no session',
+         networkDown && called(beforeCut, 'GET', '/api/v1/me') && !called(beforeCut, 'POST', '/api/v1/session') &&
+         document.getElementById('account').hidden === false && document.getElementById('signin').hidden === true &&
+         document.getElementById('who').textContent === account && document.getElementById('offline-note').hidden === false &&
+         document.getElementById('probe-state').textContent === words('No connection') && folderNav.children.length > 0,
+         'account hidden=' + document.getElementById('account').hidden + ' who=' + document.getElementById('who').textContent + ' state=' + document.getElementById('probe-state').textContent + ' folders=' + folderNav.children.length);
+      store.delete('hmPortalOffline');
+      location.hash = '#/f/1';
+      await flush();
+      check('and lists the kept messages of a folder', listRows().length === 1, listRows().length + ' rows');
+      location.hash = '#/m/102';
+      await flush();
+      check('and opens one', document.getElementById('message-subject').textContent === 'Second' && document.getElementById('message-view').hidden === false,
+         document.getElementById('message-subject').textContent);
+      // While the server stays out of reach the page asks for the account
+      // again by itself, at the probe's slow pace, and stays on what it shows:
+      // a listener that is down fails a request exactly as a network that
+      // went does, with the browser online all along, and no online event
+      // will ever come for that.
+      const beforeRetry = requests.length;
+      fireTimers();
+      await flush();
+      check('while the server stays out of reach the page asks for the account again on a timer, asks for no session, and stays with the kept message it was showing',
+         called(beforeRetry, 'GET', '/api/v1/me') && !called(beforeRetry, 'POST', '/api/v1/session') && !called(beforeRetry, 'GET', /changes/) &&
+         document.getElementById('account').hidden === false && document.getElementById('offline-note').hidden === false &&
+         document.getElementById('message-subject').textContent === 'Second' && timers.length > 0,
+         JSON.stringify(since(beforeRetry).map((r) => r.method + ' ' + r.path)) + ' timers=' + timers.length);
+      const beforeBack = requests.length;
+      networkDown = false;
+      window.dispatchEvent(makeEvent('online'));
+      await flush(); await flush();
+      check('the connection back, the account, its folders and the window are asked for again and the page is the server\'s',
+         called(beforeBack, 'GET', '/api/v1/me') && called(beforeBack, 'GET', '/api/v1/me/folders') && called(beforeBack, 'GET', '/api/v1/me/offline') &&
+         document.getElementById('offline-note').hidden === true && document.getElementById('probe-state').textContent !== words('No connection'),
+         JSON.stringify(since(beforeBack).map((r) => r.method + ' ' + r.path)) + ' note hidden=' + document.getElementById('offline-note').hidden);
+      location.hash = '#/f/1';
+      await flush();
+      check('and a folder is read from the server again, not the store', called(beforeBack, 'GET', /\/folders\/1\/messages/) && listRows().length > 1, listRows().length + ' rows');
+
+      // Cut again, and this time it is the listener that comes back, not the
+      // network: no online event is fired, and the timer alone brings the
+      // page back to the server's.
+      location.hash = '#/settings';
+      await flush();
+      networkDownAfter = 'POST /api/v1/me/password';
+      document.getElementById('current').value = 'Offline-Passw0rd';
+      document.getElementById('new').value = 'Offline-Passw0rd-2';
+      document.getElementById('confirm').value = 'Offline-Passw0rd-2';
+      document.getElementById('password-form').dispatchEvent(makeEvent('submit'));
+      await flush(); await flush();
+      check('a listener that fails with the network up puts the page on the kept mail as a network that went does',
+         networkDown && document.getElementById('account').hidden === false && document.getElementById('offline-note').hidden === false && document.getElementById('probe-state').textContent === words('No connection'),
+         'account hidden=' + document.getElementById('account').hidden + ' state=' + document.getElementById('probe-state').textContent);
+      networkDown = false;
+      const beforeListener = requests.length;
+      fireTimers();
+      await flush(); await flush();
+      check('and when the server answers again the timer, with no online event, asks for the account, its folders and the window, and the page is the server\'s',
+         called(beforeListener, 'GET', '/api/v1/me') && called(beforeListener, 'GET', '/api/v1/me/folders') && called(beforeListener, 'GET', '/api/v1/me/offline') &&
+         document.getElementById('offline-note').hidden === true && document.getElementById('probe-state').textContent !== words('No connection'),
+         JSON.stringify(since(beforeListener).map((r) => r.method + ' ' + r.path)) + ' note hidden=' + document.getElementById('offline-note').hidden);
+
+      // Sign-out removes it all - the database and the name of whose mail it
+      // held - and a new sign-in fills it again from the choice the account
+      // carries. Then a change the probe reports - one arrival - brings the
+      // store up to date a few seconds later: the arrival is fetched into it.
+      document.getElementById('signout').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('sign-out removes everything kept, and whose it was',
+         document.getElementById('signin').hidden === false && idbStore('rows').size === 0 && idbStore('parts').size === 0 && idbStore('meta').size === 0 && !store.get('hmPortalOfflineOwner'),
+         'rows=' + idbStore('rows').size + ' parts=' + idbStore('parts').size + ' owner=' + store.get('hmPortalOfflineOwner'));
+      document.getElementById('address').value = account;
+      document.getElementById('password').value = 'a-real-password';
+      document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
+      await flush(); await flush();
+      check('a new sign-in fills it again from the choice the account carries', idbStore('rows').size === 3 && store.get('hmPortalOfflineOwner') === account && idbStore('meta').has('folders'),
+         'rows=' + idbStore('rows').size + ' owner=' + store.get('hmPortalOfflineOwner'));
+      offlineArrival = true;
+      changeAgain = true;
+      const beforeReport = requests.length;
+      fireTimers();
+      await flush();
+      check('a change the probe reports arms one walk of the window for a few seconds later, not one at once',
+         called(beforeReport, 'GET', /changes/) && !called(beforeReport, 'GET', /^\/api\/v1\/me\/offline\/messages/) && timers.length > 0,
+         timers.length + ' timers, ' + JSON.stringify(since(beforeReport).map((r) => r.path)));
+      const beforeArrival = requests.length;
+      fireTimers();
+      await flush(); await flush();
+      check('and the walk fetches what arrived into the store',
+         called(beforeArrival, 'GET', /^\/api\/v1\/me\/offline\/messages/) && called(beforeArrival, 'GET', '/api/v1/me/messages/104') && idbStore('rows').has(104) && idbStore('rows').size === 4,
+         'rows=' + Array.from(idbStore('rows').keys()).join(','));
+      offlineArrival = false;
+
+      // Clear takes everything out.
+      location.hash = '#/settings';
+      await flush();
+      const beforeClear = requests.length;
+      document.getElementById('offline-clear').dispatchEvent(makeEvent('click'));
+      await flush();
+      const cleared = since(beforeClear).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/offline')[0];
+      check('Clear empties the store, takes the choice down to nothing and says so',
+         !!cleared && JSON.parse(cleared.body).days === 0 && idbStore('rows').size === 0 && idbStore('messages').size === 0 && idbStore('parts').size === 0 &&
+         select.value === '0' && !store.get('hmPortalOfflineOwner') && String(document.getElementById('offline-status').className).indexOf('ok') >= 0,
+         'rows=' + idbStore('rows').size + ' parts=' + idbStore('parts').size + ' value=' + select.value);
+
+      // An administrator who offers none: the choice is not shown, and the reader is told what still works.
+      offlineWindow.days_max = 0;
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/settings';
+      await flush();
+      check('a ceiling of 0 hides the choice and says the listing and the last opened messages are still kept',
+         document.getElementById('offline-form').hidden === true && document.getElementById('offline-off').hidden === false);
+      offlineWindow.days_max = 30;
    }
 
    // ---- Web Push: the devices, and the service worker's own handler
