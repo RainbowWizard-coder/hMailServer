@@ -163,6 +163,13 @@ namespace HM
             out_login_name = String(identities.front());
       }
 
+      // An account the compromised-account detection has locked is refused
+      // here as a password logon is refused at the lockout check: the
+      // certificate proves who the client is, not that the account is theirs
+      // to use. The refusal is charged to nothing (see RefusedByHold).
+      if (AccountLogon::RefusedByHold(account))
+         return account;
+
       if (account)
       {
          PersistentAccount::UpdateLastLogonTime(account);

@@ -20,6 +20,10 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and 
 if exists (select * from sysobjects where id = object_id('hm_dmarcreportrecords') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreportrecords
 if exists (select * from sysobjects where id = object_id('hm_dmarcreports') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreports
 if exists (select * from sysobjects where id = object_id('hm_tlsreports') and objectproperty(id, 'isusertable') = 1) drop table hm_tlsreports
+if exists (select * from sysobjects where id = object_id('hm_accountactivity') and objectproperty(id, 'isusertable') = 1) drop table hm_accountactivity
+if exists (select * from sysobjects where id = object_id('hm_accountrecipients') and objectproperty(id, 'isusertable') = 1) drop table hm_accountrecipients
+if exists (select * from sysobjects where id = object_id('hm_accountreview') and objectproperty(id, 'isusertable') = 1) drop table hm_accountreview
+if exists (select * from sysobjects where id = object_id('hm_heldmessages') and objectproperty(id, 'isusertable') = 1) drop table hm_heldmessages
 if exists (select * from sysobjects where id = object_id('hm_confidential') and objectproperty(id, 'isusertable') = 1) drop table hm_confidential
 if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
@@ -912,6 +916,78 @@ CREATE UNIQUE CLUSTERED INDEX idx_hm_tlsreports_key ON hm_tlsreports (trkey)
 CREATE INDEX idx_hm_tlsreports_domain ON hm_tlsreports (trdomainid)
 
 CREATE INDEX idx_hm_tlsreports_received ON hm_tlsreports (trreceived)
+
+create table hm_accountactivity
+(
+	acid bigint identity(1,1) not null,
+	acaccountid int not null,
+	actime bigint not null,
+	acbucket bigint not null,
+	achour int not null,
+	acrecipients int not null,
+	acnewrecipients int not null,
+	acaddress nvarchar(64) not null,
+	acsource int not null,
+	acmessageid bigint not null,
+	acheld int not null
+)
+
+ALTER TABLE hm_accountactivity ADD CONSTRAINT hm_accountactivity_pk PRIMARY KEY (acid)
+
+CREATE INDEX idx_hm_accountactivity_account ON hm_accountactivity (acaccountid, actime)
+
+create table hm_accountrecipients
+(
+	arcid bigint identity(1,1) not null,
+	arcaccountid int not null,
+	arcaddress nvarchar(255) not null,
+	arcfirst bigint not null,
+	arclast bigint not null,
+	arccount int not null
+)
+
+ALTER TABLE hm_accountrecipients ADD CONSTRAINT hm_accountrecipients_pk PRIMARY KEY (arcid)
+
+CREATE INDEX idx_hm_accountrecipients_address ON hm_accountrecipients (arcaccountid, arcaddress)
+
+create table hm_accountreview
+(
+	arvid int identity(1,1) not null,
+	arvaccountid int not null,
+	arvexempt int not null,
+	arvsensitivity int not null,
+	arvlocked int not null,
+	arvlockedat bigint not null,
+	arvunlockedat bigint not null,
+	arvalertedat bigint not null,
+	arvscore int not null,
+	arvsignals nvarchar(255) not null,
+	arvreason nvarchar(255) not null
+)
+
+ALTER TABLE hm_accountreview ADD CONSTRAINT hm_accountreview_pk PRIMARY KEY (arvid)
+
+CREATE UNIQUE INDEX idx_hm_accountreview_account ON hm_accountreview (arvaccountid)
+
+create table hm_heldmessages
+(
+	hmid bigint identity(1,1) not null,
+	hmaccountid int not null,
+	hmmessageid bigint not null,
+	hmheld bigint not null,
+	hmsource int not null,
+	hmsender nvarchar(255) not null,
+	hmrecipients nvarchar(2000) not null,
+	hmsubject nvarchar(255) not null,
+	hmsize bigint not null,
+	hmreason nvarchar(255) not null
+)
+
+ALTER TABLE hm_heldmessages ADD CONSTRAINT hm_heldmessages_pk PRIMARY KEY (hmid)
+
+CREATE INDEX idx_hm_heldmessages_account ON hm_heldmessages (hmaccountid)
+
+CREATE INDEX idx_hm_heldmessages_message ON hm_heldmessages (hmmessageid)
 
 create table hm_remotedomainpolicies
 (
@@ -1821,6 +1897,14 @@ ALTER TABLE hm_dmarcreportrecords ADD CONSTRAINT fk_hm_dmarcreportrecords_report
 
 ALTER TABLE hm_tlsreports ADD CONSTRAINT fk_hm_tlsreports_domain FOREIGN KEY (trdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
+ALTER TABLE hm_accountactivity ADD CONSTRAINT fk_hm_accountactivity_account FOREIGN KEY (acaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_accountrecipients ADD CONSTRAINT fk_hm_accountrecipients_account FOREIGN KEY (arcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_accountreview ADD CONSTRAINT fk_hm_accountreview_account FOREIGN KEY (arvaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_heldmessages ADD CONSTRAINT fk_hm_heldmessages_account FOREIGN KEY (hmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
 
 ALTER TABLE hm_rule_actions ADD CONSTRAINT fk_hm_rule_actions_rule FOREIGN KEY (actionruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
@@ -1918,6 +2002,8 @@ insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethresh
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1)
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('reputation.listed', 1, 0, 1, '', '', '', 1440, 0)
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.compromised', 1, 0, 1, '', '', '', 0, 0)
 
 create table hm_reputationchecks
 (
@@ -2265,4 +2351,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6070)
+insert into hm_dbversion values (6071)

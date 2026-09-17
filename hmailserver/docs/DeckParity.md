@@ -18,8 +18,8 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 407, 182 of them writes |
-| Deck views | 34 |
+| REST routes (path and method) | 413, 185 of them writes |
+| Deck views | 35 |
 
 ## Missing over REST, by interface
 
@@ -70,14 +70,14 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `AllowSMTPAuthPlain` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `AutoBanMinutes` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `AutoBanOnLogonFailure` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
-| `BounceCountRetentionDays` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceHardBounceThreshold` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceMailboxFullIsHard` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceProcessingEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceReadDeliveryReports` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceReportWindowDays` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceSuppressionAction` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
-| `BounceSuppressionExpiryDays` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceCountRetentionDays` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceHardBounceThreshold` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceMailboxFullIsHard` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceProcessingEnabled` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceReadDeliveryReports` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceReportWindowDays` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceSuppressionAction` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
+| `BounceSuppressionExpiryDays` | ServerSettingsView | `PUT /api/v1/settings/bounces` (setter) | backup, settings |
 | `BreachCheckEnabled` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`PUT /api/v1/settings` (setter) | backup, domains, settings |
 | `BreachCheckMinimumCount` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `BreachCheckUnreachableAction` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
@@ -215,7 +215,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `ADDomain` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ADUsername` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `Active` | AccountDialog, DomainsView | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | domains, webhooks |
-| `Address` | AccountDialog, DomainsView | `POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, webhooks |
+| `Address` | AccountDialog, DomainsView | `PUT /api/v1/accounts/{address}/review` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/review/unlock` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, review, roles, webhooks |
 | `AdminLevel` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `AntiSpamEnabled` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown)<br>`PUT /api/v1/settings/push` (words, loose, scope unknown) | backup, domains, settings, webhooks |
 | `ForwardAbortSpamFlagged` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
@@ -252,7 +252,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 |---|---|---|---|
 | `Active` | DomainsView | `POST /api/v1/domains/{domain}/aliases` (setter) | domains |
 | `Name` | DomainsView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/domains/{domain}/aliases` (setter)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | diagnostics, domains, roles, webhooks |
-| `Value` | DomainsView | `POST /api/v1/domains/{domain}/aliases` (setter) | domains |
+| `Value` | DomainsView | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/domains/{domain}/aliases` (setter) | domains, review |
 
 ### Logging
 
@@ -287,7 +287,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | DistributionListDialog, DomainsView | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | domains, webhooks |
-| `Address` | DistributionListDialog, DomainsView | `POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, webhooks |
+| `Address` | DistributionListDialog, DomainsView | `PUT /api/v1/accounts/{address}/review` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/review/unlock` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, review, roles, webhooks |
 | `BounceAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `Mode` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `ModeratorAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
@@ -329,20 +329,20 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Action` | ServerSettingsView | `PUT /api/v1/settings` (name)<br>`PUT /api/v1/settings/antivirus` (name) | backup, settings |
-| `ClamAVEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `ClamAVHost` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `ClamAVPort` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `ClamWinDBFolder` | ServerSettingsView | `PUT /api/v1/settings` (name)<br>`PUT /api/v1/settings/antivirus` (name) | backup, settings |
-| `ClamWinEnabled` | ServerSettingsView | `PUT /api/v1/settings` (name)<br>`PUT /api/v1/settings/antivirus` (name) | backup, settings |
-| `ClamWinExecutable` | ServerSettingsView | `PUT /api/v1/settings` (name)<br>`PUT /api/v1/settings/antivirus` (name) | backup, settings |
-| `CustomScannerEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `CustomScannerExecutable` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `CustomScannerReturnValue` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `EnableAttachmentBlocking` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `MaximumMessageSize` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/antivirus` (setter) | backup, settings |
-| `NotifyReceiver` | ServerSettingsView | `PUT /api/v1/settings` (name)<br>`PUT /api/v1/settings/antivirus` (name) | backup, settings |
-| `NotifySender` | ServerSettingsView | `PUT /api/v1/settings` (name)<br>`PUT /api/v1/settings/antivirus` (name) | backup, settings |
+| `Action` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (name) | backup, settings |
+| `ClamAVEnabled` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `ClamAVHost` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `ClamAVPort` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `ClamWinDBFolder` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (name) | backup, settings |
+| `ClamWinEnabled` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (name) | backup, settings |
+| `ClamWinExecutable` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (name) | backup, settings |
+| `CustomScannerEnabled` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `CustomScannerExecutable` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `CustomScannerReturnValue` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `EnableAttachmentBlocking` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `MaximumMessageSize` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (setter) | backup, settings |
+| `NotifyReceiver` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (name) | backup, settings |
+| `NotifySender` | ServerSettingsView | `PUT /api/v1/settings/antivirus` (name) | backup, settings |
 
 ### Route
 
@@ -396,7 +396,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | RouteDialog | `POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/routes` (words)<br>`PUT /api/v1/routes/{id}` (words)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, roles, routes, webhooks |
+| `Address` | RouteDialog | `PUT /api/v1/accounts/{address}/review` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/review/unlock` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/routes` (words)<br>`PUT /api/v1/routes/{id}` (words)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, review, roles, routes, webhooks |
 
 ### FetchAccount
 
@@ -448,53 +448,53 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `HeaderField` | RuleCriteriaDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `MatchType` | RuleCriteriaDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `MatchValue` | RuleCriteriaDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `PredefinedField` | RuleCriteriaDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `UsePredefined` | RuleCriteriaDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
+| `HeaderField` | RuleCriteriaDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `MatchType` | RuleCriteriaDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `MatchValue` | RuleCriteriaDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `PredefinedField` | RuleCriteriaDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `UsePredefined` | RuleCriteriaDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
 
 ### RuleAction
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `AbortSpamFlagged` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `Body` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | rules, webhooks |
-| `FromAddress` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `FromName` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `HeaderName` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `IMAPFolder` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `RouteID` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `ScriptFunction` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `Subject` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, rules, settings, webhooks |
-| `To` | RuleActionDialog | `POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/calendar/expand` (name, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | diagnostics, domains, roles, rules, webhooks |
-| `Type` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
-| `Value` | RuleActionDialog | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | rules |
+| `AbortSpamFlagged` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `Body` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | review, rules, webhooks |
+| `FromAddress` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `FromName` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `HeaderName` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `IMAPFolder` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `RouteID` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `ScriptFunction` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `Subject` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, review, rules, settings, webhooks |
+| `To` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/calendar/expand` (name, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | diagnostics, domains, review, roles, rules, webhooks |
+| `Type` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
+| `Value` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter) | review, rules |
 
 ### Cache
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `AccountCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `AccountCacheTTL` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `AliasCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `AliasCacheTTL` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `DistributionListCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `DistributionListCacheTTL` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `DomainCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `DomainCacheTTL` | ServerSettingsView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter) | backup, settings |
-| `Enabled` | ServerSettingsView | `POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/cache` (setter)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, settings, webhooks |
+| `AccountCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `AccountCacheTTL` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `AliasCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `AliasCacheTTL` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `DistributionListCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `DistributionListCacheTTL` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `DomainCacheMaxSizeKb` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `DomainCacheTTL` | ServerSettingsView | `PUT /api/v1/settings/cache` (setter) | backup, settings |
+| `Enabled` | ServerSettingsView | `POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`PUT /api/v1/settings/cache` (setter)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, settings, webhooks |
 
 ### BackupSettings
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `BackupDomains` | BackupView | `POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (words, loose, scope unknown)<br>`POST /api/v1/diagnostics/run` (words, loose, scope unknown)<br>`POST /api/v1/backup/restore` (words, loose, scope unknown)<br>`POST /api/v1/calendar/expand` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/backup` (setter) | backup, diagnostics, domains, roles, settings, webhooks |
-| `BackupMessages` | BackupView | `POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/backup` (setter) | backup, domains, settings, webhooks |
-| `BackupSettings` | BackupView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/backup` (setter) | backup, settings |
-| `CompressDestinationFiles` | BackupView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/backup` (setter) | backup, settings |
-| `Destination` | BackupView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/backup` (setter) | backup, settings |
-| `EncryptionPassphrase` | BackupView | `PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/backup` (setter) | backup, settings |
+| `BackupDomains` | BackupView | `POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (words, loose, scope unknown)<br>`POST /api/v1/diagnostics/run` (words, loose, scope unknown)<br>`POST /api/v1/backup/restore` (words, loose, scope unknown)<br>`POST /api/v1/calendar/expand` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, diagnostics, domains, roles, settings, webhooks |
+| `BackupMessages` | BackupView | `POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`POST /api/v1/webhooks/test` (words, loose, scope unknown)<br>`PUT /api/v1/settings/backup` (setter) | backup, domains, settings, webhooks |
+| `BackupSettings` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
+| `CompressDestinationFiles` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
+| `Destination` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
+| `EncryptionPassphrase` | BackupView | `PUT /api/v1/settings/backup` (setter) | backup, settings |
 
 ### SURBLServer
 
@@ -570,7 +570,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, ports, roles, webhooks |
+| `Address` | TcpIpPortDialog, TcpIpPortsView | `PUT /api/v1/accounts/{address}/review` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/review/unlock` (path, scope unknown)<br>`POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, ports, review, roles, webhooks |
 | `ClientCertificateCAFile` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `ClientCertificatePolicy` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `ConnectionSecurity` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
@@ -591,7 +591,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Address` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, lists, roles, settings, webhooks |
+| `Address` | CollectionSpecs | `PUT /api/v1/accounts/{address}/review` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/review/unlock` (path, scope unknown)<br>`POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, lists, review, roles, settings, webhooks |
 | `Description` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown) | diagnostics, lists, settings |
 | `Score` | CollectionSpecs | `POST /api/v1/blocked-senders` (setter)<br>`PUT /api/v1/blocked-senders/{id}` (setter) | lists, settings |
 
@@ -603,7 +603,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `Expires` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
 | `ExpiresTime` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
 | `Reason` | CollectionSpecs | `POST /api/v1/accounts/{address}/password` (name, scope unknown)<br>`POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter)<br>`POST /api/v1/backup/restore` (name, scope unknown)<br>`POST /api/v1/calendar/expand` (name, scope unknown) | backup, domains, lists, settings |
-| `Value` | CollectionSpecs | `POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, settings |
+| `Value` | CollectionSpecs | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/sender-list` (setter)<br>`PUT /api/v1/sender-list/{id}` (setter) | lists, review, settings |
 
 ### SSLCertificate
 
@@ -632,8 +632,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 |---|---|---|---|
 | `PermissionAccountID` | FolderPermissionsDialog | `POST /api/v1/accounts/{address}/folders/{id}/permissions` (setter)<br>`PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` (setter) | folders |
 | `PermissionGroupID` | FolderPermissionsDialog | `POST /api/v1/accounts/{address}/folders/{id}/permissions` (setter)<br>`PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` (setter) | folders |
-| `PermissionType` | FolderPermissionsDialog | `POST /api/v1/accounts/{address}/folders/{id}/permissions` (setter)<br>`PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` (setter) | folders |
-| `Value` | FolderPermissionsDialog | `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` (setter) | folders |
+| `PermissionType` | FolderPermissionsDialog | `POST /api/v1/accounts/{address}/folders/{id}/permissions` (setter)<br>`PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` (setter)<br>`PUT /api/v1/accounts/{address}/review` (words, loose, scope unknown) | folders, review |
+| `Value` | FolderPermissionsDialog | `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` (setter)<br>`PUT /api/v1/accounts/{address}/review` (setter, scope unknown) | folders, review |
 
 ### IncomingRelay
 
@@ -647,7 +647,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Enabled` | ServerSettingsView | `POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`PUT /api/v1/settings` (setter)<br>`PUT /api/v1/settings/indexing` (setter)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, settings, webhooks |
+| `Enabled` | ServerSettingsView | `POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`PUT /api/v1/settings/indexing` (setter)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, settings, webhooks |
 
 ## Methods the desktop program invokes
 
@@ -662,7 +662,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `ClearLogonFailureList` | ServerSettingsView | `POST /api/v1/remote-domains/verification-cache/clear`<br>`POST /api/v1/settings/logon-failures/clear` |
 | Settings | `DisableAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `EnrolAdministratorTOTP` | AdministratorTwoFactorDialog | - |
-| Settings | `PreviewDirectorySync` | DirectorySyncView | - |
+| Settings | `PreviewDirectorySync` | DirectorySyncView | `DELETE /api/v1/review/{id}`<br>`PUT /api/v1/accounts/{address}/review` |
 | Settings | `SetAdministratorPassword` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
 | Settings | `SetSMTPRelayerPassword` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
 | Settings | `TestBreachCheckEndpoint` | ServerSettingsView | `POST /api/v1/alerts/test`<br>`POST /api/v1/reputation/check`<br>`POST /api/v1/update/check`<br>`POST /api/v1/settings/breach-check/test`<br>`POST /api/v1/webhooks/test` |
@@ -677,7 +677,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Account | `EnrolTOTP` | AccountTwoFactorPanel | - |
 | Account | `ExportArchive` | AccountDialog | `POST /api/v1/accounts/{address}/export` |
 | Account | `MoveTo` | MailboxMoveDialog | `POST /api/v1/accounts/{address}/move` |
-| Account | `UnlockMailbox` | AccountDialog | `POST /api/v1/accounts/{address}/unlock` |
+| Account | `UnlockMailbox` | AccountDialog | `POST /api/v1/accounts/{address}/review/unlock`<br>`POST /api/v1/accounts/{address}/unlock` |
 | Aliases | `Add` | DomainsView | - |
 | Utilities | `AddSuppression` | SuppressionListView | - |
 | Utilities | `EmailAllAccounts` | UtilityViews | - |
@@ -709,7 +709,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | MessageTrace | `SearchByQueueID` | MessageTraceView | `DELETE /api/v1/queue/{id}` |
 | Quarantine | `DeleteByDBID` | QuarantineView | - |
 | Quarantine | `DeleteExpired` | QuarantineView | `POST /api/v1/complaints/expire`<br>`POST /api/v1/domain-reports/expire` |
-| Quarantine | `ReleaseByDBID` | QuarantineView | `POST /api/v1/quarantine/{id}/release` |
+| Quarantine | `ReleaseByDBID` | QuarantineView | `POST /api/v1/review/{id}/release`<br>`POST /api/v1/quarantine/{id}/release` |
 | AppPasswords | `Add` | AppPasswordsPanel | - |
 | AppPasswords | `DeleteByDBID` | AppPasswordsPanel | - |
 | Scripting | `CheckSyntax` | ScriptsView | `POST /api/v1/update/check`<br>`POST /api/v1/settings/scripting/check` |
@@ -765,10 +765,12 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/accounts/{address}/move` | ? | `account`, `addresses`, `archive`, `domain`, `folder`, `group`, `keep_alias`, `mailbox`, `manage_accounts`, `message`, `new`, `new_address`, `password`, `permissions`, `role`, `sender`, `senders`, `to` | yes |
 | `PUT /api/v1/accounts/{address}/openpgp` | Settings | `account`, `allow_address_mismatch`, `domains`, `key`, `publish`, `to` | yes |
 | `POST /api/v1/accounts/{address}/password` | ? | `account`, `breach_check_enabled`, `breach_check_unavailable`, `directory`, `domain`, `password`, `reason`, `reset_password`, `role`, `to` | yes |
+| `PUT /api/v1/accounts/{address}/review` | ? | `account`, `exempt`, `field`, `from`, `new`, `sender`, `sensitivity`, `type`, `value` | yes |
+| `POST /api/v1/accounts/{address}/review/unlock` | ? | - | yes |
 | `POST /api/v1/accounts/{address}/rules` | Rule, RuleCriteria, RuleAction | `all_criteria` | - |
 | `PUT /api/v1/accounts/{address}/rules/{id}` | Rule, RuleCriteria, RuleAction | `all_criteria` | - |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
-| `POST /api/v1/accounts/{address}/unlock` | ? | `unlock_account` | yes |
+| `POST /api/v1/accounts/{address}/unlock` | ? | `compromise_lock_cleared`, `unlock_account` | yes |
 | `POST /api/v1/addresses/erase` | ? | `address`, `include_archive`, `include_logs` | yes |
 | `POST /api/v1/administrator/second-factor` | ? | - | - |
 | `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |
@@ -884,6 +886,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/remote-domains/verification-cache/clear` | ? | `callout_cache_minutes` | yes |
 | `PUT /api/v1/remote-domains/{id}` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `require_inbound_tls`, `wildcard` | yes |
 | `POST /api/v1/reputation/check` | Settings, Utilities | `as_of` | yes |
+| `POST /api/v1/review/{id}/release` | ? | - | - |
 | `PUT /api/v1/role-assignments/{address}` | ? | `account`, `domain`, `domains`, `from`, `manage_roles`, `name`, `role`, `to` | yes |
 | `POST /api/v1/roles` | ? | `administer_domain`, `administer_server`, `description`, `from`, `lower`, `manage_roles`, `name`, `permissions`, `role`, `to`, `write` | - |
 | `PUT /api/v1/roles/{name}` | ? | `administer_domain`, `administer_server`, `code`, `create`, `database`, `description`, `from`, `lower`, `manage_roles`, `name`, `permissions`, `role`, `to`, `write` | - |
@@ -898,7 +901,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/sender-list/{id}` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | - |
 | `POST /api/v1/server/reinitialize` | - | - | yes |
 | `POST /api/v1/session` | - | - | - |
-| `PUT /api/v1/settings` | Settings, MessageIndexing, Directories, BackupSettings, Cache, AntiVirus | `account_cache_max_size_kb`, `account_cache_ttl`, `action`, `add_delivered_to_header`, `add_header_reason`, `add_header_spam`, `alert_digest_enabled`, `alert_digest_hour`, `alert_max_per_hour`, `alert_recipient`, `alert_sender_address`, `alert_webhook_max_attempts`, `alerts_enabled`, `alias_cache_max_size_kb`, `alias_cache_ttl`, `allow_incorrect_line_endings`, `allow_smtp_auth_plain`, `arc_filtering_enabled`, `arc_trusted_sealers`, `attachment_blocking_enabled`, `audit_retention_days`, `audit_trail_enabled`, `auto_ban_on_logon_failure`, `backup_domains`, `backup_messages`, `backup_settings`, `brand_logos_enabled`, `breach_check_enabled`, `breach_check_minimum_count`, `breach_check_unreachable_action`, `breach_check_url`, `bypass_greylisting_on_mail_from_mx`, `bypass_greylisting_on_spf_success`, `check_host_in_helo`, `check_host_in_helo_score`, `check_mx_records`, `check_mx_records_score`, `check_ptr`, `check_ptr_score`, `clamav_enabled`, `clamav_host`, `clamav_port`, `clamwin_db_folder`, `clamwin_enabled`, `clamwin_executable`, `compress`, `confidential_base_url`, `count_retention_days`, `country_blocking_exempt_ranges`, `country_policy_http`, `country_policy_imap`, `country_policy_pop3`, `country_policy_smtp`, `create_default_special_use_folders`, `custom_scanner_enabled`, `custom_scanner_executable`, `custom_scanner_return_value`, `default_domain`, `deny_mail_from_null`, `destination`, `device`, `disconnect_invalid_clients`, `distribution_list_cache_max_size_kb`, `distribution_list_cache_ttl`, `dkim_verification_enabled`, `dkim_verification_failure_score`, `dlp_account_number_pattern`, `dmarc_enabled`, `dmarc_failure_score`, `domain_cache_max_size_kb`, `domain_cache_ttl`, `domain_report_retention_days`, `enabled`, `encryption_passphrase`, `geoip_database_file`, `geoip_database_max_age_days`, `greylisting_enabled`, `greylisting_final_delete`, `greylisting_initial_delay`, `greylisting_initial_delete`, `hard_bounce_threshold`, `host_name`, `imap_acl_enabled`, `imap_hierarchy_delimiter`, `imap_idle_enabled`, `imap_master_user`, `imap_public_folder_name`, `imap_quota_enabled`, `imap_sasl_initial_response_enabled`, `imap_sasl_plain_enabled`, `imap_sort_enabled`, `import_oauth_google_authorize_url`, `import_oauth_google_client_id`, `import_oauth_google_client_secret`, `import_oauth_google_token_url`, `import_oauth_microsoft_authorize_url`, `import_oauth_microsoft_client_id`, `import_oauth_microsoft_client_secret`, `import_oauth_microsoft_token_url`, `import_oauth_redirect_base_url`, `ipv6_preferred`, `keep_files_open`, `key_maximum_bytes`, `keys_per_account`, `language`, `log_application`, `log_awstats`, `log_debug`, `log_format`, `log_imap`, `log_imap_conversations`, `log_pop3`, `log_pop3_conversations`, `log_smtp`, `log_smtp_conversations`, `log_tcpip`, `mailbox`, `mailbox_full_is_hard`, `max_asynchronous_threads`, `max_attempts`, `max_delivery_threads`, `max_devices_per_account`, `max_imap_connections`, `max_invalid_logon_attempts`, `max_message_size_kb`, `max_number_of_invalid_commands`, `max_number_of_mx_hosts`, `max_pop3_connections`, `max_smtp_connections`, `max_smtp_recipients_in_batch`, `maximum_message_size_kb`, `minutes_before_reset`, `minutes_to_ban`, `mirror_email_address`, `notify_receiver`, `notify_sender`, `prepend_subject`, `prepend_subject_text`, `processing_enabled`, `quarantine_digest_base_url`, `quarantine_digest_link_hours`, `quota_grace_percent`, `quota_send_stop_percent`, `read_delivery_reports`, `reader_fetch_accounts_max`, `reader_fetch_accounts_private_addresses`, `reader_masked_addresses_max`, `reader_offline_days_max`, `reader_sender_addresses_max`, `recover_deleted_days`, `report_window_days`, `reputation_watch_addresses`, `reputation_watch_enabled`, `reputation_watch_lists`, `require_address_in_user_id`, `retention_days`, `rewrite_envelope_from_when_forwarding`, `rule_loop_limit`, `service_imap`, `service_pop3`, `service_smtp`, `session_bind_to_address`, `session_idle_seconds`, `session_lifetime_seconds`, `session_one_per_device`, `smtp_connection_security`, `smtp_delivery_bind_to_ip`, `smtp_minutes_between_try`, `smtp_no_of_tries`, `smtp_relayer`, `smtp_relayer_connection_security`, `smtp_relayer_password`, `smtp_relayer_port`, `smtp_relayer_requires_authentication`, `smtp_relayer_username`, `spam_delete_threshold`, `spam_mark_threshold`, `spam_trap_ban_minutes`, `spam_trap_block_days`, `spam_trap_hit_retention_days`, `spam_trap_teach_spamassassin`, `spamassassin_enabled`, `spamassassin_host`, `spamassassin_merge_score`, `spamassassin_port`, `spamassassin_score`, `ssl_cipher_list`, `subject`, `suppression_action`, `suppression_expiry_days`, `suppression_threshold`, `syslog_enabled`, `syslog_facility`, `syslog_host`, `syslog_log_application`, `syslog_log_debug`, `syslog_log_imap`, `syslog_log_pop3`, `syslog_log_smtp`, `syslog_log_tcpip`, `syslog_minimum_severity`, `syslog_port`, `syslog_transport`, `tarpit_count`, `tarpit_delay`, `tcpip_threads`, `time_to_live_seconds`, `tls_prefer_server_ciphers`, `tls_prioritize_chacha`, `tls_version_10_enabled`, `tls_version_11_enabled`, `tls_version_12_enabled`, `tls_version_13_enabled`, `use_spf`, `use_spf_score`, `user_interface_language`, `vapid_private_key`, `verify_remote_ssl_certificate`, `web_key_directory_enabled`, `webhook_max_attempts`, `webhook_max_per_minute`, `webhook_retention_days`, `webhooks_enabled`, `welcome_imap`, `welcome_pop3`, `welcome_smtp`, `worker_thread_priority` | yes |
+| `PUT /api/v1/settings` | Settings, MessageIndexing, Directories, BackupSettings, Cache, AntiVirus | `add_delivered_to_header`, `alert_digest_enabled`, `alert_digest_hour`, `alert_max_per_hour`, `alert_recipient`, `alert_sender_address`, `alert_webhook_max_attempts`, `alerts_enabled`, `allow_incorrect_line_endings`, `allow_smtp_auth_plain`, `audit_retention_days`, `audit_trail_enabled`, `auto_ban_on_logon_failure`, `brand_logos_enabled`, `breach_check_enabled`, `breach_check_minimum_count`, `breach_check_unreachable_action`, `breach_check_url`, `compromise_baseline_days`, `compromise_detection_mode`, `compromise_held_days`, `compromise_minimum_history`, `compromise_new_recipient_share`, `compromise_recipient_floor`, `compromise_score_to_lock`, `compromise_volume_factor`, `compromise_volume_floor`, `confidential_base_url`, `country_blocking_exempt_ranges`, `country_policy_http`, `country_policy_imap`, `country_policy_pop3`, `country_policy_smtp`, `create_default_special_use_folders`, `default_domain`, `deny_mail_from_null`, `disconnect_invalid_clients`, `dlp_account_number_pattern`, `domain_report_retention_days`, `geoip_database_file`, `geoip_database_max_age_days`, `host_name`, `imap_acl_enabled`, `imap_hierarchy_delimiter`, `imap_idle_enabled`, `imap_master_user`, `imap_public_folder_name`, `imap_quota_enabled`, `imap_sasl_initial_response_enabled`, `imap_sasl_plain_enabled`, `imap_sort_enabled`, `import_oauth_google_authorize_url`, `import_oauth_google_client_id`, `import_oauth_google_client_secret`, `import_oauth_google_token_url`, `import_oauth_microsoft_authorize_url`, `import_oauth_microsoft_client_id`, `import_oauth_microsoft_client_secret`, `import_oauth_microsoft_token_url`, `import_oauth_redirect_base_url`, `ipv6_preferred`, `log_imap_conversations`, `log_pop3_conversations`, `log_smtp_conversations`, `max_asynchronous_threads`, `max_delivery_threads`, `max_imap_connections`, `max_invalid_logon_attempts`, `max_message_size_kb`, `max_number_of_invalid_commands`, `max_number_of_mx_hosts`, `max_pop3_connections`, `max_smtp_connections`, `max_smtp_recipients_in_batch`, `minutes_before_reset`, `minutes_to_ban`, `mirror_email_address`, `quarantine_digest_base_url`, `quarantine_digest_link_hours`, `quota_grace_percent`, `quota_send_stop_percent`, `reader_fetch_accounts_max`, `reader_fetch_accounts_private_addresses`, `reader_masked_addresses_max`, `reader_offline_days_max`, `reader_sender_addresses_max`, `recover_deleted_days`, `reputation_watch_addresses`, `reputation_watch_enabled`, `reputation_watch_lists`, `rewrite_envelope_from_when_forwarding`, `rule_loop_limit`, `service_imap`, `service_pop3`, `service_smtp`, `session_bind_to_address`, `session_idle_seconds`, `session_lifetime_seconds`, `session_one_per_device`, `smtp_connection_security`, `smtp_delivery_bind_to_ip`, `smtp_minutes_between_try`, `smtp_no_of_tries`, `smtp_relayer`, `smtp_relayer_connection_security`, `smtp_relayer_password`, `smtp_relayer_port`, `smtp_relayer_requires_authentication`, `smtp_relayer_username`, `spam_trap_ban_minutes`, `spam_trap_block_days`, `spam_trap_hit_retention_days`, `spam_trap_teach_spamassassin`, `ssl_cipher_list`, `tcpip_threads`, `tls_prefer_server_ciphers`, `tls_prioritize_chacha`, `tls_version_10_enabled`, `tls_version_11_enabled`, `tls_version_12_enabled`, `tls_version_13_enabled`, `user_interface_language`, `verify_remote_ssl_certificate`, `webhook_max_attempts`, `webhook_max_per_minute`, `webhook_retention_days`, `webhooks_enabled`, `welcome_imap`, `welcome_pop3`, `welcome_smtp`, `worker_thread_priority` | yes |
 | `PUT /api/v1/settings/antispam` | AntiSpam | `add_header_reason`, `add_header_spam`, `arc_filtering_enabled`, `arc_trusted_sealers`, `bypass_greylisting_on_mail_from_mx`, `bypass_greylisting_on_spf_success`, `check_host_in_helo`, `check_host_in_helo_score`, `check_mx_records`, `check_mx_records_score`, `check_ptr`, `check_ptr_score`, `dkim_verification_enabled`, `dkim_verification_failure_score`, `dmarc_enabled`, `dmarc_failure_score`, `greylisting_enabled`, `greylisting_final_delete`, `greylisting_initial_delay`, `greylisting_initial_delete`, `maximum_message_size_kb`, `prepend_subject`, `prepend_subject_text`, `spam_delete_threshold`, `spam_mark_threshold`, `spamassassin_enabled`, `spamassassin_host`, `spamassassin_merge_score`, `spamassassin_port`, `spamassassin_score`, `tarpit_count`, `tarpit_delay`, `use_spf`, `use_spf_score` | yes |
 | `PUT /api/v1/settings/antivirus` | AntiVirus | `action`, `attachment_blocking_enabled`, `clamav_enabled`, `clamav_host`, `clamav_port`, `clamwin_db_folder`, `clamwin_enabled`, `clamwin_executable`, `custom_scanner_enabled`, `custom_scanner_executable`, `custom_scanner_return_value`, `maximum_message_size_kb`, `notify_receiver`, `notify_sender` | yes |
 | `PUT /api/v1/settings/backup` | BackupSettings, Backup | `backup_domains`, `backup_messages`, `backup_settings`, `compress`, `destination`, `encryption_passphrase` | yes |
@@ -964,6 +967,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `audit` | `GET /api/v1/audit/verify`, `POST /api/v1/audit/{}/revert`, `GET /api/v1/audit{}` |
 | `webhooks` | `GET /api/v1/openapi.json`, `GET /api/v1/session`, `GET /api/v1/status`, `GET /api/v1/webhooks`, `POST /api/v1/webhooks`, `GET /api/v1/webhooks/deliveries?limit={}`, `POST /api/v1/webhooks/run`, `POST /api/v1/webhooks/test`, `DELETE /api/v1/webhooks/{}`, `PUT /api/v1/webhooks/{}` |
 | `quarantine` | `GET /api/v1/quarantine`, `GET /api/v1/quarantine/{}` |
+| `review` | `GET /api/v1/accounts/{}/review`, `PUT /api/v1/accounts/{}/review`, `POST /api/v1/accounts/{}/review/unlock`, `GET /api/v1/review`, `GET /api/v1/review/{}` |
 | `archive` | `GET /api/v1/archive/{}/hold`, `GET /api/v1/archive?{}`, `GET /api/v1/domains` |
 | `folders` | `GET /api/v1/accounts/{}/folders`, `GET /api/v1/accounts/{}/folders/{}/permissions`, `POST /api/v1/accounts/{}/folders/{}/permissions`, `DELETE /api/v1/accounts/{}/folders/{}/permissions/{}`, `PUT /api/v1/accounts/{}/folders/{}/permissions/{}` |
 | `dns` | `GET /api/v1/domains`, `GET /api/v1/domains/{}/dkim/rotation`, `GET /api/v1/srv`, `GET /api/v1/tlsa` |

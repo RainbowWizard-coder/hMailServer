@@ -130,6 +130,12 @@ namespace HM
       // only this class can do. See SignInStore.h.
       static int EndSessionsForDevice(__int64 accountId, const String &device);
 
+      // Every browser session of an account, ended. Public for the same reason
+      // as the one above: the compromised-account detection locks an account
+      // from the submission thread (CompromiseDetector.h), and the sessions
+      // are this listener's to end.
+      static void RevokeSessionsForAccount(__int64 accountId);
+
       // JsonEscape_ of Utf8_, for the helpers of a route file outside the class.
       static AnsiString JsonEscapeUtf8(const String &value);
 
@@ -667,6 +673,18 @@ namespace HM
          RouteAlertEventList,
          RouteAlertTest,
          RouteAlertRun,
+         // Compromised-account detection (RestApiAccountReview.cpp): the
+         // messages kept out of the delivery queue for review, server-wide
+         // like the queue and refused to keys like the alerts - a stolen key
+         // must not release what its own sending got held; and, under an
+         // account's address, its review state: exempt, sensitivity, the
+         // compromise lock and the last shape seen.
+         RouteReviewList,
+         RouteReviewRelease,
+         RouteReviewDiscard,
+         RouteAccountReviewGet,
+         RouteAccountReviewPut,
+         RouteAccountReviewUnlock,
          // The reports (RestApiReports.cpp): what happened on this server,
          // per domain and per day, aggregated from the message trace, the
          // metric history and the message store. Read-only. The sections
@@ -1343,6 +1361,11 @@ namespace HM
       HttpResponse HandleReputation_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiReputationPaths_();
 
+      // Compromised-account detection (RestApiAccountReview.cpp): what is held
+      // for review, releasing or discarding one, and an account's review state.
+      HttpResponse HandleAccountReview_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiAccountReviewPaths_();
+
       HttpResponse HandleSetupChecklist_(const Route &route);
       static AnsiString OpenApiSetupChecklistPaths_();
       HttpResponse HandleListRules_(__int64 accountId, __int64 domainId = 0);
@@ -1362,7 +1385,7 @@ namespace HM
       // paths to the OpenAPI document through the OpenApi*Paths_ function,
       // which returns either nothing or a run of entries each beginning with
       // a comma, appended after the last path HandleOpenApi_ writes itself.
-      HttpResponse HandleSettingsPut_(const AnsiString &requestBody);
+      HttpResponse HandleSettingsPut_(const Caller &caller, const AnsiString &requestBody);
       HttpResponse HandleSettingsAntiSpam_();
       HttpResponse HandleSettingsAntiSpamPut_(const AnsiString &requestBody);
       HttpResponse HandleSettingsLogging_();

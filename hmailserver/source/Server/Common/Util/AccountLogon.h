@@ -38,6 +38,19 @@ namespace HM
       void RegisterFailedLogin(const IPAddress &ipaddress, const String &username, bool &disconnect,
                                bool countTowardsAccountLockout = true);
 
+      // The compromised-account detection's hold (CompromiseDetector.h) for
+      // the logons that prove identity without a password - a bearer token, a
+      // Kerberos ticket, a client certificate - which never pass through Logon
+      // above and so never reach the lockout check it makes first. True, with
+      // the account dropped, when the name is held: the caller answers as it
+      // answers any failed logon, and charges the refusal to nothing - not the
+      // per-name lockout, which has nothing to count, and not the per-IP
+      // auto-ban, for the reason Logon gives: the client most likely to keep
+      // presenting a valid token for a locked account is its owner's, on a NAT
+      // shared with everybody else. Counted as a failed authentication in the
+      // server status, as Logon's refusal is. Never throws.
+      static bool RefusedByHold(std::shared_ptr<const Account> &account);
+
       // The logon tarpit: how long a connection's next refusal should wait, given
       // how many logons it has failed so far (this one included). Progressive - the
       // n-th failure waits n times LogonTarpitSeconds - and capped, so a session

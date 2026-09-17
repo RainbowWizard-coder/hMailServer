@@ -41,6 +41,7 @@
 #include "PasswordBreachCheck.h"
 #include "Time.h"
 #include "AccountLockout.h"
+#include "CompromiseDetector.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/RoleManager.h"
 #include "../BO/Account.h"
@@ -486,15 +487,32 @@ namespace HM
       AccountLockout::Instance()->RecordSuccess(account->GetAddress());
       POP3Sessions::Instance()->Unlock(account->GetID());
 
-      // Neither lock is a row or a setting, so neither audit chokepoint sees
-      // this change; it is recorded here, under the actor the dispatch
-      // installed for this request. Application.UnlockAccount records the same.
+      // And the third: the compromised-account detection's lock, which a
+      // successful password never clears (CompromiseDetector.h). Somebody
+      // whose account was locked for sending in the shape of a takeover is let
+      // back in by the same button; what was held stays held for its own
+      // review. Not for an API key, though: a key is refused this lock as it
+      // is refused the review routes (IsApiKeyRoute_), because a stolen key
+      // must not let the account it stole back in. The other two locks are
+      // cleared for a key as they always were, and the answer says which.
+      const bool compromiseLockCleared = caller.result != AuthenticatedWithApiKey;
+      if (compromiseLockCleared)
+         CompromiseDetector::Unlock(account->GetID(), account->GetAddress());
+
+      // None of the locks is a row or a setting the audit chokepoints see
+      // (the compromise lock is a row, but written by the submission thread
+      // with no actor); the change is recorded here, under the actor the
+      // dispatch installed for this request. Application.UnlockAccount
+      // records the same.
       AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),
-         _T("the failed-authentication lockout and the POP3 mailbox lock were cleared"));
+         compromiseLockCleared
+            ? _T("the failed-authentication lockout, the POP3 mailbox lock and the compromise lock were cleared")
+            : _T("the failed-authentication lockout and the POP3 mailbox lock were cleared; the compromise lock is not an api key's to clear and was kept"));
 
-      LOG_APPLICATION("RestApi: " + account->GetAddress() + " was unlocked by " + String(caller.identity) + ".");
+      LOG_APPLICATION("RestApi: " + account->GetAddress() + " was unlocked by " + String(caller.identity) +
+                      (compromiseLockCleared ? "." : " (the compromise lock, if any, was kept: an api key cannot clear it)."));
 
-      return BuildResponse_(200, "{\"unlocked\":true}");
+      return BuildResponse_(200, compromiseLockCleared ? "{\"unlocked\":true,\"compromise_lock_cleared\":true}" : "{\"unlocked\":true,\"compromise_lock_cleared\":false}");
    }
 
    HttpResponse
@@ -590,7 +608,7 @@ namespace HM
          "\"/api/v1/accounts/{address}/password\":{"
          "\"post\":{\"summary\":\"Reset an account's password\",\"description\":\"Body: password. The password policy, the reuse history, the breach check (breach_check_enabled), the configured hash and the age clock, exactly as when the Control Panel sets one; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate; the failed-authentication lockout is cleared with it, because somebody whose password has just been reset must be able to get in. A directory-linked account is 409. An account whose authority the credential does not take in - every permission, in every domain - is refused, so a help desk cannot reset a domain administrator's password and sign in as them. Needs reset_password, and is scoped to the address's domain - which is the whole of what the help-desk role is.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"password\"],\"properties\":{\"password\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Reset\"},\"400\":{\"description\":\"Empty, the policy refused it (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"An account holding authority this credential does not\"},\"404\":{\"description\":\"No such account\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/accounts/{address}/unlock\":{"
-         "\"post\":{\"summary\":\"Let an account back in\",\"description\":\"Both locks: the failed-authentication lockout that refuses the password, and the POP3 mailbox lock a dropped session leaves behind. Needs unlock_account, and is scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"Unlocked\"},\"404\":{\"description\":\"No such account\"}}}},"
+         "\"post\":{\"summary\":\"Let an account back in\",\"description\":\"Every lock the account is behind: the failed-authentication lockout that refuses the password, the POP3 mailbox lock a dropped session leaves behind, and the lock the compromised-account detection put on it (CompromisedAccounts.md) - which an api key is refused, as it is refused the review routes, so that a stolen key cannot let the account it stole back in: for a key the first two are cleared and compromise_lock_cleared is false. What was held for review stays held for its own review. Needs unlock_account, and is scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"{unlocked, compromise_lock_cleared}\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/message-trace\":{"
          "\"get\":{\"summary\":\"The most recent message trace events, for anyone\",\"description\":\"What Application.GlobalObjects.MessageTrace.Search answers for an empty address: the latest events, newest first, 500 at most. Server-wide, so refused to a credential confined to named domains. Needs view_message_trace.\",\"responses\":{\"200\":{\"description\":\"count, events (id, queue_id, occurred, event, sender, recipient, source_ip, status_code, detail)\"}}}},"
          "\"/api/v1/message-trace/address/{address}\":{"

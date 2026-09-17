@@ -63,6 +63,8 @@
 
 #include <deque>
 #include <map>
+#include <set>
+#include <vector>
 
 namespace HM
 {
@@ -90,6 +92,18 @@ namespace HM
       void RecordFailureAt(const String &username, time_t now, int threshold,
                            time_t windowSeconds, time_t lockoutSeconds);
 
+      // A hold: the compromised-account detection's lock (CompromiseDetector.h),
+      // refused at the same check as the failed-authentication lockout and by
+      // the same reply, but with no clock on it and no clearing by a successful
+      // password - a held name is refused until Release, whatever the threshold
+      // setting says. The names come from hm_accountreview, which is why a
+      // restart does not clear them: CompromiseDetector::LoadLocks puts them
+      // back with SetHeld, which replaces the set with what the database holds.
+      void Hold(const String &username);
+      void Release(const String &username);
+      bool IsHeld(const String &username);
+      void SetHeld(const std::vector<String> &usernames);
+
    private:
 
       struct Entry
@@ -107,6 +121,11 @@ namespace HM
 
       boost::mutex mutex_;
       std::map<String, Entry> entries_;
+
+      // Guarded by mutex_. The names the compromised-account detection holds,
+      // canonical; not pruned, not cleared by success, not capped - there is
+      // one per locked account and the database is where they come from.
+      std::set<String> held_;
 
       // Guarded by mutex_. The retirement sweep walks every tracked name, and
       // the mutex is the one every authentication takes, so the sweep is

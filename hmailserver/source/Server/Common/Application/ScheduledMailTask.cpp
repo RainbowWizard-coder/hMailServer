@@ -23,11 +23,12 @@
 #include "../Util/OutgoingFooters.h"
 #include "../Util/RestApiServer.h"
 #include "../Util/ConfidentialMessages.h"
+#include "../Util/CompromiseDetector.h"
+#include "../BO/MessageRecipient.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/MessagesContainer.h"
-#include "../../IMAP/IMAPSpecialUse.h"
 #include "../../SMTP/RecipientParser.h"
 
 #ifdef _DEBUG
@@ -172,8 +173,9 @@ namespace HM
 
    // The draft becomes a message in the queue, as the send route would have
    // made it: the recipients from its To, Cc and Bcc, each put through the
-   // checks a send makes, the Bcc dropped from the copy that goes, a copy in
-   // the folder designated \Sent, the draft itself gone.
+   // checks a send makes, the Bcc dropped from the copy that goes, the
+   // compromised-account detection's judgment, a copy in the folder
+   // designated \Sent, the draft itself gone.
    bool
    ScheduledMailTask::SendDraft(std::shared_ptr<const Account> account, std::shared_ptr<Message> draft)
    {
@@ -217,49 +219,54 @@ namespace HM
       OutgoingFooters::AddToWebmailMessage(message, account);
 
       message->SetSize((int) FileUtilities::FileSize(fileName));
-      message->SetState(Message::Delivering);
+
+      // The shape of a takeover (CompromiseDetector.h), judged as the send
+      // route judges it: a scheduled draft is the account's submission when
+      // its minute comes, counted into the baseline like a send and, in
+      // enforce mode, held for review like one - or held on the account's
+      // standing lock when the account was locked while the draft waited.
+      // There is no client address on a task thread, so that signal never
+      // scores here. A held message is saved as HeldForReview, which the
+      // deliverer never selects, and gets its \Sent copy when it is released.
+      std::vector<String> submitted;
+      String recipientList;
+      for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
+      {
+         if (!recipient)
+            continue;
+         const String address = recipient->GetOriginalAddress().IsEmpty() ? recipient->GetAddress() : recipient->GetOriginalAddress();
+         submitted.push_back(address);
+         recipientList += (recipientList.IsEmpty() ? _T("") : _T(", ")) + address;
+      }
+      CompromiseDetector::Assessment shape;
+      CompromiseDetector::Assess(account, AnsiString(), submitted, CompromiseDetector::SourceWebmail, shape);
+      const bool heldForReview = shape.hold;
+
+      message->SetState(heldForReview ? Message::HeldForReview : Message::Delivering);
       if (!PersistentMessage::SaveObject(message))
       {
          FileUtilities::DeleteFile(fileName);
          return false;
       }
 
-      // A copy for \Sent, marked read, as the send route keeps one.
+      if (shape.assessed)
+         CompromiseDetector::Apply(shape, message->GetID(), message->GetFromAddress(), recipientList, data.GetSubject(), (__int64) message->GetSize());
+
+      // A copy for \Sent, marked read, as the send route keeps one - not for
+      // a held message, whose copy is made when it is released.
+      if (!heldForReview)
+         MessageUtilities::CopyToDesignatedSent(account, message);
+
       std::shared_ptr<IMAPFolders> folders = IMAPFolderContainer::Instance()->GetFoldersForAccount(account->GetID());
       if (folders)
       {
-         std::map<__int64, int> designations;
-         IMAPSpecialUse::Resolve(folders, designations);
-         for (std::map<__int64, int>::const_iterator it = designations.begin(); it != designations.end(); ++it)
-         {
-            if ((it->second & IMAPSpecialUse::DesignationSent) == 0)
-               continue;
-            std::shared_ptr<IMAPFolder> sent = folders->GetItemByDBIDRecursive(it->first);
-            if (!sent)
-               continue;
-            std::shared_ptr<Message> copy = PersistentMessage::CopyToIMAPFolder(message, sent);
-            if (copy)
-            {
-               copy->SetFlagSeen(true);
-               if (PersistentMessage::SaveObject(copy))
-               {
-                  sent->GetMessages()->Refresh(false);
-                  std::vector<__int64> added;
-                  added.push_back(copy->GetID());
-                  Notify(sent, ChangeNotification::NotificationMessageAdded, added);
-               }
-               else
-                  FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, copy));
-            }
-            break;
-         }
-
          std::shared_ptr<IMAPFolder> draftsFolder = folders->GetItemByDBIDRecursive(draft->GetFolderID());
          if (draftsFolder)
             Remove(draftsFolder, draft);
       }
 
-      Application::Instance()->SubmitPendingEmail();
+      if (!heldForReview)
+         Application::Instance()->SubmitPendingEmail();
       return true;
    }
 

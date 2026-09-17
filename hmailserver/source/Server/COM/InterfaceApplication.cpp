@@ -22,6 +22,7 @@
 #include "../Common/Application/RoleManager.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Util/AccountLockout.h"
+#include "../Common/Util/CompromiseDetector.h"
 #include "../Common/Util/Crypt.h"
 #include "../Common/Util/PasswordHistory.h"
 #include "../Common/Util/PasswordBreachCheck.h"
@@ -900,16 +901,21 @@ STDMETHODIMP InterfaceApplication::UnlockAccount(BSTR Address)
       if (!account)
          return COMError::GenerateError("No such account.");
 
-      // Both locks, as the REST route clears both: somebody who cannot get to
-      // their mail does not know which one they are behind.
+      // Every lock, as the REST route clears every one: somebody who cannot
+      // get to their mail does not know which one they are behind - the
+      // failed-authentication lockout, the POP3 mailbox lock, or the
+      // compromised-account detection's lock, which a successful password
+      // never clears (CompromiseDetector.h).
       HM::AccountLockout::Instance()->RecordSuccess(account->GetAddress());
       HM::POP3Sessions::Instance()->Unlock(account->GetID());
+      HM::CompromiseDetector::Unlock(account->GetID(), account->GetAddress());
 
-      // Neither lock is a row or a setting, so neither audit chokepoint sees
-      // this change; it is recorded here, under the actor the Allows question
-      // above installed on this thread. The REST route records the same.
+      // None of the locks is a row or a setting the audit chokepoints see (the
+      // compromise lock is a row, but written by the submission thread with no
+      // actor); the change is recorded here, under the actor the Allows
+      // question above installed on this thread. The REST route records the same.
       HM::AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("unlocked"),
-         _T("the failed-authentication lockout and the POP3 mailbox lock were cleared"));
+         _T("the failed-authentication lockout, the POP3 mailbox lock and the compromise lock were cleared"));
 
       HM::String logged;
       logged.Format(_T("COM: %s was unlocked by %s."),

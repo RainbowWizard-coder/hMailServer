@@ -85,6 +85,7 @@
 #include "../Common/Util/CrashSimulation.h"
 #include "../Common/Util/DiskSpace.h"
 #include "../Common/Util/RateLimiter.h"
+#include "../Common/Util/CompromiseDetector.h"
 #include "../Common/SQL/DatabaseUnavailableMarker.h"
 
 #include "RecipientCallout.h"
@@ -2361,6 +2362,31 @@ namespace HM
 
       if (OnPreAcceptTransfer_())
       {
+         // The shape of a takeover (CompromiseDetector.h), judged for an
+         // authenticated submission before the row exists. A message in that
+         // shape is saved as HeldForReview, which the deliverer never selects,
+         // rather than as Delivering; the client is answered 250 Queued either
+         // way, so a takeover learns nothing from the reply and a legitimate
+         // sender's mail is a review away from being sent.
+         CompromiseDetector::Assessment shape;
+         if (isAuthenticated_ && !username_.IsEmpty())
+         {
+            std::shared_ptr<const Account> submitter = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+            if (submitter)
+            {
+               std::vector<String> submitted;
+               for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
+               {
+                  if (recipient)
+                     submitted.push_back(recipient->GetOriginalAddress().IsEmpty() ? recipient->GetAddress() : recipient->GetOriginalAddress());
+               }
+               CompromiseDetector::Assess(submitter, GetIPAddressString(), submitted, CompromiseDetector::SourceSmtp, shape);
+               if (shape.hold)
+                  current_message_->SetState(Message::HeldForReview);
+            }
+         }
+         const bool heldForReview = shape.hold;
+
          // Add the message to the database.
          if (PersistentMessage::SaveObject(current_message_))
          {
@@ -2368,6 +2394,32 @@ namespace HM
             // to the file.
             if (transmission_buffer_)
                transmission_buffer_.reset();
+
+            // The submission into the account's baseline, and on a takeover
+            // what the mode says: the hold row, the account's other queued
+            // mail, the lock, the alert. The subject is read only for a held
+            // message, since only its review row needs it.
+            if (shape.assessed)
+            {
+               String recipientList;
+               for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
+               {
+                  if (recipient)
+                     recipientList += (recipientList.IsEmpty() ? _T("") : _T(", ")) + (recipient->GetOriginalAddress().IsEmpty() ? recipient->GetAddress() : recipient->GetOriginalAddress());
+               }
+               String subject;
+               if (heldForReview)
+               {
+                  AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(current_message_), false);
+                  if (!header.IsEmpty())
+                  {
+                     MimeHeader mimeHeader;
+                     mimeHeader.Load(header.c_str(), header.GetLength(), true);
+                     subject = mimeHeader.GetUnicodeFieldValue("Subject");
+                  }
+               }
+               CompromiseDetector::Apply(shape, current_message_->GetID(), current_message_->GetFromAddress(), recipientList, subject, (__int64) current_message_->GetSize());
+            }
 
             // This session addressed a spam trap and then sent this message to a
             // real mailbox, so it comes from somebody demonstrably working from a
@@ -2391,8 +2443,11 @@ namespace HM
             RaiseWebhookMessageReceived_();
 
             // Add this message to the delivery queue cache. This way,
-            // we won't have to read it from the database.
-            MessageCache::Instance()->AddMessage(current_message_);
+            // we won't have to read it from the database. A message held for
+            // review is not the deliverer's until it is released, and is read
+            // from the database then.
+            if (!heldForReview)
+               MessageCache::Instance()->AddMessage(current_message_);
 
             // Free the message, so we don't access it the same time
             // as the SMTP delivery manager.
@@ -2401,7 +2456,8 @@ namespace HM
             // Tell the deliverer that a new message is pending. This
             // will cause the SMTP delivery manager to start a new delivery
             // thread and deliver the message.
-            Application::Instance()->SubmitPendingEmail();
+            if (!heldForReview)
+               Application::Instance()->SubmitPendingEmail();
 
             // Reset the spam protection results.
             spam_test_results_.clear();
@@ -4629,6 +4685,7 @@ namespace HM
 
       std::shared_ptr<const Account> pAccount;
       String sLoginName = sTokenUser;
+      bool held = false;
       if (authenticated)
       {
          std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
@@ -4636,6 +4693,11 @@ namespace HM
          sAddress = DefaultDomain::ApplyDefaultDomain(sAddress);
          sLoginName = sAddress;
          pAccount = LookupActiveAccount_(sAddress);
+
+         // An account the compromised-account detection has locked is refused
+         // here as a password logon is refused at the lockout check: the token
+         // proves who the client is, not that the account is theirs to use.
+         held = AccountLogon::RefusedByHold(pAccount);
       }
 
       username_ = sLoginName;
@@ -4655,10 +4717,12 @@ namespace HM
       // Feed the per-IP auto-ban accounting, then apply the per-connection cap -
       // deliberately not the per-name lockout: a bearer token is not guessable,
       // and a client looping on an expired one would lock its own user out of
-      // every password-based client. See AccountLogon.h.
+      // every password-based client. See AccountLogon.h. A refusal on the
+      // compromise hold feeds neither, for the reason RefusedByHold gives.
       AccountLogon accountLogon;
       bool disconnect = false;
-      accountLogon.RegisterFailedLogin(GetRemoteEndpointAddress(), sLoginName, disconnect, false);
+      if (!held)
+         accountLogon.RegisterFailedLogin(GetRemoteEndpointAddress(), sLoginName, disconnect, false);
 
       authentication_failure_count_++;
       TarpitFailedLogon_();

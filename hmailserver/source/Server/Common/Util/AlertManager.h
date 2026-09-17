@@ -109,6 +109,11 @@ namespace HM
       // reputation watch's daily check writes. Seeded by schema 6049, on.
       static const wchar_t *ConditionReputationListed;
 
+      // An authenticated account submitting in the shape of a takeover
+      // (Util/CompromiseDetector.h): raised as an occurrence, with what was done -
+      // in watch mode what would have been. Seeded by schema 6071, on, no digest.
+      static const wchar_t *ConditionAccountCompromised;
+
       struct Rule
       {
          Rule() : id(0), enabled(false), threshold(0), actions(ActionMail), cooldown(60), digest(true) {}

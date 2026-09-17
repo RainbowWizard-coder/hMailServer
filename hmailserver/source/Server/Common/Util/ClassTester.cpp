@@ -81,6 +81,7 @@ namespace
 #include "../Util/Encoding/ModifiedUTF7.h"
 #include "../Util/Hashing/HashCreator.h"
 #include "../Util/OAuth2TokenValidator.h"
+#include "../Util/CompromiseDetector.h"
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
 #include "../SQL/SQLStatement.h"
@@ -1285,6 +1286,124 @@ namespace HM
          lockout->RecordSuccess(_T("selftest-b@x.test"));
          lockout->RecordSuccess(_T("selftest-c@x.test"));
          lockout->RecordSuccess(_T("selftest-d@x.test"));
+      }
+
+      OutputDebugString(_T("hMailServer: Testing CompromiseDetector\n"));
+      {
+         // The scoring alone (CompromiseDetector::Score), with the shipped
+         // thresholds - baseline 30 days, minimum history 20, factor 4, floors
+         // 30 and 20, share 80, lock at 3 - and no database and no clock: the
+         // inputs are what Assess would have read.
+         const CompromiseDetector::Thresholds shipped;
+         CompromiseDetector::Inputs inputs;
+
+         // The everyday message: one to a known address, at a seen hour, from
+         // a seen network, from an account with a baseline. Nothing scores.
+         inputs.history = 100;
+         inputs.last_hour = 1;
+         inputs.peak_hour = 6;
+         inputs.hour_recipients = 1;
+         inputs.hour_new_recipients = 0;
+         CompromiseDetector::Verdict verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 0 || verdict.takeover || !verdict.has_baseline || !verdict.signals.IsEmpty())
+            throw 0;
+
+         // A surge past four times the busiest hour: volume, two points, not
+         // yet a takeover. One short of the floor is no surge; at the floor
+         // but within four times the peak is none either.
+         inputs.last_hour = 30;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 2 || verdict.takeover || verdict.signals != _T("volume"))
+            throw 0;
+         inputs.last_hour = 29;
+         if (CompromiseDetector::Score(inputs, shipped).score != 0)
+            throw 0;
+         inputs.last_hour = 30;
+         inputs.peak_hour = 8;
+         if (CompromiseDetector::Score(inputs, shipped).score != 0)
+            throw 0;
+         inputs.peak_hour = 6;
+
+         // Strangers: twenty recipients in the hour of whom sixteen are new is
+         // the recipients signal; fifteen is not.
+         inputs.last_hour = 1;
+         inputs.hour_recipients = 20;
+         inputs.hour_new_recipients = 16;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 2 || verdict.takeover || verdict.signals != _T("recipients"))
+            throw 0;
+         inputs.hour_new_recipients = 15;
+         if (CompromiseDetector::Score(inputs, shipped).score != 0)
+            throw 0;
+
+         // The two small signals alone never lock: a late night from a hotel
+         // is two points.
+         inputs.hour_recipients = 1;
+         inputs.hour_new_recipients = 0;
+         inputs.hour_seen = false;
+         inputs.address_seen = false;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 2 || verdict.takeover || verdict.signals != _T("hour, address"))
+            throw 0;
+
+         // A surge at a strange hour is three, and the takeover.
+         inputs.last_hour = 30;
+         inputs.address_seen = true;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 3 || !verdict.takeover || verdict.signals != _T("volume, hour") || verdict.reason.IsEmpty())
+            throw 0;
+
+         // Sensitivity: relaxed needs one point more, so the same three is not
+         // a takeover; strict needs one fewer, so a surge alone is.
+         inputs.sensitivity = CompromiseDetector::SensitivityRelaxed;
+         if (CompromiseDetector::Score(inputs, shipped).takeover)
+            throw 0;
+         inputs.sensitivity = CompromiseDetector::SensitivityStrict;
+         inputs.hour_seen = true;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 2 || !verdict.takeover)
+            throw 0;
+
+         // The clamp: strict with a lock score of 1 still needs one point,
+         // never none.
+         CompromiseDetector::Thresholds hair = shipped;
+         hair.score_to_lock = 1;
+         inputs.last_hour = 1;
+         if (CompromiseDetector::Score(inputs, hair).takeover)
+            throw 0;
+         inputs.hour_seen = false;
+         if (!CompromiseDetector::Score(inputs, hair).takeover)
+            throw 0;
+         inputs.sensitivity = CompromiseDetector::SensitivityDefault;
+         inputs.hour_seen = true;
+
+         // No baseline (history below the minimum): the floors alone count,
+         // whatever the peak, and the hour and the address never score. A
+         // surge to strangers locks a brand-new account; a surge alone does not.
+         inputs.history = 19;
+         inputs.last_hour = 30;
+         inputs.peak_hour = 100;
+         inputs.hour_seen = false;
+         inputs.address_seen = false;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.has_baseline || verdict.score != 2 || verdict.takeover || verdict.signals != _T("volume"))
+            throw 0;
+         inputs.hour_recipients = 20;
+         inputs.hour_new_recipients = 20;
+         verdict = CompromiseDetector::Score(inputs, shipped);
+         if (verdict.score != 4 || !verdict.takeover || verdict.signals != _T("volume, recipients"))
+            throw 0;
+
+         // The network an address is judged by: the /24, the /64, and an
+         // address that is neither as itself.
+         if (CompromiseDetector::NetworkOf(_T("192.0.2.77")) != _T("192.0.2.0/24"))
+            throw 0;
+         if (CompromiseDetector::NetworkOf(_T("2001:db8:1:2:3:4:5:6")) != _T("2001:db8:1:2::/64"))
+            throw 0;
+         if (CompromiseDetector::NetworkOf(_T("2001:DB8::1")) != _T("2001:db8::/64"))
+            throw 0;
+         if (CompromiseDetector::NetworkOf(_T("Not An Address")) != _T("not an address"))
+            throw 0;
       }
 
       OutputDebugString(_T("hMailServer: Testing Base64\n"));

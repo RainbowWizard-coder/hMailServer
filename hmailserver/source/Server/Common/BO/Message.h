@@ -18,6 +18,12 @@ namespace HM
          Created = 0,
          Delivering = 1,
          Delivered = 2,
+         // 3 is a message held for ETRN (ExternalDelivery.cpp), written as a
+         // literal there. 4 is one kept out of the delivery queue for review
+         // by the compromised-account detection (Util/CompromiseDetector.h):
+         // the deliverer selects messagetype 1 alone, so it is never picked
+         // up until it is released back to Delivering.
+         HeldForReview = 4,
       };
 
       enum Flags

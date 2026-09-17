@@ -1073,6 +1073,14 @@ const spec = {
       '/api/v1/quarantine': { get: { summary: 'List quarantined messages', description: 'Server-wide; refused for domain-restricted keys. Bounded to the newest 1000.' } },
       '/api/v1/quarantine/{id}': { delete: { summary: 'Delete a quarantined message' } },
       '/api/v1/quarantine/{id}/release': { post: { summary: 'Release a quarantined message to its original recipients', description: 'Delivery is direct rather than back through the filters: a release is an administrator overruling them.' } },
+      '/api/v1/review': { get: { summary: 'Messages held for review by the compromised-account detection', description: 'Server-wide, like the delivery queue. Refused to an API key.' } },
+      '/api/v1/review/{id}': { delete: { summary: 'Discard a held message' } },
+      '/api/v1/review/{id}/release': { post: { summary: 'Release a held message to the delivery queue' } },
+      '/api/v1/accounts/{address}/review': {
+         get: { summary: 'An account\'s state under the compromised-account detection' },
+         put: { summary: 'Set an account\'s exemption or sensitivity', description: 'Body: any of exempt (true or false) and sensitivity (default, relaxed or strict).' }
+      },
+      '/api/v1/accounts/{address}/review/unlock': { post: { summary: 'Clear the compromise lock alone' } },
       '/api/v1/archive': { get: { summary: 'Search the archive index', description: 'Query parameters: domain and mailbox (exact), sender, recipient and subject (contains), since and until (YYYY-MM-DD HH:MM:SS), hold=1 for held copies only, limit (1-1000, default 200). Newest first.' } },
       '/api/v1/archive/{id}/hold': {
          post: { summary: 'Put an archived copy on legal hold', description: 'A held copy is never removed by the retention sweep or by an address erasure.' },
@@ -1307,6 +1315,20 @@ const state = {
       { id: 41, sender: 'seller@spammer.example', recipients: 'anna@example.com', subject: 'Your invoice is ready', reason: 'Score 12 (SURBL, SPF)', score: 12, size: 34816, created: '2026-09-16 21:04:11' },
       { id: 42, sender: 'notice@' + HOSTILE, recipients: 'bob@example.com', subject: HOSTILE, reason: 'Rule: Hold for review', score: 0, size: 2048, created: '2026-09-16 22:15:00' }
    ],
+   // What the compromised-account detection kept out of the delivery queue,
+   // and the review state of the account it locked. The subject is hostile
+   // here too: it was written by whoever had the password.
+   review: [
+      { id: 7, message_id: 9001, account: 'anna@example.com', sender: 'anna@example.com', recipients: 'one@stranger.example, two@stranger.example', subject: 'Invoice attached', size: 4096, held: 1758060000, source: 'smtp',
+        reason: '31 messages in the last hour against a busiest hour of 4 in 30 days; 28 of the 31 recipients in the last hour are addresses the account has never written to' },
+      { id: 8, message_id: 9002, account: 'anna@example.com', sender: 'anna@example.com', recipients: 'three@stranger.example', subject: HOSTILE, size: 2048, held: 1758060060, source: 'webmail',
+        reason: 'submitted while the account was locked for review' }
+   ],
+   reviewAccounts: {
+      'anna@example.com': { address: 'anna@example.com', mode: 'enforce', exempt: false, sensitivity: 'default', locked: true, locked_at: 1758060000, score: 4, signals: 'volume, recipients',
+         reason: '31 messages in the last hour against a busiest hour of 4 in 30 days; 28 of the 31 recipients in the last hour are addresses the account has never written to',
+         baseline: { days: 30, history: 212, minimum_history: 20, has_baseline: true, peak_hour: 4, last_hour: 31, recipients_known: 58, held: 2, hours: [8, 9, 10, 11, 14, 15, 16], networks: ['192.0.2.0/24', '2001:db8:1:2::/64'] } }
+   },
    archive: [
       { id: 2750, time: '2026-09-16 09:00:00', domain: 'example.com', mailbox: 'anna', direction: 'received', sender: 'client@partner.example', subject: 'The signed contract', recipients: 'anna@example.com', message_id: '<a@partner.example>', path: 'C:\\archive\\example.com\\anna\\a.eml', size: 51200, hold: false },
       { id: 2751, time: '2026-09-16 10:30:00', domain: 'example.com', mailbox: 'anna', direction: 'sent', sender: 'anna@example.com', subject: 'Re: The signed contract', recipients: 'client@partner.example', message_id: '<b@example.com>', path: 'C:\\archive\\example.com\\anna\\b.eml', size: 20480, hold: true },
@@ -2296,6 +2318,38 @@ function answer(method, path, headers, raw) {
       return json(200, { reset: true });
    }
    if (/^\/api\/v1\/accounts\/[^/]+\/unlock$/.test(path) && method === 'POST') { return json(200, { unlocked: true }); }
+   if (/^\/api\/v1\/accounts\/[^/]+\/review$/.test(path) && (method === 'GET' || method === 'PUT')) {
+      const reviewed = state.reviewAccounts[segment(path, 4)];
+      if (!reviewed) { return json(404, { error: 'no such account' }); }
+      if (method === 'PUT') {
+         if (parsed && typeof parsed.exempt === 'boolean') { reviewed.exempt = parsed.exempt; }
+         if (parsed && typeof parsed.sensitivity === 'string') { reviewed.sensitivity = parsed.sensitivity; }
+         return json(200, { exempt: reviewed.exempt, sensitivity: reviewed.sensitivity });
+      }
+      return json(200, reviewed);
+   }
+   if (/^\/api\/v1\/accounts\/[^/]+\/review\/unlock$/.test(path) && method === 'POST') {
+      const reviewed = state.reviewAccounts[segment(path, 4)];
+      if (!reviewed) { return json(404, { error: 'no such account' }); }
+      const was = reviewed.locked;
+      reviewed.locked = false;
+      return json(200, { unlocked: was });
+   }
+   if (path === '/api/v1/review' && method === 'GET') { return json(200, { mode: 'enforce', held_days: 7, messages: state.review }); }
+   if (/^\/api\/v1\/review\/\d+\/release$/.test(path) && method === 'POST') {
+      const id = Number(segment(path, 4));
+      const at = state.review.findIndex((m) => m.id === id);
+      if (at < 0) { return json(404, { error: 'no such held message' }); }
+      state.review.splice(at, 1);
+      return json(200, { released: true });
+   }
+   if (/^\/api\/v1\/review\/\d+$/.test(path) && method === 'DELETE') {
+      const id = Number(segment(path, 4));
+      const at = state.review.findIndex((m) => m.id === id);
+      if (at < 0) { return json(404, { error: 'no such held message' }); }
+      state.review.splice(at, 1);
+      return json(200, { discarded: true });
+   }
    if (path === '/api/v1/addresses/erase' && method === 'POST') { state.erasures = (state.erasures || 0) + 1; return json(200, { removed: 7, include_archive: true, include_logs: true }); }
    if (/^\/api\/v1\/accounts\/[^/]+\/push$/.test(path) && method === 'DELETE') { return json(200, { removed: 2 }); }
    if (path.indexOf('/api/v1/role-assignments/') === 0) {
@@ -4911,6 +4965,62 @@ async function main() {
          confirmations[confirmations.length - 1].indexOf('for good') >= 0, confirmations[confirmations.length - 1]);
       check('and deletes it', called(before, 'DELETE', '/api/v1/quarantine/42').length === 1, paths(before));
       check('with nothing held the page says so', content().textContent.indexOf('Nothing is held') >= 0, content().textContent.slice(0, 200));
+
+      // ---- held for review: the compromised-account detection
+      before = requests.length;
+      await goTo('review');
+      check('the review view reads what is held, once, and nothing about any account until asked',
+         called(before, 'GET', '/api/v1/review').length === 1 && called(before, 'GET', /\/review$/).length === 1, paths(before));
+      check('a row per held message, with the account, the reason and the way it came in', rows().length === 2 &&
+         rows()[0].textContent.indexOf('anna@example.com') >= 0 && rows()[0].textContent.indexOf('never written to') >= 0 && rows()[0].textContent.indexOf('smtp') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+      check('a held message\'s subject is drawn as text, tags and all',
+         content().textContent.indexOf(HOSTILE) >= 0 && content().querySelector('img') === null, content().textContent.slice(0, 300));
+      check('the page says what the mode is', content().textContent.indexOf('enforce') >= 0, content().textContent.slice(0, 300));
+
+      before = requests.length;
+      click(act('rvrelease', { id: 7 }));
+      await flush();
+      check('releasing posts to the message\'s own release route and reads the list again',
+         called(before, 'POST', '/api/v1/review/7/release').length === 1 && called(before, 'GET', '/api/v1/review').length === 1 && rows().length === 1, paths(before));
+      check('and says where it went', toastText().indexOf('queue') >= 0, toastText());
+
+      before = requests.length;
+      click(act('rvdiscard', { id: 8 }));
+      await flush();
+      check('discarding one asks first, because nothing brings it back',
+         confirmations[confirmations.length - 1].indexOf('for good') >= 0, confirmations[confirmations.length - 1]);
+      check('and discards it', called(before, 'DELETE', '/api/v1/review/8').length === 1, paths(before));
+      check('with nothing held for review the page says so', content().textContent.indexOf('Nothing is held for review') >= 0, content().textContent.slice(0, 200));
+
+      before = requests.length;
+      setValue('rv_address', 'anna@example.com');
+      click(act('rvlookup'));
+      await flush();
+      check('looking an account up reads its review state by its address',
+         called(before, 'GET', '/api/v1/accounts/anna%40example.com/review').length === 1, paths(before));
+      check('and draws the lock, the shape and the baseline',
+         content().textContent.indexOf('Locked since') >= 0 && content().textContent.indexOf('volume, recipients') >= 0 &&
+         content().textContent.indexOf('192.0.2.0/24') >= 0 && content().textContent.indexOf('212') >= 0, content().textContent.slice(-900));
+
+      before = requests.length;
+      setChecked('rv_exempt', true);
+      setValue('rv_sensitivity', 'relaxed');
+      click(act('rvsave', { address: 'anna@example.com' }));
+      await flush();
+      const reviewPut = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/review');
+      check('saving puts exactly the two choices, exempt and sensitivity, and reads the state back',
+         reviewPut && reviewPut.exempt === true && reviewPut.sensitivity === 'relaxed' && Object.keys(reviewPut).length === 2 &&
+         called(before, 'GET', '/api/v1/accounts/anna%40example.com/review').length === 1, JSON.stringify(reviewPut) + ' ' + paths(before));
+      check('and the read-back shows the exemption', document.getElementById('rv_exempt').checked === true && document.getElementById('rv_sensitivity').value === 'relaxed');
+
+      before = requests.length;
+      click(act('rvunlock', { address: 'anna@example.com' }));
+      await flush();
+      check('the unlock posts to the review unlock route, which clears the compromise lock alone',
+         called(before, 'POST', '/api/v1/accounts/anna%40example.com/review/unlock').length === 1 && called(before, 'POST', /\/unlock$/).length === 1, paths(before));
+      check('and once unlocked the button is gone', content().querySelectorAll('button[data-act="rvunlock"]').length === 0 && content().textContent.indexOf('Not locked') >= 0,
+         content().textContent.slice(-400));
 
       // ---- the archive and its holds
       before = requests.length;

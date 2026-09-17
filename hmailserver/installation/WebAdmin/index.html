@@ -329,6 +329,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
         <button data-view="webhooks" data-serverwide="1" data-needs="view_configuration" title="Webhooks"><span class="ico">↱</span><span>Webhooks</span></button>
         <button data-view="quarantine" data-serverwide="1" data-needs="view_quarantine" title="Quarantine"><span class="ico">⛔</span><span>Quarantine</span></button>
+        <button data-view="review" data-serverwide="1" data-needs="view_queue" title="Held for review"><span class="ico">⚠</span><span>Held for review</span></button>
         <button data-view="archive" data-needs="view_archive" title="Archive and holds"><span class="ico">⌸</span><span>Archive and holds</span></button>
         <button data-view="folders" data-needs="view_accounts" title="Shared folders"><span class="ico">⊟</span><span>Shared folders</span></button>
         <button data-view="dns" data-needs="view_configuration" title="DNS records"><span class="ico">⌁</span><span>DNS records</span></button>
@@ -760,7 +761,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),quarantine:K("Quarantine"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -792,6 +793,7 @@ async function render(silent){
     else if(view==="audit")await renderAudit();
     else if(view==="webhooks")await renderWebhooks();
     else if(view==="quarantine")await renderQuarantine();
+    else if(view==="review")await renderReview();
     else if(view==="archive")await renderArchive();
     else if(view==="folders")await renderFolders();
     else if(view==="dns")await renderDns();
@@ -1127,6 +1129,11 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="keyhide"){apiKeyToken="";render();}
   else if(d.act==="qrelease")quarantineAct(d.id,true);
   else if(d.act==="qdelete")quarantineAct(d.id,false);
+  else if(d.act==="rvrelease")reviewAct(d.id,true);
+  else if(d.act==="rvdiscard")reviewAct(d.id,false);
+  else if(d.act==="rvlookup")reviewLookup();
+  else if(d.act==="rvsave")reviewSave(d.address);
+  else if(d.act==="rvunlock")reviewUnlock(d.address);
   else if(d.act==="arcsearch"){readArchiveForm();render();}
   else if(d.act==="archold")archiveHold(d.id,true);
   else if(d.act==="arcunhold")archiveHold(d.id,false);
@@ -3099,6 +3106,95 @@ async function quarantineAct(id,release){
     toast(release?t("Released to its recipients"):t("Deleted"));
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
+}
+
+/* ---------- Held for review ----------
+   What the compromised-account detection kept out of the delivery queue: an
+   account that submitted in the shape of a takeover has its messages held here
+   until somebody releases or discards them, and is locked until unlocked. Below
+   the list, one account's review state - the lock, the last shape seen, its
+   baseline - with the two choices an administrator makes about it, exempt and
+   sensitivity, and the compromise lock cleared on its own. */
+let reviewAddress="";
+async function renderReview(){
+  const answer=await api("/api/v1/review");
+  const list=asList(answer,"messages");
+  const rows=list.map(m=>`
+    <tr><td>${escHtml(auditWhen(m.held))}</td>
+        <td style="word-break:break-all">${escHtml(m.account||"")}</td>
+        <td style="word-break:break-all">${escHtml(m.recipients||"")}</td>
+        <td>${escHtml(m.subject||"")}</td>
+        <td>${escHtml(m.reason||"")}<div class="hint muted">${escHtml(m.source||"")}</div></td>
+        <td>${escHtml(fmtBytes(m.size))}</td>
+        <td style="text-align:right;white-space:nowrap">${may("manage_queue")?`<button class="btn ghost sm" data-act="rvrelease" data-id="${escHtml(m.id)}">${t("Release")}</button>
+          <button class="btn danger sm" data-act="rvdiscard" data-id="${escHtml(m.id)}">${t("Discard")}</button>`:""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view"><div class="card view">
+    <p class="note">${escHtml(operation("/api/v1/review","get").summary||"")}. ${escHtml(tf("Mode: {0}",answer.mode||""))}</p>
+    <div class="err" id="err_review"></div>
+    <div class="tablewrap"><table><thead><tr><th>${t("Held")}</th><th>${t("Account")}</th><th>${t("To")}</th><th>${t("Subject")}</th><th>${t("Reason")}</th><th>${t("Size")}</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("Nothing is held for review. ✦")+'</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="sect"><h2>${t("An account's review state")}</h2><div class="card flat">
+      <div class="row" data-enter="rvlookup"><input id="rv_address" placeholder="${t("Account address")}" value="${escHtml(reviewAddress)}" style="min-width:260px"><button class="btn ghost sm" data-act="rvlookup">${t("Look up")}</button></div>
+      <div class="err" id="err_reviewaccount"></div>
+      <div id="rv_state"></div>
+    </div></div></div>`;
+  if(reviewAddress)await reviewLookup();
+}
+async function reviewLookup(){
+  setErr("err_reviewaccount","");
+  const box=$("#rv_state");
+  reviewAddress=(($("#rv_address")||{}).value||"").trim();
+  if(!reviewAddress){if(box)box.innerHTML="";return;}
+  try{
+    const r=await api("/api/v1/accounts/"+encodeURIComponent(reviewAddress)+"/review");
+    const b=r.baseline||{};
+    const lock=r.locked?tf("Locked since {0}",auditWhen(r.locked_at)):t("Not locked");
+    const opt=(v,label)=>`<option value="${v}"${r.sensitivity===v?" selected":""}>${label}</option>`;
+    box.innerHTML=`<div class="tablewrap"><table><tbody>
+      <tr><th>${t("Status")}</th><td>${escHtml(lock)}</td></tr>
+      <tr><th>${t("Score")}</th><td>${escHtml(String(r.score||0))}</td></tr>
+      <tr><th>${t("Signals")}</th><td>${escHtml(r.signals||"—")}</td></tr>
+      <tr><th>${t("Reason")}</th><td>${escHtml(r.reason||"—")}</td></tr>
+      <tr><th>${escHtml(tf("Submissions in the last {0} days",b.days||0))}</th><td>${escHtml(String(b.history||0))}${b.has_baseline?"":' <span class="hint muted">'+escHtml(tf("No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.",b.minimum_history||0))+"</span>"}</td></tr>
+      <tr><th>${t("Busiest hour")}</th><td>${escHtml(String(b.peak_hour||0))}</td></tr>
+      <tr><th>${t("Hours of the day seen (UTC)")}</th><td>${escHtml((b.hours||[]).join(", ")||"—")}</td></tr>
+      <tr><th>${t("Client networks seen")}</th><td>${escHtml((b.networks||[]).join(", ")||"—")}</td></tr>
+      <tr><th>${t("Recipients remembered")}</th><td>${escHtml(String(b.recipients_known||0))}</td></tr>
+      <tr><th>${t("Held")}</th><td>${escHtml(String(b.held||0))}</td></tr>
+    </tbody></table></div>
+    <div class="row" style="margin-top:14px;gap:12px;align-items:center;flex-wrap:wrap">
+      <label class="row" style="gap:7px"><input type="checkbox" id="rv_exempt"${r.exempt?" checked":""}> ${t("Exempt from the detection")}</label>
+      <label class="row" style="gap:7px">${t("Sensitivity")} <select id="rv_sensitivity">${opt("default",t("Default"))}${opt("relaxed",t("Relaxed"))}${opt("strict",t("Strict"))}</select></label>
+      ${may("manage_accounts")?`<button class="btn sm" data-act="rvsave" data-address="${escHtml(r.address)}">${t("Save")}</button>`:""}
+      ${may("unlock_account")&&r.locked?`<button class="btn ghost sm" data-act="rvunlock" data-address="${escHtml(r.address)}">${t("Unlock")}</button>`:""}
+    </div>`;
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_reviewaccount",e.message);if(box)box.innerHTML="";}
+}
+async function reviewSave(address){
+  setErr("err_reviewaccount","");
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/review",{method:"PUT",body:JSON.stringify({exempt:!!$("#rv_exempt").checked,sensitivity:$("#rv_sensitivity").value})});
+    toast(tf("Saved: {0}",address));
+    await reviewLookup();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_reviewaccount",e.message);}
+}
+async function reviewUnlock(address){
+  setErr("err_reviewaccount","");
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/review/unlock",{method:"POST",body:"{}"});
+    toast(tf("Unlocked: {0}",address));
+    await reviewLookup();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_reviewaccount",e.message);}
+}
+async function reviewAct(id,release){
+  setErr("err_review","");
+  if(!release&&!confirm(t("Discard this held message for good?")))return;
+  try{
+    await api("/api/v1/review/"+encodeURIComponent(id)+(release?"/release":""),{method:release?"POST":"DELETE",body:release?"{}":undefined});
+    toast(release?t("Released to the delivery queue"):t("Discarded"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_review",e.message);}
 }
 
 /* ---------- Archive and legal holds ----------

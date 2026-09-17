@@ -72,6 +72,7 @@
 #include "GUIDCreator.h"
 #include "InlineImageParts.h"
 #include "RecoverableStore.h"
+#include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
 #include <iterator>
 #include <list>
@@ -1899,6 +1900,13 @@ namespace HM
          case RouteReputationGet:
          case RouteReputationCheck:
             return HandleReputation_(caller, route, GetRequestBody_(request));
+         case RouteReviewList:
+         case RouteReviewRelease:
+         case RouteReviewDiscard:
+         case RouteAccountReviewGet:
+         case RouteAccountReviewPut:
+         case RouteAccountReviewUnlock:
+            return HandleAccountReview_(caller, route, GetRequestBody_(request));
          case RouteSetupChecklist:
             return HandleSetupChecklist_(route);
          case RouteDomainRuleList:
@@ -1940,7 +1948,7 @@ namespace HM
          case RouteSettingsGet:
             return HandleSettings_();
          case RouteSettingsPut:
-            return HandleSettingsPut_(GetRequestBody_(request));
+            return HandleSettingsPut_(caller, GetRequestBody_(request));
          case RouteDomainSessionPolicyGet:
             return HandleDomainSessionPolicy_(route);
          case RouteSessionPolicyGet:
@@ -3666,6 +3674,29 @@ namespace HM
          }
       }
 
+      // The account's review state under the compromised-account detection:
+      // read, changed (exempt, sensitivity), and the compromise lock alone
+      // cleared - the unlock above clears every lock the account is behind.
+      if (path.StartsWith(accountsPrefix) && (path.EndsWith("/review") || path.EndsWith("/review/unlock")))
+      {
+         const bool unlock = path.EndsWith("/review/unlock");
+         const AnsiString suffix = unlock ? "/review/unlock" : "/review";
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - suffix.GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            if (unlock && method == "POST")
+               route.kind = RouteAccountReviewUnlock;
+            else if (!unlock && method == "GET")
+               route.kind = RouteAccountReviewGet;
+            else if (!unlock && method == "PUT")
+               route.kind = RouteAccountReviewPut;
+            else
+               return;
+            route.identifier = address;
+            return;
+         }
+      }
+
       // An account's Web Push devices, for the administrator: seen, or all of
       // them stopped, which is what a lost phone needs.
       if ((method == "GET" || method == "DELETE") && path.StartsWith(accountsPrefix) && path.EndsWith("/push"))
@@ -4553,6 +4584,31 @@ namespace HM
          route.kind = RouteReputationCheck;
          return;
       }
+
+      // Held for review: the messages the compromised-account detection kept
+      // out of the delivery queue, and releasing or discarding one.
+      if (method == "GET" && path == "/api/v1/review")
+      {
+         route.kind = RouteReviewList;
+         return;
+      }
+      if (path.StartsWith("/api/v1/review/"))
+      {
+         AnsiString rest = path.Mid(AnsiString("/api/v1/review/").GetLength());
+         const bool release = rest.EndsWith("/release");
+         if (release)
+            rest = rest.Mid(0, rest.GetLength() - AnsiString("/release").GetLength());
+
+         if (!ParseQueueId(rest, route.record_id))
+            return;
+
+         if (release && method == "POST")
+            route.kind = RouteReviewRelease;
+         else if (!release && method == "DELETE")
+            route.kind = RouteReviewDiscard;
+
+         return;
+      }
       if (method == "GET" && path == "/api/v1/setup/checklist")
       {
          route.kind = RouteSetupChecklist;
@@ -5230,6 +5286,17 @@ namespace HM
       case RouteWebhookDeliveryList:
       case RouteWebhookRun:
       case RouteWebhookTest:
+      // What the compromised-account detection held, and an account's review
+      // state. A key that could release held mail could send what a takeover
+      // of its own account got held, and one that could mark an account exempt
+      // could switch the detection off for the account it stole; the same
+      // refusal as the alerts, with the same 401.
+      case RouteReviewList:
+      case RouteReviewRelease:
+      case RouteReviewDiscard:
+      case RouteAccountReviewGet:
+      case RouteAccountReviewPut:
+      case RouteAccountReviewUnlock:
          return true;
 
       default:
@@ -5509,6 +5576,12 @@ namespace HM
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
       case RouteAccountPushRemove:
+      // Releasing held mail sends it; discarding it deletes it; the account's
+      // review choices and the compromise lock are its state.
+      case RouteReviewRelease:
+      case RouteReviewDiscard:
+      case RouteAccountReviewPut:
+      case RouteAccountReviewUnlock:
       // A check writes what it found and starts a propagation clock; the rest move
       // keys, and the run moves every domain's rotation.
       case RouteDkimRotationStart:
@@ -5836,6 +5909,10 @@ namespace HM
       case RouteGroupList:
       case RouteGroupGet:
       case RouteGroupMemberList:
+      // An account's review state under the compromised-account detection:
+      // whether it is exempt, its sensitivity, whether it is locked and the
+      // last shape seen. A read of the account, with the account's other reads.
+      case RouteAccountReviewGet:
       // Whether a mailbox could be moved right now, and what it has been
       // through. It reads the account and the move journal and changes nothing,
       // so it sits with the other reads of an account - which is also what
@@ -5875,12 +5952,18 @@ namespace HM
          return RolePermission::ManageMailbox;
 
       // The delivery queue, which names senders and recipients in every domain.
+      // What the compromised-account detection holds is the queue's held part,
+      // with the same senders and recipients in it.
       case RouteQueueList:
+      case RouteReviewList:
          return RolePermission::ViewQueue;
 
-      // Retrying a queued message, or dropping it.
+      // Retrying a queued message, or dropping it; releasing a held one back
+      // into the queue, or discarding it.
       case RouteQueueRetry:
       case RouteQueueDelete:
+      case RouteReviewRelease:
+      case RouteReviewDiscard:
          return RolePermission::ManageQueue;
 
       // What was held back, and why.
@@ -6011,6 +6094,9 @@ namespace HM
       // help-desk's or an auditor's.
       case RouteAccountOpenPgpPut:
       case RouteAccountOpenPgpDelete:
+      // Marking an account exempt from the compromised-account detection, or
+      // setting its sensitivity, is administering that account in that domain.
+      case RouteAccountReviewPut:
          return RolePermission::ManageAccounts;
 
       // Setting somebody's password, as a route of its own rather than as a
@@ -6023,6 +6109,8 @@ namespace HM
       // logon-failure count that feeds the auto-ban.
       case RouteAccountUnlock:
       case RouteLogonFailuresClear:
+      // The compromise lock alone cleared: letting somebody back in, as above.
+      case RouteAccountReviewUnlock:
       // A check of this server's own addresses against third parties' block
       // lists: it makes the server send the queries, and it rewrites what the
       // report says. The same shape as the alert pass above.
@@ -6353,6 +6441,11 @@ namespace HM
       // by editing one path segment.
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
+      // The account's review state and its compromise lock name the address
+      // the same way, and are scoped the same way.
+      case RouteAccountReviewGet:
+      case RouteAccountReviewPut:
+      case RouteAccountReviewUnlock:
       // The mailbox move names the address it is moving FROM in the path, and
       // the one it is moving TO in its body; this scopes the first, and
       // HandleMailboxMove_ judges the second, which nothing here can see.
@@ -6488,6 +6581,16 @@ namespace HM
          case RouteWebhookDeliveryList:
          case RouteWebhookRun:
          case RouteWebhookTest:
+         // Held mail and an account's review state: refused to a key above,
+         // and decided by the permission below for an account with a role -
+         // the queue's permissions for the held list, the account's for its
+         // state, the unlock permission for the compromise lock.
+         case RouteReviewList:
+         case RouteReviewRelease:
+         case RouteReviewDiscard:
+         case RouteAccountReviewGet:
+         case RouteAccountReviewPut:
+         case RouteAccountReviewUnlock:
             break;
 
          default:
@@ -6766,6 +6869,14 @@ namespace HM
       case RouteWebhookDeliveryList:
       case RouteWebhookRun:
       case RouteWebhookTest:
+      // What is held for review has the queue's shape exactly - one entry
+      // names a sender and recipients in any number of domains, and releasing
+      // one delivers mail - so it is refused to a confined role as the queue
+      // is. An account's own review state is scoped to its domain instead
+      // (DomainNamedByRoute_).
+      case RouteReviewList:
+      case RouteReviewRelease:
+      case RouteReviewDiscard:
       case RouteServerReinitialize:
       case RouteUpdateGet:
       case RouteUpdateCheck:
@@ -9945,6 +10056,19 @@ namespace HM
       }
 
       return ended;
+   }
+
+   // Every browser session of an account, ended - the compromised-account
+   // detection's call (CompromiseDetector::Apply), made from the submission
+   // thread when it locks an account: a takeover that came in through the
+   // webmail is signed out by the same act that locks it.
+   void
+   RestApiServer::RevokeSessionsForAccount(__int64 accountId)
+   {
+      if (accountId == 0)
+         return;
+
+      RevokeSessionsForAccount_(accountId, AnsiString());
    }
 
    void
@@ -13236,7 +13360,15 @@ namespace HM
          message->SetSize((int) FileUtilities::FileSize(fileName));
       }
 
-      message->SetState(Message::Delivering);
+      // The shape of a takeover (CompromiseDetector.h), judged before the row
+      // exists: a message in that shape is saved as HeldForReview, which the
+      // deliverer never selects, rather than as Delivering. The caller is
+      // answered as for a queued message either way.
+      CompromiseDetector::Assessment shape;
+      CompromiseDetector::Assess(account, caller.peer.ToString(), recipients, CompromiseDetector::SourceWebmail, shape);
+      const bool heldForReview = shape.hold;
+
+      message->SetState(heldForReview ? Message::HeldForReview : Message::Delivering);
 
       if (!PersistentMessage::SaveObject(message))
       {
@@ -13246,11 +13378,21 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"the message could not be queued\"}");
       }
 
+      {
+         String recipientList;
+         for (size_t i = 0; i < recipients.size(); i++)
+            recipientList += (i ? _T(", ") : _T("")) + recipients[i];
+         CompromiseDetector::Apply(shape, message->GetID(), from, recipientList, JsonUtf8Value_(requestBody, "subject"), (__int64) message->GetSize());
+      }
+
       // A copy for the folder designated \Sent, marked read, before the queue
       // takes the file - when the account has such a folder and its quota
-      // allows. Without one the message is sent and not kept, as over SMTP.
+      // allows. Without one the message is sent and not kept, as over SMTP. A
+      // message held for review gets its copy when it is released
+      // (CompromiseDetector::Release, through MessageUtilities::CopyToDesignatedSent):
+      // a copy of a message that is then discarded would say it was sent.
       __int64 sentId = 0;
-      std::shared_ptr<IMAPFolder> sent = FindDesignatedFolder_(account, IMAPSpecialUse::DesignationSent);
+      std::shared_ptr<IMAPFolder> sent = heldForReview ? std::shared_ptr<IMAPFolder>() : FindDesignatedFolder_(account, IMAPSpecialUse::DesignationSent);
       if (sent)
       {
          __int64 maxBytes = (__int64) account->GetAccountMaxSize() * 1024 * 1024;
@@ -13286,7 +13428,8 @@ namespace HM
          }
       }
 
-      Application::Instance()->SubmitPendingEmail();
+      if (!heldForReview)
+         Application::Instance()->SubmitPendingEmail();
 
       // The message this answers, when the caller names it, gets \Answered -
       // what a mail client does on send, under the right STORE would ask for.
@@ -13314,10 +13457,14 @@ namespace HM
       CollectContacts_(caller.account, ccEntries);
       CollectContacts_(caller.account, bccEntries);
 
+      // held says whether the message went to the queue or to the review
+      // page; queued stays true for both, as the SMTP reply stays 250, because
+      // the message is this server's now and what the caller does next is the
+      // same. The account's browser sessions are ended by the hold itself.
       if (confidential)
-         json.Format("{\"queued\":true,\"recipients\":%d,\"sent_id\":%I64d,\"confidential_id\":%I64d,\"expires\":%I64d}", message->GetRecipients()->GetCount(), sentId, kept.id, kept.expires);
+         json.Format("{\"queued\":true,\"held\":%hs,\"recipients\":%d,\"sent_id\":%I64d,\"confidential_id\":%I64d,\"expires\":%I64d}", heldForReview ? "true" : "false", message->GetRecipients()->GetCount(), sentId, kept.id, kept.expires);
       else
-         json.Format("{\"queued\":true,\"recipients\":%d,\"sent_id\":%I64d}", message->GetRecipients()->GetCount(), sentId);
+         json.Format("{\"queued\":true,\"held\":%hs,\"recipients\":%d,\"sent_id\":%I64d}", heldForReview ? "true" : "false", message->GetRecipients()->GetCount(), sentId);
       return BuildResponse_(201, json);
    }
 
@@ -14557,6 +14704,7 @@ namespace HM
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiReputationPaths_();
+      openApiJson += OpenApiAccountReviewPaths_();
       openApiJson += OpenApiSetupChecklistPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
       openApiJson += OpenApiDomainRulesPaths_();

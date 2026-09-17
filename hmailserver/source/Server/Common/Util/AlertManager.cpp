@@ -67,6 +67,7 @@ namespace HM
    const wchar_t *AlertManager::ConditionReputationListed = L"reputation.listed";
    const wchar_t *AlertManager::ConditionDkimRotationStalled = L"dkim.rotation.stalled";
    const wchar_t *AlertManager::ConditionComplaintsRateHigh = L"complaints.rate.high";
+   const wchar_t *AlertManager::ConditionAccountCompromised = L"account.compromised";
 
    namespace
    {

@@ -261,6 +261,20 @@ namespace HM
       // services keep, by the day the report was read. Nothing is read until a
       // domain names a report mailbox, so the row costs an upgraded server nothing.
       property_set_->EnsureLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS, 365);
+      // Compromised-account detection: WATCH by default. The baseline is
+      // recorded and a takeover shape raises the alert saying what enforcing
+      // would have done; nothing is held and nobody is locked until an
+      // administrator has read that and set the mode to enforce, because the
+      // false positive of this control is a person locked out of their mail.
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_DETECTION_MODE, 1);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_BASELINE_DAYS, 30);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_MINIMUM_HISTORY, 20);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_VOLUME_FACTOR, 4);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_VOLUME_FLOOR, 30);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_RECIPIENT_FLOOR, 20);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_NEW_RECIPIENT_SHARE, 80);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_SCORE_TO_LOCK, 3);
+      property_set_->EnsureLong(PROPERTY_COMPROMISE_HELD_DAYS, 7);
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
@@ -588,6 +602,24 @@ namespace HM
    {
       GetSettings()->SetLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS, days);
    }
+   int Configuration::GetCompromiseDetectionMode() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_DETECTION_MODE); }
+   void Configuration::SetCompromiseDetectionMode(int mode) { GetSettings()->SetLong(PROPERTY_COMPROMISE_DETECTION_MODE, mode); }
+   int Configuration::GetCompromiseBaselineDays() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_BASELINE_DAYS); }
+   void Configuration::SetCompromiseBaselineDays(int days) { GetSettings()->SetLong(PROPERTY_COMPROMISE_BASELINE_DAYS, days); }
+   int Configuration::GetCompromiseMinimumHistory() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_MINIMUM_HISTORY); }
+   void Configuration::SetCompromiseMinimumHistory(int messages) { GetSettings()->SetLong(PROPERTY_COMPROMISE_MINIMUM_HISTORY, messages); }
+   int Configuration::GetCompromiseVolumeFactor() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_VOLUME_FACTOR); }
+   void Configuration::SetCompromiseVolumeFactor(int factor) { GetSettings()->SetLong(PROPERTY_COMPROMISE_VOLUME_FACTOR, factor); }
+   int Configuration::GetCompromiseVolumeFloor() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_VOLUME_FLOOR); }
+   void Configuration::SetCompromiseVolumeFloor(int messages) { GetSettings()->SetLong(PROPERTY_COMPROMISE_VOLUME_FLOOR, messages); }
+   int Configuration::GetCompromiseRecipientFloor() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_RECIPIENT_FLOOR); }
+   void Configuration::SetCompromiseRecipientFloor(int recipients) { GetSettings()->SetLong(PROPERTY_COMPROMISE_RECIPIENT_FLOOR, recipients); }
+   int Configuration::GetCompromiseNewRecipientShare() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_NEW_RECIPIENT_SHARE); }
+   void Configuration::SetCompromiseNewRecipientShare(int percent) { GetSettings()->SetLong(PROPERTY_COMPROMISE_NEW_RECIPIENT_SHARE, percent); }
+   int Configuration::GetCompromiseScoreToLock() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_SCORE_TO_LOCK); }
+   void Configuration::SetCompromiseScoreToLock(int score) { GetSettings()->SetLong(PROPERTY_COMPROMISE_SCORE_TO_LOCK, score); }
+   int Configuration::GetCompromiseHeldDays() const { return (int) GetSettings()->GetLong(PROPERTY_COMPROMISE_HELD_DAYS); }
+   void Configuration::SetCompromiseHeldDays(int days) { GetSettings()->SetLong(PROPERTY_COMPROMISE_HELD_DAYS, days); }
 
    String
    Configuration::GetImportOAuthRedirectBaseUrl() const

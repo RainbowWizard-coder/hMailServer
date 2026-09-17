@@ -137,6 +137,12 @@ namespace HM
       // far smaller problem, so the fallback is always to allow.
       try
       {
+         // A held name first, and whatever the threshold setting says: the
+         // compromise lock is not the failed-authentication lockout switched
+         // on, it is an administrator's decision standing until it is released.
+         if (IsHeld(username))
+            return true;
+
          if (IniFileSettings::Instance()->GetAccountLockoutThreshold() <= 0)
             return false;
 
@@ -147,6 +153,83 @@ namespace HM
       {
          ReportSwallowedException_("IsLockedOut");
          return false;
+      }
+   }
+
+   void
+   AccountLockout::Hold(const String &username)
+   {
+      try
+      {
+         String key = NormalizeKey_(username);
+         if (key.IsEmpty())
+            return;
+
+         boost::lock_guard<boost::mutex> guard(mutex_);
+         held_.insert(key);
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("Hold");
+      }
+   }
+
+   void
+   AccountLockout::Release(const String &username)
+   {
+      try
+      {
+         String key = NormalizeKey_(username);
+         if (key.IsEmpty())
+            return;
+
+         boost::lock_guard<boost::mutex> guard(mutex_);
+         held_.erase(key);
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("Release");
+      }
+   }
+
+   bool
+   AccountLockout::IsHeld(const String &username)
+   {
+      try
+      {
+         String key = NormalizeKey_(username);
+         if (key.IsEmpty())
+            return false;
+
+         boost::lock_guard<boost::mutex> guard(mutex_);
+         return held_.count(key) > 0;
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("IsHeld");
+         return false;
+      }
+   }
+
+   void
+   AccountLockout::SetHeld(const std::vector<String> &usernames)
+   {
+      try
+      {
+         std::set<String> keys;
+         for (const String &username : usernames)
+         {
+            String key = NormalizeKey_(username);
+            if (!key.IsEmpty())
+               keys.insert(key);
+         }
+
+         boost::lock_guard<boost::mutex> guard(mutex_);
+         held_.swap(keys);
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("SetHeld");
       }
    }
 

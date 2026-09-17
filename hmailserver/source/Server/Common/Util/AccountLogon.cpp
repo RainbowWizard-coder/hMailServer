@@ -126,6 +126,28 @@ namespace HM
       return empty;
    }
 
+   bool
+   AccountLogon::RefusedByHold(std::shared_ptr<const Account> &account)
+   {
+      try
+      {
+         if (!account || !AccountLockout::Instance()->IsHeld(account->GetAddress()))
+            return false;
+
+         LOG_DEBUG("AccountLogon - " + account->GetAddress() + " is held for review by the compromised-account detection; the logon is refused.");
+         account.reset();
+         ServerStatus::Instance()->OnAuthenticationFailed();
+         return true;
+      }
+      catch (...)
+      {
+         // On a logon's success path, where an exception would fail an
+         // authentication that has been proved: the fallback is to allow, as
+         // every entry point of AccountLockout falls back.
+         return false;
+      }
+   }
+
    int
    AccountLogon::TarpitDelaySeconds(int failuresOnThisConnection)
    {

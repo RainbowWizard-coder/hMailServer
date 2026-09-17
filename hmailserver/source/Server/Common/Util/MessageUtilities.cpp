@@ -15,10 +15,12 @@
 #include "../Util/Utilities.h"
 
 #include "../Cache/CacheContainer.h"
+#include "../Cache/AccountSizeCache.h"
 #include "../../IMAP/IMAPConfiguration.h"
 #include "../../SMTP/SMTPConfiguration.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/IMAPFolderUtilities.h"
+#include "../../IMAP/IMAPSpecialUse.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 
@@ -263,10 +265,62 @@ namespace HM
 
       pFolder->GetMessages()->Refresh(false);
 
-      std::shared_ptr<ChangeNotification> pNotification = 
+      std::shared_ptr<ChangeNotification> pNotification =
          std::shared_ptr<ChangeNotification>(new ChangeNotification(pNewMessage->GetAccountID(), pNewMessage->GetFolderID(), ChangeNotification::NotificationMessageAdded));
 
       Application::Instance()->GetNotificationServer()->SendNotification(pNotification);
+
+      return true;
+   }
+
+   bool
+   MessageUtilities::CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message)
+   {
+      if (!account || !message)
+         return false;
+
+      std::shared_ptr<IMAPFolders> folders = IMAPFolderContainer::Instance()->GetFoldersForAccount(account->GetID());
+      if (!folders)
+         return false;
+
+      // The folder the tree designates \Sent, whatever it is called.
+      std::map<__int64, int> designations;
+      IMAPSpecialUse::Resolve(folders, designations);
+      std::shared_ptr<IMAPFolder> sent;
+      for (std::map<__int64, int>::const_iterator it = designations.begin(); it != designations.end() && !sent; ++it)
+      {
+         if ((it->second & IMAPSpecialUse::DesignationSent) != 0)
+            sent = folders->GetItemByDBIDRecursive(it->first);
+      }
+      if (!sent)
+         return false;
+
+      // The quota: a copy the mailbox has no room for is not made, as the
+      // webmail's send makes none, rather than pushing the mailbox over.
+      const __int64 maxBytes = (__int64) account->GetAccountMaxSize() * 1024 * 1024;
+      if (maxBytes > 0 && AccountSizeCache::Instance()->GetSize(account->GetID()) + (__int64) message->GetSize() > maxBytes)
+         return false;
+
+      std::shared_ptr<Message> copy = PersistentMessage::CopyToIMAPFolder(message, sent);
+      if (!copy)
+         return false;
+
+      copy->SetFlagSeen(true);
+      if (!PersistentMessage::SaveObject(copy))
+      {
+         // The file was copied and the row could not be written: the file
+         // goes, for the reason CopyToIMAPFolder above gives.
+         FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, copy));
+         return false;
+      }
+
+      sent->GetMessages()->Refresh(false);
+
+      std::vector<__int64> added;
+      added.push_back(copy->GetID());
+      std::shared_ptr<ChangeNotification> notification =
+         std::shared_ptr<ChangeNotification>(new ChangeNotification(account->GetID(), sent->GetID(), ChangeNotification::NotificationMessageAdded, added));
+      Application::Instance()->GetNotificationServer()->SendNotification(notification);
 
       return true;
    }

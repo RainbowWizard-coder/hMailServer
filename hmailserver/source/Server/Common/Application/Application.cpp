@@ -69,6 +69,7 @@
 #include "RemoveExpiredRecords.h"
 #include "ScheduledMailTask.h"
 #include "../Util/AutoBanFirewall.h"
+#include "../Util/CompromiseDetector.h"
 #include "LogRetentionTask.h"
 #include "ArchiveRetentionTask.h"
 #include "MailboxRetentionTask.h"
@@ -209,6 +210,11 @@ namespace HM
       // open: a rule for a ban that expired while the service was down is removed
       // here, and one for a ban still in force is put back if it is missing.
       AutoBanFirewall::Synchronise(_T("start-up"));
+
+      // The accounts the compromised-account detection locked before this
+      // start are held again before a listener is open: the lock is a row in
+      // hm_accountreview, and the hold on the name is in memory.
+      CompromiseDetector::LoadLocks();
 
       // The asynchronous task and name lookup queues are deliberately NOT created
       // here. Their tasks hold live client connections, so they belong to the

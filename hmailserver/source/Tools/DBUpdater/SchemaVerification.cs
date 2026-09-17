@@ -1198,6 +1198,12 @@ namespace DBUpdater
                          "update hm_dmarcreportrecords set rrcount = rrcount where 1 = 0"),
          new SchemaProbe(6070, "hm_tlsreports.trreceived",
                          "update hm_tlsreports set trreceived = trreceived where 1 = 0"),
+         // Upgrade6070to6071* - compromised-account detection: the baseline of
+         // authenticated submissions, the recipients remembered, the review state
+         // and the messages held for review, of which hm_heldmessages is the last
+         // table the step creates.
+         new SchemaProbe(6071, "hm_heldmessages.hmheld",
+                         "update hm_heldmessages set hmheld = hmheld where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

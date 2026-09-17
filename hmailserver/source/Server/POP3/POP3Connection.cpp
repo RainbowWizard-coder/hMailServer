@@ -1093,11 +1093,17 @@ namespace HM
 
       std::shared_ptr<const Account> pAccount;
       String sAddress = sTokenUser;
+      bool held = false;
       if (authenticated)
       {
          std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
          sAddress = pDA->ApplyAliasesOnAddress(sTokenUser);
          pAccount = LookupActiveAccount_(sAddress);
+
+         // An account the compromised-account detection has locked is refused
+         // here as a password logon is refused at the lockout check: the token
+         // proves who the client is, not that the account is theirs to use.
+         held = AccountLogon::RefusedByHold(pAccount);
       }
 
       username_ = sAddress;
@@ -1110,10 +1116,12 @@ namespace HM
          // exactly as the password and SCRAM paths do - but deliberately NOT the
          // per-name lockout: a bearer token is not guessable, and an OAuth2 client
          // looping on an expired one would otherwise lock its own user out of every
-         // password-based client. See AccountLogon.h.
+         // password-based client. See AccountLogon.h. A refusal on the compromise
+         // hold feeds neither, for the reason RefusedByHold gives.
          AccountLogon accountLogon;
          bool disconnect = false;
-         accountLogon.RegisterFailedLogin(GetRemoteEndpointAddress(), sAddress, disconnect, false);
+         if (!held)
+            accountLogon.RegisterFailedLogin(GetRemoteEndpointAddress(), sAddress, disconnect, false);
 
          authentication_failure_count_++;
          TarpitFailedLogon_();

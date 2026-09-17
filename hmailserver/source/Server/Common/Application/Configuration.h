@@ -248,6 +248,26 @@ namespace HM
       // mailbox is kept, by the day it was read. 0 keeps for ever; at most 3650.
       int GetDomainReportRetentionDays() const;
       void SetDomainReportRetentionDays(int days);
+      // Compromised-account detection (CompromiseDetector.h): the mode (0 off,
+      // 1 watch, 2 enforce) and the thresholds of the four signals.
+      int GetCompromiseDetectionMode() const;
+      void SetCompromiseDetectionMode(int mode);
+      int GetCompromiseBaselineDays() const;
+      void SetCompromiseBaselineDays(int days);
+      int GetCompromiseMinimumHistory() const;
+      void SetCompromiseMinimumHistory(int messages);
+      int GetCompromiseVolumeFactor() const;
+      void SetCompromiseVolumeFactor(int factor);
+      int GetCompromiseVolumeFloor() const;
+      void SetCompromiseVolumeFloor(int messages);
+      int GetCompromiseRecipientFloor() const;
+      void SetCompromiseRecipientFloor(int recipients);
+      int GetCompromiseNewRecipientShare() const;
+      void SetCompromiseNewRecipientShare(int percent);
+      int GetCompromiseScoreToLock() const;
+      void SetCompromiseScoreToLock(int score);
+      int GetCompromiseHeldDays() const;
+      void SetCompromiseHeldDays(int days);
 
       String GetImportOAuthRedirectBaseUrl() const;
       void SetImportOAuthRedirectBaseUrl(const String &url);

@@ -24,6 +24,7 @@
 #include "../Util/RecoverableStore.h"
 #include "../Util/ConfidentialMessages.h"
 #include "../Util/DomainReports.h"
+#include "../Util/CompromiseDetector.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/IMAPSpecialUse.h"
 #include "../../IMAP/MessagesContainer.h"
@@ -400,6 +401,10 @@ namespace HM
       // And the DMARC aggregate and TLS-RPT reports read more than
       // DomainReportRetentionDays ago.
       DomainReports::Sweep();
+      // And the compromised-account detection's: the baseline rows past the
+      // window, the held messages nobody reviewed within CompromiseHeldDays,
+      // the rows and messages the other has lost, and the locks re-read.
+      deleted += CompromiseDetector::Sweep();
 
       return deleted;
    }

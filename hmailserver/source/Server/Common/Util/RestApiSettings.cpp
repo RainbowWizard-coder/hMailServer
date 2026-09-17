@@ -55,6 +55,7 @@
 #include "MessageOrigin.h"
 #include "WebPush.h"
 #include "PasswordBreachCheck.h"
+#include "CompromiseDetector.h"
 #include "SessionPolicies.h"
 #include "../Application/IniSettingStore.h"
 #include "../Application/SettingsDiff.h"
@@ -420,6 +421,15 @@ namespace
    {
       { "allow", PasswordBreachCheck::UnreachableAllow },
       { "refuse", PasswordBreachCheck::UnreachableRefuse },
+      { nullptr, 0 }
+   };
+
+   // CompromiseDetector::Mode: what a takeover shape does.
+   const Word CompromiseModeWords[] =
+   {
+      { "off", CompromiseDetector::ModeOff },
+      { "watch", CompromiseDetector::ModeWatch },
+      { "enforce", CompromiseDetector::ModeEnforce },
       { nullptr, 0 }
    };
 
@@ -847,6 +857,44 @@ namespace
               return String(_T("reader_offline_days_max is between 0 and 365."));
            return String();
         } },
+      // Compromised-account detection (Util/CompromiseDetector.h): the mode
+      // and the thresholds of the four signals. Every range is refused in the
+      // setting's own sentence rather than clamped, as the webhook settings are.
+      { "compromise_detection_mode", KindEnum, ReadWrite, EffectNow, CompromiseModeWords,
+        "What a submission in the shape of an account takeover does. off records nothing and judges nothing. watch, the default, records each account's baseline and raises the account.compromised alert saying what enforcing would have done, and does nothing else. enforce keeps the message out of the delivery queue for review, holds the account's other messages queued within the hour, locks the account until an administrator unlocks it, ends its browser sessions, and raises the alert and the account.locked webhook. What is held is at GET /api/v1/review. This key and every other compromise_* key answer to the administrator password or an account holding manage_settings, never to an api key, which is refused them with a 403: a stolen key must not switch the detection off, or put its floors out of reach, for the account it stole.",
+        ROW_NUMBER(Config()->GetCompromiseDetectionMode()), ROW_SET(Config()->SetCompromiseDetectionMode((int) v.number)), ROW_NO_CHECK },
+      { "compromise_baseline_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days of an account's submissions make its baseline, and how long the record of them and of whom it wrote to is kept. 7 to 365; 30 by default.",
+        ROW_NUMBER(Config()->GetCompromiseBaselineDays()), ROW_SET(Config()->SetCompromiseBaselineDays((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 7 || v.number > 365) return String(_T("compromise_baseline_days is between 7 and 365.")); return String(); } },
+      { "compromise_minimum_history", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many submissions in the baseline an account needs before its busiest hour, its hours of the day and its client networks count as a baseline. Below it only the two floors are judged. 1 to 10000; 20 by default.",
+        ROW_NUMBER(Config()->GetCompromiseMinimumHistory()), ROW_SET(Config()->SetCompromiseMinimumHistory((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 1 || v.number > 10000) return String(_T("compromise_minimum_history is between 1 and 10000.")); return String(); } },
+      { "compromise_volume_factor", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The volume signal: the messages in the last hour exceed this many times the account's busiest hour in the baseline, and reach compromise_volume_floor. 2 to 100; 4 by default.",
+        ROW_NUMBER(Config()->GetCompromiseVolumeFactor()), ROW_SET(Config()->SetCompromiseVolumeFactor((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 2 || v.number > 100) return String(_T("compromise_volume_factor is between 2 and 100.")); return String(); } },
+      { "compromise_volume_floor", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The fewest messages in the last hour that can be a volume signal, whatever the baseline says; for an account with no baseline the floor is the whole test. 1 to 100000; 30 by default.",
+        ROW_NUMBER(Config()->GetCompromiseVolumeFloor()), ROW_SET(Config()->SetCompromiseVolumeFloor((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 1 || v.number > 100000) return String(_T("compromise_volume_floor is between 1 and 100000.")); return String(); } },
+      { "compromise_recipient_floor", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The fewest recipients in the last hour that can be a recipients signal. 1 to 100000; 20 by default.",
+        ROW_NUMBER(Config()->GetCompromiseRecipientFloor()), ROW_SET(Config()->SetCompromiseRecipientFloor((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 1 || v.number > 100000) return String(_T("compromise_recipient_floor is between 1 and 100000.")); return String(); } },
+      { "compromise_new_recipient_share", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The recipients signal: this percentage or more of the recipients in the last hour are addresses the account has never written to. 1 to 100; 80 by default.",
+        ROW_NUMBER(Config()->GetCompromiseNewRecipientShare()), ROW_SET(Config()->SetCompromiseNewRecipientShare((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 1 || v.number > 100) return String(_T("compromise_new_recipient_share is between 1 and 100.")); return String(); } },
+      { "compromise_score_to_lock", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The score that is a takeover: volume and recipients score 2 each, an hour of the day the account has never sent at and a client network it has never sent from score 1 each. An account whose sensitivity is relaxed needs one more, strict one fewer. 1 to 6; 3 by default.",
+        ROW_NUMBER(Config()->GetCompromiseScoreToLock()), ROW_SET(Config()->SetCompromiseScoreToLock((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 1 || v.number > 6) return String(_T("compromise_score_to_lock is between 1 and 6.")); return String(); } },
+      { "compromise_held_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days a message held for review waits for somebody to release or discard it before the retention sweep discards it. 1 to 90; 7 by default.",
+        ROW_NUMBER(Config()->GetCompromiseHeldDays()), ROW_SET(Config()->SetCompromiseHeldDays((int) v.number)),
+        [] (const Value &v) -> String { if (v.number < 1 || v.number > 90) return String(_T("compromise_held_days is between 1 and 90.")); return String(); } },
 
       // Messages that expire (Util/ConfidentialMessages.h): where the link in
       // the notice points. The same shape as the digest's base URL, and the
@@ -2602,9 +2650,35 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleSettingsPut_(const AnsiString &requestBody)
+   RestApiServer::HandleSettingsPut_(const Caller &caller, const AnsiString &requestBody)
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+
+      // The compromise_* keys are the compromised-account detection's mode and
+      // thresholds, and a key of any scope is refused them for the reason it
+      // is refused the review routes (IsApiKeyRoute_): a stolen key that could
+      // set the mode to off, or the floors out of reach, would switch the
+      // detection off for the account it stole. Found by name before the
+      // group's own parse, so that nothing in the body is applied; an account
+      // holding manage_settings, and the administrator password, go on.
+      if (caller.result == AuthenticatedWithApiKey)
+      {
+         JsonValue document;
+         std::string parseError;
+         if (JsonValue::Parse(std::string(requestBody.c_str(), requestBody.GetLength()), document, parseError) && document.IsObject())
+         {
+            const std::vector<std::pair<std::string, JsonValue> > &members = document.Members();
+            for (size_t i = 0; i < members.size(); i++)
+            {
+               if (members[i].first.compare(0, 11, "compromise_") != 0)
+                  continue;
+
+               const AnsiString key = AnsiString(members[i].first.substr(0, 48).c_str());
+               return BuildResponse_(403, "{\"error\":\"" + JsonEscape_(key) + " answers to the administrator password or an account holding a role, never an api key: the compromised-account detection cannot be switched off or blunted with a key\"}");
+            }
+         }
+      }
+
       return GroupPut(ServerGroup, requestBody, bridge);
    }
 

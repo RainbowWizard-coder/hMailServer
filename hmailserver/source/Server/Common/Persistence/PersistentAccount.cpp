@@ -23,6 +23,7 @@
 #include "../BO/Domain.h"
 #include "../Util/PasswordHistory.h"
 #include "../Util/CalendarStore.h"
+#include "../Util/CompromiseDetector.h"
 #include "PersistenceMode.h"
 
 #include "../Util/File.h"
@@ -125,6 +126,11 @@ namespace HM
       // behind would let a NEW account inherit a stranger's history and be refused
       // a password for a reason nobody could explain.
       PasswordHistory::DeleteByAccountID(iID);
+
+      // The messages the compromised-account detection held for review, which
+      // nobody is left to release, and the hold on its name - for the same
+      // reason as the history: the next account at this address is not this one.
+      CompromiseDetector::ForgetAccount(iID, pAccount->GetAddress());
 
       // Delete references from groups...
       if (!PersistentGroupMember::DeleteByAccount(iID))

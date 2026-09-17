@@ -141,6 +141,7 @@ namespace HM
 
          std::shared_ptr<const Account> pAccount;
          String sLoginName = sTokenUser;
+         bool held = false;
          if (authenticated)
          {
             std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
@@ -156,16 +157,22 @@ namespace HM
                if (pDomain && pDomain->GetIsActive())
                   pAccount = pCandidate;
             }
+
+            // An account the compromised-account detection has locked is refused
+            // here as a password logon is refused at the lockout check: the token
+            // proves who the client is, not that the account is theirs to use.
+            held = AccountLogon::RefusedByHold(pAccount);
          }
 
          pConnection->FireOnClientLogon(sLoginName, pAccount != nullptr);
 
          if (!pAccount)
          {
-            // Feed the per-IP auto-ban accounting, then the per-connection cap. Deliberately not the per-name lockout: a bearer token is not guessable, and a client looping on an expired one would lock its own user out of every password client (see AccountLogon.h).
+            // Feed the per-IP auto-ban accounting, then the per-connection cap. Deliberately not the per-name lockout: a bearer token is not guessable, and a client looping on an expired one would lock its own user out of every password client (see AccountLogon.h). A refusal on the compromise hold feeds neither, for the reason RefusedByHold gives.
             AccountLogon accountLogon;
             bool disconnect = false;
-            accountLogon.RegisterFailedLogin(pConnection->GetRemoteEndpointAddress(), sLoginName, disconnect, false);
+            if (!held)
+               accountLogon.RegisterFailedLogin(pConnection->GetRemoteEndpointAddress(), sLoginName, disconnect, false);
 
             if (disconnect || pConnection->RegisterAuthenticationFailure())
             {

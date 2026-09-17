@@ -140,6 +140,7 @@ ALLOWED = {
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
       "COM/InterfaceUtilities.cpp",                 # Utilities.ClearSpamTrapHits
+      "Common/Util/RestApiAccountReview.cpp",       # a held message released or discarded, an account's review choices, the compromise lock cleared
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
    },
    "AuditTrail::SetActor(": {
@@ -206,6 +207,18 @@ REQUIRED = [
    ("COM/InterfaceSettings.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("logon failures"), _T("every recorded failure"), _T("cleared"),',
     "the logon-failure list cleared over COM is no longer recorded - hm_logon_failures is traffic, so the statement chokepoint does not record the delete"),
+   ("Common/Util/RestApiAccountReview.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("held message"), StringParser::IntToString(held.message_id), _T("released"), detail);',
+    "a held message released over REST is no longer recorded - hm_heldmessages is traffic, so the statement chokepoint does not record the delete, and a release sends mail the server had decided not to"),
+   ("Common/Util/RestApiAccountReview.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("held message"), StringParser::IntToString(held.message_id), _T("discarded"), detail);',
+    "a held message discarded over REST is no longer recorded - hm_heldmessages is traffic, so the statement chokepoint does not record the delete"),
+   ("Common/Util/RestApiAccountReview.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("review-changed"), detail);',
+    "an account marked exempt from the compromised-account detection, or its sensitivity changed, is no longer recorded - hm_accountreview is written by the submission thread too, so it is not an audited table"),
+   ("Common/Util/RestApiAccountReview.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("compromise-lock-cleared"),',
+    "the compromise lock cleared alone over REST is no longer recorded - the lock is a row written with no actor and a hold in memory, so no chokepoint sees it"),
    ("Common/Util/SignInStore.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("device"), record.device, _T("revoked"), detail);',
     "a device revoked is no longer recorded - hm_signins is not an audited table (a sign-in would be recorded on every authentication) and the sessions and connections a revoke ends leave no row at all, so the strongest thing anybody can do about a client they do not recognise would be the one thing the trail did not hold"),
@@ -367,6 +380,15 @@ NOT_AUDITED = {
    "hm_contacts": "an account's own address book, written by it over CardDAV and the portal.",
    "hm_recoverable": "copies of the messages an account deleted, written as the delete happens and ended by the retention sweep or the account itself; traffic.",
    "hm_confidential": "the messages that expire an account sent, written as it sends them, opened by their readers, withdrawn by the account and ended by the sweep; traffic.",
+   "hm_accountactivity": "the compromised-account detection's baseline, one row per authenticated submission, written by the submission thread and pruned by the sweep; traffic.",
+   "hm_accountrecipients": "whom an account has written to, learned by the submission thread from its messages and forgotten by the sweep; traffic.",
+   "hm_accountreview": "an account's state under the compromised-account detection. The lock and the last shape seen are written by the "
+                       "submission thread with no actor. The administrator's two choices - exempt, sensitivity - are recorded by "
+                       "PUT /api/v1/accounts/{address}/review through AuditTrail::RecordEvent, and the lock cleared alone by "
+                       "POST .../review/unlock the same way (the general unlock records its own event).",
+   "hm_heldmessages": "the messages the compromised-account detection kept out of the delivery queue, written by the submission thread "
+                      "with no actor and ended by the sweep; releasing or discarding one over REST is recorded through "
+                      "AuditTrail::RecordEvent, naming the message, since a release sends mail the server had decided not to.",
    "hm_maskedaddresses": "the masked addresses an account made for itself in the portal, switched off and removed by it there; the delivery count is traffic.",
    "hm_senderaddresses": "the addresses elsewhere an account proved with a code and sends as, added and removed by the account itself in the portal.",
    "hm_files": "files an account attached as links from webmail; the account's own data.",

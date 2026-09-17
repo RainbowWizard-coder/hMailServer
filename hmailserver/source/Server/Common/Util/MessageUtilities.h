@@ -34,6 +34,15 @@ namespace HM
       static bool CopyToIMAPFolder(std::shared_ptr<Message> pMessage, int iDestinationFolderID);
       static bool CopyToIMAPFolder(std::shared_ptr<Message> pMessage, int iDestinationFolderID, __int64 &newMessageId);
 
+      // A copy of a message the account sent - a queue message, or any other -
+      // into the folder its tree designates \Sent (IMAPSpecialUse), marked
+      // read, the folder refreshed and every session told. What the webmail's
+      // send keeps: the scheduled send of a draft and the release of a message
+      // held for review keep the same copy the same way. False, and no copy,
+      // when the account has no such folder, its quota has no room for one,
+      // or the copy could not be made or saved; the message itself is untouched.
+      static bool CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message);
+
       // Whether a folder named the way a rule or Sieve script names it exists and
       // can be delivered into by this account. Kept HERE, beside MoveToIMAPFolder,
       // because the two must agree: same name cleaning, same hierarchy split, and

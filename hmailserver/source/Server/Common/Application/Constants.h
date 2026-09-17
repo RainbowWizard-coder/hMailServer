@@ -191,6 +191,19 @@
 // is a detector that never fires; a card number and an IBAN need no pattern.
 #define PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN     _T("DlpAccountNumberPattern")
 #define PROPERTY_DOMAIN_REPORT_RETENTION_DAYS   _T("DomainReportRetentionDays")
+// Compromised-account detection (Util/CompromiseDetector.h): what a takeover
+// shape does (0 off, 1 watch, 2 enforce), the baseline window, the history an
+// account needs before it has a baseline, the four signals' thresholds, the
+// score that locks, and how long a held message waits for a review.
+#define PROPERTY_COMPROMISE_DETECTION_MODE      _T("CompromiseDetectionMode")
+#define PROPERTY_COMPROMISE_BASELINE_DAYS       _T("CompromiseBaselineDays")
+#define PROPERTY_COMPROMISE_MINIMUM_HISTORY     _T("CompromiseMinimumHistory")
+#define PROPERTY_COMPROMISE_VOLUME_FACTOR       _T("CompromiseVolumeFactor")
+#define PROPERTY_COMPROMISE_VOLUME_FLOOR        _T("CompromiseVolumeFloor")
+#define PROPERTY_COMPROMISE_RECIPIENT_FLOOR     _T("CompromiseRecipientFloor")
+#define PROPERTY_COMPROMISE_NEW_RECIPIENT_SHARE _T("CompromiseNewRecipientShare")
+#define PROPERTY_COMPROMISE_SCORE_TO_LOCK       _T("CompromiseScoreToLock")
+#define PROPERTY_COMPROMISE_HELD_DAYS           _T("CompromiseHeldDays")
 // Importing from the old provider with a sign-in (Util/ReaderOAuth.h): the base
 // URL the providers send the reader back to, and per provider the client this
 // server is registered as and the two endpoints of the authorization code flow.
@@ -456,4 +469,11 @@
 //      (one row per TLS-RPT policy result), and seeds the hm_settings row
 //      DomainReportRetentionDays (365). Nothing is read until a domain names a
 //      mailbox, so an upgraded database behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6070
+// 6071 adds hm_accountactivity, hm_accountrecipients, hm_accountreview and
+//      hm_heldmessages (Util/CompromiseDetector.h): the per-account baseline of
+//      authenticated submissions, the memory of whom an account has written to,
+//      the account's review state (exempt, sensitivity, the compromise lock and
+//      the last takeover shape seen) and the messages kept out of the delivery
+//      queue for review, which are hm_messages rows of messagetype 4; and seeds
+//      the account.compromised alert rule, on.
+#define REQUIRED_DB_VERSION            6071

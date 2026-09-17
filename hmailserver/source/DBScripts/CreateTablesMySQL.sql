@@ -32,6 +32,14 @@ drop table if exists hm_dmarcreports;
 
 drop table if exists hm_tlsreports;
 
+drop table if exists hm_accountactivity;
+
+drop table if exists hm_accountrecipients;
+
+drop table if exists hm_accountreview;
+
+drop table if exists hm_heldmessages;
+
 drop table if exists hm_confidential;
 
 drop table if exists hm_recoverable;
@@ -746,6 +754,70 @@ CREATE UNIQUE INDEX idx_hm_tlsreports_key ON hm_tlsreports (trkey);
 CREATE INDEX idx_hm_tlsreports_domain ON hm_tlsreports (trdomainid);
 
 CREATE INDEX idx_hm_tlsreports_received ON hm_tlsreports (trreceived);
+
+create table hm_accountactivity
+(
+	acid bigint auto_increment not null, primary key(`acid`), unique(`acid`),
+	acaccountid int not null,
+	actime bigint not null,
+	acbucket bigint not null,
+	achour int not null,
+	acrecipients int not null,
+	acnewrecipients int not null,
+	acaddress varchar(64) not null,
+	acsource int not null,
+	acmessageid bigint not null,
+	acheld int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_accountactivity_account ON hm_accountactivity (acaccountid, actime);
+
+create table hm_accountrecipients
+(
+	arcid bigint auto_increment not null, primary key(`arcid`), unique(`arcid`),
+	arcaccountid int not null,
+	arcaddress varchar(255) not null,
+	arcfirst bigint not null,
+	arclast bigint not null,
+	arccount int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_accountrecipients_address ON hm_accountrecipients (arcaccountid, arcaddress);
+
+create table hm_accountreview
+(
+	arvid int auto_increment not null, primary key(`arvid`), unique(`arvid`),
+	arvaccountid int not null,
+	arvexempt int not null,
+	arvsensitivity int not null,
+	arvlocked int not null,
+	arvlockedat bigint not null,
+	arvunlockedat bigint not null,
+	arvalertedat bigint not null,
+	arvscore int not null,
+	arvsignals varchar(255) not null,
+	arvreason varchar(255) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_accountreview_account ON hm_accountreview (arvaccountid);
+
+create table hm_heldmessages
+(
+	hmid bigint auto_increment not null, primary key(`hmid`), unique(`hmid`),
+	hmaccountid int not null,
+	hmmessageid bigint not null,
+	hmheld bigint not null,
+	hmsource int not null,
+	hmsender varchar(255) not null,
+	hmrecipients varchar(2000) not null,
+	hmsubject varchar(255) not null,
+	hmsize bigint not null,
+	hmreason varchar(255) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_heldmessages_account ON hm_heldmessages (hmaccountid);
+
+CREATE INDEX idx_hm_heldmessages_message ON hm_heldmessages (hmmessageid);
 
 create table hm_remotedomainpolicies
 (
@@ -1497,6 +1569,14 @@ ALTER TABLE hm_dmarcreportrecords ENGINE=InnoDB;
 
 ALTER TABLE hm_tlsreports ENGINE=InnoDB;
 
+ALTER TABLE hm_accountactivity ENGINE=InnoDB;
+
+ALTER TABLE hm_accountrecipients ENGINE=InnoDB;
+
+ALTER TABLE hm_accountreview ENGINE=InnoDB;
+
+ALTER TABLE hm_heldmessages ENGINE=InnoDB;
+
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;
 
 ALTER TABLE hm_remotedomainpolicies ENGINE=InnoDB;
@@ -1678,6 +1758,14 @@ ALTER TABLE hm_dmarcreportrecords ADD CONSTRAINT fk_hm_dmarcreportrecords_report
 
 ALTER TABLE hm_tlsreports ADD CONSTRAINT fk_hm_tlsreports_domain FOREIGN KEY (trdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
+ALTER TABLE hm_accountactivity ADD CONSTRAINT fk_hm_accountactivity_account FOREIGN KEY (acaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_accountrecipients ADD CONSTRAINT fk_hm_accountrecipients_account FOREIGN KEY (arcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_accountreview ADD CONSTRAINT fk_hm_accountreview_account FOREIGN KEY (arvaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_heldmessages ADD CONSTRAINT fk_hm_heldmessages_account FOREIGN KEY (hmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_autoreplies ADD CONSTRAINT fk_hm_autoreplies_account FOREIGN KEY (araccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
@@ -1785,6 +1873,8 @@ insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethresh
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('dkim.rotation.stalled', 1, 7, 1, '', '', '', 1440, 1);
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('reputation.listed', 1, 0, 1, '', '', '', 1440, 0);
+
+insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.compromised', 1, 0, 1, '', '', '', 0, 0);
 
 create table hm_reputationchecks
 (
@@ -2112,4 +2202,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6070);
+insert into hm_dbversion values (6071);
