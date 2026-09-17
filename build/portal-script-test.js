@@ -110,6 +110,18 @@ class Element {
       if (at >= 0) { this.childNodes.splice(at, 1); child.parentNode = null; }
       return child;
    }
+   // As the DOM has it: before null appends, and a child already here moves.
+   // The compose editor's tables need it - a row above the cursor's, a column
+   // to its left - and a page that reached for it found nothing here before.
+   insertBefore(child, before) {
+      if (!before) { return this.appendChild(child); }
+      if (child.parentNode) { child.parentNode.removeChild(child); }
+      const at = this.childNodes.indexOf(before);
+      if (at < 0) { throw new Error('insertBefore: the reference node is not a child of this element'); }
+      child.parentNode = this;
+      this.childNodes.splice(at, 0, child);
+      return child;
+   }
    setAttribute(name, value) {
       this.attributes[name] = String(value);
       if (name === 'hidden') { this.hidden = true; }
@@ -233,6 +245,7 @@ document.getElementById = function (id) {
    return found;
 };
 document.createElement = function (tag) { return new Element(tag); };
+document.createTextNode = function (text) { return new TextNode(String(text)); };
 document.body = (function find(node) {
    if (node instanceof Element && node.tagName === 'BODY') { return node; }
    for (const child of node.childNodes) { const hit = find(child); if (hit) { return hit; } }
@@ -512,6 +525,18 @@ const DRAFT_WITH_LOGO = {
       { index: 2, name: 'image1.png', size: 3400, content_type: 'image/png', content_id: 'img1.0123456789abcdef@webmail.invalid' },
       { index: 3, name: 'photo.jpg', size: 5100, content_type: 'image/jpeg', content_id: '<image001.jpg@01DC2A3B.4C5D6E70>' }
    ]
+};
+
+// A message whose one attachment is large: what a forward of it carries is
+// bytes in the same request the pictures go in, and the page's twelve
+// megabytes are of both together. 11,200,000 characters of base64 are
+// 8,400,000 bytes.
+const BIG_ATTACHMENT = {
+   id: 707, folder_id: 1, uid: 16, subject: 'The deck', from: 'a@example.net', to: 'user@example.com', cc: '',
+   date: '2026-09-09 14:00', received: '2026-09-09 14:00:00', size: 8400000, message_id: '<deck@example.net>', references: '', in_reply_to: '',
+   text: 'Here it is', html: '', html_remote: false,
+   flags: { seen: true, flagged: false, draft: false },
+   attachments: [{ index: 0, name: 'deck.pdf', size: 8400000, content_type: 'application/pdf', content_id: '' }]
 };
 
 function json(status, body, headers) {
@@ -1108,6 +1133,12 @@ function answer(method, path, body) {
       return { status: 200, body: 'PNGBYTES', headers: { 'Content-Type': types[index] || 'application/octet-stream' } };
    }
    if (path === '/api/v1/me/messages/102' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(WITH_IMAGE)))); }
+   // The draft's parts, by the types its attachment list declares: the two
+   // images this webmail made go back into the compose editor from here.
+   if (/^\/api\/v1\/me\/messages\/105\/attachments\/(\d+)$/.test(path)) {
+      const part = DRAFT_WITH_LOGO.attachments[Number(path.split('/').pop())];
+      return { status: 200, body: 'PARTBYTES', headers: { 'Content-Type': part ? part.content_type : 'application/octet-stream' } };
+   }
    if (path === '/api/v1/me/messages/104' && method === 'GET') {
       return json(200, withState(Object.assign({}, ARRIVAL, { folder_id: 1, received: ARRIVAL.date + ':00', cc: '', text: 'just in', html: '', attachments: [], message_id: '<four@example.net>', references: '', in_reply_to: '' })));
    }
@@ -1127,6 +1158,10 @@ function answer(method, path, body) {
       return { status: 200, body: 'FILEBYTES', headers: { 'Content-Type': types[Number(path.split('/').pop())] || 'application/octet-stream' } };
    }
    if (path === '/api/v1/me/messages/105' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(DRAFT_WITH_LOGO)))); }
+   if (path === '/api/v1/me/messages/707/attachments/0') {
+      return { status: 200, body: 'DECK', headers: { 'Content-Type': 'application/pdf' }, base64: 'A'.repeat(11200000) };
+   }
+   if (path === '/api/v1/me/messages/707' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(BIG_ATTACHMENT)))); }
    if (path === '/api/v1/me/smime' && method === 'GET') {
       const store = smimeStores[account] || { own: [], recipients: [] };
       return json(200, { own: store.own, recipients: store.recipients, limits: { own: 20, recipients: 500 } });
@@ -1221,8 +1256,9 @@ function fetchStub(path, options) {
       arrayBuffer: () => Promise.resolve(Uint8Array.from(Buffer.from(reply.body, 'binary')).buffer),
       json: () => Promise.resolve(JSON.parse(reply.body)),
       // A real Blob, so the worker can answer it as a Response, with the base64
-      // the FileReader stub reads off it.
-      blob: () => Promise.resolve(Object.assign(new Blob(['ABC'], { type: reply.headers['Content-Type'] || 'application/octet-stream' }), { base64: 'QUJD' }))
+      // the FileReader stub reads off it - the answer's own, where it gave one,
+      // so that an attachment can weigh what a bound is about.
+      blob: () => Promise.resolve(Object.assign(new Blob(['ABC'], { type: reply.headers['Content-Type'] || 'application/octet-stream' }), { base64: reply.base64 || 'QUJD' }))
    });
 }
 
@@ -2531,7 +2567,11 @@ async function main() {
    await flush();
    const draftFetched = since(beforeDraft).filter((r) => /\/messages\/105\/attachments\/\d+$/.test(r.path)).map((r) => r.path.split('/').pop());
    const draftNote = document.getElementById('compose-files-note').textContent;
-   check('a draft reopened carries its files, and not the images this webmail made parts of its HTML', draftFetched.join(',') === '0,3' && draftNote.indexOf('notes.txt') >= 0 && draftNote.indexOf('photo.jpg') >= 0 && draftNote.indexOf('image1.png') < 0,
+   // Since the compose editor took images and tables (row L48), a draft with
+   // HTML reopens formatted, and the two images this webmail made parts of
+   // it are fetched too - to go back into the editor as data: URLs, not as
+   // files; the checks of that are with the editor's own, below.
+   check('a draft reopened carries its files, and not the images this webmail made parts of its HTML', draftFetched.slice().sort().join(',') === '0,1,2,3' && draftNote.indexOf('notes.txt') >= 0 && draftNote.indexOf('photo.jpg') >= 0 && draftNote.indexOf('image1.png') < 0,
       JSON.stringify(draftFetched) + ' ' + draftNote);
    document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
    await flush();
@@ -4901,6 +4941,488 @@ async function main() {
       delete flaggedById[103];
       await setPrefs({ 'pref-sections': '0', 'pref-inbox': inboxWas, 'pref-pane': paneWas });
       await goTo('#/f/1');
+      dismissAllToasts();
+   }
+
+   // ---- Emoji, images inline in compose, tables (row L48): the picker in either editor, a picture pasted,
+   // dropped or chosen, the bounds, the table the rebuild keeps, and a draft's formatting brought back
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const editor = document.getElementById('compose-editor');
+      const box = document.getElementById('compose-text');
+      const status = document.getElementById('compose-status');
+      const emojiPanel = document.getElementById('emoji-panel');
+      const search = document.getElementById('emoji-search');
+      const tablePanel = document.getElementById('table-panel');
+      const imagesIn = () => walkAll(editor, (n) => n.tagName === 'IMG');
+      const tablesIn = () => walkAll(editor, (n) => n.tagName === 'TABLE');
+      const rowsIn = () => walkAll(editor, (n) => n.tagName === 'TR');
+      const cellsOf = (row) => row.children.filter((c) => c.tagName === 'TD' || c.tagName === 'TH');
+      const cellAt = (r, c) => cellsOf(rowsIn()[r])[c];
+      const emojiButtons = () => walkAll(document.getElementById('emoji-grid'), (n) => n.tagName === 'BUTTON' && n.getAttribute('data-emoji'));
+      const heads = () => walkAll(document.getElementById('emoji-grid'), (n) => n.className === 'emoji-head').map((n) => n.textContent);
+      const opButton = (op) => walkAll(document.getElementById('table-edit'), (n) => n.getAttribute('data-op') === op)[0];
+      const lastDraft = (from) => since(from).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/drafts').map((r) => JSON.parse(r.body)).pop();
+      // A real 1x1 PNG, as the signature checks use: the page reads a file's first bytes before it believes the type.
+      const logo = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+      const pngOf = (chars) => 'iVBORw0KGgoA' + 'A'.repeat(chars - 12);
+
+      location.hash = '#/compose';
+      await flush();
+      check('the compose window opens plain, with Emoji offered beside Formatting and the picker closed',
+         document.getElementById('compose-section').hidden === false && editor.hidden === true && document.getElementById('emoji-open').hidden === false &&
+         document.getElementById('rich-tools').hidden === true && emojiPanel.hidden === true, 'editor hidden=' + editor.hidden);
+      document.getElementById('emoji-open').dispatchEvent(makeEvent('click'));
+      check('the picker opens on its groups, hundreds of emoji named for the search, and nothing recently used yet',
+         emojiPanel.hidden === false && document.getElementById('emoji-open').getAttribute('aria-expanded') === 'true' && heads()[0] === words('Smileys') && heads().indexOf(words('Symbols')) > 0 &&
+         heads().indexOf(words('Recently used')) < 0 && emojiButtons().length > 500 && emojiButtons().every((b) => b.getAttribute('title').length > 1) && search.focused > 0,
+         'heads=' + JSON.stringify(heads()) + ' buttons=' + emojiButtons().length);
+      search.value = 'heart eyes';
+      search.dispatchEvent(makeEvent('input'));
+      check('typing narrows the picker to the emoji whose names hold every word', emojiButtons().length >= 2 && emojiButtons().length < 10 &&
+         emojiButtons().every((b) => /heart/.test(b.getAttribute('title')) && /eyes/.test(b.getAttribute('title'))) && heads().length === 0,
+         emojiButtons().map((b) => b.getAttribute('title')).join(' | '));
+      const picked = emojiButtons()[0].getAttribute('data-emoji');
+      box.value = 'Hello world';
+      box.selectionStart = 5; box.selectionEnd = 5;
+      emojiButtons()[0].dispatchEvent(makeEvent('click'));
+      check('an emoji picked goes into the plain text at the cursor, and is remembered as recently used in this browser',
+         box.value === 'Hello' + picked + ' world' && JSON.parse(store.get('hmPortalEmoji') || '[]')[0] === picked && box.focused > 0,
+         JSON.stringify(box.value) + ' recent=' + store.get('hmPortalEmoji'));
+      // Everything after the emoji selected, so that the next one picked replaces it.
+      box.selectionStart = 'Hello'.length + picked.length; box.selectionEnd = box.value.length;
+      search.value = '';
+      search.dispatchEvent(makeEvent('input'));
+      check('with the search cleared the picker starts with what was recently used', heads()[0] === words('Recently used') && emojiButtons()[0].getAttribute('data-emoji') === picked, JSON.stringify(heads().slice(0, 2)));
+      search.value = 'thumbs up';
+      search.dispatchEvent(makeEvent('input'));
+      search.dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+      check('Enter in the search box picks the first match, over what the cursor selected', box.value === 'Hello' + picked + '👍' && JSON.parse(store.get('hmPortalEmoji'))[0] === '👍' && JSON.parse(store.get('hmPortalEmoji'))[1] === picked,
+         JSON.stringify(box.value));
+      search.value = 'no such thing';
+      search.dispatchEvent(makeEvent('input'));
+      check('a search that matches nothing says so', emojiButtons().length === 0 && walkAll(document.getElementById('emoji-grid'), (n) => n.className === 'emoji-none').length === 1, emojiButtons().length);
+      search.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+      check('Escape closes the picker and puts the cursor back in the text', emojiPanel.hidden === true && document.getElementById('emoji-open').getAttribute('aria-expanded') === 'false' && document.activeElement === box, 'hidden=' + emojiPanel.hidden);
+
+      // Formatting on: the same picker writes into the editor. This DOM has no
+      // selection, so the text goes at the end, as it does in a browser where
+      // the reader has not yet put the cursor anywhere.
+      box.value = 'Hello';
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      document.getElementById('emoji-open').dispatchEvent(makeEvent('click'));
+      search.value = 'rocket';
+      search.dispatchEvent(makeEvent('input'));
+      emojiButtons()[0].dispatchEvent(makeEvent('click'));
+      check('with Formatting on, an emoji goes into the editor', editor.hidden === false && editor.textContent === 'Hello🚀', JSON.stringify(editor.textContent));
+      document.getElementById('emoji-open').dispatchEvent(makeEvent('click'));
+
+      // ---- an image pasted, dropped or chosen becomes an inline picture
+      const textPaste = makeEvent('paste', { clipboardData: { files: [], getData: () => 'plain words' } });
+      editor.dispatchEvent(textPaste);
+      check('a paste of text is left to the browser', textPaste.defaultPrevented === false && imagesIn().length === 0, 'prevented=' + textPaste.defaultPrevented);
+      const imagePaste = makeEvent('paste', { clipboardData: { files: [{ name: 'shot.png', type: 'image/png', size: 70, base64: logo }] } });
+      editor.dispatchEvent(imagePaste);
+      await flush();
+      check('an image pasted into the editor becomes an inline image held as a data: URL of the type its bytes say',
+         imagePaste.defaultPrevented === true && imagesIn().length === 1 && imagesIn()[0].getAttribute('src') === 'data:image/png;base64,' + logo && imagesIn()[0].getAttribute('alt') === 'shot.png',
+         imagesIn().length + ' ' + (imagesIn()[0] ? imagesIn()[0].getAttribute('src').slice(0, 40) : ''));
+      const svgPaste = makeEvent('paste', { clipboardData: { items: [{ kind: 'file', type: 'image/svg+xml', getAsFile: () => ({ name: 'logo.svg', type: 'image/svg+xml', size: 40, base64: 'PHN2Zz4=' }) }] } });
+      editor.dispatchEvent(svgPaste);
+      await flush();
+      check('a picture that is not PNG, JPEG, GIF or WebP is refused, and the paste is not left to the browser either',
+         svgPaste.defaultPrevented === true && imagesIn().length === 1 && status.textContent === words('An image to put in the message: PNG, JPEG, GIF or WebP.') && status.className.indexOf('error') >= 0, status.textContent);
+      const fakePaste = makeEvent('paste', { clipboardData: { files: [{ name: 'notes.png', type: 'image/png', size: 30, base64: 'VGhpcyBpcyBub3QgYSBwaWN0dXJlIGF0IGFsbA==' }] } });
+      editor.dispatchEvent(fakePaste);
+      await flush();
+      check('a file whose bytes are not an image is refused whatever it is called', imagesIn().length === 1 && status.textContent === words('An image to put in the message: PNG, JPEG, GIF or WebP.'), status.textContent);
+      // Dropped on the editor: the image goes in, the other file is attached as a drop anywhere on the form attaches it.
+      const noteBefore = document.getElementById('compose-files-note').textContent;
+      const drop = makeEvent('drop', { dataTransfer: { files: [{ name: 'photo.jpg', type: 'image/jpeg', size: 70, base64: logo }, { name: 'agenda.pdf', type: 'application/pdf', size: 10, base64: 'AA==' }] } });
+      editor.dispatchEvent(drop);
+      await flush();
+      const note = document.getElementById('compose-files-note').textContent;
+      check('an image dropped on the editor goes inline and a document dropped with it is attached',
+         drop.defaultPrevented === true && imagesIn().length === 2 && imagesIn()[1].getAttribute('src') === 'data:image/png;base64,' + logo && note.indexOf('agenda.pdf') >= 0 && note.indexOf('photo.jpg') < 0 && note !== noteBefore,
+         imagesIn().length + ' note=' + note);
+      const picker = document.getElementById('compose-image');
+      document.getElementById('image-open').dispatchEvent(makeEvent('click'));
+      picker.files = [{ name: 'chart.png', type: 'image/png', size: 70, base64: logo }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('Image in the toolbar takes a file, and the picker is cleared for the next', imagesIn().length === 3 && imagesIn()[2].getAttribute('alt') === 'chart.png' && picker.value === '', imagesIn().length);
+      // With a canvas, a large image is drawn no larger than 1200 on its longer side.
+      const drawn = [];
+      const realCreateElement = document.createElement;
+      document.createElement = function (tag) {
+         const made = realCreateElement(tag);
+         if (String(tag).toLowerCase() === 'canvas') {
+            made.getContext = () => ({ clearRect() {}, drawImage() { drawn.push(made.width + 'x' + made.height); } });
+            made.toDataURL = (type) => 'data:' + type + ';base64,' + 'A'.repeat(made.width * 100);
+         }
+         return made;
+      };
+      Object.defineProperty(globalThis, 'Image', { configurable: true, writable: true, value: class {
+         set src(value) { this.given = value; this.naturalWidth = 4000; this.naturalHeight = 3000; Promise.resolve().then(() => this.onload()); }
+      } });
+      picker.files = [{ name: 'screen.png', type: 'image/png', size: 900000, base64: pngOf(1200000) }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('a large image is drawn down to 1200 pixels on its longer side before it goes in, and the page says so',
+         drawn.length === 1 && drawn[0] === '1200x900' && imagesIn().length === 4 && imagesIn()[3].getAttribute('src').length === 'data:image/png;base64,'.length + 120000 && status.textContent === words('The image was made smaller to fit.') && status.className.indexOf('ok') >= 0,
+         JSON.stringify(drawn) + ' ' + status.textContent);
+      // One that fits within the box is kept byte for byte, not drawn again.
+      Object.defineProperty(globalThis, 'Image', { configurable: true, writable: true, value: class {
+         set src(value) { this.given = value; this.naturalWidth = 640; this.naturalHeight = 480; Promise.resolve().then(() => this.onload()); }
+      } });
+      picker.files = [{ name: 'small.png', type: 'image/png', size: 70, base64: logo }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('an image already within the box is kept as it is', drawn.length === 1 && imagesIn().length === 5 && imagesIn()[4].getAttribute('src') === 'data:image/png;base64,' + logo && status.textContent === '', JSON.stringify(drawn) + ' ' + status.textContent);
+      document.createElement = realCreateElement;
+      delete globalThis.Image;
+      // No canvas: an image over the 2,000,000 characters one may be is refused as too large...
+      picker.files = [{ name: 'huge.png', type: 'image/png', size: 1600000, base64: pngOf(2100000) }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('without a canvas, an image over what one may be is refused as too large', imagesIn().length === 5 && status.textContent === words('The image is too large for a message even when made smaller.') && status.className.indexOf('error') >= 0, status.textContent);
+      // ...and the 6 MB the images may hold together: three of 1.9 million go in, the fourth does not.
+      for (let i = 0; i < 3; i += 1) {
+         picker.files = [{ name: 'big' + i + '.png', type: 'image/png', size: 1400000, base64: pngOf(1900000) }];
+         picker.dispatchEvent(makeEvent('change'));
+         await flush();
+      }
+      check('three images of 1.9 million characters go in under the 6 MB the message may carry', imagesIn().length === 8 && status.textContent === '', imagesIn().length + ' ' + status.textContent);
+      picker.files = [{ name: 'big3.png', type: 'image/png', size: 1400000, base64: pngOf(1900000) }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('the fourth is refused with the together bound named', imagesIn().length === 8 && status.textContent === words('This message holds as many images as it can carry: 6 MB of them together.'), status.textContent);
+      // The send carries the images in the HTML, as data: URLs the server makes cid: parts of, and names them in the text.
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-subject').value = 'Pictures';
+      confirmAnswer = true;
+      const beforePictures = requests.length;
+      document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      fireTimers();
+      await flush();
+      await flush();
+      const pictureSend = since(beforePictures).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/messages').map((r) => JSON.parse(r.body))[0];
+      check('the send carries the images in its HTML as data: URLs and names them in its text',
+         !!pictureSend && pictureSend.html.indexOf('<img src="data:image/png;base64,' + logo + '" alt="shot.png">') >= 0 && (pictureSend.html.match(/<img /g) || []).length === 8 &&
+         pictureSend.text.indexOf('[shot.png]') >= 0 && pictureSend.text.indexOf('Hello🚀') === 0,
+         pictureSend ? pictureSend.html.length + ' ' + JSON.stringify(pictureSend.text.slice(0, 60)) : 'no POST');
+      dismissAllToasts();
+
+      // ---- pasted into the plain text, an image switches Formatting on
+      location.hash = '#/compose';
+      await flush();
+      check('the next message starts plain again, with the editor emptied and none of the last message\'s words in the box',
+         editor.hidden === true && imagesIn().length === 0 && box.value === '', 'images=' + imagesIn().length + ' box=' + JSON.stringify(box.value));
+      box.value = 'See this';
+      const plainPaste = makeEvent('paste', { clipboardData: { files: [{ name: 'shot.png', type: 'image/png', size: 70, base64: logo }] } });
+      box.dispatchEvent(plainPaste);
+      await flush();
+      check('an image pasted into the plain text switches Formatting on and puts it after the words', plainPaste.defaultPrevented === true && editor.hidden === false && box.hidden === true &&
+         imagesIn().length === 1 && editor.textContent.indexOf('See this') === 0 && editor.childNodes[editor.childNodes.length - 1] === imagesIn()[0], 'editor hidden=' + editor.hidden + ' images=' + imagesIn().length);
+      confirmAnswer = false;
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      check('Plain text asks first while the message holds a picture, and No keeps it', confirms[confirms.length - 1] === words('Plain text keeps the words and drops the images and tables. Continue?') && editor.hidden === false && imagesIn().length === 1,
+         confirms[confirms.length - 1] + ' hidden=' + editor.hidden);
+      confirmAnswer = true;
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      check('Yes keeps the words and names where the picture stood', editor.hidden === true && box.value === 'See this[shot.png]', JSON.stringify(box.value));
+
+      // ---- tables: rows by columns, the operations with the cursor in a cell, Tab, and what the rebuild sends
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      document.getElementById('table-open').dispatchEvent(makeEvent('click'));
+      check('Table opens on rows, columns and a header row, with the operations kept for a cursor in a cell',
+         tablePanel.hidden === false && document.getElementById('table-insert').hidden === false && document.getElementById('table-edit').hidden === true && document.getElementById('table-open').getAttribute('aria-expanded') === 'true',
+         'panel hidden=' + tablePanel.hidden);
+      document.getElementById('table-rows').value = '2';
+      document.getElementById('table-columns').value = '3';
+      document.getElementById('table-header').checked = true;
+      document.getElementById('table-insert-go').dispatchEvent(makeEvent('click'));
+      check('Insert table puts a 2 by 3 table in the editor, its first row of headers, a line to write on after it, and closes the panel',
+         tablesIn().length === 1 && rowsIn().length === 2 && cellsOf(rowsIn()[0]).length === 3 && cellsOf(rowsIn()[0]).every((c) => c.tagName === 'TH') && cellsOf(rowsIn()[1]).every((c) => c.tagName === 'TD') &&
+         cellsOf(rowsIn()[1]).length === 3 && tablesIn()[0].parentNode === editor && editor.childNodes[editor.childNodes.length - 1].tagName === 'P' && tablePanel.hidden === true,
+         'tables=' + tablesIn().length + ' rows=' + rowsIn().length);
+      cellAt(0, 0).textContent = 'Name'; cellAt(0, 1).textContent = 'Size'; cellAt(0, 2).textContent = 'Note';
+      cellAt(1, 0).textContent = 'Ada'; cellAt(1, 1).textContent = '12';
+      const beforeTableDraft = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      const tableDraft = lastDraft(beforeTableDraft);
+      check('the rebuild sends the table with the border, padding and spacing every mail client honours, and no attribute of its own, and the text as tab-separated lines with the empty cell keeping its place',
+         !!tableDraft && tableDraft.html.indexOf('<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse"><tbody><tr><th>Name</th><th>Size</th><th>Note</th></tr><tr><td>Ada</td><td>12</td><td><br></td></tr></tbody></table><p><br></p>') >= 0 &&
+         tableDraft.text === 'See this[shot.png]\nName\tSize\tNote\nAda\t12\t',
+         tableDraft ? tableDraft.html.slice(0, 200) + ' | ' + JSON.stringify(tableDraft.text) : 'no draft');
+      // A click in a cell names it; Table then offers the operations.
+      cellAt(1, 0).dispatchEvent(makeEvent('click'));
+      document.getElementById('table-open').dispatchEvent(makeEvent('click'));
+      check('with the cursor in a cell, Table offers the row and column operations instead', tablePanel.hidden === false && document.getElementById('table-edit').hidden === false && document.getElementById('table-insert').hidden === true,
+         'edit hidden=' + document.getElementById('table-edit').hidden);
+      opButton('row-below').dispatchEvent(makeEvent('click'));
+      check('Row below adds a row of the same width under the cursor\'s', rowsIn().length === 3 && cellsOf(rowsIn()[2]).length === 3 && cellsOf(rowsIn()[2]).every((c) => c.tagName === 'TD') && cellAt(1, 0).textContent === 'Ada' && tablePanel.hidden === false,
+         'rows=' + rowsIn().length);
+      opButton('column-right').dispatchEvent(makeEvent('click'));
+      check('Column right adds a column to every row, a header cell in the header row', rowsIn().every((r) => cellsOf(r).length === 4) && cellAt(0, 1).tagName === 'TH' && cellAt(0, 1).textContent === '' && cellAt(0, 2).textContent === 'Size' && cellAt(2, 1).tagName === 'TD',
+         rowsIn().map((r) => cellsOf(r).length).join(','));
+      opButton('delete-row').dispatchEvent(makeEvent('click'));
+      check('Delete row takes the row the cursor is in', rowsIn().length === 2 && cellAt(1, 0).textContent === 'Ada', 'rows=' + rowsIn().length);
+      opButton('delete-column').dispatchEvent(makeEvent('click'));
+      check('Delete column takes the column the cursor is in from every row', rowsIn().every((r) => cellsOf(r).length === 3) && cellAt(0, 1).textContent === 'Size' && cellAt(1, 1).textContent === '12', rowsIn().map((r) => cellsOf(r).length).join(','));
+      opButton('row-above').dispatchEvent(makeEvent('click'));
+      check('Row above puts a row before the cursor\'s', rowsIn().length === 3 && cellAt(0, 0).textContent === 'Name' && cellAt(1, 0).textContent === '' && cellAt(2, 0).textContent === 'Ada', rowsIn().map((r) => cellAt(rowsIn().indexOf(r), 0).textContent).join(','));
+      // Tab in the last cell adds a row; Shift+Tab goes back.
+      const tab = makeEvent('keydown', { key: 'Tab', target: cellAt(2, 2) });
+      cellAt(2, 2).dispatchEvent(tab);
+      check('Tab in the last cell adds a row and moves into it', tab.defaultPrevented === true && rowsIn().length === 4 && cellsOf(rowsIn()[3]).length === 3, 'rows=' + rowsIn().length);
+      const backTab = makeEvent('keydown', { key: 'Tab', shiftKey: true, target: cellAt(3, 0) });
+      cellAt(3, 0).dispatchEvent(backTab);
+      opButton('delete-row').dispatchEvent(makeEvent('click'));
+      check('Shift+Tab from a row\'s first cell goes to the last cell of the row above, where Delete row then acts', backTab.defaultPrevented === true && rowsIn().length === 3 && cellsOf(rowsIn()[2]).length === 3 && cellAt(2, 0).textContent === '', 'rows=' + rowsIn().length);
+      // A key typed in the editor is the message's: the page's own shortcuts on the document do not see it.
+      const typed = makeEvent('keydown', { key: 'e', target: editor });
+      editor.dispatchEvent(typed);
+      const palette = makeEvent('keydown', { key: 'k', ctrlKey: true, target: editor });
+      editor.dispatchEvent(palette);
+      check('a plain key typed in the editor stops there, and a key with a modifier goes on up to the page', typed.propagationStopped === true && palette.propagationStopped === false, 'plain=' + typed.propagationStopped + ' modified=' + palette.propagationStopped);
+      // A table pasted into a cell is a table of its own: a column added to the one around it does not reach into it.
+      const outerRows = rowsIn().slice();
+      const inner = document.createElement('table');
+      const innerBody = document.createElement('tbody'), innerRow = document.createElement('tr');
+      innerRow.appendChild(document.createElement('td'));
+      innerRow.appendChild(document.createElement('td'));
+      innerBody.appendChild(innerRow);
+      inner.appendChild(innerBody);
+      cellsOf(outerRows[0])[0].appendChild(inner);
+      cellsOf(outerRows[2])[0].dispatchEvent(makeEvent('click'));
+      opButton('column-right').dispatchEvent(makeEvent('click'));
+      check('a table pasted into a cell keeps its own columns when one is added to the table around it',
+         cellsOf(innerRow).length === 2 && outerRows.every((r) => cellsOf(r).length === 4),
+         'inner=' + cellsOf(innerRow).length + ' outer=' + outerRows.map((r) => cellsOf(r).length).join(','));
+      cellsOf(outerRows[0])[0].removeChild(inner);
+      opButton('delete-column').dispatchEvent(makeEvent('click'));
+      opButton('delete-table').dispatchEvent(makeEvent('click'));
+      check('Delete table removes it and closes the panel', tablesIn().length === 0 && tablePanel.hidden === true, 'tables=' + tablesIn().length);
+      // A table pasted in with its styles, spans and a player: the rebuild sends the cells and their words, nothing else.
+      const pastedTable = document.createElement('table');
+      pastedTable.setAttribute('width', '900'); pastedTable.setAttribute('style', 'background:red');
+      const pastedBody = document.createElement('tbody'), pastedRow = document.createElement('tr'), pastedCell = document.createElement('td');
+      pastedCell.setAttribute('style', 'color:red'); pastedCell.setAttribute('onclick', 'steal()'); pastedCell.setAttribute('colspan', '2');
+      const video = document.createElement('video'); video.appendChild(document.createTextNode('clip')); pastedCell.appendChild(video);
+      pastedRow.appendChild(pastedCell); pastedBody.appendChild(pastedRow); pastedTable.appendChild(pastedBody);
+      editor.appendChild(pastedTable);
+      const beforePastedDraft = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      const pastedDraft = lastDraft(beforePastedDraft);
+      check('a table pasted with styles, a span and a player is sent as its cells and words alone',
+         !!pastedDraft && pastedDraft.html.indexOf('<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse"><tbody><tr><td>clip</td></tr></tbody></table>') >= 0 &&
+         pastedDraft.html.indexOf('onclick') < 0 && pastedDraft.html.indexOf('colspan') < 0 && pastedDraft.html.indexOf('<video') < 0 && pastedDraft.html.indexOf('900') < 0,
+         pastedDraft ? pastedDraft.html.slice(-200) : 'no draft');
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // ---- a draft with formatting reopens formatted, its own images back in place
+      location.hash = '#/compose?draft=105';
+      await flush();
+      await flush();
+      await flush();
+      check('a draft with formatting reopens in the formatted editor, the images this webmail made parts of it back as data: URLs, and another client\'s image left as the file it is',
+         editor.hidden === false && box.hidden === true && document.getElementById('rich-toggle').textContent === 'Plain text' && editor.textContent.indexOf('Not yet') >= 0 &&
+         imagesIn().length === 2 && imagesIn().every((i) => i.getAttribute('src') === 'data:image/png;base64,QUJD') && editor.focused > 0 &&
+         document.getElementById('compose-files-note').textContent.indexOf('photo.jpg') >= 0,
+         'editor hidden=' + editor.hidden + ' images=' + imagesIn().map((i) => i.getAttribute('src').slice(0, 30)).join(',') + ' text=' + JSON.stringify(editor.textContent));
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // ---- the pictures and the files share the twelve megabytes one message may carry
+      location.hash = '#/compose';
+      await flush();
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-subject').value = 'The deck';
+      const chosen = document.getElementById('compose-files');
+      chosen.files = [{ name: 'deck.pdf', type: 'application/pdf', size: 8300000, base64: 'AA==' }];
+      const beforeAlone = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a file of eight megabytes on its own is within what one message may carry', !!lastDraft(beforeAlone) && status.textContent === words('Draft saved.'), status.textContent);
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      for (let i = 0; i < 4; i += 1) {
+         picker.files = [{ name: 'page' + i + '.png', type: 'image/png', size: 1100000, base64: pngOf(1500000) }];
+         picker.dispatchEvent(makeEvent('change'));
+         await flush();
+      }
+      check('four pictures of a million and a half characters go into the message under the 6 MB its pictures may be', imagesIn().length === 4 && status.textContent === '', imagesIn().length + ' ' + status.textContent);
+      const beforeBoth = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('the pictures count for their bytes against the same twelve megabytes the files do, and nothing is sent for the route to refuse',
+         !lastDraft(beforeBoth) && status.textContent === words('The pictures in the message and the files are larger than 12 MB together.'), status.textContent);
+      // The reminder counts a picture as something attached.
+      picker.files = [];
+      chosen.files = [];
+      document.getElementById('compose-text').value = '';
+      const askedBefore = confirms.length;
+      document.getElementById('compose-subject').value = 'The screenshot';
+      editor.appendChild(document.createTextNode('The screenshot is attached.'));
+      confirmAnswer = false;
+      document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('a picture in the message is something attached, so the reminder does not ask', confirms.length === askedBefore, JSON.stringify(confirms.slice(askedBefore)));
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+      confirmAnswer = true;
+
+      // ---- what the review of this row found -------------------------------------
+      // Only a draft's own formatting is brought back into the page. #compose?draft=<id>
+      // names a message by its number and nothing stops that number being a message
+      // that arrived from outside; 102 is one, with HTML of its own.
+      location.hash = '#/compose?draft=102';
+      await flush();
+      await flush();
+      await flush();
+      check('a message that is not marked a draft reopens as its text, whatever HTML it carries',
+         editor.hidden === true && box.hidden === false && editor.textContent.indexOf('Hello') < 0 && document.getElementById('rich-toggle').textContent === 'Formatting',
+         'editor hidden=' + editor.hidden + ' text=' + JSON.stringify(editor.textContent));
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // A data: source is admitted whole or not at all: one that ends in a quote
+      // would carry markup with it wherever the rebuild's output is written - into
+      // the message, and into this page when a draft is reopened.
+      location.hash = '#/compose';
+      await flush();
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-subject').value = 'Crafted';
+      const crafted = document.createElement('img');
+      crafted.setAttribute('src', 'data:image/png;base64,AA"><a href="https://evil.example/sign-in">Session expired</a><x y="');
+      editor.appendChild(crafted);
+      const honest = document.createElement('img');
+      honest.setAttribute('src', 'data:image/png;base64,' + logo);
+      honest.setAttribute('alt', 'real.png');
+      editor.appendChild(honest);
+      const beforeCrafted = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      const craftedDraft = lastDraft(beforeCrafted);
+      check('a data: source that is not base64 to its end is dropped whole, so none of what it carries is written out as markup',
+         !!craftedDraft && craftedDraft.html.indexOf('evil.example') < 0 && craftedDraft.html.indexOf('<a ') < 0 && (craftedDraft.html.match(/<img /g) || []).length === 1 &&
+         craftedDraft.html.indexOf('<img src="data:image/png;base64,' + logo + '" alt="real.png">') >= 0,
+         craftedDraft ? craftedDraft.html : 'no draft');
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // How many pictures, as well as how large: the send route puts back in place
+      // at most sixty-four of them (InlineImageParts::MostImages), and the
+      // sixty-fifth would ride out as the data: URL no mail client shows. Sixty-four
+      // of a hundred characters each are nowhere near any bound of bytes.
+      location.hash = '#/compose';
+      await flush();
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      for (let i = 0; i < 63; i += 1) {
+         const one = document.createElement('img');
+         one.setAttribute('src', 'data:image/png;base64,' + logo);
+         one.setAttribute('alt', 'kept' + i + '.png');
+         editor.appendChild(one);
+      }
+      picker.files = [{ name: 'sixtyfourth.png', type: 'image/png', size: 70, base64: logo }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('the sixty-fourth picture goes in', imagesIn().length === 64 && status.textContent === '', imagesIn().length + ' ' + status.textContent);
+      picker.files = [{ name: 'sixtyfifth.png', type: 'image/png', size: 70, base64: logo }];
+      picker.dispatchEvent(makeEvent('change'));
+      await flush();
+      check('the sixty-fifth is refused, by the count rather than by any weight',
+         imagesIn().length === 64 && status.textContent === words('This message holds as many images as it can carry: 64 of them.') && status.className.indexOf('error') >= 0,
+         imagesIn().length + ' ' + status.textContent);
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // A break inside a cell is not a new row: the plain part's rows are its rows.
+      location.hash = '#/compose';
+      await flush();
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-subject').value = 'A cell of two lines';
+      document.getElementById('table-open').dispatchEvent(makeEvent('click'));
+      document.getElementById('table-rows').value = '1';
+      document.getElementById('table-columns').value = '2';
+      document.getElementById('table-header').checked = false;
+      document.getElementById('table-insert-go').dispatchEvent(makeEvent('click'));
+      const split = cellAt(0, 0);
+      split.textContent = '';
+      split.appendChild(document.createTextNode('one'));
+      split.appendChild(document.createElement('br'));
+      split.appendChild(document.createTextNode('two'));
+      cellAt(0, 1).textContent = 'next';
+      const beforeSplit = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      const splitDraft = lastDraft(beforeSplit);
+      check('a cell with a break in it stays one field of one row in the plain part, the break read as a space',
+         !!splitDraft && splitDraft.text.indexOf('one two\tnext') >= 0 && splitDraft.text.indexOf('one\ntwo') < 0 && splitDraft.html.indexOf('<td>one<br>two</td><td>next</td>') >= 0,
+         splitDraft ? JSON.stringify(splitDraft.text) : 'no draft');
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // One file refused in a batch is still named when the files after it go in.
+      location.hash = '#/compose';
+      await flush();
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      const batch = makeEvent('drop', { dataTransfer: { files: [
+         { name: 'notes.png', type: 'image/png', size: 30, base64: 'VGhpcyBpcyBub3QgYSBwaWN0dXJlIGF0IGFsbA==' },
+         { name: 'photo.jpg', type: 'image/jpeg', size: 70, base64: logo },
+         { name: 'chart.png', type: 'image/png', size: 70, base64: logo }
+      ] } });
+      editor.dispatchEvent(batch);
+      await flush();
+      check('a file refused in a batch is named, and is not wiped off the line by the files after it going in',
+         imagesIn().length === 2 && status.className.indexOf('error') >= 0 &&
+         status.textContent === 'notes.png: ' + words('An image to put in the message: PNG, JPEG, GIF or WebP.'),
+         imagesIn().length + ' ' + JSON.stringify(status.textContent));
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // What a forward carries is bytes in the same request the pictures go in.
+      location.hash = '#/compose?forward=707';
+      await flush();
+      await flush();
+      await flush();
+      document.getElementById('compose-to').value = 'ann@example.net';
+      const beforeCarried = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a forward of eight and a half megabytes of attachments is saved as it is',
+         since(beforeCarried).some((r) => r.method === 'POST' && r.path === '/api/v1/me/drafts') && status.textContent === words('Draft saved.'), status.textContent);
+      document.getElementById('rich-toggle').dispatchEvent(makeEvent('click'));
+      for (let i = 0; i < 3; i += 1) {
+         picker.files = [{ name: 'shot' + i + '.png', type: 'image/png', size: 1400000, base64: pngOf(1900000) }];
+         picker.dispatchEvent(makeEvent('change'));
+         await flush();
+      }
+      check('three pictures go in, under the six megabytes of pictures one message may carry', imagesIn().length === 3 && status.textContent === '', imagesIn().length + ' ' + status.textContent);
+      const beforeTooMuch = requests.length;
+      document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('what the forward carries counts against the same twelve megabytes as the pictures, so the message is refused here rather than by a connection that dies',
+         !since(beforeTooMuch).some((r) => r.method === 'POST' && r.path === '/api/v1/me/drafts') &&
+         status.textContent === words('The pictures in the message and the files are larger than 12 MB together.'),
+         status.textContent);
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
       dismissAllToasts();
    }
 

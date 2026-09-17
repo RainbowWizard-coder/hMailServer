@@ -42,6 +42,25 @@ use.
 | `↓` `↑` `Esc` | In the empty search box: the last ten searches are offered under it (kept in this browser, forgotten at sign-out); the arrows move through them, Enter runs one, Esc closes the list |
 | `↓` `↑` `Enter` `Esc` | In the search box, as a name is typed (on its own, or after `from:` or `to:`): the contacts it matches are offered under the box; one taken becomes `from:<address>` (or `to:`) in place of the name and the search runs |
 
+Writing a message
+-----------------
+
+These are the compose editor's own keys rather than the page's map, so they are
+not in the `?` list, which is the keys of the message list and an open message.
+They act while the cursor is in the formatted editor, the one *Formatting* opens.
+
+| Key | What it does |
+| --- | --- |
+| `Tab` | In a table cell: the next cell, and in the last cell a new row |
+| `Shift` + `Tab` | In a table cell: the previous cell, and from a row's first cell the last cell of the row above |
+| `Enter` | In the emoji picker's search box: insert the first match |
+| `Esc` | In the emoji picker's search box: close the picker and put the cursor back in the message |
+
+Everything else typed there is the message's: a plain key stops at the editor
+rather than running the page's shortcut of that letter, while a key with a
+modifier (`Ctrl`+`K`) and `Esc` still reach the page. What the editor takes, and
+what is sent, is [FormattedMessages.md](FormattedMessages.md).
+
 Search operators
 ----------------
 

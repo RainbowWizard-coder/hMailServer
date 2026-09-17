@@ -472,6 +472,21 @@ iframe#message-html{width:100%;min-height:24rem;border:none;border-radius:8px;ba
 #rich-row{margin:6px 0}
 #rich-tools{gap:2px}
 #rich-tools .btn{height:30px;padding:0 10px;border-radius:6px}
+#emoji-open{height:30px;padding:0 10px;border-radius:6px}
+.editor img{max-width:100%;height:auto}
+.editor table{border-collapse:collapse;margin:8px 0}
+.editor td,.editor th{border:1px solid var(--line-2);padding:4px 8px;min-width:2.5em;vertical-align:top;text-align:start}
+.editor th{background:var(--surface-2);font-weight:600}
+#emoji-panel,#table-panel{margin:0 0 12px;background:var(--surface-2);border-radius:8px;padding:8px 12px;font-size:13px}
+#emoji-search{width:100%;max-width:20rem;height:32px;padding:4px 8px;font-size:13px;margin-bottom:6px}
+#emoji-grid{max-height:210px;overflow:auto}
+.emoji-head{color:var(--muted);font-size:12px;margin:6px 0 2px}
+.emoji-none{color:var(--muted);padding:6px 0}
+.emoji-row{display:flex;flex-wrap:wrap;gap:2px}
+button.emoji{all:unset;cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;font-size:20px;line-height:1}
+button.emoji:hover,button.emoji:focus-visible{background:var(--surface)}
+#table-panel input[type=number]{width:4.5rem;height:32px;padding:4px 8px;font-size:13px}
+#table-panel .btn{margin:0}
 .compose-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line);margin-top:8px}
 .compose-foot .btn{margin:0}
 .compose-foot .sp{flex:1}
@@ -1485,7 +1500,10 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="field" id="compose-cc-row" hidden><label for="compose-cc">Cc</label><div class="complete-wrap"><input id="compose-cc" type="text" autocomplete="off"></div></div>
 <div class="field" id="compose-bcc-row" hidden><label for="compose-bcc">Bcc</label><div class="complete-wrap"><input id="compose-bcc" type="text" autocomplete="off"></div></div>
 <div class="field"><label for="compose-subject">Subject</label><input id="compose-subject" type="text" maxlength="500" autocomplete="off" dir="auto"></div>
-<div id="rich-row" class="row"><button id="rich-toggle" class="btn quiet sm" type="button">Formatting</button><div id="rich-tools" class="row" hidden><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="insertUnorderedList" title="List">List</button><button class="btn quiet sm" type="button" data-cmd="formatBlock" data-arg="blockquote" title="Quote">Quote</button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><button class="btn quiet sm" type="button" data-cmd="removeFormat" title="Remove formatting">Plain</button></div></div>
+<div id="rich-row" class="row"><button id="rich-toggle" class="btn quiet sm" type="button">Formatting</button><div id="rich-tools" class="row" hidden><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="insertUnorderedList" title="List">List</button><button class="btn quiet sm" type="button" data-cmd="formatBlock" data-arg="blockquote" title="Quote">Quote</button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><button class="btn quiet sm" type="button" data-cmd="removeFormat" title="Remove formatting">Plain</button><button class="btn quiet sm" type="button" id="image-open" title="Insert an image from a file">Image</button><button class="btn quiet sm" type="button" id="table-open" title="Insert a table, or change the one the cursor is in" aria-expanded="false">Table</button></div><button id="emoji-open" class="btn quiet sm" type="button" title="Insert an emoji" aria-expanded="false">Emoji</button></div>
+<div id="emoji-panel" hidden><label for="emoji-search" class="sr">Search emoji</label><input id="emoji-search" type="text" placeholder="Search emoji" autocomplete="off" spellcheck="false"><div id="emoji-grid" role="group" aria-label="Emoji"></div></div>
+<div id="table-panel" hidden><div id="table-insert" class="row"><label for="table-rows" class="inline">Rows</label><input id="table-rows" type="number" min="1" max="50" value="3" aria-label="Rows"><label for="table-columns" class="inline">Columns</label><input id="table-columns" type="number" min="1" max="20" value="3" aria-label="Columns"><label class="inline"><input id="table-header" type="checkbox" checked> Header row</label><button id="table-insert-go" class="btn sm" type="button">Insert table</button></div><div id="table-edit" class="row" hidden><button class="btn ghost sm" type="button" data-op="row-above">Row above</button><button class="btn ghost sm" type="button" data-op="row-below">Row below</button><button class="btn ghost sm" type="button" data-op="column-left">Column left</button><button class="btn ghost sm" type="button" data-op="column-right">Column right</button><button class="btn ghost sm" type="button" data-op="delete-row">Delete row</button><button class="btn ghost sm" type="button" data-op="delete-column">Delete column</button><button class="btn ghost sm" type="button" data-op="delete-table">Delete table</button></div></div>
+<label for="compose-image" class="sr">Choose an image</label><input id="compose-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="sr">
 <label for="compose-text" class="sr">Message</label>
 <textarea id="compose-text" placeholder="Write your message" dir="auto"></textarea>
 <div id="compose-editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Message, formatted" dir="auto" hidden></div>

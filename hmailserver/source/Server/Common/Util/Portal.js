@@ -1265,12 +1265,15 @@
     // A send waiting on the undo delay goes now rather than being lost
     // with the form it was written in.
     flushPending();
+    // Formatting off before the fields are emptied, not after: switching it
+    // off writes the editor's words into the text box, which would otherwise
+    // be what the next message started with.
+    if (richOn) { setRich(false); }
     ['compose-to', 'compose-cc', 'compose-bcc', 'compose-subject', 'compose-text'].forEach(function (id) { el(id).value = ''; });
     carried = []; replyTo = null; draftId = 0; dropped = [];
     el('compose-receipt').checked = false;
     el('compose-expires').value = '0'; el('compose-passcode').value = ''; syncExpiry();
     el('compose-sign').checked = false; el('compose-encrypt').checked = false; smimeComposeHints();
-    if (richOn) { setRich(false); }
     selectIdentity('');
     el('compose-files').value = ''; el('compose-files-note').textContent = '';
     resetLinked();
@@ -1327,7 +1330,8 @@
       el('compose-cc').value = message.cc || '';
       el('compose-subject').value = subject;
       el('compose-text').value = message.text || '';
-      return carryAttachments(message, true);
+      // Its files first, then its formatting (draftFormatting, with the editor).
+      return carryAttachments(message, true).then(function () { return draftFormatting(message); });
     }
     if (mode === 'forward') {
       if (!/^fwd?:/i.test(subject)) { subject = 'Fwd: ' + subject; }
@@ -1449,8 +1453,21 @@
     var small = files.filter(function (f) { return !asLink(f); });
     var large = files.filter(asLink).filter(function (f) { return !linkedByKey[fileKey(f)]; });
     var total = small.reduce(function (n, f) { return n + f.size; }, 0);
+    // The pictures in the message count against the same twelve megabytes,
+    // because they travel in the same request: a data: URL is base64, so its
+    // characters stand for three quarters of their number in bytes, which is
+    // what a file's size already is. Without this the two bounds could ask
+    // the route for more than the sixteen megabytes it takes, and the reader
+    // would see the connection fail rather than a sentence saying why.
+    var pictures = richOn ? Math.round(imagesHeld() * 3 / 4) : 0;
+    // And the attachments carried over from the message being answered,
+    // forwarded or reopened: they are already base64 here and the callers put
+    // them at the front of this same list, so they are bytes in the same
+    // request. Counting only what was freshly picked let a forward of eleven
+    // megabytes take four more of pictures and ask the route for eighteen.
+    var brought = carried.reduce(function (n, f) { return n + Math.round(String(f.data || '').length * 3 / 4); }, 0);
     if (small.length > 20) { return Promise.reject(t('At most 20 files.')); }
-    if (total > 12 * 1024 * 1024) { return Promise.reject(t('The files are larger than 12 MB together.')); }
+    if (total + brought + pictures > 12 * 1024 * 1024) { return Promise.reject(pictures ? t('The pictures in the message and the files are larger than 12 MB together.') : t('The files are larger than 12 MB together.')); }
     var uploads = large.reduce(function (chain, f) { return chain.then(function () { return uploadLinked(f); }); }, Promise.resolve());
     return uploads.then(function () {
       if (large.length) { el('compose-files-note').textContent = large.length + ' file' + (large.length === 1 ? '' : 's') + ' sent as ' + (large.length === 1 ? 'a link' : 'links') + '.'; }
@@ -1475,7 +1492,10 @@
   };
   var anythingAttached = function () {
     var picked = el('compose-files').files;
-    return !!((picked && picked.length) || dropped.length || carried.length || linked.length);
+    // A picture put into the message is something attached, as far as the
+    // reminder is concerned: "the screenshot is attached" with a screenshot
+    // pasted in is not a message that forgot anything.
+    return !!((picked && picked.length) || dropped.length || carried.length || linked.length || (richOn && imagesHeld() > 0));
   };
 
   // ---- Held mail ----------------------------------------------------------
@@ -1932,6 +1952,7 @@
     blankCompose();
     forgetSecret();
     smimeForget();
+    emojiForget();
     var frame = el('message-html');
     if (frame) { frame.hidden = true; frame.removeAttribute('src'); }
     ['message-list', 'folder-nav', 'message-text', 'message-attachments'].forEach(function (id) {
@@ -4131,9 +4152,29 @@
   // ---- Rich text: a formatting bar over an editor whose HTML is rebuilt from
   // an allowed subset before it is sent, and a plain text made from the same
   // content, so the message goes as multipart/alternative.
+  //
+  // The subset: bold, italic, underline, breaks, paragraphs, lists, quotes,
+  // links to http(s) and mailto, images the editor holds as data: URLs (the
+  // send route moves each into a cid: part beside the HTML, InlineImageParts.cpp)
+  // and tables - table, tr, td and th. Nothing is taken from an element but
+  // its tag, a link's address and an image's data, so a table pasted in with
+  // its styles, widths and handlers is sent as a table and nothing else. The
+  // rebuild gives every table the border, padding and spacing that the
+  // reader saw, as the HTML attributes every mail client honours - Outlook's
+  // Word engine reads those where it ignores a stylesheet - and no cell may
+  // span another: that is the simple table the roadmap asked for.
   var richOn = false;
-  var ALLOWED = { B: 'b', STRONG: 'b', I: 'i', EM: 'i', U: 'u', BR: 'br', P: 'p', DIV: 'p', UL: 'ul', OL: 'ol', LI: 'li', BLOCKQUOTE: 'blockquote', A: 'a', IMG: 'img', H1: 'b', H2: 'b', H3: 'b' };
+  var ALLOWED = { B: 'b', STRONG: 'b', I: 'i', EM: 'i', U: 'u', BR: 'br', P: 'p', DIV: 'p', UL: 'ul', OL: 'ol', LI: 'li', BLOCKQUOTE: 'blockquote', A: 'a', IMG: 'img', H1: 'b', H2: 'b', H3: 'b', TABLE: 'table', THEAD: 'tbody', TBODY: 'tbody', TFOOT: 'tbody', TR: 'tr', TD: 'td', TH: 'th' };
+  var TABLE_OPEN = '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse">';
   var escapeHtml = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  // The whole value, not just its beginning. This src is written into the
+  // HTML the message carries and - since a draft reopens formatted - back
+  // into this page's own document, so a value with a quote in it would carry
+  // markup with it. What is admitted is what the server's own reader admits
+  // (InlineImageParts::ParseDataUrl_): the base64 alphabet, and the spaces a
+  // wrapped attribute has. The value is escaped again where it is written, so
+  // that the encoder is right whatever the test admits.
+  var isDataImage = function (src) { return /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/=\s]*$/i.test(src) && src.length < 2000000; };
   var cleanNode = function (node) {
     if (node.nodeType === 3) { return escapeHtml(node.nodeValue); }
     if (node.nodeType !== 1) { return ''; }
@@ -4144,22 +4185,34 @@
     if (tag === 'br') { return '<br>'; }
     if (tag === 'img') {
       var src = String(node.getAttribute('src') || '');
-      return /^data:image\/(png|jpeg|gif|webp);base64,/i.test(src) && src.length < 2000000 ? '<img src="' + src + '" alt="' + escapeHtml(node.getAttribute('alt') || '') + '">' : '';
+      return isDataImage(src) ? '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(node.getAttribute('alt') || '') + '">' : '';
     }
     if (tag === 'a') {
       var href = String(node.getAttribute('href') || '');
       return /^(https?:|mailto:)/i.test(href) ? '<a href="' + escapeHtml(href) + '">' + inner + '</a>' : inner;
     }
     if (tag === 'p' && !inner) { return '<br>'; }
+    if (tag === 'table') { return TABLE_OPEN + inner + '</table>'; }
     return '<' + tag + '>' + inner + '</' + tag + '>';
   };
   var cleanHtml = function (root) { var out = ''; for (var i = 0; i < root.childNodes.length; i++) { out += cleanNode(root.childNodes[i]); } return out; };
+  // The text part: a table as lines of cells separated by tabs, an image as
+  // its name in brackets, so a reader of the plain part knows what stood there.
   var plainOf = function (node) {
     if (node.nodeType === 3) { return node.nodeValue; }
     if (node.nodeType !== 1) { return ''; }
     if (node.tagName === 'BR') { return '\n'; }
+    if (node.tagName === 'IMG') { var alt = String(node.getAttribute('alt') || '').trim(); return '[' + (alt || 'image') + ']'; }
     var text = '';
     for (var i = 0; i < node.childNodes.length; i++) { text += plainOf(node.childNodes[i]); }
+    // A cell is one field of one row: a break inside it - a reader pressing
+    // Enter in a cell - would otherwise split the row across two lines of the
+    // plain part, where the tabs no longer line up with anything.
+    if (node.tagName === 'TD' || node.tagName === 'TH') { return text.replace(/\n+$/, '').replace(/\n+/g, ' ') + '\t'; }
+    if (node.tagName === 'TR') { return text.replace(/\t$/, '') + '\n'; }
+    // A table begins on a line of its own, whatever stood before it, and ends
+    // one, so that its rows read as rows in the plain part.
+    if (node.tagName === 'TABLE') { return '\n' + text + '\n'; }
     if (/^(P|DIV|LI|BLOCKQUOTE|H1|H2|H3|UL|OL)$/.test(node.tagName)) { text = (node.tagName === 'BLOCKQUOTE' ? text.split('\n').map(function (l) { return '> ' + l; }).join('\n') : text) + '\n'; }
     return text;
   };
@@ -4171,8 +4224,16 @@
       editor.appendChild(node('span', line));
     });
   };
-  var setRich = function (on) {
+  // The elements of a kind under a node, in document order.
+  var findAll = function (root, pred) { var out = []; (function walk(n) { for (var i = 0; i < n.childNodes.length; i++) { var c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+  var signatureBlock = function (editor) { return findAll(editor, function (n) { return n.getAttribute('data-sig') === '1'; })[0] || null; };
+  var showRich = function (on) {
     richOn = on;
+    el('compose-editor').hidden = !on; el('compose-text').hidden = on; el('rich-tools').hidden = !on;
+    el('rich-toggle').textContent = on ? 'Plain text' : 'Formatting';
+    if (!on) { el('emoji-panel').hidden = true; el('table-panel').hidden = true; el('emoji-open').setAttribute('aria-expanded', 'false'); el('table-open').setAttribute('aria-expanded', 'false'); }
+  };
+  var setRich = function (on) {
     var editor = el('compose-editor'), box = el('compose-text');
     if (on) {
       var text = box.value;
@@ -4182,15 +4243,22 @@
         if (at >= 0 && text.slice(at + plainBlock.length).trim() === '') { text = text.slice(0, at); }
       }
       textToEditor(text);
-      if (signature.enabled && signature.html && editor.innerHTML.indexOf('data-sig="1"') < 0) {
+      if (signature.enabled && signature.html && !signatureBlock(editor)) {
         var sig = document.createElement('div'); sig.setAttribute('data-sig', '1'); sig.innerHTML = '<br>-- <br>' + signature.html;
         editor.appendChild(sig);
       }
-      editor.hidden = false; box.hidden = true; el('rich-tools').hidden = false; el('rich-toggle').textContent = 'Plain text';
+      showRich(true);
     }
-    else { box.value = plainOf(editor).replace(/\n+$/, ''); box.hidden = false; editor.hidden = true; el('rich-tools').hidden = true; el('rich-toggle').textContent = 'Formatting'; }
+    else { box.value = plainOf(editor).replace(/\n+$/, ''); showRich(false); clear(editor); }
   };
-  el('rich-toggle').addEventListener('click', function () { setRich(!richOn); if (richOn) { el('compose-editor').focus(); } });
+  // Plain text has no pictures and no cells: the words of a table stay, as
+  // lines, and an image becomes its name in brackets. Said before it happens.
+  var holdsPictures = function (editor) { return findAll(editor, function (n) { return n.tagName === 'IMG' || n.tagName === 'TABLE'; }).length > 0; };
+  el('rich-toggle').addEventListener('click', function () {
+    if (richOn && holdsPictures(el('compose-editor')) && !window.confirm(t('Plain text keeps the words and drops the images and tables. Continue?'))) { return; }
+    setRich(!richOn);
+    if (richOn) { el('compose-editor').focus(); }
+  });
   (function () {
     var tools = el('rich-tools').children;
     for (var i = 0; i < tools.length; i++) {
@@ -4198,6 +4266,8 @@
         // The button must not take the focus: Firefox collapses the editor's
         // selection when it does, and the command then has nothing to apply to.
         b.addEventListener('mousedown', function (event) { event.preventDefault(); });
+        // Image and Table have handlers of their own, below.
+        if (!b.getAttribute('data-cmd')) { return; }
         b.addEventListener('click', function () {
           var cmd = b.getAttribute('data-cmd'), arg = b.getAttribute('data-arg') || null;
           if (cmd === 'createLink') { arg = window.prompt ? window.prompt('The address to link to') : ''; if (!arg) { return; } }
@@ -4207,6 +4277,556 @@
       })(tools[i]);
     }
   })();
+
+  // ---- Where the reader is in the editor ------------------------------------
+  // An emoji, an image or a table goes where the cursor was. The selection is
+  // remembered whenever it is inside the editor, because a click on the
+  // picker's search box or on a toolbar button takes it away in some
+  // browsers, and the insertion has to go where the reader was writing, not
+  // where the page happens to be focused. With no selection in the editor at
+  // all - a window just opened, or a browser without the API - the thing
+  // goes at the end of the text, above the signature.
+  var savedRange = null;
+  var currentCell = null;
+  var cellOf = function (n) {
+    var editor = el('compose-editor');
+    while (n && n !== editor) {
+      if (n.nodeType === 1 && (n.tagName === 'TD' || n.tagName === 'TH')) { return within(n, editor) ? n : null; }
+      n = n.parentNode;
+    }
+    return null;
+  };
+  var liveRange = function () {
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || !sel.rangeCount) { return null; }
+    var range = sel.getRangeAt(0);
+    return within(range.startContainer, el('compose-editor')) ? range : null;
+  };
+  var rememberRange = function () {
+    var r = liveRange();
+    if (r) { savedRange = r.cloneRange(); currentCell = cellOf(r.startContainer); }
+  };
+  var editorRange = function () {
+    var live = liveRange();
+    if (live) { return live; }
+    return savedRange && within(savedRange.startContainer, el('compose-editor')) ? savedRange : null;
+  };
+  var selectRange = function (range) {
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || !range) { return; }
+    try { sel.removeAllRanges(); sel.addRange(range); savedRange = range.cloneRange(); } catch (e) { /* a range the document no longer holds */ }
+  };
+  var caretAfter = function (n) {
+    if (!document.createRange) { return; }
+    var after = document.createRange();
+    after.setStartAfter(n); after.collapse(true);
+    selectRange(after);
+  };
+  // Puts a node at the range - what the range covers goes - or, given none,
+  // at the end of the text above the signature. Either way the cursor lands
+  // after it.
+  var insertInEditor = function (n, range) {
+    var editor = el('compose-editor');
+    if (range) {
+      range.deleteContents();
+      range.insertNode(n);
+    } else {
+      editor.insertBefore(n, signatureBlock(editor));
+    }
+    caretAfter(n);
+  };
+  // Into the plain box at the cursor, replacing what is selected.
+  var insertInBox = function (text) {
+    var box = el('compose-text');
+    var start = typeof box.selectionStart === 'number' ? box.selectionStart : box.value.length;
+    var end = typeof box.selectionEnd === 'number' ? box.selectionEnd : start;
+    box.value = box.value.slice(0, start) + text + box.value.slice(end);
+    var at = start + text.length;
+    box.focus();
+    if (box.setSelectionRange) { box.setSelectionRange(at, at); }
+  };
+  document.addEventListener('selectionchange', rememberRange);
+  // A key typed into the editor is the message's. The page's shortcuts on the
+  // document - j, k, e, Enter, ? and the rest - know a text field by its tag,
+  // and this editor is a div; so a plain key stops here, and a key with a
+  // modifier (Ctrl+K, the palette) or Escape goes on up as it always did.
+  el('compose-editor').addEventListener('keydown', function (event) {
+    if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key !== 'Escape') { event.stopPropagation(); }
+  });
+  ['keyup', 'mouseup', 'click'].forEach(function (type) {
+    el('compose-editor').addEventListener(type, function (event) {
+      rememberRange();
+      // A click names the cell it landed in, whether or not the browser has
+      // moved the selection there yet.
+      var hit = cellOf(event.target);
+      if (hit) { currentCell = hit; }
+    });
+  });
+
+  // ---- Emoji ------------------------------------------------------------------
+  // A picker from a table in the page: no library, since the page's policy
+  // runs no script but its own, and no service, since a message written here
+  // reaches nobody before it is sent. Searched by name, in English - the
+  // names are not in the catalogues, which would be a thousand more texts in
+  // twenty-three languages for a picker that is also browsed - the last
+  // thirty used kept in this browser first, and one picked goes where the
+  // reader is in either editor. No skin tones and no flags: the table is what
+  // people reach for in a message, not the standard.
+  var EMOJI = [
+    [K('Smileys'), '😀 grinning face|😃 grinning face big eyes|😄 grinning face smiling eyes|😁 beaming face|😆 grinning squinting laughing|😅 grinning face with sweat|🤣 rolling on the floor laughing|😂 face with tears of joy laughing|🙂 slightly smiling face|🙃 upside down face|😉 winking face|😊 smiling face blushing|😇 smiling face with halo innocent|🥰 smiling face with hearts love|😍 smiling face with heart eyes love|🤩 star struck|😘 face blowing a kiss|😗 kissing face|😚 kissing face closed eyes|😙 kissing face smiling eyes|😋 face savouring food yum|😛 face with tongue|😜 winking face with tongue|🤪 zany face crazy|😝 squinting face with tongue|🤑 money mouth face|🤗 hugging face|🤭 face with hand over mouth|🤫 shushing face quiet|🤔 thinking face|🤐 zipper mouth face|🤨 face with raised eyebrow|😐 neutral face|😑 expressionless face|😶 face without mouth|😏 smirking face|😒 unamused face|🙄 face with rolling eyes|😬 grimacing face|🤥 lying face|😌 relieved face|😔 pensive face sad|😪 sleepy face|🤤 drooling face|😴 sleeping face|😷 face with medical mask sick|🤒 face with thermometer sick|🤕 face with head bandage hurt|🤢 nauseated face|🤮 face vomiting|🤧 sneezing face|🥵 hot face|🥶 cold face freezing|🥴 woozy face|😵 dizzy face|🤯 exploding head mind blown|🤠 cowboy hat face|🥳 partying face celebration|😎 smiling face with sunglasses cool|🤓 nerd face|🧐 face with monocle|😕 confused face|😟 worried face|🙁 slightly frowning face|😮 face with open mouth surprised|😯 hushed face|😲 astonished face|😳 flushed face|🥺 pleading face|😦 frowning face with open mouth|😧 anguished face|😨 fearful face|😰 anxious face with sweat|😥 sad but relieved face|😢 crying face|😭 loudly crying face|😱 face screaming in fear|😖 confounded face|😣 persevering face|😞 disappointed face|😓 downcast face with sweat|😩 weary face|😫 tired face|🥱 yawning face|😤 face with steam from nose huffing|😡 pouting face angry red|😠 angry face|🤬 face with symbols on mouth swearing|😈 smiling face with horns devil|👿 angry face with horns devil|💀 skull|💩 pile of poo|🤡 clown face|👹 ogre|👺 goblin|👻 ghost|👽 alien|🤖 robot|😺 grinning cat|😸 grinning cat with smiling eyes|😹 cat with tears of joy|😻 smiling cat with heart eyes|😼 cat with wry smile|😽 kissing cat|🙀 weary cat|😿 crying cat|😾 pouting cat|🙈 see no evil monkey|🙉 hear no evil monkey|🙊 speak no evil monkey|💋 kiss mark|💌 love letter|💘 heart with arrow|💝 heart with ribbon|💖 sparkling heart|💗 growing heart|💓 beating heart|💞 revolving hearts|💕 two hearts|💟 heart decoration|💔 broken heart|❤️ red heart love|🧡 orange heart|💛 yellow heart|💚 green heart|💙 blue heart|💜 purple heart|🖤 black heart|🤍 white heart|🤎 brown heart|💯 hundred points|💢 anger symbol|💥 collision boom|💫 dizzy star|💦 sweat droplets|💨 dashing away|💣 bomb|💬 speech balloon|💭 thought balloon|💤 zzz sleeping'],
+    [K('People'), '👋 waving hand hello bye|🤚 raised back of hand|✋ raised hand stop|🖖 vulcan salute|👌 ok hand|🤏 pinching hand small|✌️ victory hand peace|🤞 crossed fingers luck|🤟 love you gesture|🤘 sign of the horns rock|🤙 call me hand|👈 backhand index pointing left|👉 backhand index pointing right|👆 backhand index pointing up|👇 backhand index pointing down|☝️ index pointing up|👍 thumbs up yes like|👎 thumbs down no dislike|✊ raised fist|👊 oncoming fist bump|🤛 left facing fist|🤜 right facing fist|👏 clapping hands applause|🙌 raising hands hooray|👐 open hands|🤲 palms up together|🤝 handshake deal|🙏 folded hands please thanks pray|✍️ writing hand|💅 nail polish|🤳 selfie|💪 flexed biceps strong|🦵 leg|🦶 foot|👂 ear|👃 nose|🧠 brain|🦷 tooth|🦴 bone|👀 eyes|👅 tongue|👄 mouth lips|👶 baby|🧒 child|👦 boy|👧 girl|🧑 person|👱 person blond hair|👨 man|🧔 person beard|👩 woman|🧓 older person|👴 old man|👵 old woman|🙍 person frowning|🙎 person pouting|🙅 person gesturing no|🙆 person gesturing ok|💁 person tipping hand|🙋 person raising hand|🧏 deaf person|🙇 person bowing|🤦 person facepalming|🤷 person shrugging|👮 police officer|💂 guard|👷 construction worker|🤴 prince|👸 princess|👳 person wearing turban|🧕 woman with headscarf|🤵 person in tuxedo|👰 person with veil bride|🤰 pregnant woman|🤱 breast feeding|👼 baby angel|🎅 santa claus christmas|🤶 mrs claus christmas|🦸 superhero|🦹 supervillain|🧙 mage wizard|🧚 fairy|🧛 vampire|🧜 merperson|🧝 elf|🧞 genie|🧟 zombie|💆 person getting massage|💇 person getting haircut|🚶 person walking|🏃 person running|💃 woman dancing|🕺 man dancing|👯 people with bunny ears|🧖 person in steamy room sauna|🧗 person climbing|🏇 horse racing|🏂 snowboarder|🏄 person surfing|🚣 person rowing boat|🏊 person swimming|🚴 person biking cycling|🚵 person mountain biking|🤸 person cartwheeling|🤼 people wrestling|🤽 person playing water polo|🤾 person playing handball|🤹 person juggling|🧘 person in lotus position yoga|🛀 person taking bath|🛌 person in bed|👭 women holding hands|👫 woman and man holding hands couple|👬 men holding hands|💏 kiss couple|💑 couple with heart|👪 family|👤 bust in silhouette|👥 busts in silhouette|👣 footprints'],
+    [K('Animals and nature'), '🐵 monkey face|🐒 monkey|🦍 gorilla|🐶 dog face|🐕 dog|🐩 poodle|🐺 wolf|🦊 fox|🦝 raccoon|🐱 cat face|🐈 cat|🦁 lion|🐯 tiger face|🐅 tiger|🐆 leopard|🐴 horse face|🐎 horse|🦄 unicorn|🦓 zebra|🦌 deer|🐮 cow face|🐂 ox|🐃 water buffalo|🐄 cow|🐷 pig face|🐖 pig|🐗 boar|🐽 pig nose|🐏 ram|🐑 ewe sheep|🐐 goat|🐪 camel|🐫 two hump camel|🦙 llama|🦒 giraffe|🐘 elephant|🦏 rhinoceros|🦛 hippopotamus|🐭 mouse face|🐁 mouse|🐀 rat|🐹 hamster|🐰 rabbit face|🐇 rabbit bunny|🦔 hedgehog|🦇 bat|🐻 bear|🐨 koala|🐼 panda|🦘 kangaroo|🦡 badger|🐾 paw prints|🦃 turkey|🐔 chicken|🐓 rooster|🐣 hatching chick|🐤 baby chick|🐥 front facing baby chick|🐦 bird|🐧 penguin|🦅 eagle|🦆 duck|🦢 swan|🦉 owl|🦚 peacock|🦜 parrot|🐸 frog|🐊 crocodile|🐢 turtle|🦎 lizard|🐍 snake|🐲 dragon face|🐉 dragon|🦕 sauropod dinosaur|🦖 t rex dinosaur|🐳 spouting whale|🐋 whale|🐬 dolphin|🐟 fish|🐠 tropical fish|🐡 blowfish|🦈 shark|🐙 octopus|🐚 spiral shell|🐌 snail|🦋 butterfly|🐛 bug caterpillar|🐜 ant|🐝 honeybee bee|🐞 lady beetle ladybird|🦗 cricket|🦂 scorpion|🦟 mosquito|🦠 microbe germ virus|💐 bouquet flowers|🌸 cherry blossom|💮 white flower|🌹 rose|🥀 wilted flower|🌺 hibiscus|🌻 sunflower|🌼 blossom|🌷 tulip|🌱 seedling|🌲 evergreen tree|🌳 deciduous tree|🌴 palm tree|🌵 cactus|🌾 sheaf of rice|🌿 herb|☘️ shamrock|🍀 four leaf clover luck|🍁 maple leaf|🍂 fallen leaf autumn|🍃 leaf fluttering in wind|🌍 globe europe africa earth|🌎 globe americas earth|🌏 globe asia australia earth|🌐 globe with meridians|🌑 new moon|🌓 first quarter moon|🌕 full moon|🌙 crescent moon|🌚 new moon face|🌝 full moon face|🌞 sun with face|⭐ star|🌟 glowing star|🌠 shooting star|☀️ sun|⛅ sun behind cloud|☁️ cloud|❄️ snowflake|⛄ snowman|🌀 cyclone|🌈 rainbow|🌂 closed umbrella|☔ umbrella with rain drops|⚡ high voltage lightning|🔥 fire|💧 droplet|🌊 water wave ocean'],
+    [K('Food and drink'), '🍇 grapes|🍈 melon|🍉 watermelon|🍊 tangerine orange|🍋 lemon|🍌 banana|🍍 pineapple|🥭 mango|🍎 red apple|🍏 green apple|🍐 pear|🍑 peach|🍒 cherries|🍓 strawberry|🥝 kiwi fruit|🍅 tomato|🥥 coconut|🥑 avocado|🍆 aubergine eggplant|🥔 potato|🥕 carrot|🌽 ear of corn|🥒 cucumber|🥬 leafy green|🥦 broccoli|🍄 mushroom|🥜 peanuts|🌰 chestnut|🍞 bread|🥐 croissant|🥖 baguette bread|🥨 pretzel|🥯 bagel|🥞 pancakes|🧀 cheese wedge|🍖 meat on bone|🍗 poultry leg chicken|🥩 cut of meat steak|🥓 bacon|🍔 hamburger burger|🍟 french fries chips|🍕 pizza|🌭 hot dog|🥪 sandwich|🌮 taco|🌯 burrito|🥙 stuffed flatbread|🧆 falafel|🥚 egg|🍳 cooking fried egg|🥘 shallow pan of food paella|🍲 pot of food stew|🥣 bowl with spoon|🥗 green salad|🍿 popcorn|🧈 butter|🧂 salt|🥫 canned food|🍱 bento box|🍘 rice cracker|🍙 rice ball|🍚 cooked rice|🍛 curry rice|🍜 steaming bowl noodles ramen|🍝 spaghetti pasta|🍠 roasted sweet potato|🍢 oden|🍣 sushi|🍤 fried shrimp|🍥 fish cake with swirl|🥮 moon cake|🍡 dango|🥟 dumpling|🥠 fortune cookie|🥡 takeout box|🦀 crab|🦞 lobster|🦐 shrimp|🦑 squid|🦪 oyster|🍦 soft ice cream|🍧 shaved ice|🍨 ice cream|🍩 doughnut donut|🍪 cookie biscuit|🎂 birthday cake|🍰 shortcake cake slice|🧁 cupcake|🥧 pie|🍫 chocolate bar|🍬 candy sweet|🍭 lollipop|🍮 custard|🍯 honey pot|🍼 baby bottle|🥛 glass of milk|☕ hot beverage coffee tea|🍵 teacup without handle green tea|🍶 sake|🍾 bottle with popping cork champagne|🍷 wine glass|🍸 cocktail glass|🍹 tropical drink|🍺 beer mug|🍻 clinking beer mugs cheers|🥂 clinking glasses cheers|🥃 tumbler glass whisky|🥤 cup with straw|🧃 beverage box juice|🧉 mate|🧊 ice cube|🥢 chopsticks|🍴 fork and knife|🥄 spoon'],
+    [K('Activities'), '🎃 jack o lantern halloween pumpkin|🎄 christmas tree|🎆 fireworks|🎇 sparkler|🧨 firecracker|✨ sparkles|🎈 balloon|🎉 party popper celebration congratulations|🎊 confetti ball|🎋 tanabata tree|🎍 pine decoration|🎎 japanese dolls|🎏 carp streamer|🎐 wind chime|🎑 moon viewing ceremony|🧧 red envelope|🎀 ribbon bow|🎁 wrapped gift present|🎫 ticket|🏆 trophy winner|🏅 sports medal|🥇 first place gold medal|🥈 second place silver medal|🥉 third place bronze medal|⚽ soccer ball football|⚾ baseball|🥎 softball|🏀 basketball|🏐 volleyball|🏈 american football|🏉 rugby football|🎾 tennis|🥏 flying disc frisbee|🎳 bowling|🏏 cricket game|🏑 field hockey|🏒 ice hockey|🥍 lacrosse|🏓 ping pong table tennis|🏸 badminton|🥊 boxing glove|🥋 martial arts uniform|🥅 goal net|⛳ flag in hole golf|🎣 fishing pole|🤿 diving mask|🎽 running shirt|🎿 skis|🛷 sled|🥌 curling stone|🎯 bullseye direct hit target|🪀 yo yo|🪁 kite|🎱 pool 8 ball billiards|🔮 crystal ball|🧿 nazar amulet|🎮 video game controller|🎰 slot machine|🎲 game die dice|🧩 puzzle piece|🧸 teddy bear|🎭 performing arts theatre masks|🎨 artist palette art|🧵 thread|🧶 yarn|🎼 musical score|🎵 musical note|🎶 musical notes music|🎤 microphone|🎧 headphone|🎷 saxophone|🎸 guitar|🎹 musical keyboard piano|🎺 trumpet|🎻 violin|🥁 drum|🎬 clapper board movie film'],
+    [K('Travel and places'), '🚗 automobile car|🚕 taxi|🚙 sport utility vehicle|🚌 bus|🚎 trolleybus|🚓 police car|🚑 ambulance|🚒 fire engine|🚐 minibus|🚚 delivery truck|🚛 articulated lorry|🚜 tractor|🛵 motor scooter|🛺 auto rickshaw|🚲 bicycle bike|🛴 kick scooter|🛹 skateboard|🚏 bus stop|⛽ fuel pump petrol|🚨 police car light siren|🚥 horizontal traffic light|🚧 construction|⚓ anchor|⛵ sailboat|🛶 canoe|🚤 speedboat|🚢 ship|✈️ airplane flight|🛫 airplane departure|🛬 airplane arrival|🪂 parachute|💺 seat|🚁 helicopter|🚟 suspension railway|🚠 mountain cableway|🚡 aerial tramway|🚀 rocket launch|🛸 flying saucer ufo|🚂 locomotive steam train|🚃 railway car|🚄 high speed train|🚅 bullet train|🚆 train|🚇 metro underground subway|🚈 light rail|🚉 station|🚊 tram|🚝 monorail|🚞 mountain railway|🚋 tram car|🌋 volcano|🗻 mount fuji|🧱 brick|🏠 house home|🏡 house with garden|🏢 office building|🏣 japanese post office|🏤 post office|🏥 hospital|🏦 bank|🏨 hotel|🏩 love hotel|🏪 convenience store|🏫 school|🏬 department store|🏭 factory|🏯 japanese castle|🏰 castle|💒 wedding|🗼 tokyo tower|🗽 statue of liberty|⛪ church|🕌 mosque|🛕 hindu temple|🕍 synagogue|🕋 kaaba|⛲ fountain|⛺ tent camping|🌁 foggy|🌃 night with stars|🌄 sunrise over mountains|🌅 sunrise|🌆 cityscape at dusk|🌇 sunset|🌉 bridge at night|🎠 carousel horse|🎡 ferris wheel|🎢 roller coaster|🎪 circus tent|🧭 compass|🧳 luggage suitcase travel|⌛ hourglass done|⏳ hourglass not done|⌚ watch|⏰ alarm clock|🕐 one o clock|🕑 two o clock|🕒 three o clock|🕓 four o clock|🕔 five o clock|🕕 six o clock|🕖 seven o clock|🕗 eight o clock|🕘 nine o clock|🕙 ten o clock|🕚 eleven o clock|🕛 twelve o clock'],
+    [K('Objects'), '📱 mobile phone|📲 mobile phone with arrow|☎️ telephone|📞 telephone receiver|📟 pager|📠 fax machine|🔋 battery|🔌 electric plug|💻 laptop computer|⌨️ keyboard|💽 computer disk|💾 floppy disk save|💿 optical disk cd|📀 dvd|🧮 abacus|🎥 movie camera|📺 television|📷 camera|📸 camera with flash|📹 video camera|📼 videocassette|🔍 magnifying glass tilted left search|🔎 magnifying glass tilted right search|💡 light bulb idea|🔦 flashlight torch|🏮 red paper lantern|🪔 diya lamp|📔 notebook with decorative cover|📕 closed book|📖 open book|📗 green book|📘 blue book|📙 orange book|📚 books|📓 notebook|📒 ledger|📃 page with curl|📜 scroll|📄 page facing up document|📰 newspaper|📑 bookmark tabs|🔖 bookmark|💰 money bag|💴 yen banknote|💵 dollar banknote|💶 euro banknote|💷 pound banknote|💸 money with wings|💳 credit card|🧾 receipt|💹 chart increasing with yen|✉️ envelope mail|📧 e mail|📨 incoming envelope|📩 envelope with arrow|📤 outbox tray|📥 inbox tray|📦 package parcel|📫 closed mailbox with raised flag|📮 postbox|✏️ pencil|✒️ black nib pen|📝 memo note|💼 briefcase|📁 file folder|📂 open file folder|📅 calendar|📆 tear off calendar|📇 card index|📈 chart increasing|📉 chart decreasing|📊 bar chart|📋 clipboard|📌 pushpin|📍 round pushpin location|📎 paperclip|📏 straight ruler|📐 triangular ruler|✂️ scissors|🔒 locked|🔓 unlocked|🔏 locked with pen|🔐 locked with key|🔑 key|🔨 hammer|🪓 axe|🏹 bow and arrow|🔧 wrench spanner|🔩 nut and bolt|⚙️ gear settings|⚖️ balance scale|🔗 link|🧰 toolbox|🧲 magnet|🧪 test tube|🧫 petri dish|🧬 dna|🔬 microscope|🔭 telescope|📡 satellite antenna|💉 syringe|🩸 drop of blood|💊 pill|🩹 adhesive bandage plaster|🩺 stethoscope|🚪 door|🪑 chair|🚽 toilet|🚿 shower|🛁 bathtub|🪒 razor|🧴 lotion bottle|🧷 safety pin|🧹 broom|🧺 basket|🧻 roll of paper|🧼 soap|🧽 sponge|🧯 fire extinguisher|🛒 shopping cart trolley|🗿 moai statue|🎓 graduation cap|👑 crown|🎩 top hat|👒 woman s hat|🧢 billed cap|📿 prayer beads|💄 lipstick|💍 ring|💎 gem stone diamond|👓 glasses|🥽 goggles|🥼 lab coat|🦺 safety vest|👔 necktie|👕 t shirt|👖 jeans|🧣 scarf|🧤 gloves|🧥 coat|🧦 socks|👗 dress|👘 kimono|🥻 sari|🩱 one piece swimsuit|🩲 briefs|🩳 shorts|👙 bikini|👚 woman s clothes|👛 purse|👜 handbag|👝 clutch bag|🎒 backpack|👞 man s shoe|👟 running shoe trainer|🥾 hiking boot|🥿 flat shoe|👠 high heeled shoe|👡 woman s sandal|🩰 ballet shoes|👢 woman s boot|🔔 bell|🔕 bell with slash muted|📢 loudspeaker|📣 megaphone|📯 postal horn|🔈 speaker low volume|🔉 speaker medium volume|🔊 speaker high volume|🔇 muted speaker'],
+    [K('Symbols'), '✅ check mark button done|☑️ check box with check|✔️ check mark tick|❌ cross mark|❎ cross mark button|➕ plus|➖ minus|➗ divide|✖️ multiply|❓ question mark|❔ white question mark|❕ white exclamation mark|❗ exclamation mark|⚠️ warning|🚸 children crossing|⛔ no entry|🚫 prohibited|🚭 no smoking|🚯 no littering|🚱 non potable water|🚳 no bicycles|🚷 no pedestrians|📵 no mobile phones|🔞 no one under eighteen|☢️ radioactive|☣️ biohazard|⬆️ up arrow|↗️ up right arrow|➡️ right arrow|↘️ down right arrow|⬇️ down arrow|↙️ down left arrow|⬅️ left arrow|↖️ up left arrow|↕️ up down arrow|↔️ left right arrow|↩️ right arrow curving left|↪️ left arrow curving right|⤴️ right arrow curving up|⤵️ right arrow curving down|🔃 clockwise arrows|🔄 counterclockwise arrows refresh|🔙 back arrow|🔚 end arrow|🔛 on arrow|🔜 soon arrow|🔝 top arrow|🛐 place of worship|⚛️ atom symbol|✡️ star of david|☸️ wheel of dharma|☯️ yin yang|✝️ latin cross|☦️ orthodox cross|☪️ star and crescent|☮️ peace symbol|🕎 menorah|🔯 dotted six pointed star|♈ aries|♉ taurus|♊ gemini|♋ cancer|♌ leo|♍ virgo|♎ libra|♏ scorpio|♐ sagittarius|♑ capricorn|♒ aquarius|♓ pisces|⛎ ophiuchus|🔀 shuffle tracks|🔁 repeat|🔂 repeat single|▶️ play|⏩ fast forward|◀️ reverse|⏪ fast reverse rewind|⏫ fast up|⏬ fast down|🎦 cinema|🔅 dim|🔆 bright|📶 antenna bars signal|📳 vibration mode|📴 mobile phone off|♀️ female sign|♂️ male sign|♻️ recycling symbol|⚜️ fleur de lis|🔱 trident emblem|📛 name badge|🔰 japanese symbol for beginner|⭕ hollow red circle|✳️ eight spoked asterisk|✴️ eight pointed star|❇️ sparkle|©️ copyright|®️ registered|™️ trade mark|🔟 keycap ten|🔠 input latin uppercase|🔡 input latin lowercase|🔢 input numbers|🔣 input symbols|🔤 input latin letters|🆎 ab button blood type|🆑 cl button|🆒 cool button|🆓 free button|ℹ️ information|🆔 id button|🆕 new button|🆖 ng button|🆗 ok button|🆘 sos button help|🆙 up button|🆚 vs button|🔴 red circle|🟠 orange circle|🟡 yellow circle|🟢 green circle|🔵 blue circle|🟣 purple circle|🟤 brown circle|⚫ black circle|⚪ white circle|🟥 red square|🟧 orange square|🟨 yellow square|🟩 green square|🟦 blue square|🟪 purple square|🟫 brown square|⬛ black large square|⬜ white large square|🔶 large orange diamond|🔷 large blue diamond|🔸 small orange diamond|🔹 small blue diamond|🔺 red triangle pointed up|🔻 red triangle pointed down|💠 diamond with a dot|🔘 radio button|🔳 white square button|🔲 black square button|🏁 chequered flag finish|🚩 triangular flag|🎌 crossed flags|🏴 black flag|🏳️ white flag']
+  ];
+  var EMOJI_RECENT = 'hmPortalEmoji';
+  var EMOJI_RECENT_MOST = 30;
+  var emojiRecentRead = function () {
+    try {
+      var list = JSON.parse(localStorage.getItem(EMOJI_RECENT) || '[]');
+      return Array.isArray(list) ? list.filter(function (s) { return typeof s === 'string' && s; }).slice(0, EMOJI_RECENT_MOST) : [];
+    } catch (e) { return []; }
+  };
+  var emojiRecentWrite = function (list) {
+    try { if (list.length) { localStorage.setItem(EMOJI_RECENT, JSON.stringify(list)); } else { localStorage.removeItem(EMOJI_RECENT); } } catch (e) { /* a browser that keeps nothing */ }
+  };
+  var emojiForget = function () { emojiRecentWrite([]); };
+  var emojiEntries = null;
+  var emojiAll = function () {
+    if (emojiEntries) { return emojiEntries; }
+    emojiEntries = [];
+    EMOJI.forEach(function (group) {
+      group[1].split('|').forEach(function (entry) {
+        var at = entry.indexOf(' ');
+        emojiEntries.push({ ch: entry.slice(0, at), name: entry.slice(at + 1), group: group[0] });
+      });
+    });
+    return emojiEntries;
+  };
+  var emojiNameOf = function (ch) { var hit = emojiAll().filter(function (e) { return e.ch === ch; })[0]; return hit ? hit.name : ''; };
+  var emojiRender = function (query) {
+    var grid = el('emoji-grid');
+    clear(grid);
+    var words = String(query || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+    var section = function (title, list) {
+      if (!list.length) { return; }
+      if (title) { grid.appendChild(node('div', title, 'emoji-head')); }
+      var row = node('div', undefined, 'emoji-row');
+      list.forEach(function (e) {
+        var b = node('button', e.ch, 'emoji');
+        b.type = 'button';
+        b.setAttribute('title', e.name);
+        b.setAttribute('aria-label', e.name);
+        b.setAttribute('data-emoji', e.ch);
+        row.appendChild(b);
+      });
+      grid.appendChild(row);
+    };
+    var all = emojiAll();
+    if (!words.length) {
+      section(t('Recently used'), emojiRecentRead().map(function (ch) { return { ch: ch, name: emojiNameOf(ch) }; }));
+      EMOJI.forEach(function (group) { section(t(group[0]), all.filter(function (e) { return e.group === group[0]; })); });
+      return;
+    }
+    var found = all.filter(function (e) { return words.every(function (w) { return e.name.indexOf(w) >= 0; }); });
+    if (found.length) { section('', found); } else { grid.appendChild(node('div', t('No emoji matches.'), 'emoji-none')); }
+  };
+  var insertEmoji = function (ch) {
+    var recent = emojiRecentRead().filter(function (s) { return s !== ch; });
+    recent.unshift(ch);
+    emojiRecentWrite(recent.slice(0, EMOJI_RECENT_MOST));
+    if (!richOn) { insertInBox(ch); return; }
+    // Through the editing command where the reader has a place in the
+    // editor, so that the browser's own undo takes it back; a text node
+    // otherwise.
+    var editor = el('compose-editor');
+    var range = editorRange();
+    editor.focus();
+    var done = false;
+    if (range) {
+      selectRange(range);
+      try { done = !!document.execCommand('insertText', false, ch); } catch (e) { done = false; }
+    }
+    if (!done) { insertInEditor(document.createTextNode(ch), range); }
+  };
+  var emojiClose = function () { el('emoji-panel').hidden = true; el('emoji-open').setAttribute('aria-expanded', 'false'); };
+  var emojiToggle = function () {
+    var panel = el('emoji-panel');
+    var open = panel.hidden;
+    tableClose();
+    if (!open) { emojiClose(); return; }
+    el('emoji-search').value = '';
+    emojiRender('');
+    panel.hidden = false;
+    el('emoji-open').setAttribute('aria-expanded', 'true');
+    el('emoji-search').focus();
+  };
+  el('emoji-open').addEventListener('mousedown', function (event) { event.preventDefault(); });
+  el('emoji-open').addEventListener('click', function (event) { event.stopPropagation(); emojiToggle(); });
+  el('emoji-search').addEventListener('input', function () { emojiRender(el('emoji-search').value); });
+  el('emoji-search').addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { event.preventDefault(); emojiClose(); (richOn ? el('compose-editor') : el('compose-text')).focus(); return; }
+    if (event.key !== 'Enter') { return; }
+    event.preventDefault();
+    var first = findAll(el('emoji-grid'), function (n) { return n.tagName === 'BUTTON' && n.getAttribute('data-emoji'); })[0];
+    if (first) { insertEmoji(first.getAttribute('data-emoji')); }
+  });
+  // The grid must not take the focus either, or the editor's selection goes.
+  el('emoji-grid').addEventListener('mousedown', function (event) { event.preventDefault(); });
+  el('emoji-grid').addEventListener('click', function (event) {
+    var b = event.target;
+    while (b && b !== el('emoji-grid') && !(b.getAttribute && b.getAttribute('data-emoji'))) { b = b.parentNode; }
+    if (!b || b === el('emoji-grid')) { return; }
+    insertEmoji(b.getAttribute('data-emoji'));
+  });
+
+  // ---- Images in the message --------------------------------------------------
+  // Pasted, dropped on the editor, or chosen from a file with the Image
+  // button. Held as a data: URL - the one form a page can hold an image in
+  // with no server to put it on - drawn no larger than 1200 pixels on its
+  // longer side when the browser can draw (a screenshot of a whole screen is
+  // three times that), and moved into a cid: part beside the HTML by the send
+  // route, so that Gmail and Outlook show it (InlineImageParts.cpp). What is
+  // checked is what the server checks: the file's first bytes, not its name.
+  // A message's pictures are at most 6 MB of characters together, and one
+  // image at most the 2,000,000 the rebuild admits; they then count for what
+  // they are worth in bytes against the same twelve megabytes the files have
+  // (readFiles), because the pictures and the files travel in the one request
+  // the route bounds at sixteen.
+  var IMAGE_BOX = { width: 1200, height: 1200 };
+  var IMAGE_EACH = 2000000;
+  var IMAGES_TOGETHER = 6 * 1024 * 1024;
+  // And how many of them: what the send route puts back in place
+  // (InlineImageParts::MostImages). A picture past that number is left in the
+  // HTML as the data: URL it is, and a data: image is the one thing Gmail and
+  // Outlook do not show - which is the whole reason the pictures become parts
+  // at all. A walkthrough with a small screen grab at every step reaches
+  // sixty-five long before it reaches six megabytes, so the count is a bound
+  // of its own and not a consequence of the bytes.
+  var MOST_IMAGES = 64;
+  var picturesIn = function () { return findAll(el('compose-editor'), function (n) { return n.tagName === 'IMG' && String(n.getAttribute('src') || '').indexOf('data:') === 0; }); };
+  var imagesCount = function () { return picturesIn().length; };
+  var imagesHeld = function () {
+    return picturesIn().reduce(function (n, img) { return n + String(img.getAttribute('src') || '').length; }, 0);
+  };
+  var isImageFile = function (f) { return /^image\/(png|jpeg|gif|webp)$/i.test(String((f && f.type) || '')); };
+  var readAsDataUrl = function (file) {
+    return new Promise(function (resolve) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(String(reader.result || '')); };
+      reader.onerror = function () { resolve(''); };
+      reader.readAsDataURL(file);
+    });
+  };
+  // The image within the box and within room, or null. One already within
+  // the box that fits is kept byte for byte - a JPEG is not encoded twice
+  // for nothing; a larger one is drawn smaller, a JPEG as a JPEG and anything
+  // else as a PNG (which keeps transparency and loses a GIF's animation), and
+  // smaller again until it fits.
+  var fitImage = function (url, type, room) {
+    var canvas = document.createElement('canvas');
+    if (typeof canvas.getContext !== 'function' || typeof Image !== 'function') { return Promise.resolve(url.length <= room ? url : null); }
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onerror = function () { resolve(url.length <= room ? url : null); };
+      img.onload = function () {
+        var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        var scale = w && h ? Math.min(1, IMAGE_BOX.width / w, IMAGE_BOX.height / h) : 1;
+        if (scale >= 1 && url.length <= room) { resolve(url); return; }
+        var out = type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+        for (var attempt = 0; attempt < 8; attempt++) {
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          canvas.width = cw; canvas.height = ch;
+          var context = canvas.getContext('2d');
+          if (!context) { break; }
+          context.clearRect(0, 0, cw, ch);
+          context.drawImage(img, 0, 0, cw, ch);
+          var smaller = String(canvas.toDataURL(out, 0.85) || '');
+          if (smaller.indexOf('data:' + out + ';base64,') === 0 && smaller.length <= room) { resolve(smaller); return; }
+          if (cw <= 64 || ch <= 64) { break; }
+          scale *= 0.75;
+        }
+        resolve(null);
+      };
+      img.src = url;
+    });
+  };
+  // One file into the editor at the range (or at the end); the plain box
+  // cannot hold a picture, so formatting is switched on first. Resolves to
+  // what became of it - the sentence that refused it, or whether it had to be
+  // made smaller - and says nothing itself: addImages writes the one line that
+  // answers for the whole paste or drop.
+  var addImage = function (file, range) {
+    var refuse = function (why) { return { refused: why, smaller: false }; };
+    if (!isImageFile(file)) { return Promise.resolve(refuse(t('An image to put in the message: PNG, JPEG, GIF or WebP.'))); }
+    return readAsDataUrl(file).then(function (url) {
+      var type = sniffImageType(url);
+      if (!type) { return refuse(t('An image to put in the message: PNG, JPEG, GIF or WebP.')); }
+      if ((richOn ? imagesCount() : 0) >= MOST_IMAGES) { return refuse(t('This message holds as many images as it can carry: 64 of them.')); }
+      var left = IMAGES_TOGETHER - (richOn ? imagesHeld() : 0);
+      var room = Math.min(IMAGE_EACH - 1, left);
+      if (room <= 0) { return refuse(t('This message holds as many images as it can carry: 6 MB of them together.')); }
+      var typed = 'data:' + type + ';base64,' + (url.split(',')[1] || '');
+      return fitImage(typed, type, room).then(function (fitted) {
+        // Which bound it was that the image could not be brought under.
+        if (!fitted) { return refuse(left < IMAGE_EACH - 1 ? t('This message holds as many images as it can carry: 6 MB of them together.') : t('The image is too large for a message even when made smaller.')); }
+        if (!richOn) { setRich(true); range = null; }
+        var img = document.createElement('img');
+        img.setAttribute('src', fitted);
+        img.setAttribute('alt', String(file.name || '').replace(/[\r\n"<>]/g, ''));
+        insertInEditor(img, range);
+        return { refused: '', smaller: fitted !== typed };
+      });
+    });
+  };
+  // A paste or a drop may carry several files. Each goes in turn, and the
+  // status line is written once, at the end, naming every file that did not
+  // go in: a refusal used to be wiped off it by the next file of the same
+  // batch going in, so a reader who dropped three files and had one refused
+  // was told nothing at all.
+  var addImages = function (files, range) {
+    var refused = [], smaller = 0, went = 0;
+    return files.reduce(function (chain, f) {
+      return chain.then(function () {
+        return addImage(f, range).then(function (what) {
+          if (what.refused) { refused.push({ name: String((f && f.name) || ''), why: what.refused }); return; }
+          went += 1;
+          if (what.smaller) { smaller += 1; }
+        });
+      });
+    }, Promise.resolve()).then(function () {
+      // One file on its own needs no name - the reader has just chosen it -
+      // and in a batch each refusal carries the name of the file it is about.
+      if (refused.length) { say('compose-status', files.length === 1 ? refused[0].why : refused.map(function (one) { return (one.name || '?') + ': ' + one.why; }).join(' '), false); return went > 0; }
+      say('compose-status', smaller ? t('The image was made smaller to fit.') : '', true);
+      return went > 0;
+    });
+  };
+  var pastedImages = function (event) {
+    var data = event.clipboardData || window.clipboardData;
+    if (!data) { return []; }
+    var files = Array.prototype.slice.call(data.files || []).filter(function (f) { return /^image\//i.test(String(f.type || '')); });
+    if (!files.length && data.items) {
+      for (var i = 0; i < data.items.length; i++) {
+        var item = data.items[i];
+        if (item.kind === 'file' && /^image\//i.test(String(item.type || ''))) { var f = item.getAsFile ? item.getAsFile() : null; if (f) { files.push(f); } }
+      }
+    }
+    return files;
+  };
+  // The point a drop landed on, as a range, where the browser says.
+  var pointRange = function (event) {
+    var editor = el('compose-editor');
+    try {
+      if (document.caretRangeFromPoint) { var r = document.caretRangeFromPoint(event.clientX, event.clientY); return r && within(r.startContainer, editor) ? r : null; }
+      if (document.caretPositionFromPoint && document.createRange) {
+        var p = document.caretPositionFromPoint(event.clientX, event.clientY);
+        if (p && within(p.offsetNode, editor)) { var r2 = document.createRange(); r2.setStart(p.offsetNode, p.offset); r2.collapse(true); return r2; }
+      }
+    } catch (e) { /* a point outside any text */ }
+    return null;
+  };
+  ['compose-editor', 'compose-text'].forEach(function (id) {
+    // A paste that carries an image is the image; a paste of text is the
+    // browser's, as it was.
+    el(id).addEventListener('paste', function (event) {
+      var files = pastedImages(event);
+      if (!files.length) { return; }
+      event.preventDefault();
+      addImages(files, id === 'compose-editor' ? editorRange() : null);
+    });
+    // An image dropped on the text goes into it; any other file dropped
+    // there is attached, as a file dropped anywhere on the form is.
+    el(id).addEventListener('drop', function (event) {
+      var files = Array.prototype.slice.call((event.dataTransfer && event.dataTransfer.files) || []);
+      var images = files.filter(isImageFile);
+      if (!images.length) { return; }
+      event.preventDefault();
+      event.stopPropagation();
+      el('compose-form').classList.remove('dropping');
+      var others = files.filter(function (f) { return !isImageFile(f); });
+      others.forEach(function (f) { dropped.push(f); });
+      if (others.length) { el('compose-files-note').textContent = 'Dropped: ' + dropped.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', '); }
+      addImages(images, id === 'compose-editor' ? (pointRange(event) || editorRange()) : null);
+    });
+  });
+  var imageRange = null;
+  el('image-open').addEventListener('click', function () { imageRange = editorRange(); el('compose-image').click(); });
+  el('compose-image').addEventListener('change', function () {
+    var files = Array.prototype.slice.call(el('compose-image').files || []);
+    el('compose-image').value = '';
+    if (files.length) { addImages(files, imageRange); }
+    imageRange = null;
+  });
+
+  // ---- Tables ---------------------------------------------------------------------
+  // Rows by columns, with a header row or not, inserted where the reader is;
+  // with the cursor in a cell the same button offers a row above or below,
+  // a column left or right, and the removal of the row, the column or the
+  // table. Tab moves to the next cell and adds a row after the last, as a
+  // word processor does. A cell holds a break so that it has a height to
+  // click into while it is empty.
+  var newCell = function (header) { var c = document.createElement(header ? 'th' : 'td'); c.appendChild(document.createElement('br')); return c; };
+  var newRow = function (columns, header) { var tr = document.createElement('tr'); for (var i = 0; i < columns; i++) { tr.appendChild(newCell(header)); } return tr; };
+  var rowOf = function (cell) { var n = cell; while (n && n.tagName !== 'TR') { n = n.parentNode; } return n; };
+  var tableOf = function (cell) { var n = cell; while (n && n.tagName !== 'TABLE') { n = n.parentNode; } return n; };
+  var cellsOf = function (row) { return Array.prototype.filter.call(row.childNodes, function (c) { return c.nodeType === 1 && (c.tagName === 'TD' || c.tagName === 'TH'); }); };
+  // This table's rows, not those of a table pasted into one of its cells: a
+  // column added to the one must not be added to the other.
+  var rowsOf = function (table) { return findAll(table, function (n) { return n.tagName === 'TR' && tableOf(n) === table; }); };
+  var siblingAfter = function (n) { var kids = n.parentNode.childNodes; var i = Array.prototype.indexOf.call(kids, n); return kids[i + 1] || null; };
+  var placeCaret = function (cell) {
+    currentCell = cell || null;
+    if (!cell || !document.createRange) { return; }
+    var r = document.createRange();
+    r.setStart(cell, 0); r.collapse(true);
+    selectRange(r);
+  };
+  var tableRange = null;
+  var insertTable = function (rows, columns, header) {
+    rows = Math.min(50, Math.max(1, Math.floor(Number(rows) || 0)));
+    columns = Math.min(20, Math.max(1, Math.floor(Number(columns) || 0)));
+    var table = document.createElement('table'), body = document.createElement('tbody');
+    for (var r = 0; r < rows; r++) { body.appendChild(newRow(columns, header && r === 0)); }
+    table.appendChild(body);
+    var range = tableRange;
+    if (!richOn) { setRich(true); range = null; }
+    insertInEditor(table, range);
+    // A line after the table, so that the reader can write below it.
+    var after = document.createElement('p'); after.appendChild(document.createElement('br'));
+    table.parentNode.insertBefore(after, siblingAfter(table));
+    placeCaret(cellsOf(rowsOf(table)[0])[0]);
+  };
+  var TABLE_OPS = {
+    'row-above': function (cell) { var row = rowOf(cell); var added = newRow(cellsOf(row).length, false); row.parentNode.insertBefore(added, row); placeCaret(cellsOf(added)[0]); },
+    'row-below': function (cell) { var row = rowOf(cell); var added = newRow(cellsOf(row).length, false); row.parentNode.insertBefore(added, siblingAfter(row)); placeCaret(cellsOf(added)[0]); },
+    'column-left': function (cell) {
+      var at = cellsOf(rowOf(cell)).indexOf(cell), made = null;
+      rowsOf(tableOf(cell)).forEach(function (r) { var cells = cellsOf(r); var c = newCell(cells[0] && cells[0].tagName === 'TH'); r.insertBefore(c, cells[at] || null); if (r === rowOf(cell)) { made = c; } });
+      placeCaret(made);
+    },
+    'column-right': function (cell) {
+      var at = cellsOf(rowOf(cell)).indexOf(cell), made = null;
+      rowsOf(tableOf(cell)).forEach(function (r) { var cells = cellsOf(r); var c = newCell(cells[0] && cells[0].tagName === 'TH'); r.insertBefore(c, cells[at] ? siblingAfter(cells[at]) : null); if (r === rowOf(cell)) { made = c; } });
+      placeCaret(made);
+    },
+    'delete-row': function (cell) {
+      var row = rowOf(cell), table = tableOf(cell), rows = rowsOf(table);
+      var at = rows.indexOf(row), column = cellsOf(row).indexOf(cell);
+      row.parentNode.removeChild(row);
+      rows = rowsOf(table);
+      if (!rows.length) { table.parentNode.removeChild(table); placeCaret(null); return; }
+      var next = rows[Math.min(at, rows.length - 1)];
+      placeCaret(cellsOf(next)[Math.min(column, cellsOf(next).length - 1)]);
+    },
+    'delete-column': function (cell) {
+      var row = rowOf(cell), table = tableOf(cell), at = cellsOf(row).indexOf(cell);
+      rowsOf(table).forEach(function (r) { var c = cellsOf(r)[at]; if (c) { r.removeChild(c); } });
+      var left = cellsOf(row);
+      if (!left.length) { table.parentNode.removeChild(table); placeCaret(null); return; }
+      placeCaret(left[Math.min(at, left.length - 1)]);
+    },
+    'delete-table': function (cell) { var table = tableOf(cell); table.parentNode.removeChild(table); placeCaret(null); }
+  };
+  var tableClose = function () { el('table-panel').hidden = true; el('table-open').setAttribute('aria-expanded', 'false'); };
+  var tableToggle = function () {
+    var panel = el('table-panel');
+    var open = panel.hidden;
+    emojiClose();
+    if (!open) { tableClose(); return; }
+    var editor = el('compose-editor');
+    var inCell = currentCell && within(currentCell, editor) ? currentCell : null;
+    currentCell = inCell;
+    tableRange = editorRange();
+    el('table-insert').hidden = !!inCell;
+    el('table-edit').hidden = !inCell;
+    panel.hidden = false;
+    el('table-open').setAttribute('aria-expanded', 'true');
+    if (!inCell) { el('table-rows').focus(); }
+  };
+  el('table-open').addEventListener('click', function (event) { event.stopPropagation(); tableToggle(); });
+  el('table-insert-go').addEventListener('click', function () {
+    insertTable(el('table-rows').value, el('table-columns').value, el('table-header').checked);
+    tableClose();
+    el('compose-editor').focus();
+  });
+  Array.prototype.forEach.call(el('table-edit').children, function (b) {
+    b.addEventListener('mousedown', function (event) { event.preventDefault(); });
+    b.addEventListener('click', function () {
+      var op = TABLE_OPS[b.getAttribute('data-op')];
+      var cell = currentCell && within(currentCell, el('compose-editor')) ? currentCell : null;
+      if (!op || !cell) { tableClose(); return; }
+      op(cell);
+      el('compose-editor').focus();
+      if (currentCell) { placeCaret(currentCell); } else { tableClose(); }
+    });
+  });
+  el('compose-editor').addEventListener('keydown', function (event) {
+    if (event.key !== 'Tab' || event.ctrlKey || event.metaKey || event.altKey) { return; }
+    var live = liveRange();
+    var cell = (live && cellOf(live.startContainer)) || cellOf(event.target) || null;
+    if (!cell) { return; }
+    event.preventDefault();
+    var row = rowOf(cell), cells = cellsOf(row), at = cells.indexOf(cell);
+    var rows = rowsOf(tableOf(cell)), ri = rows.indexOf(row);
+    if (event.shiftKey) {
+      if (at > 0) { placeCaret(cells[at - 1]); }
+      else if (ri > 0) { var before = cellsOf(rows[ri - 1]); placeCaret(before[before.length - 1]); }
+      return;
+    }
+    if (at < cells.length - 1) { placeCaret(cells[at + 1]); return; }
+    if (ri < rows.length - 1) { placeCaret(cellsOf(rows[ri + 1])[0]); return; }
+    var added = newRow(cells.length, false);
+    row.parentNode.insertBefore(added, siblingAfter(row));
+    placeCaret(cellsOf(added)[0]);
+  });
+
+  // ---- A draft's formatting, brought back ----------------------------------------
+  // A draft reopens as its text; one with formatting - a table, an image
+  // pasted in - comes back into the formatted editor instead, through the
+  // same subset the send admits, so that nothing a draft carries can reach
+  // the page but what the page would have sent. The images this webmail made
+  // parts of it (OWN_IMAGE_ID) are put back as the data: URLs they were, from
+  // the parts, so that the send makes parts of them again; an image another
+  // mail client embedded stays a file, as carryAttachments keeps it.
+  var draftFormatting = function (message) {
+    var html = String(message.html || '');
+    if (!html) { return Promise.resolve(); }
+    // Only a message this account saved as a draft. #compose?draft=<id> names
+    // a message by its number and nothing stops that number being a message
+    // that arrived from outside, whose HTML is a stranger's; and this is the
+    // one place the page puts message HTML into its own document rather than
+    // into the sandboxed frame an open message is shown in. A message without
+    // the Draft flag reopens as its text, as every draft did before this.
+    if (!(message.flags && message.flags.draft)) { return Promise.resolve(); }
+    var lower = html.toLowerCase();
+    var own = (message.attachments || []).filter(function (a) {
+      var cid = contentIdOf(a).toLowerCase();
+      return cid && OWN_IMAGE_ID.test(cid) && lower.indexOf('cid:' + cid) >= 0 && RENDERS[String(a.content_type || '').toLowerCase()];
+    });
+    return Promise.all(own.map(function (a) {
+      return fetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+        return response.status === 200 ? response.blob() : null;
+      }).then(function (blob) {
+        if (!blob || String(blob.type || '').indexOf('image/') !== 0) { return null; }
+        return readAsDataUrl(blob).then(function (url) { return url.indexOf('data:image/') === 0 ? { id: contentIdOf(a).toLowerCase(), url: url } : null; });
+      }, function () { return null; });
+    })).then(function (found) {
+      var images = {};
+      found.forEach(function (one) { if (one) { images[one.id] = one.url; } });
+      var resolved = resolveInline(html, images);
+      var editor = el('compose-editor');
+      var parsed = null;
+      try { parsed = new DOMParser().parseFromString(cleanHtml(new DOMParser().parseFromString(resolved, 'text/html').body), 'text/html').body; } catch (e) { parsed = null; }
+      if (!parsed) { return; }
+      clear(editor);
+      while (parsed.firstChild) { editor.appendChild(parsed.firstChild); }
+      showRich(true);
+    });
+  };
 
   // ---- Offline: the inbox and opened messages kept in this browser, sends
   // queued, all of it forgotten at sign-out.
@@ -5803,7 +6423,7 @@
     if (mode === 'draft') { selectIdentity(addressOf(message.from)); }
     else { selectIdentity(identityAddressedIn(message)); addSignature(); }
     syncComposeRows();
-    el('compose-text').focus();
+    el(richOn ? 'compose-editor' : 'compose-text').focus();
   };
   var composeTo = function (entry) {
     blankCompose();
