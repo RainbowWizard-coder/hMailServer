@@ -1036,24 +1036,48 @@ namespace hMailServer
       /// <summary>
       ///    Settings.DisableAdministratorTOTP: DELETE /api/v1/administrator/second-factor.
       ///    Once a factor is enrolled the administrator password alone no longer
-      ///    authenticates a request, over REST as over COM, and this shim's requests
-      ///    carry the password alone - so a fixture that enrols has to disable with a
-      ///    code of its own (RestRequest with X-hMailServer-OTP), as the operator
-      ///    fixture does; this is for the fixture that finds nothing enrolled.
+      ///    authenticates a request, over REST as over COM; this request carries the
+      ///    code for the factor this layer enrolled (ServerApi.AdministratorFactorEnrolled),
+      ///    which is what lets a fixture disable in its teardown what it enrolled in
+      ///    its test, as the already-authenticated Settings object lets it on Windows.
+      ///    A factor enrolled some other way - by a fixture's own request, as the
+      ///    operator fixture does and undoes with a code of its own, or left by a run
+      ///    that died - is refused here with the server's 401, which is the loud
+      ///    failure the two-factor fixture asks for in its teardown.
       /// </summary>
       public void DisableAdministratorTOTP()
       {
          ServerApi.Delete("/api/v1/administrator/second-factor").Expect(200, "DELETE /api/v1/administrator/second-factor");
+         ServerApi.AdministratorFactorDisabled();
       }
 
-      /// <summary>Settings.EnrolAdministratorTOTP: POST /api/v1/administrator/second-factor, answering the otpauth URI.</summary>
+      /// <summary>
+      ///    Settings.EnrolAdministratorTOTP: POST /api/v1/administrator/second-factor,
+      ///    answering the otpauth URI - and keeping its secret for this layer's own
+      ///    requests, which need the code from the next one on.
+      /// </summary>
       public string EnrolAdministratorTOTP()
       {
          var answer = ServerApi.Post("/api/v1/administrator/second-factor", "{}");
          if (answer.Status == 409)
             throw new System.Runtime.InteropServices.COMException(answer.Error);
          answer.Expect(200, "POST /api/v1/administrator/second-factor");
-         return ServerApi.StringOf(answer.Json.Value, "uri");
+
+         string uri = ServerApi.StringOf(answer.Json.Value, "uri");
+         ServerApi.AdministratorFactorEnrolled(SecretOf(uri));
+         return uri;
+      }
+
+      // The secret= parameter of an otpauth URI, the one place the secret appears.
+      private static string SecretOf(string otpauthUri)
+      {
+         int at = (otpauthUri ?? "").IndexOf("secret=", StringComparison.OrdinalIgnoreCase);
+         if (at < 0)
+            return null;
+
+         string rest = otpauthUri.Substring(at + "secret=".Length);
+         int end = rest.IndexOf('&');
+         return end < 0 ? rest : rest.Substring(0, end);
       }
 
       public string TestLdapDirectory(string a = null, string b = null)

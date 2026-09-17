@@ -266,8 +266,11 @@ host; the defaults are the PostgreSQL-backed tree the CI job lays out
 (`.github/workflows/linux-build.yml`, job `regression-on-linux`, run as two halves), which is also
 the recipe for a hand-made one: `DBScripts` from the checkout beside the binary,
 `tlds.txt` and `dh2048.pem` from `installation/Extras`, an INI with
-`Type=PostgreSQL` and `RestApiPort=8045`, `--create-database`, the listeners
-moved off the privileged ports with an `UPDATE` of `hm_tcpipports`, the
+`Type=PostgreSQL` and `RestApiPort=8045`, `--create-database`, the SMTP, POP3
+and IMAP listeners moved off the privileged ports with an `UPDATE` of
+`hm_tcpipports` (the submission listener keeps its stock 587, which the setup
+checklist judges by number and `API/RestApiSetupChecklist` asserts; the job
+lets the runner bind from port 53 up before the server starts), the
 auto-ban switched off with an `UPDATE` of `hm_settings`
 (`AutoBanOnLogonFailureEnabled` to 0 - the suite fails logons on purpose, and
 three of them ban the test host for an hour; the Windows setup switches it off
@@ -280,7 +283,7 @@ is through the environment, read once when the assembly loads:
 | `HMTEST_SMTP_PORT` | `2525` |
 | `HMTEST_POP3_PORT` | `1110` |
 | `HMTEST_IMAP_PORT` | `1143` |
-| `HMTEST_SUBMISSION_PORT` | `5870` |
+| `HMTEST_SUBMISSION_PORT` | `587` |
 | `HMTEST_REST_PORT` | `8045` |
 | `HMTEST_ADMIN_PASSWORD` | `testar` |
 | `HMTEST_SERVER_INI` | *unset; the ini is searched for* |

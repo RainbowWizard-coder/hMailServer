@@ -14,7 +14,7 @@ namespace RegressionTests.Shared
    ///       HMTEST_SMTP_PORT       2525
    ///       HMTEST_POP3_PORT       1110
    ///       HMTEST_IMAP_PORT       1143
-   ///       HMTEST_SUBMISSION_PORT 5870
+   ///       HMTEST_SUBMISSION_PORT 587
    ///       HMTEST_REST_PORT       8045
    ///       HMTEST_ADMIN_PASSWORD  testar
    ///
@@ -32,11 +32,12 @@ namespace RegressionTests.Shared
       public static readonly int SmtpPort = Read("HMTEST_SMTP_PORT", 2525);
 
       /// <summary>
-      ///    The submission port, which the tree lays out one above the SMTP port
-      ///    (2525 and 2526, as the Linux recipe writes them). Named in its own
-      ///    variable where it is somewhere else.
+      ///    The submission port. The CI tree keeps it on the stock 587, because the
+      ///    setup checklist judges that listener by its number and
+      ///    API/RestApiSetupChecklist asserts the finding for 587; a bench that
+      ///    cannot bind a privileged port names its own here.
       /// </summary>
-      public static readonly int SubmissionPort = Read("HMTEST_SUBMISSION_PORT", 5870);
+      public static readonly int SubmissionPort = Read("HMTEST_SUBMISSION_PORT", 587);
 
       public static readonly int Pop3Port = Read("HMTEST_POP3_PORT", 1110);
       public static readonly int ImapPort = Read("HMTEST_IMAP_PORT", 1143);

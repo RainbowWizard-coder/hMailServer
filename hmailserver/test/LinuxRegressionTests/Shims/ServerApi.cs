@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using NUnit.Framework;
@@ -84,6 +85,90 @@ namespace RegressionTests.Shared
       private static string Basic(string user, string password)
       {
          return "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
+      }
+
+      // ---- The administrator's second factor, on this side of the wire ----
+      //
+      // Once a factor is enrolled on the administrator password, the password
+      // alone authenticates no request, and every request this class sends
+      // carries the password alone. On Windows a fixture that enrols goes on
+      // working through the COM objects it authenticated before the enrolment:
+      // Security/AdministratorTwoFactor disables the factor in its teardown on
+      // the Settings object it already held. The equivalent of that still-open
+      // session here is the secret the enrolment answered, kept from the shim's
+      // EnrolAdministratorTOTP until its DisableAdministratorTOTP is answered and
+      // turned into the current code in X-hMailServer-OTP on every administrator
+      // request in between - so the fixture's own teardown, the base teardown's
+      // queue drain and the restart detector's status read all authenticate while
+      // the factor stands. The server reads the header only while a factor is
+      // enrolled, so a code sent once the factor is gone costs nothing; and the
+      // fixture's own raw requests (RestRequest, its sockets) carry what the
+      // fixture gives them, which is how the password alone is refused where the
+      // test expects it to be. Before this, the first test that enrolled left the
+      // factor standing when its teardown's DELETE was refused, and every fixture
+      // after it failed its one-time set-up on the password alone.
+      private static string _administratorSecret;
+
+      /// <summary>A factor was enrolled through this layer: its secret, from the otpauth URI.</summary>
+      public static void AdministratorFactorEnrolled(string base32Secret)
+      {
+         _administratorSecret = string.IsNullOrEmpty(base32Secret) ? null : base32Secret;
+      }
+
+      /// <summary>The server has said the factor is gone.</summary>
+      public static void AdministratorFactorDisabled()
+      {
+         _administratorSecret = null;
+      }
+
+      // RFC 6238 with the server's defaults - HMAC-SHA1, thirty-second steps, six
+      // digits - the same arithmetic as the two fixtures that compute a code of
+      // their own, and kept apart from them on purpose: they are the test.
+      private static string OneTimeCode(string base32Secret)
+      {
+         byte[] key = Base32Decode(base32Secret);
+         long counter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
+
+         byte[] counterBytes = BitConverter.GetBytes(counter);
+         if (BitConverter.IsLittleEndian)
+            System.Array.Reverse(counterBytes);
+
+         byte[] hash;
+         using (var hmac = new HMACSHA1(key))
+            hash = hmac.ComputeHash(counterBytes);
+
+         int offset = hash[hash.Length - 1] & 0x0F;
+         int binary =
+            ((hash[offset] & 0x7F) << 24) |
+            ((hash[offset + 1] & 0xFF) << 16) |
+            ((hash[offset + 2] & 0xFF) << 8) |
+            (hash[offset + 3] & 0xFF);
+
+         return (binary % 1000000).ToString("000000");
+      }
+
+      private static byte[] Base32Decode(string input)
+      {
+         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+         var output = new List<byte>();
+         int buffer = 0, bitsLeft = 0;
+
+         foreach (char c in input)
+         {
+            int index = alphabet.IndexOf(char.ToUpperInvariant(c));
+            if (index < 0)
+               continue;
+
+            buffer = (buffer << 5) | index;
+            bitsLeft += 5;
+            if (bitsLeft >= 8)
+            {
+               bitsLeft -= 8;
+               output.Add((byte) ((buffer >> bitsLeft) & 0xFF));
+            }
+         }
+
+         return output.ToArray();
       }
 
       public static ApiAnswer Get(string path)
@@ -181,6 +266,12 @@ namespace RegressionTests.Shared
             using (var request = new HttpRequestMessage(method, path))
             {
                request.Headers.TryAddWithoutValidation("Authorization", authorization);
+
+               // The administrator's one-time code, while a factor this layer
+               // enrolled stands (AdministratorFactorEnrolled above).
+               string secret = authorization == AdminAuthorization ? _administratorSecret : null;
+               if (secret != null)
+                  request.Headers.TryAddWithoutValidation("X-hMailServer-OTP", OneTimeCode(secret));
 
                if (json != null)
                   request.Content = new StringContent(json, Encoding.UTF8, "application/json");

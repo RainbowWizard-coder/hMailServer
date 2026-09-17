@@ -736,8 +736,18 @@ jobs:
             filter: >-
               FullyQualifiedName~RegressionTests.API.|FullyQualifiedName~RegressionTests.Sieve.|FullyQualifiedName~RegressionTests.AntiSpam.|FullyQualifiedName~RegressionTests.POP3.|FullyQualifiedName~RegressionTests.SSL.|FullyQualifiedName~RegressionTests.ExternalAccounts.|FullyQualifiedName~RegressionTests.Domains.|FullyQualifiedName~RegressionTests.MIME.|FullyQualifiedName~RegressionTests.Stress.|FullyQualifiedName~RegressionTests.Rules.|FullyQualifiedName~RegressionTests.Installation.|FullyQualifiedName~RegressionTests.Shared.
           - name: two
+            # One test is left out by name, because no shim can skip it:
+            # Security.AdministratorTwoFactor.TheSecretIsNotReadableAfterEnrolment
+            # reads the server's hMailServer.ini off the disk it shares with this
+            # runner and asserts the Windows envelope, DPAPI:, on the stored
+            # secret. This server writes LINUX1: with protection on and, in the
+            # tree laid out below, a bare Blowfish value with
+            # ProtectStoredSecretsWithDPAPI=0; and between the enrolment and that
+            # assertion the test touches no shim member, so there is nowhere to
+            # say so as a skip. The fixture's other three tests run: two skip on
+            # the COM logon, the third proves the REST second factor end to end.
             filter: >-
-              FullyQualifiedName~RegressionTests.IMAP.|FullyQualifiedName~RegressionTests.Security.|FullyQualifiedName~RegressionTests.Infrastructure.|FullyQualifiedName~RegressionTests.SMTP.|FullyQualifiedName~RegressionTests.AntiVirus.
+              (FullyQualifiedName~RegressionTests.IMAP.|FullyQualifiedName~RegressionTests.Security.|FullyQualifiedName~RegressionTests.Infrastructure.|FullyQualifiedName~RegressionTests.SMTP.|FullyQualifiedName~RegressionTests.AntiVirus.)&FullyQualifiedName!=RegressionTests.Security.AdministratorTwoFactor.TheSecretIsNotReadableAfterEnrolment
     services:
       postgres:
         image: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
@@ -757,7 +767,10 @@ jobs:
       HMTEST_SMTP_PORT: '2525'
       HMTEST_POP3_PORT: '1110'
       HMTEST_IMAP_PORT: '1143'
-      HMTEST_SUBMISSION_PORT: '5870'
+      # The stock port: the setup checklist judges the submission listener by its
+      # number, and API/RestApiSetupChecklist asserts the finding for 587. The
+      # sysctl below lets the runner bind it before the server starts.
+      HMTEST_SUBMISSION_PORT: '587'
       HMTEST_REST_PORT: '8045'
       HMTEST_ADMIN_PASSWORD: testar
       # github.workspace rather than runner.temp: the runner context is not one a
@@ -835,11 +848,15 @@ jobs:
           "$T/program/hmailserver" --config "$T/program/hMailServer.ini" --version
           "$T/program/hmailserver" --config "$T/program/hMailServer.ini" --create-database
           psql -h 127.0.0.1 -U hmailserver -d hmtest -Atc "select 'schema ' || value from hm_dbversion"
-          # The listeners are rows in hm_tcpipports; the runner is not root and the
-          # ports under 1024 are not its to bind.
+          # The listeners are rows in hm_tcpipports. Three are moved off the
+          # privileged ports, where a runner that is not root cannot bind without
+          # the sysctl below and where something of the image's own may sit; the
+          # submission listener keeps its stock 587, because the setup checklist
+          # judges that port by its number and API/RestApiSetupChecklist asserts
+          # the finding for 587 - a bench with the listener on 5870 fails that
+          # test on the number alone.
           psql -h 127.0.0.1 -U hmailserver -d hmtest -Atc "
             update hm_tcpipports set portnumber = 2525 where portnumber = 25;
-            update hm_tcpipports set portnumber = 5870 where portnumber = 587;
             update hm_tcpipports set portnumber = 1110 where portnumber = 110;
             update hm_tcpipports set portnumber = 1143 where portnumber = 143;
             select portprotocol, portnumber from hm_tcpipports order by 1"
@@ -864,6 +881,20 @@ jobs:
             select domainid, domainname from hm_domains"
           echo testar | "$T/program/hmailserver" --config "$T/program/hMailServer.ini" --set-admin-password
 
+      - name: Let the suite's fake DNS zone bind port 53, and the server port 587
+        # The suite serves one fake zone on port 53 of a loopback address for the
+        # whole run and points the server's DNSServer at it (Shims/SuiteDns.cs),
+        # from the unprivileged test process; 53 is a privileged port until this
+        # says otherwise, and so is the submission listener's stock 587, which is
+        # why this runs before the server starts. Which address: harden-runner's
+        # agent runs its DNS proxy on 127.0.0.1:53 (and systemd-resolved its stub
+        # on 127.0.0.53), so the suite finds 127.0.0.1 taken and serves the zone
+        # on 127.0.53.53. The listing is here so a run that skipped the DNS
+        # fixtures says why.
+        run: |
+          sudo sysctl -w net.ipv4.ip_unprivileged_port_start=53
+          sudo ss -lunp | grep -E ':53 ' || echo "nothing on UDP 53"
+
       - name: Start the server
         run: |
           cd "$HMTEST_TREE"
@@ -886,18 +917,6 @@ jobs:
 
       - name: Restore
         run: dotnet restore hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj --locked-mode
-
-      - name: Let the suite's fake DNS zone bind port 53
-        # The suite serves one fake zone on port 53 of a loopback address for the
-        # whole run and points the server's DNSServer at it (Shims/SuiteDns.cs),
-        # from the unprivileged test process; 53 is a privileged port until this
-        # says otherwise. Which address: harden-runner's agent runs its DNS proxy
-        # on 127.0.0.1:53 (and systemd-resolved its stub on 127.0.0.53), so the
-        # suite finds 127.0.0.1 taken and serves the zone on 127.0.53.53. The
-        # listing is here so a run that skipped the DNS fixtures says why.
-        run: |
-          sudo sysctl -w net.ipv4.ip_unprivileged_port_start=53
-          sudo ss -lunp | grep -E ':53 ' || echo "nothing on UDP 53"
 
       - name: Run the fixtures against the server
         run: |

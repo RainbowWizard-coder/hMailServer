@@ -1091,9 +1091,16 @@ namespace hMailServer
          return new Rule { BasePath = BasePath };
       }
 
+      /// <summary>
+      ///    An id no rule in this collection has is the error
+      ///    InterfaceRules::get_ItemByDBID answers, DISP_E_BADINDEX, and not null:
+      ///    a rule that was deleted, or that belongs to another account, is asked
+      ///    for by API/RestApiAccountRules and has to be refused as COM refuses it.
+      /// </summary>
       public virtual Rule get_ItemByDBID(long id)
       {
-         return All().Where(element => ServerApi.LongOf(element, "id") == id).Select(element => Rule.From(element, BasePath)).FirstOrDefault();
+         return All().Where(element => ServerApi.LongOf(element, "id") == id).Select(element => Rule.From(element, BasePath)).FirstOrDefault()
+            ?? throw new System.Runtime.InteropServices.COMException("Invalid index.", unchecked((int) 0x8002000B));
       }
 
       public virtual void DeleteByDBID(long id)
