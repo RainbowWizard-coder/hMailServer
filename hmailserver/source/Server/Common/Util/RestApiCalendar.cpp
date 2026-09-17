@@ -782,6 +782,36 @@ namespace HM
          return true;
       }
 
+      AnsiString AttendeesText(const ICalComponent &component)
+      {
+         AnsiString text;
+         for (size_t i = 0; i < component.properties.size(); i++)
+         {
+            if (component.properties[i].name == "ATTENDEE")
+               text += component.properties[i].value + "\n";
+         }
+         return text;
+      }
+
+      // What a change to the series carries into one of its overrides: each
+      // field the change sets that the occurrence still had as the series had
+      // it before. A weekly meeting renamed renames the week that was moved to
+      // the afternoon, and that week stays in the afternoon; a week renamed on
+      // its own keeps its name. Times are never carried - they are what an
+      // override is usually for.
+      Fields FieldsToFollow(const Fields &fields, const ICalComponent &before, const ICalComponent &occurrence)
+      {
+         Fields follow;
+         if (fields.hasSummary && occurrence.Value("SUMMARY") == before.Value("SUMMARY")) { follow.hasSummary = true; follow.summary = fields.summary; }
+         if (fields.hasLocation && occurrence.Value("LOCATION") == before.Value("LOCATION")) { follow.hasLocation = true; follow.location = fields.location; }
+         if (fields.hasDescription && occurrence.Value("DESCRIPTION") == before.Value("DESCRIPTION")) { follow.hasDescription = true; follow.description = fields.description; }
+         if (fields.hasAlarm && AlarmMinutes(occurrence) == AlarmMinutes(before)) { follow.hasAlarm = true; follow.alarmMinutes = fields.alarmMinutes; }
+         if (fields.hasPriority && occurrence.Value("PRIORITY") == before.Value("PRIORITY")) { follow.hasPriority = true; follow.priority = fields.priority; }
+         if (fields.hasStatus && occurrence.Value("STATUS") == before.Value("STATUS")) { follow.hasStatus = true; follow.status = fields.status; }
+         if (fields.hasAttendees && AttendeesText(occurrence) == AttendeesText(before)) { follow.hasAttendees = true; follow.attendees = fields.attendees; }
+         return follow;
+      }
+
       ICalComponent NewCalendar()
       {
          ICalComponent calendar;
@@ -1711,6 +1741,7 @@ namespace HM
       {
          AnsiString tz = TzOf(*master);
          bool allDay = AllDayOf(*master);
+         const ICalComponent before = *master;
          if (!ApplyFields(*master, fields, tz, allDay, me, OrganizerName(account), problem))
             return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
          // The overrides follow a change of the kind or zone; otherwise they keep their own times.
@@ -1724,6 +1755,21 @@ namespace HM
                   i++;
             }
             master = MasterOf(tree);
+         }
+         else
+         {
+            for (size_t i = 0; i < tree.children.size(); i++)
+            {
+               ICalComponent &occurrence = tree.children[i];
+               if (occurrence.name != before.name || !occurrence.Property("RECURRENCE-ID"))
+                  continue;
+               Fields follow = FieldsToFollow(fields, before, occurrence);
+               if (follow.hasSummary || follow.hasLocation || follow.hasDescription || follow.hasAlarm || follow.hasPriority || follow.hasStatus || follow.hasAttendees)
+               {
+                  if (!ApplyFields(occurrence, follow, tz, allDay, me, OrganizerName(account), problem))
+                     return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
+               }
+            }
          }
       }
 

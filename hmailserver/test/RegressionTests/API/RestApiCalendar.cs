@@ -460,7 +460,9 @@ namespace RegressionTests.API
          {
             (int status, string body) search = Me("GET", "/api/v1/me/search?q=" + Uri.EscapeDataString(subjectPart), null, address, password);
             RetryableAssert.AreEqual(search.status, 200);
-            foreach (Match item in Regex.Matches(search.body, "\\{\"id\":(\\d+)[^{}]*\"subject\":\"([^\"]*)\""))
+            // A search hit opens with its folder, so the id is found by the uid
+            // that follows it rather than by the object's opening brace.
+            foreach (Match item in Regex.Matches(search.body, "\"id\":(\\d+),\"uid\":[^{}]*?\"subject\":\"([^\"]*)\""))
             {
                if (item.Groups[2].Value.Contains(subjectPart))
                {
