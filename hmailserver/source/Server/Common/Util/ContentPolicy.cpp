@@ -135,7 +135,33 @@ namespace HM
       text.Replace(_T("&lt;"), _T("<"));
       text.Replace(_T("&gt;"), _T(">"));
       text.Replace(_T("&quot;"), _T("\""));
-      return text;
+
+      // One space where several fell together. Two adjacent tags - the
+      // "</td><td>" between a table's cells, a "</p>\n<p>" between paragraphs -
+      // each leave their own space, and the card scan allows at most one
+      // separator between two digits: a card written across four cells would
+      // read as four short runs and be missed, which is exactly how a card gets
+      // out of an office in a spreadsheet pasted into a message. Newlines and
+      // tabs are spaces here too, since the text has no layout left to keep.
+      String collapsed;
+      collapsed.reserve(text.GetLength());
+      bool lastWasSpace = false;
+      for (int i = 0; i < text.GetLength(); i++)
+      {
+         const wchar_t c = text[i];
+         const bool isSpace = c == L' ' || c == L'\t' || c == L'\r' || c == L'\n' || c == L'\f' || c == L'\v';
+         if (isSpace)
+         {
+            if (!lastWasSpace)
+               collapsed += L' ';
+            lastWasSpace = true;
+            continue;
+         }
+         collapsed += c;
+         lastWasSpace = false;
+      }
+
+      return collapsed;
    }
 
    String
@@ -785,6 +811,13 @@ namespace HM
       const String stripped = ContentPolicy::StripHtml(_T("<table><tr><td>4111</td><td>1111</td><td>1111</td><td>1111</td></tr></table>"));
       if (!ContentPolicy::ContainsCardNumber(stripped))
          throw std::logic_error("ContentPolicy::StripHtml did not leave a card in a table findable.");
+      if (stripped.Find(_T("  ")) >= 0)
+         throw std::logic_error("ContentPolicy::StripHtml left two spaces where two tags met.");
+      // Every tag and every newline between two words collapses to the one
+      // space that keeps them apart, so a paragraph break neither runs two
+      // words together nor leaves a gap the card scan would trip on.
+      if (!ContentPolicy::StripHtml(_T("<p>one</p>\r\n<p>two</p>")).Contains(_T("one two")))
+         throw std::logic_error("ContentPolicy::StripHtml did not put one space between two paragraphs.");
    }
 
    void
