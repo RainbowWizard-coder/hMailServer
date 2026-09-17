@@ -1200,6 +1200,12 @@
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>尽可能从 Windows DNS 解析器缓存中作答</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>再次答复同一发件人前经过的天数 (0 = 每次外出一次)(_F)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>再次答复同一发件人前经过的天数 (0 = 每次外出一次)(_Y)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>有应答，但没有给出策略</value>
   </data>
@@ -4600,6 +4606,9 @@
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>邮件最终处理期限（秒；0 = 无期限）</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>发给同事的正文 (为空 = 与上面相同)(_U)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>给本地发件人的消息(_E)（留空 = 与上面相同）</value>
   </data>
@@ -5542,6 +5551,9 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>机会性</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>可选的发给同事（地址属于本服务器的发件人）的不同正文。它永远不会离开服务器，因此可以比上面的正文多说一些。为空表示使用上面的正文。</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>可选的给本地发件人的不同文本 - 可以对同事说得比对陌生人更多。留空表示所有人都收到上面的文本。注意这是按发件人的地址识别的，而地址是可以伪造的：把它当作一种礼节，绝不要放任何机密内容。</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>回复主题(_B)</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>只答复同事 - 外部发件人收不到任何内容，或在域的覆盖开启时收到域的正文(_O)</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>报告邮箱：</value>
@@ -7669,6 +7684,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Subject" xml:space="preserve">
     <value>主题</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>发给同事的主题 (为空 = 与上面相同)(_C)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>本地发件人的主题 (为空 = 与上面相同)(_L)</value>

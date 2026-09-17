@@ -519,6 +519,7 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'dkim_rotation_retention_days', 'dkim_rotation_key_bits',
    'message_retention_days', 'relay_host', 'relay_port', 'relay_requires_auth', 'relay_username', 'relay_password', 'relay_connection_security',
    'vacation_enabled', 'vacation_subject', 'vacation_message',
+   'vacation_internal_subject', 'vacation_internal_message', 'vacation_external_override', 'vacation_days',
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour',
@@ -538,6 +539,7 @@ const ACCOUNT_PROPS = {
    forward_abort_spam_flagged: { type: 'boolean' }, message_retention_days: { type: 'integer' },
    vacation_enabled: { type: 'boolean' }, vacation_subject: { type: 'string' }, vacation_message: { type: 'string' },
    vacation_expires: { type: 'boolean' }, vacation_expires_date: { type: 'string' }, vacation_begin_date: { type: 'string' }, vacation_abort_spam_flagged: { type: 'boolean' },
+   vacation_days: { type: 'integer' }, vacation_internal_subject: { type: 'string' }, vacation_internal_message: { type: 'string' }, vacation_internal_only: { type: 'boolean' },
    ad_enabled: { type: 'boolean' }, ad_domain: { type: 'string' }, ad_username: { type: 'string' }, sieve_script: { type: 'string' },
    openpgp_publish: { type: 'boolean' }
 };
@@ -548,6 +550,7 @@ function accountRecord(address, active) {
       signature_enabled: false, signature_plain_text: '', signature_html: '', vacation_enabled: false, vacation_subject: '', vacation_message: '',
       vacation_expires: false, vacation_expires_date: '', message_retention_days: 0, admin_level: 'user', antispam_enabled: true,
       spam_mark_threshold: -1, spam_delete_threshold: -1, forward_abort_spam_flagged: false, vacation_begin_date: '', vacation_abort_spam_flagged: false,
+      vacation_days: 0, vacation_internal_subject: '', vacation_internal_message: '', vacation_internal_only: false,
       ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false };
 }
 
@@ -692,6 +695,7 @@ function domainRecord(name, active, postmaster) {
       dkim_rotation_retention_days: 7, dkim_rotation_key_bits: 2048,
       relay_host: '', relay_requires_auth: false, relay_username: '', relay_connection_security: 'none',
       vacation_enabled: false, vacation_subject: '', vacation_message: '',
+      vacation_internal_subject: '', vacation_internal_message: '', vacation_external_override: false, vacation_days: 0,
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
       quarantine_digest: false, quarantine_digest_hour: 7,
@@ -3007,6 +3011,9 @@ async function main() {
       document.getElementById('dom_relay_connection_security').querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'none,starttls_optional,starttls_required,tls' &&
       document.getElementById('dom_relay_password').type === 'password' && document.getElementById('dom_relay_password').value === '' &&
       document.getElementById('dom_relay_password').closest('.fr').textContent.indexOf('write-only') >= 0);
+   check('Out of office: the policy beside the text - a text for colleagues, the override for strangers and the window in days',
+      document.getElementById('dom_vacation_internal_message').tagName === 'TEXTAREA' && document.getElementById('dom_vacation_external_override').type === 'checkbox' &&
+      document.getElementById('dom_vacation_days').type === 'number' && document.getElementById('dom_vacation_days').value === '0');
    check('Out of office and DKIM', document.getElementById('dom_vacation_message').tagName === 'TEXTAREA' &&
       document.getElementById('dom_dkim_signing_algorithm').querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'sha1,sha256' && document.getElementById('dom_dkim_signing_algorithm').value === 'sha256');
    const drawn = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('dom_') === 0).map((id) => id.slice(4)).sort();

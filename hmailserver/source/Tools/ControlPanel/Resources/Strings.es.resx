@@ -1200,6 +1200,12 @@ Los detalles completos se escribieron en:
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Responder desde la caché del resolutor DNS de Windows cuando sea posible</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>_Responder de nuevo al mismo remitente tras (días, 0 = una vez por ausencia)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Responder de nuevo al mismo remitente tras (d_ías, 0 = una vez por ausencia)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Respondió, pero no con una política</value>
   </data>
@@ -4600,6 +4606,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Plazo de finalización del mensaje (segundos; 0 = sin plazo)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>Mensaje para compañeros (_vacío = igual que arriba)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Mensaje _para los remitentes locales (vacío = igual que arriba)</value>
   </data>
@@ -5542,6 +5551,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Opportunistic" xml:space="preserve">
     <value>Oportunista</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>Texto distinto opcional para compañeros - remitentes cuya dirección pertenece a este servidor. Nunca sale del servidor, así que puede decir más que el mensaje de arriba. Vacío significa el mensaje de arriba.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Texto distinto opcional para los remitentes locales - a los compañeros se les puede contar más que a los desconocidos. Vacío significa que todos reciben el texto de arriba. Tenga en cuenta que esto identifica la DIRECCIÓN del remitente, que puede falsificarse: trátelo como una cortesía, nunca como un sitio para nada confidencial.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>A_sunto de la respuesta</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Responder s_olo a compañeros - los remitentes de fuera no reciben nada, o el texto del dominio cuando su anulación está activada</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Buzón de informes:</value>
@@ -7669,6 +7684,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Asunto</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>Asunto _para compañeros (vacío = igual que arriba)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>Asunto para remitentes _locales (vacío = igual que arriba)</value>

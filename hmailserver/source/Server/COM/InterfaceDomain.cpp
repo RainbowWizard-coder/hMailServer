@@ -1839,6 +1839,49 @@ STDMETHODIMP InterfaceDomain::put_VacationExternalOverride(VARIANT_BOOL newVal)
    }
 }
 
+STDMETHODIMP InterfaceDomain::get_VacationDays(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetVacationDays();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_VacationDays(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (newVal < 0 || newVal > 3650)
+         return COMError::GenerateError("VacationDays must be between 0 and 3650.");
+
+      object_->SetVacationDays((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceDomain::get_RelayHost(BSTR *pVal)
 {
    try

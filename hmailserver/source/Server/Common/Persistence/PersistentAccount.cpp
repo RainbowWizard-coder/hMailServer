@@ -258,6 +258,10 @@ namespace HM
       pAccount->SetVacationSubject(pRS->GetStringValue("accountvacationsubject"));
       pAccount->SetVacationExpires(pRS->GetLongValue("accountvacationexpires") ? true : false);
       pAccount->SetVacationAbortSpamFlagged(pRS->GetLongValue("accountvacationabortspamflagged") ? true : false);
+      pAccount->SetVacationDays(pRS->GetLongValue("accountvacationdays"));
+      pAccount->SetVacationInternalSubject(pRS->GetStringValue("accountvacationinternalsubject"));
+      pAccount->SetVacationInternalMessage(pRS->GetStringValue("accountvacationinternalmessage"));
+      pAccount->SetVacationInternalOnly(pRS->GetLongValue("accountvacationinternalonly") ? true : false);
 
       String sVacationExpiresDate = pRS->GetStringValue("accountvacationexpiredate");
       if (sVacationExpiresDate.Left(4) != _T("0000"))
@@ -515,6 +519,10 @@ namespace HM
       oStatement.AddColumn("accountvacationexpiredate", dateOrEpoch(pAccount->GetVacationExpiresDate()));
       oStatement.AddColumn("accountvacationbegindate", dateOrEpoch(pAccount->GetVacationBeginDate()));
       oStatement.AddColumn("accountvacationabortspamflagged", pAccount->GetVacationAbortSpamFlagged());
+      oStatement.AddColumn("accountvacationdays", pAccount->GetVacationDays());
+      oStatement.AddColumn("accountvacationinternalsubject", pAccount->GetVacationInternalSubject());
+      oStatement.AddColumn("accountvacationinternalmessage", pAccount->GetVacationInternalMessage());
+      oStatement.AddColumn("accountvacationinternalonly", pAccount->GetVacationInternalOnly());
 
       oStatement.AddColumn("accountpwencryption", pAccount->GetPasswordEncryption());
       oStatement.AddColumn("accountadminlevel", pAccount->GetAdminLevel());

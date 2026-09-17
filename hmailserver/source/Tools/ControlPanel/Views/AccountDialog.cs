@@ -72,6 +72,15 @@ namespace hMailServer.ControlPanel.Views
       private readonly DatePicker vacationBeginDate_ = new();
       private readonly CheckBox vacationAbortSpam_ = new() { Content = L("Do _not reply to messages flagged as spam") };
 
+      // The policy beside the message: how often the same sender is answered,
+      // a text for colleagues, and a reply for colleagues only. The memory of
+      // who was answered when is the server's (hm_autoreplies), so a restart
+      // repeats nothing and the window means days.
+      private readonly TextBox vacationDays_ = NewInput();
+      private readonly TextBox vacationInternalSubject_ = NewInput();
+      private readonly TextBox vacationInternalMessage_ = NewMemo();
+      private readonly CheckBox vacationInternalOnly_ = new() { Content = L("Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on") };
+
       // Signature
       private readonly CheckBox signatureOn_ = new() { Content = L("_Add signature to outgoing messages") };
       private readonly TextBox signaturePlain_ = NewMemo();
@@ -269,6 +278,13 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(Label(L("_Expiry date"), vacationExpiresDate_));
 
          panel.Children.Add(DialogFields.Check(vacationAbortSpam_));
+         panel.Children.Add(DialogFields.Separator());
+
+         panel.Children.Add(Label(L("Answer the same sender again after (da_ys, 0 = once per absence)"), vacationDays_));
+         panel.Children.Add(DialogFields.Note(L("Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above.")));
+         panel.Children.Add(Label(L("Subject for _colleagues (empty = same as above)"), vacationInternalSubject_));
+         panel.Children.Add(Label(L("Message for colleag_ues (empty = same as above)"), vacationInternalMessage_));
+         panel.Children.Add(DialogFields.Check(vacationInternalOnly_));
          return DialogFields.Scroll(panel);
       }
 
@@ -686,6 +702,10 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { vacationBeginDate_.SelectedDate = null; }
             vacationAbortSpam_.IsChecked = (bool)a.VacationMessageAbortSpamFlagged;
+            vacationDays_.Text = ((int)a.VacationMessageDays).ToString();
+            vacationInternalSubject_.Text = (string)a.VacationInternalSubject ?? "";
+            vacationInternalMessage_.Text = (string)a.VacationInternalMessage ?? "";
+            vacationInternalOnly_.IsChecked = (bool)a.VacationMessageInternalOnly;
 
             signatureOn_.IsChecked = (bool)a.SignatureEnabled;
             signaturePlain_.Text = (string)a.SignaturePlainText ?? "";
@@ -846,6 +866,10 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* a server without schema 6012 has nowhere to put it */ }
             a.VacationMessageAbortSpamFlagged = vacationAbortSpam_.IsChecked is true;
+            a.VacationMessageDays = int.TryParse(vacationDays_.Text.Trim(), out int vacationDays) ? Math.Max(0, Math.Min(3650, vacationDays)) : 0;
+            a.VacationInternalSubject = vacationInternalSubject_.Text.Trim();
+            a.VacationInternalMessage = vacationInternalMessage_.Text;
+            a.VacationMessageInternalOnly = vacationInternalOnly_.IsChecked is true;
 
             a.SignatureEnabled = signatureOn_.IsChecked is true;
             a.SignaturePlainText = signaturePlain_.Text;

@@ -555,6 +555,7 @@ namespace HM
       pDomain->SetVacationInternalSubject(pRS->GetStringValue("domainvacationinternalsubject"));
       pDomain->SetVacationInternalMessage(pRS->GetStringValue("domainvacationinternalmessage"));
       pDomain->SetVacationExternalOverride(pRS->GetLongValue("domainvacationexternaloverride") == 1);
+      pDomain->SetVacationDays(pRS->GetLongValue("domainvacationdays"));
 
       pDomain->SetExternalTagSubject(pRS->GetLongValue("domainexternaltagsubject") == 1);
       pDomain->SetExternalTagHeader(pRS->GetLongValue("domainexternaltagheader") == 1);
@@ -684,6 +685,7 @@ namespace HM
       oStatement.AddColumn("domainvacationinternalsubject", pDomain->GetVacationInternalSubject());
       oStatement.AddColumn("domainvacationinternalmessage", pDomain->GetVacationInternalMessage());
       oStatement.AddColumn("domainvacationexternaloverride", pDomain->GetVacationExternalOverride() ? 1 : 0);
+      oStatement.AddColumn("domainvacationdays", pDomain->GetVacationDays());
 
       oStatement.AddColumn("domainexternaltagsubject", pDomain->GetExternalTagSubject() ? 1 : 0);
       oStatement.AddColumn("domainexternaltagheader", pDomain->GetExternalTagHeader() ? 1 : 0);

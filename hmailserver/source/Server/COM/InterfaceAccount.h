@@ -128,6 +128,14 @@ public:
    STDMETHOD(get_OpenPGPKeys)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(get_VacationMessageAbortSpamFlagged)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_VacationMessageAbortSpamFlagged)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_VacationMessageDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_VacationMessageDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_VacationInternalSubject)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_VacationInternalSubject)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_VacationInternalMessage)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_VacationInternalMessage)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_VacationMessageInternalOnly)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_VacationMessageInternalOnly)(/*[in]*/ VARIANT_BOOL newVal);
 
 
    STDMETHOD(get_AdminLevel)(/*[out, retval]*/ eAdminLevel *pVal);

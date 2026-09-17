@@ -1100,6 +1100,26 @@ namespace DBUpdater
          // underneath that, in the shape the 6030 probes above explain.
          new SchemaProbe(6058, "hm_spamtraps.fk_hm_spamtraps_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraps_domain' and constraint_type = 'FOREIGN KEY')"),
+         // Upgrade6059to6060* - the out-of-office policy: a window and an
+         // internal text on the account, a window on the domain, and the memory
+         // of who was answered when (hm_autoreplies), which had been in process
+         // memory. The identity column is never probed.
+         new SchemaProbe(6060, "hm_accounts.accountvacationdays",
+                         "update hm_accounts set accountvacationdays = accountvacationdays where 1 = 0"),
+         new SchemaProbe(6060, "hm_accounts.accountvacationinternalsubject",
+                         "update hm_accounts set accountvacationinternalsubject = accountvacationinternalsubject where 1 = 0"),
+         new SchemaProbe(6060, "hm_accounts.accountvacationinternalmessage",
+                         "update hm_accounts set accountvacationinternalmessage = accountvacationinternalmessage where 1 = 0"),
+         new SchemaProbe(6060, "hm_accounts.accountvacationinternalonly",
+                         "update hm_accounts set accountvacationinternalonly = accountvacationinternalonly where 1 = 0"),
+         new SchemaProbe(6060, "hm_domains.domainvacationdays",
+                         "update hm_domains set domainvacationdays = domainvacationdays where 1 = 0"),
+         new SchemaProbe(6060, "hm_autoreplies.araccountid",
+                         "update hm_autoreplies set araccountid = araccountid where 1 = 0"),
+         new SchemaProbe(6060, "hm_autoreplies.arsender",
+                         "update hm_autoreplies set arsender = arsender where 1 = 0"),
+         new SchemaProbe(6060, "hm_autoreplies.arsent",
+                         "update hm_autoreplies set arsent = arsent where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

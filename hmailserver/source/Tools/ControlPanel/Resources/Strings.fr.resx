@@ -1200,6 +1200,12 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Répondre depuis le cache du résolveur DNS Windows quand c'est possible</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>_Répondre de nouveau au même expéditeur après (jours, 0 = une fois par absence)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Répondre de nouveau au même expéditeur après (_jours, 0 = une fois par absence)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>A répondu, mais pas avec une politique</value>
   </data>
@@ -4600,6 +4606,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Échéance de finalisation du message (secondes ; 0 = pas d'échéance)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>Message pour les collèg_ues (vide = identique à ci-dessus)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Message _pour les expéditeurs locaux (vide = comme ci-dessus)</value>
   </data>
@@ -5542,6 +5551,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportuniste</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>Texte différent facultatif pour les collègues - les expéditeurs dont l'adresse appartient à ce serveur. Il ne quitte jamais le serveur et peut donc en dire plus que le message ci-dessus. Vide signifie le message ci-dessus.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Texte différent, facultatif, pour les expéditeurs locaux - on peut en dire plus à des collègues qu'à des inconnus. Vide signifie que tout le monde reçoit le texte ci-dessus. Notez que ceci identifie l'ADRESSE de l'expéditeur, qui est falsifiable : traitez-le comme une courtoisie, jamais comme un endroit pour quoi que ce soit de confidentiel.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion. Les ports TLS
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>O_bjet de la réponse</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Répondre aux c_ollègues seulement - les expéditeurs extérieurs ne reçoivent rien, ou le texte du domaine quand sa substitution est activée</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Boîte de rapports :</value>
@@ -7669,6 +7684,9 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Objet</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>Sujet pour les _collègues (vide = identique à ci-dessus)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>Objet pour les expéditeurs _locaux (vide = identique à ci-dessus)</value>

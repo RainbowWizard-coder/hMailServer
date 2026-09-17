@@ -80,6 +80,7 @@ Mail filtering and routing
 --------------------------
 
 * **Sieve** (RFC 5228) — a standards-based interpreter runs each account's active script during delivery (`keep`, `fileinto`, `discard`, `redirect`, implicit keep, plus the `copy`, `relational`, `subaddress`, `imap4flags` and `vacation` extensions), with an optional **ManageSieve** (RFC 5804) listener so clients can manage scripts over TCP.
+* **Out-of-office as a policy** — an account's reply and a domain's, with a text for colleagues that never leaves the server and a general one for everybody else, a reply for colleagues only, the domain's text in place of an account's for strangers when the domain says so, and a window in days after which the same sender is answered again (0 is once per absence), remembered in the database rather than in the process so a restart repeats nothing; RFC 3834 decides what is never answered. `hmailserver/docs/OutOfOffice.md`.
 * The original rules engine, with global and per-account rules, regular-expression criteria and scripted actions.
 * Server-side **event scripts** (VBScript/JScript) on connection, HELO, DATA, accept and delivery events, with `ScriptAllowedObjects` bounding which COM classes a script may create.
 * Routes, aliases, distribution lists, catch-all addresses and plus-addressing.

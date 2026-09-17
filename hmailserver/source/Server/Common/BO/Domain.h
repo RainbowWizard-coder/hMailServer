@@ -322,6 +322,12 @@ namespace HM
       // the account's single message goes to everyone - so an upgraded installation
       // changes nothing until an administrator decides otherwise.
       bool GetVacationExternalOverride() const { return vacation_external_override_; }
+
+      // The window on the domain reply: days after which a sender who has been
+      // answered is answered again while the reply stays on; 0 answers each
+      // sender once per absence.
+      int GetVacationDays() const { return vacation_days_; }
+      void SetVacationDays(int iNewVal) { vacation_days_ = iNewVal; }
       void SetVacationExternalOverride(bool bNewVal) { vacation_external_override_ = bNewVal; }
 
       /*
@@ -461,6 +467,7 @@ namespace HM
       String vacation_internal_subject_;
       String vacation_internal_message_;
       bool vacation_external_override_;
+      int vacation_days_;
 
       bool external_tag_subject_;
       bool external_tag_header_;

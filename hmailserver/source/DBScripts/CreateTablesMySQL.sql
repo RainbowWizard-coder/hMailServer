@@ -136,6 +136,10 @@ create table hm_accounts
 	accountpersonfirstname varchar(60) not null,
 	accountpersonlastname varchar(60) not null,
 	accountvacationabortspamflagged tinyint not null,
+	accountvacationdays int not null default 0,
+	accountvacationinternalsubject varchar(200) not null default '',
+	accountvacationinternalmessage varchar(1000) not null default '',
+	accountvacationinternalonly tinyint not null default 0,
 	accountforwardabortspamflagged tinyint not null,
 	accounttotpsecret varchar(255) not null default '',
 	accountpasswordchanged datetime not null default '2000-01-01',
@@ -198,6 +202,7 @@ create table hm_domains
 	domainvacationinternalsubject varchar(200) not null default '',
 	domainvacationinternalmessage text,
 	domainvacationexternaloverride int not null default 0,
+	domainvacationdays int not null default 0,
 	domainexternaltagsubject int not null default 0,
 	domainexternaltagheader int not null default 0,
 	domainexternaltagtext varchar(100) not null default '',
@@ -1373,6 +1378,16 @@ create table hm_knownsenders
 
 CREATE UNIQUE INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress);
 
+create table hm_autoreplies
+(
+	arid bigint auto_increment not null, primary key(`arid`), unique(`arid`),
+	araccountid int not null,
+	arsender varchar(255) character set utf8 collate utf8_bin not null,
+	arsent bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_autoreplies_account ON hm_autoreplies (araccountid, arsender);
+
 create table hm_dkimrotations
 (
 	dkrid bigint auto_increment not null, primary key(`dkrid`), unique(`dkrid`),
@@ -1444,6 +1459,8 @@ ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (cal
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_autoreplies ADD CONSTRAINT fk_hm_autoreplies_account FOREIGN KEY (araccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_dkimrotations ADD CONSTRAINT fk_hm_dkimrotations_domain FOREIGN KEY (dkrdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
 
@@ -1875,4 +1892,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6059);
+insert into hm_dbversion values (6060);

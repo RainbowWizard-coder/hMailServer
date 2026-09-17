@@ -273,7 +273,7 @@ namespace HM
          "message_retention_days", "relay_host", "relay_port", "relay_requires_auth", "relay_username",
          "relay_password", "relay_connection_security",
          "vacation_enabled", "vacation_subject", "vacation_message",
-         "vacation_internal_subject", "vacation_internal_message", "vacation_external_override",
+         "vacation_internal_subject", "vacation_internal_message", "vacation_external_override", "vacation_days",
          "ad_domain_name",
          "external_tag_subject", "external_tag_header", "external_tag_text", "first_contact_tip",
          "disclaimer_enabled", "disclaimer_plain_text", "disclaimer_html",
@@ -302,6 +302,7 @@ namespace HM
          String headerCanonicalization, bodyCanonicalization;
          String dkimSecondarySelector = String(domain->GetDKIMSecondarySelector()), dkimSecondaryKeyFile = domain->GetDKIMSecondaryPrivateKeyFile();
          String vacationInternalSubject = domain->GetVacationInternalSubject(), vacationInternalMessage = domain->GetVacationInternalMessage();
+         long vacationDays = domain->GetVacationDays();
          String adDomainName = domain->GetADDomainName();
          String externalTagText = domain->GetExternalTagText();
          String disclaimerPlainText = domain->GetDisclaimerPlainText(), disclaimerHtml = domain->GetDisclaimerHTML();
@@ -369,6 +370,7 @@ namespace HM
              !ReadInteger(body, "max_lists", 0, 2000000000L, maxLists, error) ||
              !ReadInteger(body, "message_retention_days", 0, 100000, retention, error) ||
              !ReadInteger(body, "relay_port", 0, 65535, relayPort, error) ||
+             !ReadInteger(body, "vacation_days", 0, 3650, vacationDays, error) ||
              !ReadInteger(body, "quarantine_digest_hour", 0, 23, digestHour, error) ||
              !ReadInteger(body, "session_idle_seconds", 0, SessionPolicies::MaximumSeconds, sessionIdle, error) ||
              !ReadInteger(body, "session_lifetime_seconds", 0, SessionPolicies::MaximumSeconds, sessionLifetime, error) ||
@@ -578,6 +580,7 @@ namespace HM
          domain->SetVacationInternalSubject(vacationInternalSubject);
          domain->SetVacationInternalMessage(vacationInternalMessage);
          domain->SetVacationExternalOverride(vacationExternalOverride);
+         domain->SetVacationDays((int) vacationDays);
          domain->SetQuarantineDigest(quarantineDigest);
          domain->SetOpenPGPPublish(openPgpPublish);
          domain->SetOpenPGPPublishNewAccounts(openPgpPublishNewAccounts);
@@ -700,6 +703,9 @@ namespace HM
       flag("webhooks_enabled", domain->GetWebhooksEnabled());
       flag("webhook_subjects", domain->GetWebhookSubjects());
       flag("vacation_external_override", domain->GetVacationExternalOverride());
+      AnsiString vacationDays;
+      vacationDays.Format(",\"vacation_days\":%d", domain->GetVacationDays());
+      entry += vacationDays;
       flag("quarantine_digest", domain->GetQuarantineDigest());
       flag("openpgp_publish", domain->GetOpenPGPPublish());
       flag("openpgp_publish_new_accounts", domain->GetOpenPGPPublishNewAccounts());

@@ -233,6 +233,10 @@ create table hm_accounts (
 	accountpersonfirstname nvarchar(60) not null,
 	accountpersonlastname nvarchar(60) not null,
 	accountvacationabortspamflagged tinyint not null,
+	accountvacationdays int not null default 0,
+	accountvacationinternalsubject nvarchar(200) not null default '',
+	accountvacationinternalmessage nvarchar(1000) not null default '',
+	accountvacationinternalonly tinyint not null default 0,
 	accountforwardabortspamflagged tinyint not null,
 	accounttotpsecret nvarchar(255) not null,
 	accountpasswordchanged datetime not null,
@@ -301,6 +305,7 @@ create table hm_domains (
 	domainvacationinternalsubject nvarchar(200) not null,
 	domainvacationinternalmessage nvarchar(1000) not null,
 	domainvacationexternaloverride int not null,
+	domainvacationdays int not null default 0,
 	domainexternaltagsubject int not null default 0,
 	domainexternaltagheader int not null default 0,
 	domainexternaltagtext nvarchar(100) not null default '',
@@ -1518,6 +1523,18 @@ ALTER TABLE hm_knownsenders ADD CONSTRAINT hm_knownsenders_pk PRIMARY KEY NONCLU
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress)
 
+create table hm_autoreplies
+(
+	arid bigint identity(1,1) not null,
+	araccountid int not null,
+	arsender nvarchar(255) not null,
+	arsent bigint not null
+)
+
+ALTER TABLE hm_autoreplies ADD CONSTRAINT hm_autoreplies_pk PRIMARY KEY NONCLUSTERED (arid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_autoreplies_account ON hm_autoreplies (araccountid, arsender)
+
 create table hm_dkimrotations
 (
 	dkrid bigint identity(1,1) not null,
@@ -1723,6 +1740,8 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Au
 insert into hm_settings (settingname, settingstring, settinginteger) values ('AuditRetentionDays', '', 0)
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_autoreplies ADD CONSTRAINT fk_hm_autoreplies_account FOREIGN KEY (araccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 create table hm_roles
 (
@@ -2032,4 +2051,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6059)
+insert into hm_dbversion values (6060)

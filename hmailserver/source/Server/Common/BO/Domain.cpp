@@ -78,6 +78,7 @@ namespace HM
       relay_connection_security_(CSNone),
       vacation_message_on_(false),
       vacation_external_override_(false),
+      vacation_days_(0),
       external_tag_subject_(false),
       external_tag_header_(false),
       first_contact_tip_(false),
@@ -206,6 +207,7 @@ namespace HM
       pNode->AppendAttr(_T("VacationInternalSubject"), vacation_internal_subject_);
       pNode->AppendAttr(_T("VacationInternalMessage"), vacation_internal_message_);
       pNode->AppendAttr(_T("VacationExternalOverride"), vacation_external_override_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("VacationDays"), StringParser::IntToString(vacation_days_));
 
       pNode->AppendAttr(_T("ExternalTagSubject"), external_tag_subject_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("ExternalTagHeader"), external_tag_header_ ? _T("1") : _T("0"));
@@ -342,6 +344,7 @@ namespace HM
       vacation_internal_subject_ = pNode->GetAttrValue(_T("VacationInternalSubject"));
       vacation_internal_message_ = pNode->GetAttrValue(_T("VacationInternalMessage"));
       vacation_external_override_ = pNode->GetAttrValue(_T("VacationExternalOverride")) == _T("1");
+      vacation_days_ = pNode->GetAttrValue(_T("VacationDays")).IsEmpty() ? 0 : _ttoi(pNode->GetAttrValue(_T("VacationDays")));
 
       // The same restore rule as above: a backup taken before these existed
       // restores as off with empty texts, which is a domain that transforms

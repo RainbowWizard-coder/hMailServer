@@ -86,6 +86,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Content = L("_Outside senders always get the domain's text, even when the account has its own")
       };
+      private readonly TextBox oooDays_ = NewInput();
 
       // What this domain does to a message: the external-sender tag, the
       // first-contact note and the disclaimer. See Common/Util/MessageOrigin.h
@@ -401,6 +402,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential.")));
          panel.Children.Add(Label(L("Subject for _local senders (empty = same as above)"), oooInternalSubject_));
          panel.Children.Add(Label(L("Message for local s_enders (empty = same as above)"), oooInternalMessage_));
+         panel.Children.Add(Label(L("Answer the same sender a_gain after this many days (0 = once per absence)"), oooDays_));
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(oooExternalOverride_));
          panel.Children.Add(DialogFields.Note(L("With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation.")));
@@ -839,6 +841,7 @@ namespace hMailServer.ControlPanel.Views
             oooInternalSubject_.Text = (string)d.VacationInternalSubject ?? "";
             oooInternalMessage_.Text = (string)d.VacationInternalMessage ?? "";
             oooExternalOverride_.IsChecked = (bool)d.VacationExternalOverride;
+            oooDays_.Text = ((int)d.VacationDays).ToString();
 
             tagSubject_.IsChecked = (bool)d.ExternalTagSubject;
             tagHeader_.IsChecked = (bool)d.ExternalTagHeader;
@@ -1043,6 +1046,7 @@ namespace hMailServer.ControlPanel.Views
             d.VacationInternalSubject = oooInternalSubject_.Text.Trim();
             d.VacationInternalMessage = oooInternalMessage_.Text;
             d.VacationExternalOverride = oooExternalOverride_.IsChecked is true;
+            d.VacationDays = int.TryParse(oooDays_.Text.Trim(), out int oooDays) ? Math.Max(0, Math.Min(3650, oooDays)) : 0;
 
             d.ExternalTagSubject = tagSubject_.IsChecked is true;
             d.ExternalTagHeader = tagHeader_.IsChecked is true;

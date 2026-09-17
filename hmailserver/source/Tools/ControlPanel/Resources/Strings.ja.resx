@@ -1200,6 +1200,12 @@
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>可能な場合は Windows の DNS リゾルバー キャッシュから応答する</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>同じ送信者に再び返信するまでの日数 (0 = 不在ごとに 1 回)(_F)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>同じ送信者に再び返信するまでの日数 (0 = 不在ごとに 1 回)(_Y)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>応答はありましたが、ポリシーではありませんでした</value>
   </data>
@@ -4600,6 +4606,9 @@
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>メッセージ最終処理の期限 (秒、0 = 期限なし)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>同僚向けの本文 (空 = 上と同じ)(_U)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>ローカルの送信者向けメッセージ (空 = 上と同じ)(_E)</value>
   </data>
@@ -5542,6 +5551,9 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>日和見的</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>同僚 (このサーバーに属するアドレスの送信者) 向けの任意の別の本文。サーバーの外には出ないので、上の本文より多くを書けます。空なら上の本文を使います。</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>ローカルの送信者向けに別のテキストを指定できます (任意)。同僚には、見知らぬ相手より多くを伝えられます。空にすると、全員が上のテキストを受け取ります。これが見ているのは送信者のアドレスであり、アドレスは詐称できる点に注意してください。あくまで礼儀として扱い、機密事項を書く場所にはしないでください。</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>返信の件名(_B)</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>同僚にのみ返信 - 外部の送信者には何も送らず、ドメインの上書きがオンならドメインの本文を送ります(_O)</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>レポートのメールボックス:</value>
@@ -7669,6 +7684,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Subject" xml:space="preserve">
     <value>件名</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>同僚向けの件名 (空 = 上と同じ)(_C)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>ローカル送信者向けの件名 (空 = 上と同じ)(_L)</value>

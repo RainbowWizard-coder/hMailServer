@@ -1200,6 +1200,12 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Odpovídat pokud možno z cache DNS resolveru systému Windows</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>_Odpovědět stejnému odesílateli znovu po (dnech, 0 = jednou za nepřítomnost)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Odpovědět stejnému odesílateli znovu po (dn_ech, 0 = jednou za nepřítomnost)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Odpovězeno, ale ne politikou</value>
   </data>
@@ -4600,6 +4606,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Lhůta pro dokončení zprávy (sekundy; 0 = bez lhůty)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>Zpráva pro kolegy (prázdné = stejné jako v_ýše)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Zpráva pro místní od_esílatele (prázdné = stejná jako výše)</value>
   </data>
@@ -5542,6 +5551,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Opportunistic" xml:space="preserve">
     <value>Oportunistické</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>Volitelný jiný text pro kolegy - odesílatele, jejichž adresa patří tomuto serveru. Nikdy neopustí server, takže může říct více než zpráva výše. Prázdné znamená zprávu výše.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Volitelně jiný text pro místní odesílatele – kolegům lze říct víc než cizím lidem. Prázdné znamená, že všichni dostanou text výše. Pozor, identifikuje se ADRESA odesílatele, kterou lze zfalšovat: berte to jako zdvořilost, nikdy jako místo pro cokoli důvěrného.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>Před_mět odpovědi</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Odpovídat _pouze kolegům - odesílatelé zvenčí nedostanou nic, nebo text domény, je-li její přepsání zapnuté</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Schránka pro hlášení:</value>
@@ -7669,6 +7684,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Předmět</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>Předmět pro _kolegy (prázdné = stejné jako výše)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>Předmět pro _místní odesílatele (prázdné = stejný jako výše)</value>

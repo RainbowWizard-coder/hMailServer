@@ -85,6 +85,26 @@ namespace HM
       void SetVacationBeginDate(const String &sNewVal) {vacation_begin_date_ = sNewVal;}
 
       bool GetVacationAbortSpamFlagged() const { return vacation_abort_spam_flagged_; }
+
+      // The out-of-office policy on the account. The window: days after which a
+      // sender who has already been answered is answered again while the reply
+      // stays on; 0 answers each sender once per absence, as every account did
+      // before. The internal text: what a sender whose address belongs to this
+      // installation gets in place of the general text, when it is not empty.
+      // Internal-only: the reply answers those senders and nobody else - the
+      // domain's external override, when on, still answers strangers with the
+      // domain's text. See SMTPVacationMessageCreator and LocalDelivery.
+      int GetVacationDays() const { return vacation_days_; }
+      void SetVacationDays(int iNewVal) { vacation_days_ = iNewVal; }
+
+      String GetVacationInternalSubject() const { return vacation_internal_subject_; }
+      void SetVacationInternalSubject(const String &sNewVal) { vacation_internal_subject_ = sNewVal; }
+
+      String GetVacationInternalMessage() const { return vacation_internal_message_; }
+      void SetVacationInternalMessage(const String &sNewVal) { vacation_internal_message_ = sNewVal; }
+
+      bool GetVacationInternalOnly() const { return vacation_internal_only_; }
+      void SetVacationInternalOnly(bool bNewVal) { vacation_internal_only_ = bNewVal; }
       void SetVacationAbortSpamFlagged(bool bNewVal) { vacation_abort_spam_flagged_ = bNewVal; }
 
 
@@ -226,6 +246,10 @@ namespace HM
       String vacation_expires_date_;
       String vacation_begin_date_;
       bool vacation_abort_spam_flagged_;
+      int vacation_days_;
+      String vacation_internal_subject_;
+      String vacation_internal_message_;
+      bool vacation_internal_only_;
       
       String signature_plain_text_;
       String signature_html_;

@@ -1200,6 +1200,12 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Waar mogelijk antwoorden uit de cache van de Windows-DNS-resolver</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>Dezelfde afzender opnieuw beantwoorden na (da_gen, 0 = één keer per afwezigheid)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Dezelfde afzender opnieuw beantwoorden na (dagen, 0 = één keer per af_wezigheid)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Antwoordde, maar niet met een beleid</value>
   </data>
@@ -4600,6 +4606,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Deadline voor het afronden van een bericht (seconden; 0 = geen deadline)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>Bericht voor collega's (lee_g = gelijk aan hierboven)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Bericht _voor lokale afzenders (leeg = hetzelfde als hierboven)</value>
   </data>
@@ -5542,6 +5551,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistisch</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>Optioneel een andere tekst voor collega's - afzenders van wie het adres bij deze server hoort. Hij verlaat de server nooit en mag dus meer zeggen dan het bericht hierboven. Leeg betekent het bericht hierboven.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Optionele afwijkende tekst voor lokale afzenders - aan collega's kan meer worden verteld dan aan vreemden. Leeg betekent dat iedereen de tekst hierboven krijgt. Let op: dit gaat af op het ADRES van de afzender, dat vervalsbaar is: beschouw het als een beleefdheid, nooit als een plek voor iets vertrouwelijks.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>Antwoord_onderwerp</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Alleen _collega's beantwoorden - afzenders van buiten krijgen niets, of de tekst van het domein als de overschrijving ervan aan staat</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Rapportpostvak:</value>
@@ -7669,6 +7684,9 @@ Nu herstarten?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Onderwerp</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>Onderwerp voor collega'_s (leeg = gelijk aan hierboven)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>Onderwerp voor _lokale afzenders (leeg = zelfde als hierboven)</value>

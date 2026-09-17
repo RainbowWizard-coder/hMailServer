@@ -314,5 +314,222 @@ namespace RegressionTests.SMTP
                "that text names people and matters, and hiding it from strangers is what the override is FOR.");
          }
       }
+      // ---- the policy: the window, the memory, and the account's own internal text
+
+      private hMailServer.Account AddAccount()
+      {
+         return SingletonProvider<TestSetup>.Instance.AddAccount(_domain, TestSetup.UniqueString() + "@example.test", "test");
+      }
+
+      /// <summary>
+      ///    Moves every answered-sender stamp back by the given number of days, so
+      ///    that a window can be crossed without waiting for it. The stamp is a
+      ///    unix time in hm_autoreplies, written by SMTPVacationMessageCreator.
+      /// </summary>
+      private void AgeTheMemory(int days)
+      {
+         _application.Database.ExecuteSQL("update hm_autoreplies set arsent = arsent - " + (days * 86400L));
+      }
+
+      [Test]
+      [Description("The once-per-sender memory is the database's: a sender answered before a restart is not answered again after it, and switching the reply off and on forgets everybody.")]
+      public void TheMemorySurvivesARestartAndIsForgottenWhenTheReplyIsSwitchedOff()
+      {
+         var sender = AddAccount();
+         var away = AddAccount();
+         away.VacationMessageIsOn = true;
+         away.VacationSubject = "Away";
+         away.VacationMessage = "Back next week.";
+         away.Save();
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "One", "Body");
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+
+         _application.Stop();
+         _application.Start();
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "Two", "Body");
+         Pop3ClientSimulator.AssertMessageCount(away.Address, "test", 2);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+
+         // Off and on again is a new absence, and the memory is the old one's.
+         away.VacationMessageIsOn = false;
+         away.Save();
+         away.VacationMessageIsOn = true;
+         away.Save();
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "Three", "Body");
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 2);
+      }
+
+      [Test]
+      [Description("A window in days: the same sender is answered again once the window has passed and not before; 0 keeps to once per absence; the window is 0 to 3650.")]
+      public void TheSameSenderIsAnsweredAgainAfterTheWindow()
+      {
+         var sender = AddAccount();
+         var away = AddAccount();
+         away.VacationMessageIsOn = true;
+         away.VacationSubject = "Away";
+         away.VacationMessage = "Back in a month.";
+         away.VacationMessageDays = 3;
+         away.Save();
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "One", "Body");
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "Two", "Body");
+         Pop3ClientSimulator.AssertMessageCount(away.Address, "test", 2);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+
+         AgeTheMemory(4);
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "Three", "Body");
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 2);
+
+         // No window: however old the stamp, once is once.
+         away.VacationMessageDays = 0;
+         away.Save();
+         AgeTheMemory(400);
+
+         new SmtpClientSimulator().Send(sender.Address, away.Address, "Four", "Body");
+         Pop3ClientSimulator.AssertMessageCount(away.Address, "test", 4);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 2);
+
+         var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => away.VacationMessageDays = 3651);
+         StringAssert.Contains("3650", refused.Message);
+      }
+
+      [Test]
+      [Description("An account's internal text goes to colleagues; a stranger gets the general text and never the internal one.")]
+      public void ColleaguesGetTheAccountsInternalText()
+      {
+         const string generalBody = "I am away; the office will help.";
+         const string internalBody = "Ask Priya in room 12 about anything urgent.";
+         const string externalSender = "outsider@external-oo.test";
+
+         var colleague = AddAccount();
+         var away = AddAccount();
+         away.VacationMessageIsOn = true;
+         away.VacationSubject = "Away";
+         away.VacationMessage = generalBody;
+         away.VacationInternalSubject = "Away - ask Priya";
+         away.VacationInternalMessage = internalBody;
+         away.Save();
+
+         new SmtpClientSimulator().Send(colleague.Address, away.Address, "Internal question", "Body");
+         Pop3ClientSimulator.AssertMessageCount(colleague.Address, "test", 1);
+         var internalReply = new Pop3ClientSimulator().GetFirstMessageText(colleague.Address, "test");
+         StringAssert.Contains(internalBody, internalReply, "A colleague gets the account's internal text.");
+         StringAssert.Contains("Away - ask Priya", internalReply, "And its internal subject.");
+         ClassicAssert.IsFalse(internalReply.Contains(generalBody), "The internal reply does not carry the general text as well.");
+
+         int capturePort = TestSetup.GetNextFreePort();
+         using (var capture = new SmtpServerSimulator(1, capturePort))
+         {
+            capture.AddRecipientResult(new Dictionary<string, int> {{externalSender, 250}});
+            capture.StartListen();
+
+            var route = _settings.Routes.Add();
+            route.DomainName = "external-oo.test";
+            route.TargetSMTPHost = "localhost";
+            route.TargetSMTPPort = capturePort;
+            route.NumberOfTries = 1;
+            route.MinutesBetweenTry = 5;
+            route.Save();
+
+            SmtpClientSimulator.StaticSend(externalSender, away.Address, "External question", "Body");
+            _application.SubmitEMail();
+            capture.WaitForCompletion();
+
+            StringAssert.Contains(generalBody, capture.MessageData, "A stranger gets the general text.");
+            ClassicAssert.IsFalse(capture.MessageData.Contains(internalBody),
+               "The internal text must never leave the installation: the envelope sender is all that tells a colleague from a stranger.");
+         }
+      }
+
+      [Test]
+      [Description("An internal-only reply answers colleagues and is silent to strangers - unless the domain's external override has a text for them, which then answers in its place.")]
+      public void AnInternalOnlyReplyIsSilentToStrangers()
+      {
+         const string personalBody = "At the conference; Priya covers for me.";
+         const string externalSender = "outsider@external-oo.test";
+
+         var colleague = AddAccount();
+         var away = AddAccount();
+         away.VacationMessageIsOn = true;
+         away.VacationSubject = "Away";
+         away.VacationMessage = personalBody;
+         away.VacationMessageInternalOnly = true;
+         away.Save();
+
+         new SmtpClientSimulator().Send(colleague.Address, away.Address, "Internal question", "Body");
+         Pop3ClientSimulator.AssertMessageCount(colleague.Address, "test", 1);
+         StringAssert.Contains(personalBody, new Pop3ClientSimulator().GetFirstMessageText(colleague.Address, "test"));
+
+         int capturePort = TestSetup.GetNextFreePort();
+         using (var capture = new SmtpServerSimulator(2, capturePort))
+         {
+            capture.AddRecipientResult(new Dictionary<string, int> {{externalSender, 250}});
+            capture.StartListen();
+
+            var route = _settings.Routes.Add();
+            route.DomainName = "external-oo.test";
+            route.TargetSMTPHost = "localhost";
+            route.TargetSMTPPort = capturePort;
+            route.NumberOfTries = 1;
+            route.MinutesBetweenTry = 5;
+            route.Save();
+
+            // The stranger: delivered to the account, and nothing goes back. The
+            // route is there so that a reply, if one were made, would reach the
+            // capture rather than fail quietly against a domain nobody resolves.
+            SmtpClientSimulator.StaticSend(externalSender, away.Address, "External question", "Body");
+            Pop3ClientSimulator.AssertMessageCount(away.Address, "test", 2);
+            _application.SubmitEMail();
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            ClassicAssert.AreEqual(0, capture.RcptTosReceived, "An internal-only reply must not answer a stranger.");
+
+            // The domain's override speaks for the account to strangers, with the
+            // domain's text - the account's own is still never sent outside.
+            EnableDomainReply();
+            _domain.VacationExternalOverride = true;
+            _domain.Save();
+
+            SmtpClientSimulator.StaticSend(externalSender, away.Address, "External question again", "Body");
+            _application.SubmitEMail();
+            capture.WaitForCompletion();
+
+            StringAssert.Contains(DomainExternalBody, capture.MessageData, "With the override on, the stranger gets the domain's text.");
+            ClassicAssert.IsFalse(capture.MessageData.Contains(personalBody), "And never the account's own.");
+         }
+      }
+
+      [Test]
+      [Description("The domain reply has its own window: the same sender is answered again once it has passed.")]
+      public void TheDomainReplyHasItsOwnWindow()
+      {
+         var sender = AddAccount();
+         var closed = AddAccount();
+
+         EnableDomainReply();
+         _domain.VacationDays = 2;
+         _domain.Save();
+
+         new SmtpClientSimulator().Send(sender.Address, closed.Address, "One", "Body");
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+
+         new SmtpClientSimulator().Send(sender.Address, closed.Address, "Two", "Body");
+         Pop3ClientSimulator.AssertMessageCount(closed.Address, "test", 2);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+
+         AgeTheMemory(3);
+
+         new SmtpClientSimulator().Send(sender.Address, closed.Address, "Three", "Body");
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 2);
+      }
    }
 }

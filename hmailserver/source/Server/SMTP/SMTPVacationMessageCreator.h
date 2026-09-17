@@ -20,12 +20,17 @@ namespace HM
       // own vacation message and the domain-wide out-of-office reply arrive here -
       // the caller chooses whose text is sent, this class decides whether ANY
       // automatic response may answer pOriginalMessage at all (RFC 3834), and one
-      // sender is answered once per recipient however many messages they send.
+      // sender is answered once per recipient however many messages they send -
+      // once per absence when repeatAfterDays is 0, and again after that many
+      // days otherwise. The memory of who was answered when is a table,
+      // hm_autoreplies, so that a restart does not repeat every reply and a
+      // window of days means days rather than "since the service started".
       void CreateVacationMessage(std::shared_ptr<const Account> recipientAccount,
                                   const String &sToAddress,
                                   const String &sVacationSubject,
                                   const String &sVacationMessage,
-                                  const std::shared_ptr<Message> pOriginalMessage);
+                                  const std::shared_ptr<Message> pOriginalMessage,
+                                  int repeatAfterDays);
 
       // Whether senderAddress belongs to this installation: it resolves to an
       // account hosted here, or to an active alias. Used to choose between the
@@ -58,7 +63,15 @@ namespace HM
 
    private:
 
-      bool CanSendVacationMessage_(const String &sFrom, const String &sTo);
+      // The once-per-sender memory, in hm_autoreplies: true when this sender
+      // has not been answered on behalf of this account, or was answered more
+      // than repeatAfterDays days ago and the window is set, in which case the
+      // row is stamped again. False when the database cannot be asked: no
+      // reply is milder than an unbounded run of them.
+      bool CanSendVacationMessage_(std::shared_ptr<const Account> recipientAccount, const String &sTo, int repeatAfterDays);
+
+      // Forgets every sender answered on behalf of one account.
+      static void ForgetAccount_(__int64 accountID);
 
       // The RFC 3834 gate, applied to the message being replied to before anything
       // is composed and before the once-per-sender slot is spent: no reply to mail
@@ -71,7 +84,5 @@ namespace HM
                                            const String &senderAddress,
                                            String &reason);
 
-      std::multimap<String, String> mapVacationMessageRecipients;
-      boost::recursive_mutex mutex_;
    };
 }

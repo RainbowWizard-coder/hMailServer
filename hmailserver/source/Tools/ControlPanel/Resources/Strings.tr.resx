@@ -1200,6 +1200,12 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Mümkün olduğunda Windows DNS çözümleyici önbelleğinden yanıtla</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>_Aynı gönderene yeniden yanıt ver (gün, 0 = yokluk başına bir kez)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Aynı gönderene yeniden yanıt ver (g_ün, 0 = yokluk başına bir kez)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Yanıt verdi, ama bir ilkeyle değil</value>
   </data>
@@ -4600,6 +4606,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>İleti sonlandırma son süresi (saniye; 0 = son süre yok)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>İş _arkadaşları için ileti (boş = yukarıdakiyle aynı)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Yerel gönderenler _için ileti (boş = yukarıdakiyle aynı)</value>
   </data>
@@ -5542,6 +5551,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Opportunistic" xml:space="preserve">
     <value>Fırsatçı</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>İş arkadaşları için isteğe bağlı farklı bir metin - adresi bu sunucuya ait olan gönderenler. Sunucudan hiç çıkmaz, bu yüzden yukarıdaki iletiden daha fazlasını söyleyebilir. Boş, yukarıdaki ileti anlamına gelir.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Yerel gönderenler için isteğe bağlı farklı metin - meslektaşlara yabancılardan daha fazlası söylenebilir. Boş, herkesin yukarıdaki metni alması demektir. Bunun gönderenin ADRESİNİ tanımladığını ve adresin sahtelenebildiğini unutmayın: bunu bir nezaket olarak görün, asla gizli bir şey için bir yer olarak değil.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>Yanıt _konusu</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Yalnızca iş arkadaşlarına yanıt _ver - dışarıdaki gönderenler hiçbir şey almaz ya da geçersiz kılması açıksa alan adının metnini alır</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Rapor posta kutusu:</value>
@@ -7669,6 +7684,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Konu</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>_İş arkadaşları için konu (boş = yukarıdakiyle aynı)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>_Yerel gönderenler için konu (boş = yukarıdakiyle aynı)</value>

@@ -1510,7 +1510,11 @@ const DOMAIN_GROUPS=[
   {title:K("Out of office"),props:{
     vacation_enabled:{type:"boolean",description:K("Send a domain-wide out-of-office reply. It answers only for accounts that have no vacation message of their own, and at most one reply answers any message.")},
     vacation_subject:{type:"string",description:K("The reply's subject.")},
-    vacation_message:{type:"string",format:"multiline",description:K("The reply's text.")}}},
+    vacation_message:{type:"string",format:"multiline",description:K("The reply's text.")},
+    vacation_internal_subject:{type:"string",description:K("The subject for senders whose address belongs to this server; empty means the subject above.")},
+    vacation_internal_message:{type:"string",format:"multiline",description:K("The text for senders whose address belongs to this server; empty means the text above, and leaving the text above empty makes the reply internal-only.")},
+    vacation_external_override:{type:"boolean",description:K("Senders outside this server get the domain's text even when the account has a reply of its own; colleagues still get the account's.")},
+    vacation_days:{type:"integer",description:K("Days after which the same sender is answered again while the reply stays on; 0 answers each sender once per absence.")}}},
   {title:K("Country blocking"),props:{
     country_policy:{type:"string",description:K("Which countries may sign in to this domain's accounts, on any protocol. Empty judges nothing; allow:GB,IE admits only those countries; block:CN,RU refuses those. It needs the server's geographic database to be configured, and an address in the exempt ranges - the loopback address and the private networks - is never judged.")}}},
   {title:K("What this domain does to a message"),props:{
@@ -2045,7 +2049,7 @@ async function delAccount(address,domain){
 const ACCOUNT_GROUPS=[
   {title:K("General"),keys:["active","first_name","last_name","password","max_size_mb","admin_level","message_retention_days"]},
   {title:K("Forwarding"),keys:["forward_enabled","forward_address","forward_keep_original","forward_abort_spam_flagged"]},
-  {title:K("Auto-reply"),keys:["vacation_enabled","vacation_subject","vacation_message","vacation_expires","vacation_expires_date","vacation_begin_date","vacation_abort_spam_flagged"]},
+  {title:K("Auto-reply"),keys:["vacation_enabled","vacation_subject","vacation_message","vacation_expires","vacation_expires_date","vacation_begin_date","vacation_abort_spam_flagged","vacation_days","vacation_internal_subject","vacation_internal_message","vacation_internal_only"]},
   {title:K("Spam"),keys:["antispam_enabled","spam_mark_threshold","spam_delete_threshold"]},
   {title:K("Signature"),keys:["signature_enabled","signature_plain_text","signature_html"]},
   {title:K("Sieve"),keys:["sieve_script"]},
@@ -2063,6 +2067,10 @@ const ACCOUNT_HINTS={
   vacation_enabled:K("Send an automatic reply (vacation message)."),vacation_subject:K("The reply's subject."),vacation_message:K("The reply's text."),
   vacation_expires:K("Stop sending replies after a date."),vacation_expires_date:K("YYYY-MM-DD; empty means today."),vacation_begin_date:K("YYYY-MM-DD; empty means today."),
   vacation_abort_spam_flagged:K("Do not reply to messages flagged as spam."),
+  vacation_days:K("Days after which the same sender is answered again while the reply stays on; 0 answers each sender once per absence."),
+  vacation_internal_subject:K("The subject for senders whose address belongs to this server; empty means the subject above."),
+  vacation_internal_message:K("The text for senders whose address belongs to this server; empty means the text above. It never leaves the server, so it can say more."),
+  vacation_internal_only:K("Answer only senders whose address belongs to this server; with the domain's external override on, strangers still get the domain's text."),
   antispam_enabled:K("Apply the server's spam filtering to this account."),spam_mark_threshold:K("The score at which a message is marked as spam; -1 is the server's own value."),
   spam_delete_threshold:K("The score at which a message is deleted; -1 is the server's own value."),
   signature_enabled:K("Add a signature to outgoing messages."),signature_plain_text:K("The plain-text signature."),signature_html:K("The HTML signature."),
@@ -2070,7 +2078,7 @@ const ACCOUNT_HINTS={
   ad_enabled:K("Check this password against Windows (Active Directory, or a local Windows account)."),ad_domain:K("The Windows domain."),ad_username:K("The Windows user name."),
   openpgp_publish:K("Publish this account's OpenPGP public keys in the Web Key Directory, so that anybody who has the address can find the key. The keys themselves are on the domain's OpenPGP page.")
 };
-const ACCOUNT_LONG=["signature_plain_text","signature_html","vacation_message","sieve_script"];
+const ACCOUNT_LONG=["signature_plain_text","signature_html","vacation_message","vacation_internal_message","sieve_script"];
 function accountProps(){
   const props=properties("/api/v1/accounts/{address}","put"), out={};
   Object.keys(props).forEach(k=>{

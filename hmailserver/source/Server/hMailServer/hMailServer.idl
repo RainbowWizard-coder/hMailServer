@@ -1119,6 +1119,8 @@ interface IInterfaceDomain : IDispatch
       [propput, id(54), helpstring("Text sent to senders whose address belongs to this server. Empty means use VacationMessage. Note this identifies the address, not the person: an envelope sender is forgeable, so treat it as a courtesy and never as access control.")] HRESULT VacationInternalMessage([in] BSTR newVal);
       [propget, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([out, retval] VARIANT_BOOL *pVal);
       [propput, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([in] VARIANT_BOOL newVal);
+      [propget, id(88), helpstring("Days after which a sender the domain reply has answered is answered again while the reply stays on; 0 answers each sender once per absence. 0 to 3650.")] HRESULT VacationDays([out, retval] long *pVal);
+      [propput, id(88), helpstring("Days after which a sender the domain reply has answered is answered again while the reply stays on; 0 answers each sender once per absence. 0 to 3650.")] HRESULT VacationDays([in] long newVal);
 
       /*
          WHAT THIS DOMAIN DOES TO A MESSAGE. All off by default.
@@ -1299,6 +1301,17 @@ interface IInterfaceAccount : IDispatch
    
     [propget, id(38), helpstring("Vacation message is set to be aborted on messages marked as spam.")] HRESULT VacationMessageAbortSpamFlagged([out, retval] VARIANT_BOOL *pVal);
     [propput, id(38), helpstring("Vacation message is set to be aborted on messages marked as spam.")] HRESULT VacationMessageAbortSpamFlagged([in] VARIANT_BOOL newVal);
+    // The out-of-office policy on the account: a window for the reply, a text
+    // for colleagues, and a reply for colleagues only. The memory of who was
+    // answered when is a table (hm_autoreplies), so a restart repeats nothing.
+    [propget, id(63), helpstring("Days after which a sender who has been answered is answered again while the reply stays on; 0 answers each sender once per absence, which is what every account had before. 0 to 3650.")] HRESULT VacationMessageDays([out, retval] long *pVal);
+    [propput, id(63), helpstring("Days after which a sender who has been answered is answered again while the reply stays on; 0 answers each sender once per absence, which is what every account had before. 0 to 3650.")] HRESULT VacationMessageDays([in] long newVal);
+    [propget, id(64), helpstring("Subject sent to senders whose address belongs to this server. Empty means VacationSubject.")] HRESULT VacationInternalSubject([out, retval] BSTR *pVal);
+    [propput, id(64), helpstring("Subject sent to senders whose address belongs to this server. Empty means VacationSubject.")] HRESULT VacationInternalSubject([in] BSTR newVal);
+    [propget, id(65), helpstring("Text sent to senders whose address belongs to this server, in place of VacationMessage. Empty means VacationMessage. Never sent outside: the envelope sender is all that tells a colleague from a stranger, so it must not say anything that cannot be shown to one.")] HRESULT VacationInternalMessage([out, retval] BSTR *pVal);
+    [propput, id(65), helpstring("Text sent to senders whose address belongs to this server, in place of VacationMessage. Empty means VacationMessage. Never sent outside: the envelope sender is all that tells a colleague from a stranger, so it must not say anything that cannot be shown to one.")] HRESULT VacationInternalMessage([in] BSTR newVal);
+    [propget, id(66), helpstring("When on, the reply answers senders whose address belongs to this server and nobody else; the domain's VacationExternalOverride, when on, still answers strangers with the domain's text.")] HRESULT VacationMessageInternalOnly([out, retval] VARIANT_BOOL *pVal);
+    [propput, id(66), helpstring("When on, the reply answers senders whose address belongs to this server and nobody else; the domain's VacationExternalOverride, when on, still answers strangers with the domain's text.")] HRESULT VacationMessageInternalOnly([in] VARIANT_BOOL newVal);
     [propget, id(39), helpstring("Forwarding is set to be aborted on messages marked as spam.")] HRESULT ForwardAbortSpamFlagged([out, retval] VARIANT_BOOL *pVal);
     [propput, id(39), helpstring("Forwarding is set to be aborted on messages marked as spam.")] HRESULT ForwardAbortSpamFlagged([in] VARIANT_BOOL newVal);
     [propget, id(40), helpstring("The account's active Sieve (RFC 5228) filter script.")] HRESULT SieveScript([out, retval] BSTR *pVal);

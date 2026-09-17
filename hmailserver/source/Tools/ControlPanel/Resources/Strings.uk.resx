@@ -1200,6 +1200,12 @@
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Відповідати з кешу DNS-розв’язувача Windows, коли це можливо</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>Відповідати тому самому відправнику знову через (д_нів, 0 = один раз за відсутність)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Відповідати тому самому відправнику знову через (дн_ів, 0 = один раз за відсутність)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Відповідь отримано, але це не політика</value>
   </data>
@@ -4600,6 +4606,9 @@
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Граничний час завершення обробки повідомлення (секунд; 0 = без обмеження)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>Повідомлення для колег (порожнє — _як вище)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Повідомлення _для локальних відправників (порожньо = як вище)</value>
   </data>
@@ -5542,6 +5551,9 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>Опортуністичний</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>Необов'язковий інший текст для колег — відправників, чия адреса належить цьому серверу. Він ніколи не залишає сервер, тому може сказати більше, ніж повідомлення вище. Порожнє означає повідомлення вище.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Необов’язковий інший текст для локальних відправників — колегам можна сказати більше, ніж стороннім. Порожнє поле означає, що всі отримують текст вище. Зверніть увагу: тут визначається АДРЕСА відправника, яку можна підробити, тож вважайте це люб’язністю, а не місцем для чогось конфіденційного.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>_Тема відповіді</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Відповідати лише к_олегам — сторонні відправники не отримують нічого або отримують текст домену, якщо його перевизначення ввімкнено</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Поштова скринька для звітів:</value>
@@ -7669,6 +7684,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Тема</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>Тема для _колег (порожня — як вище)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>Тема для _локальних відправників (порожньо = така сама, як вище)</value>

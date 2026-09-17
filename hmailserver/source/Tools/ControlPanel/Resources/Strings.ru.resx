@@ -1200,6 +1200,12 @@ Control Panel может читать файлы сообщений только
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Отвечать из кэша DNS-резолвера Windows, когда это возможно</value>
   </data>
+  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+    <value>Отвечать тому же отправителю снова через (д_ней, 0 = один раз за отсутствие)</value>
+  </data>
+  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+    <value>Отвечать тому _же отправителю снова через (дней, 0 = один раз за отсутствие)</value>
+  </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Ответ получен, но это не политика</value>
   </data>
@@ -4600,6 +4606,9 @@ Control Panel может читать файлы сообщений только
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Предельный срок завершения обработки сообщения (секунд; 0 — без предела)</value>
   </data>
+  <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
+    <value>Сообщение для коллег (п_усто — как выше)</value>
+  </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Сообщение для локальных отп_равителей (пусто — то же, что выше)</value>
   </data>
@@ -5542,6 +5551,9 @@ Control Panel может читать файлы сообщений только
   <data name="Opportunistic" xml:space="preserve">
     <value>Оппортунистический</value>
   </data>
+  <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
+    <value>Необязательный другой текст для коллег — отправителей, чей адрес принадлежит этому серверу. Он никогда не покидает сервер, поэтому может сказать больше, чем сообщение выше. Пусто означает сообщение выше.</value>
+  </data>
   <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
     <value>Необязательный отдельный текст для локальных отправителей: коллегам можно сообщить больше, чем посторонним. Пустое поле означает, что все получают текст, указанный выше. Учтите, что определение идёт по АДРЕСУ отправителя, а его можно подделать: считайте это любезностью, но никогда не размещайте здесь ничего конфиденциального.</value>
   </data>
@@ -6394,6 +6406,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Reply su_bject" xml:space="preserve">
     <value>_Тема ответа</value>
+  </data>
+  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
+    <value>Отвечать только _коллегам — посторонние отправители не получают ничего или получают текст домена, если его переопределение включено</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Почтовый ящик для отчётов:</value>
@@ -7669,6 +7684,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Тема</value>
+  </data>
+  <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
+    <value>Тема для коллег (пусто — как _выше)</value>
   </data>
   <data name="Subject for _local senders (empty = same as above)" xml:space="preserve">
     <value>Тема _для локальных отправителей (пусто — как выше)</value>

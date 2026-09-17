@@ -1485,20 +1485,41 @@ namespace HM
       String sSubject = pAccount->GetVacationSubject();
       String sMessage = pAccount->GetVacationMessage();
 
+      const bool internalSender = SMTPVacationMessageCreator::IsInternalSender(pMessage->GetFromAddress());
+      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(pAccount->GetDomainID());
+
       // The domain's privacy policy for external senders: when the account's domain
       // says so, a sender from outside this installation receives the domain's
       // generic external text in place of the account's personal one - "your
       // message has been received" instead of "I am at the conference, ask Priya".
       // Internal senders still get what the account wrote. Off by default, so an
       // installation that has not opted in behaves exactly as before.
-      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(pAccount->GetDomainID());
-      if (pDomain &&
+      const bool domainAnswersStrangers = pDomain &&
           pDomain->GetVacationExternalOverride() &&
-          !pDomain->GetVacationMessage().IsEmpty() &&
-          !SMTPVacationMessageCreator::IsInternalSender(pMessage->GetFromAddress()))
+          !pDomain->GetVacationMessage().IsEmpty();
+
+      if (internalSender)
+      {
+         // The account's own text for colleagues, when it has one: richer than
+         // the general text, and never sent outside, because the envelope sender
+         // is all that tells a colleague from a stranger.
+         if (!pAccount->GetVacationInternalMessage().IsEmpty())
+         {
+            sSubject = pAccount->GetVacationInternalSubject();
+            sMessage = pAccount->GetVacationInternalMessage();
+         }
+      }
+      else if (domainAnswersStrangers)
       {
          sSubject = pDomain->GetVacationSubject();
          sMessage = pDomain->GetVacationMessage();
+      }
+      else if (pAccount->GetVacationInternalOnly())
+      {
+         // The reply is for colleagues only and the domain has nothing to say to
+         // strangers in its place: silence, which is what the account asked for.
+         LOG_DEBUG("LocalDelivery::SendAutoReplyMessage_ not sent, the reply answers internal senders only");
+         return true;
       }
 
       // Save a new message with the vacation message in it.
@@ -1506,7 +1527,8 @@ namespace HM
          pMessage->GetFromAddress(),
          sSubject,
          sMessage,
-         pMessage
+         pMessage,
+         pAccount->GetVacationDays()
          );
 
       return true;
@@ -1562,7 +1584,8 @@ namespace HM
          pMessage->GetFromAddress(),
          sSubject,
          sMessage,
-         pMessage
+         pMessage,
+         pDomain->GetVacationDays()
          );
    }
 

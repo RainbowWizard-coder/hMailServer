@@ -6,7 +6,9 @@
 #include "SMTPVacationMessageCreator.h"
 
 #include "../Common/BO/Account.h"
+#include "../Common/BO/Accounts.h"
 #include "../Common/BO/Alias.h"
+#include "../Common/BO/Domain.h"
 #include "../Common/BO/Message.h"
 #include "../Common/BO/MessageData.h"
 #include "../Common/BO/RemoteDomainPolicies.h"
@@ -15,6 +17,10 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/SQL/DALConnection.h"
+#include "../Common/SQL/DALRecordset.h"
+#include "../Common/SQL/SQLCommand.h"
+#include "../Common/SQL/SQLStatement.h"
 #include "RecipientParser.h"
 #include "../Common/BO/MessageRecipients.h"
 
@@ -42,7 +48,8 @@ namespace HM
                                         const String &sToAddress,
                                         const String &sVacationSubject,
                                         const String &sVacationMessage,
-                                        const std::shared_ptr<Message> pOriginalMessage)
+                                        const std::shared_ptr<Message> pOriginalMessage,
+                                        int repeatAfterDays)
    {
       // RFC 3834 2: never answer a message with a null envelope return path
       // (MAIL FROM:<>). That is a bounce or another automatic notice, and answering
@@ -85,7 +92,7 @@ namespace HM
          return;
       }
 
-      if (!CanSendVacationMessage_(recipientAccount->GetAddress(), sToAddress))
+      if (!CanSendVacationMessage_(recipientAccount, sToAddress, repeatAfterDays))
          return; // We have already notified this user.
 
       LOG_DEBUG("Creating out-of-office message.");
@@ -286,52 +293,75 @@ namespace HM
    }
 
    bool
-   SMTPVacationMessageCreator::CanSendVacationMessage_(const String &sFrom, const String &sTo)
+   SMTPVacationMessageCreator::CanSendVacationMessage_(std::shared_ptr<const Account> recipientAccount, const String &sTo, int repeatAfterDays)
    {
-      if (sTo.IsEmpty())
-      {
-         // We need a recipient address to be able to send.
+      if (!recipientAccount || sTo.IsEmpty())
          return false;
-      }
 
       try
       {
-         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+         // The sender as the column holds it: lower-cased, so that a sender who
+         // writes their own address in two spellings is one sender, and at most
+         // 255 characters, because a parameter longer than the column is a
+         // comparison SQL Server Compact refuses rather than a row it does not
+         // find.
+         String sender = sTo;
+         sender.ToLower();
+         if (sender.GetLength() > 255)
+            sender = sender.Mid(0, 255);
 
-         auto iter = mapVacationMessageRecipients.find(sFrom);
+         const __int64 now = (__int64) time(nullptr);
 
-         if (iter == mapVacationMessageRecipients.end())
+         SQLCommand find("select arid, arsent from hm_autoreplies where araccountid = @ACCOUNTID and arsender = @SENDER");
+         find.AddParameter("@ACCOUNTID", recipientAccount->GetID());
+         find.AddParameter("@SENDER", sender);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(find);
+         if (!recordset)
+            return false;
+
+         if (!recordset->IsEOF())
          {
-            mapVacationMessageRecipients.insert(std::make_pair(sFrom, sTo));
+            const __int64 sent = recordset->GetInt64Value("arsent");
+            if (repeatAfterDays <= 0 || sent > now - (__int64) repeatAfterDays * 86400)
+               return false; // Answered, and the window - if there is one - has not passed.
+
+            SQLCommand stamp("update hm_autoreplies set arsent = @SENT where arid = @ARID");
+            stamp.AddParameter("@SENT", now);
+            stamp.AddParameter("@ARID", recordset->GetInt64Value("arid"));
+            Application::Instance()->GetDBManager()->Execute(stamp);
             return true;
          }
 
-         auto iterRange =
-            mapVacationMessageRecipients.equal_range(sFrom);
+         SQLStatement statement;
+         statement.SetTable("hm_autoreplies");
+         statement.AddColumnInt64("araccountid", recipientAccount->GetID());
+         statement.AddColumn("arsender", sender);
+         statement.AddColumnInt64("arsent", now);
+         statement.SetStatementType(SQLStatement::STInsert);
+         statement.SetIdentityColumn("arid");
 
-         iter = iterRange.first;
-         while (iter != iterRange.second)
-         {
-            String sCurTo = (*iter).second;
-
-            if (sCurTo == sTo)
-            {
-               // This recipient has already receivedd
-               // a vacation-reply.
-               return false;
-            }
-
-            iter++;
-         }
-
-         mapVacationMessageRecipients.insert(std::make_pair(sFrom, sTo));
+         // The unique index is ignored on purpose, as hm_knownsenders' is: two
+         // messages from the same sender delivered at the same moment both find
+         // no row and both insert, and the loser's error would be noise about a
+         // reply that was sent exactly once more than it should have been.
+         Application::Instance()->GetDBManager()->Execute(statement, 0, DALConnection::DALErrorInSQL);
+         return true;
       }
       catch (...)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 5022, "SMTPVacationMessageCreator::CanSendVacationMessage", "Error when doing lookup.");
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5022, "SMTPVacationMessageCreator::CanSendVacationMessage", "Error when doing lookup of who has been answered.");
       }
 
-      return true;
+      return false;
+   }
+
+   void
+   SMTPVacationMessageCreator::ForgetAccount_(__int64 accountID)
+   {
+      SQLCommand command("delete from hm_autoreplies where araccountid = @ACCOUNTID");
+      command.AddParameter("@ACCOUNTID", accountID);
+      Application::Instance()->GetDBManager()->Execute(command);
    }
 
    void
@@ -339,18 +369,13 @@ namespace HM
    {
       try
       {
-         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
-
-         auto iterRange =
-            mapVacationMessageRecipients.equal_range(sUserAddress);
-
-         auto iter = iterRange.first;
-         while (iter != iterRange.second)
-            iter = mapVacationMessageRecipients.erase(iter);
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(sUserAddress);
+         if (account)
+            ForgetAccount_(account->GetID());
       }
       catch (...)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 5023, "SMTPVacationMessageCreator::VacationMessageTurnedOff", "Error when removing user from list.");
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5023, "SMTPVacationMessageCreator::VacationMessageTurnedOff", "Error when removing the answered senders of " + sUserAddress);
       }
    }
 
@@ -359,20 +384,26 @@ namespace HM
    {
       try
       {
-         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(sDomainName);
+         if (!domain)
+            return;
 
-         auto iter = mapVacationMessageRecipients.begin();
-         while (iter != mapVacationMessageRecipients.end())
+         // Every account of the domain, as the domain reply answered on behalf of
+         // each. This over-clears on purpose, as before: the table does not record
+         // WHICH reply answered a sender, so entries made by an account's own
+         // reply are dropped too; the cost is one repeated courtesy reply, the
+         // alternative a reply that never comes.
+         std::shared_ptr<Accounts> accounts = std::shared_ptr<Accounts>(new Accounts(domain->GetID()));
+         accounts->Refresh();
+         for (std::shared_ptr<Account> account : accounts->GetVector())
          {
-            if (StringParser::ExtractDomain((*iter).first).CompareNoCase(sDomainName) == 0)
-               iter = mapVacationMessageRecipients.erase(iter);
-            else
-               ++iter;
+            if (account)
+               ForgetAccount_(account->GetID());
          }
       }
       catch (...)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 6320, "SMTPVacationMessageCreator::DomainVacationMessageTurnedOff", "Error when removing a domain's accounts from the list of already-sent replies.");
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 6320, "SMTPVacationMessageCreator::DomainVacationMessageTurnedOff", "Error when removing the answered senders of " + sDomainName);
       }
    }
 }

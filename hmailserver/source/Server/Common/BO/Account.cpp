@@ -41,6 +41,8 @@ namespace HM
       enable_signature_(false),
       vacation_expires_(false),
       vacation_abort_spam_flagged_(false),
+      vacation_days_(0),
+      vacation_internal_only_(false),
       forward_abort_spam_flagged_(false),
       anti_spam_enabled_(true),
       spam_mark_threshold_(-1),
@@ -65,6 +67,8 @@ namespace HM
       enable_signature_(false),
       vacation_expires_(false),
       vacation_abort_spam_flagged_(false),
+      vacation_days_(0),
+      vacation_internal_only_(false),
       forward_abort_spam_flagged_(false),
       anti_spam_enabled_(true),
       spam_mark_threshold_(-1),
@@ -106,6 +110,10 @@ namespace HM
       vacation_expires_date_ = oldAccount.vacation_expires_date_;
       vacation_begin_date_ = oldAccount.vacation_begin_date_;
       vacation_abort_spam_flagged_ = oldAccount.vacation_abort_spam_flagged_;
+      vacation_days_ = oldAccount.vacation_days_;
+      vacation_internal_subject_ = oldAccount.vacation_internal_subject_;
+      vacation_internal_message_ = oldAccount.vacation_internal_message_;
+      vacation_internal_only_ = oldAccount.vacation_internal_only_;
       signature_plain_text_ = oldAccount.signature_plain_text_;
       signature_html_ = oldAccount.signature_html_;
       forward_address_ = oldAccount.forward_address_;
@@ -328,6 +336,10 @@ namespace HM
       pNode->AppendAttr(_T("VacationExpireDate"), vacation_expires_date_);
       pNode->AppendAttr(_T("VacationBeginDate"), vacation_begin_date_);
       pNode->AppendAttr(_T("VacationAbortSpamFlagged"), vacation_abort_spam_flagged_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("VacationDays"), StringParser::IntToString(vacation_days_));
+      pNode->AppendAttr(_T("VacationInternalSubject"), vacation_internal_subject_);
+      pNode->AppendAttr(_T("VacationInternalMessage"), vacation_internal_message_);
+      pNode->AppendAttr(_T("VacationInternalOnly"), vacation_internal_only_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("AdminLevel"), StringParser::IntToString(admin_level_));
       
       pNode->AppendAttr(_T("ForwardEnabled"), forward_enabled_ ? _T("1") : _T("0"));
@@ -430,6 +442,12 @@ namespace HM
       vacation_expires_date_ = pAccountNode->GetAttrValue(_T("VacationExpireDate"));
       vacation_begin_date_ = pAccountNode->GetAttrValue(_T("VacationBeginDate"));
       vacation_abort_spam_flagged_ = (pAccountNode->GetAttrValue(_T("VacationAbortSpamFlagged")) == _T("1"));
+      // A backup taken before the policy existed has none of these: the window
+      // stays at once per absence, the internal text empty and the switch off.
+      vacation_days_ = pAccountNode->GetAttrValue(_T("VacationDays")).IsEmpty() ? 0 : _ttoi(pAccountNode->GetAttrValue(_T("VacationDays")));
+      vacation_internal_subject_ = pAccountNode->GetAttrValue(_T("VacationInternalSubject"));
+      vacation_internal_message_ = pAccountNode->GetAttrValue(_T("VacationInternalMessage"));
+      vacation_internal_only_ = (pAccountNode->GetAttrValue(_T("VacationInternalOnly")) == _T("1"));
 
       // The admin level, WITHHELD while the account's role is not yet back.
       //
