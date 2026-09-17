@@ -470,7 +470,7 @@ namespace RegressionTests.SMTP
          StringAssert.Contains(personalBody, new Pop3ClientSimulator().GetFirstMessageText(colleague.Address, "test"));
 
          int capturePort = TestSetup.GetNextFreePort();
-         using (var capture = new SmtpServerSimulator(2, capturePort))
+         using (var capture = new SmtpServerSimulator(1, capturePort))
          {
             capture.AddRecipientResult(new Dictionary<string, int> {{externalSender, 250}});
             capture.StartListen();
