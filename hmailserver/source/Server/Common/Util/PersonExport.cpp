@@ -223,6 +223,14 @@ namespace HM
 
             if (!contact.vcard.IsEmpty())
                card = Utf8(contact.vcard);
+            else if (ContactStore::IsGroupAddress(contact.address))
+            {
+               // A group (ContactGroups.h) has no address of its own: its row
+               // holds the marker there, which must not be written out as one.
+               // Every group has a card, so this is the row whose card was
+               // lost - served as an empty group here as it is over CardDAV.
+               card = "BEGIN:VCARD\r\nVERSION:3.0\r\nFN:" + Utf8(contact.name) + "\r\nX-ADDRESSBOOKSERVER-KIND:group\r\nEND:VCARD";
+            }
             else
             {
                card = "BEGIN:VCARD\r\nVERSION:3.0\r\nFN:" + Utf8(contact.name) + "\r\nEMAIL:" + Utf8(contact.address) + "\r\nEND:VCARD";

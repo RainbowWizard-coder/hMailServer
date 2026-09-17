@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 #include "ScheduledMailTask.h"
 #include "Application.h"
+#include "ErrorManager.h"
 #include "FolderManager.h"
 #include "../BO/Account.h"
 #include "../BO/Message.h"
@@ -25,6 +26,7 @@
 #include "../Util/ConfidentialMessages.h"
 #include "../Util/CompromiseDetector.h"
 #include "../BO/MessageRecipient.h"
+#include "../Util/ContactGroups.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "../../IMAP/IMAPFolderContainer.h"
@@ -47,8 +49,11 @@ namespace HM
          Application::Instance()->GetDBManager()->Execute(command);
       }
 
-      // "a@x, Name <b@y>; c@z" -> the three addresses.
-      void AddressesOf(const String &list, std::vector<String> &addresses)
+      // "a@x, Name <b@y>; c@z" -> the three entries as the header writes them,
+      // and the address each gives the envelope. The send route splits its To
+      // field the same way (RestApiServer.cpp), and it must, because the same
+      // expansion runs over both.
+      void SplitList(const String &list, std::vector<String> &addresses, std::vector<String> &entries)
       {
          std::vector<String> parts = StringParser::SplitString(list, _T(","));
          for (size_t i = 0; i < parts.size(); i++)
@@ -57,16 +62,77 @@ namespace HM
             for (size_t j = 0; j < more.size(); j++)
             {
                String entry = more[j];
-               int open = entry.Find(_T("<"));
-               int close = entry.Find(_T(">"));
-               if (open >= 0 && close > open)
-                  entry = entry.Mid(open + 1, close - open - 1);
                entry.TrimLeft();
                entry.TrimRight();
-               if (!entry.IsEmpty())
-                  addresses.push_back(entry);
+               if (entry.IsEmpty())
+                  continue;
+
+               String address = entry;
+               int open = entry.Find(_T("<"));
+               int close = entry.ReverseFind(_T('>'));
+               if (open >= 0 && close > open)
+                  address = entry.Mid(open + 1, close - open - 1);
+               address.TrimLeft();
+               address.TrimRight();
+               if (address.IsEmpty())
+                  address = entry;
+
+               addresses.push_back(address);
+               entries.push_back(entry);
             }
          }
+      }
+
+      String JoinEntries(const std::vector<String> &entries)
+      {
+         String joined;
+         for (size_t i = 0; i < entries.size(); i++)
+         {
+            if (i > 0)
+               joined += _T(", ");
+            joined += entries[i];
+         }
+         return joined;
+      }
+
+      // A draft addressed to a contact group by its name - "Family" typed into
+      // To and not picked from the completion, which would have written the
+      // people out - is expanded here, at the moment it goes, exactly as the
+      // send route expands it (ContactGroups.h). Without this the name is not
+      // an address, the recipient is dropped, and a message the reader was
+      // told would be sent at a time is never sent at all. The header is
+      // rewritten with the people, as on the immediate path, so the readers
+      // see who it went to; Bcc goes out of the file either way, so only its
+      // addresses are wanted.
+      void ExpandGroups(std::shared_ptr<const Account> account, MessageData &data, std::vector<String> &addresses)
+      {
+         std::vector<String> toAddresses, toEntries, ccAddresses, ccEntries, bccAddresses, bccEntries;
+         SplitList(data.GetTo(), toAddresses, toEntries);
+         SplitList(data.GetCC(), ccAddresses, ccEntries);
+         SplitList(data.GetBCC(), bccAddresses, bccEntries);
+
+         if (ContactGroups::NeedsExpansion(toEntries) || ContactGroups::NeedsExpansion(ccEntries) || ContactGroups::NeedsExpansion(bccEntries))
+         {
+            std::vector<ContactGroup> groups;
+            if (ContactGroups::List(account, groups) && !groups.empty())
+            {
+               const String wasTo = JoinEntries(toEntries);
+               const String wasCc = JoinEntries(ccEntries);
+
+               ContactGroups::ExpandEntries(groups, toAddresses, toEntries);
+               ContactGroups::ExpandEntries(groups, ccAddresses, ccEntries);
+               ContactGroups::ExpandEntries(groups, bccAddresses, bccEntries);
+
+               if (JoinEntries(toEntries) != wasTo)
+                  data.SetTo(JoinEntries(toEntries));
+               if (JoinEntries(ccEntries) != wasCc)
+                  data.SetCC(JoinEntries(ccEntries));
+            }
+         }
+
+         addresses.insert(addresses.end(), toAddresses.begin(), toAddresses.end());
+         addresses.insert(addresses.end(), ccAddresses.begin(), ccAddresses.end());
+         addresses.insert(addresses.end(), bccAddresses.begin(), bccAddresses.end());
       }
 
       void Notify(std::shared_ptr<IMAPFolder> folder, ChangeNotification::NotificationType type, const std::vector<__int64> &ids)
@@ -158,7 +224,20 @@ namespace HM
          if (present)
          {
             if (due[i].action == ActionSend)
-               SendDraft(account, message);
+            {
+               // A send that came due and did not go is said out loud: the
+               // row is about to be removed, so this is the only record that
+               // a message the reader was told would be sent at a time was
+               // not. No recipient the checks allow is the usual reason.
+               if (!SendDraft(account, message))
+               {
+                  ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6832, "ScheduledMailTask::RunDue",
+                     "The scheduled send of message " + StringParser::IntToString(due[i].messageId) + " for account " +
+                     StringParser::IntToString(due[i].accountId) + " came due and did not go - no recipient of its To, Cc or Bcc "
+                     "could be delivered to, or the draft could not be read. The scheduled row is removed; the draft, if it is still "
+                     "there, is not sent.");
+               }
+            }
             else if (due[i].action == ActionReturn)
                ReturnSnoozed(account, message, due[i].folderId);
          }
@@ -185,9 +264,7 @@ namespace HM
          return false;
 
       std::vector<String> addresses;
-      AddressesOf(data.GetTo(), addresses);
-      AddressesOf(data.GetCC(), addresses);
-      AddressesOf(data.GetBCC(), addresses);
+      ExpandGroups(account, data, addresses);
       if (addresses.empty())
          return false;
 

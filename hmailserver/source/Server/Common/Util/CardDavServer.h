@@ -34,7 +34,10 @@
 // answered 403, since a contact here has one address, and a card whose address
 // another contact of the book already has is answered 409 naming that contact.
 // A contact the webmail made has no name of its own and is served as <id>.vcf,
-// with a UID derived from the row (StableUid_).
+// with a UID derived from the row (StableUid_). A group - a card whose kind
+// is group, with its members as MEMBER or X-ADDRESSBOOKSERVER-MEMBER lines
+// (ContactGroups.h) - is a row of the same book with no address: its FN is
+// its name, its UID its identity, and it is kept and served as any card is.
 
 #pragma once
 
@@ -63,5 +66,11 @@ namespace HM
       // which is read and not kept) and a REPORT (a multiget names many
       // hrefs).
       static bool IsLargeRequest(const AnsiString &method, const AnsiString &target);
+
+      // The UID a contact the webmail made is served under, which has no card
+      // and so no UID of its own: derived from the account's address (UTF-8,
+      // lower-cased) and the row id, so the same row gives the same UID. A
+      // group referring to such a contact by urn:uuid uses this (ContactGroups.h).
+      static AnsiString StableContactUid(const AnsiString &accountAddressUtf8, __int64 contactId);
    };
 }

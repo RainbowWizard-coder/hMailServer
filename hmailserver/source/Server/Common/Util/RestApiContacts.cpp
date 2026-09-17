@@ -12,13 +12,17 @@
 // so that this surface and CardDAV cannot disagree about what a contact is.
 // The filtering the completion popup asks for (q=) is done here in memory,
 // since a case-insensitive substring match is not spelled the same on the four
-// database backends and an address book is small.
+// database backends and an address book is small. A group (ContactGroups.h)
+// is a row of the same store and is listed here with kind group, its members
+// resolved, so the completion offers it by name; its own routes are
+// RestApiContactGroups.cpp.
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "HttpServer.h"
 #include "ContactStore.h"
 #include "ContactCard.h"
+#include "ContactGroups.h"
 #include "Unicode.h"
 #include "VCard.h"
 #include "../BO/Account.h"
@@ -64,7 +68,7 @@ namespace HM
          "\",\"address\":\"" + JsonEscape_(Utf8_(contact.address)) +
          "\",\"source\":\"" + (contact.source == ContactStore::SourceCollected ? AnsiString("collected") : AnsiString("manual")) +
          "\",\"created\":\"" + JsonEscape_(Utf8_(contact.created)) +
-         "\",\"birthday\":\"" + JsonEscape_(Utf8_(fields.birthday)) +
+         "\",\"kind\":\"person\",\"birthday\":\"" + JsonEscape_(Utf8_(fields.birthday)) +
          "\",\"note\":\"" + JsonEscape_(Utf8_(fields.note)) +
          "\",\"phones\":" + phones +
          ",\"has_photo\":" + (fields.hasPhoto ? "true" : "false");
@@ -86,12 +90,16 @@ namespace HM
       // q= narrows to names and addresses containing the text, case-insensitively
       // (the completion popup's use); limit= caps the answer, 200 by default;
       // source= is manual (what the person kept) or collected (what they wrote
-      // to); fields=card puts the stored card on each contact.
+      // to); kind= is person or group, both without it; fields=card puts the
+      // stored card on each contact.
       String needle = String(QueryParameter_(query, "q"));
       needle.ToLower();
       AnsiString sourceFilter = QueryParameter_(query, "source");
       if (!sourceFilter.IsEmpty() && sourceFilter != "manual" && sourceFilter != "collected")
          return BuildResponse_(400, "{\"error\":\"source must be manual or collected\"}");
+      AnsiString kindFilter = QueryParameter_(query, "kind");
+      if (!kindFilter.IsEmpty() && kindFilter != "person" && kindFilter != "group")
+         return BuildResponse_(400, "{\"error\":\"kind must be person or group\"}");
       const bool includeCard = QueryParameter_(query, "fields") == "card";
       int limit = ContactListDefaultLimit;
       AnsiString limitText = QueryParameter_(query, "limit");
@@ -108,11 +116,26 @@ namespace HM
       if (!ContactStore::List(account->GetID(), contacts))
          return BuildResponse_(500, "{\"error\":\"the contacts could not be read\"}");
 
+      // A group (ContactGroups.h) is listed among the contacts with its
+      // members resolved against the rows already in hand, so that the
+      // completion offers it by name and expands it with no second request.
+      // The index is built once for the whole listing: every group of the
+      // book is resolved against it, so a card is parsed once and a row's
+      // UID computed once however many groups name it.
+      String accountAddress = account->GetAddress();
+      accountAddress.ToLower();
+      const AnsiString accountAddressUtf8 = Utf8_(accountAddress);
+      ContactGroupIndex groupIndex(accountAddressUtf8, contacts);
+
       AnsiString json = "{\"contacts\":[";
       int count = 0;
       int total = 0;
       for (const ContactRecord &contact : contacts)
       {
+         const bool group = ContactGroups::IsGroup(contact);
+         if (!kindFilter.IsEmpty() && (kindFilter == "group") != group)
+            continue;
+
          if (!sourceFilter.IsEmpty() && (sourceFilter == "collected") != (contact.source == ContactStore::SourceCollected))
             continue;
 
@@ -121,9 +144,9 @@ namespace HM
          {
             String lowerName = contact.name;
             lowerName.ToLower();
-            String lowerAddress = contact.address;
+            String lowerAddress = group ? String() : contact.address;
             lowerAddress.ToLower();
-            matches = lowerName.Find(needle) >= 0 || lowerAddress.Find(needle) >= 0;
+            matches = lowerName.Find(needle) >= 0 || (!lowerAddress.IsEmpty() && lowerAddress.Find(needle) >= 0);
          }
 
          if (matches)
@@ -133,7 +156,14 @@ namespace HM
             {
                if (count > 0)
                   json += ",";
-               json += ContactJson_(contact, includeCard);
+               if (group)
+               {
+                  ContactGroup resolved;
+                  ContactGroups::Resolve(groupIndex, contact, resolved);
+                  json += ContactGroupJson_(resolved, &contact, includeCard);
+               }
+               else
+                  json += ContactJson_(contact, includeCard);
                count++;
             }
          }
@@ -225,6 +255,11 @@ namespace HM
       if (!ContactStore::Get(account->GetID(), id, contact))
          return BuildResponse_(404, "{\"error\":\"no such contact\"}");
 
+      // A group has no address to change and a card whose name is written
+      // another way: its own routes do that (RestApiContactGroups.cpp).
+      if (ContactGroups::IsGroup(contact))
+         return BuildResponse_(400, "{\"error\":\"this is a group; change it at /api/v1/me/contacts/groups/" + Int64Text(id) + "\"}");
+
       String name = contact.name;
       String address = contact.address;
 
@@ -288,6 +323,10 @@ namespace HM
 
       if (!ContactStore::Delete(account->GetID(), id))
          return BuildResponse_(500, "{\"error\":\"the contact could not be deleted\"}");
+
+      // The groups that named it - a contact or a group in a group - no
+      // longer do (ContactGroups.h).
+      ContactGroups::ForgetMember(account, contact);
 
       return BuildResponse_(200, "{\"deleted\":true}");
    }

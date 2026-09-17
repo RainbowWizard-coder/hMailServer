@@ -16,6 +16,7 @@
 #include "../Application/ErrorManager.h"
 #include "../Application/IniFileSettings.h"
 #include "../AntiSpam/QuarantineStore.h"
+#include "ContactGroups.h"
 #include "../BO/Alias.h"
 #include "../BO/DistributionList.h"
 #include "../Cache/Cache.h"
@@ -130,6 +131,16 @@ namespace HM
       count = DeleteAddressRows_("hm_contacts", "contactaddress", "", lowered);
       if (count < 0)
          failedStores.push_back(_T("the address books"));
+      else
+         removedCount += count;
+
+      // And the groups in those address books that named the address as a
+      // member by address (ContactGroups.h): each is rewritten without it. A
+      // group that named the contact by its UID names nothing now that the
+      // row is gone, and the UID carries nothing of the person.
+      count = ContactGroups::ForgetAddress(lowered);
+      if (count < 0)
+         failedStores.push_back(_T("the contact groups"));
       else
          removedCount += count;
 

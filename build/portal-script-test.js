@@ -710,6 +710,102 @@ function answerRecoverable(method, path) {
    if (!m[2] && method === 'DELETE') { recoverable.items.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
+// The address book the contacts routes answer from. Every row carries kind
+// person, as the server's listing does, so that the page's telling of a group
+// from a contact is tested against the real shape and not an absence.
+function contactBook() {
+   return [
+      { id: 1, name: 'Alice Example', address: 'alice@example.net', source: 'manual', kind: 'person', birthday: '', note: '', phones: [], has_photo: false },
+      { id: 2, name: 'Alan Hidden', address: 'al@example.org', source: 'collected', kind: 'person', birthday: '', note: '', phones: [], has_photo: false },
+      { id: 3, name: 'Carol Card', address: 'carol@example.org', source: 'manual', kind: 'person', birthday: '1985-04-12', note: 'Met at the conference.', phones: ['+1 555 0100'], has_photo: true,
+        card: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Carol Card\r\nN:Card;Carol;;;\r\nEMAIL;TYPE=INTERNET:carol@example.org\r\nTEL:+1 555 0100\r\nBDAY:1985-04-12\r\nNOTE:Met at the conference.\r\nEND:VCARD\r\n' }
+   ];
+}
+// Contact groups (ContactGroups.h): rows of the same address book whose kind is
+// group, with the members the card names and the recipients they reach - a
+// group inside a group already expanded, which is the whole point of the second
+// list. One group to start with, holding one of the contacts below.
+let contactGroups = [
+   { id: 7, name: 'Family', uid: '11111111-2222-3333-4444-555555555555', created: '2026-09-17 09:00:00', kind: 'group', address: '', source: 'manual',
+     members: [{ id: 1, name: 'Alice Example', address: 'alice@example.net', kind: 'person' }],
+     recipients: [{ id: 1, name: 'Alice Example', address: 'alice@example.net' }] }
+];
+let contactGroupsRefused = false;
+function contactGroupRecipients(members) {
+   // What the server answers: every person reached, a member that is itself a
+   // group replaced by its own recipients, once each by address.
+   const out = [];
+   members.forEach((m) => {
+     const reached = m.kind === 'group' ? (contactGroups.find((g) => g.id === m.id) || { recipients: [] }).recipients : [m];
+     reached.forEach((r) => { if (!out.some((x) => x.address === r.address)) { out.push({ id: r.id || 0, name: r.name || '', address: r.address }); } });
+   });
+   return out;
+}
+function contactGroupMember(item) {
+   const book = contactBook();
+   if (item && item.id) {
+      const row = book.find((c) => c.id === Number(item.id)) || contactGroups.find((g) => g.id === Number(item.id));
+      return row ? { id: row.id, name: row.name, address: row.address || '', kind: row.kind === 'group' ? 'group' : 'person' } : null;
+   }
+   const address = String((item && item.address) || '').toLowerCase();
+   if (address.indexOf('@') < 0) { return null; }
+   const row = book.find((c) => c.address === address);
+   return row ? { id: row.id, name: row.name, address: row.address, kind: 'person' } : { id: 0, name: '', address, kind: 'person' };
+}
+function contactGroupJson(group) {
+   return Object.assign({}, group, { recipients: contactGroupRecipients(group.members) });
+}
+function answerContactGroups(method, path, body) {
+   if (!path.startsWith('/api/v1/me/contacts/groups')) { return null; }
+   if (contactGroupsRefused) { return json(500, { error: 'the contacts could not be read' }); }
+   const wanted = JSON.parse(body || '{}');
+   if (path === '/api/v1/me/contacts/groups') {
+      if (method === 'GET') { return json(200, { groups: contactGroups.map(contactGroupJson), count: contactGroups.length }); }
+      if (method === 'POST') {
+         const name = String(wanted.name || '').trim();
+         if (!name) { return json(400, { error: 'a group needs a name' }); }
+         if (contactGroups.some((g) => g.name.toLowerCase() === name.toLowerCase())) { return json(409, { error: 'a group with that name exists' }); }
+         const members = (wanted.members || []).map(contactGroupMember).filter((m) => m);
+         const made = { id: 20 + contactGroups.length, name, uid: 'made-' + (20 + contactGroups.length), created: '2026-09-17 10:00:00', kind: 'group', address: '', source: 'manual', members };
+         contactGroups.push(made);
+         return json(201, contactGroupJson(made));
+      }
+      return json(404, { error: 'not found' });
+   }
+   const one = /^\/api\/v1\/me\/contacts\/groups\/(\d+)(\/members(?:\/(.+))?)?$/.exec(path);
+   const group = one ? contactGroups.find((g) => g.id === Number(one[1])) : null;
+   if (!group) { return json(404, { error: 'no such group' }); }
+   if (!one[2] && method === 'GET') { return json(200, contactGroupJson(group)); }
+   if (!one[2] && method === 'DELETE') {
+      contactGroups = contactGroups.filter((g) => g.id !== group.id);
+      contactGroups.forEach((g) => { g.members = g.members.filter((m) => !(m.kind === 'group' && m.id === group.id)); });
+      return json(200, { deleted: true });
+   }
+   if (!one[2] && method === 'PUT') {
+      if (wanted.name !== undefined) {
+         const name = String(wanted.name || '').trim();
+         if (!name) { return json(400, { error: 'a group needs a name' }); }
+         if (contactGroups.some((g) => g.id !== group.id && g.name.toLowerCase() === name.toLowerCase())) { return json(409, { error: 'a group with that name exists' }); }
+         group.name = name;
+      }
+      if (wanted.members !== undefined) { group.members = (wanted.members || []).map(contactGroupMember).filter((m) => m); }
+      return json(200, contactGroupJson(group));
+   }
+   if (one[2] && !one[3] && method === 'POST') {
+      const member = contactGroupMember(wanted);
+      if (!member) { return json(400, { error: 'a member is a contact id or one e-mail address' }); }
+      if (!group.members.some((m) => m.id === member.id && m.address === member.address)) { group.members.push(member); }
+      return json(200, contactGroupJson(group));
+   }
+   if (one[3] && method === 'DELETE') {
+      const reference = decodeURIComponent(one[3]).toLowerCase();
+      const kept = group.members.filter((m) => String(m.id) !== reference && m.address !== reference);
+      if (kept.length === group.members.length) { return json(404, { error: 'not a member' }); }
+      group.members = kept;
+      return json(200, contactGroupJson(group));
+   }
+   return json(404, { error: 'not found' });
+}
 // Messages that expire: offered, one not yet opened and set with a passcode, one
 // opened by its recipient.
 let confidentialOffered = true;
@@ -806,6 +902,7 @@ function answer(method, path, body) {
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
    { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
+   { const groups = answerContactGroups(method, path, body); if (groups) { return groups; } }
    { const window = answerOffline(method, path, body); if (window) { return window; } }
    if (path === '/api/v1/me') {
       return json(200, {
@@ -931,16 +1028,14 @@ function answer(method, path, body) {
    }
    if (path.startsWith('/api/v1/me/contacts?') && method === 'GET') {
       // The address book, narrowed the way the server narrows it: names and
-      // addresses containing the text.
+      // addresses containing the text. A group is listed among the contacts
+      // with kind group and no address of its own, so the completion offers it
+      // by name; kind= answers one kind alone.
       const q = decodeURIComponent((path.split('q=')[1] || '').split('&')[0]).toLowerCase();
-      const book = [
-         { id: 1, name: 'Alice Example', address: 'alice@example.net', source: 'manual', birthday: '', note: '', phones: [], has_photo: false },
-         { id: 2, name: 'Alan Hidden', address: 'al@example.org', source: 'collected', birthday: '', note: '', phones: [], has_photo: false },
-         { id: 3, name: 'Carol Card', address: 'carol@example.org', source: 'manual', birthday: '1985-04-12', note: 'Met at the conference.', phones: ['+1 555 0100'], has_photo: true,
-           card: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Carol Card\r\nN:Card;Carol;;;\r\nEMAIL;TYPE=INTERNET:carol@example.org\r\nTEL:+1 555 0100\r\nBDAY:1985-04-12\r\nNOTE:Met at the conference.\r\nEND:VCARD\r\n' }
-      ];
+      const kind = (path.split('kind=')[1] || '').split('&')[0];
+      const book = contactBook().concat(contactGroups.map(contactGroupJson));
       const withCards = path.indexOf('fields=card') >= 0;
-      const found = book.filter((c) => c.name.toLowerCase().indexOf(q) >= 0 || c.address.indexOf(q) >= 0)
+      const found = book.filter((c) => (!kind || kind === c.kind) && (c.name.toLowerCase().indexOf(q) >= 0 || (!!c.address && c.address.indexOf(q) >= 0)))
          .map((c) => { const copy = Object.assign({}, c); if (!withCards) { delete copy.card; } return copy; });
       return json(200, { contacts: found, count: found.length, total: book.length });
    }
@@ -2833,7 +2928,9 @@ async function main() {
    document.getElementById('contact-export-vcf').dispatchEvent(makeEvent('click'));
    await flush();
    const vcf = contactsSection.getAttribute('data-last-export') || '';
-   check('the address book exports as vCard 3.0, one card per contact', /BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Alice Example\r\nN:Example;Alice;;;\r\nEMAIL;TYPE=INTERNET:alice@example.net\r\nEND:VCARD/.test(vcf) && (vcf.match(/BEGIN:VCARD/g) || []).length === 3 && vcf.indexOf('TEL:+1 555 0100') >= 0,
+   // Four cards: the three contacts, and the group, which goes out as a group
+   // card (the checks in the contact-groups block below read that one).
+   check('the address book exports as vCard 3.0, one card per contact and one per group', /BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Alice Example\r\nN:Example;Alice;;;\r\nEMAIL;TYPE=INTERNET:alice@example.net\r\nEND:VCARD/.test(vcf) && (vcf.match(/BEGIN:VCARD/g) || []).length === 4 && vcf.indexOf('TEL:+1 555 0100') >= 0,
       vcf.slice(0, 160));
    document.getElementById('contact-export-csv').dispatchEvent(makeEvent('click'));
    await flush();
@@ -4176,6 +4273,198 @@ async function main() {
       check('a ceiling of 0 hides the choice and says the listing and the last opened messages are still kept',
          document.getElementById('offline-form').hidden === true && document.getElementById('offline-off').hidden === false);
       offlineWindow.days_max = 30;
+   }
+
+   // ---- Contact groups: a group in the address book, made and filled on the
+   // Contacts page, offered by its name in To and expanded to the people it
+   // reaches, a group inside a group expanded once, and removed with an Undo
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const fill = (text, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), words(text));
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const rows = () => walkAll(document.getElementById('group-rows'), (n) => n.tagName === 'TR');
+      const rowOf = (name) => rows().filter((r) => r.children[0].textContent.indexOf(name) >= 0)[0];
+      const buttonIn = (root, english) => walkAll(root, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+      const popupOf = (input) => input.parentNode.children.filter((n) => String(n.className) === 'complete')[0];
+      const idOf = (name) => contactGroups.filter((g) => g.name === name)[0].id;
+
+      location.hash = '#/contacts';
+      await flush();
+      check('the Contacts page has a Groups card, and the group the address book holds is listed with its member',
+         document.getElementById('contact-groups').hidden !== true && document.getElementById('group-table').hidden === false &&
+            document.getElementById('group-empty').hidden === true && rows().length === 1 &&
+            rowOf('Family').textContent.indexOf('Alice Example <alice@example.net>') >= 0,
+         document.getElementById('group-rows').textContent);
+
+      // Made here, under a name of its own and with no members yet.
+      const beforeMade = requests.length;
+      document.getElementById('group-name').value = 'Team';
+      document.getElementById('group-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const made = since(beforeMade).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts/groups').map((r) => JSON.parse(r.body))[0];
+      check('a group is made by name alone, and the address book is read again so the page shows it',
+         !!made && made.name === 'Team' && (made.members || []).length === 0 && called(beforeMade, 'GET', /^\/api\/v1\/me\/contacts\?/) &&
+            !!rowOf('Team') && document.getElementById('group-name').value === '',
+         JSON.stringify(made) + ' | ' + document.getElementById('group-rows').textContent);
+      check('and it says so where its members would be', rowOf('Team').children[1].textContent.indexOf(words('No members yet.')) >= 0,
+         rowOf('Team').children[1].textContent);
+
+      // The member field completes from the address book, asking for people
+      // alone: a group cannot be typed into it by name.
+      const memberField = document.getElementById('group-member-' + idOf('Team'));
+      const beforeComplete = requests.length;
+      memberField.value = 'a';
+      memberField.dispatchEvent(makeEvent('input'));
+      fireTimers();
+      await flush();
+      check('the member field asks the address book for people and not for groups',
+         called(beforeComplete, 'GET', '/api/v1/me/contacts?limit=8&q=a&kind=person') &&
+            !popupOf(memberField).children.some((li) => li.textContent.indexOf('Family') >= 0),
+         JSON.stringify(since(beforeComplete).map((r) => r.path)) + ' | ' + popupOf(memberField).textContent);
+
+      const beforeMember = requests.length;
+      memberField.value = 'Carol Card <carol@example.org>';
+      memberField.parentNode.parentNode.dispatchEvent(makeEvent('submit'));
+      await flush();
+      const added = since(beforeMember).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts/groups/' + idOf('Team') + '/members').map((r) => JSON.parse(r.body))[0];
+      check('a member is added by the address alone, whatever name was typed beside it, and the row then names the contact',
+         !!added && added.address === 'carol@example.org' && rowOf('Team').children[1].textContent.indexOf('Carol Card <carol@example.org>') >= 0,
+         JSON.stringify(added) + ' | ' + rowOf('Team').children[1].textContent);
+
+      // A group inside a group, put there from the page: the member field
+      // takes another group of this book by its name - it has no address to
+      // type - and sends it as that group rather than as an address, which is
+      // what the routes would refuse.
+      const nestField = document.getElementById('group-member-' + idOf('Team'));
+      const beforeNested = requests.length;
+      nestField.value = 'Family';
+      nestField.parentNode.parentNode.dispatchEvent(makeEvent('submit'));
+      await flush();
+      const nested = since(beforeNested).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts/groups/' + idOf('Team') + '/members').map((r) => JSON.parse(r.body))[0];
+      check('a group of this address book typed into the member field goes in as that group and not as an address',
+         !!nested && nested.id === idOf('Family') && nested.address === undefined,
+         JSON.stringify(nested));
+      check('and the page then names it as a group, since it has no address to show',
+         rowOf('Team').children[1].textContent.indexOf(fill('{0} (group)', 'Family')) >= 0,
+         rowOf('Team').children[1].textContent);
+
+      // In To: the name, how many it reaches, and every recipient written out.
+      location.hash = '#/compose';
+      await flush();
+      const to = document.getElementById('compose-to');
+      to.value = 'Tea';
+      const beforeOffer = requests.length;
+      to.dispatchEvent(makeEvent('input'));
+      fireTimers();
+      await flush();
+      const offered = popupOf(to).children;
+      check('the To field offers the group by its name, with how many people it reaches',
+         called(beforeOffer, 'GET', '/api/v1/me/contacts?limit=8&q=Tea') && offered.length === 1 &&
+            offered[0].textContent.indexOf('Team') >= 0 && offered[0].textContent.indexOf(fill('{0} member(s)', 2)) >= 0,
+         popupOf(to).textContent);
+      to.dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+      await flush();
+      check('choosing it writes every person it reaches, the group inside it expanded once and no group name left in the field',
+         to.value === 'Carol Card <carol@example.org>, Alice Example <alice@example.net>, ' && to.value.indexOf('Family') < 0,
+         to.value);
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // Renamed in place, and removed with an Undo that makes it again.
+      location.hash = '#/contacts';
+      await flush();
+      buttonIn(rowOf('Team'), 'Rename').dispatchEvent(makeEvent('click'));
+      const field = walkAll(rowOf('Team'), (n) => n.tagName === 'INPUT' && n.getAttribute('aria-label') === words('Group name'))[0];
+      check('Rename puts a field in the row in place of the name', !!field && field.hidden === false);
+      const beforeRename = requests.length;
+      field.value = 'The team';
+      field.dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+      await flush();
+      const renamed = since(beforeRename).filter((r) => r.method === 'PUT' && /\/api\/v1\/me\/contacts\/groups\/\d+$/.test(r.path)).map((r) => JSON.parse(r.body))[0];
+      check('Enter saves the new name, and the members are left alone',
+         !!renamed && renamed.name === 'The team' && renamed.members === undefined && !!rowOf('The team'),
+         JSON.stringify(renamed) + ' | ' + document.getElementById('group-rows').textContent);
+
+      const beforeGone = requests.length;
+      buttonIn(rowOf('The team'), 'Delete').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Delete removes the group and offers Undo',
+         called(beforeGone, 'DELETE', /^\/api\/v1\/me\/contacts\/groups\/\d+$/) && !rowOf('The team') &&
+            document.getElementById('toasts').textContent.indexOf(words('Group removed.')) >= 0,
+         document.getElementById('group-rows').textContent + ' | ' + document.getElementById('toasts').textContent);
+      const beforeUndo = requests.length;
+      buttonIn(document.getElementById('toasts'), 'Undo').dispatchEvent(makeEvent('click'));
+      await flush();
+      const again = since(beforeUndo).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts/groups').map((r) => JSON.parse(r.body))[0];
+      check('Undo makes it again with its members, the group inside it among them',
+         !!again && again.name === 'The team' && again.members.length === 2 &&
+            again.members.every((m) => !!m.id) && again.members.some((m) => m.id === 3) && again.members.some((m) => m.id === idOf('Family')),
+         JSON.stringify(again));
+      dismissAllToasts();
+
+      // What the page does with a group it cannot change, and what it never
+      // offers a group for.
+      contactGroupsRefused = true;
+      const beforeRefusal = requests.length;
+      document.getElementById('group-name').value = 'Nowhere';
+      document.getElementById('group-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('a group the server refuses is said so in the card, and the name is left in the box to try again',
+         called(beforeRefusal, 'POST', '/api/v1/me/contacts/groups') &&
+            String(document.getElementById('group-status').className).indexOf('error') >= 0 &&
+            document.getElementById('group-status').textContent.length > 0 && document.getElementById('group-name').value === 'Nowhere',
+         document.getElementById('group-status').textContent + ' | ' + document.getElementById('group-name').value);
+      contactGroupsRefused = false;
+      document.getElementById('group-name').value = '';
+
+      location.hash = '#/contacts';
+      await flush();
+      document.getElementById('contact-export-vcf').dispatchEvent(makeEvent('click'));
+      await flush();
+      const exported = document.getElementById('contacts-section').getAttribute('data-last-export') || '';
+      check('the vCard export carries the group as a group card, its members by address',
+         exported.indexOf('X-ADDRESSBOOKSERVER-KIND:group') >= 0 && exported.indexOf('X-ADDRESSBOOKSERVER-MEMBER:mailto:alice@example.net') >= 0,
+         exported.slice(exported.indexOf('X-ADDRESSBOOKSERVER-KIND') - 120));
+      document.getElementById('contact-export-csv').dispatchEvent(makeEvent('click'));
+      await flush();
+      const exportedCsv = document.getElementById('contacts-section').getAttribute('data-last-export') || '';
+      check('and the CSV leaves it out, since a group has no address for the column',
+         exportedCsv.indexOf('Family') < 0 && exportedCsv.indexOf('Alice Example,alice@example.net') >= 0, exportedCsv);
+
+      // And back in: a vCard file holding a group card makes the group, by its
+      // FN and the members it names by address, so what the export wrote can
+      // be read back. A group already there by that name is not made twice.
+      const beforeGroupImport = requests.length;
+      const importGroups = document.getElementById('contact-import-file');
+      importGroups.files = [new File([
+         'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Family\r\nX-ADDRESSBOOKSERVER-KIND:group\r\nX-ADDRESSBOOKSERVER-MEMBER:mailto:alice@example.net\r\nEND:VCARD\r\n' +
+         'BEGIN:VCARD\r\nVERSION:4.0\r\nFN:Book club\r\nKIND:group\r\nMEMBER:mailto:carol@example.org\r\nMEMBER:urn:uuid:not-of-this-address-book\r\nEND:VCARD\r\n'
+      ], 'groups.vcf', { type: 'text/vcard' })];
+      importGroups.dispatchEvent(makeEvent('change'));
+      await flush();
+      const importedGroups = since(beforeGroupImport).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts/groups').map((r) => JSON.parse(r.body));
+      check('a group card in an imported vCard file makes the group, in either spelling, with the members it names by address and not the ones it names by UID',
+         importedGroups.length === 1 && importedGroups[0].name === 'Book club' &&
+            importedGroups[0].members.length === 1 && importedGroups[0].members[0].address === 'carol@example.org',
+         JSON.stringify(importedGroups));
+
+      location.hash = '#/compose';
+      await flush();
+      const mention = document.getElementById('compose-text');
+      mention.value = 'Hello @Fam';
+      mention.selectionStart = mention.value.length;
+      const beforeGroupMention = requests.length;
+      mention.dispatchEvent(makeEvent('input'));
+      fireTimers();
+      await flush();
+      check('a group is never offered as an @mention, which is one person and one address',
+         called(beforeGroupMention, 'GET', '/api/v1/me/contacts?limit=8&q=Fam') &&
+            !walkAll(document.getElementById('compose-text').parentNode, (n) => n.tagName === 'LI').some((li) => li.textContent.indexOf('Family') >= 0),
+         JSON.stringify(since(beforeGroupMention).map((r) => r.path)));
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

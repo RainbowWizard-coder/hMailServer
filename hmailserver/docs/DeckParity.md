@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 414, 185 of them writes |
+| REST routes (path and method) | 421, 188 of them writes |
 | Deck views | 35 |
 
 ## Missing over REST, by interface
@@ -829,6 +829,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/me/calendars/{id}/shares/{address}` | ? | `account`, `calendar`, `current`, `read`, `write` | - |
 | `POST /api/v1/me/confidential/{id}/revoke` | ? | - | - |
 | `POST /api/v1/me/contacts` | ? | `account`, `address`, `name` | - |
+| `POST /api/v1/me/contacts/groups` | Group | `account`, `address`, `group`, `members`, `name`, `read`, `to` | - |
+| `PUT /api/v1/me/contacts/groups/{id}` | Group | `account`, `address`, `card`, `group`, `members`, `name`, `read`, `to` | - |
+| `POST /api/v1/me/contacts/groups/{id}/members` | DistributionListRecipient, GroupMember | `address`, `group`, `last` | - |
 | `PUT /api/v1/me/contacts/{id}` | ? | `account`, `address`, `from`, `name`, `source`, `to` | - |
 | `POST /api/v1/me/drafts` | ? | `account`, `bcc`, `cc`, `data`, `deleted`, `draft`, `folder`, `from`, `html`, `message`, `new`, `read`, `replace_id`, `subject`, `text`, `to` | - |
 | `POST /api/v1/me/drafts/{id}/schedule` | ? | `account`, `draft`, `folder`, `new`, `send_at` | - |

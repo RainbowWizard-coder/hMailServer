@@ -687,4 +687,155 @@ namespace HM
 
       return Serialize(properties);
    }
+
+   bool
+   VCard::IsGroup(const std::vector<VCardProperty> &properties)
+   {
+      for (size_t i = 0; i < properties.size(); i++)
+      {
+         const VCardProperty &property = properties[i];
+         if (property.name != "KIND" && property.name != "X-ADDRESSBOOKSERVER-KIND")
+            continue;
+
+         AnsiString value = Trimmed(Unescape(property.value));
+         value.ToLower();
+         if (value == "group")
+            return true;
+      }
+
+      return false;
+   }
+
+   void
+   VCard::MemberReferences(const std::vector<VCardProperty> &properties, std::vector<AnsiString> &references)
+   {
+      references.clear();
+      for (size_t i = 0; i < properties.size(); i++)
+      {
+         const VCardProperty &property = properties[i];
+         if (property.name != "MEMBER" && property.name != "X-ADDRESSBOOKSERVER-MEMBER")
+            continue;
+
+         AnsiString reference = Trimmed(Unescape(property.value));
+         if (!reference.IsEmpty())
+            references.push_back(reference);
+      }
+   }
+
+   AnsiString
+   VCard::GenerateGroup(const AnsiString &uid, const AnsiString &name, const std::vector<AnsiString> &references)
+   {
+      AnsiString formattedName = Trimmed(name);
+
+      AnsiString card;
+      card += "BEGIN:VCARD\r\n";
+      card += "VERSION:3.0\r\n";
+      card += "PRODID:-//hMailServer//CardDAV//EN\r\n";
+      card += Fold("UID:" + uid) + "\r\n";
+      card += Fold("FN:" + Escape(formattedName)) + "\r\n";
+      card += Fold("N:" + Escape(formattedName) + ";;;;") + "\r\n";
+      card += "X-ADDRESSBOOKSERVER-KIND:group\r\n";
+      for (size_t i = 0; i < references.size(); i++)
+         card += Fold("X-ADDRESSBOOKSERVER-MEMBER:" + Escape(references[i])) + "\r\n";
+      card += "END:VCARD\r\n";
+      return card;
+   }
+
+   AnsiString
+   VCard::WithGroup(const AnsiString &card, const AnsiString &uid, const AnsiString &name, const std::vector<AnsiString> &references)
+   {
+      std::vector<VCardProperty> parsed;
+      AnsiString problem;
+      if (!Parse(card, parsed, problem))
+         return GenerateGroup(uid, name, references);
+
+      // The dialect is the card's: a 4.0 card carries KIND and MEMBER, any
+      // other the X- pair, and a client reading its own card back finds the
+      // members where it wrote them.
+      bool version4 = false;
+      for (size_t i = 0; i < parsed.size(); i++)
+      {
+         if (parsed[i].name == "VERSION")
+            version4 = Trimmed(parsed[i].value).StartsWith("4");
+      }
+      const char *kindName = version4 ? "KIND" : "X-ADDRESSBOOKSERVER-KIND";
+      const char *memberName = version4 ? "MEMBER" : "X-ADDRESSBOOKSERVER-MEMBER";
+
+      AnsiString formattedName = Trimmed(name);
+      std::vector<VCardProperty> properties;
+      bool hasFn = false;
+      bool hasN = false;
+      bool hasKind = false;
+      bool hasUid = false;
+      for (size_t i = 0; i < parsed.size(); i++)
+      {
+         VCardProperty property = parsed[i];
+         if (property.name == "MEMBER" || property.name == "X-ADDRESSBOOKSERVER-MEMBER")
+            continue;
+
+         if (property.name == "FN")
+         {
+            if (hasFn)
+               continue;
+            hasFn = true;
+            property.value = Escape(formattedName);
+         }
+         else if (property.name == "N")
+         {
+            if (hasN)
+               continue;
+            hasN = true;
+            property.value = Escape(formattedName) + ";;;;";
+         }
+         else if (property.name == "KIND" || property.name == "X-ADDRESSBOOKSERVER-KIND")
+         {
+            AnsiString value = Trimmed(Unescape(property.value));
+            value.ToLower();
+            if (value == "group")
+               hasKind = true;
+         }
+         else if (property.name == "UID")
+            hasUid = true;
+
+         properties.push_back(property);
+      }
+
+      if (!hasFn)
+      {
+         VCardProperty property;
+         property.name = "FN";
+         property.value = Escape(formattedName);
+         properties.push_back(property);
+      }
+      if (!hasN)
+      {
+         VCardProperty property;
+         property.name = "N";
+         property.value = Escape(formattedName) + ";;;;";
+         properties.push_back(property);
+      }
+      if (!hasKind)
+      {
+         VCardProperty property;
+         property.name = kindName;
+         property.value = "group";
+         properties.push_back(property);
+      }
+      if (!hasUid && !uid.IsEmpty())
+      {
+         VCardProperty property;
+         property.name = "UID";
+         property.value = uid;
+         properties.push_back(property);
+      }
+      for (size_t i = 0; i < references.size(); i++)
+      {
+         VCardProperty property;
+         property.name = memberName;
+         property.value = Escape(references[i]);
+         properties.push_back(property);
+      }
+
+      return Serialize(properties);
+   }
 }

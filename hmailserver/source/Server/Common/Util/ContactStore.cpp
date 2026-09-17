@@ -38,6 +38,7 @@ namespace HM
       void ReadRecord(std::shared_ptr<DALRecordset> recordset, ContactRecord &contact)
       {
          contact.id = recordset->GetInt64Value("contactid");
+         contact.accountId = recordset->GetInt64Value("contactaccountid");
          contact.name = recordset->GetStringValue("contactname");
          contact.address = recordset->GetStringValue("contactaddress");
          contact.source = (int) recordset->GetLongValue("contactsource");
@@ -53,7 +54,7 @@ namespace HM
    {
       contacts.clear();
 
-      SQLCommand command("select contactid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaccountid = @ACCOUNTID order by contactname asc, contactaddress asc");
+      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaccountid = @ACCOUNTID order by contactname asc, contactaddress asc");
       command.AddParameter("@ACCOUNTID", accountId);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
@@ -74,7 +75,7 @@ namespace HM
    bool
    ContactStore::Get(__int64 accountId, __int64 id, ContactRecord &contact)
    {
-      SQLCommand command("select contactid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactid = @ID and contactaccountid = @ACCOUNTID");
+      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactid = @ID and contactaccountid = @ACCOUNTID");
       command.AddParameter("@ID", id);
       command.AddParameter("@ACCOUNTID", accountId);
 
@@ -107,6 +108,7 @@ namespace HM
    ContactStore::Insert(__int64 accountId, const String &name, const String &address, int source, ContactRecord &inserted)
    {
       inserted = ContactRecord();
+      inserted.accountId = accountId;
       inserted.name = name;
       inserted.address = address;
       inserted.source = source;
@@ -184,7 +186,7 @@ namespace HM
       if (uri.IsEmpty() || uri.GetLength() > 255)
          return false;
 
-      SQLCommand command("select contactid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaccountid = @ACCOUNTID and contacturi = @URI");
+      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaccountid = @ACCOUNTID and contacturi = @URI");
       command.AddParameter("@ACCOUNTID", accountId);
       command.AddParameter("@URI", uri);
 
@@ -201,6 +203,7 @@ namespace HM
                             const String &uid, const String &vcard, ContactRecord &inserted)
    {
       inserted = ContactRecord();
+      inserted.accountId = accountId;
       inserted.name = name;
       inserted.address = address;
       inserted.source = SourceManual;
@@ -275,6 +278,14 @@ namespace HM
       if (address.Find(_T("@"), at + 1) >= 0)
          return false;
 
+      // A colon in the local part: not an address (an unquoted local part is
+      // atom characters, and a quoted one needs the quote this refuses a line
+      // below), and the one shape that could otherwise be mistaken for a
+      // group's marker, which is "group:" and a UID (ContactGroups.h).
+      int colon = address.Find(_T(":"));
+      if (colon >= 0 && colon < at)
+         return false;
+
       for (int i = 0; i < address.GetLength(); i++)
       {
          wchar_t c = address[i];
@@ -313,5 +324,76 @@ namespace HM
       address.TrimLeft();
       address.TrimRight();
       address.ToLower();
+   }
+
+   String
+   ContactStore::GroupAddress(const String &uid)
+   {
+      return String(_T("group:")) + uid;
+   }
+
+   bool
+   ContactStore::IsGroupAddress(const String &address)
+   {
+      return address.StartsWith(_T("group:"));
+   }
+
+   bool
+   ContactStore::SetUid(__int64 accountId, __int64 id, const String &uid)
+   {
+      SQLCommand command("update hm_contacts set contactuid = @UID where contactid = @ID and contactaccountid = @ACCOUNTID");
+      command.AddParameter("@UID", uid);
+      command.AddParameter("@ID", id);
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
+   ContactStore::CountGroups(__int64 accountId, int &count)
+   {
+      count = 0;
+
+      // The ids alone: a group row's card is the large part of it, and this
+      // asks only how many there are.
+      SQLCommand command("select contactid from hm_contacts where contactaccountid = @ACCOUNTID and contactaddress like @MARKER");
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@MARKER", String(_T("group:%")));
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         count++;
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
+   ContactStore::ListGroupRows(std::vector<ContactRecord> &groups)
+   {
+      groups.clear();
+
+      // A prefix match on the marker, which every backend spells this way.
+      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaddress like @MARKER order by contactaccountid asc, contactid asc");
+      command.AddParameter("@MARKER", String(_T("group:%")));
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         ContactRecord group;
+         ReadRecord(recordset, group);
+         groups.push_back(group);
+         recordset->MoveNext();
+      }
+
+      return true;
    }
 }

@@ -73,6 +73,7 @@
 namespace HM
 {
    struct ContactRecord;
+   struct ContactGroup;
    class HttpCompressedCache;
 
    // The cache RestApiServer.cpp holds the compressed forms of its per-request
@@ -291,6 +292,15 @@ namespace HM
          RouteMeContactUpdate,
          RouteMeContactDelete,
          RouteMeContactPhoto,
+
+         // Contact groups in the same address book (RestApiContactGroups.cpp).
+         RouteMeContactGroups,
+         RouteMeContactGroupCreate,
+         RouteMeContactGroupGet,
+         RouteMeContactGroupUpdate,
+         RouteMeContactGroupDelete,
+         RouteMeContactGroupMemberAdd,
+         RouteMeContactGroupMemberRemove,
 
          // The account's calendars, events, tasks and the invitations its
          // mail carries (RestApiCalendar.cpp).
@@ -1010,6 +1020,13 @@ namespace HM
       static HttpResponse HandleMeContactUpdate_(const Caller &caller, __int64 id, const AnsiString &requestBody);
       static HttpResponse HandleMeContactDelete_(const Caller &caller, __int64 id);
       static HttpResponse HandleMeContactPhoto_(const Caller &caller, __int64 id);
+
+      // The groups in it (RestApiContactGroups.cpp): the list, one group, its
+      // name and members, one member added or removed. memberReference is the
+      // path segment under /members - a contact id or an address.
+      static HttpResponse HandleMeContactGroups_(const Caller &caller, RouteKind kind, __int64 groupId, const AnsiString &memberReference, const AnsiString &requestBody);
+      static AnsiString ContactGroupJson_(const ContactGroup &group, const ContactRecord *record, bool includeCard);
+      static AnsiString OpenApiContactGroupsPaths_();
 
       // The account's calendars, events, tasks and invitations (RestApiCalendar.cpp).
       static HttpResponse HandleMeCalendars_(const Caller &caller);

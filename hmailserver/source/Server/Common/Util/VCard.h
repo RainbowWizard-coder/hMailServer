@@ -88,5 +88,28 @@ namespace HM
       // an address, everything else kept; a UID added when the card has none; a
       // card that does not parse replaced by a generated one.
       static AnsiString WithNameAndAddress(const AnsiString &card, const AnsiString &uid, const AnsiString &name, const AnsiString &address);
+
+      // Groups (ContactGroups.h). A group card is KIND:group (RFC 6350 section
+      // 6.1.4) in a 4.0 card, or X-ADDRESSBOOKSERVER-KIND:group, which is what
+      // Apple's clients write in a 3.0 one; either is read in either version.
+      static bool IsGroup(const std::vector<VCardProperty> &properties);
+
+      // The member references of a group card in the order written: every
+      // MEMBER and X-ADDRESSBOOKSERVER-MEMBER value, unescaped and trimmed -
+      // urn:uuid:<uid> or mailto:<address> as a client writes them, anything
+      // else as it is. Resolving them is the caller's.
+      static void MemberReferences(const std::vector<VCardProperty> &properties, std::vector<AnsiString> &references);
+
+      // A vCard 3.0 for a group: UID, FN, N with the name as its family part
+      // (Apple's shape), X-ADDRESSBOOKSERVER-KIND:group and one
+      // X-ADDRESSBOOKSERVER-MEMBER per reference. CRLF line breaks, folded.
+      static AnsiString GenerateGroup(const AnsiString &uid, const AnsiString &name, const std::vector<AnsiString> &references);
+
+      // The stored group card with its name and its member lines replaced, in
+      // the card's own dialect - MEMBER in a 4.0 card, X-ADDRESSBOOKSERVER-MEMBER
+      // in a 3.0 one - the kind marked where it was not, a UID added when the
+      // card has none, everything else kept; a card that does not parse
+      // replaced by a generated one.
+      static AnsiString WithGroup(const AnsiString &card, const AnsiString &uid, const AnsiString &name, const std::vector<AnsiString> &references);
    };
 }

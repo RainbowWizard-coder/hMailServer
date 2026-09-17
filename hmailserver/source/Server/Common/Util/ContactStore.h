@@ -18,11 +18,12 @@ namespace HM
 {
    struct ContactRecord
    {
-      ContactRecord() : id(0), source(0) { }
+      ContactRecord() : id(0), accountId(0), source(0) { }
 
       __int64 id;
+      __int64 accountId;
       String name;
-      String address;   // lower-cased
+      String address;   // lower-cased; for a group, the marker GroupAddress gives
       int source;
       String created;   // hMailServer system date, YYYY-MM-DD HH:MM:SS
 
@@ -79,6 +80,31 @@ namespace HM
 
       // False when there was no such contact of this account.
       static bool Delete(__int64 accountId, __int64 id);
+
+      // A group (ContactGroups.h) is a row like any other, with a card whose
+      // kind is group, and it has no address of its own. The address column is
+      // the row's identity in this table - unique per account, not null - so a
+      // group row holds a marker there instead: "group:" and the card's UID,
+      // which no address can be (IsValidAddress refuses it) and which makes
+      // two groups with one UID the same conflict two contacts with one
+      // address are. Both surfaces tell a group from a contact by this marker,
+      // without opening the card.
+      static String GroupAddress(const String &uid);
+      static bool IsGroupAddress(const String &address);
+
+      // The UID column alone, for a contact that never had one (the webmail's
+      // rows) the moment a group needs to refer to it by urn:uuid.
+      static bool SetUid(__int64 accountId, __int64 id, const String &uid);
+
+      // How many groups the account's book holds, without reading the cards:
+      // the ceiling ContactGroups::MaximumGroups is counted with this, on
+      // both surfaces. False when the table could not be read.
+      static bool CountGroups(__int64 accountId, int &count);
+
+      // Every group row of every account, for the erasure of an address from
+      // the address books it is a member of. False when the table could not
+      // be read.
+      static bool ListGroupRows(std::vector<ContactRecord> &groups);
 
       // One address, with a local part and a domain, no whitespace or line
       // breaks, and short enough for the column.

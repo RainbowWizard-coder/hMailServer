@@ -925,6 +925,17 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <table class="list" id="contact-table"><thead><tr><th>Name</th><th>Address</th><th>Details</th><th></th></tr></thead><tbody id="contact-rows"></tbody></table>
 <div id="contact-empty" class="hint" hidden>No contacts yet. Send a message, or add one above.</div>
 </div>
+<div class="card" id="contact-groups">
+<h2>Groups</h2>
+<p class="hint">A group stands for its members: type its name in To, Cc or Bcc and choose it, and every member is addressed. A phone that syncs your contacts sees the group too.</p>
+<form id="group-form" class="row">
+<input id="group-name" type="text" maxlength="255" placeholder="Group name" aria-label="Group name" required>
+<button class="btn sm" type="submit">Create group</button>
+</form>
+<div id="group-status" class="status" aria-live="polite"></div>
+<table class="list" id="group-table" hidden><thead><tr><th>Group</th><th>Members</th><th></th></tr></thead><tbody id="group-rows"></tbody></table>
+<div id="group-empty" class="hint">No groups yet. Make one above, then add members from your contacts.</div>
+</div>
 <div class="card" id="contact-other" hidden>
 <h2>Other contacts</h2>
 <p class="hint">People you have written to but not kept. Keep one to have it in your address book and on your phone.</p>

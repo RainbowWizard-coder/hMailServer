@@ -43,6 +43,7 @@
 #include "DavSupport.h"
 #include "CalDavServer.h"
 #include "ContactStore.h"
+#include "ContactGroups.h"
 #include "../Application/Application.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/SQLCommand.h"
@@ -186,10 +187,15 @@ namespace HM
          // A card a client sent is served as it came, byte for byte, so the
          // ETag the client was given for it is the ETag of what it reads back
          // (RFC 9110 section 8.8.3); a row that never came from a client - the
-         // webmail's - is served as a card made from its name and address.
-         member.card = record.vcard.IsEmpty()
-            ? VCard::Generate(member.uid, Utf8(record.name), Utf8(record.address))
-            : Utf8(record.vcard);
+         // webmail's - is served as a card made from its name and address. A
+         // group always has a card (ContactGroups.h); one that lost it is
+         // served as an empty group rather than as a contact at its marker.
+         if (!record.vcard.IsEmpty())
+            member.card = Utf8(record.vcard);
+         else if (ContactGroups::IsGroup(record))
+            member.card = VCard::GenerateGroup(member.uid, Utf8(record.name), std::vector<AnsiString>());
+         else
+            member.card = VCard::Generate(member.uid, Utf8(record.name), Utf8(record.address));
          member.etag = EtagOf(member.card);
          member.href = ContactHref(context, record);
       }
@@ -1060,9 +1066,31 @@ namespace HM
                "The card uses a vCard 2.1 encoding this server does not decode (" + legacy +
                "); send vCard 3.0 or 4.0, UTF-8 throughout.");
 
+         // A group card (ContactGroups.h) has no EMAIL of its own: its name
+         // is its FN, and the row's address is the marker made of its UID,
+         // so that two groups with one UID are the same conflict two contacts
+         // with one address are. Its members are kept as the client wrote
+         // them and resolved when they are read.
+         const bool isGroup = VCard::IsGroup(properties);
+
+         // The same ceiling the API writes under, because the cost of reading
+         // a group is the cost of its members and both surfaces write into one
+         // address book: a card of a megabyte could otherwise name fifteen
+         // thousand of them and be resolved on every listing of the book.
+         if (isGroup)
+         {
+            std::vector<AnsiString> members;
+            VCard::MemberReferences(properties, members);
+            if ((int) members.size() > ContactGroups::MaximumMembers)
+               return DavError(403, "<C:valid-address-data/>",
+                  "A group holds at most " + IntText(ContactGroups::MaximumMembers) + " members here, and this card names " +
+                  IntText((int) members.size()) + ".");
+         }
+
          AnsiString nameUtf8;
          AnsiString addressUtf8;
-         if (!VCard::ExtractNameAndAddress(properties, nameUtf8, addressUtf8))
+         const bool hasAddress = VCard::ExtractNameAndAddress(properties, nameUtf8, addressUtf8);
+         if (!isGroup && !hasAddress)
             return DavError(403, "<C:valid-address-data/>",
                "This address book keeps a name and one e-mail address per contact, and the card has no EMAIL; "
                "there is nothing to store it as. Add an e-mail address to the contact.");
@@ -1072,10 +1100,8 @@ namespace HM
          name.TrimRight();
          if (name.GetLength() > ContactStore::MaximumNameLength)
             name = name.Mid(0, ContactStore::MaximumNameLength);
-
-         String address = Wide(addressUtf8);
-         if (!ContactStore::IsValidAddress(address))
-            return DavError(403, "<C:valid-address-data/>", "The EMAIL is not one e-mail address: " + addressUtf8);
+         if (isGroup && name.IsEmpty())
+            return DavError(403, "<C:valid-address-data/>", "A group needs a name: the card has no FN.");
 
          __int64 accountId = context.account->GetID();
 
@@ -1090,6 +1116,15 @@ namespace HM
                ? (resource.contact.uid.IsEmpty() ? StableUid_(context.addressUtf8, resource.contact.id) : Utf8(resource.contact.uid))
                : StableUidFromSeed_("hMailServer.carddav.resource:" + context.addressUtf8 + ":" + resource.slotName);
          }
+         if (isGroup && uid.GetLength() > ContactGroups::MaximumUidLength)
+            return DavError(403, "<C:valid-address-data/>", "A group's UID is at most " + IntText(ContactGroups::MaximumUidLength) + " characters here.");
+
+         String address = isGroup ? ContactStore::GroupAddress(Wide(uid)) : Wide(addressUtf8);
+         if (!isGroup && !ContactStore::IsValidAddress(address))
+            return DavError(403, "<C:valid-address-data/>", "The EMAIL is not one e-mail address: " + addressUtf8);
+
+         // What a 409 says the other row has: a contact's address, a group's UID.
+         const AnsiString identity = isGroup ? "the UID " + uid : "the address " + addressUtf8;
 
          // The card is kept as sent: what a GET returns is what the client
          // wrote, so the ETag answered here is the ETag of the stored
@@ -1112,8 +1147,8 @@ namespace HM
             {
                ContactRecord otherRecord;
                AnsiString otherHref = ContactStore::Get(accountId, other, otherRecord) ? ContactHref(context, otherRecord) : AnsiString("");
-               return Text(409, "another contact of this address book already has the address " + addressUtf8 +
-                  " (" + otherHref + "); a contact is one address here");
+               return Text(409, "another contact of this address book already has " + identity +
+                  " (" + otherHref + "); a contact is one address here, and a group one UID");
             }
 
             if (!ContactStore::UpdateCard(accountId, resource.contact.id, name, address, Wide(uid), Wide(card)))
@@ -1146,7 +1181,7 @@ namespace HM
          if (ContactStore::FindByAddress(accountId, address, existing))
          {
             ContactRecord existingRecord;
-            if (ContactStore::Get(accountId, existing, existingRecord) && existingRecord.source == ContactStore::SourceCollected)
+            if (!isGroup && ContactStore::Get(accountId, existing, existingRecord) && existingRecord.source == ContactStore::SourceCollected)
             {
                // A collected address the phone was never shown: the phone's card
                // becomes the contact, under the phone's name, kept from now on.
@@ -1173,8 +1208,18 @@ namespace HM
             }
 
             AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? ContactHref(context, existingRecord) : AnsiString("");
-            return Text(409, "this address book already has a contact with the address " + addressUtf8 +
-               " (" + existingHref + "); a contact is one address here - update that one, or delete it first");
+            return Text(409, "this address book already has a contact with " + identity +
+               " (" + existingHref + "); a contact is one address here, and a group one UID - update that one, or delete it first");
+         }
+
+         // And the ceiling on how many groups one book holds, for the same
+         // reason: every read of the book resolves them all.
+         if (isGroup)
+         {
+            int groups = 0;
+            if (ContactStore::CountGroups(accountId, groups) && groups >= ContactGroups::MaximumGroups)
+               return Text(507, "this address book already holds the " + IntText(ContactGroups::MaximumGroups) +
+                  " groups it may; delete one before making another");
          }
 
          if (!ContactStore::InsertCard(accountId, name, address, Wide(resource.slotName), Wide(uid), Wide(card), record))
@@ -1186,7 +1231,7 @@ namespace HM
             {
                ContactRecord existingRecord;
                AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? ContactHref(context, existingRecord) : AnsiString("");
-               return Text(409, "this address book already has a contact with the address " + addressUtf8 + " (" + existingHref + ")");
+               return Text(409, "this address book already has a contact with " + identity + " (" + existingHref + ")");
             }
             return Text(500, "the contact could not be saved");
          }
@@ -1214,6 +1259,9 @@ namespace HM
 
          if (!ContactStore::Delete(context.account->GetID(), resource.contact.id))
             return NotFound();
+
+         // The groups that named it no longer do (ContactGroups.h).
+         ContactGroups::ForgetMember(context.account, resource.contact);
 
          LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " deleted contact " + StringParser::IntToString(resource.contact.id) + ".");
          return Respond(204, "text/plain", "");
@@ -1361,13 +1409,21 @@ namespace HM
          AnsiString nameUtf8 = Utf8(member.record.name);
          AnsiString addressUtf8 = Utf8(member.record.address);
 
+         // A group has a name and a UID and no EMAIL - its marker is not one -
+         // and answers KIND in either spelling, so a client that asks the book
+         // for its groups gets them and one that asks for an address does not.
+         const bool group = ContactGroups::IsGroup(member.record);
+
          if (name == "FN")
-            values.push_back(nameUtf8.IsEmpty() ? addressUtf8 : nameUtf8);
+            values.push_back(nameUtf8.IsEmpty() && !group ? addressUtf8 : nameUtf8);
          else if (name == "N")
          {
             AnsiString family;
             AnsiString given;
-            VCard::SplitName(nameUtf8, family, given);
+            if (group)
+               family = nameUtf8;
+            else
+               VCard::SplitName(nameUtf8, family, given);
             if (!family.IsEmpty())
                values.push_back(family);
             if (!given.IsEmpty())
@@ -1376,9 +1432,17 @@ namespace HM
                values.push_back("");
          }
          else if (name == "EMAIL")
-            values.push_back(addressUtf8);
+         {
+            if (!group)
+               values.push_back(addressUtf8);
+         }
          else if (name == "UID")
             values.push_back(member.uid);
+         else if (name == "KIND" || name == "X-ADDRESSBOOKSERVER-KIND")
+         {
+            if (group)
+               values.push_back("group");
+         }
       }
 
       bool TextMatches(const TextMatch &match, const AnsiString &value)
@@ -1584,6 +1648,12 @@ namespace HM
          return false;
 
       return method == "PUT" || method == "REPORT";
+   }
+
+   AnsiString
+   CardDavServer::StableContactUid(const AnsiString &accountAddressUtf8, __int64 contactId)
+   {
+      return StableUid_(accountAddressUtf8, contactId);
    }
 
    HttpResponse

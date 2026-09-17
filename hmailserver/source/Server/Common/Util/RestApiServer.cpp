@@ -74,6 +74,7 @@
 #include "RecoverableStore.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
+#include "ContactGroups.h"
 #include <iterator>
 #include <list>
 #include <set>
@@ -2246,6 +2247,15 @@ namespace HM
          case RouteMeContactPhoto:
             return HandleMeContactPhoto_(caller, route.message_id);
 
+         case RouteMeContactGroups:
+         case RouteMeContactGroupCreate:
+         case RouteMeContactGroupGet:
+         case RouteMeContactGroupUpdate:
+         case RouteMeContactGroupDelete:
+         case RouteMeContactGroupMemberAdd:
+         case RouteMeContactGroupMemberRemove:
+            return HandleMeContactGroups_(caller, route.kind, route.record_id, route.name, GetRequestBody_(request));
+
          case RouteMeCalendars:
             return HandleMeCalendars_(caller);
          case RouteMeCalendarCreate:
@@ -2644,6 +2654,55 @@ namespace HM
       if (path.StartsWith(meContactsPath + "/"))
       {
          AnsiString rest = path.Mid(meContactsPath.GetLength() + 1);
+
+         // The groups in the address book (RestApiContactGroups.cpp): the
+         // list, one group by id, and its members.
+         const AnsiString groupsSegment = "groups";
+         if (rest == groupsSegment)
+         {
+            if (method == "GET")
+               route.kind = RouteMeContactGroups;
+            else if (method == "POST")
+               route.kind = RouteMeContactGroupCreate;
+
+            return;
+         }
+
+         if (rest.StartsWith(groupsSegment + "/"))
+         {
+            AnsiString tail = rest.Mid(groupsSegment.GetLength() + 1);
+            const AnsiString membersSegment = "/members";
+            int membersAt = tail.Find(membersSegment);
+            if (membersAt > 0)
+            {
+               if (!ParseQueueId(tail.Mid(0, membersAt), route.record_id))
+                  return;
+
+               AnsiString after = tail.Mid(membersAt + membersSegment.GetLength());
+               if (after.IsEmpty() && method == "POST")
+                  route.kind = RouteMeContactGroupMemberAdd;
+               else if (after.GetLength() > 1 && after.StartsWith("/") && method == "DELETE")
+               {
+                  route.name = DecodePathSegment_(after.Mid(1));
+                  route.kind = RouteMeContactGroupMemberRemove;
+               }
+
+               return;
+            }
+
+            if (ParseQueueId(tail, route.record_id))
+            {
+               if (method == "GET")
+                  route.kind = RouteMeContactGroupGet;
+               else if (method == "PUT")
+                  route.kind = RouteMeContactGroupUpdate;
+               else if (method == "DELETE")
+                  route.kind = RouteMeContactGroupDelete;
+            }
+
+            return;
+         }
+
          if (method == "GET" && rest.EndsWith("/photo"))
          {
             AnsiString idText = rest.Mid(0, rest.GetLength() - AnsiString("/photo").GetLength());
@@ -5397,6 +5456,11 @@ namespace HM
       case RouteMeContactCreate:
       case RouteMeContactUpdate:
       case RouteMeContactDelete:
+      case RouteMeContactGroupCreate:
+      case RouteMeContactGroupUpdate:
+      case RouteMeContactGroupDelete:
+      case RouteMeContactGroupMemberAdd:
+      case RouteMeContactGroupMemberRemove:
       case RouteApiKeyCreate:
       case RouteApiKeyRevoke:
       case RouteAccountCreate:
@@ -9443,6 +9507,13 @@ namespace HM
       case RouteMeContactUpdate:
       case RouteMeContactDelete:
       case RouteMeContactPhoto:
+      case RouteMeContactGroups:
+      case RouteMeContactGroupCreate:
+      case RouteMeContactGroupGet:
+      case RouteMeContactGroupUpdate:
+      case RouteMeContactGroupDelete:
+      case RouteMeContactGroupMemberAdd:
+      case RouteMeContactGroupMemberRemove:
       case RouteMe:
       case RouteMePassword:
       case RouteMeVacation:
@@ -13105,6 +13176,23 @@ namespace HM
       SplitAddressList(JsonUtf8Value_(requestBody, "cc"), ccAddresses, ccEntries);
       SplitAddressList(JsonUtf8Value_(requestBody, "bcc"), bccAddresses, bccEntries);
 
+      // An entry that is the name of one of the account's contact groups -
+      // "Family", with no address in it - becomes the group's recipients, in
+      // the header as in the envelope (ContactGroups.h). The page expands a
+      // group as it is chosen; this is the same for a client of the API. The
+      // address book is read once for the three fields, and not at all when
+      // every entry carries an address, which is the common send.
+      if (ContactGroups::NeedsExpansion(toEntries) || ContactGroups::NeedsExpansion(ccEntries) || ContactGroups::NeedsExpansion(bccEntries))
+      {
+         std::vector<ContactGroup> groups;
+         if (ContactGroups::List(account, groups) && !groups.empty())
+         {
+            ContactGroups::ExpandEntries(groups, toAddresses, toEntries);
+            ContactGroups::ExpandEntries(groups, ccAddresses, ccEntries);
+            ContactGroups::ExpandEntries(groups, bccAddresses, bccEntries);
+         }
+      }
+
       std::vector<String> recipients;
       recipients.insert(recipients.end(), toAddresses.begin(), toAddresses.end());
       recipients.insert(recipients.end(), ccAddresses.begin(), ccAddresses.end());
@@ -14567,7 +14655,7 @@ namespace HM
          "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"
          "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
-         "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default); source=manual is what the person kept and source=collected what they merely wrote to; fields=card puts the stored vCard on each contact. Each contact carries birthday, note, phones and has_photo, read from the card a phone stored. Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
+         "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default); source=manual is what the person kept and source=collected what they merely wrote to; kind=person or kind=group answers one kind, and without it both are listed; fields=card puts the stored vCard on each contact. Each contact carries kind (person), birthday, note, phones and has_photo, read from the card a phone stored. A group (see /api/v1/me/contacts/groups) is listed with kind group, an empty address, its members and its recipients, so that the completion can offer it by name and expand it. Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created, kind), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
          "\"/api/v1/me/contacts/{id}/photo\":{\"get\":{\"summary\":\"The photo on the contact's card\",\"description\":\"The image a phone stored on the card, as it is; 404 for a contact with no card, no photo, or a photo that is only a URL.\",\"responses\":{\"200\":{\"description\":\"The image\"},\"404\":{\"description\":\"No photo\"}}}},"
          "\"/api/v1/me/contacts/{id}\":{\"put\":{\"summary\":\"Change a contact's name or address, or keep a collected address as a contact\",\"description\":\"Body: name and/or address, and/or source, which can only be set to manual - what the person wrote to becomes a contact by their choice, and is served to their phones from then on. Another account's contact is 404.\",\"responses\":{\"200\":{\"description\":\"The contact\"},\"404\":{\"description\":\"No such contact\"},\"409\":{\"description\":\"The new address is already a contact\"}}},\"delete\":{\"summary\":\"Remove a contact\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such contact\"}}}},"
          "\"/api/v1/me/identities\":{\"get\":{\"summary\":\"The addresses the signed-in account may write as\",\"description\":\"The account's own address (kind account), every active alias that resolves to it (alias), and every account whose INBOX grants this one the post right (granted) - the rule SMTP submission applies to MAIL FROM. Each carries the From header the page would send. A send or a draft names one in its from field; anything else is refused with 403.\",\"responses\":{\"200\":{\"description\":\"identities (address, name, kind, header)\"}}}},"
@@ -14707,6 +14795,7 @@ namespace HM
       openApiJson += OpenApiMaskedAddressesPaths_();
       openApiJson += OpenApiRecoverablePaths_();
       openApiJson += OpenApiConfidentialPaths_();
+      openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiOfflinePaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();

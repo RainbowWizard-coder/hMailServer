@@ -2110,7 +2110,7 @@
       var name = displayNameOf(m.from);
       var address = addressOf(m.from).toLowerCase();
       if (!name) { return; }
-      var same = (list || []).filter(function (c) { return (c.name || '').toLowerCase() === name.toLowerCase() && c.address.toLowerCase() !== address; })[0];
+      var same = (list || []).filter(function (c) { return c.kind !== 'group' && (c.name || '').toLowerCase() === name.toLowerCase() && c.address.toLowerCase() !== address; })[0];
       if (same) { warnings.push('The sender is named like your contact ' + same.name + ' <' + same.address + '>, but this came from ' + address + '.'); showWarnings(warnings); }
     });
   };
@@ -2266,8 +2266,9 @@
   // address is a suggestion until it is kept, and only a kept one reaches
   // the phone over CardDAV.
   var renderContacts = function (list) {
-    var kept = list.filter(function (c) { return c.source !== 'collected'; });
-    var other = list.filter(function (c) { return c.source === 'collected'; });
+    var kept = list.filter(function (c) { return c.kind !== 'group' && c.source !== 'collected'; });
+    var other = list.filter(function (c) { return c.kind !== 'group' && c.source === 'collected'; });
+    renderGroups(list.filter(function (c) { return c.kind === 'group'; }));
     var rows = el('contact-rows');
     rows.textContent = '';
     kept.forEach(function (c) {
@@ -2322,6 +2323,110 @@
     });
   });
 
+  // ---- Contact groups --------------------------------------------------------
+  // A group is a row of the address book with members instead of an address.
+  // The listing carries it with kind group, its members as its card names
+  // them, and its recipients - every person reached, a group in a group
+  // expanded - so the To field offers it by name and expands it with no
+  // second request. Made, renamed, filled and emptied here; a phone that
+  // syncs the address book makes and reads them too, as vCard groups.
+  var recipientEntry = function (r) { return r.name ? r.name + ' <' + r.address + '>' : r.address; };
+  var groupEntries = function (g) { return (g.recipients || []).map(recipientEntry).join(', '); };
+  var groupCall = function (method, path, body, failure) {
+    return call(method, path, body).then(function (result) {
+      if (result.status !== 200 && result.status !== 201) { say('group-status', describe(result, failure), false); return null; }
+      say('group-status', '', true);
+      contactsCache = null;
+      return loadContacts().then(function () { return result; });
+    });
+  };
+  var renderGroups = function (groups) {
+    var rows = el('group-rows');
+    clear(rows);
+    groups.forEach(function (g) {
+      var tr = document.createElement('tr');
+      var name = document.createElement('td');
+      var label = node('span', g.name || '');
+      name.appendChild(label);
+      // The name as a field, shown in place of the label by Rename: Enter
+      // saves, Escape puts the label back.
+      var field = document.createElement('input'); field.type = 'text'; field.maxLength = 255; field.value = g.name || ''; field.hidden = true;
+      field.setAttribute('aria-label', t('Group name'));
+      field.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var wanted = String(field.value || '').trim();
+          if (!wanted || wanted === g.name) { field.hidden = true; label.hidden = false; return; }
+          groupCall('PUT', '/api/v1/me/contacts/groups/' + g.id, { name: wanted }, t('Could not rename the group'));
+        } else if (e.key === 'Escape') { e.preventDefault(); field.hidden = true; label.hidden = false; }
+      });
+      name.appendChild(field);
+      var members = document.createElement('td');
+      (g.members || []).forEach(function (m) {
+        var line = node('div', undefined, 'row');
+        line.appendChild(node('span', m.kind === 'group' ? tf('{0} (group)', m.name) : recipientEntry(m)));
+        var remove = node('button', t('Remove'), 'btn ghost sm'); remove.type = 'button';
+        remove.addEventListener('click', function () {
+          groupCall('DELETE', '/api/v1/me/contacts/groups/' + g.id + '/members/' + encodeURIComponent(m.id ? String(m.id) : m.address), null, t('Could not remove the member'));
+        });
+        line.appendChild(remove);
+        members.appendChild(line);
+      });
+      if (!(g.members || []).length) { members.appendChild(node('div', t('No members yet.'), 'muted')); }
+      // One more: a contact by name, from the same completion the To field
+      // has, an address that is not a contact, or another group of this book
+      // by its name - the completion offers people alone, since picking a
+      // group there would write out its people, but a name typed in that is
+      // another group's goes in as that group.
+      var add = document.createElement('form'); add.className = 'row';
+      var wrap = node('span', undefined, 'complete-wrap');
+      var input = document.createElement('input'); input.type = 'text'; input.id = 'group-member-' + g.id; input.maxLength = 255;
+      input.placeholder = t('Name or address'); input.setAttribute('aria-label', t('Add a member'));
+      wrap.appendChild(input); add.appendChild(wrap);
+      var addButton = node('button', t('Add'), 'btn ghost sm'); addButton.type = 'submit'; add.appendChild(addButton);
+      add.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var entry = String(input.value || '').trim().replace(/,\s*$/, '').trim();
+        if (!entry) { return; }
+        var bracketed = /<([^>]+)>\s*$/.exec(entry);
+        var address = bracketed ? bracketed[1].trim() : entry;
+        var inner = address.indexOf('@') >= 0 ? null : (groups || []).filter(function (other) {
+          return other.id !== g.id && String(other.name || '').toLowerCase() === address.toLowerCase();
+        })[0];
+        groupCall('POST', '/api/v1/me/contacts/groups/' + g.id + '/members',
+          inner ? { id: inner.id } : { address: address }, t('Could not add the member'));
+      });
+      members.appendChild(add);
+      var actions = document.createElement('td');
+      var write = node('button', t('Write'), 'btn ghost sm'); write.type = 'button';
+      write.addEventListener('click', function () { composeTo(groupEntries(g) + (g.recipients && g.recipients.length ? ', ' : '')); });
+      var rename = node('button', t('Rename'), 'btn ghost sm'); rename.type = 'button';
+      rename.addEventListener('click', function () { label.hidden = true; field.hidden = false; field.value = g.name || ''; field.focus(); });
+      var remove = node('button', t('Delete'), 'btn ghost sm'); remove.type = 'button';
+      remove.addEventListener('click', function () {
+        var again = { name: g.name, members: (g.members || []).map(function (m) { return m.id ? { id: m.id } : { address: m.address }; }) };
+        groupCall('DELETE', '/api/v1/me/contacts/groups/' + g.id, null, t('Could not remove the group')).then(function (result) {
+          if (!result) { return; }
+          toast(t('Group removed.'), function () { groupCall('POST', '/api/v1/me/contacts/groups', again, t('Could not create the group')); });
+        });
+      });
+      actions.appendChild(write); actions.appendChild(rename); actions.appendChild(remove);
+      tr.appendChild(name); tr.appendChild(members); tr.appendChild(actions);
+      rows.appendChild(tr);
+      complete(input, { persons: true });
+    });
+    el('group-table').hidden = groups.length === 0;
+    el('group-empty').hidden = groups.length > 0;
+  };
+  el('group-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var wanted = String(el('group-name').value || '').trim();
+    if (!wanted) { return; }
+    groupCall('POST', '/api/v1/me/contacts/groups', { name: wanted, members: [] }, t('Could not create the group')).then(function (result) {
+      if (result) { el('group-name').value = ''; }
+    });
+  });
+
   // ---- Contacts in and out ---------------------------------------------------
   // The address book as a file and back: vCard 3.0, one card per contact, is
   // what every phone and mail program reads; CSV with the header row Google
@@ -2336,6 +2441,13 @@
         var card = String(c.card).replace(/\r?\n/g, '\r\n');
         return card.slice(-2) === '\r\n' ? card : card + '\r\n';
       }
+      // A group without its card goes out as the group card Apple's Contacts
+      // and Thunderbird read, its members by address.
+      if (c.kind === 'group') {
+        return ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + vcardEscape(c.name), 'N:' + vcardEscape(c.name) + ';;;;', 'X-ADDRESSBOOKSERVER-KIND:group']
+          .concat((c.recipients || []).map(function (r) { return 'X-ADDRESSBOOKSERVER-MEMBER:mailto:' + vcardEscape(r.address); }))
+          .concat(['END:VCARD']).join('\r\n') + '\r\n';
+      }
       var name = c.name || c.address;
       var words = String(c.name || '').trim().split(/\s+/).filter(function (w) { return w; });
       var family = words.length > 1 ? words[words.length - 1] : '';
@@ -2346,7 +2458,8 @@
   };
   var csvCell = function (s) { s = String(s || ''); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   var contactsToCsv = function (list) {
-    return 'Name,E-mail Address\r\n' + list.map(function (c) { return csvCell(c.name) + ',' + csvCell(c.address) + '\r\n'; }).join('');
+    // A group has no address for the column; the vCard export carries it.
+    return 'Name,E-mail Address\r\n' + list.filter(function (c) { return c.kind !== 'group'; }).map(function (c) { return csvCell(c.name) + ',' + csvCell(c.address) + '\r\n'; }).join('');
   };
   var parseVCards = function (text) {
     var lines = String(text).replace(/\r\n?/g, '\n').replace(/\n[ \t]/g, '').split('\n');
@@ -2357,11 +2470,16 @@
       if (colon < 0) { return; }
       var head = line.slice(0, colon); var value = line.slice(colon + 1);
       var name = head.split(';')[0].toUpperCase();
-      if (name === 'BEGIN' && value.toUpperCase() === 'VCARD') { card = { name: '', n: '', emails: [], raw: [line] }; return; }
+      if (name === 'BEGIN' && value.toUpperCase() === 'VCARD') { card = { name: '', n: '', emails: [], group: false, members: [], raw: [line] }; return; }
       if (!card) { return; }
       card.raw.push(line);
       if (name === 'END') {
         var display = card.name || card.n;
+        // A group card - KIND:group, or the X- spelling Apple writes - comes
+        // in as a group, with the members it names by address. One naming a
+        // member by urn:uuid means a card of the address book it came from,
+        // which is not this one, so only the addresses are read.
+        if (card.group) { if (display) { out.push({ group: true, name: display, members: card.members }); } card = null; return; }
         // The card itself rides along, so what a phone stored is kept as sent.
         var whole = card.raw.join('\r\n') + '\r\n';
         card.emails.forEach(function (address, i) { if (address.indexOf('@') > 0) { out.push(i === 0 ? { name: display, address: address, card: whole } : { name: display, address: address }); } });
@@ -2371,6 +2489,11 @@
       if (name === 'FN') { card.name = vcardUnescape(value).trim(); }
       else if (name === 'N') { var parts = value.split(';'); card.n = [vcardUnescape(parts[1] || ''), vcardUnescape(parts[0] || '')].join(' ').trim(); }
       else if (name === 'EMAIL') { card.emails.push(vcardUnescape(value).trim()); }
+      else if (name === 'KIND' || name === 'X-ADDRESSBOOKSERVER-KIND') { card.group = vcardUnescape(value).trim().toLowerCase() === 'group'; }
+      else if (name === 'MEMBER' || name === 'X-ADDRESSBOOKSERVER-MEMBER') {
+        var member = vcardUnescape(value).trim().replace(/^mailto:/i, '');
+        if (member.indexOf('@') > 0 && member.indexOf(':') < 0) { card.members.push(member); }
+      }
     });
     return out;
   };
@@ -2446,14 +2569,28 @@
       var list = /BEGIN:VCARD/i.test(text) ? parseVCards(text) : parseContactsCsv(text);
       input.value = '';
       if (!list.length) { say('contact-status', t('Nothing in that file looked like a contact.'), false); return; }
+      // A contact is known by its address and a group by its name, which is
+      // what each is addressed by; neither is imported twice.
       var known = {};
-      (contactsCache || []).forEach(function (c) { known[String(c.address).toLowerCase()] = true; });
+      var knownGroups = {};
+      (contactsCache || []).forEach(function (c) {
+        if (c.kind === 'group') { knownGroups[String(c.name).toLowerCase()] = true; } else { known[String(c.address).toLowerCase()] = true; }
+      });
       var fresh = [];
-      list.forEach(function (c) { var key = c.address.toLowerCase(); if (!known[key]) { known[key] = true; fresh.push(c); } });
+      list.forEach(function (c) {
+        var key = String(c.group ? c.name : c.address).toLowerCase();
+        var seen = c.group ? knownGroups : known;
+        if (!seen[key]) { seen[key] = true; fresh.push(c); }
+      });
       var imported = 0;
       var chain = Promise.resolve();
       fresh.forEach(function (c) {
         chain = chain.then(function () {
+          if (c.group) {
+            var members = c.members.map(function (address) { return { address: address }; });
+            return call('POST', '/api/v1/me/contacts/groups', { name: c.name, members: members })
+              .then(function (result) { if (result.status === 201) { imported++; } });
+          }
           var body = { name: c.name, address: c.address };
           if (c.card) { body.card = c.card; }
           return call('POST', '/api/v1/me/contacts', body).then(function (result) { if (result.status === 201) { imported++; } });
@@ -2472,14 +2609,19 @@
   // address book is asked for it (small, so a fetch per key is fine) and a popup
   // under the field offers up to eight matches. Enter or Tab takes the marked one,
   // Escape closes, arrows move, a click takes.
-  var complete = function (inputId) {
-    var input = el(inputId);
+  // A group is offered by its name with how many it reaches, and taking it
+  // writes every recipient into the field, as Gmail and Outlook do; the
+  // member field of a group asks for people only (options.persons).
+  var complete = function (inputOrId, options) {
+    var input = typeof inputOrId === 'string' ? el(inputOrId) : inputOrId;
+    var persons = !!(options && options.persons);
     var list = document.createElement('ul'); list.className = 'complete'; list.hidden = true; list.setAttribute('role', 'listbox');
     input.parentNode.appendChild(list);
     var items = []; var marked = -1; var timer = null;
     var close = function () { list.hidden = true; list.textContent = ''; items = []; marked = -1; };
     var token = function () { var v = input.value; var i = v.lastIndexOf(','); return { head: i >= 0 ? v.slice(0, i + 1) : '', tail: (i >= 0 ? v.slice(i + 1) : v).replace(/^\s+/, '') }; };
-    var take = function (c) { var t = token(); input.value = (t.head ? t.head + ' ' : '') + (c.name ? c.name + ' <' + c.address + '>' : c.address) + ', '; close(); input.focus(); };
+    var entryOf = function (c) { return c.kind === 'group' ? groupEntries(c) : (c.name ? c.name + ' <' + c.address + '>' : c.address); };
+    var take = function (c) { var t = token(); var entry = entryOf(c); if (!entry) { close(); return; } input.value = (t.head ? t.head + ' ' : '') + entry + ', '; close(); input.focus(); };
     var mark = function (n) { marked = n; for (var i = 0; i < list.children.length; i++) { list.children[i].classList.toggle('on', i === marked); } };
     var show = function (found) {
       close();
@@ -2488,7 +2630,8 @@
       found.forEach(function (c, i) {
         var li = document.createElement('li'); li.setAttribute('role', 'option');
         var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = c.name || c.address;
-        var ad = document.createElement('span'); ad.className = 'ad'; ad.textContent = c.name ? c.address : '';
+        var ad = document.createElement('span'); ad.className = 'ad';
+        ad.textContent = c.kind === 'group' ? tf('{0} member(s)', (c.recipients || []).length) : (c.name ? c.address : '');
         li.appendChild(nm); li.appendChild(ad);
         li.addEventListener('mousedown', function (e) { e.preventDefault(); take(c); });
         list.appendChild(li);
@@ -2501,7 +2644,7 @@
       if (timer) { clearTimeout(timer); }
       if (!q) { close(); return; }
       timer = setTimeout(function () {
-        call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(q)).then(function (result) {
+        call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(q) + (persons ? '&kind=person' : '')).then(function (result) {
           if (result.status !== 200 || !result.data || token().tail !== q) { return; }
           show(result.data.contacts || []);
         });
@@ -2569,7 +2712,8 @@
         call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(at.q)).then(function (result) {
           var now = mention();
           if (result.status !== 200 || !result.data || !now || now.q !== at.q) { return; }
-          show(result.data.contacts || []);
+          // A mention is one person; a group has no address to mention.
+          show((result.data.contacts || []).filter(function (c) { return c.kind !== 'group'; }));
         });
       }, 120);
     });
@@ -2847,7 +2991,8 @@
         // The answer to what is still being typed, and no other.
         var now = suggestToken();
         if (result.status !== 200 || !result.data || now.q !== token.q || now.key !== token.key) { return; }
-        showSuggestions(result.data.contacts || [], token);
+        // from: names one sender; a group has no address to search by.
+        showSuggestions((result.data.contacts || []).filter(function (c) { return c.kind !== 'group'; }), token);
       });
     }, 120);
   };
@@ -5723,9 +5868,9 @@
         if (el('palette').hidden || el('palette-input').value.trim().toLowerCase() !== q) { return; }
         var found = (result.status === 200 && result.data && result.data.contacts) || [];
         if (!found.length) { return; }
-        var extra = found.map(function (c) {
-          var entry = c.name ? c.name + ' <' + c.address + '>' : c.address;
-          return { label: 'Write to ' + entry, kind: 'contact', run: function () { composeTo(entry + ', '); } };
+        var extra = found.filter(function (c) { return c.kind !== 'group' || (c.recipients || []).length; }).map(function (c) {
+          var entry = c.kind === 'group' ? groupEntries(c) : (c.name ? c.name + ' <' + c.address + '>' : c.address);
+          return { label: 'Write to ' + (c.kind === 'group' ? c.name : entry), kind: 'contact', run: function () { composeTo(entry + ', '); } };
         });
         renderPalette(items.concat(extra));
       });
