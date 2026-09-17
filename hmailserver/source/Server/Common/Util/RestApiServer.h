@@ -531,6 +531,21 @@ namespace HM
          // only be that narrow when the route is.
          RouteAccountPasswordReset,
          RouteAccountUnlock,
+         // An account's own rules (RestApiRules.cpp), under the account: what
+         // Account.Rules holds over COM, which /api/v1/rules - the global rules
+         // - never carried. Scoped to the address's domain.
+         RouteAccountRuleList,
+         RouteAccountRuleCreate,
+         RouteAccountRuleUpdate,
+         RouteAccountRuleDelete,
+         // The operator's tools (RestApiOperator.cpp), the administrator
+         // password's alone: a mailbox exported to the server's disk, an
+         // address's traces erased, the administrator's second factor.
+         RouteAccountExport,
+         RouteAddressErase,
+         RouteAdminSecondFactorGet,
+         RouteAdminSecondFactorEnrol,
+         RouteAdminSecondFactorDisable,
          // An account's Web Push devices, seen and stopped by an administrator
          // (RestApiPush.cpp): what a lost phone needs, and Account.
          // PushSubscriptionCount and RemovePushSubscriptions over COM. The
@@ -1185,7 +1200,7 @@ namespace HM
 
       HttpResponse HandleSetupChecklist_(const Route &route);
       static AnsiString OpenApiSetupChecklistPaths_();
-      HttpResponse HandleListRules_();
+      HttpResponse HandleListRules_(__int64 accountId);
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);
       HttpResponse HandleBackupStart_();
@@ -1251,10 +1266,16 @@ namespace HM
       HttpResponse HandleServerMessagePut_(const AnsiString &name, const AnsiString &requestBody);
       HttpResponse HandleSieveEvaluate_(const AnsiString &requestBody);
       HttpResponse HandleCalendarExpand_(const AnsiString &requestBody);
-      HttpResponse HandleCreateRule_(const AnsiString &requestBody);
-      HttpResponse HandleUpdateRule_(__int64 ruleId, const AnsiString &requestBody);
-      HttpResponse HandleDeleteRule_(__int64 ruleId);
+      HttpResponse HandleCreateRule_(__int64 accountId, const AnsiString &requestBody);
+      HttpResponse HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody);
+      HttpResponse HandleDeleteRule_(__int64 accountId, __int64 ruleId);
+      HttpResponse HandleAccountRules_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiRulesPaths_();
+      static AnsiString OpenApiAccountRulesPaths_();
+      HttpResponse HandleAccountExport_(const Route &route, const AnsiString &requestBody);
+      HttpResponse HandleAddressErase_(const AnsiString &requestBody);
+      HttpResponse HandleAdministratorSecondFactor_(const Route &route);
+      static AnsiString OpenApiOperatorPaths_();
       // One rule as every rule route emits it: the listing, the create and
       // the replace answer with the same document (defined in RestApiRules.cpp).
       static AnsiString RuleEntryJson_(const std::shared_ptr<Rule> &rule);

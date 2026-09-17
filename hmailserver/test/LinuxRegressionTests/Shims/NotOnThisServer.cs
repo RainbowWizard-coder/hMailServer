@@ -130,9 +130,6 @@ namespace RegressionTests.Shared
       public const string NoCrashSimulation =
          "needs Settings.CrashSimulationMode, the COM-only switch that makes the server fault on purpose";
 
-      public const string NoAdministratorTotp =
-         "enrols or disables the administrator's second factor, which no REST route does";
-
       public const string NoAccountTotp =
          "enrols or reads an account's second factor, which no REST route does";
 
@@ -274,9 +271,6 @@ namespace RegressionTests.Shared
       public const string NoRuleCreate =
          "needs a global rule, and this server's REST API has no POST /api/v1/rules";
 
-      public const string NoAccountRules =
-         "needs an account's own rules, and /api/v1/rules carries the global rules only";
-
       /// <summary>
       ///    The account's OWN folders are written now - POST, PUT and DELETE
       ///    /api/v1/me/folders arrived with this release, and the shim drives
@@ -319,9 +313,6 @@ namespace RegressionTests.Shared
       public const string NoAppPasswords =
          "needs an account's application passwords, and this server's REST API has no /api/v1/accounts/{address}/app-passwords (it arrived after 6.3.2)";
 
-      public const string NoDirectoryLink =
-         "needs an account linked to a directory (IsAD, ADUsername, ADDomain), and PUT /api/v1/accounts/{address} does not take them";
-
       public const string NoAccountLastLogon =
          "reads Account.LastLogonTime, which no REST route reports";
 
@@ -346,9 +337,6 @@ namespace RegressionTests.Shared
 
       public const string FullTextBackfillWindow =
          "needs the full-text index to have backfilled four 700 KB messages within thirty seconds of being switched on, which the hosted runner has not managed; the assertion is right, the window is the Windows bench's";
-
-      public const string NoExportMessages =
-         "needs Account.ExportMessages, which writes files on the server and has no REST route";
 
       public const string NoReinitialize =
          "needs the server reinitialised, and this server's REST API has no POST /api/v1/server/reinitialize";

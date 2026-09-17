@@ -53,64 +53,25 @@ namespace hMailServer
    }
 
    /// <summary>
-   ///    An account's own rules, which /api/v1/rules does not carry. The same
-   ///    COM type as the global collection - a fixture hands Account.Rules to a
-   ///    helper typed as Rules - so it is one here too, with every member
-   ///    overridden to stop the test, and none reaching the global rules.
+   ///    An account's own rules, under the account on the API since row 70:
+   ///    GET and POST /api/v1/accounts/{address}/rules, PUT and DELETE
+   ///    /api/v1/accounts/{address}/rules/{id}. The same COM type as the global
+   ///    collection - a fixture hands Account.Rules to a helper typed as Rules -
+   ///    with only the path different. The address is read when a member is
+   ///    called, because the account object is made before its address is set.
    /// </summary>
    public class AccountRules : Rules
    {
-      public override Rule Add()
+      private readonly Func<string> address_;
+
+      public AccountRules(Func<string> address)
       {
-         throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountRules);
+         address_ = address;
       }
 
-      public override int Count
-      {
-         get
-         {
-            throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountRules);
-         }
-      }
+      protected override string BasePath => "/api/v1/accounts/" + Uri.EscapeDataString(address_() ?? string.Empty) + "/rules";
 
-      public override Rule get_ItemByName(string name)
-      {
-         throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountRules);
-      }
-
-      public override Rule this[int index]
-      {
-         get { throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountRules); }
-      }
-
-      public override Rule get_Item(int index)
-      {
-         throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountRules);
-      }
-
-      public override Rule get_ItemByDBID(long id)
-      {
-         throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountRules);
-      }
-
-      public override void DeleteByDBID(long id)
-      {
-         NotOnThisServer.Ignore(NotOnThisServer.NoAccountRules);
-      }
-
-      public override void Delete(int index)
-      {
-         NotOnThisServer.Ignore(NotOnThisServer.NoAccountRules);
-      }
-
-      public override void Clear()
-      {
-         NotOnThisServer.Ignore(NotOnThisServer.NoAccountRules);
-      }
-
-      public override void Refresh()
-      {
-      }
+      protected override string RoutePath => "/api/v1/accounts/{address}/rules";
    }
 
    /// <summary>

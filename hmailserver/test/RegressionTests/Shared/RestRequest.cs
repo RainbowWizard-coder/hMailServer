@@ -25,6 +25,18 @@ namespace RegressionTests.Shared
       public static (int status, string body) Send(string host, int port, string method, string path,
                                                    string authorization, string requestBody)
       {
+         return Send(host, port, method, path, authorization, requestBody, null);
+      }
+
+      /// <summary>
+      ///    The same request with one more header line, "Name: value" - the
+      ///    one-time code in X-hMailServer-OTP once the administrator's second
+      ///    factor is enrolled, which is the only header a fixture has needed
+      ///    beside the credential.
+      /// </summary>
+      public static (int status, string body) Send(string host, int port, string method, string path,
+                                                   string authorization, string requestBody, string extraHeader)
+      {
          using (var client = new TcpClient())
          {
             Exception last = null;
@@ -61,6 +73,9 @@ namespace RegressionTests.Shared
                   headers.Append("Content-Type: application/json\r\n");
                   headers.Append("Content-Length: " + bodyBytes.Length + "\r\n");
                }
+
+               if (!string.IsNullOrEmpty(extraHeader))
+                  headers.Append(extraHeader + "\r\n");
 
                headers.Append("Connection: close\r\n\r\n");
 

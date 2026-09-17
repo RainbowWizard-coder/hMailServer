@@ -614,6 +614,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiPush.cpp" />
     <ClCompile Include="..\Common\Util\ReputationWatch.cpp" />
     <ClCompile Include="..\Common\Util\SetupChecklist.cpp" />
+    <ClCompile Include="..\Common\Util\MessageExport.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCertificates.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAdministration.cpp" />
@@ -656,6 +657,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiDkimRotation.cpp" />
     <ClCompile Include="..\Common\Util\RestApiReputation.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSetupChecklist.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiOperator.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />
     <ClCompile Include="..\Common\Util\OpenPgpKeyStore.cpp" />
@@ -1466,6 +1468,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\PushNotifier.h" />
     <ClInclude Include="..\Common\Util\ReputationWatch.h" />
     <ClInclude Include="..\Common\Util\SetupChecklist.h" />
+    <ClInclude Include="..\Common\Util\MessageExport.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />

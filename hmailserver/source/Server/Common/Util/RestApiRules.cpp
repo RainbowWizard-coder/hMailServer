@@ -51,6 +51,8 @@
 #include "../Persistence/PersistentRuleAction.h"
 #include "../Persistence/PersistenceMode.h"
 #include "../Application/ObjectCache.h"
+#include "../BO/Account.h"
+#include "../Persistence/PersistentAccount.h"
 #include "../../SMTP/RuleApplier.h"
 
 // The same construction RuleGuard::RegexCriteriaMatches makes - boost::wregex
@@ -842,6 +844,16 @@ namespace HM
       // Fills a rule's own collections from a parsed document, the way
       // InterfaceRuleCriteria::Save and InterfaceRuleAction::Save add each part
       // to the rule's collection before InterfaceRule::Save writes them all.
+      // The delivery path's cache of the collection a write touched: the
+      // global rules, or one account's.
+      void FlagRulesReload(__int64 accountId)
+      {
+         if (accountId == 0)
+            ObjectCache::Instance()->SetGlobalRulesNeedsReload();
+         else
+            ObjectCache::Instance()->SetAccountRulesNeedsReload(accountId);
+      }
+
       void AttachParts(std::shared_ptr<Rule> rule, const RuleDocument &document)
       {
          std::shared_ptr<RuleCriterias> criterias = rule->GetCriterias();
@@ -889,25 +901,26 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleCreateRule_(const AnsiString &requestBody)
+   RestApiServer::HandleCreateRule_(__int64 accountId, const AnsiString &requestBody)
    {
       RuleDocument document;
       std::string error;
       if (!ParseRuleDocument(requestBody, document, error))
          return BuildResponse_(400, RefusalBody(error, &RestApiServer::JsonEscape_));
 
-      // The global collection, read as InterfaceApplication::get_Rules reads it
-      // for the Control Panel: a fresh Rules(0), so the sort order the new rule
-      // gets is one past the last rule that exists now, as InterfaceRule::Save
-      // gives it.
-      Rules rules(0);
+      // The collection, read as InterfaceApplication::get_Rules reads the global
+      // one for the Control Panel and InterfaceAccount::get_Rules an account's:
+      // a fresh Rules(accountId) - 0 is the global rules - so the sort order the
+      // new rule gets is one past the last rule that exists now, as
+      // InterfaceRule::Save gives it.
+      Rules rules(accountId);
       rules.Refresh();
 
       std::vector<std::shared_ptr<Rule> > existing = rules.GetSnapshot();
       int sortOrder = existing.empty() ? 1 : existing.back()->GetSortOrder() + 1;
 
       std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
-      rule->SetAccountID(0);
+      rule->SetAccountID(accountId);
       rule->SetName(document.name);
       rule->SetActive(document.active);
       rule->SetUseAND(document.useAnd);
@@ -932,12 +945,13 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleUpdateRule_(__int64 ruleId, const AnsiString &requestBody)
+   RestApiServer::HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody)
    {
-      // Global rules only. Rules(0) holds the rules with no account, so an
-      // account's rule - reachable through that account in COM - is simply
-      // not found here, and answered as such, whatever the body says.
-      Rules rules(0);
+      // The one collection the route names. Rules(0) holds the rules with no
+      // account and Rules(id) one account's, so a rule that belongs elsewhere -
+      // another account's under this address, an account's under /api/v1/rules
+      // - is simply not found here, and answered as such, whatever the body says.
+      Rules rules(accountId);
       rules.Refresh();
 
       std::shared_ptr<Rule> existing = rules.GetItemByDBID(ruleId);
@@ -961,7 +975,7 @@ namespace HM
       {
          // The table may now disagree with what the delivery path holds; make
          // it read the table again rather than keep serving parts that are gone.
-         ObjectCache::Instance()->SetGlobalRulesNeedsReload();
+         FlagRulesReload(accountId);
          LOG_APPLICATION(String(_T("RestApi: Failed to replace the criteria and actions of rule '")) + existing->GetName() + _T("'."));
          return BuildResponse_(500, "{\"error\":\"failed to replace the rule's criteria and actions\"}");
       }
@@ -972,7 +986,7 @@ namespace HM
       // which is now empty beneath this id, and take the document's parts.
       std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
       rule->SetID(existing->GetID());
-      rule->SetAccountID(0);
+      rule->SetAccountID(accountId);
       rule->SetSortOrder(existing->GetSortOrder());
       rule->SetName(document.name);
       rule->SetActive(document.active);
@@ -982,7 +996,7 @@ namespace HM
       String saveError;
       if (!PersistentRule::SaveObject(rule, saveError, PersistenceModeNormal))
       {
-         ObjectCache::Instance()->SetGlobalRulesNeedsReload();
+         FlagRulesReload(accountId);
          LOG_APPLICATION(String(_T("RestApi: Failed to update rule '")) + document.name + _T("'."));
          return BuildResponse_(500, "{\"error\":\"failed to save rule\"}");
       }
@@ -997,9 +1011,9 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleDeleteRule_(__int64 ruleId)
+   RestApiServer::HandleDeleteRule_(__int64 accountId, __int64 ruleId)
    {
-      Rules rules(0);
+      Rules rules(accountId);
       rules.Refresh();
 
       std::shared_ptr<Rule> rule = rules.GetItemByDBID(ruleId);
@@ -1018,6 +1032,47 @@ namespace HM
       LOG_APPLICATION(String(_T("RestApi: Rule '")) + name + _T("' deleted."));
 
       return BuildResponse_(200, "{\"deleted\":true}");
+   }
+
+   // An account's own rules, under the account: the same documents, the same
+   // checks and the same handlers as the global rules, on the collection
+   // Rules(accountId) - what Account.Rules reaches over COM. Scoped to the
+   // address's domain by DomainNamedByRoute_, permissioned as the account's
+   // other writes are.
+   HttpResponse
+   RestApiServer::HandleAccountRules_(const Route &route, const AnsiString &requestBody)
+   {
+      std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
+      if (!PersistentAccount::ReadObject(account, String(route.identifier)) || account->GetID() == 0)
+         return BuildResponse_(404, "{\"error\":\"account not found\"}");
+
+      switch (route.kind)
+      {
+      case RouteAccountRuleList:
+         return HandleListRules_(account->GetID());
+      case RouteAccountRuleCreate:
+         return HandleCreateRule_(account->GetID(), requestBody);
+      case RouteAccountRuleUpdate:
+         return HandleUpdateRule_(account->GetID(), route.record_id, requestBody);
+      case RouteAccountRuleDelete:
+         return HandleDeleteRule_(account->GetID(), route.record_id);
+      default:
+         return BuildResponse_(404, "{\"error\":\"not found\"}");
+      }
+   }
+
+   AnsiString
+   RestApiServer::OpenApiAccountRulesPaths_()
+   {
+      static const char *paths =
+         ",\"/api/v1/accounts/{address}/rules\":{"
+         "\"get\":{\"summary\":\"List an account's own rules\",\"description\":\"The rules that run for this account's mail alone, in the order they run, each as GET /api/v1/rules lists a global rule - what Account.Rules holds over COM. Scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"The rules\"},\"404\":{\"description\":\"Unknown account\"}}},"
+         "\"post\":{\"summary\":\"Create a rule for an account\",\"description\":\"The same body POST /api/v1/rules takes - name, active, all_criteria, criteria and actions - saved under the account and in force for its next message. Scoped to the address's domain.\",\"responses\":{\"201\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"The body was refused, with the reason\"},\"404\":{\"description\":\"Unknown account\"}}}},"
+         ",\"/api/v1/accounts/{address}/rules/{id}\":{"
+         "\"put\":{\"summary\":\"Replace one of an account's rules\",\"description\":\"The whole rule, as PUT /api/v1/rules/{id} replaces a global one; a rule that is not this account's is not found here.\",\"responses\":{\"200\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"The body was refused, with the reason\"},\"404\":{\"description\":\"Unknown account or rule\"}}},"
+         "\"delete\":{\"summary\":\"Delete one of an account's rules\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown account or rule\"}}}}";
+
+      return AnsiString(paths);
    }
 
    HttpResponse

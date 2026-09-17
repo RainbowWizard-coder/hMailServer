@@ -1881,8 +1881,21 @@ namespace HM
             return HandleReputation_(caller, route, GetRequestBody_(request));
          case RouteSetupChecklist:
             return HandleSetupChecklist_(route);
+         case RouteAccountRuleList:
+         case RouteAccountRuleCreate:
+         case RouteAccountRuleUpdate:
+         case RouteAccountRuleDelete:
+            return HandleAccountRules_(route, GetRequestBody_(request));
+         case RouteAccountExport:
+            return HandleAccountExport_(route, GetRequestBody_(request));
+         case RouteAddressErase:
+            return HandleAddressErase_(GetRequestBody_(request));
+         case RouteAdminSecondFactorGet:
+         case RouteAdminSecondFactorEnrol:
+         case RouteAdminSecondFactorDisable:
+            return HandleAdministratorSecondFactor_(route);
          case RouteRuleList:
-            return HandleListRules_();
+            return HandleListRules_(0);
          case RouteLogList:
             return HandleListLogs_();
          case RouteMessageTraceRecent:
@@ -2032,11 +2045,11 @@ namespace HM
          case RouteDomainAliasDelete:
             return HandleDeleteDomainAlias_(String(route.identifier), String(route.name));
          case RouteRuleCreate:
-            return HandleCreateRule_(GetRequestBody_(request));
+            return HandleCreateRule_(0, GetRequestBody_(request));
          case RouteRuleUpdate:
-            return HandleUpdateRule_(route.record_id, GetRequestBody_(request));
+            return HandleUpdateRule_(0, route.record_id, GetRequestBody_(request));
          case RouteRuleDelete:
-            return HandleDeleteRule_(route.record_id);
+            return HandleDeleteRule_(0, route.record_id);
          case RouteCertificateCreate:
             return HandleCreateCertificate_(GetRequestBody_(request));
          case RouteCertificateDelete:
@@ -3225,6 +3238,59 @@ namespace HM
             route.identifier = address;
             return;
          }
+      }
+
+      // An account's own rules, under the account (RestApiRules.cpp).
+      if ((method == "GET" || method == "POST") && path.StartsWith(accountsPrefix) && path.EndsWith("/rules"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/rules").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteAccountRuleList : RouteAccountRuleCreate;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      if ((method == "PUT" || method == "DELETE") && path.StartsWith(accountsPrefix) && path.Find("/rules/") > 0)
+      {
+         const AnsiString rest = path.Mid(accountsPrefix.GetLength());
+         const int at = rest.Find("/rules/");
+         AnsiString address = rest.Mid(0, at);
+         AnsiString idPart = rest.Mid(at + AnsiString("/rules/").GetLength());
+         __int64 id = 0;
+         if (!address.IsEmpty() && address.Find("/") < 0 && idPart.Find("/") < 0 && ParseQueueId(idPart, id))
+         {
+            route.kind = method == "PUT" ? RouteAccountRuleUpdate : RouteAccountRuleDelete;
+            route.identifier = address;
+            route.record_id = id;
+            return;
+         }
+      }
+
+      // The mailbox written to the server's disk (RestApiOperator.cpp).
+      if (method == "POST" && path.StartsWith(accountsPrefix) && path.EndsWith("/export"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/export").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteAccountExport;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      if (method == "POST" && path == "/api/v1/addresses/erase")
+      {
+         route.kind = RouteAddressErase;
+         return;
+      }
+
+      if (path == "/api/v1/administrator/second-factor")
+      {
+         if (method == "GET") { route.kind = RouteAdminSecondFactorGet; return; }
+         if (method == "POST") { route.kind = RouteAdminSecondFactorEnrol; return; }
+         if (method == "DELETE") { route.kind = RouteAdminSecondFactorDisable; return; }
       }
 
       // An administrator opens a mailbox as its user, for support.
@@ -4561,6 +4627,12 @@ namespace HM
       case RouteApiKeyList:
       case RouteApiKeyCreate:
       case RouteApiKeyRevoke:
+      // The operator's tools (RestApiOperator.cpp): see PermissionFor_. Reading
+      // whether a second factor is enrolled is not among them.
+      case RouteAccountExport:
+      case RouteAddressErase:
+      case RouteAdminSecondFactorEnrol:
+      case RouteAdminSecondFactorDisable:
       // The [Settings] section of hMailServer.ini holds the server's secrets
       // (the OAuth2 HMAC secret, the password pepper, the service account's
       // password) and the commands it runs (AutoBanCommand, as the service):
@@ -4768,6 +4840,13 @@ namespace HM
       case RouteRuleCreate:
       case RouteRuleUpdate:
       case RouteRuleDelete:
+      case RouteAccountRuleCreate:
+      case RouteAccountRuleUpdate:
+      case RouteAccountRuleDelete:
+      case RouteAccountExport:
+      case RouteAddressErase:
+      case RouteAdminSecondFactorEnrol:
+      case RouteAdminSecondFactorDisable:
       case RouteFetchAccountCreate:
       case RouteFetchAccountUpdate:
       case RouteFetchAccountDelete:
@@ -4974,6 +5053,15 @@ namespace HM
       case RouteApiKeyList:
       case RouteApiKeyCreate:
       case RouteApiKeyRevoke:
+      // The operator's tools are the administrator password's alone too
+      // (IsApiKeyRoute_): an export writes wherever on the server's disk the
+      // caller names, an erasure reaches every domain's tables, and the second
+      // factor is the credential store itself. Classified here for the same
+      // reason the key routes are - no custom role may name them.
+      case RouteAccountExport:
+      case RouteAddressErase:
+      case RouteAdminSecondFactorEnrol:
+      case RouteAdminSecondFactorDisable:
       case RouteRoleCreate:
       case RouteRoleUpdate:
       case RouteRoleDelete:
@@ -4996,6 +5084,10 @@ namespace HM
       // and for these the classification says what kind of route it is, not what
       case RouteReputationGet:
       case RouteSetupChecklist:
+      // Whether the administrator password has a second factor is one fact of
+      // the server's shape - the checklist above says the same thing - so a
+      // reader may read it; enrolling and disabling are the password's alone.
+      case RouteAdminSecondFactorGet:
       // a role may read.
       case RouteUnknown:
       case RouteStatus:
@@ -5134,6 +5226,7 @@ namespace HM
       case RouteDomainList:
       case RouteAccountList:
       case RouteAccountGet:
+      case RouteAccountRuleList:
       case RouteAliasList:
       case RouteListList:
       case RouteFetchAccountList:
@@ -5248,6 +5341,9 @@ namespace HM
       case RouteAccountCreate:
       case RouteAccountDelete:
       case RouteAccountUpdate:
+      case RouteAccountRuleCreate:
+      case RouteAccountRuleUpdate:
+      case RouteAccountRuleDelete:
       case RouteAliasCreate:
       case RouteAliasDelete:
       case RouteListCreate:
@@ -5597,6 +5693,11 @@ namespace HM
       case RouteSpamTrapDelete:
       case RouteAccountUpdate:
       case RouteAccountGet:
+      case RouteAccountRuleList:
+      case RouteAccountRuleCreate:
+      case RouteAccountRuleUpdate:
+      case RouteAccountRuleDelete:
+      case RouteAccountExport:
       case RouteFetchAccountList:
       case RouteFetchAccountCreate:
       case RouteFetchAccountGet:
@@ -5926,6 +6027,7 @@ namespace HM
       case RouteSpamTrapHitsClear:
       case RouteCertificateList:
       case RouteRuleList:
+      case RouteAdminSecondFactorGet:
       case RouteLogList:
       case RouteLogTail:
       // A search that matches any address, and one queued message whose
@@ -5998,6 +6100,11 @@ namespace HM
       case RouteRuleCreate:
       case RouteRuleUpdate:
       case RouteRuleDelete:
+      // An address's traces are in every domain's tables, and the second
+      // factor is the server's credential.
+      case RouteAddressErase:
+      case RouteAdminSecondFactorEnrol:
+      case RouteAdminSecondFactorDisable:
       case RouteCertificateCreate:
       case RouteCertificateDelete:
       case RoutePortList:
@@ -7845,11 +7952,14 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleListRules_()
+   RestApiServer::HandleListRules_(__int64 accountId)
    {
-      // The global rules, from the cache the delivery path itself reads, so the
-      // answer is what is in force and not a second reading of the table.
-      std::shared_ptr<Rules> rules = ObjectCache::Instance()->GetGlobalRules();
+      // The global rules, or one account's, from the cache the delivery path
+      // itself reads, so the answer is what is in force and not a second
+      // reading of the table.
+      std::shared_ptr<Rules> rules = accountId == 0
+         ? ObjectCache::Instance()->GetGlobalRules()
+         : ObjectCache::Instance()->GetAccountRules(accountId);
       if (!rules)
          return BuildResponse_(200, "[]");
 
@@ -13534,6 +13644,8 @@ namespace HM
       openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiReputationPaths_();
       openApiJson += OpenApiSetupChecklistPaths_();
+      openApiJson += OpenApiAccountRulesPaths_();
+      openApiJson += OpenApiOperatorPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiBouncesPaths_();
       openApiJson += OpenApiComplaintsPaths_();

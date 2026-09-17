@@ -1057,42 +1057,48 @@ namespace hMailServer
    // for the wrong reason.
    public class Rules
    {
-      private static List<JsonElement> All()
+      /// <summary>Where this collection lives: the global rules, or an account's under its address.</summary>
+      protected virtual string BasePath => "/api/v1/rules";
+
+      /// <summary>The same, as the OpenAPI document spells it, for HasRoute.</summary>
+      protected virtual string RoutePath => "/api/v1/rules";
+
+      private List<JsonElement> All()
       {
-         return ServerApi.Array(ServerApi.Get("/api/v1/rules").Expect(200, "GET /api/v1/rules"));
+         return ServerApi.Array(ServerApi.Get(BasePath).Expect(200, "GET " + BasePath));
       }
 
       public virtual int Count => All().Count;
 
       [System.Runtime.CompilerServices.IndexerName("At")]
-      public virtual Rule this[int index] => Rule.From(All()[index]);
+      public virtual Rule this[int index] => Rule.From(All()[index], BasePath);
 
       public virtual Rule get_Item(int index)
       {
-         return Rule.From(All()[index]);
+         return Rule.From(All()[index], BasePath);
       }
 
       public virtual Rule get_ItemByName(string name)
       {
-         return All().Where(element => string.Equals(ServerApi.StringOf(element, "name"), name, StringComparison.Ordinal)).Select(element => Rule.From(element)).FirstOrDefault();
+         return All().Where(element => string.Equals(ServerApi.StringOf(element, "name"), name, StringComparison.Ordinal)).Select(element => Rule.From(element, BasePath)).FirstOrDefault();
       }
 
       public virtual Rule Add()
       {
-         if (!ServerApi.HasRoute("/api/v1/rules", "post"))
+         if (!ServerApi.HasRoute(RoutePath, "post"))
             throw NotOnThisServer.Skipped(NotOnThisServer.NoRuleCreate);
 
-         return new Rule();
+         return new Rule { BasePath = BasePath };
       }
 
       public virtual Rule get_ItemByDBID(long id)
       {
-         return All().Where(element => ServerApi.LongOf(element, "id") == id).Select(element => Rule.From(element)).FirstOrDefault();
+         return All().Where(element => ServerApi.LongOf(element, "id") == id).Select(element => Rule.From(element, BasePath)).FirstOrDefault();
       }
 
       public virtual void DeleteByDBID(long id)
       {
-         ServerApi.Delete("/api/v1/rules/" + id).Expect(200, "DELETE /api/v1/rules/" + id);
+         ServerApi.Delete(BasePath + "/" + id).Expect(200, "DELETE " + BasePath + "/" + id);
       }
 
       public virtual void Delete(int index)
@@ -1103,7 +1109,7 @@ namespace hMailServer
       public virtual void Clear()
       {
          foreach (var id in All().Select(element => ServerApi.LongOf(element, "id")))
-            ServerApi.Delete("/api/v1/rules/" + id).Expect(200, "DELETE /api/v1/rules/" + id);
+            ServerApi.Delete(BasePath + "/" + id).Expect(200, "DELETE " + BasePath + "/" + id);
       }
 
       public virtual void Refresh()
@@ -1198,6 +1204,9 @@ namespace hMailServer
    {
       internal bool Existing;
 
+      /// <summary>The collection this rule is saved into: the global rules unless an account's collection made it.</summary>
+      internal string BasePath = "/api/v1/rules";
+
       public long ID { get; set; }
       public long AccountID { get; set; }
       public string Name { get; set; }
@@ -1206,10 +1215,11 @@ namespace hMailServer
       public RuleCriterias Criterias { get; } = new RuleCriterias();
       public RuleActions Actions { get; } = new RuleActions();
 
-      internal static Rule From(JsonElement element)
+      internal static Rule From(JsonElement element, string basePath = "/api/v1/rules")
       {
          return new Rule
          {
+            BasePath = basePath,
             ID = ServerApi.LongOf(element, "id"),
             Name = ServerApi.StringOf(element, "name"),
             Active = element.TryGetProperty("active", out var active) && active.ValueKind == JsonValueKind.True,
@@ -1241,26 +1251,26 @@ namespace hMailServer
          body.Append("]}");
 
          var answer = Existing
-            ? ServerApi.Put("/api/v1/rules/" + ID, body.ToString())
-            : ServerApi.Post("/api/v1/rules", body.ToString());
+            ? ServerApi.Put(BasePath + "/" + ID, body.ToString())
+            : ServerApi.Post(BasePath, body.ToString());
 
          if (answer.Status == 400)
             throw new System.Runtime.InteropServices.COMException("Failed to save object. " + answer.Error);
 
          if (Existing)
          {
-            answer.Expect(200, "PUT /api/v1/rules/" + ID);
+            answer.Expect(200, "PUT " + BasePath + "/" + ID);
             return;
          }
 
-         answer.Expect(201, "POST /api/v1/rules " + Name);
+         answer.Expect(201, "POST " + BasePath + " " + Name);
          ID = ServerApi.LongOf(answer.Json.Value, "id");
          Existing = true;
       }
 
       public void Delete()
       {
-         ServerApi.Delete("/api/v1/rules/" + ID).Expect(200, "DELETE /api/v1/rules/" + ID);
+         ServerApi.Delete(BasePath + "/" + ID).Expect(200, "DELETE " + BasePath + "/" + ID);
       }
    }
 

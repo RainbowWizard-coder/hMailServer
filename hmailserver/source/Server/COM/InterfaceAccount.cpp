@@ -24,6 +24,7 @@
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/OpenPgpKeyStore.h"
+#include "../Common/Util/MessageExport.h"
 #include "../Common/Util/Crypt.h"
 #include <set>
 #include "../Common/Util/FileUtilities.h"
@@ -349,145 +350,6 @@ STDMETHODIMP InterfaceAccount::DisableTOTP()
    }
 }
 
-namespace
-{
-   // A folder name is IMAP data, not a path: it can contain every character
-   // Windows refuses in a directory name, and all of them map to '_'. That
-   // makes the mapping lossy - "A:B" and "A|B" both become "A_B" - so the
-   // CALLER must disambiguate a collision between siblings; this function's
-   // only jobs are to produce a legal name and to refuse a traversal.
-   HM::String SanitizeFolderNameForExport(const HM::String &name)
-   {
-      HM::String result = name;
-
-      const TCHAR *forbidden = _T("\\/:*?\"<>|");
-      for (const TCHAR *c = forbidden; *c != 0; ++c)
-         result.Replace(*c, _T('_'));
-
-      result.Trim();
-
-      // A folder named "." or ".." would climb out of the export directory:
-      // the separators above are neutralised, but the dots are not, so
-      // directory + "\\" + ".." resolves to the parent. IsValidFolderName
-      // accepts such a name, so it can genuinely arrive here. A legitimate
-      // folder may contain dots ("2024.Archive"), so only a segment that is
-      // ENTIRELY dots is replaced - that is the whole traversal set and
-      // nothing a real folder is called.
-      bool allDots = !result.IsEmpty();
-      for (int i = 0; i < result.GetLength(); i++)
-      {
-         if (result[i] != _T('.'))
-         {
-            allDots = false;
-            break;
-         }
-      }
-
-      if (result.IsEmpty() || allDots)
-         result = _T("_");
-
-      return result;
-   }
-
-   // Walks the folder tree depth-first, copying every message file into a
-   // directory mirroring the folder structure. Stops on the FIRST failure and
-   // says which file, because a partial export that reports success is exactly
-   // the wrong artefact to hand to a person exercising a data-access right.
-   bool ExportFolderTreeForAccount(std::shared_ptr<HM::Account> account,
-                                   std::shared_ptr<HM::IMAPFolders> folders,
-                                   const HM::String &directory,
-                                   int &exported,
-                                   HM::String &error)
-   {
-      if (!folders)
-         return true;
-
-      // No Refresh() here, and the absence is load-bearing: IMAPFolders::Refresh
-      // loads the account's ENTIRE tree into whichever collection it is called
-      // on - it is the top-level collection's loader, and it populates the
-      // sub-folder collections itself as it builds the hierarchy. Calling it on
-      // a sub-folder collection turns that collection into a second copy of the
-      // whole tree, and this walk into infinite descent. The one Refresh this
-      // export needs is done by the caller, on the root, before the walk.
-
-      // Sibling folders can sanitise to the same directory name ("A:B" and
-      // "A|B" both become "A_B"), and their per-folder UIDs repeat, so without
-      // this two folders would write into one directory and the second would
-      // overwrite the first - a data-access export that silently drops mail
-      // while the count says otherwise. Names taken at THIS level are tracked
-      // (case-insensitively, because the file system is), and a collision gets
-      // a " (2)", " (3)" suffix, the way a file manager resolves the same clash.
-      std::set<HM::String> usedNames;
-
-      for (unsigned int i = 0; i < (unsigned int) folders->GetCount(); i++)
-      {
-         std::shared_ptr<HM::IMAPFolder> folder = folders->GetItem(i);
-         if (!folder)
-            continue;
-
-         HM::String folderName = SanitizeFolderNameForExport(folder->GetFolderName());
-         HM::String lowered = folderName;
-         lowered.ToLower();
-
-         if (usedNames.find(lowered) != usedNames.end())
-         {
-            for (int suffix = 2; ; suffix++)
-            {
-               HM::String candidate;
-               candidate.Format(_T("%s (%d)"), folderName.c_str(), suffix);
-               HM::String candidateLower = candidate;
-               candidateLower.ToLower();
-               if (usedNames.find(candidateLower) == usedNames.end())
-               {
-                  folderName = candidate;
-                  lowered = candidateLower;
-                  break;
-               }
-            }
-         }
-
-         usedNames.insert(lowered);
-
-         const HM::String folderDirectory = directory + _T("\\") + folderName;
-
-         std::shared_ptr<HM::Messages> messages = folder->GetMessages();
-         if (messages)
-         {
-            messages->Refresh(false);
-
-            for (unsigned int j = 0; j < (unsigned int) messages->GetCount(); j++)
-            {
-               std::shared_ptr<HM::Message> message = messages->GetItem(j);
-               if (!message)
-                  continue;
-
-               const HM::String source = HM::PersistentMessage::GetFileName(account, message);
-
-               HM::String target;
-               target.Format(_T("%s\\%u.eml"), folderDirectory.c_str(), message->GetUID());
-
-               // The copy creates the folder directory on first use, so an
-               // empty folder produces no empty directory - the export mirrors
-               // the mail, not the folder skeleton.
-               if (!HM::FileUtilities::Copy(source, target, true))
-               {
-                  error.Format(_T("The message file %s could not be copied to %s. The export is incomplete and should be re-run."),
-                     source.c_str(), target.c_str());
-                  return false;
-               }
-
-               exported++;
-            }
-         }
-
-         if (!ExportFolderTreeForAccount(account, folder->GetSubFolders(), folderDirectory, exported, error))
-            return false;
-      }
-
-      return true;
-   }
-}
-
 STDMETHODIMP InterfaceAccount::ExportMessages(BSTR Directory, long *ExportedCount)
 {
    try
@@ -514,11 +376,7 @@ STDMETHODIMP InterfaceAccount::ExportMessages(BSTR Directory, long *ExportedCoun
       int exported = 0;
       HM::String error;
 
-      std::shared_ptr<HM::IMAPFolders> rootFolders = object_->GetFolders();
-      if (rootFolders)
-         rootFolders->Refresh();
-
-      if (!ExportFolderTreeForAccount(object_, rootFolders, directory, exported, error))
+      if (!HM::MessageExport::ExportAccount(object_, directory, exported, error))
          return COMError::GenerateError(error);
 
       *ExportedCount = exported;

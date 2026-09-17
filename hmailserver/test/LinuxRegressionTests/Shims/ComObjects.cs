@@ -94,14 +94,16 @@ namespace hMailServer
 
       public bool AuthenticateWithCode(string user, string password, string code)
       {
-         throw NotOnThisServer.Skipped(NotOnThisServer.NoAdministratorTotp);
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoComAuthenticate);
       }
 
+      /// <summary>Application.AdministratorTOTPEnabled: GET /api/v1/administrator/second-factor.</summary>
       public bool AdministratorTOTPEnabled
       {
          get
          {
-            throw NotOnThisServer.Skipped(NotOnThisServer.NoAdministratorTotp);
+            var answer = ServerApi.Get("/api/v1/administrator/second-factor").Expect(200, "GET /api/v1/administrator/second-factor");
+            return ServerApi.FlagOf(answer.Json.Value, "enrolled");
          }
       }
    }
@@ -1019,14 +1021,27 @@ namespace hMailServer
          get { throw NotOnThisServer.Skipped(NotOnThisServer.NoPublicFolderDiskName); }
       }
 
+      /// <summary>
+      ///    Settings.DisableAdministratorTOTP: DELETE /api/v1/administrator/second-factor.
+      ///    Once a factor is enrolled the administrator password alone no longer
+      ///    authenticates a request, over REST as over COM, and this shim's requests
+      ///    carry the password alone - so a fixture that enrols has to disable with a
+      ///    code of its own (RestRequest with X-hMailServer-OTP), as the operator
+      ///    fixture does; this is for the fixture that finds nothing enrolled.
+      /// </summary>
       public void DisableAdministratorTOTP()
       {
-         NotOnThisServer.Ignore(NotOnThisServer.NoAdministratorTotp);
+         ServerApi.Delete("/api/v1/administrator/second-factor").Expect(200, "DELETE /api/v1/administrator/second-factor");
       }
 
+      /// <summary>Settings.EnrolAdministratorTOTP: POST /api/v1/administrator/second-factor, answering the otpauth URI.</summary>
       public string EnrolAdministratorTOTP()
       {
-         throw NotOnThisServer.Skipped(NotOnThisServer.NoAdministratorTotp);
+         var answer = ServerApi.Post("/api/v1/administrator/second-factor", "{}");
+         if (answer.Status == 409)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(200, "POST /api/v1/administrator/second-factor");
+         return ServerApi.StringOf(answer.Json.Value, "uri");
       }
 
       public string TestLdapDirectory(string a = null, string b = null)
@@ -2218,6 +2233,21 @@ namespace hMailServer
    /// </summary>
    public class Utilities
    {
+      /// <summary>
+      ///    Utilities.EraseAddressTraces: POST /api/v1/addresses/erase, answering
+      ///    the count of what was removed. A step that failed is the route's 500,
+      ///    raised as the COM method raises it.
+      /// </summary>
+      public int EraseAddressTraces(string address, bool includeArchive)
+      {
+         var answer = ServerApi.Post("/api/v1/addresses/erase",
+            "{\"address\":" + ServerApi.Quote(address) + ",\"include_archive\":" + (includeArchive ? "true" : "false") + "}");
+         if (answer.Status == 400 || answer.Status == 500)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(200, "POST /api/v1/addresses/erase");
+         return (int) ServerApi.LongOf(answer.Json.Value, "removed");
+      }
+
       private const string SyntaxAccountAddress = "sieve-syntax@example.test";
       private const string SyntaxAccountPassword = "sieve-syntax-secret";
 
@@ -3275,6 +3305,9 @@ namespace hMailServer
          Take("signature_html", () => _signatureHtml = ServerApi.StringOf(e, "signature_html") ?? string.Empty);
          Take("admin_level", () => _adminLevel = AdminLevelOf(ServerApi.StringOf(e, "admin_level")));
          Take("message_retention_days", () => _retentionDays = (int) ServerApi.LongOf(e, "message_retention_days"));
+         Take("ad_enabled", () => _isAd = ServerApi.FlagOf(e, "ad_enabled"));
+         Take("ad_username", () => _adUsername = ServerApi.StringOf(e, "ad_username") ?? string.Empty);
+         Take("ad_domain", () => _adDomain = ServerApi.StringOf(e, "ad_domain") ?? string.Empty);
 
          if (!_vacationTouched)
          {
@@ -3460,7 +3493,8 @@ namespace hMailServer
       /// </summary>
       public IMAPFolders IMAPFolders => new IMAPFolders(this, IMAPFolders.RootParent);
 
-      public AccountRules Rules { get; } = new AccountRules();
+      private AccountRules rules_;
+      public AccountRules Rules => rules_ ??= new AccountRules(() => Address);
 
       /// <summary>The account's external accounts, under its address on the API.</summary>
       public FetchAccounts FetchAccounts => new FetchAccounts(this);
@@ -3543,26 +3577,28 @@ namespace hMailServer
          throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountTotp);
       }
 
+      // The directory link: ad_enabled, ad_username and ad_domain of
+      // PUT /api/v1/accounts/{address}, read back from the account's document.
       public bool IsAD
       {
-         get
-         {
-            throw NotOnThisServer.Skipped(NotOnThisServer.NoDirectoryLink);
-         }
-         set { NotOnThisServer.Ignore(NotOnThisServer.NoDirectoryLink, value); }
+         get { Require("ad_enabled", "IsAD"); return _isAd; }
+         set { _isAd = value; Set("ad_enabled", value ? "true" : "false"); }
       }
+      private bool _isAd;
 
       public string ADUsername
       {
-         get { throw NotOnThisServer.Skipped(NotOnThisServer.NoDirectoryLink); }
-         set { NotOnThisServer.Ignore(NotOnThisServer.NoDirectoryLink, value); }
+         get { Require("ad_username", "ADUsername"); return _adUsername; }
+         set { _adUsername = value; Set("ad_username", ServerApi.Quote(value ?? string.Empty)); }
       }
+      private string _adUsername = string.Empty;
 
       public string ADDomain
       {
-         get { throw NotOnThisServer.Skipped(NotOnThisServer.NoDirectoryLink); }
-         set { NotOnThisServer.Ignore(NotOnThisServer.NoDirectoryLink, value); }
+         get { Require("ad_domain", "ADDomain"); return _adDomain; }
+         set { _adDomain = value; Set("ad_domain", ServerApi.Quote(value ?? string.Empty)); }
       }
+      private string _adDomain = string.Empty;
 
       public DateTime LastLogonTime
       {
@@ -3832,9 +3868,19 @@ namespace hMailServer
          ServerApi.Delete("/api/v1/accounts/" + Address + "/messages").Expect(200, "DELETE /api/v1/accounts/" + Address + "/messages");
       }
 
-      public void ExportMessages(string directory)
+      /// <summary>
+      ///    Account.ExportMessages: POST /api/v1/accounts/{address}/export with the
+      ///    directory, answering the count. A refused directory is the route's 400,
+      ///    raised as the COM method raises it.
+      /// </summary>
+      public int ExportMessages(string directory)
       {
-         NotOnThisServer.Ignore(NotOnThisServer.NoExportMessages);
+         string path = "/api/v1/accounts/" + Uri.EscapeDataString(Address) + "/export";
+         var answer = ServerApi.Post(path, "{\"directory\":" + ServerApi.Quote(directory) + "}");
+         if (answer.Status == 400 || answer.Status == 500)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(200, "POST " + path);
+         return (int) ServerApi.LongOf(answer.Json.Value, "exported");
       }
 
       /// <summary>

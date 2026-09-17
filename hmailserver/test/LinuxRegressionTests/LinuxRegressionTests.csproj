@@ -54,6 +54,7 @@
     <Compile Include="..\RegressionTests\ExternalAccounts\ScriptedImapServer.cs" Link="ExternalAccounts\ScriptedImapServer.cs" />
     <Compile Include="..\RegressionTests\ExternalAccounts\ScriptedPop3Server.cs" Link="ExternalAccounts\ScriptedPop3Server.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\RetryHelper.cs" Link="Infrastructure\RetryHelper.cs" />
+    <Compile Include="..\RegressionTests\Infrastructure\PrivacyTools.cs" Link="Infrastructure\PrivacyTools.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\SpamdSimulator.cs" Link="Infrastructure\SpamdSimulator.cs" />
     <Compile Include="..\RegressionTests\POP3\Fetching\LockHelper.cs" Link="POP3\Fetching\LockHelper.cs" />
     <Compile Include="..\RegressionTests\SSL\SmtpDeliverySslTests.cs" Link="SSL\SmtpDeliverySslTests.cs" />
@@ -107,6 +108,8 @@
     <Compile Include="..\RegressionTests\API\RestApiDkimRotation.cs" Link="API\RestApiDkimRotation.cs" />
     <Compile Include="..\RegressionTests\API\RestApiReputationWatch.cs" Link="API\RestApiReputationWatch.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSetupChecklist.cs" Link="API\RestApiSetupChecklist.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiAccountRules.cs" Link="API\RestApiAccountRules.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiOperator.cs" Link="API\RestApiOperator.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSpamTraps.cs" Link="API\RestApiSpamTraps.cs" />
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
