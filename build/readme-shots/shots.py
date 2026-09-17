@@ -2,6 +2,7 @@
 # https://www.progressiverobot.com
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
+
 """The README's two webmail screenshots, taken against the real bench: the
 inbox with its tabs and a conversation open in the reading pane, and a message
 opened on its own. Run after bench.ps1 -Up and seed.ps1, with the bench service

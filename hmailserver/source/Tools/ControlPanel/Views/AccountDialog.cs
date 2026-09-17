@@ -662,7 +662,7 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             dynamic a = OpenAccount(domains);
-            int exported = (int) a.ExportArchive(save.FileName);
+            int exported = (int)a.ExportArchive(save.FileName);
             ServerSession.Release(a);
             folderNotice_.Show(StatusLevel.Good, F("Exported {0} message(s) and everything else the server holds to {1}.", exported, save.FileName));
          }
@@ -687,8 +687,8 @@ namespace hMailServer.ControlPanel.Views
          dynamic utilities = ServerSession.Current.Application.Utilities;
          try
          {
-            int removed = (int) utilities.EraseAddressTraces(address_, true);
-            int lines = (int) utilities.EraseAddressLogLines(address_);
+            int removed = (int)utilities.EraseAddressTraces(address_, true);
+            int lines = (int)utilities.EraseAddressLogLines(address_);
             folderNotice_.Show(StatusLevel.Good, F("Erased {0} stored trace(s) and rewrote {1} log line(s).", removed, lines));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -697,7 +697,7 @@ namespace hMailServer.ControlPanel.Views
          }
          finally
          {
-            ServerSession.Release((object) utilities);
+            ServerSession.Release((object)utilities);
          }
       }
 

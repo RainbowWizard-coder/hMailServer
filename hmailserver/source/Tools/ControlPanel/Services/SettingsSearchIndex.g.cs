@@ -379,6 +379,8 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("SMTP server maximum timeout (s)", "SMTPDMaxTimeout", "protocols"),
          new SettingEntry("SMTP server minimum timeout (s)", "SMTPDMinTimeout", "protocols"),
          new SettingEntry("SORT", "IMAPSortEnabled", "protocols"),
+         new SettingEntry("Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)", "QuotaGracePercent", "protocols"),
+         new SettingEntry("Stop an account sending at (% of its limit; 0 = never)", "QuotaSendStopPercent", "protocols"),
          new SettingEntry("Warn the mailbox owner at this percentage of their quota (0 = never)", "QuotaWarningPercent", "protocols"),
          new SettingEntry("Welcome banner (empty = default)", "WelcomeIMAP", "protocols"),
          new SettingEntry("Welcome banner (empty = default)", "WelcomePOP3", "protocols"),

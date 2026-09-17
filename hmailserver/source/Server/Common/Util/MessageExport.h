@@ -1,6 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 // A mailbox written to a directory as .eml files, one per message, in
 // directories mirroring the folder tree: what a person exercising a
 // data-access right is handed, and what Account.ExportMessages and

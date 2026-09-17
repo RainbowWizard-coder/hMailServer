@@ -421,21 +421,21 @@ namespace hMailServer.ControlPanel.Services
 
             case ProbeKind.Spf:
             case ProbeKind.Dmarc:
-            {
-               // Presence of the record the receiving server would find: a TXT at
-               // the domain beginning v=spf1, a TXT at _dmarc.<domain> beginning
-               // v=DMARC1. TXT records that exist without either are "no record"
-               // for the purpose - the receiver ignores them too.
-               string kind = probe.Kind == ProbeKind.Spf ? "SPF" : "DMARC"; // no-loc
-               string marker = probe.Kind == ProbeKind.Spf ? "v=spf1" : "v=DMARC1"; // no-loc
-               bool published = result.Status == DnsTxtLookup.LookupStatus.Found &&
-                  result.Records.Any(r => (r ?? "").Trim().StartsWith(marker, StringComparison.OrdinalIgnoreCase));
-               finding.State = published ? SetupItemState.Done : SetupItemState.ActionNeeded;
-               finding.Text = published
-                  ? F("{0}: the {1} record at {2} is published.", probe.Label, kind, probe.Host)
-                  : F("{0}: no {1} record at {2}.", probe.Label, kind, probe.Host);
-               return;
-            }
+               {
+                  // Presence of the record the receiving server would find: a TXT at
+                  // the domain beginning v=spf1, a TXT at _dmarc.<domain> beginning
+                  // v=DMARC1. TXT records that exist without either are "no record"
+                  // for the purpose - the receiver ignores them too.
+                  string kind = probe.Kind == ProbeKind.Spf ? "SPF" : "DMARC"; // no-loc
+                  string marker = probe.Kind == ProbeKind.Spf ? "v=spf1" : "v=DMARC1"; // no-loc
+                  bool published = result.Status == DnsTxtLookup.LookupStatus.Found &&
+                     result.Records.Any(r => (r ?? "").Trim().StartsWith(marker, StringComparison.OrdinalIgnoreCase));
+                  finding.State = published ? SetupItemState.Done : SetupItemState.ActionNeeded;
+                  finding.Text = published
+                     ? F("{0}: the {1} record at {2} is published.", probe.Label, kind, probe.Host)
+                     : F("{0}: no {1} record at {2}.", probe.Label, kind, probe.Host);
+                  return;
+               }
 
             default: // MtaSts
                if (result.Status == DnsTxtLookup.LookupStatus.NoRecord)

@@ -72,11 +72,11 @@ namespace hMailServer.ControlPanel.Views
             AuditTrailReport report;
             try
             {
-               report = AuditTrailReport.Parse((string) utilities.GetAuditTrail(actor, PageSize, offset_));
+               report = AuditTrailReport.Parse((string)utilities.GetAuditTrail(actor, PageSize, offset_));
             }
             finally
             {
-               ServerSession.Release((object) utilities);
+               ServerSession.Release((object)utilities);
             }
 
             if (report.Error != null)
@@ -169,11 +169,11 @@ namespace hMailServer.ControlPanel.Views
             AuditTrailReport.Verification verification;
             try
             {
-               verification = AuditTrailReport.ParseVerification((string) utilities.VerifyAuditTrail());
+               verification = AuditTrailReport.ParseVerification((string)utilities.VerifyAuditTrail());
             }
             finally
             {
-               ServerSession.Release((object) utilities);
+               ServerSession.Release((object)utilities);
             }
 
             if (verification.Error != null)
@@ -220,11 +220,11 @@ namespace hMailServer.ControlPanel.Views
             string restored;
             try
             {
-               restored = (string) utilities.RevertAuditedChange((int) row.Id);
+               restored = (string)utilities.RevertAuditedChange((int)row.Id);
             }
             finally
             {
-               ServerSession.Release((object) utilities);
+               ServerSession.Release((object)utilities);
             }
 
             Reload();

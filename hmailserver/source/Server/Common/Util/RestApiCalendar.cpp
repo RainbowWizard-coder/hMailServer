@@ -1,7 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//
+
 // The signed-in account's calendars over REST: what the webmail's calendar
 // and tasks pages read and write. Several calendars with colours and shares
 // (/api/v1/me/calendars), the events of a window expanded instance by

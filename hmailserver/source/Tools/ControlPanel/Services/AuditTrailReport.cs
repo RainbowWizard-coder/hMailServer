@@ -69,7 +69,7 @@ namespace hMailServer.ControlPanel.Services
                }
             }
 
-            return new AuditTrailReport { Entries = rows, Total = (int) Long(root, "total"), Offset = (int) Long(root, "offset") };
+            return new AuditTrailReport { Entries = rows, Total = (int)Long(root, "total"), Offset = (int)Long(root, "offset") };
          }
          catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException)
          {

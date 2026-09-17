@@ -1,6 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 // A setting put back to the value its audit row says it had. See
 // AuditRevert.cpp for what can and cannot be put back from the trail.
 #pragma once

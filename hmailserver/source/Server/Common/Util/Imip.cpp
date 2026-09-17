@@ -1,6 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 // See Imip.h.
 
 #include "StdAfx.h"
@@ -18,8 +19,8 @@
 #include "GUIDCreator.h"
 #include "Encoding/Base64.h"
 #include "../BO/Account.h"
-#include "../MIME/Mime.h"
-#include "../MIME/MimeCode.h"
+#include "../Mime/Mime.h"
+#include "../Mime/MimeCode.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Application/Logger.h"
 

@@ -1,6 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 // See MessageExport.h. This lived inside COM/InterfaceAccount.cpp until the
 // REST API needed the same export, and two copies of a walk that must not
 // drop a folder is one too many.

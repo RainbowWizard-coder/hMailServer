@@ -1,7 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//
+
 // iMIP (RFC 6047): invitations, replies, cancellations and counter-proposals
 // carried by mail as text/calendar parts with a METHOD - the one standards
 // path between this server's calendar and Exchange, Microsoft 365, Google and
