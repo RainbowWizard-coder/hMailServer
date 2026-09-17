@@ -127,7 +127,7 @@ namespace RegressionTests.API
 
          // Locked: SMTP AUTH and POP3 refuse the right password.
          Assert.Throws<DeliveryFailedException>(() => Submit(sender.Address, first.Address, "Refused"), "A locked account cannot authenticate to submit.");
-         Assert.IsFalse(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password), "A locked account cannot log on to POP3.");
+         Assert.IsFalse(LogsOnToPop3(sender.Address), "A locked account cannot log on to POP3.");
 
          Dictionary<string, object> state = MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review", null).body);
          Assert.IsTrue(MiniJson.Flag(state, "locked"));
@@ -151,13 +151,13 @@ namespace RegressionTests.API
          StringAssert.Contains("Message 3", Pop3ClientSimulator.AssertGetFirstMessageText(third.Address, Password));
          Assert.AreEqual(0, MiniJson.List(MiniJson.Object(Admin("GET", "/api/v1/review", null).body), "messages").Count);
          Assert.AreEqual(404, Admin("POST", "/api/v1/review/" + id + "/release", null).status, "Released once.");
-         Assert.IsFalse(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password), "A release does not unlock the account.");
+         Assert.IsFalse(LogsOnToPop3(sender.Address), "A release does not unlock the account.");
 
          // The compromise lock cleared alone.
          (int status, string body) unlocked = Admin("POST", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review/unlock", null);
          Assert.AreEqual(200, unlocked.status, unlocked.body);
          StringAssert.Contains("\"unlocked\":true", unlocked.body);
-         Assert.IsTrue(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password), "Unlocked, the account logs on again.");
+         Assert.IsTrue(LogsOnToPop3(sender.Address), "Unlocked, the account logs on again.");
          Dictionary<string, object> after = MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review", null).body);
          Assert.IsFalse(MiniJson.Flag(after, "locked"));
          Assert.Greater(MiniJson.Number(after, "unlocked_at"), 0, "The unlock is recorded on the account.");
@@ -169,7 +169,7 @@ namespace RegressionTests.API
          Pop3ClientSimulator.AssertMessageCount(first.Address, Password, 2);
          Assert.AreEqual(0, MiniJson.List(MiniJson.Object(Admin("GET", "/api/v1/review", null).body), "messages").Count, "Nothing is held after the unlock.");
          Assert.IsFalse(MiniJson.Flag(MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review", null).body), "locked"), "The account is not locked again by its next message.");
-         Assert.IsTrue(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password));
+         Assert.IsTrue(LogsOnToPop3(sender.Address));
       }
 
       [Test]
@@ -189,7 +189,7 @@ namespace RegressionTests.API
          Pop3ClientSimulator.AssertMessageCount(third.Address, Password, 1);
 
          Assert.AreEqual(0, MiniJson.List(MiniJson.Object(Admin("GET", "/api/v1/review", null).body), "messages").Count, "Nothing is held in watch mode.");
-         Assert.IsTrue(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password), "Nothing is locked in watch mode.");
+         Assert.IsTrue(LogsOnToPop3(sender.Address), "Nothing is locked in watch mode.");
 
          Dictionary<string, object> state = MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review", null).body);
          Assert.IsFalse(MiniJson.Flag(state, "locked"));
@@ -230,36 +230,46 @@ namespace RegressionTests.API
          Assert.IsTrue(imap.CreateFolder("Sent"));
          imap.Disconnect();
 
-         // One sent now, three scheduled for a moment from now. The one sent now is
-         // the first submission, with its copy in Sent.
+         // One sent now, the rest scheduled for a moment from now. The one sent now
+         // is the first submission, with its copy in Sent.
          (int status, string body) sent = User("POST", "/api/v1/me/messages", sender.Address, "{\"to\":\"" + first.Address + "\",\"subject\":\"Now\",\"text\":\"Sent now.\"}");
          Assert.AreEqual(201, sent.status, sent.body);
          StringAssert.Contains("\"held\":false", sent.body);
          Pop3ClientSimulator.AssertMessageCount(first.Address, Password, 1);
 
-         // A second apart, so that the task runs them in this order.
-         Account[] readers = { second, third, fourth };
-         for (int i = 0; i < readers.Length; i++)
-         {
-            (int status, string body) draft = User("POST", "/api/v1/me/drafts", sender.Address, "{\"to\":\"" + readers[i].Address + "\",\"subject\":\"Later to " + readers[i].Address + "\",\"text\":\"Sent when the minute comes.\"}");
-            Assert.AreEqual(201, draft.status, draft.body);
-            long draftId = MiniJson.Number(MiniJson.Object(draft.body), "id");
-            string at = DateTime.Now.AddSeconds(1 + i).ToString("yyyy-MM-dd HH:mm:ss");
-            (int status, string body) scheduled = User("POST", "/api/v1/me/drafts/" + draftId + "/schedule", sender.Address, "{\"send_at\":\"" + at + "\"}");
-            Assert.AreEqual(201, scheduled.status, scheduled.body);
-         }
-
-         // The minute comes. The second scheduled send is the third submission and
-         // completes the shape; the third is submitted on the standing lock.
-         Thread.Sleep(4500);
-         (int status, string body) ran = Admin("POST", "/api/v1/scheduled/run", null);
-         Assert.AreEqual(200, ran.status, ran.body);
-         StringAssert.Contains("\"ran\":3", ran.body);
-
+         // The second submission is a scheduled draft that goes: its minute comes
+         // in a run of its own, and it is delivered - and so out of the queue -
+         // before the shape completes.
+         //
+         // It has to be, because a takeover holds the account's other mail still
+         // queued from the hour as well as the message that completed the shape
+         // (CompromiseDetector.h). Run with the two below, this send is still in
+         // the queue a few milliseconds later when the next one is judged, and
+         // whether it is delivered or swept into the hold is decided by whether
+         // the deliverer or the hold reaches its row first - which is no way to
+         // ask what this test is asking.
+         ScheduleDraft(sender.Address, second.Address, 1);
+         Thread.Sleep(2500);
+         (int status, string body) went = Admin("POST", "/api/v1/scheduled/run", null);
+         Assert.AreEqual(200, went.status, went.body);
+         StringAssert.Contains("\"ran\":1", went.body);
          Pop3ClientSimulator.AssertMessageCount(second.Address, Password, 1);
 
-         List<Dictionary<string, object>> messages = MiniJson.List(MiniJson.Object(Admin("GET", "/api/v1/review", null).body), "messages").Cast<Dictionary<string, object>>().ToList();
-         Assert.AreEqual(2, messages.Count, "The send that completed the shape and the one after it are held.");
+         // A second apart, so that the task runs them in this order.
+         ScheduleDraft(sender.Address, third.Address, 1);
+         ScheduleDraft(sender.Address, fourth.Address, 2);
+
+         // The minute comes. The first of these is the third submission and
+         // completes the shape; the second is submitted on the standing lock.
+         Thread.Sleep(3500);
+         (int status, string body) ran = Admin("POST", "/api/v1/scheduled/run", null);
+         Assert.AreEqual(200, ran.status, ran.body);
+         StringAssert.Contains("\"ran\":2", ran.body);
+
+         (int status, string body) listed = Admin("GET", "/api/v1/review", null);
+         Assert.AreEqual(200, listed.status, listed.body);
+         List<Dictionary<string, object>> messages = MiniJson.List(MiniJson.Object(listed.body), "messages").Cast<Dictionary<string, object>>().ToList();
+         Assert.AreEqual(2, messages.Count, "The send that completed the shape and the one after it are held, and nothing else: " + listed.body);
          Dictionary<string, object> onLock = messages[0];
          Dictionary<string, object> completed = messages[1];
          Assert.AreEqual("webmail", (string) completed["source"]);
@@ -268,7 +278,7 @@ namespace RegressionTests.API
          StringAssert.Contains("never written to", (string) completed["reason"]);
          StringAssert.Contains(fourth.Address, (string) onLock["recipients"]);
          StringAssert.Contains("locked", (string) onLock["reason"]);
-         Assert.IsFalse(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password), "The account is locked by a scheduled send like any other.");
+         Assert.IsFalse(LogsOnToPop3(sender.Address), "The account is locked by a scheduled send like any other.");
 
          // Released: delivered, and the Sent copy made now. Discarded: nothing.
          Assert.AreEqual(200, Admin("POST", "/api/v1/review/" + Convert.ToInt64(completed["id"]) + "/release", null).status);
@@ -348,14 +358,14 @@ namespace RegressionTests.API
             Submit(sender.Address, first.Address, "Keyed 1");
             Submit(sender.Address, second.Address, "Keyed 2");
             Submit(sender.Address, third.Address, "Keyed 3");
-            Assert.IsFalse(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password));
+            Assert.IsFalse(LogsOnToPop3(sender.Address));
 
             // The key's unlock clears the other two locks and says the compromise
             // lock was kept; the account stays locked.
             (int status, string body) keyed = Key("POST", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/unlock", secret, null);
             Assert.AreEqual(200, keyed.status, keyed.body);
             StringAssert.Contains("\"compromise_lock_cleared\":false", keyed.body);
-            Assert.IsFalse(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password), "An api key does not clear the compromise lock.");
+            Assert.IsFalse(LogsOnToPop3(sender.Address), "An api key does not clear the compromise lock.");
             Assert.IsTrue(MiniJson.Flag(MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review", null).body), "locked"));
 
             // Nor the review routes, nor the detection's settings.
@@ -370,7 +380,7 @@ namespace RegressionTests.API
             (int status, string body) unlocked = Admin("POST", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/unlock", null);
             Assert.AreEqual(200, unlocked.status, unlocked.body);
             StringAssert.Contains("\"compromise_lock_cleared\":true", unlocked.body);
-            Assert.IsTrue(new Pop3ClientSimulator().ConnectAndLogon(sender.Address, Password));
+            Assert.IsTrue(LogsOnToPop3(sender.Address));
             Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"compromise_score_to_lock\":3}").status);
          }
          finally
@@ -410,7 +420,7 @@ namespace RegressionTests.API
          Submit(newsletter.Address, second.Address, "Issue 2");
          Submit(newsletter.Address, third.Address, "Issue 3");
          Pop3ClientSimulator.AssertMessageCount(third.Address, Password, 1);
-         Assert.IsTrue(new Pop3ClientSimulator().ConnectAndLogon(newsletter.Address, Password), "An exempt account is not locked.");
+         Assert.IsTrue(LogsOnToPop3(newsletter.Address), "An exempt account is not locked.");
          Assert.AreEqual(0, MiniJson.List(MiniJson.Object(Admin("GET", "/api/v1/review", null).body), "messages").Count);
 
          // The other account is judged, and its held message is discarded.
@@ -434,9 +444,9 @@ namespace RegressionTests.API
          StringAssert.Contains("Issue 3", Pop3ClientSimulator.AssertGetFirstMessageText(third.Address, Password));
 
          // The general unlock clears every lock the account is behind, this one included.
-         Assert.IsFalse(new Pop3ClientSimulator().ConnectAndLogon(other.Address, Password));
+         Assert.IsFalse(LogsOnToPop3(other.Address));
          Assert.AreEqual(200, Admin("POST", "/api/v1/accounts/" + Uri.EscapeDataString(other.Address) + "/unlock", null).status);
-         Assert.IsTrue(new Pop3ClientSimulator().ConnectAndLogon(other.Address, Password), "The general unlock lets the account back in.");
+         Assert.IsTrue(LogsOnToPop3(other.Address), "The general unlock lets the account back in.");
       }
 
       /// <summary>One authenticated submission over SMTP, as a mail client makes it.</summary>
@@ -444,6 +454,34 @@ namespace RegressionTests.API
       {
          string error;
          new SmtpClientSimulator().Send(false, from, Password, from, to, subject, "The text of " + subject + ".", out error);
+      }
+
+      /// <summary>A draft the webmail writes and schedules for so many seconds from now.</summary>
+      private static void ScheduleDraft(string from, string to, int seconds)
+      {
+         (int status, string body) draft = User("POST", "/api/v1/me/drafts", from, "{\"to\":\"" + to + "\",\"subject\":\"Later to " + to + "\",\"text\":\"Sent when the minute comes.\"}");
+         Assert.AreEqual(201, draft.status, draft.body);
+
+         long draftId = MiniJson.Number(MiniJson.Object(draft.body), "id");
+         string at = DateTime.Now.AddSeconds(seconds).ToString("yyyy-MM-dd HH:mm:ss");
+         (int status, string body) scheduled = User("POST", "/api/v1/me/drafts/" + draftId + "/schedule", from, "{\"send_at\":\"" + at + "\"}");
+         Assert.AreEqual(201, scheduled.status, scheduled.body);
+      }
+
+      /// <summary>
+      ///    A POP3 logon and nothing else, the session closed again: a POP3 session
+      ///    that stays open holds the maildrop, and the next logon for the same
+      ///    account is answered "-ERR [IN-USE] Your mailbox is already locked" -
+      ///    which is a refusal about the mailbox, not about the lock these
+      ///    assertions are asking after. The account that is unlocked here logs on
+      ///    twice.
+      /// </summary>
+      private static bool LogsOnToPop3(string address)
+      {
+         var client = new Pop3ClientSimulator();
+         bool loggedOn = client.ConnectAndLogon(address, Password);
+         client.Disconnect();
+         return loggedOn;
       }
 
       /// <summary>The newest account.compromised event, or null.</summary>

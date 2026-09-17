@@ -277,6 +277,29 @@ namespace HM
       // Fetch the message ID before we delete the message and it's reset.
       __int64 messageID = pMessage->GetID();
 
+      // Taken out of the queue after it was picked up? The compromised-account
+      // detection holds an account's other queued mail from the hour when it
+      // locks the account (Util/CompromiseDetector.h), and the row it holds may
+      // be one this deliverer has already selected: the pending list is read
+      // once and walked, so "messagelocked = 0", which is all the hold's update
+      // can see, was still true when the deliverer chose this message and is no
+      // longer proof that nobody has it. Delivering it anyway put the message in
+      // the recipient's mailbox AND on the review page, where releasing it would
+      // deliver a second copy and discarding it would take nothing back.
+      //
+      // The lock is taken before the delivery task is queued and this runs in
+      // the task, so a hold that succeeded happened before this read: whichever
+      // of the two reached the row first now decides, and the other stands down.
+      // The lock goes back, since a released message is found again by the
+      // deliverer's "messagelocked = 0" select.
+      if (PersistentMessage::IsHeldForReview(messageID))
+      {
+         PersistentMessage::UnlockObject(pMessage);
+
+         LOG_DEBUG("Message " + StringParser::IntToString(messageID) + " was held for review after it was queued for delivery. It is left for the review page.");
+         return;
+      }
+
       // Before we do anything else, check that the message file exists. If the file
       // does not exist, there is nothing to deliver. So if the file does not exist,
       // delete pMessage from the database and report in the application log.

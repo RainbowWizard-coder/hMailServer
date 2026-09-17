@@ -45,6 +45,14 @@ namespace HM
       static bool UnlockAll();
       static bool DeleteFile(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage);
 
+      // What the queue row says the message is NOW - asked by the deliverer of the
+      // message it is about to deliver, because the row can change between the
+      // select that found it and the delivery itself (Util/CompromiseDetector.h
+      // takes an account's queued mail out of the queue when the account is
+      // locked). False when the row is gone or the database does not answer: a
+      // message is delivered unless something says otherwise.
+      static bool IsHeldForReview(__int64 messageID);
+
       static bool GetMessageID(const String &fileName, __int64 &messageID, bool &isPartialFilename);
       static bool ReadObject(std::shared_ptr<DALRecordset> pRS, std::shared_ptr<Message> pMessage, bool bReadRecipients = true);
       static bool ReadObject(std::shared_ptr<Message> pMessage, __int64 ObjectID);

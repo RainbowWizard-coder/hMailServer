@@ -480,6 +480,26 @@ namespace HM
       return Application::Instance()->GetDBManager()->Execute(command);
    }
 
+   bool
+   PersistentMessage::IsHeldForReview(__int64 messageID)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Whether the queue row now says the message is held for review.
+   //---------------------------------------------------------------------------()
+   {
+      if (messageID <= 0)
+         return false;
+
+      SQLCommand command("select messagetype from hm_messages where messageid = @MESSAGEID");
+      command.AddParameter("@MESSAGEID", messageID);
+
+      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!pRS || pRS->IsEOF())
+         return false;
+
+      return pRS->GetLongValue("messagetype") == Message::HeldForReview;
+   }
+
    std::shared_ptr<Message>
    PersistentMessage::CopyToQueue(std::shared_ptr<const Account> sourceAccount, std::shared_ptr<Message> sourceMessage)
    {
