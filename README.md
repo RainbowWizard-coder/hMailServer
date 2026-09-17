@@ -36,7 +36,8 @@ Mail protocols
 * **POP3**, including retrieval from external POP3 accounts on a schedule - and from external **IMAP** accounts (`ServerType` 1: the INBOX, collected once by UID and left on the server unless told otherwise; with `MirrorFolders` on, every folder, byte for byte with flags and dates - a migration, see [Migration.md](hmailserver/docs/Migration.md)).
 * **Public folders**, shared across accounts with per-user ACLs.
 * **CardDAV** (RFC 6352): each account's address book - the one the webmail keeps - served to phones and desktop clients from the web services listener, found by RFC 6764 discovery. See [Administration](#administration).
-* **CalDAV** (RFC 4791): each account's calendar of events and tasks, served beside the address book from the same listener and found the same way, with an iCalendar module that expands recurrence across time zones. See [Administration](#administration).
+* **CalDAV** (RFC 4791): each account's calendars of events and tasks - several, with colours, shared with other accounts read-only or read-write - served beside the address book from the same listener and found the same way, with an iCalendar module that expands recurrence across time zones. See [Administration](#administration).
+* **A calendar and a task list in the webmail** — month, week, day and agenda views over the same calendars a phone syncs, events created by a click and moved or resized by drag, a recurrence editor, reminders, guests invited by mail; tasks ticked off in the page or on the phone; and invitations by mail (iMIP) with Accept, Maybe, Decline and a counter-proposal, the answer filed into the organiser's event on delivery ([Calendar.md](hmailserver/docs/Calendar.md)).
 
 Transport security
 ------------------

@@ -496,10 +496,111 @@ function pushRow(device) {
    };
 }
 
+// The calendar, the tasks and an invitation: what the page's calendar and
+// tasks pages and the invitation card read. The events are answered relative
+// to the window asked for, so the month on the page - whatever month the run
+// happens in - has one recurring standup and one all-day event in it; the
+// wall clock of the standup (calWall) is what the drag and resize checks
+// expect to see written back.
+let calendarsState = [
+   { id: 1, name: 'calendar', display_name: 'Calendar', color: '', owner: 'user@example.com', mine: true, writable: true, is_default: true, sync_token: 1, shares: [] },
+   { id: 2, name: 'work', display_name: 'Work', color: '#1a73e8', owner: 'user@example.com', mine: true, writable: true, is_default: false, sync_token: 1, shares: [{ address: 'b@example.net', write: false }] },
+   { id: 3, name: 'team', display_name: 'Team', color: '#d93025', owner: 'b@example.net', mine: false, writable: false, is_default: false, sync_token: 1, shares: [] }
+];
+const calWall = { start: null, end: null };
+function utcStamp(d) { const p = (n) => (n < 10 ? '0' : '') + n; return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + 'T' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + 'Z'; }
+function localStamp(d) { const p = (n) => (n < 10 ? '0' : '') + n; return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + 'T' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()); }
+function eventsIn(query) {
+   const m = /start=(\d{8}T\d{6}Z)&end=(\d{8}T\d{6}Z)/.exec(query || '');
+   if (!m) { return []; }
+   const startOf = (s) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8), +s.slice(9, 11), +s.slice(11, 13), +s.slice(13, 15)));
+   const from = startOf(m[1]), to = startOf(m[2]);
+   const out = [];
+   // The standup: 09:00-09:30 UTC on the tenth day of the window, or the first when the window is short.
+   const day = new Date(from.getTime() + (to - from > 20 * 86400000 ? 10 : to - from > 2 * 86400000 ? 1 : 0) * 86400000);
+   const s = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 9, 0, 0));
+   const e = new Date(s.getTime() + 30 * 60000);
+   if (s >= from && s < to) {
+      calWall.start = s;
+      calWall.end = e;
+      out.push({ id: 10, calendar: 2, uid: 'standup@example.com', start: utcStamp(s), end: utcStamp(e), local_start: localStamp(s), local_end: localStamp(e), recurring: true, recurrence_id: '20260921T090000Z',
+         overridden: false, writable: true, mine: true, color: '#1a73e8', summary: 'Standup', location: '', description: '', tz: 'UTC', rrule: 'FREQ=WEEKLY;COUNT=3', alarm_minutes: 10,
+         organizer: 'user@example.com', organizer_name: '', attendees: [{ address: 'guest@example.com', name: 'Guest Person', partstat: 'ACCEPTED' }], my_partstat: '', status: '', sequence: 1, all_day: false });
+   }
+   const allDay = new Date(from.getTime() + 12 * 86400000);
+   const a = new Date(Date.UTC(allDay.getUTCFullYear(), allDay.getUTCMonth(), allDay.getUTCDate()));
+   if (a >= from && a < to) {
+      out.push({ id: 11, calendar: 1, uid: 'away@example.com', start: utcStamp(a), end: utcStamp(new Date(a.getTime() + 86400000)), local_start: localStamp(a).slice(0, 10), local_end: localStamp(new Date(a.getTime() + 86400000)).slice(0, 10),
+         recurring: false, recurrence_id: '', overridden: false, writable: true, mine: true, color: '', summary: 'Away', location: '', description: '', tz: '', rrule: '', alarm_minutes: -1,
+         organizer: '', organizer_name: '', attendees: [], my_partstat: '', status: '', sequence: 0, all_day: true });
+   }
+   return out;
+}
+let tasksState = [
+   { id: 21, calendar: 1, uid: 'milk@example.com', summary: 'Buy milk', description: 'Two litres.', due: '20260920T000000Z', local_due: '2026-09-20', all_day: true, tz: '', completed: false, completed_at: '', priority: 0, status: 'NEEDS-ACTION', writable: true, mine: true, color: '', sequence: 0 },
+   { id: 22, calendar: 2, uid: 'report@example.com', summary: 'Write the report', description: '', due: '20200101T090000Z', local_due: '2020-01-01T09:00', all_day: false, tz: 'UTC', completed: false, completed_at: '', priority: 1, status: 'NEEDS-ACTION', writable: true, mine: true, color: '#1a73e8', sequence: 0 },
+   { id: 23, calendar: 1, uid: 'old@example.com', summary: 'Old chore', description: '', due: '', local_due: '', all_day: false, tz: '', completed: true, completed_at: '20260901T100000Z', priority: 0, status: 'COMPLETED', writable: true, mine: true, color: '', sequence: 1 }
+];
+const INVITED = {
+   id: 106, folder_id: 1, uid: 16, subject: 'Invitation: Board meeting', from: 'Sam Self <self@example.com>', to: 'user@example.com', cc: '',
+   date: '2026-09-10 09:00', size: 2600, message_id: '<invite@example.com>', references: '', in_reply_to: '',
+   text: 'You are invited to: Board meeting', html: '', html_remote: false, invitation: true,
+   flags: { seen: true, flagged: false, draft: false }, attachments: []
+};
+let invitationAnswer = '';
+function invitationJson() {
+   return { method: 'REQUEST', component: 'VEVENT', uid: 'board@example.com', start: '20261019T080000Z', end: '20261019T090000Z', local_start: '2026-10-19T09:00', local_end: '2026-10-19T10:00', recurring: false,
+      in_calendar: invitationAnswer !== '', event_id: invitationAnswer ? 30 : 0, calendar: invitationAnswer ? 1 : 0, stored_partstat: invitationAnswer, stored_status: '', i_am_organizer: false,
+      summary: 'Board meeting', location: 'Room 9', description: 'Bring numbers.', tz: 'Europe/London', rrule: '', alarm_minutes: -1, organizer: 'self@example.com', organizer_name: 'Sam Self',
+      attendees: [{ address: 'user@example.com', name: '', partstat: invitationAnswer || 'NEEDS-ACTION' }], my_partstat: invitationAnswer || 'NEEDS-ACTION', status: '', sequence: 0, all_day: false };
+}
+function answerCalendar(method, path, body) {
+   if (path === '/api/v1/me/calendars' && method === 'GET') { return json(200, { calendars: calendarsState }); }
+   if (path === '/api/v1/me/calendars' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const made = { id: 4 + calendarsState.length, name: String(wanted.display_name || '').toLowerCase(), display_name: wanted.display_name, color: wanted.color || '', owner: 'user@example.com', mine: true, writable: true, is_default: false, sync_token: 1, shares: [] };
+      calendarsState = calendarsState.concat([made]);
+      return json(201, made);
+   }
+   let m = /^\/api\/v1\/me\/calendars\/(\d+)\/shares\/(.+)$/.exec(path);
+   if (m && method === 'PUT') { const c = calendarsState.filter((x) => x.id === Number(m[1]))[0]; if (!c) { return json(404, { error: 'calendar not found' }); } c.shares = c.shares.concat([{ address: decodeURIComponent(m[2]), write: !!JSON.parse(body || '{}').write }]); return json(200, c); }
+   if (m && method === 'DELETE') { const c = calendarsState.filter((x) => x.id === Number(m[1]))[0]; if (!c) { return json(404, { error: 'calendar not found' }); } c.shares = c.shares.filter((s) => s.address !== decodeURIComponent(m[2])); return json(200, c); }
+   m = /^\/api\/v1\/me\/calendars\/(\d+)$/.exec(path);
+   if (m && method === 'PUT') { const c = calendarsState.filter((x) => x.id === Number(m[1]))[0]; if (!c) { return json(404, { error: 'calendar not found' }); } Object.assign(c, JSON.parse(body || '{}')); return json(200, c); }
+   if (m && method === 'DELETE') { calendarsState = calendarsState.filter((x) => x.id !== Number(m[1])); return json(200, { deleted: true }); }
+   if (path.startsWith('/api/v1/me/calendar/events?') && method === 'GET') { return json(200, { events: eventsIn(path.split('?')[1]) }); }
+   if (path === '/api/v1/me/calendar/events' && method === 'POST') { return json(201, { id: 40, uid: 'new@example.com', calendar: 1, invited: 2 }); }
+   m = /^\/api\/v1\/me\/calendar\/events\/(\d+)(\?.*)?$/.exec(path);
+   if (m && method === 'PUT') { return json(200, { id: Number(m[1]), uid: 'x', calendar: 2 }); }
+   if (m && method === 'DELETE') { return json(200, { removed: 'event', id: Number(m[1]) }); }
+   if (m && method === 'GET') { return json(200, { id: Number(m[1]) }); }
+   if (path === '/api/v1/me/tasks' && method === 'GET') { return json(200, { tasks: tasksState }); }
+   if (path === '/api/v1/me/tasks' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const made = { id: 24, calendar: wanted.calendar || 1, uid: 'bank@example.com', summary: wanted.summary, description: '', due: wanted.due ? wanted.due.replace(/-/g, '') + 'T000000Z' : '', local_due: wanted.due || '', all_day: true, tz: '', completed: false, completed_at: '', priority: 0, status: 'NEEDS-ACTION', writable: true, mine: true, color: '', sequence: 0 };
+      tasksState = tasksState.concat([made]);
+      return json(201, made);
+   }
+   m = /^\/api\/v1\/me\/tasks\/(\d+)$/.exec(path);
+   if (m && method === 'PUT') { const task = tasksState.filter((x) => x.id === Number(m[1]))[0]; if (!task) { return json(404, { error: 'task not found' }); } const wanted = JSON.parse(body || '{}'); if (wanted.completed !== undefined) { task.completed = !!wanted.completed; } if (wanted.summary) { task.summary = wanted.summary; } return json(200, task); }
+   if (m && method === 'DELETE') { tasksState = tasksState.filter((x) => x.id !== Number(m[1])); return json(200, { removed: true }); }
+   if (path === '/api/v1/me/messages/106' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(INVITED)))); }
+   if (path === '/api/v1/me/messages/106/invitation' && method === 'GET') { return json(200, invitationJson()); }
+   if (path === '/api/v1/me/messages/106/invitation/reply' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      if (wanted.action === 'counter') { return json(200, { countered: true, to: 'self@example.com' }); }
+      if (wanted.action === 'remove') { invitationAnswer = ''; return json(200, { removed: true }); }
+      invitationAnswer = wanted.action === 'accept' ? 'ACCEPTED' : wanted.action === 'decline' ? 'DECLINED' : 'TENTATIVE';
+      return json(200, { stored: true, event_id: 30, calendar: 1, partstat: invitationAnswer, replied: true, to: 'self@example.com' });
+   }
+   return null;
+}
+
 function answer(method, path, body) {
    if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
+   { const calendar = answerCalendar(method, path, body); if (calendar) { return calendar; } }
    if (path === '/api/v1/me') {
       return json(200, {
          address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
@@ -2778,6 +2879,239 @@ async function main() {
       !!credentialCall && credentialCall.path === '/api/v1/me/devices/0123456789abcdef0123456789abcdef?credential=revoke',
       credentialCall ? credentialCall.path : 'no DELETE');
    document.getElementById('device-credential').checked = false;
+
+   {
+   // ---- the calendar: month, week and day over the events route, the editor,
+   // drag to move and drag to resize, the calendars beside it; the tasks; the
+   // invitation card a message shows
+   const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   const wall = (d) => new Intl.DateTimeFormat('en-GB', { hourCycle: 'h23', hour: '2-digit', minute: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).format(d);
+   const findAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+   const hasClass = (n, c) => String(n.className || '').split(/\s+/).indexOf(c) >= 0;
+   const bodyOf = (from, method, pattern) => { const hit = since(from).filter((r) => r.method === method && (typeof pattern === 'string' ? r.path === pattern : pattern.test(r.path)))[0]; return hit ? JSON.parse(hit.body || '{}') : null; };
+   const windowOf = (from) => { const hit = since(from).filter((r) => r.method === 'GET' && /^\/api\/v1\/me\/calendar\/events\?/.test(r.path)).pop(); if (!hit) { return null; } const m = /start=(\d{8}T\d{6}Z)&end=(\d{8}T\d{6}Z)/.exec(hit.path); return m ? { start: m[1], end: m[2], days: Math.round((utcOf(m[2]) - utcOf(m[1])) / 86400000) } : null; };
+   const utcOf = (s) => Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8), +s.slice(9, 11), +s.slice(11, 13), +s.slice(13, 15));
+   const beforeCalendar = requests.length;
+   location.hash = '#/calendar';
+   await flush();
+   check('the calendar page reads the calendars and a window of events', called(beforeCalendar, 'GET', '/api/v1/me/calendars') && !!windowOf(beforeCalendar),
+      JSON.stringify(since(beforeCalendar).map((r) => r.path).slice(0, 4)));
+   const monthWindow = windowOf(beforeCalendar);
+   check('the month view asks for six weeks', monthWindow && monthWindow.days === 42, JSON.stringify(monthWindow));
+   check('the page says which zone the times are in', document.getElementById('cal-zone').textContent.indexOf(words('Times are shown in {0}.').split('{0}')[0]) === 0, document.getElementById('cal-zone').textContent);
+   const calSection = document.getElementById('calendar-section');
+   check('the month is a grid of 42 days', findAll(calSection, (n) => hasClass(n, 'cal-cell')).length === 42, findAll(calSection, (n) => hasClass(n, 'cal-cell')).length + ' cells');
+   const chips = findAll(calSection, (n) => hasClass(n, 'cal-chip'));
+   check('an occurrence is a chip on its day, in its calendar\'s colour, with its time', chips.length >= 2 && chips.some((c) => c.textContent.indexOf('Standup') >= 0 && c.style.background === '#1a73e8'),
+      chips.map((c) => c.textContent + '|' + c.style.background).join(' ; '));
+   check('the calendars are listed with a box each and the shared one named by its owner', findAll(document.getElementById('cal-list'), (n) => hasClass(n, 'cal-row')).length === 3 &&
+      document.getElementById('cal-list').textContent.indexOf('Team (b@example.net)') >= 0, document.getElementById('cal-list').textContent);
+
+   // ---- the week and the day
+   const viewButton = (v) => findAll(document.getElementById('cal-views'), (n) => n.getAttribute('data-cal-view') === v)[0];
+   let beforeWeek = requests.length;
+   viewButton('week').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('the week view asks for seven days', windowOf(beforeWeek) && windowOf(beforeWeek).days === 7, JSON.stringify(windowOf(beforeWeek)));
+   check('and draws 24 hour slots in each of seven columns', findAll(calSection, (n) => hasClass(n, 'cal-col')).length === 7 && findAll(calSection, (n) => hasClass(n, 'cal-slot')).length === 24 * 7,
+      findAll(calSection, (n) => hasClass(n, 'cal-col')).length + ' columns');
+   const blocks = findAll(calSection, (n) => hasClass(n, 'cal-ev'));
+   check('a timed occurrence is a block placed by its hour', blocks.length >= 1 && /px$/.test(blocks[0].style.top) && /px$/.test(blocks[0].style.height), blocks.length + ' blocks');
+   const beforeDay = requests.length;
+   viewButton('day').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('the day view asks for one day and draws one column', windowOf(beforeDay) && windowOf(beforeDay).days === 1 && findAll(calSection, (n) => hasClass(n, 'cal-col')).length === 1, JSON.stringify(windowOf(beforeDay)));
+   const beforeAgenda = requests.length;
+   viewButton('agenda').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('the agenda lists the occurrences by day', windowOf(beforeAgenda) && windowOf(beforeAgenda).days === 31 && findAll(calSection, (n) => hasClass(n, 'cal-agenda-row')).length >= 1, JSON.stringify(windowOf(beforeAgenda)));
+   const beforeNext = requests.length;
+   viewButton('month').dispatchEvent(makeEvent('click'));
+   await flush();
+   document.getElementById('cal-next').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('Next moves a month on and reads it', windowOf(beforeNext) && utcOf(windowOf(beforeNext).start) > utcOf(monthWindow.start) + 20 * 86400000, JSON.stringify(windowOf(beforeNext)));
+   document.getElementById('cal-today').dispatchEvent(makeEvent('click'));
+   await flush();
+
+   // ---- the editor: a new event with a rule, a reminder and guests
+   document.getElementById('cal-new').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('New event opens the editor', document.getElementById('event-overlay').hidden === false && document.getElementById('event-summary').value === '');
+   document.getElementById('event-summary').value = 'Planning';
+   document.getElementById('event-start').value = '2026-10-19T09:00';
+   document.getElementById('event-end').value = '2026-10-19T10:00';
+   document.getElementById('event-location').value = 'Room 4';
+   document.getElementById('event-repeat').value = 'weekly';
+   document.getElementById('event-repeat').dispatchEvent(makeEvent('change'));
+   findAll(document.getElementById('event-days'), (n) => n.tagName === 'INPUT' && n.value === 'MO')[0].checked = true;
+   document.getElementById('event-ends').value = 'after';
+   document.getElementById('event-ends').dispatchEvent(makeEvent('change'));
+   document.getElementById('event-count').value = '3';
+   document.getElementById('event-alarm').value = '10';
+   document.getElementById('event-attendees').value = 'Guest <guest@example.com>, b@example.net';
+   const beforeSave = requests.length;
+   document.getElementById('event-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const created = bodyOf(beforeSave, 'POST', '/api/v1/me/calendar/events');
+   check('saving posts the event with its wall-clock times, the zone, the rule, the reminder and the guests, and asks for the invitations',
+      !!created && created.summary === 'Planning' && created.start === '2026-10-19T09:00' && created.end === '2026-10-19T10:00' && typeof created.tz === 'string' && created.tz.length > 0 &&
+      created.rrule === 'FREQ=WEEKLY;BYDAY=MO;COUNT=3' && created.alarm_minutes === 10 && created.location === 'Room 4' &&
+      JSON.stringify(created.attendees) === '["Guest <guest@example.com>","b@example.net"]' && created.invite === true && created.all_day === false,
+      JSON.stringify(created));
+   check('the editor closes and the events are read again', document.getElementById('event-overlay').hidden === true && !!windowOf(beforeSave), JSON.stringify(since(beforeSave).map((r) => r.method + ' ' + r.path)));
+
+   // ---- an occurrence opened: the editor shows its answer and offers the scope
+   const standup = findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Standup') >= 0)[0];
+   standup.dispatchEvent(makeEvent('click'));
+   await flush();
+   check('opening a recurring occurrence offers this occurrence or the series, and shows the guests with their answers',
+      document.getElementById('event-overlay').hidden === false && document.getElementById('event-scope-row').hidden === false && document.getElementById('event-summary').value === 'Standup' &&
+      document.getElementById('event-attendee-list').textContent.indexOf('Guest Person') >= 0 && document.getElementById('event-attendee-list').textContent.indexOf(words('accepted')) >= 0,
+      document.getElementById('event-attendee-list').textContent);
+   document.getElementById('event-summary').value = 'Standup (moved)';
+   const beforeOccurrence = requests.length;
+   document.getElementById('event-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const occurrence = bodyOf(beforeOccurrence, 'PUT', '/api/v1/me/calendar/events/10');
+   check('saving the occurrence PUTs the event with instance set to its recurrence id and no rule', !!occurrence && occurrence.instance === '20260921T090000Z' && occurrence.summary === 'Standup (moved)' && occurrence.rrule === undefined, JSON.stringify(occurrence));
+
+   // ---- drag a chip to another day: the wall time is kept, the day changes
+   confirmAnswer = false;   // the whole series
+   const chipToDrag = findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Standup') >= 0)[0];
+   const fromCell = (() => { let n = chipToDrag.parentNode; while (n && !hasClass(n, 'cal-cell')) { n = n.parentNode; } return n; })();
+   const cells = findAll(calSection, (n) => hasClass(n, 'cal-cell'));
+   const targetCell = cells[cells.indexOf(fromCell) + 2];
+   const beforeDrag = requests.length;
+   chipToDrag.dispatchEvent(makeEvent('dragstart', { dataTransfer: { setData() {}, effectAllowed: '' } }));
+   targetCell.dispatchEvent(makeEvent('dragover'));
+   targetCell.dispatchEvent(makeEvent('drop'));
+   await flush();
+   const dragged = bodyOf(beforeDrag, 'PUT', '/api/v1/me/calendar/events/10');
+   check('dropping the chip two days on moves the series to that day at the same time',
+      !!dragged && dragged.start === targetCell.getAttribute('data-day') + 'T' + wall(calWall.start) && dragged.end === targetCell.getAttribute('data-day') + 'T' + wall(calWall.end) && dragged.instance === undefined && typeof dragged.tz === 'string',
+      JSON.stringify(dragged) + ' onto ' + targetCell.getAttribute('data-day') + ' expected ' + wall(calWall.start) + '-' + wall(calWall.end));
+   confirmAnswer = true;
+
+   // ---- resize in the week view: the bottom edge dragged an hour down
+   viewButton('week').dispatchEvent(makeEvent('click'));
+   await flush();
+   const handle = findAll(calSection, (n) => hasClass(n, 'cal-ev-resize'))[0];
+   check('a writable block has a resize handle', !!handle);
+   const beforeResize = requests.length;
+   handle.dispatchEvent(makeEvent('mousedown', { clientY: 100, preventDefault() {}, stopPropagation() {} }));
+   document.dispatchEvent(makeEvent('mousemove', { clientY: 148 }));
+   document.dispatchEvent(makeEvent('mouseup', { clientY: 148 }));
+   await flush();
+   const resized = bodyOf(beforeResize, 'PUT', '/api/v1/me/calendar/events/10');
+   check('releasing it an hour lower PUTs the end an hour later, for this occurrence', !!resized && resized.end === resized.start.slice(0, 11) + wall(new Date(calWall.end.getTime() + 3600000)) && resized.instance === '20260921T090000Z', JSON.stringify(resized) + ' expected ' + wall(new Date(calWall.end.getTime() + 3600000)));
+   viewButton('month').dispatchEvent(makeEvent('click'));
+   await flush();
+
+   // ---- the calendars beside the grid: one added, one shared
+   document.getElementById('cal-add-name').value = 'Projects';
+   document.getElementById('cal-add-color').value = '#188038';
+   const beforeCalAdd = requests.length;
+   document.getElementById('cal-add-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const calAdded = bodyOf(beforeCalAdd, 'POST', '/api/v1/me/calendars');
+   check('adding a calendar posts its name and colour and reads the list again', !!calAdded && calAdded.display_name === 'Projects' && calAdded.color === '#188038' && called(beforeCalAdd, 'GET', '/api/v1/me/calendars'), JSON.stringify(calAdded));
+   const editButtons = findAll(document.getElementById('cal-list'), (n) => n.tagName === 'BUTTON');
+   editButtons[1].dispatchEvent(makeEvent('click'));
+   await flush();
+   check('the calendar\'s details open with its name, its shares and the share form', document.getElementById('cal-detail').hidden === false && document.getElementById('cal-detail-name').value === 'Work' &&
+      document.getElementById('cal-detail').textContent.indexOf('b@example.net') >= 0, document.getElementById('cal-detail').textContent.slice(0, 200));
+   document.getElementById('cal-share-address').value = 'carol@example.org';
+   document.getElementById('cal-share-write').checked = true;
+   const beforeShare = requests.length;
+   findAll(document.getElementById('cal-detail'), (n) => n.tagName === 'FORM')[1].dispatchEvent(makeEvent('submit'));
+   await flush();
+   const shared = bodyOf(beforeShare, 'PUT', '/api/v1/me/calendars/2/shares/carol%40example.org');
+   check('sharing PUTs the address under the calendar with whether they may write', !!shared && shared.write === true, JSON.stringify(since(beforeShare).map((r) => r.method + ' ' + r.path)));
+   const beforeHide = requests.length;
+   const boxes = findAll(document.getElementById('cal-list'), (n) => n.tagName === 'INPUT' && n.type === 'checkbox');
+   boxes[1].checked = false;
+   boxes[1].dispatchEvent(makeEvent('change'));
+   await flush();
+   check('unticking a calendar hides its chips without another request and remembers it in this browser',
+      findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Standup') >= 0).length === 0 && since(beforeHide).length === 0 && String(store.get('hmPortalCalendarsHidden')).indexOf('2') >= 0,
+      String(store.get('hmPortalCalendarsHidden')) + ' | ' + since(beforeHide).length + ' requests');
+   boxes[1].checked = true;
+   boxes[1].dispatchEvent(makeEvent('change'));
+   await flush();
+
+   // ---- tasks
+   const beforeTasks = requests.length;
+   location.hash = '#/tasks';
+   await flush();
+   check('the tasks page reads the tasks', called(beforeTasks, 'GET', '/api/v1/me/tasks'));
+   const taskRows = () => findAll(document.getElementById('task-list'), (n) => hasClass(n, 'task-row'));
+   check('open tasks are listed with their due day and the completed one is hidden until asked for', taskRows().length === 2 && document.getElementById('task-list').textContent.indexOf('Buy milk') >= 0 &&
+      document.getElementById('task-list').textContent.indexOf('Old chore') < 0, document.getElementById('task-list').textContent);
+   check('an overdue task is marked', taskRows().some((r) => hasClass(r, 'overdue')), taskRows().map((r) => r.className).join(','));
+   document.getElementById('task-show-done').checked = true;
+   document.getElementById('task-show-done').dispatchEvent(makeEvent('change'));
+   check('showing completed tasks lists the done one struck through', taskRows().length === 3 && taskRows().some((r) => hasClass(r, 'done')));
+   document.getElementById('task-add-summary').value = 'Call the bank';
+   document.getElementById('task-add-due').value = '2026-09-25';
+   const beforeTaskAdd = requests.length;
+   document.getElementById('task-add-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const taskAdded = bodyOf(beforeTaskAdd, 'POST', '/api/v1/me/tasks');
+   check('adding a task posts its title, due day and list', !!taskAdded && taskAdded.summary === 'Call the bank' && taskAdded.due === '2026-09-25' && typeof taskAdded.calendar === 'number', JSON.stringify(taskAdded));
+   const milkRow = taskRows().filter((r) => r.textContent.indexOf('Buy milk') >= 0)[0];
+   const milkBox = findAll(milkRow, (n) => n.tagName === 'INPUT')[0];
+   const beforeTick = requests.length;
+   milkBox.checked = true;
+   milkBox.dispatchEvent(makeEvent('change'));
+   await flush();
+   const ticked = bodyOf(beforeTick, 'PUT', '/api/v1/me/tasks/21');
+   check('ticking a task PUTs completed', !!ticked && ticked.completed === true, JSON.stringify(ticked));
+   findAll(milkRow, (n) => hasClass(n, 'task-title'))[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   check('a task opens in its editor with its notes', document.getElementById('task-overlay').hidden === false && document.getElementById('task-summary').value === 'Buy milk' && document.getElementById('task-notes').value === 'Two litres.');
+   document.getElementById('task-priority').value = '1';
+   const beforeTaskSave = requests.length;
+   document.getElementById('task-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const taskSaved = bodyOf(beforeTaskSave, 'PUT', '/api/v1/me/tasks/21');
+   check('saving it PUTs the priority and the due day', !!taskSaved && taskSaved.priority === 1 && taskSaved.due === '2026-09-20' && taskSaved.all_day === true, JSON.stringify(taskSaved));
+   document.getElementById('task-show-done').checked = false;
+   document.getElementById('task-show-done').dispatchEvent(makeEvent('change'));
+
+   // ---- the invitation a message carries
+   const beforeInvite = requests.length;
+   location.hash = '#/m/106';
+   await flush();
+   check('a message marked as carrying an invitation asks for it', called(beforeInvite, 'GET', '/api/v1/me/messages/106/invitation'), JSON.stringify(since(beforeInvite).map((r) => r.path)));
+   const inviteBox = document.getElementById('message-invitation');
+   check('the card says what, when, where and who, and that it is not answered', inviteBox.hidden === false && inviteBox.textContent.indexOf('Board meeting') >= 0 && inviteBox.textContent.indexOf('Room 9') >= 0 &&
+      inviteBox.textContent.indexOf('Sam Self') >= 0 && inviteBox.textContent.indexOf(words('Not answered yet.')) >= 0, inviteBox.textContent.slice(0, 300));
+   const acceptButton = findAll(inviteBox, (n) => n.getAttribute('data-invite') === 'accept')[0];
+   check('Accept, Maybe and Decline are offered', !!acceptButton && findAll(inviteBox, (n) => n.getAttribute('data-invite') === 'decline').length === 1);
+   const beforeAccept = requests.length;
+   acceptButton.dispatchEvent(makeEvent('click'));
+   await flush();
+   const answered = bodyOf(beforeAccept, 'POST', '/api/v1/me/messages/106/invitation/reply');
+   check('Accept posts the answer and the card says the event is in the calendar', !!answered && answered.action === 'accept' && inviteBox.textContent.indexOf(words('You {0}.').replace('{0}', words('accepted'))) >= 0 && inviteBox.textContent.indexOf(words('It is in your calendar.')) >= 0,
+      JSON.stringify(answered) + ' | ' + inviteBox.textContent.slice(0, 300));
+   const proposeButton = findAll(inviteBox, (n) => n.tagName === 'BUTTON' && n.textContent === words('Propose a new time'))[0];
+   check('the answered card still offers a new time', !!proposeButton, inviteBox.textContent.slice(0, 400) + ' | buttons: ' + findAll(inviteBox, (n) => n.tagName === 'BUTTON').map((b) => b.textContent).join(','));
+   if (proposeButton) {
+   proposeButton.dispatchEvent(makeEvent('click'));
+   document.getElementById('invite-propose-start').value = '2026-10-19T11:00';
+   document.getElementById('invite-propose-end').value = '2026-10-19T12:00';
+   const beforeCounter = requests.length;
+   findAll(inviteBox, (n) => n.tagName === 'BUTTON' && n.textContent === words('Send proposal'))[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   const countered = bodyOf(beforeCounter, 'POST', '/api/v1/me/messages/106/invitation/reply');
+   check('proposing a new time posts a counter with the wall-clock times and the zone', !!countered && countered.action === 'counter' && countered.start === '2026-10-19T11:00' && countered.end === '2026-10-19T12:00' && typeof countered.tz === 'string', JSON.stringify(countered));
+   }
+   location.hash = '#/m/102';
+   await flush();
+   check('a message without an invitation shows no card', document.getElementById('message-invitation').hidden === true);
+
+   }
 
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();

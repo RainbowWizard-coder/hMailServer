@@ -550,6 +550,78 @@ table.keys td:first-child{white-space:nowrap;width:40%}
   letter-spacing:.4px;text-transform:uppercase}
 #tour-card p{font-size:13.5px;line-height:1.6;margin:10px 0 0}
 #tour-card p.row{margin-top:14px;gap:8px}
+/* The calendar and the tasks: the grid of a month, the hours of a week or a
+   day, the agenda, the calendars beside them, the event editor's sheet, and
+   the invitation card a message shows above its text. */
+.cal-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+.cal-head h2{font-size:20px;font-weight:400;margin:0 8px}
+.cal-head .tabs{margin:0;border:none;position:static;background:transparent}
+.cal-body{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px;align-items:start}
+.cal-side{position:sticky;top:0}
+.cal-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13.5px}
+.cal-row input[type=checkbox]{margin:0}
+.cal-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-dot{width:12px;height:12px;border-radius:50%;flex:none;background:var(--accent)}
+#cal-detail{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-2)}
+#cal-detail h3{margin:2px 0 8px;font-size:14px}
+#cal-detail .row{margin-top:8px}
+#cal-detail input[type=color]{width:44px;flex:none;padding:2px}
+.cal-share{font-size:13px;justify-content:space-between}
+.cal-month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--line);gap:1px}
+.cal-month-head{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface-2)}
+.cal-month-head span{padding:6px;font-size:12px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.3px}
+.cal-cell{background:var(--surface);min-height:104px;padding:4px;display:flex;flex-direction:column;gap:2px;cursor:pointer}
+.cal-cell.other{background:var(--read);color:var(--muted)}
+.cal-cell.over,.cal-slot.over,.cal-allday-cell.over{background:var(--accent-soft)}
+.cal-daynum{all:unset;cursor:pointer;align-self:flex-end;width:26px;height:26px;border-radius:50%;text-align:center;line-height:26px;font-size:13px}
+.cal-cell.today .cal-daynum{background:var(--accent);color:#fff;font-weight:600}
+.cal-chip{all:unset;cursor:pointer;display:flex;gap:4px;align-items:baseline;padding:2px 6px;border-radius:4px;font-size:12px;color:#fff;background:var(--accent);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.cal-chip .tm{opacity:.85;flex:none;font-variant-numeric:tabular-nums}
+.cal-chip .nm{overflow:hidden;text-overflow:ellipsis}
+.cal-chip.ro{opacity:.8}
+.cal-chip.cancelled .nm,.cal-ev.cancelled .nm{text-decoration:line-through}
+.cal-chip.declined,.cal-ev.declined{opacity:.55}
+.cal-week{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.cal-week-head,.cal-allday{display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr));border-bottom:1px solid var(--line)}
+.cal-week.one .cal-week-head,.cal-week.one .cal-allday,.cal-week.one .cal-hours{grid-template-columns:56px minmax(0,1fr)}
+.cal-week-head span{padding:8px 6px;font-size:13px;text-align:center;color:var(--text-2)}
+.cal-week-head span.today{color:var(--accent-text);font-weight:600}
+.cal-allday .gutter,.cal-week-head .gutter{font-size:11px;color:var(--muted);padding:6px;text-align:right}
+.cal-allday-cell{min-height:28px;padding:2px;display:flex;flex-direction:column;gap:2px;border-inline-start:1px solid var(--line)}
+.cal-hours{display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr));max-height:calc(100vh - 260px);overflow:auto}
+.cal-gutter span{display:block;height:48px;font-size:11px;color:var(--muted);text-align:right;padding-inline-end:6px;transform:translateY(-7px)}
+.cal-col{position:relative;border-inline-start:1px solid var(--line)}
+.cal-col.today{background:var(--read)}
+.cal-slot{height:48px;border-bottom:1px solid var(--line);cursor:pointer}
+.cal-ev{all:unset;cursor:pointer;position:absolute;left:2px;right:4px;display:flex;flex-direction:column;padding:3px 6px;border-radius:6px;font-size:12px;color:#fff;background:var(--accent);overflow:hidden;box-shadow:var(--shadow);z-index:1}
+.cal-ev .tm{opacity:.85;font-variant-numeric:tabular-nums}
+.cal-ev .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-ev-resize{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize}
+.cal-agenda h3{font-size:14px;font-weight:500;margin:16px 0 4px;color:var(--text-2)}
+.cal-agenda-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.cal-agenda-row .tm{width:64px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.cal-agenda-row .textbtn{color:var(--text);font-size:14px;padding:2px 4px}
+#event-form .row{margin-top:12px}
+#event-form label{display:flex;align-items:center;gap:8px;font-size:13.5px}
+#event-form input[type=number]{width:5rem}
+#event-days{display:flex;gap:6px;flex-wrap:wrap}
+#event-days label{gap:4px;font-size:13px}
+#event-attendee-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.task-row{display:flex;align-items:flex-start;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.task-row input[type=checkbox]{margin-top:3px}
+.task-words{flex:1;min-width:0}
+.task-title{all:unset;cursor:pointer;font-size:14.5px;display:block}
+.task-row.done .task-title{text-decoration:line-through;color:var(--muted)}
+.task-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);margin-top:3px}
+.task-meta .due.late{color:var(--danger);font-weight:500}
+.invite{margin:10px 0 14px;padding:14px 16px;border:1px solid var(--line);border-inline-start:4px solid var(--accent);border-radius:var(--radius);background:var(--surface-2)}
+.invite h3{font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin:0 0 4px}
+.invite .inv-title{font-size:17px;font-weight:500;margin-bottom:8px}
+.invite .inv-line{display:flex;gap:10px;font-size:13.5px;margin:3px 0}
+.invite .inv-line .k{width:76px;color:var(--muted);flex:none}
+.invite .inv-status{margin:10px 0 6px;font-size:13.5px}
+.invite .inv-status.error{color:var(--danger)}
+@media (max-width:900px){.cal-body{grid-template-columns:1fr}.cal-side{position:static}.cal-cell{min-height:64px}}
 </style>
 </head>
 <body data-theme="light">
@@ -567,6 +639,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
     <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8l-5.8 3.1 1.1-6.5L2.6 9.8l6.5-.9z"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-tasks" viewBox="0 0 24 24"><path d="m4 7 2 2 4-4M4 17l2 2 4-4M13 7h7M13 17h7"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="m3 3 18 9-18 9 3-9z"/><path d="M6 12h15"/></symbol>
     <symbol id="i-draft" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></symbol>
     <symbol id="i-archive" viewBox="0 0 24 24"><path d="M3 4h18v4H3zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></symbol>
@@ -693,6 +767,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="navhead">More</div>
 <nav class="nav" id="side-nav" aria-label="Pages">
 <button type="button" data-route="/held"><span class="ico"><svg class="i"><use href="#i-warn"/></svg></span><span class="nm">Held mail</span><span class="ct" id="held-count"></span></button>
+<button type="button" data-route="/calendar"><span class="ico"><svg class="i"><use href="#i-calendar"/></svg></span><span class="nm">Calendar</span></button>
+<button type="button" data-route="/tasks"><span class="ico"><svg class="i"><use href="#i-tasks"/></svg></span><span class="nm">Tasks</span></button>
 <button type="button" data-route="/contacts"><span class="ico"><svg class="i"><use href="#i-people"/></svg></span><span class="nm">Contacts</span></button>
 <button type="button" data-route="/scheduled"><span class="ico"><svg class="i"><use href="#i-clock"/></svg></span><span class="nm">Scheduled</span></button>
 </nav>
@@ -805,6 +881,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="label-menu" class="row" hidden></div>
 <pre id="message-headers" class="headers" hidden></pre>
 <div id="message-remote" class="infobar" hidden>Remote images and styles were not loaded. <span id="message-remote-count"></span> <span id="message-remote-habit"></span> <button id="remote-once" class="btn ghost sm" type="button">Show them</button><button id="remote-always" class="btn quiet sm" type="button">Always show from this sender</button></div>
+<div id="message-invitation" class="invite" hidden></div>
 <pre id="message-text" dir="auto"></pre>
 <iframe id="message-html" dir="auto" sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" title="The message as it was sent" hidden></iframe>
 <div id="message-attachments"></div>
@@ -849,6 +926,46 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <h2>Other contacts</h2>
 <p class="hint">People you have written to but not kept. Keep one to have it in your address book and on your phone.</p>
 <table class="list"><thead><tr><th>Name</th><th>Address</th><th></th></tr></thead><tbody id="contact-other-rows"></tbody></table>
+</div>
+</section>
+
+<section id="calendar-section" class="view page" hidden>
+<div class="cal-head">
+<button class="btn ghost sm" id="cal-today" type="button">Today</button>
+<button class="iconbtn sm" id="cal-prev" type="button" title="Previous" aria-label="Previous"><svg class="i"><use href="#i-left"/></svg></button>
+<button class="iconbtn sm" id="cal-next" type="button" title="Next" aria-label="Next"><svg class="i"><use href="#i-right"/></svg></button>
+<h2 id="cal-title"></h2>
+<span class="sp"></span>
+<nav class="tabs" id="cal-views" aria-label="Calendar views"><button type="button" data-cal-view="month">Month</button><button type="button" data-cal-view="week">Week</button><button type="button" data-cal-view="day">Day</button><button type="button" data-cal-view="agenda">Agenda</button></nav>
+<button class="btn sm" id="cal-new" type="button">New event</button>
+</div>
+<div class="cal-body">
+<aside class="cal-side">
+<div class="navhead">Calendars</div>
+<div id="cal-list"></div>
+<form id="cal-add-form" class="row"><input id="cal-add-name" type="text" maxlength="255" placeholder="New calendar" aria-label="New calendar"><input id="cal-add-color" type="color" value="#1a73e8" aria-label="Colour"><button class="btn sm" type="submit">Add</button></form>
+<div id="cal-detail" hidden></div>
+<div id="cal-status" class="status" aria-live="polite"></div>
+<p class="hint" id="cal-zone"></p>
+<p class="hint">Click a day or an hour to add an event; drag an event to move it, and drag the bottom edge of one in the week or day view to change when it ends. Your phone sees the same calendars over CalDAV.</p>
+</aside>
+<div class="cal-main" id="cal-grid"></div>
+</div>
+</section>
+
+<section id="tasks-section" class="view page" hidden>
+<div class="page-head"><h1>Tasks</h1></div>
+<div class="card">
+<form id="task-add-form" class="row">
+<input id="task-add-summary" type="text" maxlength="1000" placeholder="Add a task" aria-label="Add a task" required>
+<input id="task-add-due" type="date" aria-label="Due">
+<select id="task-add-list" aria-label="List"></select>
+<button class="btn sm" type="submit">Add</button>
+</form>
+<div id="task-status" class="status" aria-live="polite"></div>
+<label class="row"><input id="task-show-done" type="checkbox"> Show completed tasks</label>
+<div id="task-list"></div>
+<p id="task-empty" class="hint" hidden>Nothing to do. Add a task above; what your phone adds over CalDAV appears here too.</p>
 </div>
 </section>
 
@@ -1258,6 +1375,49 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 <div id="toasts" aria-live="polite"></div>
 
+<div id="event-overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="event-title-h">
+<div class="sheet">
+<h2 id="event-title-h">Event</h2>
+<form id="event-form">
+<input id="event-summary" type="text" maxlength="1000" placeholder="Title" aria-label="Title" required>
+<div id="event-readonly" class="hint" hidden>This calendar is shared with you read-only.</div>
+<div id="event-partstat" class="hint" hidden></div>
+<div id="event-attendee-list" hidden></div>
+<div class="row"><label><input id="event-allday" type="checkbox"> All day</label><select id="event-calendar" aria-label="Calendar"></select></div>
+<div id="event-timed" class="row"><label>From <input id="event-start" type="datetime-local" aria-label="Start"></label><label>to <input id="event-end" type="datetime-local" aria-label="End"></label></div>
+<div id="event-dated" class="row" hidden><label>From <input id="event-start-date" type="date" aria-label="Start day"></label><label>to <input id="event-end-date" type="date" aria-label="End day"></label></div>
+<div class="row"><label>Time zone <select id="event-tz" aria-label="Time zone"></select></label></div>
+<div id="event-scope-row" class="row" hidden><label>Change <select id="event-scope"><option value="occurrence">only this occurrence</option><option value="series">the whole series</option></select></label></div>
+<div id="event-repeat-row" class="row"><label>Repeat <select id="event-repeat"><option value="none">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label></div>
+<div id="event-repeat-more" hidden>
+<div class="row"><label>Every <input id="event-interval" type="number" min="1" max="99" value="1" aria-label="Interval"></label>
+<div id="event-days"><label><input type="checkbox" value="MO"> Mon</label><label><input type="checkbox" value="TU"> Tue</label><label><input type="checkbox" value="WE"> Wed</label><label><input type="checkbox" value="TH"> Thu</label><label><input type="checkbox" value="FR"> Fri</label><label><input type="checkbox" value="SA"> Sat</label><label><input type="checkbox" value="SU"> Sun</label></div></div>
+<div class="row"><label>Ends <select id="event-ends"><option value="never">never</option><option value="on">on a day</option><option value="after">after a number of times</option></select></label><input id="event-until" type="date" aria-label="Last day" hidden><input id="event-count" type="number" min="1" max="999" value="10" aria-label="Number of times" hidden></div>
+</div>
+<div class="row"><label>Reminder <select id="event-alarm"><option value="-1">None</option><option value="0">At the time</option><option value="5">5 minutes before</option><option value="10">10 minutes before</option><option value="15">15 minutes before</option><option value="30">30 minutes before</option><option value="60">1 hour before</option><option value="1440">1 day before</option></select></label></div>
+<div class="row"><input id="event-location" type="text" maxlength="1000" placeholder="Location" aria-label="Location"></div>
+<div class="row"><textarea id="event-description" placeholder="Notes" aria-label="Notes"></textarea></div>
+<div class="row"><input id="event-attendees" type="text" placeholder="Guests: addresses, separated by commas" aria-label="Guests"></div>
+<div class="row"><label><input id="event-invite" type="checkbox" checked> Send invitations by e-mail</label></div>
+<div id="event-status" class="status" aria-live="polite"></div>
+<div class="row"><button class="btn" id="event-save" type="submit">Save</button><button class="btn ghost" id="event-delete" type="button" hidden>Delete</button><button class="btn quiet" id="event-cancel" type="button">Cancel</button></div>
+</form>
+</div>
+</div>
+<div id="task-overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="task-title-h">
+<div class="sheet">
+<h2 id="task-title-h">Task</h2>
+<form id="task-form">
+<input id="task-summary" type="text" maxlength="1000" placeholder="Title" aria-label="Title" required>
+<div class="row"><label>Due <input id="task-due" type="date" aria-label="Due day"></label><input id="task-due-time" type="time" aria-label="Due time"></div>
+<div class="row"><label>Priority <select id="task-priority"><option value="0">None</option><option value="1">High</option><option value="5">Medium</option><option value="9">Low</option></select></label><label>List <select id="task-list-select" aria-label="List"></select></label></div>
+<div class="row"><textarea id="task-notes" placeholder="Notes" aria-label="Notes"></textarea></div>
+<div class="row"><label><input id="task-completed" type="checkbox"> Completed</label></div>
+<div id="task-edit-status" class="status" aria-live="polite"></div>
+<div class="row"><button class="btn" id="task-save" type="submit">Save</button><button class="btn ghost" id="task-delete" type="button">Delete</button><button class="btn quiet" id="task-cancel" type="button">Cancel</button></div>
+</form>
+</div>
+</div>
 <div id="keys-overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="keys-title">
 <div class="sheet">
 <h2 id="keys-title">Keyboard shortcuts</h2>

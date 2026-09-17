@@ -51,6 +51,7 @@
 #include "CalendarStore.h"
 #include "ICalendar.h"
 #include "../BO/Account.h"
+#include "../Cache/CacheContainer.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -68,6 +69,7 @@ namespace HM
       const char *NsDav = "DAV:";
       const char *NsCalDav = "urn:ietf:params:xml:ns:caldav";
       const char *NsCalendarServer = "http://calendarserver.org/ns/";
+      const char *NsApple = "http://apple.com/ns/ical/";   // calendar-color and calendar-order, as every client reads them
 
       // How many hrefs one multiget may name; the XML ceilings are DavSupport's.
       const size_t MaxMultigetHrefs = 5000;
@@ -82,7 +84,7 @@ namespace HM
       const size_t QueryInstances = ICalendar::MaxInstances;
 
       const char *AllowObject = "Allow: OPTIONS, GET, HEAD, PUT, DELETE, PROPFIND, PROPPATCH, REPORT\r\n";
-      const char *AllowCollection = "Allow: OPTIONS, PROPFIND, PROPPATCH, REPORT\r\n";
+      const char *AllowCollection = "Allow: OPTIONS, PROPFIND, PROPPATCH, REPORT, MKCALENDAR, MKCOL, DELETE\r\n";
 
       //------------------------------------------------------------------------
       // The resources
@@ -92,19 +94,28 @@ namespace HM
       {
          KindHomeCollection,   // /dav/calendars/
          KindHome,             // /dav/calendars/<address>/
-         KindCalendar,         // /dav/calendars/<address>/calendar/
-         KindObject,           // .../calendar/<name>, and the object exists
-         KindObjectSlot        // .../calendar/<name>, nothing there yet: PUT may create
+         KindCalendar,         // /dav/calendars/<address>/<calendar>/ - the account's own, or shared-<id>/ for one shared with it
+         KindCalendarSlot,     // /dav/calendars/<address>/<name>/, no calendar of that name yet: MKCALENDAR may create
+         KindObject,           // .../<calendar>/<name>, and the object exists
+         KindObjectSlot        // .../<calendar>/<name>, nothing there yet: PUT may create
       };
 
       struct Resource
       {
-         Resource() : kind(KindHomeCollection) { }
-
          ResourceKind kind;
          AnsiString href;              // canonical, percent-encoded
          CalendarObjectRecord object;  // KindObject only
-         AnsiString slotName;          // KindObjectSlot only, decoded
+         AnsiString slotName;          // KindObjectSlot and KindCalendarSlot, decoded
+
+         // KindCalendar: the calendar this resource is, whose it is and what
+         // the caller may do with it - the request's own target, or one row of
+         // the home's listing.
+         CalendarRecord calendar;
+         bool shared;
+         bool canWrite;
+         AnsiString ownerPrincipalHref;
+
+         Resource() : kind(KindHomeCollection), shared(false), canWrite(true) { }
       };
 
       // A member of the calendar as the responses see it.
@@ -125,7 +136,7 @@ namespace HM
 
       struct Context
       {
-         Context(const HttpRequest &httpRequest) : request(httpRequest), calendarLoaded(false), calendarFailed(false), listed(false), listFailed(false) { }
+         Context(const HttpRequest &httpRequest) : request(httpRequest), storeAccountId(0), shared(false), canWrite(true), calendarLoaded(false), calendarFailed(false), listed(false), listFailed(false) { }
 
          const HttpRequest &request;
          std::shared_ptr<const Account> account;
@@ -135,6 +146,14 @@ namespace HM
          AnsiString principalHref;
          AnsiString homeHref;
          AnsiString calendarHref;
+
+         // The calendar the target names, once Resolve found it: the store is
+         // asked under its owner's account id, which is the caller's own for
+         // its own calendars and the sharer's for one shared with it.
+         __int64 storeAccountId;
+         bool shared;
+         bool canWrite;
+         AnsiString ownerPrincipalHref;
 
          bool calendarLoaded;
          bool calendarFailed;
@@ -155,6 +174,7 @@ namespace HM
             context.calendarFailed = true;
             return false;
          }
+         context.storeAccountId = context.account->GetID();
          return true;
       }
 
@@ -163,7 +183,58 @@ namespace HM
       {
          if (!EnsureCalendar(context))
             return false;
-         return CalendarStore::Get(context.account->GetID(), context.calendar.id, context.calendar);
+         return CalendarStore::Get(context.storeAccountId, context.calendar.id, context.calendar);
+      }
+
+      AnsiString PrincipalHrefOf(const AnsiString &addressUtf8)
+      {
+         return "/dav/principals/" + PercentEncodeSegment(addressUtf8) + "/";
+      }
+
+      // The principal of the account that owns a calendar.
+      AnsiString OwnerPrincipalOf(const Context &context, const CalendarRecord &calendar)
+      {
+         if (calendar.accountId == context.account->GetID())
+            return context.principalHref;
+         std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(calendar.accountId);
+         if (!owner)
+            return context.principalHref;
+         String address = owner->GetAddress();
+         address.ToLower();
+         return PrincipalHrefOf(Utf8(address));
+      }
+
+      // The segment a calendar has under the caller's home: its own name, or
+      // shared-<id> for one another account shares with it.
+      AnsiString CalendarSegment(const Context &context, const CalendarRecord &calendar)
+      {
+         if (calendar.accountId == context.account->GetID())
+            return PercentEncodeSegment(Utf8(calendar.name));
+         return "shared-" + Int64Text(calendar.id);
+      }
+
+      void FillCalendarResource(const Context &context, const CalendarRecord &calendar, bool shared, bool canWrite, Resource &resource)
+      {
+         resource.kind = KindCalendar;
+         resource.calendar = calendar;
+         resource.shared = shared;
+         resource.canWrite = canWrite;
+         resource.ownerPrincipalHref = OwnerPrincipalOf(context, calendar);
+         resource.href = context.homeHref + CalendarSegment(context, calendar) + "/";
+      }
+
+      // The target's calendar becomes the context's: every store call below
+      // reads and writes it under its owner's account id.
+      void AdoptCalendar(Context &context, const CalendarRecord &calendar, bool shared, bool canWrite)
+      {
+         context.calendar = calendar;
+         context.calendarLoaded = true;
+         context.calendarFailed = false;
+         context.storeAccountId = calendar.accountId;
+         context.shared = shared;
+         context.canWrite = canWrite;
+         context.ownerPrincipalHref = OwnerPrincipalOf(context, calendar);
+         context.calendarHref = context.homeHref + CalendarSegment(context, calendar) + "/";
       }
 
       AnsiString ObjectHref(const Context &context, const CalendarObjectRecord &record)
@@ -216,7 +287,7 @@ namespace HM
          }
 
          std::vector<CalendarObjectRecord> records;
-         if (!CalendarStore::List(context.account->GetID(), context.calendar.id, records))
+         if (!CalendarStore::List(context.storeAccountId, context.calendar.id, records))
          {
             context.listFailed = true;
             return false;
@@ -268,25 +339,65 @@ namespace HM
             return true;
          }
 
-         if (segments[3] != CalendarStore::DefaultName)
+         const AnsiString &segment = segments[3];
+         if (segment.IsEmpty())
             return false;
+
+         CalendarRecord calendar;
+         bool found = false;
+         bool shared = false;
+         bool canWrite = true;
+         if (segment.StartsWith("shared-"))
+         {
+            AnsiString digits = segment.Mid(7);
+            __int64 id = 0;
+            bool numeric = !digits.IsEmpty() && digits.GetLength() < 18;
+            for (int i = 0; numeric && i < digits.GetLength(); i++)
+               numeric = digits[i] >= '0' && digits[i] <= '9';
+            for (int i = 0; numeric && i < digits.GetLength(); i++)
+               id = id * 10 + (digits[i] - '0');
+
+            CalendarShareRecord share;
+            if (numeric && CalendarStore::ShareOf(id, context.account->GetID(), share) && CalendarStore::GetAny(id, calendar))
+            {
+               found = true;
+               shared = true;
+               canWrite = share.write;
+            }
+         }
+         else
+         {
+            found = CalendarStore::FindByName(context.account->GetID(), Wide(segment), calendar);
+         }
+
+         if (!found)
+         {
+            // A name with nothing behind it: MKCALENDAR may make it. Anything
+            // below such a name is simply not there.
+            if (segments.size() != 4 || shared || segment.StartsWith("shared-"))
+               return false;
+            if (!CalendarStore::IsUsableCalendarName(Wide(segment)))
+               return false;
+            resource.kind = KindCalendarSlot;
+            resource.slotName = segment;
+            resource.href = context.homeHref + PercentEncodeSegment(segment) + "/";
+            return true;
+         }
+
+         AdoptCalendar(context, calendar, shared, canWrite);
 
          if (segments.size() == 4)
          {
-            resource.kind = KindCalendar;
-            resource.href = context.calendarHref;
+            FillCalendarResource(context, calendar, shared, canWrite, resource);
             return true;
          }
 
          if (segments.size() != 5 || trailingSlash || segments[4].IsEmpty())
             return false;
 
-         if (!EnsureCalendar(context))
-            return false;
-
          AnsiString name = segments[4];
          CalendarObjectRecord named;
-         if (CalendarStore::FindByUri(context.account->GetID(), context.calendar.id, Wide(name), named))
+         if (CalendarStore::FindByUri(context.storeAccountId, context.calendar.id, Wide(name), named))
          {
             resource.kind = KindObject;
             resource.object = named;
@@ -319,7 +430,7 @@ namespace HM
 
       AnsiString MultistatusOpen()
       {
-         return "<D:multistatus xmlns:D=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\" xmlns:CS=\"http://calendarserver.org/ns/\">\r\n";
+         return "<D:multistatus xmlns:D=\"DAV:\" xmlns:C=\"urn:ietf:params:xml:ns:caldav\" xmlns:CS=\"http://calendarserver.org/ns/\" xmlns:A=\"http://apple.com/ns/ical/\">\r\n";
       }
 
       //------------------------------------------------------------------------
@@ -356,6 +467,7 @@ namespace HM
          if (property.ns == NsDav) prefix = "D:";
          else if (property.ns == NsCalDav) prefix = "C:";
          else if (property.ns == NsCalendarServer) prefix = "CS:";
+         else if (property.ns == NsApple) prefix = "A:";
 
          AnsiString open = "<" + prefix + property.name;
          if (prefix.IsEmpty())
@@ -384,7 +496,7 @@ namespace HM
       {
          ResourceKind kind = resource.kind;
          bool isObject = kind == KindObject;
-         bool isCollection = !isObject && kind != KindObjectSlot;
+         bool isCollection = !isObject && kind != KindObjectSlot && kind != KindCalendarSlot;
 
          if (property.ns == NsDav)
          {
@@ -404,7 +516,7 @@ namespace HM
                {
                case KindHomeCollection: innerXml = "Calendars"; break;
                case KindHome: innerXml = XmlEscape("Calendars of " + context.addressUtf8); break;
-               case KindCalendar: innerXml = XmlEscape(EnsureCalendar(context) ? Utf8(context.calendar.displayName) : AnsiString(CalendarStore::DefaultDisplayName)); break;
+               case KindCalendar: innerXml = XmlEscape(Utf8(resource.calendar.displayName)); break;
                case KindObject: innerXml = XmlEscape(Utf8(resource.object.uri)); break;
                default: return false;
                }
@@ -425,15 +537,19 @@ namespace HM
 
             if (property.name == "owner" && (kind == KindHome || kind == KindCalendar || isObject))
             {
-               innerXml = Href(context.principalHref);
+               innerXml = Href(kind == KindCalendar ? resource.ownerPrincipalHref : (isObject ? context.ownerPrincipalHref : context.principalHref));
                return true;
             }
 
             if (property.name == "current-user-privilege-set" && (kind == KindHome || kind == KindCalendar || isObject))
             {
-               innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:write/></D:privilege>"
-                          "<D:privilege><D:write-content/></D:privilege><D:privilege><D:bind/></D:privilege>"
-                          "<D:privilege><D:unbind/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
+               // A calendar shared read-only grants reading and nothing else;
+               // everything the caller owns, or is shared with write, is writable.
+               bool writable = kind == KindCalendar ? resource.canWrite : (isObject ? context.canWrite : true);
+               innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
+               if (writable)
+                  innerXml += "<D:privilege><D:write/></D:privilege><D:privilege><D:write-content/></D:privilege>"
+                              "<D:privilege><D:bind/></D:privilege><D:privilege><D:unbind/></D:privilege>";
                return true;
             }
 
@@ -447,7 +563,7 @@ namespace HM
 
             if (property.name == "sync-token" && kind == KindCalendar)
             {
-               if (!EnsureCalendar(context))
+               if (resource.calendar.id != context.calendar.id && !EnsureCalendar(context))
                   return false;
                innerXml = XmlEscape(SyncTokenFor(context.calendar.syncToken));
                return true;
@@ -502,7 +618,7 @@ namespace HM
                }
                if (property.name == "calendar-description")
                {
-                  innerXml = XmlEscape("The calendar of " + context.addressUtf8);
+                  innerXml = XmlEscape(Utf8(resource.calendar.displayName) + (resource.shared ? AnsiString(", shared with ") + context.addressUtf8 : AnsiString(" of ") + context.addressUtf8));
                   return true;
                }
                if (property.name == "max-resource-size")
@@ -529,13 +645,29 @@ namespace HM
             return false;
          }
 
+         if (property.ns == NsApple && kind == KindCalendar)
+         {
+            if (property.name == "calendar-color")
+            {
+               AnsiString color = Utf8(resource.calendar.color);
+               if (color.IsEmpty())
+                  return false;
+               innerXml = XmlEscape(color);
+               return true;
+            }
+            if (property.name == "calendar-order")
+            {
+               innerXml = resource.calendar.name.CompareNoCase(String(CalendarStore::DefaultName)) == 0 ? "0" : "1";
+               return true;
+            }
+            return false;
+         }
+
          if (property.ns == NsCalendarServer)
          {
             if (property.name == "getctag" && kind == KindCalendar)
             {
-               if (!EnsureCalendar(context))
-                  return false;
-               innerXml = XmlEscape(Int64Text(context.calendar.syncToken));
+               innerXml = XmlEscape(Int64Text(resource.calendar.syncToken));
                return true;
             }
          }
@@ -572,6 +704,8 @@ namespace HM
             names.push_back(PropertyName(NsCalDav, "max-resource-size"));
             names.push_back(PropertyName(NsCalDav, "supported-collation-set"));
             names.push_back(PropertyName(NsCalendarServer, "getctag"));
+            names.push_back(PropertyName(NsApple, "calendar-color"));
+            names.push_back(PropertyName(NsApple, "calendar-order"));
             break;
          case KindObject:
             names.push_back(PropertyName(NsDav, "getetag"));
@@ -688,9 +822,101 @@ namespace HM
          return Respond(200, "text/plain", "", object ? AllowObject : AllowCollection);
       }
 
+      // The displayname and calendar-color a MKCALENDAR, extended MKCOL or
+      // PROPPATCH body carries under DAV:set/DAV:prop.
+      void ReadCalendarProperties(const XmlElement &root, String &displayName, String &color, bool &hasDisplayName, bool &hasColor, AnsiString &others)
+      {
+         hasDisplayName = false;
+         hasColor = false;
+         for (size_t i = 0; i < root.children.size(); i++)
+         {
+            const XmlElement &action = root.children[i];
+            if (!action.Is(NsDav, "set") && !action.Is(NsDav, "remove"))
+               continue;
+            const XmlElement *prop = action.Child(NsDav, "prop");
+            if (!prop)
+               continue;
+            for (size_t j = 0; j < prop->children.size(); j++)
+            {
+               const XmlElement &value = prop->children[j];
+               if (value.Is(NsDav, "displayname"))
+               {
+                  hasDisplayName = true;
+                  displayName = action.Is(NsDav, "set") ? Wide(Trimmed(value.text)) : String();
+               }
+               else if (value.Is(NsApple, "calendar-color"))
+               {
+                  hasColor = true;
+                  color = action.Is(NsDav, "set") ? Wide(Trimmed(value.text)) : String();
+               }
+               else
+               {
+                  PropertyName name;
+                  name.ns = value.ns;
+                  name.name = value.name;
+                  others += PropertyElement(name, "");
+               }
+            }
+         }
+      }
+
+      bool IsColor(const String &color)
+      {
+         if (color.IsEmpty())
+            return true;
+         // #RRGGBB, or #RRGGBBAA as Apple's clients write it.
+         if ((color.GetLength() != 7 && color.GetLength() != 9) || color.c_str()[0] != '#')
+            return false;
+         for (int i = 1; i < color.GetLength(); i++)
+         {
+            wchar_t c = color.c_str()[i];
+            bool hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+            if (!hex)
+               return false;
+         }
+         return true;
+      }
+
+      // MKCALENDAR (RFC 4791 section 5.3.1), and MKCOL with a calendar
+      // resourcetype (RFC 5689): a calendar under the caller's home, its
+      // display name and colour from the body when it carries them.
+      HttpResponse HandleMakeCalendar(Context &context, const Resource &resource)
+      {
+         if (resource.kind == KindCalendar)
+            return Text(405, "a calendar of that name exists", AllowCollection);
+         if (resource.kind != KindCalendarSlot)
+            return Text(403, "a calendar can be made under the home only: /dav/calendars/<address>/<name>/");
+
+         String displayName;
+         String color;
+         bool hasDisplayName = false;
+         bool hasColor = false;
+         AnsiString others;
+         if (!Trimmed(context.request.body).IsEmpty())
+         {
+            XmlElement root;
+            AnsiString problem;
+            if (!ReadBody(context.request, root, problem))
+               return Text(400, "the body is not well-formed XML: " + problem);
+            if (!root.Is(NsCalDav, "mkcalendar") && !root.Is(NsDav, "mkcol"))
+               return Text(400, "the body must be a CALDAV:mkcalendar or a DAV:mkcol element");
+            ReadCalendarProperties(root, displayName, color, hasDisplayName, hasColor, others);
+         }
+
+         if (!IsColor(color))
+            return Text(403, "calendar-color must be #RRGGBB");
+
+         CalendarRecord created;
+         if (!CalendarStore::CreateCalendar(context.account->GetID(), Wide(resource.slotName), displayName, color, created))
+            return Text(500, "the calendar could not be made");
+
+         LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " made the calendar " + String(created.name) + ".");
+         return Respond(201, "text/plain", "", "Location: " + context.homeHref + PercentEncodeSegment(Utf8(created.name)) + "/\r\n");
+      }
+
       HttpResponse HandlePropfind(Context &context, const Resource &resource)
       {
-         if (resource.kind == KindObjectSlot)
+         if (resource.kind == KindObjectSlot || resource.kind == KindCalendarSlot)
             return NotFound();
 
          PropertyRequest request;
@@ -746,10 +972,27 @@ namespace HM
             }
             case KindHome:
             {
-               Resource calendar;
-               calendar.kind = KindCalendar;
-               calendar.href = context.calendarHref;
-               xml += ResponseFor(context, calendar, nullptr, request);
+               std::vector<CalendarRecord> own;
+               if (!CalendarStore::ListCalendars(context.account->GetID(), own))
+                  return Text(500, "the calendars could not be read");
+               for (size_t i = 0; i < own.size(); i++)
+               {
+                  Resource calendar;
+                  FillCalendarResource(context, own[i], false, true, calendar);
+                  xml += ResponseFor(context, calendar, nullptr, request);
+               }
+
+               std::vector<CalendarRecord> sharedCalendars;
+               std::vector<CalendarShareRecord> shares;
+               if (CalendarStore::ListSharedWith(context.account->GetID(), sharedCalendars, shares))
+               {
+                  for (size_t i = 0; i < sharedCalendars.size(); i++)
+                  {
+                     Resource calendar;
+                     FillCalendarResource(context, sharedCalendars[i], true, shares[i].write, calendar);
+                     xml += ResponseFor(context, calendar, nullptr, request);
+                  }
+               }
                break;
             }
             case KindCalendar:
@@ -778,7 +1021,7 @@ namespace HM
       // answered 403 in the 207, per RFC 4918 section 9.2.
       HttpResponse HandleProppatch(Context &context, const Resource &resource)
       {
-         if (resource.kind == KindObjectSlot)
+         if (resource.kind == KindObjectSlot || resource.kind == KindCalendarSlot)
             return NotFound();
 
          XmlElement root;
@@ -787,6 +1030,52 @@ namespace HM
             return Text(400, "the PROPPATCH body is not well-formed XML: " + problem);
          if (!root.Is(NsDav, "propertyupdate"))
             return Text(400, "the PROPPATCH body must be a DAV:propertyupdate element");
+
+         // The caller's own calendar: its display name and colour are the
+         // two properties a client may set; anything else asked for is 403.
+         if (resource.kind == KindCalendar && !resource.shared)
+         {
+            String displayName;
+            String color;
+            bool hasDisplayName = false;
+            bool hasColor = false;
+            AnsiString others;
+            ReadCalendarProperties(root, displayName, color, hasDisplayName, hasColor, others);
+
+            AnsiString accepted;
+            AnsiString failed;
+            if (hasDisplayName || hasColor)
+            {
+               if (hasColor && !IsColor(color))
+                  failed += PropertyElement(PropertyName(NsApple, "calendar-color"), "");
+               else if (CalendarStore::UpdateCalendar(context.account->GetID(), resource.calendar.id, hasDisplayName ? displayName : resource.calendar.displayName, hasColor ? color : resource.calendar.color))
+               {
+                  if (hasDisplayName)
+                     accepted += PropertyElement(PropertyName(NsDav, "displayname"), "");
+                  if (hasColor)
+                     accepted += PropertyElement(PropertyName(NsApple, "calendar-color"), "");
+               }
+               else
+               {
+                  if (hasDisplayName)
+                     failed += PropertyElement(PropertyName(NsDav, "displayname"), "");
+                  if (hasColor)
+                     failed += PropertyElement(PropertyName(NsApple, "calendar-color"), "");
+               }
+            }
+
+            AnsiString xml = MultistatusOpen();
+            xml += " <D:response>\r\n  " + Href(resource.href) + "\r\n";
+            if (!accepted.IsEmpty())
+               xml += "  <D:propstat><D:prop>" + accepted + "</D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat>\r\n";
+            if (!failed.IsEmpty())
+               xml += "  <D:propstat><D:prop>" + failed + "</D:prop><D:status>HTTP/1.1 500 Internal Server Error</D:status></D:propstat>\r\n";
+            if (!others.IsEmpty())
+               xml += "  <D:propstat><D:prop>" + others + "</D:prop><D:status>HTTP/1.1 403 Forbidden</D:status>"
+                      "<D:responsedescription>The display name and the colour of a calendar can be set; nothing else can.</D:responsedescription></D:propstat>\r\n";
+            xml += " </D:response>\r\n</D:multistatus>\r\n";
+            return Xml(207, xml);
+         }
 
          AnsiString refused;
          for (size_t i = 0; i < root.children.size(); i++)
@@ -809,7 +1098,7 @@ namespace HM
          AnsiString xml = MultistatusOpen();
          xml += " <D:response>\r\n  " + Href(resource.href) + "\r\n";
          xml += "  <D:propstat><D:prop>" + refused + "</D:prop><D:status>HTTP/1.1 403 Forbidden</D:status>"
-                "<D:responsedescription>The properties of this calendar are fixed; none can be set or removed.</D:responsedescription></D:propstat>\r\n";
+                "<D:responsedescription>The properties of this resource are fixed; none can be set or removed.</D:responsedescription></D:propstat>\r\n";
          xml += " </D:response>\r\n</D:multistatus>\r\n";
          return Xml(207, xml);
       }
@@ -903,8 +1192,10 @@ namespace HM
 
          if (!EnsureCalendar(context))
             return Text(500, "the calendar could not be read");
+         if (!context.canWrite)
+            return Text(403, "this calendar is shared with you read-only");
 
-         __int64 accountId = context.account->GetID();
+         __int64 accountId = context.storeAccountId;
          __int64 calendarId = context.calendar.id;
 
          // One UID, one resource (RFC 4791 section 5.3.2.1). The other
@@ -976,10 +1267,34 @@ namespace HM
 
       HttpResponse HandleDelete(Context &context, const Resource &resource)
       {
-         if (resource.kind == KindObjectSlot)
+         if (resource.kind == KindObjectSlot || resource.kind == KindCalendarSlot)
             return NotFound();
+
+         if (resource.kind == KindCalendar)
+         {
+            // A calendar shared with the caller: the share is given back and
+            // the calendar stays its owner's. The caller's own: gone with its
+            // objects, except the default, which every client expects to find.
+            if (resource.shared)
+            {
+               if (!CalendarStore::Unshare(resource.calendar.id, context.account->GetID()))
+                  return Text(500, "the share could not be removed");
+               LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " left the shared calendar " + String(Int64Text(resource.calendar.id)) + ".");
+               return Respond(204, "text/plain", "");
+            }
+            if (resource.calendar.name.CompareNoCase(String(CalendarStore::DefaultName)) == 0)
+               return Text(403, "the calendar Calendar is the account's default and cannot be deleted; the collections above it cannot either");
+            if (!CalendarStore::DeleteCalendar(context.account->GetID(), resource.calendar.id))
+               return Text(500, "the calendar could not be deleted");
+            LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " deleted the calendar " + String(resource.calendar.name) + ".");
+            return Respond(204, "text/plain", "");
+         }
+
          if (resource.kind != KindObject)
-            return Text(403, "the calendar and the collections above it cannot be deleted");
+            return Text(403, "the collections above a calendar cannot be deleted");
+
+         if (!context.canWrite)
+            return Text(403, "this calendar is shared with you read-only");
 
          AnsiString currentEtag = Utf8(resource.object.etag);
          if (!PreconditionsHold(context.request, currentEtag))
@@ -989,7 +1304,7 @@ namespace HM
             return Text(500, "the calendar could not be read");
 
          __int64 token = 0;
-         if (!CalendarStore::Delete(context.account->GetID(), context.calendar.id, resource.object.id, token))
+         if (!CalendarStore::Delete(context.storeAccountId, context.calendar.id, resource.object.id, token))
             return NotFound();
 
          LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " deleted " + String(Utf8(resource.object.uri)) + ".");
@@ -1378,8 +1693,8 @@ namespace HM
 
          std::vector<CalendarObjectRecord> records;
          bool read = narrow
-            ? CalendarStore::ListInRange(context.account->GetID(), context.calendar.id, narrowStart - 86400, narrowEnd + 86400, records)
-            : CalendarStore::List(context.account->GetID(), context.calendar.id, records);
+            ? CalendarStore::ListInRange(context.storeAccountId, context.calendar.id, narrowStart - 86400, narrowEnd + 86400, records)
+            : CalendarStore::List(context.storeAccountId, context.calendar.id, records);
          if (!read)
             return Text(500, "the calendar could not be read");
          context.listed = true;
@@ -1456,7 +1771,7 @@ namespace HM
             }
 
             std::vector<CalendarObjectRecord> changed;
-            if (!CalendarStore::ListChangedSince(context.account->GetID(), context.calendar.id, since, changed))
+            if (!CalendarStore::ListChangedSince(context.storeAccountId, context.calendar.id, since, changed))
                return Text(500, "the calendar could not be read");
 
             for (size_t i = 0; i < changed.size(); i++)
@@ -1481,7 +1796,7 @@ namespace HM
 
       HttpResponse HandleReport(Context &context, const Resource &resource)
       {
-         if (resource.kind == KindObjectSlot)
+         if (resource.kind == KindObjectSlot || resource.kind == KindCalendarSlot)
             return NotFound();
 
          XmlElement root;
@@ -1562,8 +1877,10 @@ namespace HM
       context.addressUtf8 = Utf8(context.addressWide);
       AnsiString segment = PercentEncodeSegment(context.addressUtf8);
       context.principalHref = "/dav/principals/" + segment + "/";
+      context.ownerPrincipalHref = context.principalHref;
       context.homeHref = HomeHref(context.addressUtf8);
       context.calendarHref = context.homeHref + CalendarStore::DefaultName + "/";
+      context.storeAccountId = context.account->GetID();
 
       Resource resource;
       if (!Resolve(context, request.target, resource))
@@ -1589,7 +1906,7 @@ namespace HM
          else if (method == "DELETE")
             response = HandleDelete(context, resource);
          else if (method == "MKCOL" || method == "MKCALENDAR")
-            response = Text(403, "this server keeps one calendar per account, Calendar; no collection can be made");
+            response = HandleMakeCalendar(context, resource);
          else
             response = MethodNotAllowed(resource);
       }

@@ -59,6 +59,7 @@
 #include "SMTPForwarding.h"
 #include "RuleApplier.h"
 #include "RuleResult.h"
+#include "../Common/Util/Imip.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -401,6 +402,11 @@ namespace HM
       // appends to a list - nothing is signed and no push service is reached on
       // this thread. See Common/Util/PushNotifier.h.
       PushNotifier::Instance()->Note(account->GetID(), accountLevelMessage);
+
+      // A reply to an invitation this account organised, or a cancellation of
+      // one it holds, is filed into the stored event (Common/Util/Imip.h). A
+      // message without a calendar part costs the look at its header.
+      Imip::FileOnDelivery(account, PersistentMessage::GetFileName(account, accountLevelMessage));
 
       AWStats::LogDeliverySuccess(_sendersIP, "127.0.0.1", accountLevelMessage, account->GetAddress());
    }

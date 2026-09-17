@@ -142,6 +142,12 @@ namespace HM
       // Whether the built-in table knows the zone.
       static bool KnowsTimeZone(const AnsiString &tzid);
 
+      // A wall-clock time in a built-in zone to an instant, and an instant to
+      // the wall clock of a zone: what the page's event editor sends and reads.
+      // False for a zone the table does not know.
+      static bool LocalToInstant(const AnsiString &tzid, int year, int month, int day, int hour, int minute, int second, __int64 &instant);
+      static bool InstantToLocal(const AnsiString &tzid, __int64 instant, int &year, int &month, int &day, int &hour, int &minute, int &second);
+
       // What the store keeps of a calendar object, and the check that it is
       // one this server can answer for: one VCALENDAR; VEVENT or VTODO
       // components (not both, not neither, no VJOURNAL or VFREEBUSY), every

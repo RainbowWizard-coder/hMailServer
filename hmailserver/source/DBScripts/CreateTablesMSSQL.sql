@@ -17,6 +17,7 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraps') and obj
 
 if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
+if exists (select * from sysobjects where id = object_id('hm_calendarshares') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarshares
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
 if exists (select * from sysobjects where id = object_id('hm_contacts') and objectproperty(id, 'isusertable') = 1) drop table hm_contacts
@@ -704,7 +705,8 @@ create table hm_calendars
 	calendarname nvarchar(255) not null,
 	calendardisplayname nvarchar(255) not null,
 	calendarsynctoken bigint not null,
-	calendarcreated bigint not null
+	calendarcreated bigint not null,
+	calendarcolor nvarchar(16) not null default ''
 )
 
 ALTER TABLE hm_calendars ADD CONSTRAINT hm_calendars_pk PRIMARY KEY NONCLUSTERED (calendarid)
@@ -735,6 +737,18 @@ ALTER TABLE hm_calendarobjects ADD CONSTRAINT hm_calendarobjects_pk PRIMARY KEY 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_calendarobjects_uri ON hm_calendarobjects (objectcalendarid, objecturi)
 
 CREATE INDEX idx_hm_calendarobjects_sync ON hm_calendarobjects (objectcalendarid, objectsynctoken)
+
+create table hm_calendarshares
+(
+	shareid int identity(1,1) not null,
+	sharecalendarid int not null,
+	shareaccountid int not null,
+	sharewrite int not null
+)
+
+ALTER TABLE hm_calendarshares ADD CONSTRAINT hm_calendarshares_pk PRIMARY KEY NONCLUSTERED (shareid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid)
 
 create table hm_remotedomainpolicies
 (
@@ -1628,6 +1642,8 @@ ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (cal
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE
 
+ALTER TABLE hm_calendarshares ADD CONSTRAINT fk_hm_calendarshares_calendar FOREIGN KEY (sharecalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE
+
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
 
 ALTER TABLE hm_rule_actions ADD CONSTRAINT fk_hm_rule_actions_rule FOREIGN KEY (actionruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
@@ -2072,4 +2088,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6063)
+insert into hm_dbversion values (6064)

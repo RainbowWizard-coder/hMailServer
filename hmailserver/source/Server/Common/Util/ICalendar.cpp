@@ -2581,6 +2581,32 @@ namespace HM
       return BuiltIn(tzid, zone);
    }
 
+   bool
+   ICalendar::LocalToInstant(const AnsiString &tzid, int year, int month, int day, int hour, int minute, int second, __int64 &instant)
+   {
+      Zone zone;
+      if (!BuiltIn(tzid, zone))
+         return false;
+      instant = LocalToUtc(zone, SecondsOf(year, month, day, hour, minute, second));
+      return true;
+   }
+
+   bool
+   ICalendar::InstantToLocal(const AnsiString &tzid, __int64 instant, int &year, int &month, int &day, int &hour, int &minute, int &second)
+   {
+      Zone zone;
+      if (!BuiltIn(tzid, zone))
+         return false;
+      __int64 local = instant + OffsetAt(zone, instant);
+      __int64 dayNumber = DayOf(local);
+      __int64 rest = local - dayNumber * SecondsPerDay;
+      CivilFromDays(dayNumber, year, month, day);
+      hour = static_cast<int>(rest / 3600);
+      minute = static_cast<int>((rest / 60) % 60);
+      second = static_cast<int>(rest % 60);
+      return true;
+   }
+
    //---------------------------------------------------------------------------
    // ICalendar: the object
    //---------------------------------------------------------------------------

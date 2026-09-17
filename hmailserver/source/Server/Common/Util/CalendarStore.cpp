@@ -30,6 +30,9 @@ namespace HM
    {
       boost::recursive_mutex write_mutex;
 
+      const char *CalendarColumns =
+         "calendarid, calendaraccountid, calendarname, calendardisplayname, calendarsynctoken, calendarcreated, calendarcolor";
+
       const char *ObjectColumns =
          "objectid, objectcalendarid, objecturi, objectuid, objectcomponent, objectdata, objectetag, objectsynctoken, "
          "objectstart, objectend, objectfirst, objectlast, objectdeleted, objectmodified";
@@ -54,6 +57,15 @@ namespace HM
          calendar.displayName = recordset->GetStringValue("calendardisplayname");
          calendar.syncToken = recordset->GetInt64Value("calendarsynctoken");
          calendar.created = recordset->GetInt64Value("calendarcreated");
+         calendar.color = recordset->GetStringValue("calendarcolor");
+      }
+
+      void ReadShare(std::shared_ptr<DALRecordset> recordset, CalendarShareRecord &share)
+      {
+         share.id = recordset->GetInt64Value("shareid");
+         share.calendarId = recordset->GetInt64Value("sharecalendarid");
+         share.accountId = recordset->GetInt64Value("shareaccountid");
+         share.write = recordset->GetInt64Value("sharewrite") != 0;
       }
 
       void ReadObject(std::shared_ptr<DALRecordset> recordset, CalendarObjectRecord &object)
@@ -173,7 +185,7 @@ namespace HM
    {
       String name = DefaultName;
 
-      SQLCommand select("select calendarid, calendaraccountid, calendarname, calendardisplayname, calendarsynctoken, calendarcreated from hm_calendars where calendaraccountid = @ACCOUNTID and calendarname = @NAME");
+      SQLCommand select(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendaraccountid = @ACCOUNTID and calendarname = @NAME"));
       select.AddParameter("@ACCOUNTID", accountId);
       select.AddParameter("@NAME", name);
 
@@ -216,6 +228,7 @@ namespace HM
       statement.AddColumn("calendardisplayname", calendar.displayName);
       statement.AddColumnInt64("calendarsynctoken", calendar.syncToken);
       statement.AddColumnInt64("calendarcreated", calendar.created);
+      statement.AddColumn("calendarcolor", calendar.color);
 
       __int64 id = 0;
       if (!Application::Instance()->GetDBManager()->Execute(statement, &id) || id <= 0)
@@ -226,9 +239,288 @@ namespace HM
    }
 
    bool
+   CalendarStore::GetAny(__int64 calendarId, CalendarRecord &calendar)
+   {
+      SQLCommand command(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendarid = @ID"));
+      command.AddParameter("@ID", calendarId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadCalendar(recordset, calendar);
+      return true;
+   }
+
+   bool
+   CalendarStore::ListCalendars(__int64 accountId, std::vector<CalendarRecord> &calendars)
+   {
+      calendars.clear();
+
+      CalendarRecord first;
+      if (!EnsureDefault(accountId, first))
+         return false;
+      calendars.push_back(first);
+
+      SQLCommand command(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendaraccountid = @ACCOUNTID and calendarname <> @DEFAULT order by calendardisplayname, calendarname"));
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@DEFAULT", String(DefaultName));
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         CalendarRecord calendar;
+         ReadCalendar(recordset, calendar);
+         calendars.push_back(calendar);
+         recordset->MoveNext();
+      }
+      return true;
+   }
+
+   bool
+   CalendarStore::FindByName(__int64 accountId, const String &name, CalendarRecord &calendar)
+   {
+      if (name.IsEmpty() || name.GetLength() > 255)
+         return false;
+
+      if (name.CompareNoCase(String(DefaultName)) == 0)
+         return EnsureDefault(accountId, calendar);
+
+      SQLCommand command(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendaraccountid = @ACCOUNTID and calendarname = @NAME"));
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@NAME", name);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadCalendar(recordset, calendar);
+      return true;
+   }
+
+   bool
+   CalendarStore::IsUsableCalendarName(const String &name)
+   {
+      if (name.IsEmpty() || name.GetLength() > 255)
+         return false;
+      for (int i = 0; i < name.GetLength(); i++)
+      {
+         wchar_t c = name.c_str()[i];
+         if (c < 0x20 || c == 0x7f || c == '/' || c == '\\' || c == '%' || c == '?' || c == '#')
+            return false;
+      }
+      if (name == _T(".") || name == _T(".."))
+         return false;
+      return !name.StartsWith(_T("shared-"));
+   }
+
+   bool
+   CalendarStore::CreateCalendar(__int64 accountId, const String &name, const String &displayName, const String &color, CalendarRecord &created)
+   {
+      if (!IsUsableCalendarName(name))
+         return false;
+
+      boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
+
+      CalendarRecord taken;
+      if (FindByName(accountId, name, taken))
+         return false;
+
+      created = CalendarRecord();
+      created.accountId = accountId;
+      created.name = name;
+      created.displayName = displayName.IsEmpty() ? name : displayName;
+      created.color = color;
+      created.syncToken = 1;
+      created.created = Now();
+
+      SQLStatement statement;
+      statement.SetTable("hm_calendars");
+      statement.SetStatementType(SQLStatement::STInsert);
+      statement.SetIdentityColumn("calendarid");
+      statement.AddColumnInt64("calendaraccountid", accountId);
+      statement.AddColumn("calendarname", created.name);
+      statement.AddColumn("calendardisplayname", created.displayName);
+      statement.AddColumnInt64("calendarsynctoken", created.syncToken);
+      statement.AddColumnInt64("calendarcreated", created.created);
+      statement.AddColumn("calendarcolor", created.color);
+
+      __int64 id = 0;
+      if (!Application::Instance()->GetDBManager()->Execute(statement, &id) || id <= 0)
+         return false;
+
+      created.id = id;
+      return true;
+   }
+
+   bool
+   CalendarStore::UpdateCalendar(__int64 accountId, __int64 calendarId, const String &displayName, const String &color)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
+
+      CalendarRecord calendar;
+      if (!Get(accountId, calendarId, calendar))
+         return false;
+
+      SQLStatement statement;
+      statement.SetTable("hm_calendars");
+      statement.SetStatementType(SQLStatement::STUpdate);
+      statement.AddColumn("calendardisplayname", displayName.IsEmpty() ? calendar.displayName : displayName);
+      statement.AddColumn("calendarcolor", color);
+      statement.AddColumnInt64("calendarsynctoken", calendar.syncToken + 1);
+      statement.SetWhereClause("calendarid = " + Int64Text(calendarId) + " and calendaraccountid = " + Int64Text(accountId));
+      return Application::Instance()->GetDBManager()->Execute(statement);
+   }
+
+   bool
+   CalendarStore::DeleteCalendar(__int64 accountId, __int64 calendarId)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
+
+      CalendarRecord calendar;
+      if (!Get(accountId, calendarId, calendar))
+         return false;
+      if (calendar.name.CompareNoCase(String(DefaultName)) == 0)
+         return false;
+
+      // The objects and the shares first: the foreign keys cascade on every
+      // backend but the rows are removed here as well, so a database made
+      // without them (an upgrade that failed half way) is left clean.
+      SQLCommand objects("delete from hm_calendarobjects where objectcalendarid = @ID");
+      objects.AddParameter("@ID", calendarId);
+      if (!Application::Instance()->GetDBManager()->Execute(objects))
+         return false;
+
+      SQLCommand shares("delete from hm_calendarshares where sharecalendarid = @ID");
+      shares.AddParameter("@ID", calendarId);
+      if (!Application::Instance()->GetDBManager()->Execute(shares))
+         return false;
+
+      SQLCommand row("delete from hm_calendars where calendarid = @ID and calendaraccountid = @ACCOUNTID");
+      row.AddParameter("@ID", calendarId);
+      row.AddParameter("@ACCOUNTID", accountId);
+      return Application::Instance()->GetDBManager()->Execute(row);
+   }
+
+   bool
+   CalendarStore::ListShares(__int64 calendarId, std::vector<CalendarShareRecord> &shares)
+   {
+      shares.clear();
+
+      SQLCommand command("select shareid, sharecalendarid, shareaccountid, sharewrite, accountaddress from hm_calendarshares inner join hm_accounts on accountid = shareaccountid where sharecalendarid = @ID order by accountaddress");
+      command.AddParameter("@ID", calendarId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         CalendarShareRecord share;
+         ReadShare(recordset, share);
+         share.address = recordset->GetStringValue("accountaddress");
+         shares.push_back(share);
+         recordset->MoveNext();
+      }
+      return true;
+   }
+
+   bool
+   CalendarStore::ListSharedWith(__int64 accountId, std::vector<CalendarRecord> &calendars, std::vector<CalendarShareRecord> &shares)
+   {
+      calendars.clear();
+      shares.clear();
+
+      SQLCommand command(String(AnsiString("select shareid, sharecalendarid, shareaccountid, sharewrite, ") + CalendarColumns +
+         " from hm_calendarshares inner join hm_calendars on calendarid = sharecalendarid where shareaccountid = @ACCOUNTID order by calendardisplayname, calendarid"));
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         CalendarRecord calendar;
+         ReadCalendar(recordset, calendar);
+         CalendarShareRecord share;
+         ReadShare(recordset, share);
+         calendars.push_back(calendar);
+         shares.push_back(share);
+         recordset->MoveNext();
+      }
+      return true;
+   }
+
+   bool
+   CalendarStore::ShareOf(__int64 calendarId, __int64 accountId, CalendarShareRecord &share)
+   {
+      SQLCommand command("select shareid, sharecalendarid, shareaccountid, sharewrite from hm_calendarshares where sharecalendarid = @ID and shareaccountid = @ACCOUNTID");
+      command.AddParameter("@ID", calendarId);
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadShare(recordset, share);
+      return true;
+   }
+
+   bool
+   CalendarStore::Share(__int64 calendarId, __int64 accountId, bool write)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
+
+      CalendarShareRecord existing;
+      if (ShareOf(calendarId, accountId, existing))
+      {
+         SQLStatement statement;
+         statement.SetTable("hm_calendarshares");
+         statement.SetStatementType(SQLStatement::STUpdate);
+         statement.AddColumnInt64("sharewrite", write ? 1 : 0);
+         statement.SetWhereClause("shareid = " + Int64Text(existing.id));
+         return Application::Instance()->GetDBManager()->Execute(statement);
+      }
+
+      SQLStatement statement;
+      statement.SetTable("hm_calendarshares");
+      statement.SetStatementType(SQLStatement::STInsert);
+      statement.SetIdentityColumn("shareid");
+      statement.AddColumnInt64("sharecalendarid", calendarId);
+      statement.AddColumnInt64("shareaccountid", accountId);
+      statement.AddColumnInt64("sharewrite", write ? 1 : 0);
+
+      __int64 id = 0;
+      return Application::Instance()->GetDBManager()->Execute(statement, &id) && id > 0;
+   }
+
+   bool
+   CalendarStore::Unshare(__int64 calendarId, __int64 accountId)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
+
+      SQLCommand command("delete from hm_calendarshares where sharecalendarid = @ID and shareaccountid = @ACCOUNTID");
+      command.AddParameter("@ID", calendarId);
+      command.AddParameter("@ACCOUNTID", accountId);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
+   CalendarStore::UnshareAll(__int64 accountId)
+   {
+      SQLCommand command("delete from hm_calendarshares where shareaccountid = @ACCOUNTID");
+      command.AddParameter("@ACCOUNTID", accountId);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
    CalendarStore::Get(__int64 accountId, __int64 calendarId, CalendarRecord &calendar)
    {
-      SQLCommand command("select calendarid, calendaraccountid, calendarname, calendardisplayname, calendarsynctoken, calendarcreated from hm_calendars where calendarid = @ID and calendaraccountid = @ACCOUNTID");
+      SQLCommand command(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendarid = @ID and calendaraccountid = @ACCOUNTID"));
       command.AddParameter("@ID", calendarId);
       command.AddParameter("@ACCOUNTID", accountId);
 
@@ -295,6 +587,14 @@ namespace HM
       command.AddParameter("@CALENDARID", calendarId);
       command.AddParameter("@UID", uid);
       return ReadExactObject(command, true, uid, object);
+   }
+
+   bool
+   CalendarStore::FindById(__int64 objectId, CalendarObjectRecord &object)
+   {
+      SQLCommand command(String(AnsiString("select ") + ObjectColumns + " from hm_calendarobjects where objectid = @ID and objectdeleted = 0"));
+      command.AddParameter("@ID", objectId);
+      return ReadOneObject(command, object);
    }
 
    bool

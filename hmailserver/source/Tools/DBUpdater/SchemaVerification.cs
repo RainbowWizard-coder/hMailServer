@@ -1153,6 +1153,12 @@ namespace DBUpdater
          // account's rules, the domain's id for a rule that runs for one domain.
          new SchemaProbe(6063, "hm_rules.ruledomainid",
                          "update hm_rules set ruledomainid = ruledomainid where 1 = 0"),
+         // Upgrade6063to6064* - a calendar's colour, and the table that shares a
+         // calendar with another account of this server, read-only or read-write.
+         new SchemaProbe(6064, "hm_calendars.calendarcolor",
+                         "update hm_calendars set calendarcolor = calendarcolor where 1 = 0"),
+         new SchemaProbe(6064, "hm_calendarshares.sharewrite",
+                         "update hm_calendarshares set sharewrite = sharewrite where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

@@ -356,6 +356,7 @@ NOT_AUDITED = {
    "hm_accountprefs": "an account's own webmail preferences, set by the account in the portal.",
    "hm_calendars": "an account's own calendars, written by it over CalDAV and the portal.",
    "hm_calendarobjects": "the events in an account's own calendars.",
+   "hm_calendarshares": "who else an account shares a calendar with, written by the account itself over the portal and CalDAV.",
    "hm_contacts": "an account's own address book, written by it over CardDAV and the portal.",
    "hm_files": "files an account attached as links from webmail; the account's own data.",
    "hm_scheduled": "an account's own scheduled sends and snoozed messages.",

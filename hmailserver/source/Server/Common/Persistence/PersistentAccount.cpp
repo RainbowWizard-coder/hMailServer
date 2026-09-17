@@ -22,6 +22,7 @@
 #include "PersistentDomain.h"
 #include "../BO/Domain.h"
 #include "../Util/PasswordHistory.h"
+#include "../Util/CalendarStore.h"
 #include "PersistenceMode.h"
 
 #include "../Util/File.h"
@@ -105,6 +106,11 @@ namespace HM
 
       if (!pAccount->GetRules()->DeleteAll())
          orphans.push_back(_T("its rules"));
+
+      // The calendars other accounts shared with it. Its own calendars and
+      // their shares go with the account through the foreign keys.
+      if (!CalendarStore::UnshareAll(iID))
+         orphans.push_back(_T("the calendar shares granted to it"));
 
       // Delete fetch accounts connected to this account. This one returns void, so
       // there is nothing to check - noted rather than silently skipped.

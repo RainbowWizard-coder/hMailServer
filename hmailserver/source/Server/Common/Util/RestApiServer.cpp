@@ -2209,6 +2209,41 @@ namespace HM
 
          case RouteMeContactPhoto:
             return HandleMeContactPhoto_(caller, route.message_id);
+
+         case RouteMeCalendars:
+            return HandleMeCalendars_(caller);
+         case RouteMeCalendarCreate:
+            return HandleMeCalendarCreate_(caller, GetRequestBody_(request));
+         case RouteMeCalendarUpdate:
+            return HandleMeCalendarUpdate_(caller, route.message_id, GetRequestBody_(request));
+         case RouteMeCalendarDelete:
+            return HandleMeCalendarDelete_(caller, route.message_id);
+         case RouteMeCalendarSharePut:
+            return HandleMeCalendarSharePut_(caller, route.message_id, route.identifier, GetRequestBody_(request));
+         case RouteMeCalendarShareDelete:
+            return HandleMeCalendarShareDelete_(caller, route.message_id, route.identifier);
+         case RouteMeEvents:
+            return HandleMeEvents_(caller, route.query);
+         case RouteMeEventGet:
+            return HandleMeEventGet_(caller, route.message_id);
+         case RouteMeEventCreate:
+            return HandleMeEventCreate_(caller, GetRequestBody_(request));
+         case RouteMeEventUpdate:
+            return HandleMeEventUpdate_(caller, route.message_id, GetRequestBody_(request));
+         case RouteMeEventDelete:
+            return HandleMeEventDelete_(caller, route.message_id, route.query);
+         case RouteMeTasks:
+            return HandleMeTasks_(caller);
+         case RouteMeTaskCreate:
+            return HandleMeTaskCreate_(caller, GetRequestBody_(request));
+         case RouteMeTaskUpdate:
+            return HandleMeTaskUpdate_(caller, route.message_id, GetRequestBody_(request));
+         case RouteMeTaskDelete:
+            return HandleMeTaskDelete_(caller, route.message_id);
+         case RouteMeMessageInvitation:
+            return HandleMeMessageInvitation_(caller, route.message_id);
+         case RouteMeMessageInvitationReply:
+            return HandleMeMessageInvitationReply_(caller, route.message_id, GetRequestBody_(request));
          case RouteMeContactDelete:
             return HandleMeContactDelete_(caller, route.message_id);
 
@@ -2545,6 +2580,90 @@ namespace HM
                route.kind = RouteMeContactDelete;
          }
 
+         return;
+      }
+
+      // The account's calendars and their shares, its events, its tasks.
+      const AnsiString meCalendarsPath = "/api/v1/me/calendars";
+      if (path == meCalendarsPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeCalendars;
+         else if (method == "POST")
+            route.kind = RouteMeCalendarCreate;
+         return;
+      }
+      if (path.StartsWith(meCalendarsPath + "/"))
+      {
+         AnsiString rest = path.Mid(meCalendarsPath.GetLength() + 1);
+         int sharesAt = rest.Find("/shares/");
+         if (sharesAt > 0)
+         {
+            AnsiString idText = rest.Mid(0, sharesAt);
+            AnsiString address = rest.Mid(sharesAt + AnsiString("/shares/").GetLength());
+            if (ParseQueueId(idText, route.message_id) && !address.IsEmpty())
+            {
+               route.identifier = address;
+               if (method == "PUT")
+                  route.kind = RouteMeCalendarSharePut;
+               else if (method == "DELETE")
+                  route.kind = RouteMeCalendarShareDelete;
+            }
+            return;
+         }
+         if (ParseQueueId(rest, route.message_id))
+         {
+            if (method == "PUT")
+               route.kind = RouteMeCalendarUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteMeCalendarDelete;
+         }
+         return;
+      }
+
+      const AnsiString meEventsPath = "/api/v1/me/calendar/events";
+      if (path == meEventsPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeEvents;
+         else if (method == "POST")
+            route.kind = RouteMeEventCreate;
+         return;
+      }
+      if (path.StartsWith(meEventsPath + "/"))
+      {
+         AnsiString rest = path.Mid(meEventsPath.GetLength() + 1);
+         if (ParseQueueId(rest, route.message_id))
+         {
+            if (method == "GET")
+               route.kind = RouteMeEventGet;
+            else if (method == "PUT")
+               route.kind = RouteMeEventUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteMeEventDelete;
+         }
+         return;
+      }
+
+      const AnsiString meTasksPath = "/api/v1/me/tasks";
+      if (path == meTasksPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeTasks;
+         else if (method == "POST")
+            route.kind = RouteMeTaskCreate;
+         return;
+      }
+      if (path.StartsWith(meTasksPath + "/"))
+      {
+         AnsiString rest = path.Mid(meTasksPath.GetLength() + 1);
+         if (ParseQueueId(rest, route.message_id))
+         {
+            if (method == "PUT")
+               route.kind = RouteMeTaskUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteMeTaskDelete;
+         }
          return;
       }
 
@@ -3032,6 +3151,22 @@ namespace HM
             AnsiString idText = rest.Mid(0, rest.GetLength() - AnsiString("/receipt").GetLength());
             if (ParseQueueId(idText, route.message_id))
                route.kind = RouteMeMessageReceipt;
+            return;
+         }
+
+         if (method == "GET" && rest.EndsWith("/invitation"))
+         {
+            AnsiString idText = rest.Mid(0, rest.GetLength() - AnsiString("/invitation").GetLength());
+            if (ParseQueueId(idText, route.message_id))
+               route.kind = RouteMeMessageInvitation;
+            return;
+         }
+
+         if (method == "POST" && rest.EndsWith("/invitation/reply"))
+         {
+            AnsiString idText = rest.Mid(0, rest.GetLength() - AnsiString("/invitation/reply").GetLength());
+            if (ParseQueueId(idText, route.message_id))
+               route.kind = RouteMeMessageInvitationReply;
             return;
          }
 
@@ -4832,6 +4967,18 @@ namespace HM
       case RouteMePushTest:
       case RouteSettingsPushPut:
       case RouteSettingsPushVapid:
+      case RouteMeCalendarCreate:
+      case RouteMeCalendarUpdate:
+      case RouteMeCalendarDelete:
+      case RouteMeCalendarSharePut:
+      case RouteMeCalendarShareDelete:
+      case RouteMeEventCreate:
+      case RouteMeEventUpdate:
+      case RouteMeEventDelete:
+      case RouteMeTaskCreate:
+      case RouteMeTaskUpdate:
+      case RouteMeTaskDelete:
+      case RouteMeMessageInvitationReply:
       case RouteMeContactCreate:
       case RouteMeContactUpdate:
       case RouteMeContactDelete:
@@ -8756,6 +8903,23 @@ namespace HM
       case RouteMePushUpdate:
       case RouteMePushDelete:
       case RouteMePushTest:
+      case RouteMeCalendars:
+      case RouteMeCalendarCreate:
+      case RouteMeCalendarUpdate:
+      case RouteMeCalendarDelete:
+      case RouteMeCalendarSharePut:
+      case RouteMeCalendarShareDelete:
+      case RouteMeEvents:
+      case RouteMeEventGet:
+      case RouteMeEventCreate:
+      case RouteMeEventUpdate:
+      case RouteMeEventDelete:
+      case RouteMeTasks:
+      case RouteMeTaskCreate:
+      case RouteMeTaskUpdate:
+      case RouteMeTaskDelete:
+      case RouteMeMessageInvitation:
+      case RouteMeMessageInvitationReply:
       case RouteMeContacts:
       case RouteMeContactCreate:
       case RouteMeContactUpdate:
@@ -10866,7 +11030,7 @@ namespace HM
 
       if (message->GetSize() > MaxMessageParseBytes)
       {
-         json += "\"truncated\":true,\"to\":\"\",\"cc\":\"\",\"text\":\"\",\"html\":\"\",\"html_remote\":false,\"attachments\":[]}";
+         json += "\"truncated\":true,\"to\":\"\",\"cc\":\"\",\"text\":\"\",\"html\":\"\",\"html_remote\":false,\"invitation\":false,\"attachments\":[]}";
          return BuildResponse_(200, json);
       }
 
@@ -10928,13 +11092,43 @@ namespace HM
       AnsiString html = bodyTooLarge ? AnsiString() : JsonEscape_(Utf8_(messageData.GetHTMLBody()));
       bool htmlRemote = !bodyTooLarge && HtmlNamesRemoteContent_(Utf8_(messageData.GetHTMLBody()));
 
-      tail.Format("\"truncated\":%hs,\"to\":\"%hs\",\"cc\":\"%hs\",\"text\":\"%hs\",\"html\":\"%hs\",\"html_remote\":%hs,\"attachments\":%hs}",
+      // An invitation: a text/calendar part, or an .ics attachment. The page
+      // asks /invitation for what it says only when this is true.
+      bool invitation = false;
+      if (!bodyTooLarge && mimeMessage)
+      {
+         std::vector<std::shared_ptr<MimeBody>> stack;
+         stack.push_back(mimeMessage);
+         while (!stack.empty() && !invitation)
+         {
+            std::shared_ptr<MimeBody> part = stack.back();
+            stack.pop_back();
+            AnsiString type = part->GetContentType() ? part->GetContentType() : "";
+            type.ToLower();
+            AnsiString name = AnsiString(part->GetName().c_str());
+            name.ToLower();
+            if (type == "text/calendar" || name.EndsWith(".ics"))
+               invitation = true;
+            else if (part->IsMultiPart())
+            {
+               std::shared_ptr<MimeBody> child = part->FindFirstPart();
+               while (child)
+               {
+                  stack.push_back(child);
+                  child = part->FindNextPart();
+               }
+            }
+         }
+      }
+
+      tail.Format("\"truncated\":%hs,\"to\":\"%hs\",\"cc\":\"%hs\",\"text\":\"%hs\",\"html\":\"%hs\",\"html_remote\":%hs,\"invitation\":%hs,\"attachments\":%hs}",
          bodyTooLarge ? "true" : "false",
          JsonEscape_(Utf8_(messageData.GetTo())).c_str(),
          JsonEscape_(Utf8_(messageData.GetCC())).c_str(),
          text.c_str(),
          html.c_str(),
          htmlRemote ? "true" : "false",
+         invitation ? "true" : "false",
          attachments.c_str());
       json += tail;
 
@@ -13751,6 +13945,7 @@ namespace HM
       openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiSpamTrapPaths_();
       openApiJson += OpenApiMailboxPaths_();
+      openApiJson += OpenApiCalendarPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();

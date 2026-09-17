@@ -238,7 +238,7 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section'];
   var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
@@ -1143,6 +1143,7 @@
     smimeInspect(m);
     el('message-html-toggle').hidden = !m.html || m.truncated;
     renderHtml();
+    renderInvitation(m);
     if (el('message-body').scrollTop) { el('message-body').scrollTop = 0; }
   };
   // The message after the cursor is fetched while the reader is still on
@@ -1818,6 +1819,8 @@
     if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); return; }
     if (head === 'filters') { showPanel('filter-section', 'Filters'); markNav('/filters'); renderColourRules(); return; }
     if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadContacts(); return; }
+    if (head === 'calendar') { showPanel('calendar-section', t('Calendar')); markNav('/calendar'); openCalendar(r.params); return; }
+    if (head === 'tasks') { showPanel('tasks-section', t('Tasks')); markNav('/tasks'); loadTasks(); return; }
     if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
     if (head === 'storage') { showPanel('storage-section', 'Storage'); markNav('/storage'); loadStorage(); loadFiles(); return; }
     if (head === 'senders') { showPanel('senders-section', t('Safe senders')); markNav('/senders'); loadSenderList(); loadDigestSetting(); return; }
@@ -5104,7 +5107,7 @@
   el('message-sweep').addEventListener('click', function () { closeMenus(); if (current) { sweepSender(addressOf(current.from), current.folder_id || state.folderId); } });
 
   // ---- The shortcut list and the palette -------------------------------------
-  var closeOverlays = function () { el('keys-overlay').hidden = true; el('palette').hidden = true; };
+  var closeOverlays = function () { el('keys-overlay').hidden = true; el('palette').hidden = true; el('event-overlay').hidden = true; el('task-overlay').hidden = true; };
   var openKeys = function () { el('palette').hidden = true; el('keys-overlay').hidden = false; el('keys-close').focus(); };
   el('keys-close').addEventListener('click', closeOverlays);
   ['keys-overlay', 'palette'].forEach(function (id) { el(id).addEventListener('click', function (e) { if (e.target === el(id)) { closeOverlays(); } }); });
@@ -5121,6 +5124,9 @@
     add('Settings', 'page', function () { go('/settings'); });
     add('Filters', 'page', function () { go('/filters'); });
     add('Contacts', 'page', function () { go('/contacts'); });
+    add('Calendar', 'page', function () { go('/calendar'); });
+    add('Tasks', 'page', function () { go('/tasks'); });
+    add('New event', 'action', function () { go('/calendar'); openEvent(null, { day: wallKey(new Date()) }); });
     add('Away and forwarding', 'page', function () { go('/away'); });
     add('Storage', 'page', function () { go('/storage'); });
     add('Safe senders', 'page', function () { go('/senders'); });
@@ -6588,6 +6594,963 @@
     if (!within(event.target, el('context-menu'))) { closeContextMenu(); }
   });
   document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !el('context-menu').hidden) { closeContextMenu(); } });
+
+  // ---- The calendar --------------------------------------------------------
+  //
+  // Month, week, day and agenda views over /api/v1/me/calendar/events, which
+  // the server answers occurrence by occurrence across every calendar the
+  // account can see; the event editor, with a recurrence, a reminder and the
+  // attendees; drag to move and drag to resize; the calendars themselves with
+  // their colours and shares; and reminders while the page is open. Every
+  // time is shown in the reader's zone (the one chosen in Settings, else the
+  // browser's), and written back with that zone, so a weekly 09:00 stays
+  // 09:00 across a clock change.
+  var calState = { view: 'month', anchor: new Date(), calendars: [], events: [], window: '', loaded: false, editing: null, detail: 0 };
+  var CAL_HIDDEN = 'hmPortalCalendarsHidden';
+  var CAL_VIEW = 'hmPortalCalendarView';
+  var CAL_HOUR = 48;
+  var calZone = function () {
+    var chosen = pref('timezone');
+    if (chosen) { return chosen; }
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) { return 'UTC'; }
+  };
+  var zoneList = function () {
+    var zones = [];
+    try { zones = (typeof Intl !== 'undefined' && Intl.supportedValuesOf) ? Intl.supportedValuesOf('timeZone') : []; } catch (e) { zones = []; }
+    if (!zones.length) { zones = ['UTC', 'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Rome', 'Europe/Amsterdam', 'Europe/Stockholm', 'Europe/Warsaw', 'Europe/Athens', 'Europe/Kiev', 'Europe/Moscow', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Sao_Paulo', 'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Kolkata', 'Asia/Dubai', 'Australia/Sydney']; }
+    return zones;
+  };
+  // The wall clock of an instant in a zone, and back.
+  var WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var wallOf = function (date, zone) {
+    try {
+      var parts = new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', weekday: 'short' }).formatToParts(date);
+      var o = {};
+      parts.forEach(function (p) { o[p.type] = p.value; });
+      return { y: +o.year, m: +o.month, d: +o.day, hh: (+o.hour) % 24, mm: +o.minute, wd: Math.max(0, WEEKDAYS.indexOf(o.weekday)) };
+    } catch (e) {
+      return { y: date.getUTCFullYear(), m: date.getUTCMonth() + 1, d: date.getUTCDate(), hh: date.getUTCHours(), mm: date.getUTCMinutes(), wd: date.getUTCDay() };
+    }
+  };
+  var instantOf = function (y, m, d, hh, mm, zone) {
+    var wanted = Date.UTC(y, m - 1, d, hh, mm);
+    var guess = wanted;
+    for (var i = 0; i < 2; i++) {
+      var w = wallOf(new Date(guess), zone);
+      guess += wanted - Date.UTC(w.y, w.m - 1, w.d, w.hh, w.mm);
+    }
+    return new Date(guess);
+  };
+  var parseUtc = function (text) {
+    var m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(String(text || ''));
+    if (!m) { return null; }
+    return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
+  };
+  var utcText = function (date) {
+    return date.getUTCFullYear() + pad2(date.getUTCMonth() + 1) + pad2(date.getUTCDate()) + 'T' + pad2(date.getUTCHours()) + pad2(date.getUTCMinutes()) + pad2(date.getUTCSeconds()) + 'Z';
+  };
+  var dayKeyOf = function (y, m, d) { return y + '-' + pad2(m) + '-' + pad2(d); };
+  var wallKey = function (date) { var w = wallOf(date, calZone()); return dayKeyOf(w.y, w.m, w.d); };
+  var wallInput = function (date) { var w = wallOf(date, calZone()); return dayKeyOf(w.y, w.m, w.d) + 'T' + pad2(w.hh) + ':' + pad2(w.mm); };
+  var dayOffset = function (y, m, d, days) { var t = new Date(Date.UTC(y, m - 1, d + days)); return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate(), wd: t.getUTCDay() }; };
+  var keyOffset = function (key, days) { var p = key.split('-'); var o = dayOffset(+p[0], +p[1], +p[2], days); return dayKeyOf(o.y, o.m, o.d); };
+  var monthNames = function (y, m) {
+    try { return new Date(Date.UTC(y, m - 1, 1, 12)).toLocaleDateString(languageActive, { timeZone: 'UTC', month: 'long', year: 'numeric' }); } catch (e) { return y + '-' + pad2(m); }
+  };
+  var dayName = function (key, style) {
+    var p = key.split('-');
+    try { return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2], 12)).toLocaleDateString(languageActive, style === 'long' ? { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' } : { timeZone: 'UTC', weekday: 'short', day: 'numeric' }); } catch (e) { return key; }
+  };
+  var timeText = function (date) {
+    try { return date.toLocaleTimeString(languageActive, zoneOptions({ hour: '2-digit', minute: '2-digit', hour12: false })); } catch (e) { var w = wallOf(date, calZone()); return pad2(w.hh) + ':' + pad2(w.mm); }
+  };
+  var spanText = function (ev) {
+    var s = parseUtc(ev.start), e = parseUtc(ev.end);
+    if (!s) { return ''; }
+    if (ev.all_day) {
+      var last = keyOffset(ev.local_end, -1);
+      return ev.local_start === last || !ev.local_end ? dayName(ev.local_start, 'long') : dayName(ev.local_start, 'long') + ' – ' + dayName(last, 'long');
+    }
+    var sameDay = e && wallKey(s) === wallKey(e);
+    return dayName(wallKey(s), 'long') + ' ' + timeText(s) + (e && e > s ? ' – ' + (sameDay ? '' : dayName(wallKey(e), 'long') + ' ') + timeText(e) : '');
+  };
+  var hiddenCalendars = function () { try { return JSON.parse(localStorage.getItem(CAL_HIDDEN) || '[]') || []; } catch (e) { return []; } };
+  var calendarShown = function (id) { return hiddenCalendars().indexOf(Number(id)) < 0; };
+  var calendarById = function (id) { return calState.calendars.filter(function (c) { return c.id === Number(id); })[0] || null; };
+  var calendarColor = function (id) { var c = calendarById(id); return (c && c.color) || 'var(--accent)'; };
+  var writableCalendars = function () { return calState.calendars.filter(function (c) { return c.writable; }); };
+
+  var calWindow = function () {
+    var zone = calZone();
+    var w = wallOf(calState.anchor, zone);
+    var start, end;
+    if (calState.view === 'month') {
+      var first = dayOffset(w.y, w.m, 1, 0);
+      var offset = (first.wd + 6) % 7;
+      var s = dayOffset(first.y, first.m, first.d, -offset);
+      start = instantOf(s.y, s.m, s.d, 0, 0, zone);
+      var e = dayOffset(s.y, s.m, s.d, 42);
+      end = instantOf(e.y, e.m, e.d, 0, 0, zone);
+    } else if (calState.view === 'week') {
+      var monday = dayOffset(w.y, w.m, w.d, -((w.wd + 6) % 7));
+      start = instantOf(monday.y, monday.m, monday.d, 0, 0, zone);
+      var sunday = dayOffset(monday.y, monday.m, monday.d, 7);
+      end = instantOf(sunday.y, sunday.m, sunday.d, 0, 0, zone);
+    } else if (calState.view === 'day') {
+      start = instantOf(w.y, w.m, w.d, 0, 0, zone);
+      var next = dayOffset(w.y, w.m, w.d, 1);
+      end = instantOf(next.y, next.m, next.d, 0, 0, zone);
+    } else {
+      start = instantOf(w.y, w.m, w.d, 0, 0, zone);
+      var later = dayOffset(w.y, w.m, w.d, 31);
+      end = instantOf(later.y, later.m, later.d, 0, 0, zone);
+    }
+    return { start: start, end: end };
+  };
+  var calTitle = function () {
+    var w = wallOf(calState.anchor, calZone());
+    if (calState.view === 'month') { return monthNames(w.y, w.m); }
+    if (calState.view === 'day') { return dayName(dayKeyOf(w.y, w.m, w.d), 'long'); }
+    var range = calWindow();
+    var a = wallOf(range.start, calZone()), b = wallOf(new Date(range.end.getTime() - 60000), calZone());
+    return dayName(dayKeyOf(a.y, a.m, a.d)) + ' – ' + dayName(dayKeyOf(b.y, b.m, b.d)) + ', ' + b.y;
+  };
+
+  var loadCalendars = function (force) {
+    if (calState.calendars.length && !force) { return Promise.resolve(calState.calendars); }
+    return call('GET', '/api/v1/me/calendars').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('cal-status', describe(result, t('Could not read the calendars')), false); return calState.calendars; }
+      calState.calendars = result.data.calendars || [];
+      renderCalendarList();
+      return calState.calendars;
+    });
+  };
+  var loadEvents = function () {
+    var range = calWindow();
+    var key = utcText(range.start) + utcText(range.end);
+    return call('GET', '/api/v1/me/calendar/events?start=' + utcText(range.start) + '&end=' + utcText(range.end)).then(function (result) {
+      if (result.status !== 200 || !result.data) { say('cal-status', describe(result, t('Could not read the events')), false); return; }
+      calState.events = result.data.events || [];
+      calState.window = key;
+      calState.loaded = true;
+      renderCalendar();
+    });
+  };
+  var openCalendar = function (params) {
+    try { var kept = localStorage.getItem(CAL_VIEW); if (kept && ['month', 'week', 'day', 'agenda'].indexOf(kept) >= 0 && !(params && params.view)) { calState.view = kept; } } catch (e) { /* no storage */ }
+    if (params && params.view && ['month', 'week', 'day', 'agenda'].indexOf(params.view) >= 0) { calState.view = params.view; }
+    el('cal-zone').textContent = tf('Times are shown in {0}.', calZone());
+    fillZoneSelect(el('event-tz'));
+    loadCalendars().then(loadEvents);
+  };
+  var fillZoneSelect = function (select) {
+    if (select.children.length) { return; }
+    zoneList().forEach(function (z) { var o = document.createElement('option'); o.value = z; o.textContent = z; select.appendChild(o); });
+  };
+
+  // ---- the calendars beside the grid
+  var renderCalendarList = function () {
+    var list = el('cal-list');
+    clear(list);
+    var addList = el('cal-add-form');
+    addList.hidden = false;
+    calState.calendars.forEach(function (c) {
+      var row = node('div', undefined, 'cal-row');
+      var box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = calendarShown(c.id);
+      box.setAttribute('aria-label', c.display_name);
+      box.addEventListener('change', function () {
+        var hidden = hiddenCalendars().filter(function (id) { return id !== c.id; });
+        if (!box.checked) { hidden.push(c.id); }
+        try { localStorage.setItem(CAL_HIDDEN, JSON.stringify(hidden)); } catch (e) { /* no storage */ }
+        renderCalendar();
+      });
+      row.appendChild(box);
+      var dot = node('span', undefined, 'cal-dot');
+      dot.style.background = c.color || 'var(--accent)';
+      row.appendChild(dot);
+      var name = node('span', c.display_name + (c.mine ? '' : ' (' + c.owner + ')'), 'cal-name');
+      name.setAttribute('title', c.mine ? c.display_name : tf('Shared by {0}', c.owner) + (c.writable ? '' : ' · ' + t('read-only')));
+      row.appendChild(name);
+      var edit = iconButton('pen', c.mine ? t('Edit calendar') : t('Calendar details'));
+      edit.addEventListener('click', function () { calState.detail = calState.detail === c.id ? 0 : c.id; renderCalendarDetail(); });
+      row.appendChild(edit);
+      list.appendChild(row);
+    });
+    renderCalendarDetail();
+    var choice = el('event-calendar');
+    clear(choice);
+    writableCalendars().forEach(function (c) { var o = document.createElement('option'); o.value = String(c.id); o.textContent = c.mine ? c.display_name : c.display_name + ' (' + c.owner + ')'; choice.appendChild(o); });
+    var taskChoice = el('task-add-list');
+    if (taskChoice) { clear(taskChoice); writableCalendars().forEach(function (c) { var o = document.createElement('option'); o.value = String(c.id); o.textContent = c.display_name; taskChoice.appendChild(o); }); }
+    var taskEdit = el('task-list-select');
+    if (taskEdit) { clear(taskEdit); writableCalendars().forEach(function (c) { var o = document.createElement('option'); o.value = String(c.id); o.textContent = c.display_name; taskEdit.appendChild(o); }); }
+  };
+  var renderCalendarDetail = function () {
+    var box = el('cal-detail');
+    clear(box);
+    var c = calendarById(calState.detail);
+    box.hidden = !c;
+    if (!c) { return; }
+    box.appendChild(node('h3', c.display_name));
+    if (!c.mine) {
+      box.appendChild(node('p', tf('Shared by {0}', c.owner) + ' · ' + (c.writable ? t('you can add and change events') : t('read-only')), 'hint'));
+      var leave = button(t('Leave this calendar'), 'btn ghost sm');
+      leave.addEventListener('click', function () {
+        call('DELETE', '/api/v1/me/calendars/' + c.id).then(function (result) {
+          if (result.status !== 200) { say('cal-status', describe(result, t('Could not leave the calendar')), false); return; }
+          calState.detail = 0;
+          loadCalendars(true).then(loadEvents);
+        });
+      });
+      box.appendChild(leave);
+      return;
+    }
+    var form = node('form', undefined, 'row');
+    var name = document.createElement('input'); name.type = 'text'; name.value = c.display_name; name.setAttribute('aria-label', t('Calendar name')); name.setAttribute('maxlength', '255'); name.id = 'cal-detail-name';
+    var color = document.createElement('input'); color.type = 'color'; color.value = c.color || '#1a73e8'; color.setAttribute('aria-label', t('Colour')); color.id = 'cal-detail-color';
+    var save = button(t('Save'), 'btn sm'); save.type = 'submit';
+    form.appendChild(name); form.appendChild(color); form.appendChild(save);
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      call('PUT', '/api/v1/me/calendars/' + c.id, { display_name: name.value, color: color.value }).then(function (result) {
+        if (result.status !== 200) { say('cal-status', describe(result, t('Could not save the calendar')), false); return; }
+        say('cal-status', t('Calendar saved.'), true);
+        loadCalendars(true).then(renderCalendar);
+      });
+    });
+    box.appendChild(form);
+
+    box.appendChild(node('h3', t('Sharing')));
+    var shareForm = node('form', undefined, 'row');
+    var address = document.createElement('input'); address.type = 'text'; address.setAttribute('placeholder', 'someone@' + (me.split('@')[1] || 'example.com')); address.setAttribute('aria-label', t('Share with')); address.id = 'cal-share-address';
+    var writeLabel = node('label'); var write = document.createElement('input'); write.type = 'checkbox'; write.id = 'cal-share-write'; writeLabel.appendChild(write); writeLabel.appendChild(node('span', ' ' + t('Can edit')));
+    var share = button(t('Share'), 'btn sm'); share.type = 'submit';
+    shareForm.appendChild(address); shareForm.appendChild(writeLabel); shareForm.appendChild(share);
+    shareForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var who = address.value.trim().toLowerCase();
+      if (!who) { return; }
+      call('PUT', '/api/v1/me/calendars/' + c.id + '/shares/' + encodeURIComponent(who), { write: write.checked }).then(function (result) {
+        if (result.status !== 200) { say('cal-status', describe(result, t('Could not share the calendar')), false); return; }
+        say('cal-status', tf('Shared with {0}.', who), true);
+        loadCalendars(true);
+      });
+    });
+    box.appendChild(shareForm);
+    (c.shares || []).forEach(function (s) {
+      var row = node('div', undefined, 'row cal-share');
+      row.appendChild(node('span', s.address + ' · ' + (s.write ? t('can edit') : t('read-only'))));
+      var remove = button(t('Remove'), 'btn quiet sm');
+      remove.addEventListener('click', function () {
+        call('DELETE', '/api/v1/me/calendars/' + c.id + '/shares/' + encodeURIComponent(s.address)).then(function (result) {
+          if (result.status !== 200) { say('cal-status', describe(result, t('Could not remove the share')), false); return; }
+          loadCalendars(true);
+        });
+      });
+      row.appendChild(remove);
+      box.appendChild(row);
+    });
+    box.appendChild(node('p', t('Someone you share with sees this calendar in their webmail and on their phone, read-only unless they can edit.'), 'hint'));
+    if (!c.is_default) {
+      var del = button(t('Delete this calendar'), 'btn quiet sm');
+      del.addEventListener('click', function () {
+        if (!window.confirm(tf('Delete the calendar "{0}" and every event in it?', c.display_name))) { return; }
+        call('DELETE', '/api/v1/me/calendars/' + c.id).then(function (result) {
+          if (result.status !== 200) { say('cal-status', describe(result, t('Could not delete the calendar')), false); return; }
+          calState.detail = 0;
+          loadCalendars(true).then(loadEvents);
+        });
+      });
+      box.appendChild(del);
+    }
+  };
+  el('cal-add-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var name = el('cal-add-name').value.trim();
+    if (!name) { return; }
+    call('POST', '/api/v1/me/calendars', { display_name: name, color: el('cal-add-color').value }).then(function (result) {
+      if (result.status !== 201) { say('cal-status', describe(result, t('Could not add the calendar')), false); return; }
+      el('cal-add-name').value = '';
+      say('cal-status', tf('Calendar "{0}" added.', name), true);
+      loadCalendars(true);
+    });
+  });
+
+  // ---- the views
+  var visibleEvents = function () { return calState.events.filter(function (ev) { return calendarShown(ev.calendar); }); };
+  var eventDays = function (ev) {
+    // The day keys, in the reader's zone, an occurrence touches.
+    var keys = [];
+    if (ev.all_day) {
+      var k = ev.local_start, last = keyOffset(ev.local_end || ev.local_start, -1);
+      if (last < k) { last = k; }
+      for (var i = 0; i < 60 && k <= last; i++) { keys.push(k); k = keyOffset(k, 1); }
+      return keys;
+    }
+    var s = parseUtc(ev.start), e = parseUtc(ev.end) || s;
+    if (!s) { return keys; }
+    var from = wallKey(s), to = wallKey(new Date(Math.max(s.getTime(), e.getTime() - 60000)));
+    var key = from;
+    for (var j = 0; j < 60 && key <= to; j++) { keys.push(key); key = keyOffset(key, 1); }
+    return keys;
+  };
+  var chipFor = function (ev, withTime) {
+    var chip = node('button', undefined, 'cal-chip' + (ev.writable ? '' : ' ro') + (ev.status === 'CANCELLED' ? ' cancelled' : '') + (ev.my_partstat === 'DECLINED' ? ' declined' : ''));
+    chip.type = 'button';
+    chip.style.background = calendarColor(ev.calendar);
+    var s = parseUtc(ev.start);
+    if (withTime && !ev.all_day && s) { chip.appendChild(node('span', timeText(s), 'tm')); }
+    chip.appendChild(node('span', ev.summary || t('(no title)'), 'nm'));
+    chip.setAttribute('title', (ev.summary || '') + '\n' + spanText(ev) + (ev.location ? '\n' + ev.location : ''));
+    chip.setAttribute('data-event', String(ev.id));
+    chip.setAttribute('data-instance', ev.recurrence_id || '');
+    chip.addEventListener('click', function (event) { event.stopPropagation(); openEvent(ev, null); });
+    if (ev.writable) {
+      chip.draggable = true;
+      chip.setAttribute('draggable', 'true');
+      chip.addEventListener('dragstart', function (event) { calDrag = ev; try { event.dataTransfer.setData('text/plain', String(ev.id)); event.dataTransfer.effectAllowed = 'move'; } catch (e) { /* the test DOM has no transfer */ } });
+      chip.addEventListener('dragend', function () { calDrag = null; });
+    }
+    return chip;
+  };
+  var calDrag = null;
+  var calDropTarget = function (cell, onDrop) {
+    cell.addEventListener('dragover', function (event) { if (calDrag) { event.preventDefault(); cell.classList.add('over'); } });
+    cell.addEventListener('dragleave', function () { cell.classList.remove('over'); });
+    cell.addEventListener('drop', function (event) { event.preventDefault(); cell.classList.remove('over'); if (calDrag) { var ev = calDrag; calDrag = null; onDrop(ev); } });
+  };
+  var renderCalendar = function () {
+    if (!calState.loaded) { return; }
+    el('cal-title').textContent = calTitle();
+    var tabs = el('cal-views').children;
+    for (var i = 0; i < tabs.length; i++) { tabs[i].classList.toggle('on', tabs[i].getAttribute('data-cal-view') === calState.view); }
+    var grid = el('cal-grid');
+    clear(grid);
+    if (calState.view === 'month') { renderMonth(grid); }
+    else if (calState.view === 'agenda') { renderAgenda(grid); }
+    else { renderWeek(grid, calState.view === 'day' ? 1 : 7); }
+  };
+  var byDay = function () {
+    var map = {};
+    visibleEvents().forEach(function (ev) { eventDays(ev).forEach(function (k) { (map[k] = map[k] || []).push(ev); }); });
+    Object.keys(map).forEach(function (k) { map[k].sort(function (a, b) { return (a.all_day === b.all_day ? 0 : a.all_day ? -1 : 1) || (a.start < b.start ? -1 : a.start > b.start ? 1 : 0); }); });
+    return map;
+  };
+  var renderMonth = function (grid) {
+    var zone = calZone();
+    var w = wallOf(calState.anchor, zone);
+    var first = dayOffset(w.y, w.m, 1, 0);
+    var start = dayOffset(first.y, first.m, first.d, -((first.wd + 6) % 7));
+    var today = wallKey(new Date());
+    var map = byDay();
+    var table = node('div', undefined, 'cal-month');
+    var head = node('div', undefined, 'cal-month-head');
+    for (var h = 0; h < 7; h++) { var d0 = dayOffset(start.y, start.m, start.d, h); head.appendChild(node('span', dayName(dayKeyOf(d0.y, d0.m, d0.d)).replace(/[\d\s.,]+$/, '').replace(/^[\d\s.,]+/, ''))); }
+    table.appendChild(head);
+    for (var i = 0; i < 42; i++) {
+      var d = dayOffset(start.y, start.m, start.d, i);
+      var key = dayKeyOf(d.y, d.m, d.d);
+      var cell = node('div', undefined, 'cal-cell' + (d.m !== w.m ? ' other' : '') + (key === today ? ' today' : ''));
+      cell.setAttribute('data-day', key);
+      var num = node('button', String(d.d), 'cal-daynum');
+      num.type = 'button';
+      num.setAttribute('aria-label', dayName(key, 'long'));
+      (function (k) {
+        num.addEventListener('click', function (event) { event.stopPropagation(); calState.anchor = instantOf(+k.slice(0, 4), +k.slice(5, 7), +k.slice(8, 10), 12, 0, calZone()); setCalView('day'); });
+        cell.addEventListener('click', function () { openEvent(null, { day: k }); });
+        calDropTarget(cell, function (ev) { moveEventToDay(ev, k); });
+      })(key);
+      cell.appendChild(num);
+      (map[key] || []).forEach(function (ev) { cell.appendChild(chipFor(ev, true)); });
+      table.appendChild(cell);
+    }
+    grid.appendChild(table);
+  };
+  var renderWeek = function (grid, days) {
+    var zone = calZone();
+    var w = wallOf(calState.anchor, zone);
+    var start = days === 1 ? dayOffset(w.y, w.m, w.d, 0) : dayOffset(w.y, w.m, w.d, -((w.wd + 6) % 7));
+    var today = wallKey(new Date());
+    var map = byDay();
+    var keys = [];
+    for (var i = 0; i < days; i++) { var d = dayOffset(start.y, start.m, start.d, i); keys.push(dayKeyOf(d.y, d.m, d.d)); }
+    var wrap = node('div', undefined, 'cal-week' + (days === 1 ? ' one' : ''));
+    var head = node('div', undefined, 'cal-week-head');
+    head.appendChild(node('span', '', 'gutter'));
+    keys.forEach(function (k) { head.appendChild(node('span', dayName(k), k === today ? 'today' : '')); });
+    wrap.appendChild(head);
+    var allDay = node('div', undefined, 'cal-allday');
+    allDay.appendChild(node('span', t('all day'), 'gutter'));
+    keys.forEach(function (k) {
+      var cell = node('div', undefined, 'cal-allday-cell');
+      cell.setAttribute('data-day', k);
+      (map[k] || []).filter(function (ev) { return ev.all_day; }).forEach(function (ev) { cell.appendChild(chipFor(ev, false)); });
+      cell.addEventListener('click', function () { openEvent(null, { day: k, allDay: true }); });
+      calDropTarget(cell, function (ev) { moveEventToDay(ev, k); });
+      allDay.appendChild(cell);
+    });
+    wrap.appendChild(allDay);
+    var body = node('div', undefined, 'cal-hours');
+    var gutter = node('div', undefined, 'cal-gutter');
+    for (var h = 0; h < 24; h++) { gutter.appendChild(node('span', pad2(h) + ':00')); }
+    body.appendChild(gutter);
+    keys.forEach(function (k) {
+      var col = node('div', undefined, 'cal-col' + (k === today ? ' today' : ''));
+      col.setAttribute('data-day', k);
+      for (var hh = 0; hh < 24; hh++) {
+        var slot = node('div', undefined, 'cal-slot');
+        slot.setAttribute('data-day', k);
+        slot.setAttribute('data-hour', String(hh));
+        (function (day, hour) {
+          slot.addEventListener('click', function () { openEvent(null, { day: day, hour: hour }); });
+          calDropTarget(slot, function (ev) { moveEventToHour(ev, day, hour); });
+        })(k, hh);
+        col.appendChild(slot);
+      }
+      (map[k] || []).filter(function (ev) { return !ev.all_day; }).forEach(function (ev) {
+        var s = parseUtc(ev.start), e = parseUtc(ev.end) || s;
+        var ws = wallOf(s, zone);
+        var startMin = wallKey(s) === k ? ws.hh * 60 + ws.mm : 0;
+        var minutes = Math.max(15, Math.round((e.getTime() - s.getTime()) / 60000) - (wallKey(s) === k ? 0 : startMin));
+        if (wallKey(e) !== k && e > s) { minutes = Math.min(minutes, 24 * 60 - startMin); }
+        var block = chipFor(ev, true);
+        block.className = block.className.replace('cal-chip', 'cal-ev');
+        block.style.top = (startMin / 60 * CAL_HOUR) + 'px';
+        block.style.height = Math.max(22, minutes / 60 * CAL_HOUR) + 'px';
+        if (ev.writable) {
+          var handle = node('span', undefined, 'cal-ev-resize');
+          handle.setAttribute('title', t('Drag to change the end'));
+          (function (occurrence, element) {
+            handle.addEventListener('mousedown', function (event) {
+              event.preventDefault();
+              event.stopPropagation();
+              calResize = { ev: occurrence, startY: event.clientY, block: element, height: parseFloat(element.style.height) || 22, delta: 0 };
+            });
+          })(ev, block);
+          block.appendChild(handle);
+        }
+        col.appendChild(block);
+      });
+      body.appendChild(col);
+    });
+    wrap.appendChild(body);
+    grid.appendChild(wrap);
+  };
+  var renderAgenda = function (grid) {
+    var map = byDay();
+    var keys = Object.keys(map).sort();
+    var range = calWindow();
+    var from = wallKey(range.start);
+    var list = node('div', undefined, 'cal-agenda');
+    var any = false;
+    keys.forEach(function (k) {
+      if (k < from) { return; }
+      any = true;
+      list.appendChild(node('h3', dayName(k, 'long')));
+      map[k].forEach(function (ev) {
+        var row = node('div', undefined, 'cal-agenda-row');
+        var s = parseUtc(ev.start);
+        row.appendChild(node('span', ev.all_day ? t('all day') : timeText(s), 'tm'));
+        var dot = node('span', undefined, 'cal-dot');
+        dot.style.background = calendarColor(ev.calendar);
+        row.appendChild(dot);
+        var open = node('button', ev.summary || t('(no title)'), 'textbtn');
+        open.type = 'button';
+        open.addEventListener('click', function () { openEvent(ev, null); });
+        row.appendChild(open);
+        if (ev.location) { row.appendChild(node('span', ev.location, 'muted')); }
+        list.appendChild(row);
+      });
+    });
+    if (!any) { list.appendChild(node('p', t('Nothing in the next month.'), 'hint')); }
+    grid.appendChild(list);
+  };
+
+  // ---- moving and resizing
+  var calResize = null;
+  document.addEventListener('mousemove', function (event) {
+    if (!calResize) { return; }
+    calResize.delta = event.clientY - calResize.startY;
+    calResize.block.style.height = Math.max(22, calResize.height + calResize.delta) + 'px';
+  });
+  document.addEventListener('mouseup', function (event) {
+    if (!calResize) { return; }
+    var r = calResize;
+    calResize = null;
+    var delta = (event.clientY !== undefined ? event.clientY - r.startY : r.delta);
+    var minutes = Math.round(delta / CAL_HOUR * 60 / 15) * 15;
+    if (!minutes) { return; }
+    var s = parseUtc(r.ev.start), e = parseUtc(r.ev.end) || s;
+    var newEnd = new Date(Math.max(s.getTime() + 15 * 60000, e.getTime() + minutes * 60000));
+    writeMove(r.ev, s, newEnd);
+  });
+  var scopeOf = function (ev) {
+    // A recurring occurrence: this one, or the series. Cancel in the question means the series.
+    if (!ev.recurring) { return ''; }
+    return window.confirm(t('Change only this occurrence? Cancel changes the whole series.')) ? ev.recurrence_id : '';
+  };
+  var writeMove = function (ev, start, end) {
+    var body = { start: wallInput(start), end: wallInput(end), tz: calZone() };
+    if (ev.all_day) { body.start = wallKey(start); body.end = wallKey(end); body.all_day = true; }
+    var scope = scopeOf(ev);
+    if (scope) { body.instance = scope; }
+    return call('PUT', '/api/v1/me/calendar/events/' + ev.id, body).then(function (result) {
+      if (result.status !== 200) { say('cal-status', describe(result, t('Could not move the event')), false); return; }
+      toast(t('Event moved.'));
+      loadEvents();
+    });
+  };
+  var moveEventToDay = function (ev, key) {
+    var s = parseUtc(ev.start), e = parseUtc(ev.end) || s;
+    var duration = Math.max(0, e.getTime() - s.getTime());
+    if (ev.all_day) {
+      var days = Math.max(1, Math.round(duration / 86400000));
+      var p = key.split('-');
+      var ns = instantOf(+p[0], +p[1], +p[2], 0, 0, 'UTC');
+      writeMove(ev, ns, new Date(ns.getTime() + days * 86400000));
+      return;
+    }
+    var w = wallOf(s, calZone());
+    var q = key.split('-');
+    var newStart = instantOf(+q[0], +q[1], +q[2], w.hh, w.mm, calZone());
+    writeMove(ev, newStart, new Date(newStart.getTime() + duration));
+  };
+  var moveEventToHour = function (ev, key, hour) {
+    var s = parseUtc(ev.start), e = parseUtc(ev.end) || s;
+    var duration = Math.max(15 * 60000, e.getTime() - s.getTime());
+    var w = wallOf(s, calZone());
+    var q = key.split('-');
+    var newStart = instantOf(+q[0], +q[1], +q[2], hour, ev.all_day ? 0 : w.mm, calZone());
+    var moved = Object.assign({}, ev, { all_day: false });
+    writeMove(moved, newStart, new Date(newStart.getTime() + (ev.all_day ? 3600000 : duration)));
+  };
+
+  // ---- the editor
+  var rruleParts = function (text) {
+    var out = {};
+    String(text || '').split(';').forEach(function (part) { var eq = part.indexOf('='); if (eq > 0) { out[part.slice(0, eq).toUpperCase()] = part.slice(eq + 1); } });
+    return out;
+  };
+  var DAY_CODES = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+  var openEvent = function (ev, defaults) {
+    calState.editing = ev;
+    var zone = calZone();
+    el('event-title-h').textContent = ev ? t('Event') : t('New event');
+    el('event-summary').value = ev ? ev.summary || '' : '';
+    el('event-location').value = ev ? ev.location || '' : '';
+    el('event-description').value = ev ? ev.description || '' : '';
+    var allDay = ev ? !!ev.all_day : !!(defaults && defaults.allDay);
+    el('event-allday').checked = allDay;
+    var start, end;
+    if (ev) {
+      start = parseUtc(ev.start);
+      end = parseUtc(ev.end) || start;
+    } else {
+      var day = (defaults && defaults.day) || wallKey(new Date());
+      var p = day.split('-');
+      var hour = defaults && defaults.hour !== undefined ? defaults.hour : 9;
+      start = instantOf(+p[0], +p[1], +p[2], hour, 0, zone);
+      end = new Date(start.getTime() + 3600000);
+    }
+    if (allDay) {
+      el('event-start-date').value = ev ? ev.local_start : wallKey(start);
+      el('event-end-date').value = ev ? keyOffset(ev.local_end || ev.local_start, -1) : wallKey(start);
+    } else {
+      el('event-start').value = wallInput(start);
+      el('event-end').value = wallInput(end);
+    }
+    fillZoneSelect(el('event-tz'));
+    el('event-tz').value = zone;
+    var choice = el('event-calendar');
+    if (ev) { choice.value = String(ev.calendar); } else if (defaults && defaults.calendar) { choice.value = String(defaults.calendar); } else if (choice.children.length) { choice.value = choice.children[0].value; }
+    var rule = rruleParts(ev ? ev.rrule : '');
+    el('event-repeat').value = (rule.FREQ || '').toLowerCase() || 'none';
+    el('event-interval').value = rule.INTERVAL || '1';
+    var days = (rule.BYDAY || '').split(',');
+    var boxes = el('event-days').children;
+    for (var i = 0; i < boxes.length; i++) { var cb = boxes[i].children[0]; cb.checked = days.indexOf(cb.value) >= 0; }
+    el('event-ends').value = rule.UNTIL ? 'on' : rule.COUNT ? 'after' : 'never';
+    el('event-until').value = rule.UNTIL ? rule.UNTIL.slice(0, 4) + '-' + rule.UNTIL.slice(4, 6) + '-' + rule.UNTIL.slice(6, 8) : '';
+    el('event-count').value = rule.COUNT || '10';
+    el('event-alarm').value = ev && ev.alarm_minutes >= 0 ? String(ev.alarm_minutes) : '-1';
+    el('event-attendees').value = ev ? (ev.attendees || []).map(function (a) { return a.name ? a.name + ' <' + a.address + '>' : a.address; }).join(', ') : '';
+    el('event-invite').checked = true;
+    var recurringOccurrence = !!(ev && ev.recurring);
+    el('event-scope-row').hidden = !recurringOccurrence;
+    el('event-scope').value = 'occurrence';
+    el('event-delete').hidden = !ev;
+    var readOnly = !!(ev && !ev.writable);
+    el('event-save').hidden = readOnly;
+    el('event-delete').hidden = !ev || readOnly;
+    el('event-readonly').hidden = !readOnly;
+    var answered = ev && ev.my_partstat ? ev.my_partstat : '';
+    el('event-partstat').hidden = !answered;
+    el('event-partstat').textContent = answered ? partstatWords(answered) : '';
+    el('event-attendee-list').hidden = !(ev && ev.attendees && ev.attendees.length);
+    clear(el('event-attendee-list'));
+    (ev && ev.attendees || []).forEach(function (a) { el('event-attendee-list').appendChild(node('span', (a.name || a.address) + ' · ' + partstatWords(a.partstat), 'badge ' + (a.partstat === 'ACCEPTED' ? 'good' : a.partstat === 'DECLINED' ? 'bad' : ''))); });
+    say('event-status', '', true);
+    updateEventForm();
+    el('event-overlay').hidden = false;
+    el('event-summary').focus();
+  };
+  var partstatWords = function (partstat) {
+    if (partstat === 'ACCEPTED') { return t('accepted'); }
+    if (partstat === 'DECLINED') { return t('declined'); }
+    if (partstat === 'TENTATIVE') { return t('tentative'); }
+    return t('not answered');
+  };
+  var updateEventForm = function () {
+    var allDay = el('event-allday').checked;
+    el('event-timed').hidden = allDay;
+    el('event-dated').hidden = !allDay;
+    var repeat = el('event-repeat').value;
+    var scope = !el('event-scope-row').hidden && el('event-scope').value === 'occurrence';
+    el('event-repeat-row').hidden = scope;
+    el('event-repeat-more').hidden = repeat === 'none' || scope;
+    el('event-days').hidden = repeat !== 'weekly';
+    el('event-until').hidden = el('event-ends').value !== 'on';
+    el('event-count').hidden = el('event-ends').value !== 'after';
+  };
+  ['event-allday', 'event-repeat', 'event-ends', 'event-scope'].forEach(function (id) { el(id).addEventListener('change', updateEventForm); });
+  var closeEvent = function () { el('event-overlay').hidden = true; calState.editing = null; };
+  el('event-cancel').addEventListener('click', closeEvent);
+  el('event-overlay').addEventListener('click', function (event) { if (event.target === el('event-overlay')) { closeEvent(); } });
+  var eventBody = function () {
+    var body = { summary: el('event-summary').value.trim(), location: el('event-location').value.trim(), description: el('event-description').value, tz: el('event-tz').value || calZone() };
+    body.calendar = Number(el('event-calendar').value) || 0;
+    body.all_day = el('event-allday').checked;
+    if (body.all_day) {
+      body.start = el('event-start-date').value;
+      body.end = el('event-end-date').value ? keyOffset(el('event-end-date').value, 1) : '';
+    } else {
+      body.start = el('event-start').value;
+      body.end = el('event-end').value;
+    }
+    var scope = !el('event-scope-row').hidden && el('event-scope').value === 'occurrence';
+    if (scope && calState.editing) { body.instance = calState.editing.recurrence_id; }
+    else {
+      var repeat = el('event-repeat').value;
+      if (repeat === 'none') { body.rrule = ''; }
+      else {
+        var parts = ['FREQ=' + repeat.toUpperCase()];
+        var interval = Math.max(1, Number(el('event-interval').value) || 1);
+        if (interval > 1) { parts.push('INTERVAL=' + interval); }
+        if (repeat === 'weekly') {
+          var chosen = [];
+          var boxes = el('event-days').children;
+          for (var i = 0; i < boxes.length; i++) { if (boxes[i].children[0].checked) { chosen.push(boxes[i].children[0].value); } }
+          if (chosen.length) { parts.push('BYDAY=' + chosen.join(',')); }
+        }
+        if (el('event-ends').value === 'on' && el('event-until').value) { parts.push('UNTIL=' + el('event-until').value.replace(/-/g, '') + (body.all_day ? '' : 'T235959Z')); }
+        else if (el('event-ends').value === 'after') { parts.push('COUNT=' + Math.max(1, Number(el('event-count').value) || 1)); }
+        body.rrule = parts.join(';');
+      }
+    }
+    body.alarm_minutes = Number(el('event-alarm').value);
+    var attendees = el('event-attendees').value.split(/[,;]/).map(function (s) { return s.trim(); }).filter(function (s) { return s; });
+    body.attendees = attendees;
+    body.invite = attendees.length > 0 && el('event-invite').checked;
+    return body;
+  };
+  el('event-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = eventBody();
+    if (!body.summary) { say('event-status', t('Give the event a title.'), false); return; }
+    if (!body.start) { say('event-status', t('Give the event a start.'), false); return; }
+    var editing = calState.editing;
+    var request = editing ? call('PUT', '/api/v1/me/calendar/events/' + editing.id, body) : call('POST', '/api/v1/me/calendar/events', body);
+    request.then(function (result) {
+      if (result.status !== 200 && result.status !== 201) { say('event-status', describe(result, t('Could not save the event')), false); return; }
+      closeEvent();
+      toast(editing ? t('Event saved.') : (body.invite ? t('Event saved and invitations sent.') : t('Event added.')));
+      loadEvents();
+    });
+  });
+  el('event-delete').addEventListener('click', function () {
+    var ev = calState.editing;
+    if (!ev) { return; }
+    var scope = !el('event-scope-row').hidden && el('event-scope').value === 'occurrence' ? ev.recurrence_id : '';
+    if (!scope && !window.confirm(tf('Delete "{0}"?', ev.summary || t('(no title)')))) { return; }
+    var notify = ev.attendees && ev.attendees.length && ev.organizer === me.toLowerCase();
+    call('DELETE', '/api/v1/me/calendar/events/' + ev.id + (scope ? '?instance=' + encodeURIComponent(scope) : (notify ? '?notify=1' : ''))).then(function (result) {
+      if (result.status !== 200) { say('event-status', describe(result, t('Could not delete the event')), false); return; }
+      closeEvent();
+      toast(scope ? t('Occurrence removed.') : t('Event deleted.'));
+      loadEvents();
+    });
+  });
+  var setCalView = function (view) {
+    calState.view = view;
+    try { localStorage.setItem(CAL_VIEW, view); } catch (e) { /* no storage */ }
+    loadEvents();
+  };
+  el('cal-views').addEventListener('click', function (event) {
+    var view = event.target && event.target.getAttribute ? event.target.getAttribute('data-cal-view') : '';
+    if (view) { setCalView(view); }
+  });
+  var calStep = function (direction) {
+    var zone = calZone();
+    var w = wallOf(calState.anchor, zone);
+    var next;
+    if (calState.view === 'month') { next = dayOffset(w.y, w.m + direction, 1, 0); }
+    else if (calState.view === 'week') { next = dayOffset(w.y, w.m, w.d, 7 * direction); }
+    else { next = dayOffset(w.y, w.m, w.d, direction); }
+    calState.anchor = instantOf(next.y, next.m, next.d, 12, 0, zone);
+    loadEvents();
+  };
+  el('cal-prev').addEventListener('click', function () { calStep(-1); });
+  el('cal-next').addEventListener('click', function () { calStep(1); });
+  el('cal-today').addEventListener('click', function () { calState.anchor = new Date(); loadEvents(); });
+  el('cal-new').addEventListener('click', function () { openEvent(null, { day: wallKey(calState.anchor) }); });
+
+  // ---- reminders while the page is open
+  var REMIND_SHOWN = 'hmPortalRemindShown';
+  var remindState = { events: [], fetched: 0 };
+  var remindShown = function () { try { return JSON.parse(localStorage.getItem(REMIND_SHOWN) || '[]') || []; } catch (e) { return []; } };
+  var remindTick = function () {
+    if (el('account').hidden) { return; }
+    var now = Date.now();
+    var refresh = function () {
+      if (now - remindState.fetched < 10 * 60000) { return Promise.resolve(); }
+      remindState.fetched = now;
+      var start = new Date(now - 3600000), end = new Date(now + 36 * 3600000);
+      return call('GET', '/api/v1/me/calendar/events?start=' + utcText(start) + '&end=' + utcText(end)).then(function (result) {
+        if (result.status === 200 && result.data) { remindState.events = result.data.events || []; }
+      });
+    };
+    refresh().then(function () {
+      var shown = remindShown();
+      var changed = false;
+      remindState.events.forEach(function (ev) {
+        if (typeof ev.alarm_minutes !== 'number' || ev.alarm_minutes < 0 || ev.status === 'CANCELLED') { return; }
+        var s = parseUtc(ev.start);
+        if (!s) { return; }
+        var fire = s.getTime() - ev.alarm_minutes * 60000;
+        var key = ev.id + '|' + (ev.recurrence_id || ev.start);
+        if (fire > now || now - fire > 3600000 || shown.indexOf(key) >= 0) { return; }
+        shown.push(key);
+        changed = true;
+        var words = tf('Reminder: {0} at {1}', ev.summary || t('(no title)'), ev.all_day ? dayName(ev.local_start) : timeText(s));
+        toast(words, null, true);
+        if (pref('notify') === '1' && 'Notification' in window && Notification.permission === 'granted') {
+          try { new Notification(words, { body: spanText(ev), tag: 'hm-event-' + key }); } catch (e) { /* a browser without notifications is still a browser */ }
+        }
+      });
+      if (changed) { try { localStorage.setItem(REMIND_SHOWN, JSON.stringify(shown.slice(-200))); } catch (e) { /* no storage */ } }
+    });
+  };
+  setInterval(remindTick, 60000);
+
+  // ---- Tasks -----------------------------------------------------------------
+  var taskState = { tasks: [], editing: null };
+  var TASKS_DONE = 'hmPortalTasksDone';
+  var loadTasks = function () {
+    el('task-show-done').checked = (function () { try { return localStorage.getItem(TASKS_DONE) === '1'; } catch (e) { return false; } })();
+    return loadCalendars().then(function () {
+      return call('GET', '/api/v1/me/tasks').then(function (result) {
+        if (result.status !== 200 || !result.data) { say('task-status', describe(result, t('Could not read the tasks')), false); return; }
+        taskState.tasks = result.data.tasks || [];
+        renderTasks();
+      });
+    });
+  };
+  var dueWords = function (task) {
+    if (!task.due) { return ''; }
+    if (task.all_day) { return dayName(task.local_due, 'long'); }
+    var d = parseUtc(task.due);
+    return d ? dayName(wallKey(d), 'long') + ' ' + timeText(d) : task.local_due;
+  };
+  var overdue = function (task) {
+    if (!task.due || task.completed) { return false; }
+    var d = parseUtc(task.due);
+    if (!d) { return false; }
+    if (task.all_day) { return task.local_due < wallKey(new Date()); }
+    return d.getTime() < Date.now();
+  };
+  var renderTasks = function () {
+    var list = el('task-list');
+    clear(list);
+    var showDone = el('task-show-done').checked;
+    var shown = taskState.tasks.filter(function (task) { return showDone || !task.completed; });
+    el('task-empty').hidden = shown.length > 0;
+    shown.forEach(function (task) {
+      var row = node('div', undefined, 'task-row' + (task.completed ? ' done' : '') + (overdue(task) ? ' overdue' : ''));
+      var box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = !!task.completed;
+      box.disabled = !task.writable;
+      box.setAttribute('aria-label', task.summary);
+      box.addEventListener('change', function () {
+        call('PUT', '/api/v1/me/tasks/' + task.id, { completed: box.checked }).then(function (result) {
+          if (result.status !== 200) { say('task-status', describe(result, t('Could not change the task')), false); box.checked = !box.checked; return; }
+          toast(box.checked ? t('Task done.') : t('Task reopened.'));
+          loadTasks();
+        });
+      });
+      row.appendChild(box);
+      var words = node('div', undefined, 'task-words');
+      var title = node('button', task.summary || t('(no title)'), 'task-title');
+      title.type = 'button';
+      title.addEventListener('click', function () { openTask(task); });
+      words.appendChild(title);
+      var meta = node('div', undefined, 'task-meta');
+      if (task.priority && task.priority <= 4) { meta.appendChild(node('span', t('High priority'), 'badge warn')); }
+      if (task.due) { meta.appendChild(node('span', dueWords(task), overdue(task) ? 'due late' : 'due')); }
+      var c = calendarById(task.calendar);
+      if (c && calState.calendars.length > 1) { var chip = node('span', c.display_name, 'badge'); chip.style.background = c.color || ''; chip.style.color = c.color ? '#fff' : ''; meta.appendChild(chip); }
+      if (task.description) { meta.appendChild(node('span', task.description.split('\n')[0], 'muted')); }
+      words.appendChild(meta);
+      row.appendChild(words);
+      list.appendChild(row);
+    });
+  };
+  el('task-show-done').addEventListener('change', function () {
+    try { localStorage.setItem(TASKS_DONE, el('task-show-done').checked ? '1' : '0'); } catch (e) { /* no storage */ }
+    renderTasks();
+  });
+  el('task-add-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var summary = el('task-add-summary').value.trim();
+    if (!summary) { return; }
+    var body = { summary: summary, calendar: Number(el('task-add-list').value) || 0 };
+    if (el('task-add-due').value) { body.due = el('task-add-due').value; }
+    call('POST', '/api/v1/me/tasks', body).then(function (result) {
+      if (result.status !== 201) { say('task-status', describe(result, t('Could not add the task')), false); return; }
+      el('task-add-summary').value = '';
+      el('task-add-due').value = '';
+      say('task-status', '', true);
+      loadTasks();
+    });
+  });
+  var openTask = function (task) {
+    taskState.editing = task;
+    el('task-summary').value = task.summary || '';
+    el('task-notes').value = task.description || '';
+    var d = task.due ? parseUtc(task.due) : null;
+    el('task-due').value = task.due ? (task.all_day ? task.local_due : wallKey(d)) : '';
+    el('task-due-time').value = task.due && !task.all_day && d ? pad2(wallOf(d, calZone()).hh) + ':' + pad2(wallOf(d, calZone()).mm) : '';
+    el('task-priority').value = task.priority ? (task.priority <= 4 ? '1' : task.priority <= 5 ? '5' : '9') : '0';
+    el('task-list-select').value = String(task.calendar);
+    el('task-completed').checked = !!task.completed;
+    el('task-save').hidden = !task.writable;
+    el('task-delete').hidden = !task.writable;
+    say('task-edit-status', '', true);
+    el('task-overlay').hidden = false;
+    el('task-summary').focus();
+  };
+  var closeTask = function () { el('task-overlay').hidden = true; taskState.editing = null; };
+  el('task-cancel').addEventListener('click', closeTask);
+  el('task-overlay').addEventListener('click', function (event) { if (event.target === el('task-overlay')) { closeTask(); } });
+  el('task-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var task = taskState.editing;
+    if (!task) { return; }
+    var body = { summary: el('task-summary').value.trim(), description: el('task-notes').value, priority: Number(el('task-priority').value) || 0, completed: el('task-completed').checked, calendar: Number(el('task-list-select').value) || task.calendar };
+    if (!body.summary) { say('task-edit-status', t('Give the task a title.'), false); return; }
+    var due = el('task-due').value;
+    if (due && el('task-due-time').value) { body.due = due + 'T' + el('task-due-time').value; body.tz = calZone(); body.all_day = false; }
+    else if (due) { body.due = due; body.all_day = true; }
+    else { body.due = ''; }
+    call('PUT', '/api/v1/me/tasks/' + task.id, body).then(function (result) {
+      if (result.status !== 200) { say('task-edit-status', describe(result, t('Could not save the task')), false); return; }
+      closeTask();
+      toast(t('Task saved.'));
+      loadTasks();
+    });
+  });
+  el('task-delete').addEventListener('click', function () {
+    var task = taskState.editing;
+    if (!task || !window.confirm(tf('Delete "{0}"?', task.summary || t('(no title)')))) { return; }
+    call('DELETE', '/api/v1/me/tasks/' + task.id).then(function (result) {
+      if (result.status !== 200) { say('task-edit-status', describe(result, t('Could not delete the task')), false); return; }
+      closeTask();
+      toast(t('Task deleted.'));
+      loadTasks();
+    });
+  });
+
+  // ---- The invitation a message carries ------------------------------------
+  var renderInvitation = function (m) {
+    var box = el('message-invitation');
+    clear(box);
+    box.hidden = !m.invitation;
+    if (!m.invitation) { return; }
+    box.appendChild(node('p', t('Reading the invitation...'), 'hint'));
+    call('GET', '/api/v1/me/messages/' + m.id + '/invitation').then(function (result) {
+      if (!current || current.id !== m.id) { return; }
+      clear(box);
+      if (result.status !== 200 || !result.data) { box.appendChild(node('p', describe(result, t('The invitation could not be read')), 'hint')); return; }
+      var inv = result.data;
+      var method = inv.method || 'REQUEST';
+      var heading = method === 'CANCEL' ? t('Cancelled event') : method === 'REPLY' ? t('Reply to your invitation') : method === 'COUNTER' ? t('A new time is proposed') : t('Invitation');
+      box.appendChild(node('h3', heading));
+      box.appendChild(node('div', inv.summary || t('(no title)'), 'inv-title'));
+      var when = node('div', undefined, 'inv-line');
+      when.appendChild(node('span', t('When'), 'k'));
+      when.appendChild(node('span', spanText({ start: inv.start, end: inv.end, all_day: inv.all_day, local_start: inv.local_start, local_end: inv.local_end }) + (inv.recurring ? ' · ' + t('repeats') : '')));
+      box.appendChild(when);
+      if (inv.location) { var where = node('div', undefined, 'inv-line'); where.appendChild(node('span', t('Where'), 'k')); where.appendChild(node('span', inv.location)); box.appendChild(where); }
+      if (inv.organizer) { var who = node('div', undefined, 'inv-line'); who.appendChild(node('span', t('Organiser'), 'k')); who.appendChild(node('span', inv.organizer_name ? inv.organizer_name + ' <' + inv.organizer + '>' : inv.organizer)); box.appendChild(who); }
+      if (inv.attendees && inv.attendees.length) {
+        var guests = node('div', undefined, 'inv-line');
+        guests.appendChild(node('span', t('Guests'), 'k'));
+        var badges = node('span', undefined, 'chips');
+        inv.attendees.forEach(function (a) { badges.appendChild(node('span', (a.name || a.address) + ' · ' + partstatWords(a.partstat), 'badge ' + (a.partstat === 'ACCEPTED' ? 'good' : a.partstat === 'DECLINED' ? 'bad' : ''))); });
+        guests.appendChild(badges);
+        box.appendChild(guests);
+      }
+      var status = node('div', undefined, 'inv-status');
+      var actions = node('div', undefined, 'row');
+      var reply = function (action, extra) {
+        var body = Object.assign({ action: action }, extra || {});
+        return call('POST', '/api/v1/me/messages/' + m.id + '/invitation/reply', body).then(function (result) {
+          if (result.status !== 200) { status.textContent = describe(result, t('Could not answer the invitation')); status.className = 'inv-status error'; return; }
+          toast(action === 'remove' ? t('Removed from your calendar.') : action === 'counter' ? t('Your proposal was sent to the organiser.') : t('Your answer was sent and the event is in your calendar.'));
+          calState.loaded = false;
+          renderInvitation(m);
+        });
+      };
+      if (method === 'REPLY') {
+        var who2 = inv.attendees && inv.attendees[0];
+        status.textContent = who2 ? tf('{0} has {1}.', who2.name || who2.address, partstatWords(who2.partstat)) + (inv.i_am_organizer && inv.in_calendar ? ' ' + t('Your event has been updated.') : '') : '';
+      } else if (method === 'CANCEL') {
+        status.textContent = inv.in_calendar ? t('The organiser cancelled this event. It is marked cancelled in your calendar.') : t('The organiser cancelled this event.');
+        if (inv.in_calendar) { var remove = button(t('Remove from calendar'), 'btn ghost sm'); remove.addEventListener('click', function () { reply('remove'); }); actions.appendChild(remove); }
+      } else if (method === 'COUNTER') {
+        status.textContent = t('A guest proposes this time instead. Change the event in your calendar to accept it.');
+      } else if (inv.i_am_organizer) {
+        status.textContent = t('You organise this event.');
+      } else {
+        var answered = inv.stored_partstat || '';
+        status.textContent = answered ? (inv.stored_status === 'CANCELLED' ? t('This event was cancelled.') : tf('You {0}.', partstatWords(answered)) + ' ' + t('It is in your calendar.')) : t('Not answered yet.');
+        [['accept', t('Accept'), 'btn sm'], ['tentative', t('Maybe'), 'btn ghost sm'], ['decline', t('Decline'), 'btn ghost sm']].forEach(function (pair) {
+          var b = button(pair[1], pair[2]);
+          b.setAttribute('data-invite', pair[0]);
+          b.addEventListener('click', function () { reply(pair[0]); });
+          actions.appendChild(b);
+        });
+        var propose = button(t('Propose a new time'), 'btn quiet sm');
+        var proposeBox = node('div', undefined, 'row');
+        proposeBox.hidden = true;
+        var ps = document.createElement('input'); ps.type = 'datetime-local'; ps.setAttribute('aria-label', t('Proposed start')); ps.value = inv.start ? wallInput(parseUtc(inv.start)) : ''; ps.id = 'invite-propose-start';
+        var pe = document.createElement('input'); pe.type = 'datetime-local'; pe.setAttribute('aria-label', t('Proposed end')); pe.value = inv.end ? wallInput(parseUtc(inv.end)) : ''; pe.id = 'invite-propose-end';
+        var send = button(t('Send proposal'), 'btn sm');
+        send.addEventListener('click', function () { reply('counter', { start: ps.value, end: pe.value, tz: calZone() }); });
+        proposeBox.appendChild(ps); proposeBox.appendChild(pe); proposeBox.appendChild(send);
+        propose.addEventListener('click', function () { proposeBox.hidden = !proposeBox.hidden; });
+        actions.appendChild(propose);
+        box.appendChild(status);
+        box.appendChild(actions);
+        box.appendChild(proposeBox);
+        return;
+      }
+      box.appendChild(status);
+      if (actions.children.length) { box.appendChild(actions); }
+    });
+  };
 
   // The theme the last visit chose, for the sign-in page; the account's own
   // choice replaces it once there is an account.

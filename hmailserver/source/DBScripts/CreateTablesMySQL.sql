@@ -26,6 +26,7 @@ drop table if exists hm_spamtraps;
 
 drop table if exists hm_spamtraphits;
 
+drop table if exists hm_calendarshares;
 drop table if exists hm_calendarobjects;
 
 drop table if exists hm_calendars;
@@ -550,7 +551,8 @@ create table hm_calendars
 	calendarname varchar(255) not null,
 	calendardisplayname varchar(255) not null,
 	calendarsynctoken bigint not null,
-	calendarcreated bigint not null
+	calendarcreated bigint not null,
+	calendarcolor varchar(16) not null default ''
 ) DEFAULT CHARSET=utf8mb4;
 
 CREATE UNIQUE INDEX idx_hm_calendars_account ON hm_calendars (calendaraccountid, calendarname);
@@ -577,6 +579,16 @@ create table hm_calendarobjects
 CREATE UNIQUE INDEX idx_hm_calendarobjects_uri ON hm_calendarobjects (objectcalendarid, objecturi);
 
 CREATE INDEX idx_hm_calendarobjects_sync ON hm_calendarobjects (objectcalendarid, objectsynctoken);
+
+create table hm_calendarshares
+(
+	shareid int auto_increment not null, primary key(`shareid`), unique(`shareid`),
+	sharecalendarid int not null,
+	shareaccountid int not null,
+	sharewrite int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1311,6 +1323,7 @@ ALTER TABLE hm_files ENGINE=InnoDB;
 ALTER TABLE hm_smimekeys ENGINE=InnoDB;
 
 ALTER TABLE hm_calendars ENGINE=InnoDB;
+ALTER TABLE hm_calendarshares ENGINE=InnoDB;
 
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;
 
@@ -1476,6 +1489,8 @@ ALTER TABLE hm_spamtraphits ENGINE=InnoDB;
 ALTER TABLE hm_calendars ADD CONSTRAINT fk_hm_calendars_account FOREIGN KEY (calendaraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_calendarobjects ADD CONSTRAINT fk_hm_calendarobjects_calendar FOREIGN KEY (objectcalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
+
+ALTER TABLE hm_calendarshares ADD CONSTRAINT fk_hm_calendarshares_calendar FOREIGN KEY (sharecalendarid) REFERENCES hm_calendars (calendarid) ON DELETE CASCADE;
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -1911,4 +1926,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6063);
+insert into hm_dbversion values (6064);

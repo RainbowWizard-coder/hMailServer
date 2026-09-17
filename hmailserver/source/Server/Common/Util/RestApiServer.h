@@ -83,6 +83,9 @@ namespace HM
 
    class MimeHeader;
    class JsonValue;
+   struct ICalComponent;
+   struct CalendarRecord;
+   struct CalendarObjectRecord;
 
    class IPAddress;
    class Account;
@@ -273,6 +276,26 @@ namespace HM
          RouteMeContactUpdate,
          RouteMeContactDelete,
          RouteMeContactPhoto,
+
+         // The account's calendars, events, tasks and the invitations its
+         // mail carries (RestApiCalendar.cpp).
+         RouteMeCalendars,
+         RouteMeCalendarCreate,
+         RouteMeCalendarUpdate,
+         RouteMeCalendarDelete,
+         RouteMeCalendarSharePut,
+         RouteMeCalendarShareDelete,
+         RouteMeEvents,
+         RouteMeEventGet,
+         RouteMeEventCreate,
+         RouteMeEventUpdate,
+         RouteMeEventDelete,
+         RouteMeTasks,
+         RouteMeTaskCreate,
+         RouteMeTaskUpdate,
+         RouteMeTaskDelete,
+         RouteMeMessageInvitation,
+         RouteMeMessageInvitationReply,
          RouteMeIdentities,
          RouteMePreferences,
          RouteMePreferencesPut,
@@ -916,6 +939,28 @@ namespace HM
       static HttpResponse HandleMeContactUpdate_(const Caller &caller, __int64 id, const AnsiString &requestBody);
       static HttpResponse HandleMeContactDelete_(const Caller &caller, __int64 id);
       static HttpResponse HandleMeContactPhoto_(const Caller &caller, __int64 id);
+
+      // The account's calendars, events, tasks and invitations (RestApiCalendar.cpp).
+      static HttpResponse HandleMeCalendars_(const Caller &caller);
+      static HttpResponse HandleMeCalendarCreate_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeCalendarUpdate_(const Caller &caller, __int64 calendarId, const AnsiString &requestBody);
+      static HttpResponse HandleMeCalendarDelete_(const Caller &caller, __int64 calendarId);
+      static HttpResponse HandleMeCalendarSharePut_(const Caller &caller, __int64 calendarId, const AnsiString &address, const AnsiString &requestBody);
+      static HttpResponse HandleMeCalendarShareDelete_(const Caller &caller, __int64 calendarId, const AnsiString &address);
+      static HttpResponse HandleMeEvents_(const Caller &caller, const AnsiString &query);
+      static HttpResponse HandleMeEventGet_(const Caller &caller, __int64 objectId);
+      static HttpResponse HandleMeEventCreate_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeEventUpdate_(const Caller &caller, __int64 objectId, const AnsiString &requestBody);
+      static HttpResponse HandleMeEventDelete_(const Caller &caller, __int64 objectId, const AnsiString &query);
+      static HttpResponse HandleMeTasks_(const Caller &caller);
+      static HttpResponse HandleMeTaskCreate_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeTaskUpdate_(const Caller &caller, __int64 objectId, const AnsiString &requestBody);
+      static HttpResponse HandleMeTaskDelete_(const Caller &caller, __int64 objectId);
+      static HttpResponse HandleMeMessageInvitation_(const Caller &caller, __int64 messageId);
+      static HttpResponse HandleMeMessageInvitationReply_(const Caller &caller, __int64 messageId, const AnsiString &requestBody);
+      static int SendEventMail_(std::shared_ptr<const Account> account, const ICalComponent &tree, const AnsiString &method, AnsiString &problem);
+      static bool FindStoredEvent_(std::shared_ptr<const Account> account, const AnsiString &uid, CalendarRecord &calendar, CalendarObjectRecord &record);
+      static AnsiString OpenApiCalendarPaths_();
       static void CollectContacts_(std::shared_ptr<const Account> account, const std::vector<String> &entries);
       static AnsiString ContactJson_(const ContactRecord &contact, bool includeCard);
 
