@@ -112,6 +112,11 @@ echo "-- created at schema $required"
 echo "-- winding back to 6029"
 expected_fks=$(query "$count_fks")
 dialect=$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL )
+# The columns the rewind removes are kept in a list for the seeder: the create
+# script it reads has them, the 6029 database it seeds does not, and a column
+# that is NOT NULL with no default (a MySQL text column cannot have one) would
+# otherwise be named in an INSERT against a table that no longer has it.
+: > "$work/dropped-columns.txt"
 {
    for ((v = required; v > 6029; v--)); do
       script="$HM_SCRIPTS/Upgrade$((v - 1))to${v}${dialect}.sql"
@@ -123,6 +128,7 @@ dialect=$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL )
       script="$HM_SCRIPTS/Upgrade$((v - 1))to${v}${dialect}.sql"
       (grep -ioE 'alter table \w+ add (column )?\w+' "$script" || true) \
          | awk '{ c = tolower($NF); if (c != "constraint" && c != "index" && c != "unique" && c != "primary") print tolower($3), c }' \
+         | tee -a "$work/dropped-columns.txt" \
          | while read -r table column; do echo "alter table $table drop column $column;"; done
       (grep -ioE 'create table \w+' "$script" || true) \
          | awk '{print tolower($3)}' | while read -r table; do echo "drop table if exists $table;"; done
@@ -135,7 +141,7 @@ fks=$(query "$count_fks")
 
 # 3. The orphans.
 echo "-- seeding orphaned rows"
-python3 "$here/seed-orphans.py" "$create_script" "$backend" > "$work/seed.sql"
+python3 "$here/seed-orphans.py" "$create_script" "$backend" "$work/dropped-columns.txt" > "$work/seed.sql"
 run_file "$work/seed.sql"
 echo "   $(grep -c '^insert' "$work/seed.sql") rows in $(grep -c '^insert' "$work/seed.sql") tables, every one with a parent that does not exist"
 
