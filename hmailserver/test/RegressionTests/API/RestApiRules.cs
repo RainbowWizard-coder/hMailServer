@@ -457,13 +457,13 @@ namespace RegressionTests.API
          (string scopedId, string scopedKey) = CreateKey("restrule - domain scoped", "full", _domain.Name);
          try
          {
-            string simple = "{"field":"subject","match":"contains","value":"x"}";
-            (int status, string body) mine = Bearer("POST", "/api/v1/domains/" + _domain.Name + "/rules", scopedKey, RuleBody(name + "-mine", simple, "{"type":"delete"}", active: false));
+            string simple = "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}";
+            (int status, string body) mine = Bearer("POST", "/api/v1/domains/" + _domain.Name + "/rules", scopedKey, RuleBody(name + "-mine", simple, "{\"type\":\"delete\"}", active: false));
             Assert.AreEqual(201, mine.status, mine.body);
             Assert.AreEqual(200, Bearer("GET", "/api/v1/domains/" + _domain.Name + "/rules", scopedKey).status);
             Assert.AreEqual(403, Bearer("GET", "/api/v1/domains/" + other.Name + "/rules", scopedKey).status, "Another domain's rules are not the key's to read.");
-            Assert.AreEqual(403, Bearer("POST", "/api/v1/domains/" + other.Name + "/rules", scopedKey, RuleBody(name + "-theirs", simple, "{"type":"delete"}", active: false)).status);
-            Assert.AreEqual(403, Bearer("POST", "/api/v1/rules", scopedKey, RuleBody(name + "-global", simple, "{"type":"delete"}", active: false)).status, "Nor are the server's.");
+            Assert.AreEqual(403, Bearer("POST", "/api/v1/domains/" + other.Name + "/rules", scopedKey, RuleBody(name + "-theirs", simple, "{\"type\":\"delete\"}", active: false)).status);
+            Assert.AreEqual(403, Bearer("POST", "/api/v1/rules", scopedKey, RuleBody(name + "-global", simple, "{\"type\":\"delete\"}", active: false)).status, "Nor are the server's.");
             Assert.AreEqual(200, Bearer("DELETE", "/api/v1/domains/" + _domain.Name + "/rules/" + ExtractId(mine.body), scopedKey).status);
          }
          finally
