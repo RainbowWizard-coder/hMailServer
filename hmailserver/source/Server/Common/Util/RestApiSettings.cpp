@@ -348,6 +348,8 @@ namespace
    // A port the ClamAV client could never connect to is refused before it is
    // stored, as the ports and routes refuse one.
    const char *ClamAVPortRefusal = "ClamAVPort must be between 1 and 65535.";
+   const char *QuotaGraceRefusal = "QuotaGracePercent must be between 0 and 1000.";
+   const char *QuotaSendStopRefusal = "QuotaSendStopPercent must be between 0 and 1000.";
 
    // InterfaceSettings' three sentences for the webhook ranges, verbatim, so that
    // a value outside a range is refused over REST exactly as it is over COM
@@ -615,6 +617,17 @@ namespace
       { "minutes_to_ban", KindInteger, ReadWrite, EffectNow, nullptr,
         "How long the ban lasts, in minutes.",
         ROW_NUMBER(Config()->GetAutoBanMinutes()), ROW_SET(Config()->SetAutoBanMinutes((int) v.number)), ROW_NO_CHECK },
+
+      // The quota policy the domains inherit. QuotaWarningPercent itself is an
+      // ini key, read at start-up, and stays where it is.
+      { "quota_grace_percent", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How far past its limit a mailbox still accepts incoming mail, as a percentage of the limit; 0 is not at all. A domain may set its own.",
+        ROW_NUMBER(Config()->GetQuotaGracePercent()), ROW_SET(Config()->SetQuotaGracePercent((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 1000) ? String(QuotaGraceRefusal) : String(); } },
+      { "quota_send_stop_percent", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The percentage of its limit at which an account stops sending, before it stops receiving; 0 is never. A domain may set its own.",
+        ROW_NUMBER(Config()->GetQuotaSendStopPercent()), ROW_SET(Config()->SetQuotaSendStopPercent((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 1000) ? String(QuotaSendStopRefusal) : String(); } },
 
       // TLS. The listeners build their contexts when they start and the
       // outbound client context is built with the I/O service, so these wait

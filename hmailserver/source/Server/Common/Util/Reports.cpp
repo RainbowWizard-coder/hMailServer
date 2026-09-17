@@ -179,11 +179,11 @@ namespace HM
       // an account address is user@domain by construction, and one join fewer
       // is one fewer thing for a backend to disagree about.
       SQLCommand command(
-         "select hm_accounts.accountaddress as raddress, "
+         "select hm_accounts.accountaddress as raddress, hm_accounts.accountmaxsize as rquota, "
          "sum(hm_messages.messagesize) as rbytes, count(*) as rcount "
          "from hm_messages inner join hm_accounts "
          "on hm_messages.messageaccountid = hm_accounts.accountid "
-         "group by hm_accounts.accountaddress");
+         "group by hm_accounts.accountaddress, hm_accounts.accountmaxsize");
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
 
@@ -197,6 +197,7 @@ namespace HM
          row.domain = DomainOf(row.address);
          row.bytes = ReadSum_(recordset, "rbytes");
          row.messages = (__int64) recordset->GetLongValue("rcount");
+         row.quota_mb = recordset->GetLongValue("rquota");
 
          rows.push_back(row);
 

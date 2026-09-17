@@ -51,6 +51,14 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox maxAccountSize_ = NewInput();
       private FieldRow maxAccountSizeRow_;
       private readonly TextBox retentionDays_ = NewInput();
+
+      // The quota policy: -1 and an empty text mean the server's own apply.
+      private readonly TextBox quotaWarnAt_ = NewInput();
+      private readonly TextBox quotaSubject_ = NewInput();
+      private readonly TextBox quotaText_ = NewMemo();
+      private readonly TextBox quotaGrace_ = NewInput();
+      private readonly TextBox quotaStopAt_ = NewInput();
+      private FieldRow quotaWarnAtRow_, quotaGraceRow_, quotaStopAtRow_;
       private FieldRow retentionRow_;
       private readonly CheckBox maxAccountsOn_ = new() { Content = L("_Limit number of accounts") };
       private readonly TextBox maxAccounts_ = NewInput();
@@ -332,6 +340,17 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(maxAccountSizeRow_);
          retentionRow_ = Label(L("Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)"), retentionDays_);
          panel.Children.Add(retentionRow_);
+         panel.Children.Add(DialogFields.Separator());
+
+         panel.Children.Add(DialogFields.Note(L("The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply.")));
+         quotaWarnAtRow_ = Label(L("_Warn the owner at (% of the limit; -1 = the server's, 0 = never)"), quotaWarnAt_);
+         panel.Children.Add(quotaWarnAtRow_);
+         panel.Children.Add(Label(L("Warning s_ubject (empty = the server message)"), quotaSubject_));
+         panel.Children.Add(Label(L("Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)"), quotaText_));
+         quotaGraceRow_ = Label(L("Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)"), quotaGrace_);
+         panel.Children.Add(quotaGraceRow_);
+         quotaStopAtRow_ = Label(L("Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)"), quotaStopAt_);
+         panel.Children.Add(quotaStopAtRow_);
          panel.Children.Add(DialogFields.Separator());
 
          panel.Children.Add(DialogFields.Check(maxAccountsOn_));
@@ -806,6 +825,11 @@ namespace hMailServer.ControlPanel.Views
             maxMessageSize_.Text = ((int)d.MaxMessageSize).ToString();
             maxAccountSize_.Text = ((int)d.MaxAccountSize).ToString();
             retentionDays_.Text = ((int)d.MessageRetentionDays).ToString();
+            quotaWarnAt_.Text = ((int)d.QuotaWarningPercent).ToString();
+            quotaSubject_.Text = (string)d.QuotaWarningSubject ?? "";
+            quotaText_.Text = (string)d.QuotaWarningText ?? "";
+            quotaGrace_.Text = ((int)d.QuotaGracePercent).ToString();
+            quotaStopAt_.Text = ((int)d.QuotaSendStopPercent).ToString();
             maxAccountsOn_.IsChecked = (bool)d.MaxNumberOfAccountsEnabled;
             maxAccounts_.Text = ((int)d.MaxNumberOfAccounts).ToString();
             maxAliasesOn_.IsChecked = (bool)d.MaxNumberOfAliasesEnabled;
@@ -939,6 +963,15 @@ namespace hMailServer.ControlPanel.Views
          if (!NumericField.TryValidate(retentionDays_.Text, L("Delete messages older than (days)"), 0, int.MaxValue, out int retentionV, out bool hasRetention, out error))
          { DialogFields.ShowError(retentionRow_, error); return; }
 
+         if (!NumericField.TryValidate(quotaWarnAt_.Text, L("Warn the owner at (%)"), -1, 100, out int quotaWarnV, out bool hasQuotaWarn, out error))
+         { DialogFields.ShowError(quotaWarnAtRow_, error); return; }
+
+         if (!NumericField.TryValidate(quotaGrace_.Text, L("Still accept incoming mail past the limit by (%)"), -1, 1000, out int quotaGraceV, out bool hasQuotaGrace, out error))
+         { DialogFields.ShowError(quotaGraceRow_, error); return; }
+
+         if (!NumericField.TryValidate(quotaStopAt_.Text, L("Stop sending at (%)"), -1, 1000, out int quotaStopV, out bool hasQuotaStop, out error))
+         { DialogFields.ShowError(quotaStopAtRow_, error); return; }
+
          if (!NumericField.TryValidate(maxAccounts_.Text, L("Maximum number of accounts"), 0, int.MaxValue, out int mnaV, out bool hasMna, out error))
          { DialogFields.ShowError(maxAccountsRow_, error); return; }
 
@@ -1009,6 +1042,11 @@ namespace hMailServer.ControlPanel.Views
             if (hasMms) d.MaxMessageSize = mmsV;
             if (hasMas) d.MaxAccountSize = masV;
             if (hasRetention) d.MessageRetentionDays = retentionV;
+            if (hasQuotaWarn) d.QuotaWarningPercent = quotaWarnV;
+            d.QuotaWarningSubject = quotaSubject_.Text.Trim();
+            d.QuotaWarningText = quotaText_.Text;
+            if (hasQuotaGrace) d.QuotaGracePercent = quotaGraceV;
+            if (hasQuotaStop) d.QuotaSendStopPercent = quotaStopV;
             d.MaxNumberOfAccountsEnabled = maxAccountsOn_.IsChecked is true;
             if (hasMna) d.MaxNumberOfAccounts = mnaV;
             d.MaxNumberOfAliasesEnabled = maxAliasesOn_.IsChecked is true;

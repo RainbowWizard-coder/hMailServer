@@ -437,6 +437,9 @@ Save this weak password anyway?</value>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone.</value>
   </data>
@@ -7685,8 +7688,26 @@ Restart it now?</value>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Step {0} of {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Still accept incoming mail past the limit by (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Stop an account sending at (% of its limit; 0 = never)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Stop rule processing</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Stop sending at (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>Stop sending replies after a _date</value>
@@ -8076,6 +8097,9 @@ The next message to it will be sent, and it is listed again only after as many h
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>The account could not be removed from the group: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>The address must be a name followed by @</value>
@@ -8511,6 +8535,9 @@ Add it anyway?</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>The published record does not carry the new key. Correct it.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}</value>
@@ -9271,11 +9298,20 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Warn the mailbox owner at this percentage of their quota (0 = never)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Warn the owner at (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Warning before copying. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>Warning s_ubject (empty = the server message)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Warnings</value>
@@ -10071,6 +10107,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_View source</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>_Warn the owner at (% of the limit; -1 = the server's, 0 = never)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Who may send to this list</value>

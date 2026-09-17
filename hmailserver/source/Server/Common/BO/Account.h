@@ -138,6 +138,10 @@ namespace HM
       std::shared_ptr<IMAPFolders> GetFolders(); 
 
       bool SpaceAvailable(__int64 iBytes) const;
+
+      // The same, with the limit stretched by a grace: a share of the limit
+      // past which incoming mail is still accepted. 0 is the limit itself.
+      bool SpaceAvailable(__int64 iBytes, int gracePercent) const;
       // Returns true if a message with iBytes bytes can fit inside the account
 
       bool XMLStore(XNode *pParentNode, int iBackupOptions);

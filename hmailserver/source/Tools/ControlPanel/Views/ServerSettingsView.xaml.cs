@@ -1053,6 +1053,20 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know. Applies after a service restart."),
             IniStore = iniStore_
          });
+         smtp.Settings.Add(new ComText
+         {
+            Path = "QuotaGracePercent",
+            Label = L("Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)"),
+            Numeric = true,
+            Blurb = L("A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once.")
+         });
+         smtp.Settings.Add(new ComText
+         {
+            Path = "QuotaSendStopPercent",
+            Label = L("Stop an account sending at (% of its limit; 0 = never)"),
+            Numeric = true,
+            Blurb = L("The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once.")
+         });
          smtp.Settings.Add(new IniNumber
          {
             Path = "ArchiveRetentionDays",

@@ -5273,3 +5273,81 @@ STDMETHODIMP InterfaceSettings::put_SpamTrapTeachSpamAssassin(VARIANT_BOOL newVa
       return COMError::GenerateGenericMessage();
    }
 }
+
+STDMETHODIMP InterfaceSettings::get_QuotaGracePercent(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetQuotaGracePercent();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_QuotaGracePercent(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 1000)
+         return COMError::GenerateError("QuotaGracePercent must be between 0 and 1000.");
+
+      config_->SetQuotaGracePercent((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_QuotaSendStopPercent(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetQuotaSendStopPercent();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_QuotaSendStopPercent(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 1000)
+         return COMError::GenerateError("QuotaSendStopPercent must be between 0 and 1000.");
+
+      config_->SetQuotaSendStopPercent((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

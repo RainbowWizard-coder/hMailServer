@@ -169,6 +169,8 @@ namespace HM
          { _T("protocolsmtp"), _T(""), 1, KindNumber },
          { _T("QuarantineDigestBaseUrl"), _T(""), 0, KindString },
          { _T("QuarantineDigestLinkHours"), _T(""), 72, KindNumber },
+         { _T("QuotaGracePercent"), _T(""), 0, KindNumber },
+         { _T("QuotaSendStopPercent"), _T(""), 0, KindNumber },
          { _T("relaymode"), _T(""), 2, KindEither },
          { _T("ReputationWatchAddresses"), _T(""), 0, KindString },
          { _T("ReputationWatchEnabled"), _T(""), 1, KindNumber },

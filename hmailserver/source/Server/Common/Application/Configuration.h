@@ -306,6 +306,14 @@ namespace HM
       int GetAutoBanMinutes();
       void SetAutoBanMinutes(int iNewVal);
 
+      // The quota policy the domains inherit: how far past its limit a mailbox
+      // still accepts incoming mail (0 is not at all), and the share of the
+      // limit at which the account stops sending (0 is never).
+      int GetQuotaGracePercent();
+      void SetQuotaGracePercent(int iNewVal);
+      int GetQuotaSendStopPercent();
+      void SetQuotaSendStopPercent(int iNewVal);
+
       int GetAsynchronousThreads() const;
       void SetAsynchronousThreads(int iNewVal);
 

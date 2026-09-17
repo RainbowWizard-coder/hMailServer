@@ -10,6 +10,7 @@
 #include "../Common/Persistence/PersistentArchiveIndex.h"
 
 #include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/QuotaPolicy.h"
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
@@ -835,6 +836,26 @@ namespace HM
          {
             LOG_SMTP(GetSessionID(), GetIPAddressString(), "MAIL FROM refused: " + reason);
             SendResponse_(550, _T("5.7.1"), _T("Sender address rejected: not owned by the authenticated account and not granted to it."));
+            return;
+         }
+      }
+
+      // The send-stop of the quota policy: an account whose mailbox holds more
+      // than the domain's (or the server's) share of its limit can no longer
+      // send, while it can still receive up to the limit and the grace past it.
+      // Sending stops first because it is the one the owner notices at once, in
+      // their own client, with the reason in front of them; mail stopping
+      // arriving is noticed by everybody else. Keyed on the authenticated
+      // account, as the sending quota is, not on MAIL FROM.
+      if (isAuthenticated_ && !username_.IsEmpty())
+      {
+         std::shared_ptr<const Account> sendingAccount = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+         String stopped;
+
+         if (sendingAccount && QuotaPolicy::SendingStopped(sendingAccount, stopped))
+         {
+            LOG_SMTP(GetSessionID(), GetIPAddressString(), "MAIL FROM refused: " + stopped);
+            SendResponse_(552, _T("5.2.2"), stopped);
             return;
          }
       }

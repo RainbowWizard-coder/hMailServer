@@ -299,6 +299,8 @@ namespace HM
         _T("The recipients of a message still in the delivery queue. A queued message is in flight, not in a mailbox; the backup carries mailboxes.") },
       { _T("hm_message_metadata"),
         _T("Per-message annotations (RFC 5257), keyed on a message id the restore reassigns. Not carried: the roadmap row is what would carry them, with the message.") },
+      { _T("hm_autoreplies"),
+        _T("The out-of-office memory of who was answered and when. Not carried: a restored account answers each sender once more, which is what the reply is for, and carrying it would revive a memory of senders the backup pre-dates.") },
       { _T("hm_imapexpunged"),
         _T("The expunge log a QRESYNC client is answered from. Restoring it would tell a client that messages the restore has just put back are gone.") },
       { _T("hm_imap_metadata"),

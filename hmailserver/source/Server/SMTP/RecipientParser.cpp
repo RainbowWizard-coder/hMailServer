@@ -12,6 +12,7 @@
 
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/QuotaPolicy.h"
 
 #include "../Common/BO/Domain.h"
 #include "../Common/BO/Alias.h"
@@ -588,7 +589,7 @@ namespace HM
       // One byte, not zero: SpaceAvailable(0) answers "is the mailbox at most exactly
       // full", which would let a mailbox sitting precisely on its limit go on
       // accepting mail that cannot be stored.
-      if (account->SpaceAvailable(1))
+      if (QuotaPolicy::AcceptsDelivery(account, 1))
          return false;
 
       sErrMsg = "Mailbox is full.";

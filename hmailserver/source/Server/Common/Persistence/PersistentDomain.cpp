@@ -556,6 +556,11 @@ namespace HM
       pDomain->SetVacationInternalMessage(pRS->GetStringValue("domainvacationinternalmessage"));
       pDomain->SetVacationExternalOverride(pRS->GetLongValue("domainvacationexternaloverride") == 1);
       pDomain->SetVacationDays(pRS->GetLongValue("domainvacationdays"));
+      pDomain->SetQuotaWarningPercent(pRS->GetLongValue("domainquotawarningpercent"));
+      pDomain->SetQuotaWarningSubject(pRS->GetStringValue("domainquotawarningsubject"));
+      pDomain->SetQuotaWarningText(pRS->GetStringValue("domainquotawarningtext"));
+      pDomain->SetQuotaGracePercent(pRS->GetLongValue("domainquotagracepercent"));
+      pDomain->SetQuotaSendStopPercent(pRS->GetLongValue("domainquotasendstoppercent"));
 
       pDomain->SetExternalTagSubject(pRS->GetLongValue("domainexternaltagsubject") == 1);
       pDomain->SetExternalTagHeader(pRS->GetLongValue("domainexternaltagheader") == 1);
@@ -686,6 +691,11 @@ namespace HM
       oStatement.AddColumn("domainvacationinternalmessage", pDomain->GetVacationInternalMessage());
       oStatement.AddColumn("domainvacationexternaloverride", pDomain->GetVacationExternalOverride() ? 1 : 0);
       oStatement.AddColumn("domainvacationdays", pDomain->GetVacationDays());
+      oStatement.AddColumn("domainquotawarningpercent", pDomain->GetQuotaWarningPercent());
+      oStatement.AddColumn("domainquotawarningsubject", pDomain->GetQuotaWarningSubject());
+      oStatement.AddColumn("domainquotawarningtext", pDomain->GetQuotaWarningText());
+      oStatement.AddColumn("domainquotagracepercent", pDomain->GetQuotaGracePercent());
+      oStatement.AddColumn("domainquotasendstoppercent", pDomain->GetQuotaSendStopPercent());
 
       oStatement.AddColumn("domainexternaltagsubject", pDomain->GetExternalTagSubject() ? 1 : 0);
       oStatement.AddColumn("domainexternaltagheader", pDomain->GetExternalTagHeader() ? 1 : 0);

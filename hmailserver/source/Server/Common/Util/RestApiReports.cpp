@@ -31,6 +31,8 @@
 #include "RestApiServer.h"
 #include "ServerStatus.h"
 #include "Reports.h"
+#include "QuotaPolicy.h"
+#include "../Cache/CacheContainer.h"
 #include "MessageTrace.h"
 #include "Time.h"
 
@@ -81,6 +83,8 @@ namespace HM
            "The addresses that received the most, with how many deliveries to them failed." },
          { "mailboxes", false, "hm_messages",
            "The largest mailboxes as they are now, and the same totalled per domain. A size now, not a history." },
+         { "quota", false, "hm_messages",
+           "Who is nearest their limit: every mailbox with one, by the share of it used, with the point its owner is warned at and the point sending stops. A share now, not a history." },
          { "volume", true, "hm_metricsamples",
            "Messages processed, delivered, deferred and bounced, spam detected and viruses removed, per day. Server-wide: these counters carry no domain." },
          { "storage", true, "hm_metricsamples",
@@ -725,6 +729,95 @@ namespace HM
          __int64 bytes;
       };
 
+      bool NearerTheLimit(const Reports::MailboxRow &a, const Reports::MailboxRow &b)
+      {
+         const __int64 shareA = a.bytes * 100 / (((__int64) a.quota_mb) * 1024 * 1024);
+         const __int64 shareB = b.bytes * 100 / (((__int64) b.quota_mb) * 1024 * 1024);
+
+         if (shareA != shareB)
+            return shareA > shareB;
+
+         return a.address < b.address;
+      }
+
+      // Who is nearest their limit, rather than who is largest: a 900 MB
+      // mailbox with a 1 GB limit is in more trouble than a 5 GB one with no
+      // limit at all, and this is the table that says so. The warning and
+      // send-stop points are the ones that apply to the mailbox - its domain's
+      // where the domain has set them, the server's otherwise - so the state
+      // column reads as the server will act.
+      Section BuildQuota(Context &context)
+      {
+         LoadMailboxes(context);
+
+         Section section;
+         section.name = "quota";
+         section.source = "hm_messages";
+         section.enabled = context.mailboxes_ok;
+         section.note = "Every mailbox with a limit, by the share of it used AS IT IS NOW; the section ignores the dates. "
+                        "A mailbox holding no messages does not appear. warns_at and sending_stops_at are the points that "
+                        "apply to that mailbox (its domain's, or the server's), and state is ok, warned, stopped or over.";
+
+         section.table.Column("address", false);
+         section.table.Column("domain", false);
+         section.table.Column("megabytes", true);
+         section.table.Column("quota_megabytes", true);
+         section.table.Column("percent", true);
+         section.table.Column("warns_at", true);
+         section.table.Column("sending_stops_at", true);
+         section.table.Column("state", false);
+
+         std::vector<Reports::MailboxRow> wanted;
+
+         for (const Reports::MailboxRow &row : context.mailboxes)
+         {
+            if (row.quota_mb <= 0 || !context.Wanted(AnsiString(row.domain)))
+               continue;
+
+            wanted.push_back(row);
+         }
+
+         std::sort(wanted.begin(), wanted.end(), NearerTheLimit);
+
+         for (size_t i = 0; i < wanted.size() && (int) i < context.top; i++)
+         {
+            const Reports::MailboxRow &mailbox = wanted[i];
+            std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(mailbox.domain);
+
+            const __int64 quotaBytes = ((__int64) mailbox.quota_mb) * 1024 * 1024;
+            const int percent = (int) (mailbox.bytes * 100 / quotaBytes);
+            const int warnsAt = QuotaPolicy::WarningPercent(domain);
+            const int stopsAt = QuotaPolicy::SendStopPercent(domain);
+
+            AnsiString state = "ok";
+
+            if (percent >= 100)
+               state = "over";
+            else if (stopsAt > 0 && percent >= stopsAt)
+               state = "stopped";
+            else if (warnsAt > 0 && percent >= warnsAt)
+               state = "warned";
+
+            std::vector<AnsiString> row;
+            row.push_back(AnsiString(mailbox.address));
+            row.push_back(AnsiString(mailbox.domain));
+            row.push_back(WholeNumber(mailbox.bytes / (1024 * 1024)));
+            row.push_back(WholeNumber(mailbox.quota_mb));
+            row.push_back(WholeNumber(percent));
+            row.push_back(WholeNumber(warnsAt));
+            row.push_back(WholeNumber(stopsAt));
+            row.push_back(state);
+
+            section.table.rows.push_back(row);
+         }
+
+         AnsiString counted;
+         counted.Format(",\"mailboxes_with_a_limit\":%d,\"top\":%d", (int) wanted.size(), context.top);
+         section.extra = counted;
+
+         return section;
+      }
+
       Section BuildMailboxes(Context &context)
       {
          LoadMailboxes(context);
@@ -1020,6 +1113,9 @@ namespace HM
          if (name.CompareNoCase("mailboxes") == 0)
             return BuildMailboxes(context);
 
+         if (name.CompareNoCase("quota") == 0)
+            return BuildQuota(context);
+
          if (name.CompareNoCase("volume") == 0)
             return BuildVolume(context);
 
@@ -1114,13 +1210,14 @@ namespace HM
          "\"403\":{\"description\":\"A role that does not hold both view_configuration and view_message_trace\"}}}}"
 
          ",\"/api/v1/reports/{section}\":{\"get\":{\"summary\":\"One report section\","
-         "\"description\":\"section is traffic, failures, senders, recipients, mailboxes, volume, storage, countries or summary. "
+         "\"description\":\"section is traffic, failures, senders, recipients, mailboxes, quota, volume, storage, countries or summary. "
          "Query parameters: from and to (YYYY-MM-DD, inclusive; the default is the last 30 days and the window may not exceed 366 days), "
-         "domain (one local domain; the default is every domain the credential may see), top (how many rows the senders, recipients and mailboxes "
+         "domain (one local domain; the default is every domain the credential may see), top (how many rows the senders, recipients, mailboxes and quota "
          "sections return: 1 to 200, default 10) and format (json, the default, or csv - csv answers text/csv with the same columns and rows, and is "
          "refused for summary, which is not one table). "
          "traffic, failures, senders and recipients are counted from hm_messagetrace, which is OFF by default (MessageTraceEnabled) and which records "
          "only deliveries and failures - there is no spam or virus event in it. mailboxes is the size of every mailbox as it is NOW, not over the "
+         "window, and quota is the same store read as a share of each mailbox's limit, nearest first, with the warning and send-stop points that apply. "
          "window. volume, storage and countries are counted from the server-wide metric history and carry no domain at all, which is why spam and virus counts "
          "and storage growth cannot be given per domain; all three are refused for a domain-restricted key. "
          "countries also carries a by_country split that is NOT windowed - nothing records a refusal per country per day, so it is the counters as they stand since the server started. Every per-domain section counts only domains "

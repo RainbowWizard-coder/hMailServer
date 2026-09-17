@@ -80,6 +80,7 @@ Mail filtering and routing
 --------------------------
 
 * **Sieve** (RFC 5228) — a standards-based interpreter runs each account's active script during delivery (`keep`, `fileinto`, `discard`, `redirect`, implicit keep, plus the `copy`, `relational`, `subaddress`, `imap4flags` and `vacation` extensions), with an optional **ManageSieve** (RFC 5804) listener so clients can manage scripts over TCP.
+* **A quota policy, not a quota** — three points around a mailbox's limit: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where the account stops sending before it stops receiving; each per domain or server-wide, and a report of who is nearest their limit ([QuotaPolicy.md](hmailserver/docs/QuotaPolicy.md)).
 * **Out-of-office as a policy** — an account's reply and a domain's, with a text for colleagues that never leaves the server and a general one for everybody else, a reply for colleagues only, the domain's text in place of an account's for strangers when the domain says so, and a window in days after which the same sender is answered again (0 is once per absence), remembered in the database rather than in the process so a restart repeats nothing; RFC 3834 decides what is never answered. `hmailserver/docs/OutOfOffice.md`.
 * The original rules engine, with global and per-account rules, regular-expression criteria and scripted actions.
 * Server-side **event scripts** (VBScript/JScript) on connection, HELO, DATA, accept and delivery events, with `ScriptAllowedObjects` bounding which COM classes a script may create.
@@ -190,7 +191,7 @@ cache, scripting, indexing, the server messages), certificates and the
 listeners that bind them, application passwords, folder permissions, the
 message store and the account groups with their members; and the Deck reaches every property its views cover, measured
 by `build/check-deck-parity.py` against the desktop Control Panel's every
-field ([DeckParity.md](hmailserver/docs/DeckParity.md): 387 of 393 on 17
+field ([DeckParity.md](hmailserver/docs/DeckParity.md): 396 of 402 on 17
 September 2026: two settings of the quarantine digest have no REST setter
 yet, and a folder permission's four fields are writable over REST but no
 Deck view reaches them). The wiki's *Installing on Linux* page walks from the package

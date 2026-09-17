@@ -1516,6 +1516,12 @@ const DOMAIN_GROUPS=[
     vacation_internal_message:{type:"string",format:"multiline",description:K("The text for senders whose address belongs to this server; empty means the text above, and leaving the text above empty makes the reply internal-only.")},
     vacation_external_override:{type:"boolean",description:K("Senders outside this server get the domain's text even when the account has a reply of its own; colleagues still get the account's.")},
     vacation_days:{type:"integer",description:K("Days after which the same sender is answered again while the reply stays on; 0 answers each sender once per absence.")}}},
+  {title:K("Quota policy"),props:{
+    quota_warning_percent:{type:"integer",description:K("Warn the mailbox owner at this percentage of their limit; 0 warns nobody and -1 uses the server's QuotaWarningPercent.")},
+    quota_warning_subject:{type:"string",description:K("The warning's subject; empty uses the QUOTA_WARNING_SUBJECT server message.")},
+    quota_warning_text:{type:"string",format:"multiline",description:K("The warning's text, with %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%; empty uses the QUOTA_WARNING server message.")},
+    quota_grace_percent:{type:"integer",description:K("How far past its limit a mailbox still accepts incoming mail, as a percentage of the limit; 0 is not at all and -1 uses the server's value.")},
+    quota_send_stop_percent:{type:"integer",description:K("The percentage of its limit at which an account stops sending, before it stops receiving; 0 is never and -1 uses the server's value.")}}},
   {title:K("Country blocking"),props:{
     country_policy:{type:"string",description:K("Which countries may sign in to this domain's accounts, on any protocol. Empty judges nothing; allow:GB,IE admits only those countries; block:CN,RU refuses those. It needs the server's geographic database to be configured, and an address in the exempt ranges - the loopback address and the private networks - is never judged.")}}},
   {title:K("What this domain does to a message"),props:{
@@ -3974,6 +3980,7 @@ const REPORT_SECTIONS=[
   {id:"senders",title:K("Top senders")},
   {id:"recipients",title:K("Top recipients")},
   {id:"mailboxes",title:K("Largest mailboxes")},
+  {id:"quota",title:K("Near their quota")},
   {id:"volume",title:K("Volume")},
   {id:"storage",title:K("Storage"),chart:true},
   {id:"countries",title:K("Country refusals")}
@@ -3983,7 +3990,8 @@ const REPORT_COLUMNS={day:K("Day"),domain:K("Domain"),incoming:K("Incoming"),out
   total:K("Total"),sender:K("Sender"),recipient:K("Recipient"),messages:K("Messages"),failed:K("Failed"),
   address:K("Address"),bytes:K("Bytes"),megabytes:K("Megabytes"),processed:K("Processed"),delivered:K("Delivered"),
   deferred:K("Deferred"),bounced:K("Bounced"),spam:K("Spam"),viruses:K("Viruses"),mailboxes:K("Mailboxes"),
-  refused:K("Refused"),country:K("Country")};
+  refused:K("Refused"),country:K("Country"),quota_megabytes:K("Quota (MB)"),percent:K("Percent used"),
+  warns_at:K("Warns at (%)"),sending_stops_at:K("Sending stops at (%)"),state:K("State")};
 let report={from:"",to:"",domain:"",top:10};
 function reportQuery(extra){
   const parts=[];

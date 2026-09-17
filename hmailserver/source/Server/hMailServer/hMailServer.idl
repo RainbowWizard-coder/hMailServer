@@ -904,6 +904,10 @@ interface IInterfaceSettings : IDispatch{
    [propput, id(170), helpstring("The contact a push service may use when this server's subscriptions are failing: a mailto: or https: address. Empty means mailto:postmaster@ the server's host name.")] HRESULT WebPushSubject([in] BSTR newVal);
    [propget, id(171), helpstring("The public half of this server's VAPID key pair, base64url. Every page that subscribes needs it, so it is public by construction. Empty until GenerateWebPushKeys has been called.")] HRESULT WebPushVapidPublicKey([out, retval] BSTR *pVal);
    [id(172), helpstring("Generates a fresh VAPID key pair and stores both halves, returning the public one. Every subscription made under the previous pair stops working at once and each device must be asked again, so this is not routine: it is what to do when the private key may have been copied. Server administrators only.")] HRESULT GenerateWebPushKeys([out, retval] BSTR *PublicKey);
+   [propget, id(173), helpstring("How far past its limit a mailbox still accepts incoming mail, as a percentage of the limit; 0 is not at all. A domain may set its own. 0 to 1000.")] HRESULT QuotaGracePercent([out, retval] long *pVal);
+   [propput, id(173), helpstring("How far past its limit a mailbox still accepts incoming mail, as a percentage of the limit; 0 is not at all. A domain may set its own. 0 to 1000.")] HRESULT QuotaGracePercent([in] long newVal);
+   [propget, id(174), helpstring("The percentage of its limit at which an account stops sending, before it stops receiving; 0 is never. A domain may set its own. 0 to 1000.")] HRESULT QuotaSendStopPercent([out, retval] long *pVal);
+   [propput, id(174), helpstring("The percentage of its limit at which an account stops sending, before it stops receiving; 0 is never. A domain may set its own. 0 to 1000.")] HRESULT QuotaSendStopPercent([in] long newVal);
 
    // The Web Key Directory: this server publishing its users' OpenPGP public keys
    // (docs/OpenPGP.md). Publishing is off, and stays off for every domain and every
@@ -1121,6 +1125,16 @@ interface IInterfaceDomain : IDispatch
       [propput, id(55), helpstring("When on, senders outside this server receive the domain's text even if the account has a vacation message of its own; local senders still get the account's.")] HRESULT VacationExternalOverride([in] VARIANT_BOOL newVal);
       [propget, id(88), helpstring("Days after which a sender the domain reply has answered is answered again while the reply stays on; 0 answers each sender once per absence. 0 to 3650.")] HRESULT VacationDays([out, retval] long *pVal);
       [propput, id(88), helpstring("Days after which a sender the domain reply has answered is answered again while the reply stays on; 0 answers each sender once per absence. 0 to 3650.")] HRESULT VacationDays([in] long newVal);
+      [propget, id(89), helpstring("The share of a mailbox's limit at which its owner is warned, as a percentage; 0 warns nobody and -1 uses the server's QuotaWarningPercent.")] HRESULT QuotaWarningPercent([out, retval] long *pVal);
+      [propput, id(89), helpstring("The share of a mailbox's limit at which its owner is warned, as a percentage; 0 warns nobody and -1 uses the server's QuotaWarningPercent.")] HRESULT QuotaWarningPercent([in] long newVal);
+      [propget, id(90), helpstring("The subject of the quota warning sent to this domain's people; empty uses the QUOTA_WARNING_SUBJECT server message.")] HRESULT QuotaWarningSubject([out, retval] BSTR *pVal);
+      [propput, id(90), helpstring("The subject of the quota warning sent to this domain's people; empty uses the QUOTA_WARNING_SUBJECT server message.")] HRESULT QuotaWarningSubject([in] BSTR newVal);
+      [propget, id(91), helpstring("The text of the quota warning sent to this domain's people, with the %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT% macros; empty uses the QUOTA_WARNING server message.")] HRESULT QuotaWarningText([out, retval] BSTR *pVal);
+      [propput, id(91), helpstring("The text of the quota warning sent to this domain's people, with the %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT% macros; empty uses the QUOTA_WARNING server message.")] HRESULT QuotaWarningText([in] BSTR newVal);
+      [propget, id(92), helpstring("How far past its limit a mailbox in this domain still accepts incoming mail, as a percentage of the limit; 0 is not at all and -1 uses the server's value.")] HRESULT QuotaGracePercent([out, retval] long *pVal);
+      [propput, id(92), helpstring("How far past its limit a mailbox in this domain still accepts incoming mail, as a percentage of the limit; 0 is not at all and -1 uses the server's value.")] HRESULT QuotaGracePercent([in] long newVal);
+      [propget, id(93), helpstring("The percentage of its limit at which an account in this domain stops sending, before it stops receiving; 0 is never and -1 uses the server's value.")] HRESULT QuotaSendStopPercent([out, retval] long *pVal);
+      [propput, id(93), helpstring("The percentage of its limit at which an account in this domain stops sending, before it stops receiving; 0 is never and -1 uses the server's value.")] HRESULT QuotaSendStopPercent([in] long newVal);
 
       /*
          WHAT THIS DOMAIN DOES TO A MESSAGE. All off by default.

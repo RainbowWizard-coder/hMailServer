@@ -315,6 +315,7 @@ NOT_AUDITED = {
    "hm_audit": "the trail itself, written by AuditTrail alone (rule 'table').",
    "hm_dbversion": "the schema version, written by the upgrade scripts and nobody else.",
    "hm_mailboxmoves": "the journal of a mailbox rename or move, written by MailboxMove as the move runs and by nothing else. The move itself IS on the trail, as one RecordEvent naming both addresses, which is why the journal is not: listing the table would record the row opened before the move starts and the row closed after it, under the same actor, for one change.",
+   "hm_autoreplies": "the memory of who an out-of-office reply answered and when, written by SMTPVacationMessageCreator as replies go out and forgotten when the reply is switched off; traffic, not configuration.",
    "hm_messages": "messages are traffic.",
    "hm_messagerecipients": "the recipients of a message in the queue; traffic.",
    "hm_message_metadata": "per-message metadata the IMAP server keeps; traffic.",

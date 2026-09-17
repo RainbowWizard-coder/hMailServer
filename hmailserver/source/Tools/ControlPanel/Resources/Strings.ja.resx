@@ -437,6 +437,9 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>ドメイン、メールボックス、TLS を提供するリスナー、そしてそれをダッシュボードがどう評価するか。4 分ほどで、いつでも中断できます。</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>受信メールのための猶予です。上限をこの割合未満で超えたメールボックスはまだ受信できるので、1 週間不在の人が月曜に大きな添付ファイルが届いたためにメールを失うことはありません。所有者自身の保存やコピーは上限で止まります。ドメインごとに設定できます。すぐに適用されます。</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>グループは、複数のアカウントに同じ権限をまとめて与えるために存在します。「公開フォルダー」でグループに公開フォルダーへのアクセス権を与えると、ここに挙がっているすべてのアカウントがそのアクセス権を得ます。空のグループは誰にも何も与えません。</value>
   </data>
@@ -7685,8 +7688,26 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>ステップ {0}/{1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>メールボックスの上限を超えても受信メールを受け付ける範囲 (上限の %、0 = 受け付けない)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>上限を超えても受信メールを受け付ける範囲(_B) (上限の %、-1 = サーバーの値、0 = 受け付けない)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>上限を超えて受信メールを受け付ける範囲 (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>アカウントの送信を停止する時点 (上限の %、0 = 停止しない)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>ルール処理を停止</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>送信を停止する時点(_V) (上限の %、-1 = サーバーの値、0 = 停止しない)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>送信を停止する時点 (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>日付以降は応答の送信を停止する(_D)</value>
@@ -8076,6 +8097,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>アカウントをグループから削除できませんでした: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>受信が止まる前に送信が止まります。所有者は自分のクライアントで理由付きの拒否を目にし、その人宛のメールは上限とその猶予までは届き続けます。ドメインごとに設定できます。すぐに適用されます。</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>アドレスは名前の後に @ を付けたものでなければなりません</value>
@@ -8511,6 +8535,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>公開されたレコードに新しい鍵が含まれていません。修正してください。</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>このドメインのメールボックスのクォータポリシーです。所有者にいつどの言葉で警告するか、上限を超えてどこまで受信メールを受け付けるか、どこで送信を止めるか。-1 と空のテキストはサーバーの値を使うことを意味します。</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>{0} のレコードは p={1} を含んでいますが、これは受信側が認識するポリシー (none、quarantine、reject) ではありません。公開内容: {2}</value>
@@ -9271,11 +9298,20 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>クォータのこのパーセンテージでメールボックスの所有者に警告する (0 = しない)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>所有者に警告する時点 (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>警告</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>コピー前の警告。{0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>警告の件名(_U) (空 = サーバーメッセージ)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>警告の本文(_X) (空 = サーバーメッセージ、%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>警告</value>
@@ -10071,6 +10107,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_View source" xml:space="preserve">
     <value>ソースを表示(_V)</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>所有者に警告する時点(_W) (上限の %、-1 = サーバーの値、0 = 警告しない)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>このリストに送信できる相手(_W)</value>

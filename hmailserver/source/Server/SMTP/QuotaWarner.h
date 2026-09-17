@@ -31,9 +31,9 @@ namespace HM
    public:
 
       // Called on the delivery path once the message is known to fit. Does nothing
-      // unless this message is the one that takes the mailbox across
-      // QuotaWarningPercent, and nothing at all when that setting is 0 or the
-      // account has no quota.
+      // unless this message is the one that takes the mailbox across the warning
+      // threshold - the domain's, or QuotaWarningPercent where the domain has
+      // none - and nothing at all when that is 0 or the account has no quota.
       static void NotifyIfThresholdCrossed(std::shared_ptr<const Account> account, __int64 messageSize);
 
    private:

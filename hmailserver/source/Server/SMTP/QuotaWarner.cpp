@@ -17,6 +17,7 @@
 #include "../Common/BO/ServerMessages.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Cache/AccountSizeCache.h"
+#include "../Common/Util/QuotaPolicy.h"
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Util/Time.h"
 
@@ -35,7 +36,8 @@ namespace HM
          if (!account)
             return;
 
-         const int percent = IniFileSettings::Instance()->GetQuotaWarningPercent();
+         // The domain's threshold where it has one, the server's otherwise.
+         const int percent = QuotaPolicy::WarningPercent(account);
 
          if (percent <= 0 || percent > 100)
             return;
@@ -56,8 +58,9 @@ namespace HM
          if (before >= thresholdBytes || after < thresholdBytes)
             return;
 
-         String body = Configuration::Instance()->GetServerMessages()->GetMessage("QUOTA_WARNING");
-         String subject = Configuration::Instance()->GetServerMessages()->GetMessage("QUOTA_WARNING_SUBJECT");
+         // The domain's words where it has them, the server message otherwise.
+         String body, subject;
+         QuotaPolicy::WarningText(account, subject, body);
 
          const int usedMB = (int) (after / 1024 / 1024);
          const int usedPercent = (int) (after * 100 / quotaBytes);

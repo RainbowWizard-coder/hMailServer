@@ -520,6 +520,7 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'message_retention_days', 'relay_host', 'relay_port', 'relay_requires_auth', 'relay_username', 'relay_password', 'relay_connection_security',
    'vacation_enabled', 'vacation_subject', 'vacation_message',
    'vacation_internal_subject', 'vacation_internal_message', 'vacation_external_override', 'vacation_days',
+   'quota_warning_percent', 'quota_warning_subject', 'quota_warning_text', 'quota_grace_percent', 'quota_send_stop_percent',
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour',
@@ -696,6 +697,7 @@ function domainRecord(name, active, postmaster) {
       relay_host: '', relay_requires_auth: false, relay_username: '', relay_connection_security: 'none',
       vacation_enabled: false, vacation_subject: '', vacation_message: '',
       vacation_internal_subject: '', vacation_internal_message: '', vacation_external_override: false, vacation_days: 0,
+      quota_warning_percent: -1, quota_warning_subject: '', quota_warning_text: '', quota_grace_percent: -1, quota_send_stop_percent: -1,
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
       quarantine_digest: false, quarantine_digest_hour: 7,
@@ -1393,6 +1395,11 @@ const state = {
          columns: ['address', 'domain', 'messages', 'bytes', 'megabytes'],
          rows: [{ address: 'anna@example.com', domain: 'example.com', messages: 402, bytes: 41943040, megabytes: 40 }],
          domains: [{ domain: 'example.com', mailboxes: 2, messages: 402, bytes: 41943040, megabytes: 40 }]
+      },
+      quota: {
+         section: 'quota', source: 'hm_messages', enabled: true, truncated: false, note: 'A share now, not a history.',
+         columns: ['address', 'domain', 'megabytes', 'quota_megabytes', 'percent', 'warns_at', 'sending_stops_at', 'state'],
+         rows: [{ address: 'anna@example.com', domain: 'example.com', megabytes: 40, quota_megabytes: 50, percent: 80, warns_at: 90, sending_stops_at: 95, state: 'ok' }]
       },
       volume: {
          section: 'volume', source: 'hm_metricsamples', enabled: false, truncated: false,
@@ -2305,7 +2312,7 @@ function answer(method, path, headers, raw) {
       const built = (name) => {
          const made = clone(state.reportSections[name]);
          if (domain) { made.rows = made.rows.filter((r) => r.domain === undefined || r.domain === domain); }
-         if (name === 'senders' || name === 'recipients' || name === 'mailboxes') { made.rows = made.rows.slice(0, top); }
+         if (name === 'senders' || name === 'recipients' || name === 'mailboxes' || name === 'quota') { made.rows = made.rows.slice(0, top); }
          return made;
       };
 
@@ -4663,6 +4670,8 @@ async function main() {
       $('#csv_traffic').attributes.href.indexOf('format=csv') > 0 && 'download' in $('#csv_traffic').attributes,
       $('#csv_traffic') ? $('#csv_traffic').attributes.href : 'no link');
    check('the mailboxes section is there too, with its own CSV', !!$('#csv_mailboxes') && !!$('#csv_storage'));
+   check('the quota section says who is near their limit, with the points that apply', !!$('#csv_quota') && content().textContent.indexOf('anna@example.com') >= 0 &&
+      content().textContent.indexOf('Sending stops at') >= 0, content().textContent.slice(0, 200));
    before = requests.length;
    setValue('repFrom', '2026-09-01');
    setValue('repTo', '2026-09-15');

@@ -742,6 +742,18 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.Server, "minutes_to_ban", value); }
       }
 
+      public int QuotaGracePercent
+      {
+         get { return Num("quota_grace_percent"); }
+         set { SettingsApi.Put(SettingsApi.Server, "quota_grace_percent", value); }
+      }
+
+      public int QuotaSendStopPercent
+      {
+         get { return Num("quota_send_stop_percent"); }
+         set { SettingsApi.Put(SettingsApi.Server, "quota_send_stop_percent", value); }
+      }
+
       public bool TlsOptionPreferServerCiphersEnabled
       {
          get { return Flag("tls_prefer_server_ciphers"); }
@@ -2707,6 +2719,12 @@ namespace hMailServer
       private string _vacationInternalSubject = string.Empty; public string VacationInternalSubject { get { return _vacationInternalSubject; } set { _vacationInternalSubject = value; Pend("vacation_internal_subject", Q(value)); } }
       private string _vacationInternalMessage = string.Empty; public string VacationInternalMessage { get { return _vacationInternalMessage; } set { _vacationInternalMessage = value; Pend("vacation_internal_message", Q(value)); } }
       private bool _vacationExternalOverride; public bool VacationExternalOverride { get { return _vacationExternalOverride; } set { _vacationExternalOverride = value; Pend("vacation_external_override", B(value)); } }
+      private int _vacationDays; public int VacationDays { get { return _vacationDays; } set { _vacationDays = value; Pend("vacation_days", N(value)); } }
+      private int _quotaWarningPercent = -1; public int QuotaWarningPercent { get { return _quotaWarningPercent; } set { _quotaWarningPercent = value; Pend("quota_warning_percent", N(value)); } }
+      private string _quotaWarningSubject = string.Empty; public string QuotaWarningSubject { get { return _quotaWarningSubject; } set { _quotaWarningSubject = value; Pend("quota_warning_subject", Q(value)); } }
+      private string _quotaWarningText = string.Empty; public string QuotaWarningText { get { return _quotaWarningText; } set { _quotaWarningText = value; Pend("quota_warning_text", Q(value)); } }
+      private int _quotaGracePercent = -1; public int QuotaGracePercent { get { return _quotaGracePercent; } set { _quotaGracePercent = value; Pend("quota_grace_percent", N(value)); } }
+      private int _quotaSendStopPercent = -1; public int QuotaSendStopPercent { get { return _quotaSendStopPercent; } set { _quotaSendStopPercent = value; Pend("quota_send_stop_percent", N(value)); } }
       private bool _externalTagSubject; public bool ExternalTagSubject { get { return _externalTagSubject; } set { _externalTagSubject = value; Pend("external_tag_subject", B(value)); } }
       private bool _externalTagHeader; public bool ExternalTagHeader { get { return _externalTagHeader; } set { _externalTagHeader = value; Pend("external_tag_header", B(value)); } }
       private string _externalTagText = string.Empty; public string ExternalTagText { get { return _externalTagText; } set { _externalTagText = value; Pend("external_tag_text", Q(value)); } }
@@ -2827,6 +2845,12 @@ namespace hMailServer
          _vacationInternalSubject = ServerApi.StringOf(element, "vacation_internal_subject") ?? string.Empty;
          _vacationInternalMessage = ServerApi.StringOf(element, "vacation_internal_message") ?? string.Empty;
          _vacationExternalOverride = ServerApi.FlagOf(element, "vacation_external_override");
+         _vacationDays = (int) ServerApi.LongOf(element, "vacation_days");
+         _quotaWarningPercent = (int) ServerApi.LongOf(element, "quota_warning_percent", -1);
+         _quotaWarningSubject = ServerApi.StringOf(element, "quota_warning_subject") ?? string.Empty;
+         _quotaWarningText = ServerApi.StringOf(element, "quota_warning_text") ?? string.Empty;
+         _quotaGracePercent = (int) ServerApi.LongOf(element, "quota_grace_percent", -1);
+         _quotaSendStopPercent = (int) ServerApi.LongOf(element, "quota_send_stop_percent", -1);
          _externalTagSubject = ServerApi.FlagOf(element, "external_tag_subject");
          _externalTagHeader = ServerApi.FlagOf(element, "external_tag_header");
          _externalTagText = ServerApi.StringOf(element, "external_tag_text") ?? string.Empty;

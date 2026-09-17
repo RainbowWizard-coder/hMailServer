@@ -1120,6 +1120,19 @@ namespace DBUpdater
                          "update hm_autoreplies set arsender = arsender where 1 = 0"),
          new SchemaProbe(6060, "hm_autoreplies.arsent",
                          "update hm_autoreplies set arsent = arsent where 1 = 0"),
+         // Upgrade6060to6061* - the quota policy per domain: the warning's
+         // threshold, subject and text, the grace past the limit and the point
+         // at which sending stops. -1 and an empty text mean the server's own.
+         new SchemaProbe(6061, "hm_domains.domainquotawarningpercent",
+                         "update hm_domains set domainquotawarningpercent = domainquotawarningpercent where 1 = 0"),
+         new SchemaProbe(6061, "hm_domains.domainquotawarningsubject",
+                         "update hm_domains set domainquotawarningsubject = domainquotawarningsubject where 1 = 0"),
+         new SchemaProbe(6061, "hm_domains.domainquotawarningtext",
+                         "update hm_domains set domainquotawarningtext = domainquotawarningtext where 1 = 0"),
+         new SchemaProbe(6061, "hm_domains.domainquotagracepercent",
+                         "update hm_domains set domainquotagracepercent = domainquotagracepercent where 1 = 0"),
+         new SchemaProbe(6061, "hm_domains.domainquotasendstoppercent",
+                         "update hm_domains set domainquotasendstoppercent = domainquotasendstoppercent where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

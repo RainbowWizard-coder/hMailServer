@@ -437,6 +437,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Bir etki alanı, bir posta kutusu, TLS sunan bir dinleyici ve Pano'nun bunlardan çıkardığı sonuç. Dört dakika; istediğiniz zaman çıkabilirsiniz.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Gelen posta için bir pay: sınırını bundan daha az aşan bir posta kutusu almaya devam eder; böylece bir hafta uzakta olan biri pazartesi büyük bir ek geldi diye posta kaybetmez. Sahibin kendi kayıtları ve kopyaları sınırın kendisinde durur. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>Bir grup, birden çok hesaba aynı hakların tek seferde verilebilmesi için vardır - Genel klasörler altında gruba bir genel klasör için erişim verin, burada listelenen her hesap o erişimi kazanır. Boş bir grup kimseye hiçbir şey vermez.</value>
   </data>
@@ -7685,8 +7688,26 @@ Devam edilsin mi?</value>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Adım {0}/{1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Bir posta kutusunun sınırını aşan gelen postayı şu paya kadar kabul etmeye devam et (sınırın %'si; 0 = hiç)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>Sınırı aşan gelen postayı şu _paya kadar kabul etmeye devam et (%'si; -1 = sunucunun değeri, 0 = hiç)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Sınırı aşan gelen postayı şu paya kadar kabul et (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Bir hesabın göndermesini şurada durdur (sınırının %'si; 0 = asla)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Kural işlemeyi durdur</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>G_öndermeyi şurada durdur (sınırın %'si; -1 = sunucunun değeri, 0 = asla)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Göndermeyi şurada durdur (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>Şu _tarihten sonra yanıt göndermeyi durdur</value>
@@ -8076,6 +8097,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Hesap gruptan kaldırılamadı: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Hesap almayı bırakmadan önce göndermeyi bırakır: sahibi reddi kendi istemcisinde nedeniyle görür, ona gelen posta ise sınıra ve onu aşan paya kadar gelmeye devam eder. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adres, ardından @ gelen bir ad olmalıdır</value>
@@ -8511,6 +8535,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Yayımlanan kayıt yeni anahtarı içermiyor. Düzeltin.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>Bu alanın posta kutuları için kota ilkesi: sahibin nerede ve hangi sözlerle uyarıldığı, gelen postanın sınırın ne kadar ötesinde hâlâ kabul edildiği ve göndermenin nerede durduğu. -1 ve boş metin, sunucunun değerlerinin geçerli olduğu anlamına gelir.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>{0} kaydında p={1} var; bu, alıcıların tanıdığı bir ilke değil (none, quarantine, reject). Yayımlanan: {2}</value>
@@ -9271,11 +9298,20 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Posta kutusu sahibini kotasının bu yüzdesinde uyar (0 = hiçbir zaman)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Sahibi şurada uyar (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Uyarı</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Kopyalamadan önce uyarı. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>_Uyarı konusu (boş = sunucu iletisi)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>Uyarı _metni (boş = sunucu iletisi; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Uyarılar</value>
@@ -10071,6 +10107,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>Kaynağı _görüntüle</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>Sahibi şurada u_yar (sınırın %'si; -1 = sunucunun değeri, 0 = asla)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Bu listeye kim gönderebilir</value>

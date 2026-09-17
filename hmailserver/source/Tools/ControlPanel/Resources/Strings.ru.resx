@@ -437,6 +437,9 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Домен, почтовый ящик, прослушиватель с TLS и то, что из этого делает Сводка. Четыре минуты; выйти можно в любой момент.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Запас для входящей почты: ящик, превысивший лимит меньше чем на это, продолжает принимать, чтобы человек, уехавший на неделю, не потерял почту из-за большого вложения в понедельник. Собственные сохранения и копии владельца останавливаются на самом лимите. Каждый домен может задать свой. Действует сразу.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>Группа существует для того, чтобы нескольким учётным записям можно было выдать одни и те же права сразу: предоставьте группе доступ к общей папке в разделе «Общие папки», и каждая перечисленная здесь учётная запись получит этот доступ. Пустая группа не даёт никому ничего.</value>
   </data>
@@ -7685,8 +7688,26 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Шаг {0} из {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Принимать входящую почту сверх лимита ящика ещё на (% лимита; 0 = не принимать)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>Принимать входящую почту сверх лимита ещё _на (% лимита; -1 = значение сервера, 0 = не принимать)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Принимать входящую почту сверх лимита на (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Остановить отправку с учётной записи при (% её лимита; 0 = никогда)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Прекратить обработку правил</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>Ос_тановить отправку при (% лимита; -1 = значение сервера, 0 = никогда)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Остановить отправку при (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>_Прекратить отправку ответов после даты</value>
@@ -8076,6 +8097,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Не удалось удалить учётную запись из группы: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Учётная запись перестаёт отправлять раньше, чем получать: владелец видит отказ в своём клиенте с причиной, а почта ему по-прежнему приходит до лимита и запаса сверх него. Каждый домен может задать свой. Действует сразу.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Адрес должен быть именем, за которым следует @</value>
@@ -8511,6 +8535,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Опубликованная запись не содержит нового ключа. Исправьте её.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>Политика квоты для ящиков этого домена: когда владельца предупреждают и какими словами, насколько сверх лимита ещё принимается входящая почта и когда останавливается отправка. -1 и пустой текст означают, что действуют значения сервера.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Запись на {0} содержит p={1}, а это не политика, которую распознают получатели (none, quarantine, reject). Опубликовано: {2}</value>
@@ -9271,11 +9298,20 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Предупреждать владельца ящика при этом проценте его квоты (0 = никогда)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Предупредить владельца при (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Предупреждение</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Предупреждение перед копированием. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>Тема п_редупреждения (пустая = сообщение сервера)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>Т_екст предупреждения (пустой = сообщение сервера; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Предупреждения</value>
@@ -10071,6 +10107,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Показать исходный текст</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>Предупред_ить владельца при (% лимита; -1 = значение сервера, 0 = никогда)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Кто может отправлять в этот список</value>

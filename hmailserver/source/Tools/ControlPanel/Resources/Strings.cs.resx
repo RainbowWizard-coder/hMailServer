@@ -437,6 +437,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Doména, poštovní schránka, listener, který nabízí TLS, a co z toho vyčte Přehled. Čtyři minuty; kdykoli můžete skončit.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Tolerance pro příchozí poštu: schránka, která překročí limit o méně než toto, stále přijímá, takže člověk pryč na týden nepřijde o poštu kvůli velké příloze z pondělí. Vlastní ukládání a kopie majitele končí na samotném limitu. Každá doména může nastavit vlastní. Platí ihned.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>Skupina existuje proto, aby bylo možné udělit stejná práva několika účtům najednou – udělte skupině přístup k veřejné složce v části Veřejné složky a každý účet uvedený zde tento přístup získá. Prázdná skupina neuděluje nikomu nic.</value>
   </data>
@@ -7685,8 +7688,26 @@ Restartovat ji nyní?</value>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Krok {0} z {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Stále přijímat příchozí poštu za limitem schránky do (% limitu; 0 = vůbec)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>S_tále přijímat příchozí poštu za limitem do (% limitu; -1 = hodnota serveru, 0 = vůbec)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Přijímat příchozí poštu za limitem do (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Zastavit odesílání účtu při (% jeho limitu; 0 = nikdy)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Zastavit zpracování pravidel</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>Zastavit odesílání při (% limitu; -1 = hodnota serveru, 0 = ni_kdy)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Zastavit odesílání při (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>Přestat odesílat odpovědi po _datu</value>
@@ -8076,6 +8097,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Účet se nepodařilo odebrat ze skupiny: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Účet přestane odesílat dřív, než přestane přijímat: majitel vidí odmítnutí ve vlastním programu i s důvodem, zatímco pošta pro něj dál přichází až do limitu a tolerance za ním. Každá doména může nastavit vlastní. Platí ihned.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adresa musí být jméno následované znakem @</value>
@@ -8511,6 +8535,9 @@ Přesto přidat?</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Zveřejněný záznam neobsahuje nový klíč. Opravte ho.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>Zásady kvóty pro schránky této domény: kde je majitel upozorněn a jakými slovy, jak daleko za limit se příchozí pošta ještě přijímá a kde končí odesílání. -1 a prázdný text znamenají, že platí hodnoty serveru.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Záznam na {0} nese p={1}, což není politika, kterou příjemci znají (none, quarantine, reject). Publikováno: {2}</value>
@@ -9271,11 +9298,20 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Varovat vlastníka schránky při tomto procentu jeho kvóty (0 = nikdy)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Upozornit majitele při (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Varování</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Varování před kopírováním. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>Předmět _upozornění (prázdný = zpráva serveru)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>Te_xt upozornění (prázdný = zpráva serveru; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Varování</value>
@@ -10071,6 +10107,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Zobrazit zdroj</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>Upozornit _majitele při (% limitu; -1 = hodnota serveru, 0 = nikdy)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Kdo smí posílat do tohoto seznamu</value>

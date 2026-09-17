@@ -196,6 +196,12 @@ namespace HM
    bool
    Account::SpaceAvailable(__int64 iBytes) const
    {
+      return SpaceAvailable(iBytes, 0);
+   }
+
+   bool
+   Account::SpaceAvailable(__int64 iBytes, int gracePercent) const
+   {
       if (account_max_size_ == 0)
          return true;
 
@@ -204,6 +210,9 @@ namespace HM
       // Calculate new size
       __int64 iNewSize = currentSize + iBytes;
       __int64 iMaxSize = ((__int64) account_max_size_) * 1024 * 1024;
+
+      if (gracePercent > 0)
+         iMaxSize += iMaxSize / 100 * gracePercent;
 
       if (iNewSize <= iMaxSize)
          return true;

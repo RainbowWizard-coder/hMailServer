@@ -108,12 +108,13 @@ namespace HM
       // One mailbox as it is now.
       struct MailboxRow
       {
-         MailboxRow() : bytes(0), messages(0) { }
+         MailboxRow() : bytes(0), messages(0), quota_mb(0) { }
 
          String address;
          String domain;
          __int64 bytes;
          __int64 messages;
+         int quota_mb;        // the account's limit, 0 for none
       };
 
       // One day of one metric. day is "YYYY-MM-DD".

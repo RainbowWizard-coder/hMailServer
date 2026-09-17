@@ -229,6 +229,10 @@ END_COM_MAP()
 
    STDMETHOD(get_TlsOptionPreferServerCiphersEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_TlsOptionPreferServerCiphersEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_QuotaGracePercent)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuotaGracePercent)(/*[in]*/ long newVal);
+   STDMETHOD(get_QuotaSendStopPercent)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuotaSendStopPercent)(/*[in]*/ long newVal);
    STDMETHOD(get_TlsOptionPrioritizeChaChaEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_TlsOptionPrioritizeChaChaEnabled)(/*[in]*/ VARIANT_BOOL newVal);
 

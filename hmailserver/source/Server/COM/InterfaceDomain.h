@@ -179,6 +179,16 @@ END_COM_MAP()
    STDMETHOD(put_VacationExternalOverride)(/*[in]*/ VARIANT_BOOL newVal);
    STDMETHOD(get_VacationDays)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_VacationDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_QuotaWarningPercent)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuotaWarningPercent)(/*[in]*/ long newVal);
+   STDMETHOD(get_QuotaWarningSubject)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_QuotaWarningSubject)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_QuotaWarningText)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_QuotaWarningText)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_QuotaGracePercent)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuotaGracePercent)(/*[in]*/ long newVal);
+   STDMETHOD(get_QuotaSendStopPercent)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_QuotaSendStopPercent)(/*[in]*/ long newVal);
 
    STDMETHOD(get_SenderList)(/*[out, retval]*/ IInterfaceSenderListEntries **pVal);
    STDMETHOD(get_QuarantineDigest)(/*[out, retval]*/ VARIANT_BOOL *pVal);

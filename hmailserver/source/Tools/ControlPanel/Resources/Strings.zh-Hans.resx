@@ -437,6 +437,9 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>一个域、一个邮箱、一个提供 TLS 的监听器，以及仪表板对这一切的判断。四分钟；随时可以退出。</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>来信的宽限：超出限额不到此值的邮箱仍可收信，这样外出一周的人不会因周一收到一个大附件而丢失邮件。所有者自己的保存和复制在限额处即止。每个域可各自设置。立即生效。</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>设立组是为了一次性给若干账户授予相同的权限 - 在“公用文件夹”中把某个公用文件夹的访问权限授予该组，此处列出的每个账户就都获得该访问权限。空组不会给任何人授予任何权限。</value>
   </data>
@@ -7685,8 +7688,26 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>第 {0} 步，共 {1} 步</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>邮箱超出限额后仍接收来信的幅度 (限额的 %；0 = 不接收)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>超出限额后仍接收来信的幅度(_B) (限额的 %；-1 = 服务器的值，0 = 不接收)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>超出限额后仍接收来信的幅度 (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>账户停止发送的时点 (其限额的 %；0 = 从不)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>停止规则处理</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>停止发送的时点(_V) (限额的 %；-1 = 服务器的值，0 = 从不)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>停止发送的时点 (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>在某个日期之后停止发送回复(_D)</value>
@@ -8076,6 +8097,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>无法将账户从组中移除: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>账户先停止发送，再停止接收：所有者在自己的客户端中看到带原因的拒绝，而发给他的邮件在限额及其宽限之内仍会送达。每个域可各自设置。立即生效。</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>地址必须是一个名称后跟 @</value>
@@ -8511,6 +8535,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>已发布的记录不包含新密钥。请更正它。</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>此域邮箱的配额策略：何时以何种措辞警告所有者、超出限额多少仍接收来信、以及何时停止发送。-1 和空文本表示采用服务器的值。</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>{0} 处的记录带有 p={1}，这不是接收方所识别的策略 (none、quarantine、reject)。已发布: {2}</value>
@@ -9271,11 +9298,20 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>邮箱使用量达到其配额的此百分比时警告邮箱所有者 (0 = 从不)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>警告所有者的时点 (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>警告</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>复制前的警告。{0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>警告主题(_U) (空 = 服务器消息)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>警告正文(_X) (空 = 服务器消息；%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>警告</value>
@@ -10071,6 +10107,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_View source" xml:space="preserve">
     <value>查看邮件源(_V)</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>警告所有者的时点(_W) (限额的 %；-1 = 服务器的值，0 = 从不)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>谁可以向此列表发信(_W)</value>

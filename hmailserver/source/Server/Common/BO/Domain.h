@@ -328,6 +328,23 @@ namespace HM
       // sender once per absence.
       int GetVacationDays() const { return vacation_days_; }
       void SetVacationDays(int iNewVal) { vacation_days_ = iNewVal; }
+
+      // The quota policy for this domain's mailboxes. -1 on a number means the
+      // server's own value applies; an empty text means the server message
+      // does. The warning threshold is a share of the mailbox's limit (0 warns
+      // nobody), the grace is how far past the limit incoming mail is still
+      // accepted, and the send-stop is the share at which the account can no
+      // longer send - before it can no longer receive, when it is under 100.
+      int GetQuotaWarningPercent() const { return quota_warning_percent_; }
+      void SetQuotaWarningPercent(int iNewVal) { quota_warning_percent_ = iNewVal; }
+      String GetQuotaWarningSubject() const { return quota_warning_subject_; }
+      void SetQuotaWarningSubject(const String &sNewVal) { quota_warning_subject_ = sNewVal; }
+      String GetQuotaWarningText() const { return quota_warning_text_; }
+      void SetQuotaWarningText(const String &sNewVal) { quota_warning_text_ = sNewVal; }
+      int GetQuotaGracePercent() const { return quota_grace_percent_; }
+      void SetQuotaGracePercent(int iNewVal) { quota_grace_percent_ = iNewVal; }
+      int GetQuotaSendStopPercent() const { return quota_send_stop_percent_; }
+      void SetQuotaSendStopPercent(int iNewVal) { quota_send_stop_percent_ = iNewVal; }
       void SetVacationExternalOverride(bool bNewVal) { vacation_external_override_ = bNewVal; }
 
       /*
@@ -468,6 +485,11 @@ namespace HM
       String vacation_internal_message_;
       bool vacation_external_override_;
       int vacation_days_;
+      int quota_warning_percent_;
+      String quota_warning_subject_;
+      String quota_warning_text_;
+      int quota_grace_percent_;
+      int quota_send_stop_percent_;
 
       bool external_tag_subject_;
       bool external_tag_header_;

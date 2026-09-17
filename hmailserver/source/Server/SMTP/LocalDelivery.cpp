@@ -23,6 +23,7 @@
 #include "../Common/AntiSpam/DMARC/DMARC.h"
 
 #include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/QuotaPolicy.h"
 #include "../Common/Cache/AccountSizeCache.h"
 
 #include "../Common/Persistence/PersistentMessageRecipient.h"
@@ -945,7 +946,9 @@ namespace HM
    {
       // Check if message is small enough to fit inside receivers mailbox.
       // All values are converted to bytes.
-      if (!pCheckAccount->SpaceAvailable(original_message_->GetSize()))
+      // The limit plus the grace the domain or the server allows past it:
+      // incoming mail is what a grace exists for.
+      if (!QuotaPolicy::AcceptsDelivery(pCheckAccount, original_message_->GetSize()))
       {
          String sMsg = Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Inbox is full\r\n   Additional information: The recipients inbox is full.\r\n\r\n",
             pCheckAccount->GetAddress());

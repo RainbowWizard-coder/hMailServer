@@ -5,6 +5,7 @@
 using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
 namespace RegressionTests.SMTP
@@ -104,6 +105,141 @@ namespace RegressionTests.SMTP
          {
             ServerIniFile.SetSetting("QuotaWarningPercent", null);
             RestartServerAndReacquireCom();
+         }
+      }
+
+      private void ResetPolicy_()
+      {
+         _domain.QuotaWarningPercent = -1;
+         _domain.QuotaWarningSubject = "";
+         _domain.QuotaWarningText = "";
+         _domain.QuotaGracePercent = -1;
+         _domain.QuotaSendStopPercent = -1;
+         _domain.Save();
+         _settings.QuotaGracePercent = 0;
+         _settings.QuotaSendStopPercent = 0;
+      }
+
+      [Test]
+      [Description("A domain sets its own threshold and its own words: the warning arrives at the domain's percentage rather than the server's, with the domain's subject and text and the macros filled")]
+      public void ADomainSetsItsOwnThresholdAndWords()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Mailbox, "test");
+         account.MaxSize = 1;
+         account.Save();
+
+         _domain.QuotaWarningPercent = 25;
+         _domain.QuotaWarningSubject = "Postfach fast voll";
+         _domain.QuotaWarningText = "Hallo %MACRO_MAILBOX%, %MACRO_PERCENT% Prozent von %MACRO_QUOTA% MB sind belegt.";
+         _domain.Save();
+         try
+         {
+            // 300 KB of 1024 is 29%: past the domain's 25, well under the server's 90.
+            SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "first", BodyOfAbout(300));
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 2);
+
+            var pop3 = new Pop3ClientSimulator();
+            ClassicAssert.IsTrue(pop3.ConnectAndLogon(Mailbox, "test"));
+            string warning = pop3.RETR(2);
+            pop3.Disconnect();
+
+            StringAssert.Contains("Subject: Postfach fast voll", warning, "The domain's subject. Got: " + warning);
+            StringAssert.Contains("Hallo " + Mailbox + ", ", warning, "The domain's text with the mailbox filled in. Got: " + warning);
+            StringAssert.IsMatch("(29|30) Prozent von 1 MB sind belegt", warning, "The used share and the limit filled in. Got: " + warning);
+         }
+         finally
+         {
+            ResetPolicy_();
+         }
+      }
+
+      [Test]
+      [Description("A grace past the limit: incoming mail is still accepted while the mailbox is over its limit by less than the grace, and refused at delivery once it is not - and a domain with no grace refuses at the limit itself")]
+      public void TheGraceAcceptsIncomingMailPastTheLimit()
+      {
+         var graced = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Mailbox, "test");
+         graced.MaxSize = 1;
+         graced.Save();
+
+         var strict = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "quotastrict@example.test", "test");
+         strict.MaxSize = 1;
+         strict.Save();
+
+         _domain.QuotaGracePercent = 50;
+         _domain.Save();
+         try
+         {
+            // 600 KB, then 600 KB more: 1.17 MB in a 1 MB mailbox, which the grace
+            // (up to 1.5 MB) admits. The second delivery also crosses 90%, so the
+            // warning is the third message.
+            SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "first", BodyOfAbout(600));
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 1);
+            SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "second", BodyOfAbout(600));
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 3);
+
+            // 600 KB more would make 1.76 MB, past the grace: refused at delivery,
+            // and the mailbox stays as it was.
+            SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "third", BodyOfAbout(600));
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 3);
+
+            // The same two messages into a mailbox whose domain allows no grace:
+            // the second is refused at the limit, as it always was.
+            _domain.QuotaGracePercent = 0;
+            _domain.Save();
+            SmtpClientSimulator.StaticSend("sender@example.test", strict.Address, "first", BodyOfAbout(600));
+            Pop3ClientSimulator.AssertMessageCount(strict.Address, "test", 1);
+            SmtpClientSimulator.StaticSend("sender@example.test", strict.Address, "second", BodyOfAbout(600));
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            Pop3ClientSimulator.AssertMessageCount(strict.Address, "test", 1);
+         }
+         finally
+         {
+            ResetPolicy_();
+         }
+      }
+
+      [Test]
+      [Description("Sending stops before receiving does: past the domain's send-stop share the account's authenticated MAIL FROM is refused with the reason, while mail to it still arrives; the server's value applies where the domain has none, and 0 never stops anyone")]
+      public void SendingStopsBeforeReceivingDoes()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Mailbox, "test");
+         account.MaxSize = 1;
+         account.Save();
+
+         _domain.QuotaSendStopPercent = 50;
+         _domain.Save();
+         try
+         {
+            // 600 KB of 1024 is 58%: past the domain's 50.
+            SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "first", BodyOfAbout(600));
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 1);
+
+            var refused = Assert.Throws<DeliveryFailedException>(() =>
+               new SmtpClientSimulator().Send(false, Mailbox, "test", Mailbox, Mailbox, "out", "body", out string _));
+            StringAssert.Contains("552", refused.Message, "A hard refusal of the sender, not a retry-later. Got: " + refused.Message);
+            StringAssert.Contains("Sending is stopped", refused.Message, "The reason, so the owner knows what to do. Got: " + refused.Message);
+            StringAssert.Contains("50%", refused.Message, "The domain's own point. Got: " + refused.Message);
+
+            // Receiving goes on: this is not a full mailbox.
+            SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "second", BodyOfAbout(50));
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 2);
+
+            // The server's value where the domain has none, and 0 stops nobody.
+            _domain.QuotaSendStopPercent = -1;
+            _domain.Save();
+            _settings.QuotaSendStopPercent = 40;
+            refused = Assert.Throws<DeliveryFailedException>(() =>
+               new SmtpClientSimulator().Send(false, Mailbox, "test", Mailbox, Mailbox, "out", "body", out string _));
+            StringAssert.Contains("40%", refused.Message, "The server's point. Got: " + refused.Message);
+
+            _settings.QuotaSendStopPercent = 0;
+            new SmtpClientSimulator().Send(false, Mailbox, "test", Mailbox, Mailbox, "out", "body", out string _);
+            Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 3);
+         }
+         finally
+         {
+            ResetPolicy_();
          }
       }
 

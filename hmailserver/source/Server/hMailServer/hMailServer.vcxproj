@@ -615,6 +615,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ReputationWatch.cpp" />
     <ClCompile Include="..\Common\Util\SetupChecklist.cpp" />
     <ClCompile Include="..\Common\Util\AuditRevert.cpp" />
+    <ClCompile Include="..\Common\Util\QuotaPolicy.cpp" />
     <ClCompile Include="..\Common\Util\MessageExport.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRules.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCertificates.cpp" />
@@ -1470,6 +1471,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ReputationWatch.h" />
     <ClInclude Include="..\Common\Util\SetupChecklist.h" />
     <ClInclude Include="..\Common\Util\AuditRevert.h" />
+    <ClInclude Include="..\Common\Util\QuotaPolicy.h" />
     <ClInclude Include="..\Common\Util\MessageExport.h" />
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />

@@ -437,6 +437,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Et domæne, en postkasse, en lytter der tilbyder TLS, og hvad Dashboard siger om resultatet. Fire minutter; du kan stoppe når som helst.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>En margen for indgående post: en postkasse, der er over sin grænse med mindre end dette, modtager stadig, så en person, der er væk en uge, ikke mister post, fordi en stor vedhæftning kom mandag. Ejerens egne gemninger og kopier stopper ved selve grænsen. Hvert domæne kan sætte sin egen. Gælder straks.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>En gruppe findes, for at flere konti kan få de samme rettigheder på én gang – giv gruppen adgang til en offentlig mappe under Offentlige mapper, og hver konto på listen her får den adgang. En tom gruppe giver ingen adgang til nogen.</value>
   </data>
@@ -7685,8 +7688,26 @@ Genstart den nu?</value>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Trin {0} af {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Modtag stadig indgående post forbi en postkasses grænse med (% af grænsen; 0 = slet ikke)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>Modtag stadig indg_ående post forbi grænsen med (% af den; -1 = serverens værdi, 0 = slet ikke)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Modtag indgående post forbi grænsen med (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Stop en kontos afsendelse ved (% af dens grænse; 0 = aldrig)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Stop regelbehandling</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>St_op afsendelse ved (% af grænsen; -1 = serverens værdi, 0 = aldrig)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Stop afsendelse ved (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>Stop med at sende svar efter en _dato</value>
@@ -8076,6 +8097,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Kontoen kunne ikke fjernes fra gruppen: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Kontoen holder op med at sende, før den holder op med at modtage: ejeren ser afvisningen i sit eget program, med årsagen, mens post til vedkommende stadig ankommer op til grænsen og margenen forbi den. Hvert domæne kan sætte sin egen. Gælder straks.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adressen skal være et navn efterfulgt af @</value>
@@ -8511,6 +8535,9 @@ Tilføj alligevel?</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Den udgivne post indeholder ikke den nye nøgle. Ret den.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>Kvotepolitikken for dette domænes postkasser: hvor ejeren advares og med hvilke ord, hvor langt forbi grænsen indgående post stadig modtages, og hvor afsendelse stopper. -1 og en tom tekst betyder, at serverens værdier gælder.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Posten på {0} bærer p={1}, hvilket ikke er en politik, modtagere genkender (none, quarantine, reject). Publiceret: {2}</value>
@@ -9271,11 +9298,20 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Advar postkassens ejer ved denne procent af dennes kvote (0 = aldrig)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Advar ejeren ved (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Advarsel</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Advarsel før kopiering. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>Advarslens _emne (tomt = serverbesked)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>Ad_varslens tekst (tom = serverbesked; %MACROMAILBOX%, %MACROQUOTA%, %MACROUSED%, %MACROPERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Advarsler</value>
@@ -10071,6 +10107,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Vis kilde</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>Adva_r ejeren ved (% af grænsen; -1 = serverens værdi, 0 = aldrig)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Hvem må sende til denne liste</value>

@@ -437,6 +437,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Domena, skrzynka pocztowa, nasłuch oferujący TLS i to, co z tego wynika na Pulpicie. Cztery minuty; można przerwać w dowolnej chwili.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Margines dla poczty przychodzącej: skrzynka przekraczająca limit o mniej niż to nadal odbiera, więc osoba nieobecna przez tydzień nie traci poczty, bo w poniedziałek przyszedł duży załącznik. Własne zapisy i kopie właściciela zatrzymują się na samym limicie. Każda domena może ustawić własny. Obowiązuje od razu.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>Grupa istnieje po to, aby kilku kontom nadać te same uprawnienia naraz - wystarczy nadać grupie dostęp do folderu publicznego w sekcji Foldery publiczne, a każde konto wymienione tutaj ten dostęp otrzyma. Pusta grupa nie daje nikomu niczego.</value>
   </data>
@@ -7685,8 +7688,26 @@ Uruchomić ją teraz ponownie?</value>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Krok {0} z {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Nadal przyjmuj pocztę przychodzącą poza limit skrzynki do (% limitu; 0 = wcale)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>_Nadal przyjmuj pocztę przychodzącą poza limit do (% limitu; -1 = wartość serwera, 0 = wcale)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Przyjmuj pocztę przychodzącą poza limit do (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Zatrzymaj wysyłanie z konta przy (% jego limitu; 0 = nigdy)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Zatrzymaj przetwarzanie reguł</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>Zatrzymaj wysyłanie przy (% limitu; -1 = wartość serwera, 0 = ni_gdy)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Zatrzymaj wysyłanie przy (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>Przestań wysyłać odpowiedzi po _dacie</value>
@@ -8076,6 +8097,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Nie udało się usunąć konta z grupy: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Konto przestaje wysyłać, zanim przestanie odbierać: właściciel widzi odmowę we własnym programie, z powodem, a poczta do niego nadal dociera do limitu i marginesu poza nim. Każda domena może ustawić własny. Obowiązuje od razu.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adres musi być nazwą, po której następuje @</value>
@@ -8511,6 +8535,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Opublikowany rekord nie zawiera nowego klucza. Popraw go.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>Zasady limitu dla skrzynek tej domeny: gdzie właściciel jest ostrzegany i jakimi słowami, jak daleko poza limit poczta przychodząca jest nadal przyjmowana i gdzie wysyłanie ustaje. -1 i pusty tekst oznaczają, że obowiązują wartości serwera.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Rekord pod adresem {0} zawiera p={1}, a to nie jest polityka rozpoznawana przez odbiorców (none, quarantine, reject). Opublikowano: {2}</value>
@@ -9271,11 +9298,20 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Ostrzegaj właściciela skrzynki przy tym procencie jego przydziału (0 = nigdy)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Ostrzeż właściciela przy (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Ostrzeżenie</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Ostrzeżenie przed skopiowaniem. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>T_emat ostrzeżenia (pusty = komunikat serwera)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>_Treść ostrzeżenia (pusta = komunikat serwera; %MACROMAILBOX%, %MACROQUOTA%, %MACROUSED%, %MACROPERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Ostrzeżenia</value>
@@ -10071,6 +10107,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Pokaż źródło</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>Ostrze_ż właściciela przy (% limitu; -1 = wartość serwera, 0 = nigdy)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Kto może wysyłać na tę listę</value>

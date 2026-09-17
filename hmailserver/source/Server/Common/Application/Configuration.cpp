@@ -1192,6 +1192,30 @@ namespace HM
       return GetSettings()->GetLong(PROPERTY_AUTOBAN_MINUTES);
    }
 
+   int
+   Configuration::GetQuotaGracePercent()
+   {
+      return GetSettings()->GetLong(PROPERTY_QUOTA_GRACE_PERCENT);
+   }
+
+   void
+   Configuration::SetQuotaGracePercent(int iNewVal)
+   {
+      GetSettings()->SetLong(PROPERTY_QUOTA_GRACE_PERCENT, iNewVal);
+   }
+
+   int
+   Configuration::GetQuotaSendStopPercent()
+   {
+      return GetSettings()->GetLong(PROPERTY_QUOTA_SEND_STOP_PERCENT);
+   }
+
+   void
+   Configuration::SetQuotaSendStopPercent(int iNewVal)
+   {
+      GetSettings()->SetLong(PROPERTY_QUOTA_SEND_STOP_PERCENT, iNewVal);
+   }
+
    bool 
    Configuration::ClearOldLogonFailures()
    {

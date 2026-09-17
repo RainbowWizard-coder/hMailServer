@@ -325,6 +325,8 @@
 #define PROPERTY_REPUTATION_WATCH_ENABLED       _T("ReputationWatchEnabled")
 #define PROPERTY_REPUTATION_WATCH_LISTS         _T("ReputationWatchLists")
 #define PROPERTY_REPUTATION_WATCH_ADDRESSES     _T("ReputationWatchAddresses")
+#define PROPERTY_QUOTA_GRACE_PERCENT            _T("QuotaGracePercent")
+#define PROPERTY_QUOTA_SEND_STOP_PERCENT        _T("QuotaSendStopPercent")
 
 // 6006 adds hm_imapfolders.folderspecialuse (RFC 6154 SPECIAL-USE).
 // 6007 adds hm_domains.domaindkimsecondaryselector and
@@ -417,4 +419,4 @@
 //      the backup archive is encrypted with, protected by the platform's secret
 //      store, with the integer as "a passphrase is set". Empty on every existing
 //      installation, where backups go on being written unencrypted.
-#define REQUIRED_DB_VERSION            6060
+#define REQUIRED_DB_VERSION            6061

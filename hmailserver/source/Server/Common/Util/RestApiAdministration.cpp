@@ -274,6 +274,7 @@ namespace HM
          "relay_password", "relay_connection_security",
          "vacation_enabled", "vacation_subject", "vacation_message",
          "vacation_internal_subject", "vacation_internal_message", "vacation_external_override", "vacation_days",
+         "quota_warning_percent", "quota_warning_subject", "quota_warning_text", "quota_grace_percent", "quota_send_stop_percent",
          "ad_domain_name",
          "external_tag_subject", "external_tag_header", "external_tag_text", "first_contact_tip",
          "disclaimer_enabled", "disclaimer_plain_text", "disclaimer_html",
@@ -303,6 +304,9 @@ namespace HM
          String dkimSecondarySelector = String(domain->GetDKIMSecondarySelector()), dkimSecondaryKeyFile = domain->GetDKIMSecondaryPrivateKeyFile();
          String vacationInternalSubject = domain->GetVacationInternalSubject(), vacationInternalMessage = domain->GetVacationInternalMessage();
          long vacationDays = domain->GetVacationDays();
+         long quotaWarningPercent = domain->GetQuotaWarningPercent(), quotaGracePercent = domain->GetQuotaGracePercent();
+         long quotaSendStopPercent = domain->GetQuotaSendStopPercent();
+         String quotaWarningSubject = domain->GetQuotaWarningSubject(), quotaWarningText = domain->GetQuotaWarningText();
          String adDomainName = domain->GetADDomainName();
          String externalTagText = domain->GetExternalTagText();
          String disclaimerPlainText = domain->GetDisclaimerPlainText(), disclaimerHtml = domain->GetDisclaimerHTML();
@@ -329,6 +333,8 @@ namespace HM
              !ReadString(body, "vacation_message", vacationMessage, error) ||
              !ReadString(body, "vacation_internal_subject", vacationInternalSubject, error) ||
              !ReadString(body, "vacation_internal_message", vacationInternalMessage, error) ||
+             !ReadString(body, "quota_warning_subject", quotaWarningSubject, error) ||
+             !ReadString(body, "quota_warning_text", quotaWarningText, error) ||
              !ReadString(body, "ad_domain_name", adDomainName, error) ||
              !ReadString(body, "external_tag_text", externalTagText, error) ||
              !ReadString(body, "disclaimer_plain_text", disclaimerPlainText, error) ||
@@ -371,6 +377,9 @@ namespace HM
              !ReadInteger(body, "message_retention_days", 0, 100000, retention, error) ||
              !ReadInteger(body, "relay_port", 0, 65535, relayPort, error) ||
              !ReadInteger(body, "vacation_days", 0, 3650, vacationDays, error) ||
+             !ReadInteger(body, "quota_warning_percent", -1, 100, quotaWarningPercent, error) ||
+             !ReadInteger(body, "quota_grace_percent", -1, 1000, quotaGracePercent, error) ||
+             !ReadInteger(body, "quota_send_stop_percent", -1, 1000, quotaSendStopPercent, error) ||
              !ReadInteger(body, "quarantine_digest_hour", 0, 23, digestHour, error) ||
              !ReadInteger(body, "session_idle_seconds", 0, SessionPolicies::MaximumSeconds, sessionIdle, error) ||
              !ReadInteger(body, "session_lifetime_seconds", 0, SessionPolicies::MaximumSeconds, sessionLifetime, error) ||
@@ -581,6 +590,11 @@ namespace HM
          domain->SetVacationInternalMessage(vacationInternalMessage);
          domain->SetVacationExternalOverride(vacationExternalOverride);
          domain->SetVacationDays((int) vacationDays);
+         domain->SetQuotaWarningPercent((int) quotaWarningPercent);
+         domain->SetQuotaWarningSubject(quotaWarningSubject);
+         domain->SetQuotaWarningText(quotaWarningText);
+         domain->SetQuotaGracePercent((int) quotaGracePercent);
+         domain->SetQuotaSendStopPercent((int) quotaSendStopPercent);
          domain->SetQuarantineDigest(quarantineDigest);
          domain->SetOpenPGPPublish(openPgpPublish);
          domain->SetOpenPGPPublishNewAccounts(openPgpPublishNewAccounts);
@@ -706,6 +720,12 @@ namespace HM
       AnsiString vacationDays;
       vacationDays.Format(",\"vacation_days\":%d", domain->GetVacationDays());
       entry += vacationDays;
+      AnsiString quota;
+      quota.Format(",\"quota_warning_percent\":%d,\"quota_grace_percent\":%d,\"quota_send_stop_percent\":%d",
+                   domain->GetQuotaWarningPercent(), domain->GetQuotaGracePercent(), domain->GetQuotaSendStopPercent());
+      entry += quota;
+      text("quota_warning_subject", domain->GetQuotaWarningSubject());
+      text("quota_warning_text", domain->GetQuotaWarningText());
       flag("quarantine_digest", domain->GetQuarantineDigest());
       flag("openpgp_publish", domain->GetOpenPGPPublish());
       flag("openpgp_publish_new_accounts", domain->GetOpenPGPPublishNewAccounts());

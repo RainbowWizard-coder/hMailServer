@@ -79,6 +79,9 @@ namespace HM
       vacation_message_on_(false),
       vacation_external_override_(false),
       vacation_days_(0),
+      quota_warning_percent_(-1),
+      quota_grace_percent_(-1),
+      quota_send_stop_percent_(-1),
       external_tag_subject_(false),
       external_tag_header_(false),
       first_contact_tip_(false),
@@ -208,6 +211,11 @@ namespace HM
       pNode->AppendAttr(_T("VacationInternalMessage"), vacation_internal_message_);
       pNode->AppendAttr(_T("VacationExternalOverride"), vacation_external_override_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("VacationDays"), StringParser::IntToString(vacation_days_));
+      pNode->AppendAttr(_T("QuotaWarningPercent"), StringParser::IntToString(quota_warning_percent_));
+      pNode->AppendAttr(_T("QuotaWarningSubject"), quota_warning_subject_);
+      pNode->AppendAttr(_T("QuotaWarningText"), quota_warning_text_);
+      pNode->AppendAttr(_T("QuotaGracePercent"), StringParser::IntToString(quota_grace_percent_));
+      pNode->AppendAttr(_T("QuotaSendStopPercent"), StringParser::IntToString(quota_send_stop_percent_));
 
       pNode->AppendAttr(_T("ExternalTagSubject"), external_tag_subject_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("ExternalTagHeader"), external_tag_header_ ? _T("1") : _T("0"));
@@ -345,6 +353,13 @@ namespace HM
       vacation_internal_message_ = pNode->GetAttrValue(_T("VacationInternalMessage"));
       vacation_external_override_ = pNode->GetAttrValue(_T("VacationExternalOverride")) == _T("1");
       vacation_days_ = pNode->GetAttrValue(_T("VacationDays")).IsEmpty() ? 0 : _ttoi(pNode->GetAttrValue(_T("VacationDays")));
+      // A backup from before the quota policy carries none of it: the server's
+      // values apply, as they did when the backup was taken.
+      quota_warning_percent_ = pNode->GetAttrValue(_T("QuotaWarningPercent")).IsEmpty() ? -1 : _ttoi(pNode->GetAttrValue(_T("QuotaWarningPercent")));
+      quota_warning_subject_ = pNode->GetAttrValue(_T("QuotaWarningSubject"));
+      quota_warning_text_ = pNode->GetAttrValue(_T("QuotaWarningText"));
+      quota_grace_percent_ = pNode->GetAttrValue(_T("QuotaGracePercent")).IsEmpty() ? -1 : _ttoi(pNode->GetAttrValue(_T("QuotaGracePercent")));
+      quota_send_stop_percent_ = pNode->GetAttrValue(_T("QuotaSendStopPercent")).IsEmpty() ? -1 : _ttoi(pNode->GetAttrValue(_T("QuotaSendStopPercent")));
 
       // The same restore rule as above: a backup taken before these existed
       // restores as off with empty texts, which is a domain that transforms

@@ -437,6 +437,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Verkkotunnus, postilaatikko, TLS:ää tarjoava kuuntelija ja se, mitä Koontinäyttö niistä sanoo. Neljä minuuttia; voit poistua milloin tahansa.</value>
   </data>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Joustovara saapuvalle postille: rajansa tätä vähemmän ylittänyt postilaatikko ottaa yhä vastaan, jotta viikon poissa oleva ei menetä postia siksi, että maanantaina saapui iso liite. Omistajan omat tallennukset ja kopiot pysähtyvät itse rajaan. Jokainen toimialue voi asettaa omansa. Voimassa heti.</value>
+  </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>Ryhmä on olemassa siksi, että useille tileille voidaan antaa samat oikeudet kerralla – myönnä ryhmälle oikeus julkiseen kansioon Julkiset kansiot -sivulla, niin jokainen tässä lueteltu tili saa saman oikeuden. Tyhjä ryhmä ei myönnä kenellekään mitään.</value>
   </data>
@@ -7685,8 +7688,26 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Vaihe {0}/{1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
+    <value>Ota saapuvaa postia yhä vastaan postilaatikon rajan yli (% rajasta; 0 = ei lainkaan)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
+    <value>Ota saapuvaa postia yhä vastaan rajan _yli (% siitä; -1 = palvelimen arvo, 0 = ei lainkaan)</value>
+  </data>
+  <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
+    <value>Ota saapuvaa postia vastaan rajan yli (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
+    <value>Lopeta tilin lähetys kohdassa (% sen rajasta; 0 = ei koskaan)</value>
+  </data>
   <data name="Stop rule processing" xml:space="preserve">
     <value>Lopeta sääntöjen käsittely</value>
+  </data>
+  <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
+    <value>Lop_eta lähetys kohdassa (% rajasta; -1 = palvelimen arvo, 0 = ei koskaan)</value>
+  </data>
+  <data name="Stop sending at (%)" xml:space="preserve">
+    <value>Lopeta lähetys kohdassa (%)</value>
   </data>
   <data name="Stop sending replies after a _date" xml:space="preserve">
     <value>Lopeta vastausten lähettäminen _päivämäärän jälkeen</value>
@@ -8076,6 +8097,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Tiliä ei voitu poistaa ryhmästä: {0}</value>
+  </data>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
+    <value>Tili lakkaa lähettämästä ennen kuin se lakkaa vastaanottamasta: omistaja näkee hylkäyksen omassa ohjelmassaan syineen, kun taas posti hänelle saapuu yhä rajaan ja sen ylittävään joustovaraan asti. Jokainen toimialue voi asettaa omansa. Voimassa heti.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Osoitteen on oltava nimi, jota seuraa @</value>
@@ -8511,6 +8535,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Julkaistu tietue ei sisällä uutta avainta. Korjaa se.</value>
+  </data>
+  <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
+    <value>Tämän toimialueen postilaatikoiden kiintiökäytäntö: missä omistajaa varoitetaan ja millä sanoilla, kuinka paljon rajan yli saapuvaa postia yhä otetaan vastaan ja missä lähetys päättyy. -1 ja tyhjä teksti tarkoittavat, että palvelimen arvot pätevät.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>Tietue osoitteessa {0} sisältää p={1}, mikä ei ole vastaanottajien tunnistama käytäntö (none, quarantine, reject). Julkaistu: {2}</value>
@@ -9271,11 +9298,20 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Varoita postilaatikon omistajaa tässä prosentissa hänen kiintiöstään (0 = ei koskaan)</value>
   </data>
+  <data name="Warn the owner at (%)" xml:space="preserve">
+    <value>Varoita omistajaa kohdassa (%)</value>
+  </data>
   <data name="Warning" xml:space="preserve">
     <value>Varoitus</value>
   </data>
   <data name="Warning before copying. {0}" xml:space="preserve">
     <value>Varoitus ennen kopiointia. {0}</value>
+  </data>
+  <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
+    <value>Varoit_uksen aihe (tyhjä = palvelinviesti)</value>
+  </data>
+  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
+    <value>V_aroituksen teksti (tyhjä = palvelinviesti; %MACROMAILBOX%, %MACROQUOTA%, %MACROUSED%, %MACROPERCENT%)</value>
   </data>
   <data name="Warnings" xml:space="preserve">
     <value>Varoitukset</value>
@@ -10071,6 +10107,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Näytä lähde</value>
+  </data>
+  <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
+    <value>Varoita omi_stajaa kohdassa (% rajasta; -1 = palvelimen arvo, 0 = ei koskaan)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Kuka saa lähettää tälle listalle</value>

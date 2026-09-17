@@ -413,6 +413,45 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The quota section lists the mailboxes that have a limit by the share of it used, nearest first, with the warning and send-stop points that apply and a state word - who is near their limit rather than who is largest")]
+      public void TheQuotaSectionSaysWhoIsNearTheirLimit()
+      {
+         Account limited = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "limited@example.test", "test");
+         limited.MaxSize = 1;
+         limited.Save();
+
+         // A mailbox with no limit is bigger and does not appear.
+         Account unlimited = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "unlimited@example.test", "test");
+
+         var body = new StringBuilder();
+         while (body.Length < 300 * 1024)
+            body.Append(new string('x', 900)).Append("\r\n");
+
+         SmtpClientSimulator.StaticSend("outsider@remote.example", limited.Address, "sized", body.ToString());
+         SmtpClientSimulator.StaticSend("outsider@remote.example", unlimited.Address, "sized", body.ToString());
+         SmtpClientSimulator.StaticSend("outsider@remote.example", unlimited.Address, "sized", body.ToString());
+         Pop3ClientSimulator.AssertMessageCount(limited.Address, "test", 1);
+         Pop3ClientSimulator.AssertMessageCount(unlimited.Address, "test", 2);
+
+         (int status, string body, string headers) quota =
+            Basic("GET", "/api/v1/reports/quota?" + Window() + "&domain=example.test&top=50");
+
+         Assert.AreEqual(200, quota.status, "Body: " + quota.body);
+
+         Match row = Regex.Match(quota.body,
+            "\\{\"address\":\"limited@example\\.test\",\"domain\":\"example\\.test\",\"megabytes\":0,\"quota_megabytes\":1,\"percent\":(\\d+),\"warns_at\":(\\d+),\"sending_stops_at\":0,\"state\":\"ok\"\\}");
+
+         Assert.IsTrue(row.Success, "The limited mailbox is not in the report as expected. Body: " + quota.body);
+         int percent = int.Parse(row.Groups[1].Value, CultureInfo.InvariantCulture);
+         Assert.IsTrue(percent >= 28 && percent <= 31, "300 KB of 1 MB is about 29%. Body: " + quota.body);
+         StringAssert.DoesNotContain("unlimited@example.test", quota.body, "A mailbox without a limit has no share to report.");
+         StringAssert.Contains("\"mailboxes_with_a_limit\":", quota.body);
+
+         (int status, string body, string headers) index = Basic("GET", "/api/v1/reports");
+         StringAssert.Contains("\"name\":\"quota\"", index.body, "The index names the section.");
+      }
+
+      [Test]
       [Description("A key restricted to one domain sees its own domain, is refused another by name, and is refused the server-wide sections outright")]
       public void ADomainRestrictedKeyIsConfinedToItsDomain()
       {
