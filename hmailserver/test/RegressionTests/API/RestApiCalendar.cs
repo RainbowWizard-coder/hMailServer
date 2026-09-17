@@ -419,7 +419,8 @@ namespace RegressionTests.API
          StringAssert.Contains("\"removed\":true", removed.body);
          Assert.AreEqual(0, Starts(Me("GET", "/api/v1/me/calendar/events?start=20261018T000000Z&end=20261020T000000Z", null, GuestAddress, GuestPassword).body).Count);
 
-         Assert.AreEqual(404, Me("GET", "/api/v1/me/messages/" + messageId + "x/invitation", null, GuestAddress, GuestPassword).status);
+         // Not a message id, so not a route: 403 to an account's credential, as for a task path.
+         Assert.AreEqual(403, Me("GET", "/api/v1/me/messages/" + messageId + "x/invitation", null, GuestAddress, GuestPassword).status);
       }
 
       // ------------------------------------------------------------- helpers
