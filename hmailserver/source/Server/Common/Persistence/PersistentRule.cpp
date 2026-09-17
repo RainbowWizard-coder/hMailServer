@@ -56,6 +56,7 @@ namespace HM
 
       pRule->SetID(pRS->GetLongValue("ruleid"));
       pRule->SetAccountID(pRS->GetLongValue("ruleaccountid"));
+      pRule->SetDomainID(pRS->GetLongValue("ruledomainid"));
       pRule->SetName(pRS->GetStringValue("rulename"));
       pRule->SetActive(pRS->GetLongValue("ruleactive") ? true : false);
       pRule->SetUseAND(pRS->GetLongValue("ruleuseand") ? true : false);
@@ -100,6 +101,7 @@ namespace HM
       }
 
       oStatement.AddColumnInt64("ruleaccountid", pRule->GetAccountID());
+      oStatement.AddColumnInt64("ruledomainid", pRule->GetDomainID());
       oStatement.AddColumn("rulename", pRule->GetName());
       oStatement.AddColumn("ruleactive", 0);
       oStatement.AddColumn("ruleuseand", pRule->GetUseAND());
@@ -183,6 +185,25 @@ namespace HM
    }
 
    void
+   PersistentRule::DeleteByDomainID(__int64 iDomainID)
+   {
+      SQLCommand selectCommand("select * from hm_rules where ruledomainid = @DOMAINID");
+      selectCommand.AddParameter("@DOMAINID", iDomainID);
+
+      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(selectCommand);
+      if (!pRS)
+         return;
+
+      while (!pRS->IsEOF())
+      {
+         std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule);
+         if (ReadObject(rule, pRS))
+            DeleteObject(rule);
+         pRS->MoveNext();
+      }
+   }
+
+   void
    PersistentRule::DeleteByAccountID(__int64 iAccountID)
    {
       SQLCommand selectCommand("select * from hm_rules where ruleaccountid = @ACCOUNTID");
@@ -231,7 +252,9 @@ namespace HM
    void
    PersistentRule::NotifyReload_(std::shared_ptr<Rule> pRule)
    {
-      if (pRule->GetAccountID() == 0)
+      if (pRule->GetDomainID() > 0)
+         ObjectCache::Instance()->SetDomainRulesNeedsReload(pRule->GetDomainID());
+      else if (pRule->GetAccountID() == 0)
          ObjectCache::Instance()->SetGlobalRulesNeedsReload();
       else
          ObjectCache::Instance()->SetAccountRulesNeedsReload(pRule->GetAccountID());

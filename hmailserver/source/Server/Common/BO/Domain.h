@@ -10,6 +10,7 @@ namespace HM
    class DistributionLists;
    class Aliases;
    class Accounts;
+   class Rules;
    class DomainAliases;
 
    class Domain : public BusinessObject<Domain>
@@ -409,6 +410,9 @@ namespace HM
       */
 
       std::shared_ptr<Accounts> GetAccounts();
+
+      // The rules that run for this domain's mail, after the server's.
+      std::shared_ptr<Rules> GetRules();
       std::shared_ptr<Accounts> GetAccounts(__int64 iAccountID);
       std::shared_ptr<Aliases> GetAliases();
       std::shared_ptr<DistributionLists> GetDistributionLists();
@@ -490,6 +494,7 @@ namespace HM
       String quota_warning_text_;
       int quota_grace_percent_;
       int quota_send_stop_percent_;
+      std::shared_ptr<Rules> rules_;
 
       bool external_tag_subject_;
       bool external_tag_header_;

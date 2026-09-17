@@ -896,6 +896,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Add criterion" xml:space="preserve">
     <value>Adicionar critério</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Adicionar aviso legal</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Adicionar lista de distribuição</value>
   </data>
@@ -1370,6 +1373,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Bloqueio de anexos, que é separado</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Nome do anexo</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Tentativas de alcançar o banco de dados na inicialização</value>
@@ -2906,6 +2912,9 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Sincronização de diretório</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Texto do aviso _legal (acrescentado à mensagem)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Descartar o índice e reconstruí-lo</value>
@@ -6307,6 +6316,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Reduza o nível de log, ou defina quantos dias de logs são mantidos.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Te_xto de recusa (o que o 550 diz ao remetente)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Recusar uma caixa cheia durante a conversa (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Rejeitar as senhas mais usadas</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Rejeitar com um texto</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Relacionado:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 e 587, POP3 110, IMAP 143 - sem segurança de conexão. As portas TLS e 
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Exigir SSL/_TLS ao autenticar</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Exigir TLS para a entrega</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Exigir TLS para a autenticação por token</value>
@@ -6704,6 +6722,9 @@ Continuar?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Regras</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Regras de</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Executar as verificações DNSBL após o MAIL FROM (em vez de na conexão)</value>
@@ -8655,6 +8676,9 @@ Adicionar mesmo assim?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>O servidor remetente conecta, envia a mensagem e então espera. Do lado dele você vê um tempo limite depois que o corpo da mensagem foi transmitido - o Postfix relata "timed out while sending end of data". A mensagem nunca aparece na sua fila.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>O servidor</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>A senha de administração do servidor, e quem tem permissão para usar estas ferramentas.</value>

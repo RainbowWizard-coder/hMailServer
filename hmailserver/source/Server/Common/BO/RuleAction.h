@@ -25,6 +25,10 @@ namespace HM
          SendUsingRoute = 8,
          CreateCopy = 9,
          BindToAddress = 10,
+         AddDisclaimer = 11,
+         Reject = 12,
+         RequireTLS = 13,
+         Quarantine = 14,
       };
 
       String GetName() const {return ""; }

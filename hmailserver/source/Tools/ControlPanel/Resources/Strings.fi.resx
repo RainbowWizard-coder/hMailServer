@@ -896,6 +896,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add criterion" xml:space="preserve">
     <value>Lisää ehto</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Lisää vastuuvapauslauseke</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Lisää jakelulista</value>
   </data>
@@ -1370,6 +1373,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Liitteiden esto, joka on tästä erillinen</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Liitteen nimi</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Yritykset tavoittaa tietokanta käynnistyksessä</value>
@@ -2906,6 +2912,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Hakemiston synkronointi</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Vastuuvapaus_lausekkeen teksti (lisätään viestiin)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Hylkää indeksi ja rakenna se uudelleen</value>
@@ -6307,6 +6316,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Laske lokitasoa tai aseta, kuinka monen päivän lokit säilytetään.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Hylkäysteksti (mitä 550 sanoo lähettäjälle) (_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Hylkää täysi postilaatikko keskustelun aikana (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Hylkää yleisimmin käytetyt salasanat</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Hylkää tekstillä</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Liittyvät:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 ja 587, POP3 110, IMAP 143 - ilman yhteyden suojausta. TLS-portit ja muk
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Vaadi SSL/_TLS todennettaessa</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Vaadi TLS toimitukseen</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Vaadi TLS token-todennukseen</value>
@@ -6704,6 +6722,9 @@ Jatketaanko?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Säännöt</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Säännöt:</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Aja DNSBL-tarkistukset MAIL FROM:n jälkeen (yhdistämisen sijaan)</value>
@@ -8655,6 +8676,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Lähettävä palvelin yhdistää, lähettää viestin ja sitten odottaa. Sen puolelta näet aikakatkaisun sen jälkeen, kun viestin runko on siirretty - Postfix raportoi "timed out while sending end of data". Viesti ei koskaan ilmesty jonoosi.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Palvelin</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Palvelimen hallintasalasana ja se, kuka ylipäätään saa käyttää näitä työkaluja.</value>

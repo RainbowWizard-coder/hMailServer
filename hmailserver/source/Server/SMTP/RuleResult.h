@@ -28,6 +28,17 @@ namespace HM
       String GetBindToAddress() const {return bind_to_address_;}
       void SetBindToAddress(const String &sAddress) {bind_to_address_ = sAddress;}
 
+      // A rule asked for TLS to every external destination of this message,
+      // for the message to be quarantined rather than delivered, or - after
+      // acceptance, where a refusal is no longer possible - for it to be
+      // dropped as rejected. Each names the rule, for the log and the reason.
+      bool GetRequireTls() const {return !require_tls_rule_.IsEmpty();}
+      String GetRequireTlsRuleName() const {return require_tls_rule_;}
+      void SetRequireTls(const String &ruleName) {require_tls_rule_ = ruleName;}
+      bool GetQuarantine() const {return !quarantine_rule_.IsEmpty();}
+      String GetQuarantineRuleName() const {return quarantine_rule_;}
+      void SetQuarantine(const String &ruleName) {quarantine_rule_ = ruleName;}
+
    private:
 
       String move_to_folder_;
@@ -37,6 +48,8 @@ namespace HM
       String delete_rule_name_;
 
       String bind_to_address_;
+      String require_tls_rule_;
+      String quarantine_rule_;
 
    };
 }

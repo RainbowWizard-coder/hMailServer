@@ -24,6 +24,7 @@ namespace HM
       static bool DeleteObject(std::shared_ptr<Rule> pRule);
 
       static void DeleteByAccountID(__int64 ID);
+      static void DeleteByDomainID(__int64 ID);
 
    private:
 

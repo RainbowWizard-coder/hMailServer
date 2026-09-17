@@ -60,6 +60,23 @@ namespace hMailServer
    ///    with only the path different. The address is read when a member is
    ///    called, because the account object is made before its address is set.
    /// </summary>
+   /// <summary>
+   ///    Domain.Rules: the same collection at /api/v1/domains/{name}/rules.
+   /// </summary>
+   public class DomainRules : Rules
+   {
+      private readonly Func<string> name_;
+
+      public DomainRules(Func<string> name)
+      {
+         name_ = name;
+      }
+
+      protected override string BasePath => "/api/v1/domains/" + Uri.EscapeDataString(name_() ?? string.Empty) + "/rules";
+
+      protected override string RoutePath => "/api/v1/domains/{name}/rules";
+   }
+
    public class AccountRules : Rules
    {
       private readonly Func<string> address_;

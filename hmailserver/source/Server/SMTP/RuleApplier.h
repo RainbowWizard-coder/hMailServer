@@ -28,6 +28,16 @@ namespace HM
 
       static bool TestMatch(String matchValue, RuleCriteria::MatchType matchType, String testValue);
 
+      // Whether any active rule of the collection matches the message and has
+      // a reject action - asked at the SMTP session before the message is
+      // accepted, where the sender is still there to be told. text is the
+      // action's, or the standard sentence.
+      bool WouldReject(std::shared_ptr<Rules> pRules, std::shared_ptr<MessageData> pMsgData, String &text);
+
+      // Whether the collection has an active rule with a reject action at all:
+      // the cheap question, asked before the message is parsed for the real one.
+      static bool HasRejectAction(std::shared_ptr<Rules> pRules);
+
       static bool IsGeneratedResponseAllowed(std::shared_ptr<MessageData> pMsgData, bool bChkAutoSubmit);
 
    private:
@@ -53,6 +63,8 @@ namespace HM
       void ApplyAction_Copy(std::shared_ptr<Rule> rule, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
       void ApplyAction_Reply(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
       void ApplyAction_ScriptFunction(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
+      void ApplyAction_AddDisclaimer(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
+      bool RuleMatches_(std::shared_ptr<Rule> pRule, std::shared_ptr<MessageData> pMsgData);
       void ApplyAction_SetHeader(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
 
       ;

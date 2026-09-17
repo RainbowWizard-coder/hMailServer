@@ -11,6 +11,9 @@
 
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/QuotaPolicy.h"
+#include <set>
+#include "../Common/BO/Rules.h"
+#include "RuleApplier.h"
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
@@ -2140,6 +2143,22 @@ namespace HM
       DoPreAcceptMessageModifications_();
       LogFinalizationStage_("message-modifications", stageTick);
 
+      // A rule that rejects: refused here, before acceptance, where the sender
+      // is still on the line to be told - which is what "reject with a text"
+      // means, and what a delete after acceptance is not.
+      {
+         String rejection;
+         if (RejectedByRule_(rejection))
+         {
+            SendResponse_(550, _T("5.7.1"), rejection);
+            LOG_SMTP(GetSessionID(), GetIPAddressString(), "Message refused by a rule: " + rejection);
+            LogAwstatsMessageRejected_();
+            ResetCurrentMessage_();
+            ResumeCommandModeAfterData_();
+            return;
+         }
+      }
+
       // Transmission has ended.
       current_message_->SetSize(FileUtilities::FileSize(PersistentMessage::GetFileName(current_message_)));
 
@@ -2618,6 +2637,57 @@ namespace HM
       AuthenticationResultsWriter::Write(PersistentMessage::GetFileName(current_message_),
                                          current_message_,
                                          authentication_results_);
+   }
+
+   bool
+   SMTPConnection::RejectedByRule_(String &text)
+   {
+      if (!current_message_)
+         return false;
+
+      // The collections first, because they are in memory: only when one of
+      // them has a reject action at all is the message parsed for the match.
+      std::vector<std::shared_ptr<Rules> > collections;
+      collections.push_back(ObjectCache::Instance()->GetGlobalRules());
+
+      std::set<__int64> domainIds;
+      for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
+      {
+         if (!recipient || !recipient->GetIsLocalName())
+            continue;
+
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+         if (domain)
+            domainIds.insert(domain->GetID());
+      }
+
+      std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(current_message_->GetFromAddress()));
+      if (senderDomain)
+         domainIds.insert(senderDomain->GetID());
+
+      for (__int64 domainId : domainIds)
+         collections.push_back(ObjectCache::Instance()->GetDomainRules(domainId));
+
+      bool anyReject = false;
+      for (std::shared_ptr<Rules> rules : collections)
+         anyReject = anyReject || RuleApplier::HasRejectAction(rules);
+
+      if (!anyReject)
+         return false;
+
+      std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
+      std::shared_ptr<const Account> noAccount;
+      if (!data->LoadFromMessage(noAccount, current_message_))
+         return false;
+
+      RuleApplier applier;
+      for (std::shared_ptr<Rules> rules : collections)
+      {
+         if (applier.WouldReject(rules, data, text))
+            return true;
+      }
+
+      return false;
    }
 
    void

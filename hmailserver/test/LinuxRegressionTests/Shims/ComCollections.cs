@@ -1140,7 +1140,8 @@ namespace hMailServer
       eFTBody = 5,
       eFTMessageSize = 6,
       eFTRecipientList = 7,
-      eFTDeliveryAttempts = 8
+      eFTDeliveryAttempts = 8,
+      eFTAttachmentName = 9
    }
 
    public enum eRuleActionType
@@ -1155,7 +1156,11 @@ namespace hMailServer
       eRASetHeaderValue = 7,
       eRASendUsingRoute = 8,
       eRACreateCopy = 9,
-      eRABindToAddress = 10
+      eRABindToAddress = 10,
+      eRAAddDisclaimer = 11,
+      eRAReject = 12,
+      eRARequireTLS = 13,
+      eRAQuarantine = 14
    }
 
    public enum eDistributionListMode
@@ -1352,6 +1357,7 @@ namespace hMailServer
             case eRulePredefinedField.eFTMessageSize: return "message_size";
             case eRulePredefinedField.eFTRecipientList: return "recipient_list";
             case eRulePredefinedField.eFTDeliveryAttempts: return "delivery_attempts";
+            case eRulePredefinedField.eFTAttachmentName: return "attachment_name";
             default: return "from";
          }
       }
@@ -1455,6 +1461,12 @@ namespace hMailServer
             case eRuleActionType.eRABindToAddress:
                json.Append(",\"value\":").Append(ServerApi.Quote(Value ?? string.Empty));
                break;
+            case eRuleActionType.eRAAddDisclaimer:
+               json.Append(",\"body\":").Append(ServerApi.Quote(Body ?? string.Empty));
+               break;
+            case eRuleActionType.eRAReject:
+               json.Append(",\"value\":").Append(ServerApi.Quote(Value ?? string.Empty));
+               break;
          }
 
          json.Append('}');
@@ -1473,6 +1485,10 @@ namespace hMailServer
             case eRuleActionType.eRAStopRuleProcessing: return "stop";
             case eRuleActionType.eRASetHeaderValue: return "set_header";
             case eRuleActionType.eRABindToAddress: return "bind_to_address";
+            case eRuleActionType.eRAAddDisclaimer: return "add_disclaimer";
+            case eRuleActionType.eRAReject: return "reject";
+            case eRuleActionType.eRARequireTLS: return "require_tls";
+            case eRuleActionType.eRAQuarantine: return "quarantine";
             case eRuleActionType.eRACreateCopy: return "copy";
             default: return "delete";
          }

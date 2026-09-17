@@ -896,6 +896,9 @@
   <data name="Add criterion" xml:space="preserve">
     <value>Додати критерій</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Додати застереження</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Додати список розсилки</value>
   </data>
@@ -1370,6 +1373,9 @@
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Блокування вкладень, яке є окремим механізмом</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Ім’я вкладення</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Кількість спроб дістатися бази даних під час запуску</value>
@@ -2906,6 +2912,9 @@
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Синхронізація з каталогом</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Текст застереження (додається до повідомлення) (_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Відкинути індекс і перебудувати його</value>
@@ -6307,6 +6316,9 @@
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Знизьте рівень журналу або задайте, скільки днів журнали зберігаються.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Текст відмови (що 550 каже відправнику) (_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Відхиляти повну поштову скриньку під час сеансу (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Відхиляти найпоширеніші паролі</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Відхилити з текстом</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Пов’язане:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Вимагати SSL/_TLS під час автентифікації</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Вимагати TLS для доставлення</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Вимагати TLS для автентифікації токеном</value>
@@ -6704,6 +6722,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Правила</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Правила для</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Виконувати перевірки DNSBL після MAIL FROM (а не під час підключення)</value>
@@ -8655,6 +8676,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Сервер-відправник підключається, надсилає повідомлення, а потім чекає. З його боку ви бачите час очікування, що сплив після передавання тіла повідомлення - Postfix повідомляє «timed out while sending end of data». Повідомлення так і не з'являється у вашій черзі.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Сервер</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Пароль адміністрування сервера і хто взагалі має право користуватися цими інструментами.</value>

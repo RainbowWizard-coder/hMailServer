@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "Domain.h"
+#include "Rules.h"
 
 #include "Accounts.h"
 #include "Aliases.h"
@@ -251,6 +252,10 @@ namespace HM
       if (!GetDistributionLists()->XMLStore(pNode, iBackupOptions))
          return false;
 
+      // The domain's own rules, beside the accounts' under theirs.
+      if (!GetRules()->XMLStore(pNode, iBackupOptions))
+         return false;
+
       // The domain's allow and block list (hm_senderlist, scope domain). A restore
       // deletes the domain, and PersistentDomain::DeleteObject takes its list with
       // it, so the archive is the only place the list can come back from.
@@ -422,6 +427,9 @@ namespace HM
          return false;
 
       if (!GetAccounts()->XMLLoad(pNode, iRestoreOptions))
+         return false;
+
+      if (!GetRules()->XMLLoad(pNode, iRestoreOptions))
          return false;
 
       if (!GetAliases()->XMLLoad(pNode, iRestoreOptions))
@@ -847,5 +855,17 @@ namespace HM
    Domain::GetEstimatedCachingSize()
    {
       return 1024;
+   }
+
+   std::shared_ptr<Rules>
+   Domain::GetRules()
+   {
+      if (!rules_)
+      {
+         rules_ = std::shared_ptr<Rules>(new Rules(0, GetID()));
+         rules_->Refresh();
+      }
+
+      return rules_;
    }
 }

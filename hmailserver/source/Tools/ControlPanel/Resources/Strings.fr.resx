@@ -896,6 +896,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add criterion" xml:space="preserve">
     <value>Ajouter un critère</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Ajouter un avertissement</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Ajouter une liste de diffusion</value>
   </data>
@@ -1370,6 +1373,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Blocage des pièces jointes, qui est distinct</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Nom de la pièce jointe</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Tentatives pour atteindre la base de données au démarrage</value>
@@ -2906,6 +2912,9 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Synchronisation de l'annuaire</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Texte de l’avertissement (ajouté au message) (_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Jeter l'index et le reconstruire</value>
@@ -6307,6 +6316,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Réduisez le niveau de journalisation, ou définissez combien de jours de journaux sont conservés.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Te_xte de refus (ce que le 550 dit à l’expéditeur)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Refuser une boîte pleine pendant la conversation (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Rejeter les mots de passe les plus couramment utilisés</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Rejeter avec un texte</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Liens connexes :</value>
@@ -6514,6 +6529,9 @@ SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion. Les ports TLS
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Exiger SSL/_TLS lors de l'authentification</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Exiger TLS pour la remise</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Exiger TLS pour l'authentification par jeton</value>
@@ -6704,6 +6722,9 @@ Continuer ?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Règles</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Règles de</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Exécuter les vérifications DNSBL après MAIL FROM (plutôt qu'à la connexion)</value>
@@ -8655,6 +8676,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Le serveur expéditeur se connecte, envoie le message, puis attend. De son côté, vous voyez un délai dépassé après la transmission du corps du message - Postfix signale « timed out while sending end of data ». Le message n'apparaît jamais dans votre file.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Le serveur</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Le mot de passe d'administration du serveur, et qui est autorisé à utiliser ces outils tout court.</value>

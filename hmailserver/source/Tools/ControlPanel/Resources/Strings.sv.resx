@@ -896,6 +896,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add criterion" xml:space="preserve">
     <value>Lägg till kriterium</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Lägg till friskrivning</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Lägg till distributionslista</value>
   </data>
@@ -1370,6 +1373,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Bilageblockering, som är separat</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Bilagans namn</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Försök att nå databasen vid start</value>
@@ -2906,6 +2912,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Katalogsynkronisering</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Friskrivningstext (_läggs till meddelandet)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Kasta indexet och bygg om det</value>
@@ -6307,6 +6316,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Sänk loggnivån, eller sätt hur många dagars loggar som behålls.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>_Avvisningstext (vad 550 säger till avsändaren)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Avvisa en full brevlåda under konversationen (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Avvisa de vanligast använda lösenorden</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Avvisa med en text</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Relaterat:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och 
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Kräv SSL/_TLS vid autentisering</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Kräv TLS för leverans</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Kräv TLS för tokenautentisering</value>
@@ -6704,6 +6722,9 @@ Fortsätt?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Regler</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Regler för</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Kör DNSBL-kontroller efter MAIL FROM (i stället för vid anslutning)</value>
@@ -8655,6 +8676,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Den sändande servern ansluter, skickar meddelandet, och väntar sedan. Från dess sida ser du en tidsgräns efter att meddelandekroppen överförts - Postfix rapporterar "timed out while sending end of data". Meddelandet dyker aldrig upp i din kö.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Servern</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Serverns administrationslösenord, och vem som över huvud taget får använda de här verktygen.</value>

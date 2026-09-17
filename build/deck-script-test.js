@@ -2140,6 +2140,12 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/rules' && method === 'GET') { return json(200, state.rules); }
+   if (/^\/api\/v1\/domains\/[^/]+\/rules$/.test(path) && method === 'GET') { return json(200, state.domainRules || []); }
+   if (/^\/api\/v1\/domains\/[^/]+\/rules$/.test(path) && method === 'POST') {
+      const made = Object.assign({ id: 900 + (state.domainRules || []).length }, parsed);
+      state.domainRules = (state.domainRules || []).concat([made]);
+      return json(201, made);
+   }
    if (path === '/api/v1/rules' && method === 'POST') {
       const rule = Object.assign({ id: nextId++ }, parsed);
       state.rules.push(rule);
@@ -3939,6 +3945,28 @@ async function main() {
       called(0, 'GET', '/api/v1/openapi.json').length === 1, paths(before));
    check('a rule row says when and then', rows().length === 1 && rows()[0].textContent.indexOf('Subject contains') >= 0 && rows()[0].textContent.indexOf('[SPAM]') >= 0 && rows()[0].textContent.indexOf('Junk') >= 0,
       rows()[0].textContent);
+   // ---- a domain's rules, chosen at the top of the page
+   before = requests.length;
+   const scope = content().querySelector('[data-r="rule-scope"]');
+   check('the rules page offers the server and every domain as a scope', scope !== null && scope.querySelectorAll('option').map((o) => o.attributes.value).join(',') === ',' + state.domains.map((d) => d.name).join(','), scope ? scope.querySelectorAll('option').map((o) => o.attributes.value).join(',') : 'no select');
+   scope.value = 'second.example';
+   scope.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('choosing a domain reads that domain\'s rules and no longer the server\'s',
+      called(before, 'GET', '/api/v1/domains/second.example/rules').length === 1 && called(before, 'GET', '/api/v1/rules').length === 0 &&
+      content().textContent.indexOf('No rules are defined for this domain.') >= 0, paths(before));
+   click(act('rulenew'));
+   await flush();
+   $('#ruleName').value = 'Domain rule';
+   before = requests.length;
+   click(act('rulesave'));
+   await flush();
+   check('a rule made under a domain is posted to the domain\'s route', called(before, 'POST', '/api/v1/domains/second.example/rules').length === 1 && called(before, 'POST', '/api/v1/rules').length === 0, paths(before));
+   content().querySelector('[data-r="rule-scope"]').value = '';
+   content().querySelector('[data-r="rule-scope"]').dispatchEvent(makeEvent('change'));
+   await flush();
+   check('and the server\'s rules come back', called(before, 'GET', '/api/v1/rules').length === 1 && rows().length === 1, paths(before));
+
    click(act('rulenew'));
    await flush();
    check('New rule opens an empty editor', $('#ruleName') !== null && $('#ruleName').value === '' && $('#ruleActive').checked === true && content().querySelectorAll('[data-r="crit-field"]').length === 0);

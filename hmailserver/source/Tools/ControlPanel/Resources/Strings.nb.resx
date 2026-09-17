@@ -896,6 +896,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add criterion" xml:space="preserve">
     <value>Legg til kriterium</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Legg til ansvarsfraskrivelse</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Legg til distribusjonsliste</value>
   </data>
@@ -1370,6 +1373,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Vedleggsblokkering, som er noe for seg selv</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Vedleggsnavn</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Forsøk på å nå databasen ved oppstart</value>
@@ -2906,6 +2912,9 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Katalogsynkronisering</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Ansvarsfraskrivelse (le_gges til meldingen)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Forkast indeksen og bygg den på nytt</value>
@@ -6307,6 +6316,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Senk loggnivået, eller sett hvor mange dagers logger som beholdes.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Avvisningste_kst (det 550 sier til avsenderen)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Avvis en full postboks under samtalen (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Avvis de mest brukte passordene</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Avvis med en tekst</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Relatert:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uten tilkoblingssikkerhet. TLS-porter og eg
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Krev SSL/_TLS ved autentisering</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Krev TLS for levering</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Krev TLS for tokenautentisering</value>
@@ -6704,6 +6722,9 @@ Fortsette?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Regler</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Regler for</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Kjør DNSBL-kontroller etter MAIL FROM (i stedet for ved tilkobling)</value>
@@ -8655,6 +8676,9 @@ Legg til likevel?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Den avsendende serveren kobler til, sender meldingen og venter så. Fra dens side ser du et tidsavbrudd etter at meldingskroppen ble overført - Postfix rapporterer "timed out while sending end of data". Meldingen dukker aldri opp i køen din.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Serveren</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Serverens administrasjonspassord, og hvem som i det hele tatt får bruke disse verktøyene.</value>

@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 353, 158 of them writes |
+| REST routes (path and method) | 357, 160 of them writes |
 | Deck views | 26 |
 
 ## Missing over REST, by interface
@@ -444,7 +444,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Active` | CollectionSpecs, RulesView | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | rules, webhooks |
-| `Name` | CollectionSpecs, RulesView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | roles, rules, webhooks |
+| `Name` | CollectionSpecs, RulesView | `POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/domains/{name}/rules` (path)<br>`PUT /api/v1/domains/{name}/rules/{id}` (path)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | roles, rules, webhooks |
 | `UseAND` | RulesView | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter) | rules |
 
 ### RuleCriteria
@@ -808,6 +808,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/domains/{domain}/sender-list/{id}` | SenderListEntry, SenderListEntries | - | - |
 | `POST /api/v1/domains/{domain}/spam-traps` | Domain | `account`, `address`, `to` | yes |
 | `POST /api/v1/domains/{domain}/suppressions` | - | `address`, `diagnostic`, `expires_days`, `key`, `note`, `read`, `to`, `until` | yes |
+| `POST /api/v1/domains/{name}/rules` | Rule, RuleCriteria, RuleAction | - | yes |
+| `PUT /api/v1/domains/{name}/rules/{id}` | Rule, RuleCriteria, RuleAction | - | yes |
 | `POST /api/v1/greylisting-white-addresses` | GreyListingWhiteAddress | `address`, `description`, `domain`, `ip_address`, `keys`, `read` | yes |
 | `PUT /api/v1/greylisting-white-addresses/{id}` | GreyListingWhiteAddress | `address`, `body`, `description`, `domain`, `field`, `ip_address`, `keys`, `read`, `value` | - |
 | `POST /api/v1/groups` | Group | `domain`, `group`, `keys`, `name`, `read`, `to` | yes |
@@ -868,9 +870,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/roles/{name}` | ? | `administer_domain`, `administer_server`, `create`, `database`, `description`, `from`, `lower`, `manage_roles`, `name`, `permissions`, `role`, `to` | - |
 | `POST /api/v1/routes` | Route, RouteAddress | `addresses`, `all_addresses`, `connection_security`, `description`, `domain`, `domain_name`, `keys`, `message`, `minutes_between_try`, `number_of_tries`, `relayer_auth_password`, `relayer_auth_username`, `relayer_requires_authentication`, `target_smtp_host`, `target_smtp_port`, `to`, `treat_recipient_as_local_domain`, `treat_security_as_local_domain`, `treat_sender_as_local_domain` | yes |
 | `PUT /api/v1/routes/{id}` | Route, RouteAddress | `addresses`, `all_addresses`, `connection_security`, `description`, `domain`, `domain_name`, `keys`, `message`, `minutes_between_try`, `number_of_tries`, `relayer_auth_password`, `relayer_auth_username`, `relayer_requires_authentication`, `target_smtp_host`, `target_smtp_port`, `to`, `treat_recipient_as_local_domain`, `treat_security_as_local_domain`, `treat_sender_as_local_domain` | yes |
-| `POST /api/v1/rules` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `action`, `actions`, `active`, `all_criteria`, `bind_to_address`, `body`, `cc`, `criteria`, `delivery_attempts`, `domain`, `field`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `recipient_list`, `route_id`, `script_function`, `send_using_route`, `set_header`, `subject`, `to`, `type`, `value`, `wildcard` | yes |
+| `POST /api/v1/rules` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `bind_to_address`, `body`, `cc`, `criteria`, `delivery_attempts`, `domain`, `field`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `recipient_list`, `require_tls`, `route_id`, `script_function`, `send_using_route`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `wildcard` | yes |
 | `POST /api/v1/rules/match` | Rule, RuleCriteria, RuleAction | `domain`, `greater_than`, `keys`, `less_than`, `match`, `match_type`, `match_value`, `not_contains`, `not_equals`, `read`, `test_value`, `text`, `type`, `value`, `wildcard` | - |
-| `PUT /api/v1/rules/{id}` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `action`, `actions`, `active`, `all_criteria`, `bind_to_address`, `body`, `cc`, `criteria`, `delivery_attempts`, `domain`, `field`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `recipient_list`, `route_id`, `script_function`, `send_using_route`, `set_header`, `subject`, `to`, `type`, `value`, `wildcard` | yes |
+| `PUT /api/v1/rules/{id}` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `bind_to_address`, `body`, `cc`, `criteria`, `delivery_attempts`, `domain`, `field`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `recipient_list`, `require_tls`, `route_id`, `script_function`, `send_using_route`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `wildcard` | yes |
 | `POST /api/v1/scheduled/run` | - | - | - |
 | `POST /api/v1/sender-list` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | yes |
 | `PUT /api/v1/sender-list` | SenderListEntry, SenderListEntries | `account`, `digest`, `domain`, `enabled` | yes |
@@ -930,7 +932,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `changed` | `GET /api/v1/settings/changed` |
 | `backup` | `GET /api/v1/backup`, `POST /api/v1/backup`, `POST /api/v1/backup/restore`, `PUT /api/v1/blocked-attachments`, `PUT /api/v1/blocked-senders`, `PUT /api/v1/bounces/expire`, `PUT /api/v1/complaints/expire`, `PUT /api/v1/dns-blacklists`, `PUT /api/v1/greylisting-white-addresses`, `PUT /api/v1/incoming-relays`, `GET /api/v1/openapi.json`, `PUT /api/v1/sender-list`, `PUT /api/v1/settings`, `PUT /api/v1/settings/antispam`, `PUT /api/v1/settings/antivirus`, `GET /api/v1/settings/backup`, `PUT /api/v1/settings/backup`, `PUT /api/v1/settings/bounces`, `PUT /api/v1/settings/breach-check/test`, `PUT /api/v1/settings/cache`, `PUT /api/v1/settings/cache/clear`, `PUT /api/v1/settings/complaints`, `PUT /api/v1/settings/indexing`, `PUT /api/v1/settings/indexing/clear`, `PUT /api/v1/settings/indexing/index`, `PUT /api/v1/settings/logging`, `PUT /api/v1/settings/openpgp`, `PUT /api/v1/settings/push`, `PUT /api/v1/settings/push/vapid`, `PUT /api/v1/settings/scripting`, `PUT /api/v1/settings/scripting/check`, `PUT /api/v1/settings/scripting/reload`, `PUT /api/v1/surbl-servers`, `PUT /api/v1/whitelist-addresses` |
 | `messages` | `GET /api/v1/openapi.json`, `GET /api/v1/settings/messages`, `PUT /api/v1/settings/messages/{}` |
-| `rules` | `GET /api/v1/openapi.json`, `GET /api/v1/routes`, `GET /api/v1/rules`, `POST /api/v1/rules`, `DELETE /api/v1/rules/{}`, `PUT /api/v1/rules/{}` |
+| `rules` | `GET /api/v1/domains`, `GET /api/v1/domains/{}/rules`, `POST /api/v1/domains/{}/rules`, `DELETE /api/v1/domains/{}/rules/{}`, `PUT /api/v1/domains/{}/rules/{}`, `GET /api/v1/openapi.json`, `GET /api/v1/routes`, `GET /api/v1/rules`, `POST /api/v1/rules`, `DELETE /api/v1/rules/{}`, `PUT /api/v1/rules/{}` |
 | `routes` | `GET /api/v1/openapi.json`, `GET /api/v1/routes`, `POST /api/v1/routes`, `DELETE /api/v1/routes/{}`, `PUT /api/v1/routes/{}` |
 | `remotedomains` | `GET /api/v1/openapi.json`, `GET /api/v1/remote-domains`, `POST /api/v1/remote-domains`, `POST /api/v1/remote-domains/verification-cache/clear`, `DELETE /api/v1/remote-domains/{}`, `PUT /api/v1/remote-domains/{}` |
 | `certs` | `GET /api/v1/certificates`, `POST /api/v1/certificates`, `DELETE /api/v1/certificates/{}`, `GET /api/v1/openapi.json` |

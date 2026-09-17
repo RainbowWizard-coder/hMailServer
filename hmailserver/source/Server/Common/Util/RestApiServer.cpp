@@ -1882,6 +1882,11 @@ namespace HM
             return HandleReputation_(caller, route, GetRequestBody_(request));
          case RouteSetupChecklist:
             return HandleSetupChecklist_(route);
+         case RouteDomainRuleList:
+         case RouteDomainRuleCreate:
+         case RouteDomainRuleUpdate:
+         case RouteDomainRuleDelete:
+            return HandleDomainRules_(route, GetRequestBody_(request));
          case RouteAccountRuleList:
          case RouteAccountRuleCreate:
          case RouteAccountRuleUpdate:
@@ -3160,6 +3165,34 @@ namespace HM
          {
             route.kind = method == "PUT" ? RouteDomainUpdate : RouteDomainDelete;
             route.identifier = domainName;
+            return;
+         }
+      }
+
+      // A domain's own rules, under the domain (RestApiRules.cpp).
+      if ((method == "GET" || method == "POST") && path.StartsWith(domainsPrefix) && path.EndsWith("/rules"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(), path.GetLength() - domainsPrefix.GetLength() - AnsiString("/rules").GetLength());
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteDomainRuleList : RouteDomainRuleCreate;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
+      if ((method == "PUT" || method == "DELETE") && path.StartsWith(domainsPrefix) && path.Find("/rules/") > 0)
+      {
+         const AnsiString rest = path.Mid(domainsPrefix.GetLength());
+         const int at = rest.Find("/rules/");
+         AnsiString domainName = rest.Mid(0, at);
+         AnsiString idPart = rest.Mid(at + AnsiString("/rules/").GetLength());
+         __int64 id = 0;
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0 && idPart.Find("/") < 0 && ParseQueueId(idPart, id))
+         {
+            route.kind = method == "PUT" ? RouteDomainRuleUpdate : RouteDomainRuleDelete;
+            route.identifier = domainName;
+            route.record_id = id;
             return;
          }
       }
@@ -4894,6 +4927,9 @@ namespace HM
       case RouteAccountRuleCreate:
       case RouteAccountRuleUpdate:
       case RouteAccountRuleDelete:
+      case RouteDomainRuleCreate:
+      case RouteDomainRuleUpdate:
+      case RouteDomainRuleDelete:
       case RouteAccountExport:
       case RouteAddressErase:
       case RouteAdminSecondFactorEnrol:
@@ -5285,6 +5321,7 @@ namespace HM
       case RouteAccountExportArchive:
       case RouteAccountGet:
       case RouteAccountRuleList:
+      case RouteDomainRuleList:
       case RouteAliasList:
       case RouteListList:
       case RouteFetchAccountList:
@@ -5402,6 +5439,9 @@ namespace HM
       case RouteAccountRuleCreate:
       case RouteAccountRuleUpdate:
       case RouteAccountRuleDelete:
+      case RouteDomainRuleCreate:
+      case RouteDomainRuleUpdate:
+      case RouteDomainRuleDelete:
       case RouteAliasCreate:
       case RouteAliasDelete:
       case RouteListCreate:
@@ -5740,6 +5780,11 @@ namespace HM
       // puts in identifier; a report that names none names nothing, and the
       // handler confines it to the credential's domains.
       case RouteReport:
+      // A domain's rules are under the domain's name.
+      case RouteDomainRuleList:
+      case RouteDomainRuleCreate:
+      case RouteDomainRuleUpdate:
+      case RouteDomainRuleDelete:
          return String(route.identifier);
 
       case RouteListDelete:
@@ -8013,14 +8058,16 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleListRules_(__int64 accountId)
+   RestApiServer::HandleListRules_(__int64 accountId, __int64 domainId)
    {
       // The global rules, or one account's, from the cache the delivery path
       // itself reads, so the answer is what is in force and not a second
       // reading of the table.
-      std::shared_ptr<Rules> rules = accountId == 0
-         ? ObjectCache::Instance()->GetGlobalRules()
-         : ObjectCache::Instance()->GetAccountRules(accountId);
+      std::shared_ptr<Rules> rules = domainId > 0
+         ? ObjectCache::Instance()->GetDomainRules(domainId)
+         : accountId == 0
+            ? ObjectCache::Instance()->GetGlobalRules()
+            : ObjectCache::Instance()->GetAccountRules(accountId);
       if (!rules)
          return BuildResponse_(200, "[]");
 
@@ -13710,6 +13757,7 @@ namespace HM
       openApiJson += OpenApiReputationPaths_();
       openApiJson += OpenApiSetupChecklistPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
+      openApiJson += OpenApiDomainRulesPaths_();
       openApiJson += OpenApiOperatorPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiBouncesPaths_();

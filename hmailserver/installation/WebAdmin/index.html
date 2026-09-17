@@ -1154,6 +1154,7 @@ $("#content").addEventListener("click",e=>{
 $("#content").addEventListener("change",e=>{
   const el=e.target.closest("[data-r]");if(!el)return;
   if(el.dataset.r==="crit-field"||el.dataset.r==="act-type"){readRuleForm();renderRuleEditor();}
+  else if(el.dataset.r==="rule-scope"){ruleScope=el.value;editing=null;render();}
   else if(el.dataset.r==="fetch-domain"){cache.fetch.domain=el.value;cache.fetch.address="";render();}
   else if(el.dataset.r==="fetch-account"){cache.fetch.address=el.value;render();}
 });
@@ -2947,12 +2948,22 @@ async function settingsPost(groupId,path,label){
    is being used, the document and this page have drifted apart and the document
    is the one to fix. */
 const RULE_FALLBACK={
-  fields:["from","to","cc","subject","body","message_size","recipient_list","delivery_attempts","header"],
+  fields:["from","to","cc","subject","body","message_size","recipient_list","delivery_attempts","attachment_name","header"],
   matches:["equals","not_equals","contains","not_contains","less_than","greater_than","regex","wildcard"],
   actions:{forward:["to"],reply:["from_name","from_address","subject","body"],move_to_folder:["folder"],
     script_function:["script_function"],set_header:["header","value"],send_using_route:["route_id"],
-    bind_to_address:["value"],"delete":[],stop:[],copy:[]}
+    bind_to_address:["value"],add_disclaimer:["body"],reject:["value"],require_tls:[],quarantine:[],"delete":[],stop:[],copy:[]}
 };
+/* Whose rules the page shows: the server's, or one domain's - the same
+   documents at /api/v1/domains/{name}/rules, run for that domain's mail after
+   the server's. */
+let ruleScope="";
+function rulesBase(){return ruleScope?"/api/v1/domains/"+encodeURIComponent(ruleScope)+"/rules":"/api/v1/rules";}
+function ruleScopeHtml(){
+  const options=[`<option value=""${ruleScope?"":" selected"}>${t("The server")}</option>`]
+    .concat((cache.domains||[]).map(d=>`<option value="${escHtml(d.name)}"${d.name===ruleScope?" selected":""}>${escHtml(d.name)}</option>`));
+  return `<div class="row" style="margin-bottom:12px"><label>${t("Rules of")} <select data-r="rule-scope">${options.join("")}</select></label></div>`;
+}
 function ruleWords(){
   const text=operation("/api/v1/rules","post").description||"";
   const tokens=s=>String(s).split(/,| and /)
@@ -2983,7 +2994,8 @@ function ruleWords(){
 }
 async function renderRules(){
   await loadSpec();
-  cache.rules=asList(await api("/api/v1/rules"),"rules");
+  if(!cache.domains){try{cache.domains=asList(await api("/api/v1/domains"),"domains");}catch(_){cache.domains=[];}}
+  cache.rules=asList(await api(rulesBase()),"rules");
   try{cache.routes=asList(await api("/api/v1/routes"),"routes");}catch(_){cache.routes=[];}
   if(editing&&editing.kind==="rule"){renderRuleEditor();return;}
   const words=ruleWords();
@@ -3007,8 +3019,9 @@ async function renderRules(){
   $("#content").innerHTML=`<div class="view">
     <div class="card flat">
       <p class="note">${escHtml(operation("/api/v1/rules","get").description||"")}</p>
+      ${ruleScopeHtml()}
       <div class="tablewrap"><table><thead><tr><th>${t("Rule")}</th><th>${t("Active")}</th><th>${t("When")}</th><th>${t("Then")}</th><th></th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("No global rules are defined.")+'</td></tr>'}</tbody></table></div>
+      <tbody>${rows||'<tr><td colspan="5" class="empty">'+(ruleScope?t("No rules are defined for this domain."):t("No global rules are defined."))+'</td></tr>'}</tbody></table></div>
       <div class="row" style="margin-top:16px"><button class="btn" data-act="rulenew">${t("New rule")}</button></div>
     </div></div>`;
 }
@@ -3109,8 +3122,8 @@ async function saveRule(){
     })
   };
   try{
-    if(editing.id)await api("/api/v1/rules/"+editing.id,{method:"PUT",body:JSON.stringify(body)});
-    else await api("/api/v1/rules",{method:"POST",body:JSON.stringify(body)});
+    if(editing.id)await api(rulesBase()+"/"+editing.id,{method:"PUT",body:JSON.stringify(body)});
+    else await api(rulesBase(),{method:"POST",body:JSON.stringify(body)});
     editing=null;toast(t("Rule saved"));await render();
   }catch(e){
     if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
@@ -3120,7 +3133,7 @@ async function saveRule(){
 async function deleteRule(id,name){
   if(!confirm(tf("Delete the rule “{0}”?",name)))return;
   setErr("err_rule_"+id,"");
-  try{await api("/api/v1/rules/"+id,{method:"DELETE"});toast(t("Rule deleted"));await render();}
+  try{await api(rulesBase()+"/"+id,{method:"DELETE"});toast(t("Rule deleted"));await render();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_rule_"+id,e.message);}
 }
 

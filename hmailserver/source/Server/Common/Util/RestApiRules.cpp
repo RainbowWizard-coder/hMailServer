@@ -41,6 +41,8 @@
 #include "Encoding/ModifiedUTF7.h"
 
 #include "../BO/Rules.h"
+#include "../BO/Domain.h"
+#include "../Cache/CacheContainer.h"
 #include "../BO/Rule.h"
 #include "../BO/RuleCriterias.h"
 #include "../BO/RuleCriteria.h"
@@ -89,6 +91,7 @@ namespace HM
          case RuleCriteria::FTMessageSize: return "message_size";
          case RuleCriteria::FTRecipientList: return "recipient_list";
          case RuleCriteria::FTDeliveryAttempts: return "delivery_attempts";
+         case RuleCriteria::FTAttachmentName: return "attachment_name";
          default: return "unknown";
          }
       }
@@ -99,7 +102,7 @@ namespace HM
          {
             RuleCriteria::FTFrom, RuleCriteria::FTTo, RuleCriteria::FTCC, RuleCriteria::FTSubject,
             RuleCriteria::FTBody, RuleCriteria::FTMessageSize, RuleCriteria::FTRecipientList,
-            RuleCriteria::FTDeliveryAttempts
+            RuleCriteria::FTDeliveryAttempts, RuleCriteria::FTAttachmentName
          };
 
          for (size_t i = 0; i < sizeof(fields) / sizeof(fields[0]); i++)
@@ -164,6 +167,10 @@ namespace HM
          case RuleAction::SendUsingRoute: return "send_using_route";
          case RuleAction::CreateCopy: return "copy";
          case RuleAction::BindToAddress: return "bind_to_address";
+         case RuleAction::AddDisclaimer: return "add_disclaimer";
+         case RuleAction::Reject: return "reject";
+         case RuleAction::RequireTLS: return "require_tls";
+         case RuleAction::Quarantine: return "quarantine";
          default: return "unknown";
          }
       }
@@ -174,7 +181,8 @@ namespace HM
          {
             RuleAction::Delete, RuleAction::Forward, RuleAction::Reply, RuleAction::MoveToIMAPFolder,
             RuleAction::ScriptFunction, RuleAction::StopRuleProcessing, RuleAction::SetHeaderValue,
-            RuleAction::SendUsingRoute, RuleAction::CreateCopy, RuleAction::BindToAddress
+            RuleAction::SendUsingRoute, RuleAction::CreateCopy, RuleAction::BindToAddress,
+            RuleAction::AddDisclaimer, RuleAction::Reject, RuleAction::RequireTLS, RuleAction::Quarantine
          };
 
          for (size_t i = 0; i < sizeof(types) / sizeof(types[0]); i++)
@@ -392,6 +400,7 @@ namespace HM
          case RuleAction::ScriptFunction: return key == "script_function";
          case RuleAction::SetHeaderValue: return key == "header";
          case RuleAction::SendUsingRoute: return key == "route_id";
+         case RuleAction::AddDisclaimer: return key == "body";
          default: return false;
          }
       }
@@ -409,6 +418,8 @@ namespace HM
          case RuleAction::ScriptFunction: return "script_function";
          case RuleAction::SetHeaderValue: return "value";
          case RuleAction::BindToAddress: return "value";
+         case RuleAction::AddDisclaimer: return "body";
+         case RuleAction::Reject: return "value";
          default: return nullptr;
          }
       }
@@ -510,6 +521,7 @@ namespace HM
             if (std::string(standsFor) == "to") named = &to;
             else if (std::string(standsFor) == "folder") named = &folder;
             else if (std::string(standsFor) == "script_function") named = &scriptFunction;
+            else if (std::string(standsFor) == "body") named = &body;
 
             if (named)
             {
@@ -579,6 +591,9 @@ namespace HM
             break;
          case RuleAction::BindToAddress:
             if (value.IsEmpty()) { error = position + "value is required for a bind_to_address action"; return false; }
+            break;
+         case RuleAction::AddDisclaimer:
+            if (body.IsEmpty()) { error = position + "body is required for an add_disclaimer action: the text appended"; return false; }
             break;
          default:
             break;
@@ -809,6 +824,13 @@ namespace HM
                case RuleAction::BindToAddress:
                   value = Utf8(action->GetValue());
                   break;
+               case RuleAction::AddDisclaimer:
+                  value = Utf8(action->GetBody());
+                  extra.Format(",\"body\":\"%hs\"", escape(value).c_str());
+                  break;
+               case RuleAction::Reject:
+                  value = Utf8(action->GetValue());
+                  break;
                default:
                   break;
                }
@@ -846,9 +868,11 @@ namespace HM
       // to the rule's collection before InterfaceRule::Save writes them all.
       // The delivery path's cache of the collection a write touched: the
       // global rules, or one account's.
-      void FlagRulesReload(__int64 accountId)
+      void FlagRulesReload(__int64 accountId, __int64 domainId = 0)
       {
-         if (accountId == 0)
+         if (domainId > 0)
+            ObjectCache::Instance()->SetDomainRulesNeedsReload(domainId);
+         else if (accountId == 0)
             ObjectCache::Instance()->SetGlobalRulesNeedsReload();
          else
             ObjectCache::Instance()->SetAccountRulesNeedsReload(accountId);
@@ -887,12 +911,12 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/rules\":{"
          "\"get\":{\"summary\":\"List the global rules with their criteria and actions\",\"description\":\"Each entry: id, name, active, all_criteria, criteria (field, header, match, value) and actions (type, value, and the parameters the type takes beside it - a forward's and a reply's abort_spam_flagged among them). Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of rules\"}}},"
-         "\"post\":{\"summary\":\"Create a global rule\",\"description\":\"Body: name (required, at most 100 characters), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, or header with the header's name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; delete, stop and copy take none. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.\","
-         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
+         "\"post\":{\"summary\":\"Create a global rule\",\"description\":\"Body: name (required, at most 100 characters), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, attachment_name, or header with the header's name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; add_disclaimer: body (the text appended to the message's plain and HTML parts); reject: value (the text of the 550 the SMTP session answers with, before the message is accepted, when the rule matches there; a message that reached delivery by another path is dropped); require_tls, quarantine, delete, stop and copy take none. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.\","
+         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"attachment_name\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\",\"add_disclaimer\",\"reject\",\"require_tls\",\"quarantine\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
          "\"responses\":{\"201\":{\"description\":\"Created: the rule as the listing shows it, with its id, and each action's parameters beside its value\"},\"400\":{\"description\":\"name missing, the body not JSON, or a criterion or action refused (the reason names it in error)\"}}}},"
          "\"/api/v1/rules/{id}\":{"
          "\"put\":{\"summary\":\"Replace a global rule\",\"description\":\"The same body as POST. The rule's name, flags, criteria and actions are all replaced - the old criteria and actions are deleted and the new ones created, which is what saving an edited rule in the Control Panel comes to - and its place in the order is kept. A rule that belongs to an account is not reachable here.\","
-         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
+         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"attachment_name\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\",\"add_disclaimer\",\"reject\",\"require_tls\",\"quarantine\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
          "\"responses\":{\"200\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"As for POST; the rule is unchanged\"},\"404\":{\"description\":\"No global rule with that id\"}}},"
          "\"delete\":{\"summary\":\"Delete a global rule\",\"description\":\"With its criteria and actions, as the Control Panel deletes one. A rule that belongs to an account is not reachable here.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"No global rule with that id\"}}}},"
          "\"/api/v1/rules/match\":{\"post\":{\"summary\":\"Try a rule criterion against a value, without a rule\",\"description\":\"Body: match_value (the criterion's value, as a rule stores it), match_type (equals, contains, less_than, greater_than, regex, not_contains, not_equals or wildcard - the words the rule listing uses) and test_value (what the criterion is tried against). match is what the delivery path would decide for a criterion of that value and type meeting that text. What Utilities.CriteriaMatch answers over COM: nothing is read or written. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"match_value\",\"match_type\",\"test_value\"],\"properties\":{\"match_value\":{\"type\":\"string\"},\"match_type\":{\"type\":\"string\"},\"test_value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{match}\"},\"400\":{\"description\":\"A field missing or of the wrong type, a match_type not among the eight words, or an unknown field (error names it)\"}}}}";
@@ -901,7 +925,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleCreateRule_(__int64 accountId, const AnsiString &requestBody)
+   RestApiServer::HandleCreateRule_(__int64 accountId, const AnsiString &requestBody, __int64 domainId)
    {
       RuleDocument document;
       std::string error;
@@ -913,7 +937,7 @@ namespace HM
       // a fresh Rules(accountId) - 0 is the global rules - so the sort order the
       // new rule gets is one past the last rule that exists now, as
       // InterfaceRule::Save gives it.
-      Rules rules(accountId);
+      Rules rules(accountId, domainId);
       rules.Refresh();
 
       std::vector<std::shared_ptr<Rule> > existing = rules.GetSnapshot();
@@ -921,6 +945,7 @@ namespace HM
 
       std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
       rule->SetAccountID(accountId);
+      rule->SetDomainID(domainId);
       rule->SetName(document.name);
       rule->SetActive(document.active);
       rule->SetUseAND(document.useAnd);
@@ -945,13 +970,13 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody)
+   RestApiServer::HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody, __int64 domainId)
    {
       // The one collection the route names. Rules(0) holds the rules with no
       // account and Rules(id) one account's, so a rule that belongs elsewhere -
       // another account's under this address, an account's under /api/v1/rules
       // - is simply not found here, and answered as such, whatever the body says.
-      Rules rules(accountId);
+      Rules rules(accountId, domainId);
       rules.Refresh();
 
       std::shared_ptr<Rule> existing = rules.GetItemByDBID(ruleId);
@@ -975,7 +1000,7 @@ namespace HM
       {
          // The table may now disagree with what the delivery path holds; make
          // it read the table again rather than keep serving parts that are gone.
-         FlagRulesReload(accountId);
+         FlagRulesReload(accountId, domainId);
          LOG_APPLICATION(String(_T("RestApi: Failed to replace the criteria and actions of rule '")) + existing->GetName() + _T("'."));
          return BuildResponse_(500, "{\"error\":\"failed to replace the rule's criteria and actions\"}");
       }
@@ -987,6 +1012,7 @@ namespace HM
       std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
       rule->SetID(existing->GetID());
       rule->SetAccountID(accountId);
+      rule->SetDomainID(domainId);
       rule->SetSortOrder(existing->GetSortOrder());
       rule->SetName(document.name);
       rule->SetActive(document.active);
@@ -996,7 +1022,7 @@ namespace HM
       String saveError;
       if (!PersistentRule::SaveObject(rule, saveError, PersistenceModeNormal))
       {
-         FlagRulesReload(accountId);
+         FlagRulesReload(accountId, domainId);
          LOG_APPLICATION(String(_T("RestApi: Failed to update rule '")) + document.name + _T("'."));
          return BuildResponse_(500, "{\"error\":\"failed to save rule\"}");
       }
@@ -1011,9 +1037,9 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleDeleteRule_(__int64 accountId, __int64 ruleId)
+   RestApiServer::HandleDeleteRule_(__int64 accountId, __int64 ruleId, __int64 domainId)
    {
-      Rules rules(accountId);
+      Rules rules(accountId, domainId);
       rules.Refresh();
 
       std::shared_ptr<Rule> rule = rules.GetItemByDBID(ruleId);
@@ -1059,6 +1085,46 @@ namespace HM
       default:
          return BuildResponse_(404, "{\"error\":\"not found\"}");
       }
+   }
+
+   // A domain's own rules, under the domain: the same documents and handlers
+   // on the collection Rules(0, domainId) - what Domain.Rules reaches over
+   // COM. Scoped to the domain by DomainNamedByRoute_, so a domain
+   // administrator's key reaches its own domain's rules and no other's.
+   HttpResponse
+   RestApiServer::HandleDomainRules_(const Route &route, const AnsiString &requestBody)
+   {
+      std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(String(route.identifier));
+      if (!domain || domain->GetID() == 0)
+         return BuildResponse_(404, "{\"error\":\"domain not found\"}");
+
+      switch (route.kind)
+      {
+      case RouteDomainRuleList:
+         return HandleListRules_(0, domain->GetID());
+      case RouteDomainRuleCreate:
+         return HandleCreateRule_(0, requestBody, domain->GetID());
+      case RouteDomainRuleUpdate:
+         return HandleUpdateRule_(0, route.record_id, requestBody, domain->GetID());
+      case RouteDomainRuleDelete:
+         return HandleDeleteRule_(0, route.record_id, domain->GetID());
+      default:
+         return BuildResponse_(404, "{\"error\":\"not found\"}");
+      }
+   }
+
+   AnsiString
+   RestApiServer::OpenApiDomainRulesPaths_()
+   {
+      static const char *paths =
+         ",\"/api/v1/domains/{name}/rules\":{"
+         "\"get\":{\"summary\":\"List a domain's own rules\",\"description\":\"The rules that run for this domain's mail - every message with a recipient in the domain or a sender it hosts - after the server's rules and before delivery, in the order they run, with the same criteria and actions as GET /api/v1/rules shows. A domain-restricted key sees its own domains'.\",\"responses\":{\"200\":{\"description\":\"rules\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"post\":{\"summary\":\"Create a rule for a domain\",\"description\":\"The same body POST /api/v1/rules takes; the rule is the domain's, appended to its order, and runs for the domain's mail alone.\",\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"As for POST /api/v1/rules\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
+         "\"/api/v1/domains/{name}/rules/{id}\":{"
+         "\"put\":{\"summary\":\"Replace one of a domain's rules\",\"description\":\"The whole rule, as PUT /api/v1/rules/{id} replaces a global one. A rule that is not this domain's is 404.\",\"responses\":{\"200\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"As for POST; the rule is unchanged\"},\"404\":{\"description\":\"No such rule of this domain\"}}},"
+         "\"delete\":{\"summary\":\"Delete one of a domain's rules\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"No such rule of this domain\"}}}}";
+
+      return AnsiString(paths);
    }
 
    AnsiString

@@ -415,6 +415,64 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A domain's rules are its own over REST: created under the domain with the new condition and the four new actions, listed there and not among the server's, replaced and deleted there")]
+      public void ADomainsRulesAreItsOwnOverRest()
+      {
+         string name = RulePrefix + "domain-flow";
+         string actions =
+            "{\"type\":\"add_disclaimer\",\"body\":\"Confidential.\"}," +
+            "{\"type\":\"reject\",\"value\":\"Not here.\"}," +
+            "{\"type\":\"require_tls\"}," +
+            "{\"type\":\"quarantine\"}";
+         (int status, string body) created = Http("POST", "/api/v1/domains/" + _domain.Name + "/rules",
+            RuleBody(name, "{\"field\":\"attachment_name\",\"match\":\"wildcard\",\"value\":\"*.zip\"}", actions, active: false, allCriteria: true));
+         Assert.AreEqual(201, created.status, created.body);
+         StringAssert.Contains("\"field\":\"attachment_name\"", created.body);
+         StringAssert.Contains("{\"type\":\"add_disclaimer\",\"value\":\"Confidential.\",\"body\":\"Confidential.\"}", created.body);
+         StringAssert.Contains("{\"type\":\"reject\",\"value\":\"Not here.\"}", created.body);
+         StringAssert.Contains("{\"type\":\"require_tls\",\"value\":\"\"}", created.body);
+         StringAssert.Contains("{\"type\":\"quarantine\",\"value\":\"\"}", created.body);
+         int id = ExtractId(created.body);
+
+         StringAssert.Contains("\"name\":\"" + name + "\"", Http("GET", "/api/v1/domains/" + _domain.Name + "/rules").body, "Listed under the domain.");
+         StringAssert.DoesNotContain(name, Http("GET", "/api/v1/rules").body, "And not among the server's.");
+         Assert.AreEqual(404, Http("PUT", "/api/v1/rules/" + id, RuleBody(name, "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"delete\"}", active: false, allCriteria: true)).status,
+            "The server's route does not reach a domain's rule.");
+
+         (int status, string body) replaced = Http("PUT", "/api/v1/domains/" + _domain.Name + "/rules/" + id,
+            RuleBody(name + "-2", "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"delete\"}", active: false, allCriteria: true));
+         Assert.AreEqual(200, replaced.status, replaced.body);
+         StringAssert.Contains("\"name\":\"" + name + "-2\"", replaced.body);
+
+         Assert.AreEqual(400, Http("POST", "/api/v1/domains/" + _domain.Name + "/rules",
+            RuleBody(name + "-3", "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"add_disclaimer\"}", active: false, allCriteria: true)).status,
+            "A disclaimer needs its text.");
+         Assert.AreEqual(404, Http("GET", "/api/v1/domains/not-hosted.example/rules").status);
+
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/domains/" + _domain.Name + "/rules/" + id).status);
+         Assert.AreEqual(404, Http("DELETE", "/api/v1/domains/" + _domain.Name + "/rules/" + id).status);
+
+         // A key restricted to the domain reaches the domain's rules and no other domain's.
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain("other-flow.test");
+         (string scopedId, string scopedKey) = CreateKey("restrule - domain scoped", "full", _domain.Name);
+         try
+         {
+            string simple = "{"field":"subject","match":"contains","value":"x"}";
+            (int status, string body) mine = Bearer("POST", "/api/v1/domains/" + _domain.Name + "/rules", scopedKey, RuleBody(name + "-mine", simple, "{"type":"delete"}", active: false));
+            Assert.AreEqual(201, mine.status, mine.body);
+            Assert.AreEqual(200, Bearer("GET", "/api/v1/domains/" + _domain.Name + "/rules", scopedKey).status);
+            Assert.AreEqual(403, Bearer("GET", "/api/v1/domains/" + other.Name + "/rules", scopedKey).status, "Another domain's rules are not the key's to read.");
+            Assert.AreEqual(403, Bearer("POST", "/api/v1/domains/" + other.Name + "/rules", scopedKey, RuleBody(name + "-theirs", simple, "{"type":"delete"}", active: false)).status);
+            Assert.AreEqual(403, Bearer("POST", "/api/v1/rules", scopedKey, RuleBody(name + "-global", simple, "{"type":"delete"}", active: false)).status, "Nor are the server's.");
+            Assert.AreEqual(200, Bearer("DELETE", "/api/v1/domains/" + _domain.Name + "/rules/" + ExtractId(mine.body), scopedKey).status);
+         }
+         finally
+         {
+            Http("DELETE", "/api/v1/apikeys/" + scopedId);
+         }
+      }
+
+      [Test]
       [Description("A key restricted to named domains cannot write a global rule whatever its scope; a read-only key cannot; an unrestricted full key can; no credential is 401.")]
       public void ScopedAndReadOnlyKeysAreRefused()
       {

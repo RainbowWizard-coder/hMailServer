@@ -5,6 +5,9 @@
 #include "StdAfx.h"
 
 #include "./RuleApplier.h"
+#include "../Common/Util/DisclaimerAdder.h"
+#include "../Common/BO/Attachments.h"
+#include "../Common/BO/Attachment.h"
 
 #include "RuleResult.h"
 
@@ -240,7 +243,138 @@ namespace HM
             ruleResult.SetBindToAddress(pAction->GetValue());
             break;
          }
+      case RuleAction::AddDisclaimer:
+         {
+            ApplyAction_AddDisclaimer(pRule, pAction, account, pMsgData);
+            break;
+         }
+      case RuleAction::Reject:
+         {
+            // After acceptance there is nobody left to refuse to: the SMTP
+            // session refused the message before accepting it where the rule
+            // matched there (WouldReject); here, on a message that reached
+            // delivery by another path, the rule drops it as a delete does.
+            ruleResult.SetDeleteEmail(true);
+            String sDeleteRuleName;
+            sDeleteRuleName.Format(_T("Rule name: %s, ID: %d (reject)"), pRule->GetName().c_str(), pRule->GetID());
+            ruleResult.SetDeleteRuleName(sDeleteRuleName);
+            break;
+         }
+      case RuleAction::RequireTLS:
+         {
+            ruleResult.SetRequireTls(pRule->GetName());
+            break;
+         }
+      case RuleAction::Quarantine:
+         {
+            ruleResult.SetQuarantine(pRule->GetName());
+            break;
+         }
       }
+   }
+
+   void
+   RuleApplier::ApplyAction_AddDisclaimer(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
+   {
+      const String text = pAction->GetBody();
+      if (text.IsEmpty())
+         return;
+
+      std::shared_ptr<MessageData> data = pMsgData;
+      if (!DisclaimerAdder::AppendText(pMsgData->GetMessage(), text, data, _T("rule ") + pRule->GetName()))
+         return;
+
+      String fileName = PersistentMessage::GetFileName(account, pMsgData->GetMessage());
+      if (!pMsgData->Write(fileName))
+         RuleGuard::ReportActionFailed(_T("AddDisclaimer"), fileName);
+   }
+
+   bool
+   RuleApplier::RuleMatches_(std::shared_ptr<Rule> pRule, std::shared_ptr<MessageData> pMsgData)
+   {
+      const bool bAllRequired = pRule->GetUseAND();
+      bool matched = false;
+
+      std::shared_ptr<RuleCriterias> pCriterias = pRule->GetCriterias();
+      for (int i = 0; i < pCriterias->GetCount(); i++)
+      {
+         std::shared_ptr<RuleCriteria> pCriteria = pCriterias->GetItem(i);
+         if (!pCriteria)
+            continue;
+
+         bool sealedBodyDeclined = false;
+         const bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData, sealedBodyDeclined);
+
+         if (bAllRequired)
+         {
+            if (!bMatch)
+               return false;
+            matched = true;
+         }
+         else if (bMatch)
+            return true;
+      }
+
+      return matched;
+   }
+
+   bool
+   RuleApplier::HasRejectAction(std::shared_ptr<Rules> pRules)
+   {
+      if (!pRules)
+         return false;
+
+      for (std::shared_ptr<Rule> pRule : pRules->GetVector())
+      {
+         if (!pRule || !pRule->GetActive())
+            continue;
+
+         std::shared_ptr<RuleActions> pActions = pRule->GetActions();
+         for (int i = 0; i < pActions->GetCount(); i++)
+         {
+            std::shared_ptr<RuleAction> pAction = pActions->GetItem(i);
+            if (pAction && pAction->GetType() == RuleAction::Reject)
+               return true;
+         }
+      }
+
+      return false;
+   }
+
+   bool
+   RuleApplier::WouldReject(std::shared_ptr<Rules> pRules, std::shared_ptr<MessageData> pMsgData, String &text)
+   {
+      if (!pRules || !pMsgData)
+         return false;
+
+      for (std::shared_ptr<Rule> pRule : pRules->GetVector())
+      {
+         if (!pRule || !pRule->GetActive())
+            continue;
+
+         std::shared_ptr<RuleActions> pActions = pRule->GetActions();
+         std::shared_ptr<RuleAction> reject;
+         for (int i = 0; i < pActions->GetCount(); i++)
+         {
+            std::shared_ptr<RuleAction> pAction = pActions->GetItem(i);
+            if (pAction && pAction->GetType() == RuleAction::Reject)
+            {
+               reject = pAction;
+               break;
+            }
+         }
+
+         if (!reject || !RuleMatches_(pRule, pMsgData))
+            continue;
+
+         text = reject->GetValue();
+         text.Trim();
+         if (text.IsEmpty())
+            text = _T("Message refused by a rule of this server.");
+         return true;
+      }
+
+      return false;
    }
 
    void 
@@ -583,6 +717,26 @@ namespace HM
          case RuleCriteria::FTDeliveryAttempts:
             sFieldValue.Format(_T("%u"), pMsgData->GetMessage()->GetNoOfRetries() + 1);
             break;
+         case RuleCriteria::FTAttachmentName:
+            {
+               // Every attachment's file name, ';' between them, so "contains
+               // .exe", a wildcard "*.zip" or a regex on the list all read as
+               // "any attachment is".
+               std::shared_ptr<Attachments> attachments = pMsgData->GetAttachments();
+               if (attachments)
+               {
+                  for (size_t i = 0; i < attachments->GetCount(); i++)
+                  {
+                     std::shared_ptr<Attachment> attachment = attachments->GetItem((unsigned int) i);
+                     if (!attachment)
+                        continue;
+                     if (!sFieldValue.IsEmpty())
+                        sFieldValue += ";";
+                     sFieldValue += attachment->GetFileName();
+                  }
+               }
+               break;
+            }
          case RuleCriteria::FTRecipientList:
             {
                std::shared_ptr<Message> pMessage = pMsgData->GetMessage();

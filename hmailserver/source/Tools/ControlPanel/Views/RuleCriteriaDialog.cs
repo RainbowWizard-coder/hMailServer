@@ -46,6 +46,7 @@ namespace hMailServer.ControlPanel.Views
          field_.Items.Add(DialogFields.Combo(L("Message size"), 6));
          field_.Items.Add(DialogFields.Combo(L("Recipient list"), 7));
          field_.Items.Add(DialogFields.Combo(L("Delivery attempts"), 8));
+         field_.Items.Add(DialogFields.Combo(L("Attachment name"), 9));
          field_.Items.Add(DialogFields.Combo(L("Custom header…"), 0));
          field_.SelectionChanged += (s, e) => UpdateVisibility();
 

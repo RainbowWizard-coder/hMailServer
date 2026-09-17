@@ -62,7 +62,94 @@ namespace hMailServer.ControlPanel.Views
          suppressMatchMode_ = false;
       }
 
-      public void OnEnter() => Reload();
+      public void OnEnter()
+      {
+         LoadScopes();
+         Reload();
+      }
+
+      // The server's rules, or one domain's: the same page on Domain.Rules,
+      // which is what a domain's rules are over COM. Hidden where the page is
+      // embedded in the account dialog, where the scope is the account.
+      private bool scopesLoaded_;
+      private bool suppressScope_;
+
+      private void LoadScopes()
+      {
+         if (ScopeBox == null)
+            return;
+
+         if (!serverLevel_)
+         {
+            ScopeBox.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         if (scopesLoaded_)
+            return;
+
+         suppressScope_ = true;
+         try
+         {
+            ScopeBox.Items.Clear();
+            ScopeBox.Items.Add(L("The server"));
+            dynamic domains = ServerSession.Current.Application.Domains;
+            try
+            {
+               int count = (int)domains.Count;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic d = domains.Item[i];
+                  ScopeBox.Items.Add((string)d.Name);
+                  ServerSession.Release(d);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(domains);
+            }
+            ScopeBox.SelectedIndex = 0;
+            scopesLoaded_ = true;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            ScopeBox.Visibility = Visibility.Collapsed;
+         }
+         finally
+         {
+            suppressScope_ = false;
+         }
+      }
+
+      private void Scope_Changed(object sender, SelectionChangedEventArgs e)
+      {
+         if (suppressScope_ || !serverLevel_ || ScopeBox.SelectedIndex < 0)
+            return;
+
+         if (ScopeBox.SelectedIndex == 0)
+            rulesProvider_ = () => ServerSession.Current.Application.Rules;
+         else
+         {
+            string domainName = (string)ScopeBox.SelectedItem;
+            rulesProvider_ = () =>
+            {
+               dynamic domains = ServerSession.Current.Application.Domains;
+               try
+               {
+                  dynamic d = domains.ItemByName[domainName];
+                  dynamic rules = d.Rules;
+                  ServerSession.Release(d);
+                  return rules;
+               }
+               finally
+               {
+                  ServerSession.Release(domains);
+               }
+            };
+         }
+
+         Reload();
+      }
 
       public void OnLeave()
       {

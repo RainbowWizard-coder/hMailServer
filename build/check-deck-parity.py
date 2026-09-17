@@ -959,9 +959,23 @@ def read_rest(interfaces):
 # 4. The Control Deck
 # ---------------------------------------------------------------------------
 
+# A path helper: a function of no arguments whose body is one return of a
+# conditional between two path expressions, such as the rules page's choice
+# between the server's rules and a domain's. A call of it at the front of an
+# api(...) path stands for either branch, with whatever follows appended.
+PATH_HELPERS = {}
+HELPER_RE = re.compile(r'function\s+\w+\s*\(\)\s*\{\s*return\s+[^?;]+\?\s*(.+?)\s*:\s*(.+?)\s*;\s*\}')
+
+
 def deck_path(arg, groups):
     """A path expression from an api(...) call as a route template, or a list of them."""
     arg = arg.strip()
+    helper = re.match(r'^(\w+)\(\)\s*(.*)$', arg, flags=re.S)
+    if helper and helper.group(1) in PATH_HELPERS:
+        out = []
+        for branch in PATH_HELPERS[helper.group(1)]:
+            out += deck_path(branch + helper.group(2), groups)
+        return out
     if arg.startswith('`'):
         inner = arg[1:arg.rfind('`')]
         return [re.sub(r'\$\{[^}]*\}', '{}', inner)]
@@ -1015,6 +1029,10 @@ def read_deck():
         for fn in re.findall(r'\b(\w+)\s*\(', branch):
             if fn in functions:
                 act_fns[act].add(fn)
+    for name, body in functions.items():
+        helper = HELPER_RE.match(body)
+        if helper and '/api/v1/' in helper.group(1) + helper.group(2):
+            PATH_HELPERS[name] = (helper.group(1), helper.group(2))
     calls = defaultdict(set)   # function -> {(norm path, METHOD)}
     for name, body in functions.items():
         for m in re.finditer(r'\bapi\s*\(', body):

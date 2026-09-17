@@ -538,6 +538,10 @@ namespace HM
          // Account.Rules holds over COM, which /api/v1/rules - the global rules
          // - never carried. Scoped to the address's domain.
          RouteAccountRuleList,
+         RouteDomainRuleList,
+         RouteDomainRuleCreate,
+         RouteDomainRuleUpdate,
+         RouteDomainRuleDelete,
          RouteAccountRuleCreate,
          RouteAccountRuleUpdate,
          RouteAccountRuleDelete,
@@ -1207,7 +1211,7 @@ namespace HM
 
       HttpResponse HandleSetupChecklist_(const Route &route);
       static AnsiString OpenApiSetupChecklistPaths_();
-      HttpResponse HandleListRules_(__int64 accountId);
+      HttpResponse HandleListRules_(__int64 accountId, __int64 domainId = 0);
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);
       HttpResponse HandleBackupStart_();
@@ -1273,12 +1277,14 @@ namespace HM
       HttpResponse HandleServerMessagePut_(const AnsiString &name, const AnsiString &requestBody);
       HttpResponse HandleSieveEvaluate_(const AnsiString &requestBody);
       HttpResponse HandleCalendarExpand_(const AnsiString &requestBody);
-      HttpResponse HandleCreateRule_(__int64 accountId, const AnsiString &requestBody);
-      HttpResponse HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody);
-      HttpResponse HandleDeleteRule_(__int64 accountId, __int64 ruleId);
+      HttpResponse HandleCreateRule_(__int64 accountId, const AnsiString &requestBody, __int64 domainId = 0);
+      HttpResponse HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody, __int64 domainId = 0);
+      HttpResponse HandleDeleteRule_(__int64 accountId, __int64 ruleId, __int64 domainId = 0);
       HttpResponse HandleAccountRules_(const Route &route, const AnsiString &requestBody);
+      HttpResponse HandleDomainRules_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiRulesPaths_();
       static AnsiString OpenApiAccountRulesPaths_();
+      static AnsiString OpenApiDomainRulesPaths_();
       HttpResponse HandleAccountExport_(const Route &route, const AnsiString &requestBody);
       HttpResponse HandleAccountExportArchive_(const Route &route);
       static HttpResponse ArchiveDownload_(std::shared_ptr<Account> account);

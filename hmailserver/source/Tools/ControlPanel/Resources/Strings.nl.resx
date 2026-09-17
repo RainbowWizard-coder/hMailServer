@@ -896,6 +896,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add criterion" xml:space="preserve">
     <value>Criterium toevoegen</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Disclaimer toevoegen</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Distributielijst toevoegen</value>
   </data>
@@ -1370,6 +1373,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Bijlageblokkering, wat apart is</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Bijlagenaam</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Pogingen om de database bij het opstarten te bereiken</value>
@@ -2906,6 +2912,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Directorysynchronisatie</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Disc_laimertekst (achter het bericht gezet)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>De index weggooien en opnieuw opbouwen</value>
@@ -6307,6 +6316,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Verlaag het logniveau, of stel in hoeveel dagen aan logboeken worden bewaard.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Weigeringste_kst (wat de 550 tegen de afzender zegt)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Een vol postvak tijdens de conversatie weigeren (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>De meest gebruikte wachtwoorden weigeren</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Weigeren met een tekst</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Gerelateerd:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>SSL/_TLS vereisen bij authenticatie</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>TLS vereisen voor bezorging</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>TLS vereisen voor tokenauthenticatie</value>
@@ -6704,6 +6722,9 @@ Doorgaan?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Regels</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Regels van</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>DNSBL-controles na MAIL FROM uitvoeren (in plaats van bij het verbinden)</value>
@@ -8655,6 +8676,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>De verzendende server maakt verbinding, stuurt het bericht en wacht dan. Van zijn kant ziet u een time-out nadat de berichtinhoud is verzonden - Postfix meldt "timed out while sending end of data". Het bericht verschijnt nooit in uw wachtrij.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>De server</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Het beheerderswachtwoord van de server, en wie deze hulpmiddelen überhaupt mag gebruiken.</value>

@@ -896,6 +896,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add criterion" xml:space="preserve">
     <value>Přidat kritérium</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Přidat právní doložku</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Přidat distribuční seznam</value>
   </data>
@@ -1370,6 +1373,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Blokování příloh, které je samostatné</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Název přílohy</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Počet pokusů o dosažení databáze při startu</value>
@@ -2906,6 +2912,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Synchronizace s adresářem</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>T_ext doložky (připojený ke zprávě)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Zahodit index a znovu ho sestavit</value>
@@ -6307,6 +6316,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Snižte úroveň logování, nebo nastavte, kolik dní logů se uchovává.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Te_xt odmítnutí (co odesílateli řekne 550)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Odmítnout plnou poštovní schránku během konverzace (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Odmítat nejčastěji používaná hesla</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Odmítnout s textem</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Související:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Vyžadovat SSL/_TLS při ověřování</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Vyžadovat TLS pro doručení</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Vyžadovat TLS pro ověřování tokenem</value>
@@ -6704,6 +6722,9 @@ Pokračovat?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Pravidla</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Pravidla pro</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Spouštět kontroly DNSBL po MAIL FROM (místo při připojení)</value>
@@ -8655,6 +8676,9 @@ Přesto přidat?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Odesílající server se připojí, pošle zprávu a pak čeká. Z jeho strany vidíte timeout poté, co bylo tělo zprávy odesláno - Postfix hlásí „timed out while sending end of data“. Zpráva se ve vaší frontě nikdy neobjeví.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Server</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Heslo správy serveru a kdo vůbec smí tyto nástroje používat.</value>

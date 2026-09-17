@@ -896,6 +896,9 @@
   <data name="Add criterion" xml:space="preserve">
     <value>条件を追加</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>免責事項を追加</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>配布リストを追加</value>
   </data>
@@ -1370,6 +1373,9 @@
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>添付ファイルのブロック (これは別の機能です)</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>添付ファイル名</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>起動時にデータベースへ接続を試みる回数</value>
@@ -2906,6 +2912,9 @@
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>ディレクトリ同期</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>免責事項のテキスト（メッセージに追加）(_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>インデックスを破棄して再構築</value>
@@ -6307,6 +6316,9 @@
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>ログ レベルを下げるか、ログを何日分保持するかを設定します。</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>拒否テキスト（550 が送信者に伝える文）(_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>通信中に満杯のメールボックスを拒否する (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>よく使われるパスワードを拒否する</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>テキストを付けて拒否</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>関連:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>認証時に SSL/TLS を要求する(_T)</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>配信に TLS を必須にする</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>トークン認証に TLS を要求する</value>
@@ -6704,6 +6722,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Rules" xml:space="preserve">
     <value>ルール</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>ルールの対象</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>DNSBL のチェックを (接続時ではなく) MAIL FROM の後に実行する</value>
@@ -8655,6 +8676,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>送信側サーバーは接続し、メッセージを送信してから待機します。送信側からは、メッセージ本文を送信した後にタイムアウトが見えます。Postfix は "timed out while sending end of data" と報告します。メッセージはあなたのキューには決して現れません。</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>サーバー</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>サーバー管理パスワードと、そもそも誰がこれらのツールを使えるか。</value>

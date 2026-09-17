@@ -13,8 +13,9 @@
 
 namespace HM
 {
-   Rules::Rules(__int64 iAccountID) :
-      account_id_(iAccountID)
+   Rules::Rules(__int64 iAccountID, __int64 iDomainID) :
+      account_id_(iAccountID),
+      domain_id_(iDomainID)
    {
       
    }
@@ -31,7 +32,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL;
-      sSQL.Format(_T("select * from hm_rules where ruleaccountid = %I64d order by rulesortorder asc"), account_id_);
+      sSQL.Format(_T("select * from hm_rules where ruleaccountid = %I64d and ruledomainid = %I64d order by rulesortorder asc"), account_id_, domain_id_);
       DBLoad_(sSQL);
    }
 
@@ -147,6 +148,7 @@ namespace HM
    Rules::PreSaveObject(std::shared_ptr<Rule> pRule, XNode *node)
    {
       pRule->SetAccountID(account_id_);
+      pRule->SetDomainID(domain_id_);
       return true;
    }
 }

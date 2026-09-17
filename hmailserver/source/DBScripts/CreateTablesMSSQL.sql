@@ -765,6 +765,7 @@ create table hm_rules
 (
 	ruleid int identity(1,1) not null,
 	ruleaccountid int not null,
+	ruledomainid int not null default 0,
 	rulename nvarchar(100) not null,
 	ruleactive tinyint not null,
 	ruleuseand tinyint not null,
@@ -2071,4 +2072,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6062)
+insert into hm_dbversion values (6063)

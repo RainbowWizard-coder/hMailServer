@@ -8,6 +8,8 @@
 #include "../Common/Util/CountryBlocking.h"
 #include "InterfaceDomain.h"
 #include "InterfaceAccounts.h"
+#include "InterfaceRules.h"
+#include "../Common/BO/Rules.h"
 #include "InterfaceAliases.h"
 #include "InterfaceDomainAliases.h"
 #include "InterfaceDistributionLists.h"
@@ -3424,6 +3426,35 @@ STDMETHODIMP InterfaceDomain::put_QuotaSendStopPercent(long newVal)
          return COMError::GenerateError("QuotaSendStopPercent must be between -1 and 1000.");
 
       object_->SetQuotaSendStopPercent((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_Rules(IInterfaceRules **pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      CComObject<InterfaceRules>* pItem = new CComObject<InterfaceRules>();
+      pItem->SetAuthentication(authentication_);
+
+      std::shared_ptr<HM::Rules> pRules = object_->GetRules();
+      if (pRules)
+      {
+         pItem->Attach(pRules);
+         pItem->AddRef();
+         *pVal = pItem;
+      }
 
       return S_OK;
    }

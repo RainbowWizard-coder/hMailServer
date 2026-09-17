@@ -512,7 +512,7 @@ namespace HM
          attemptedHosts++;
 
          serverInfo->SetDaneRecords(daneRecords);
-         serverInfo->SetRequireTls(stsEnforced || !daneRecords.empty() || policyTls >= RemoteTlsEncrypted);
+         serverInfo->SetRequireTls(stsEnforced || !daneRecords.empty() || policyTls >= RemoteTlsEncrypted || _globalRuleResult.GetRequireTls());
 
          // The sentence a deferral carries when the encryption could not be had.
          // Empty unless a policy is what required it: an MTA-STS or DANE failure
@@ -543,6 +543,15 @@ namespace HM
             reason.Format(_T("Delivery deferred: the remote domain policy for %s requires %s to this destination, and it could not be established. The message has NOT been sent in the clear."),
                policyName.c_str(), requirement.c_str());
 
+            serverInfo->SetTlsPolicyReason(reason);
+         }
+         else if (_globalRuleResult.GetRequireTls())
+         {
+            // A rule required it: a deferral naming the rule, as a remote
+            // domain policy's names the policy.
+            String reason;
+            reason.Format(_T("Delivery deferred: the rule %s requires TLS to this destination, and it could not be established. The message has NOT been sent; it will be retried."),
+               _globalRuleResult.GetRequireTlsRuleName().c_str());
             serverInfo->SetTlsPolicyReason(reason);
          }
          else

@@ -18,6 +18,12 @@ namespace HM
       __int64 GetAccountID() const {return account_id_; }
       void SetAccountID(__int64 newval) {account_id_ = newval; }
 
+      // The domain the rule runs for, 0 for none: a domain's rules have no
+      // account and run after the server's for every message with a
+      // recipient in the domain or a sender it hosts.
+      __int64 GetDomainID() const {return domain_id_; }
+      void SetDomainID(__int64 newval) {domain_id_ = newval; }
+
       int GetSortOrder() const {return sort_order_; }
       void SetSortOrder(int newval) {sort_order_ = newval; }
 
@@ -40,6 +46,7 @@ namespace HM
    private:
 
       __int64 account_id_;
+      __int64 domain_id_;
       int sort_order_;
       String name_;
 

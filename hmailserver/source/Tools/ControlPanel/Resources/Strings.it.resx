@@ -896,6 +896,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add criterion" xml:space="preserve">
     <value>Aggiungi criterio</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Aggiungi disclaimer</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Aggiungi lista di distribuzione</value>
   </data>
@@ -1370,6 +1373,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Blocco degli allegati, che è separato</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Nome dell’allegato</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Tentativi di raggiungere il database all'avvio</value>
@@ -2906,6 +2912,9 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Sincronizzazione della directory</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Testo del disc_laimer (aggiunto al messaggio)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Scarta l'indice e ricostruiscilo</value>
@@ -6307,6 +6316,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Abbassa il livello dei registri, o imposta per quanti giorni i registri vengono conservati.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Testo di rifiuto (ciò che il 550 dice al mittente) (_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Rifiuta una casella piena durante la conversazione (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Rifiuta le password più usate</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Rifiuta con un testo</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Correlati:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 e 587, POP3 110, IMAP 143 - senza sicurezza della connessione. Le porte 
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Richiedi SSL/_TLS per l'autenticazione</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Richiedi TLS per la consegna</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Richiedi TLS per l'autenticazione con token</value>
@@ -6704,6 +6722,9 @@ Continuare?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Regole</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Regole di</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Esegui i controlli DNSBL dopo MAIL FROM (anziché alla connessione)</value>
@@ -8655,6 +8676,9 @@ Aggiungerlo comunque?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Il server mittente si connette, invia il messaggio e poi attende. Dal suo lato si vede un timeout dopo la trasmissione del corpo del messaggio - Postfix segnala "timed out while sending end of data". Il messaggio non compare mai nella propria coda.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Il server</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>La password di amministrazione del server e chi è autorizzato a usare questi strumenti.</value>

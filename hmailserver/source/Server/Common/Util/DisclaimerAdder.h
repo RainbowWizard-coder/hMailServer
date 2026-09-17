@@ -42,6 +42,15 @@ namespace HM
       // server handles twice is not footed twice.
       static const char *AppliedHeader() { return "X-hMailServer-Disclaimer"; }
 
+      // A rule's disclaimer: the text given, appended to the plain and the
+      // HTML part of any message the rule matched, the applied header naming
+      // the rule - the domain's conditions (external recipient, the domain's
+      // switch) do not apply, because the rule's conditions did.
+      static bool AppendText(std::shared_ptr<Message> message,
+                             const String &plainText,
+                             std::shared_ptr<MessageData> &message_data,
+                             const String &appliedBy);
+
       // True when the message is signed or encrypted end to end. Appending to
       // one of these is not a degraded result, it is a broken message: a
       // multipart/signed whose first part changed fails verification in every

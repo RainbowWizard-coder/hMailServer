@@ -108,6 +108,7 @@ STDMETHODIMP InterfaceRules::Add(IInterfaceRule** pVal)
       // Make sure that the new rule is
       // added to the right account.
       pDA->SetAccountID(rules_->GetAccountID());
+      pDA->SetDomainID(rules_->GetDomainID());
    
       pIntDA->AttachItem(pDA);
       pIntDA->AttachParent(rules_, false);

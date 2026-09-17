@@ -14,12 +14,13 @@ namespace HM
    class Rules : public Collection<Rule, PersistentRule>
    {
    public:
-      Rules(__int64 iAccountID);
+      Rules(__int64 iAccountID, __int64 iDomainID = 0);
       ~Rules(void);
 
       void Refresh();
 
       __int64 GetAccountID() const {return account_id_; }
+      __int64 GetDomainID() const {return domain_id_; }
  
       void MoveUp(__int64 iRuleID);
       void MoveDown(__int64 iRuleID);
@@ -33,5 +34,6 @@ namespace HM
       void UpdateSortOrder_();
 
       __int64 account_id_;
+      __int64 domain_id_;
    };
 }

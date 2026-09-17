@@ -24,6 +24,7 @@ namespace HM
    Rule::Rule(void) :
       active_(true),
       account_id_(0),
+      domain_id_(0),
       use_and_(true),
       sort_order_(0)
    {

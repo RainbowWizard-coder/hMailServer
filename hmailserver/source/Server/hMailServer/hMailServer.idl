@@ -250,6 +250,7 @@ typedef
 
    [helpstring("The number of delivery attempts (including this one).")]
    eFTDeliveryAttempts = 8,
+   eFTAttachmentName = 9,
 
 } eRulePredefinedField;
 
@@ -324,6 +325,10 @@ typedef
 
    [helpstring("Bind to TCP/IP-address")]
    eRABindToAddress = 10, 
+   eRAAddDisclaimer = 11,
+   eRAReject = 12,
+   eRARequireTLS = 13,
+   eRAQuarantine = 14,
 
 } eRuleActionType;
 
@@ -1135,6 +1140,7 @@ interface IInterfaceDomain : IDispatch
       [propput, id(92), helpstring("How far past its limit a mailbox in this domain still accepts incoming mail, as a percentage of the limit; 0 is not at all and -1 uses the server's value.")] HRESULT QuotaGracePercent([in] long newVal);
       [propget, id(93), helpstring("The percentage of its limit at which an account in this domain stops sending, before it stops receiving; 0 is never and -1 uses the server's value.")] HRESULT QuotaSendStopPercent([out, retval] long *pVal);
       [propput, id(93), helpstring("The percentage of its limit at which an account in this domain stops sending, before it stops receiving; 0 is never and -1 uses the server's value.")] HRESULT QuotaSendStopPercent([in] long newVal);
+      [propget, id(94), helpstring("The rules that run for this domain's mail - every message with a recipient in the domain or a sender it hosts - after the server's rules and before delivery, with the same conditions and actions.")] HRESULT Rules([out, retval] IInterfaceRules **pVal);
 
       /*
          WHAT THIS DOMAIN DOES TO A MESSAGE. All off by default.

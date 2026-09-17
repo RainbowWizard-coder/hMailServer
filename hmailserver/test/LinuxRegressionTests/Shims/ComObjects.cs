@@ -2654,6 +2654,8 @@ namespace hMailServer
    public class Domain : RestBackedObject
    {
       internal bool Unsaved;
+      private DomainRules rules_;
+      public DomainRules Rules => rules_ ??= new DomainRules(() => Name);
       private string _name;
       private string _savedName;
 

@@ -614,6 +614,7 @@ create table hm_rules
 (
 	ruleid bigserial not null primary key,
 	ruleaccountid int not null,
+	ruledomainid int not null default 0,
 	rulename varchar(100) not null,
 	ruleactive smallint not null,
 	ruleuseand smallint not null,
@@ -1818,4 +1819,4 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6062);
+insert into hm_dbversion values (6063);

@@ -605,6 +605,7 @@ create table hm_rules
 (
 	ruleid int auto_increment not null, primary key(`ruleid`), unique(`ruleid`),
 	ruleaccountid int not null,
+	ruledomainid int not null default 0,
 	rulename varchar(100) not null,
 	ruleactive tinyint not null,
 	ruleuseand tinyint not null,
@@ -1910,4 +1911,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6062);
+insert into hm_dbversion values (6063);

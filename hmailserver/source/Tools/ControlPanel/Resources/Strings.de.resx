@@ -896,6 +896,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add criterion" xml:space="preserve">
     <value>Kriterium hinzufügen</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Haftungsausschluss anfügen</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Verteilerliste hinzufügen</value>
   </data>
@@ -1370,6 +1373,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Anhangsperre, die davon getrennt ist</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Anhangname</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Versuche, die Datenbank beim Start zu erreichen</value>
@@ -2906,6 +2912,9 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Verzeichnissynchronisation</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Haftungsausschluss-Text (an die Nachricht ange_legt)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Den Index verwerfen und neu aufbauen</value>
@@ -6307,6 +6316,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Die Protokollstufe senken oder festlegen, wie viele Tage an Protokollen aufbewahrt werden.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Ablehnungste_xt (was 550 dem Absender sagt)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Ein volles Postfach während des Dialogs ablehnen (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Die am häufigsten verwendeten Passwörter ablehnen</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Mit einem Text ablehnen</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Verwandt:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 und 587, POP3 110, IMAP 143 - ohne Verbindungssicherheit. TLS-Ports und 
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>SSL/_TLS bei der Authentifizierung verlangen</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>TLS für die Zustellung verlangen</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>TLS für die Token-Authentifizierung verlangen</value>
@@ -6704,6 +6722,9 @@ Fortfahren?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Regeln</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Regeln von</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>DNSBL-Prüfungen nach MAIL FROM ausführen (statt beim Verbindungsaufbau)</value>
@@ -8655,6 +8676,9 @@ Trotzdem hinzufügen?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Der sendende Server verbindet sich, sendet die Nachricht und wartet dann. Von seiner Seite aus sehen Sie einen Timeout, nachdem der Nachrichtentext übertragen wurde - Postfix meldet „timed out while sending end of data". Die Nachricht taucht in Ihrer Warteschlange nie auf.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Der Server</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Das Administratorpasswort des Servers und wer diese Werkzeuge überhaupt verwenden darf.</value>

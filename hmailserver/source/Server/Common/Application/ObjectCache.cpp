@@ -119,13 +119,48 @@ namespace HM
       return pRules;
    }
 
-   void 
+   void
+   ObjectCache::SetDomainRulesNeedsReload(__int64 iDomainID)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(domain_rules_mutex_);
+      domain_rules_to_refresh_.insert(iDomainID);
+   }
+
+   std::shared_ptr<Rules>
+   ObjectCache::GetDomainRules(__int64 iDomainID)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(domain_rules_mutex_);
+
+      std::shared_ptr<Rules> pRules;
+      auto iterRules = domain_rules_.find(iDomainID);
+      if (iterRules == domain_rules_.end())
+      {
+         pRules = std::shared_ptr<Rules>(new Rules(0, iDomainID));
+         domain_rules_[iDomainID] = pRules;
+         domain_rules_to_refresh_.insert(iDomainID);
+      }
+      else
+         pRules = (*iterRules).second;
+
+      auto iterRefresh = domain_rules_to_refresh_.find(iDomainID);
+      if (iterRefresh != domain_rules_to_refresh_.end())
+      {
+         pRules->Refresh();
+         domain_rules_to_refresh_.erase(iterRefresh);
+      }
+
+      return pRules;
+   }
+
+   void
    ObjectCache::ClearRuleCaches()
    {
       boost::lock_guard<boost::recursive_mutex> globalRulesGuard(global_rules_mutex_);
       boost::lock_guard<boost::recursive_mutex> accontRulesGuard(account_rules_mutex_);
+      boost::lock_guard<boost::recursive_mutex> domainRulesGuard(domain_rules_mutex_);
 
       global_rules_.reset();
       account_rules_.clear();
+      domain_rules_.clear();
    }
 }

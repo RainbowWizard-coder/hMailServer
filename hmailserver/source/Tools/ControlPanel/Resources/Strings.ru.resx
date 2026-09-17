@@ -896,6 +896,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add criterion" xml:space="preserve">
     <value>Добавить критерий</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Добавить оговорку</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Добавить список рассылки</value>
   </data>
@@ -1370,6 +1373,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Блокировка вложений — это отдельный механизм</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Имя вложения</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Число попыток подключиться к базе данных при запуске</value>
@@ -2906,6 +2912,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Синхронизация с каталогом</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Текст оговорки (добавляется к сообщению) (_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Сбросить индекс и перестроить его</value>
@@ -6307,6 +6316,9 @@ Control Panel может читать файлы сообщений только
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Понизьте уровень журналирования или задайте, сколько дней хранятся журналы.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Текст отказа (что 550 говорит отправителю) (_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Отклонять переполненный почтовый ящик прямо в ходе диалога (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Отклонять самые распространённые пароли</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Отклонить с текстом</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Связанное:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Требовать SSL/_TLS при аутентификации</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Требовать TLS для доставки</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Требовать TLS для аутентификации по токену</value>
@@ -6704,6 +6722,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Правила</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Правила для</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Выполнять проверки DNSBL после MAIL FROM (а не при подключении)</value>
@@ -8655,6 +8676,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Отправляющий сервер подключается, отправляет сообщение, а затем ждёт. С его стороны вы видите тайм-аут после того, как тело сообщения было передано - Postfix сообщает «timed out while sending end of data». Сообщение так и не появляется в вашей очереди.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Сервер</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Пароль администрирования сервера и кто вообще имеет право пользоваться этими инструментами.</value>

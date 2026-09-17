@@ -14,6 +14,7 @@
 #include "PersistentSenderListEntry.h"
 #include "../BO/SenderListEntry.h"
 #include "PersistentSpamTrap.h"
+#include "PersistentRule.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
 
 #include "../Util/Crypt.h"
@@ -379,6 +380,9 @@ namespace HM
          // reissued, and a trap left behind would start refusing an address in
          // whichever domain takes the number next - which is somebody else's
          // mail refused as an unknown user, and their sender banned for it.
+         // The domain's own rules, with their criteria and actions.
+         PersistentRule::DeleteByDomainID(iDomainID);
+
          if (!PersistentSpamTrap::DeleteByDomain(iDomainID))
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6912, "PersistentDomain::DeleteObject",

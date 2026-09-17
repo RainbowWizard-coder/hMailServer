@@ -419,4 +419,4 @@
 //      the backup archive is encrypted with, protected by the platform's secret
 //      store, with the integer as "a passphrase is set". Empty on every existing
 //      installation, where backups go on being written unencrypted.
-#define REQUIRED_DB_VERSION            6062
+#define REQUIRED_DB_VERSION            6063

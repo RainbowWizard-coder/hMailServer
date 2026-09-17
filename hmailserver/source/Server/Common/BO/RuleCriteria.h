@@ -20,7 +20,8 @@ namespace HM
          FTBody = 5,
          FTMessageSize = 6,
          FTRecipientList = 7,
-         FTDeliveryAttempts = 8
+         FTDeliveryAttempts = 8,
+         FTAttachmentName = 9
       };
 
       enum MatchType

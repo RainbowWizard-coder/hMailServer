@@ -896,6 +896,9 @@
   <data name="Add criterion" xml:space="preserve">
     <value>添加条件</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>添加免责声明</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>添加分发列表</value>
   </data>
@@ -1370,6 +1373,9 @@
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>附件拦截，这是另外一回事</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>附件名称</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>启动时尝试连接数据库的次数</value>
@@ -2906,6 +2912,9 @@
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>目录同步</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>免责声明文本（附加到邮件）(_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>丢弃索引并重建</value>
@@ -6307,6 +6316,9 @@
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>降低日志级别，或者设置日志保留的天数。</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>拒绝文本（550 告知发件人的内容）(_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>在会话期间拒绝已满的邮箱（452 4.2.2）</value>
   </data>
@@ -6360,6 +6372,9 @@
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>拒绝最常用的那些密码</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>以文本拒绝</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>相关：</value>
@@ -6514,6 +6529,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>身份验证时要求 SSL/TLS(_T)</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>投递时要求 TLS</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>令牌身份验证要求 TLS</value>
@@ -6704,6 +6722,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Rules" xml:space="preserve">
     <value>规则</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>规则所属</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>在 MAIL FROM 之后运行 DNSBL 检查（而不是在连接时）</value>
@@ -8655,6 +8676,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>发送方服务器连接、发送邮件，然后等待。从它那一侧看，在邮件正文传输完毕后出现超时 - Postfix 会报告 "timed out while sending end of data"。该邮件永远不会出现在您的队列中。</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>服务器</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>服务器管理密码，以及究竟谁可以使用这些工具。</value>

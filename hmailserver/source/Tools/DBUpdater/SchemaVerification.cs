@@ -1149,6 +1149,10 @@ namespace DBUpdater
                          "update hm_domainsamples set dsstorebytes = dsstorebytes where 1 = 0"),
          new SchemaProbe(6062, "hm_domainsamples.dsstoremessages",
                          "update hm_domainsamples set dsstoremessages = dsstoremessages where 1 = 0"),
+         // Upgrade6062to6063* - a rule's domain: 0 for the server's and an
+         // account's rules, the domain's id for a rule that runs for one domain.
+         new SchemaProbe(6063, "hm_rules.ruledomainid",
+                         "update hm_rules set ruledomainid = ruledomainid where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

@@ -243,6 +243,11 @@ namespace HM
       // Authenticates using a SASL XOAUTH2 / OAUTHBEARER (RFC 7628) client response.
 
       std::shared_ptr<const Account> LookupActiveAccount_(const String &sAddress);
+
+      // Whether a rule with a reject action - the server's or a domain's of
+      // the recipients or the sender - matches the message just received;
+      // text is what the 550 carries.
+      bool RejectedByRule_(String &text);
       // Looks up an active account in an active domain (OAuth2 bearer login).
 
       // SCRAM-SHA-256 (RFC 5802 / RFC 7677) SASL exchange over SMTP (RFC 4954).

@@ -313,6 +313,63 @@ namespace HM
       return true;
    }
 
+   bool
+   DisclaimerAdder::AppendText(std::shared_ptr<Message> message,
+                               const String &plainText,
+                               std::shared_ptr<MessageData> &message_data,
+                               const String &appliedBy)
+   {
+      if (!message || plainText.IsEmpty())
+         return false;
+
+      String html = plainText;
+      html.Replace(_T("\r\n"), _T("<br>\r\n"));
+
+      std::shared_ptr<MessageData> data = message_data;
+      const bool loadedHere = !data;
+      if (loadedHere)
+      {
+         data = std::shared_ptr<MessageData>(new MessageData());
+         std::shared_ptr<Account> emptyAccount;
+         if (!data->LoadFromMessage(emptyAccount, message))
+            return false;
+      }
+
+      if (IsProtectedContentType(data->GetFieldValue(_T("Content-Type"))))
+         return false;
+
+      auto plainPart = data->GetBodyTextPlainPart();
+      auto htmlPart = data->GetBodyTextHtmlPart();
+      if (!plainPart && !htmlPart)
+         return false;
+
+      if (plainPart && AlreadyCarries(plainPart->GetUnicodeText(), plainText, false))
+         return false;
+      if (htmlPart && AlreadyCarries(htmlPart->GetUnicodeText(), html, true))
+         return false;
+
+      if (plainPart)
+      {
+         String content = plainPart->GetUnicodeText();
+         content += "\r\n" + plainText;
+         plainPart->SetUnicodeText(content);
+      }
+
+      if (htmlPart)
+      {
+         String content = htmlPart->GetUnicodeText();
+         content += "<br/>\r\n" + html;
+         htmlPart->SetUnicodeText(content);
+      }
+
+      data->SetFieldValue(String(AppliedHeader()), appliedBy);
+
+      if (loadedHere)
+         message_data = data;
+
+      return true;
+   }
+
    void
    DisclaimerAdderTester::Test()
    {

@@ -47,6 +47,8 @@
 #include "../Common/AntiSpam/DKIM/DKIMSigner.h"
 #include "SMTPVirusNotifier.h"
 #include "RuleApplier.h"
+#include <set>
+#include "../Common/AntiSpam/QuarantineStore.h"
 #include "RuleResult.h"
 #include "RecipientParser.h"
 #include "MirrorMessage.h"
@@ -1175,6 +1177,33 @@ namespace HM
       std::shared_ptr<Account> emptyAccount;
       pRuleApplier->ApplyRules(ObjectCache::Instance()->GetGlobalRules(), emptyAccount, pMessage, ruleResult);
 
+      // The domains' own rules, after the server's: every domain a local
+      // recipient is in, and the sender's when it is hosted here, each once.
+      if (!ruleResult.GetDeleteEmail())
+      {
+         std::set<__int64> domainIds;
+         for (std::shared_ptr<MessageRecipient> recipient : pMessage->GetRecipients()->GetVector())
+         {
+            if (!recipient || !recipient->GetIsLocalName())
+               continue;
+
+            std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+            if (domain)
+               domainIds.insert(domain->GetID());
+         }
+
+         std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(pMessage->GetFromAddress()));
+         if (senderDomain)
+            domainIds.insert(senderDomain->GetID());
+
+         for (__int64 domainId : domainIds)
+         {
+            pRuleApplier->ApplyRules(ObjectCache::Instance()->GetDomainRules(domainId), emptyAccount, pMessage, ruleResult);
+            if (ruleResult.GetDeleteEmail())
+               break;
+         }
+      }
+
       if (ruleResult.GetDeleteEmail())
       {
          String sDeleteRuleName = ruleResult.GetDeleteRuleName();
@@ -1182,15 +1211,35 @@ namespace HM
          String sMessage;
          sMessage.Format(_T("SMTPDeliverer - Message %I64d: ")
             _T("Message will be deleted. Action triggered by a global rule (%s). "),
-            pMessage->GetID(), 
+            pMessage->GetID(),
             sDeleteRuleName.c_str());
-
          LOG_APPLICATION(sMessage);
 
          return false;
       }
 
+      if (ruleResult.GetQuarantine())
+      {
+         // Held rather than delivered, for an administrator to release or
+         // delete; the copy the store keeps is the message as it is now, rules
+         // applied. A store that could not keep it delivers the message rather
+         // than lose it, and says so.
+         if (QuarantineStore::Quarantine(pMessage, _T("Rule: ") + ruleResult.GetQuarantineRuleName(), 0))
+         {
+            String sMessage;
+            sMessage.Format(_T("SMTPDeliverer - Message %I64d: Message quarantined. Action triggered by a rule (%s)."),
+               pMessage->GetID(), ruleResult.GetQuarantineRuleName().c_str());
+            LOG_APPLICATION(sMessage);
+
+            return false;
+         }
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6261, "SMTPDeliverer::RunGlobalRules_",
+            "A rule asked for a message to be quarantined and the quarantine could not store it; the message is being delivered instead.");
+      }
+
       return true;
+
    }
 
    void 

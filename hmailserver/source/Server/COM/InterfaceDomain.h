@@ -77,6 +77,7 @@ END_COM_MAP()
    STDMETHOD(Delete)();
    STDMETHOD(SynchronizeDirectory)();
    STDMETHOD(get_Accounts)(/*[out, retval]*/ IInterfaceAccounts **pVal);
+   STDMETHOD(get_Rules)(/*[out, retval]*/ IInterfaceRules **pVal);
    STDMETHOD(get_Active)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_Active)(/*[in]*/ VARIANT_BOOL newVal);
    STDMETHOD(Save)();

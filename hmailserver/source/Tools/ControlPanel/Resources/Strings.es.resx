@@ -896,6 +896,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Add criterion" xml:space="preserve">
     <value>Añadir criterio</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Añadir aviso legal</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Añadir lista de distribución</value>
   </data>
@@ -1370,6 +1373,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Bloqueo de adjuntos, que es aparte</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Nombre del adjunto</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Intentos de alcanzar la base de datos al arrancar</value>
@@ -2906,6 +2912,9 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Sincronización con el directorio</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>_Texto del aviso legal (añadido al mensaje)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Descartar el índice y reconstruirlo</value>
@@ -6307,6 +6316,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Reduzca el nivel de registro, o defina cuántos días de registros se conservan.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Te_xto de rechazo (lo que el 550 dice al remitente)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Rechazar un buzón lleno durante la conversación (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Rechazar las contraseñas más utilizadas</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Rechazar con un texto</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Relacionado:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Exigir SSL/_TLS al autenticarse</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Exigir TLS para la entrega</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Exigir TLS para la autenticación por token</value>
@@ -6704,6 +6722,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Reglas</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Reglas de</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Ejecutar las comprobaciones DNSBL después de MAIL FROM (en vez de al conectar)</value>
@@ -8655,6 +8676,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>El servidor emisor se conecta, envía el mensaje y luego espera. Desde su lado se ve un tiempo de espera agotado después de haberse transmitido el cuerpo del mensaje - Postfix informa de "timed out while sending end of data". El mensaje nunca aparece en su cola.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>El servidor</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>La contraseña de administración del servidor, y quién puede usar siquiera estas herramientas.</value>

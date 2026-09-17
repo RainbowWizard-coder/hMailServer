@@ -896,6 +896,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add criterion" xml:space="preserve">
     <value>Dodaj kryterium</value>
   </data>
+  <data name="Add disclaimer" xml:space="preserve">
+    <value>Dodaj zastrzeżenie</value>
+  </data>
   <data name="Add distribution list" xml:space="preserve">
     <value>Dodaj listę dystrybucyjną</value>
   </data>
@@ -1370,6 +1373,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Attachment blocking, which is separate" xml:space="preserve">
     <value>Blokowanie załączników, które jest odrębne</value>
+  </data>
+  <data name="Attachment name" xml:space="preserve">
+    <value>Nazwa załącznika</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Liczba prób połączenia z bazą danych przy uruchamianiu</value>
@@ -2906,6 +2912,9 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Synchronizacja katalogu</value>
+  </data>
+  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
+    <value>Tekst zastrzeżenia (do_łączany do wiadomości)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Odrzuć indeks i odbuduj go</value>
@@ -6307,6 +6316,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Obniż poziom rejestrowania albo ustaw, przez ile dni dzienniki są przechowywane.</value>
   </data>
+  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
+    <value>Tekst odmowy (co 550 mówi nadawcy) (_X)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Odmawiaj przy pełnej skrzynce pocztowej już w trakcie konwersacji (452 4.2.2)</value>
   </data>
@@ -6360,6 +6372,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Odrzucaj najczęściej używane hasła</value>
+  </data>
+  <data name="Reject with a text" xml:space="preserve">
+    <value>Odrzuć z tekstem</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Powiązane:</value>
@@ -6514,6 +6529,9 @@ SMTP 25 i 587, POP3 110, IMAP 143 - bez zabezpieczenia połączenia. Porty TLS i
   </data>
   <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
     <value>Wymagaj SSL/_TLS przy uwierzytelnianiu</value>
+  </data>
+  <data name="Require TLS for delivery" xml:space="preserve">
+    <value>Wymagaj TLS przy dostarczaniu</value>
   </data>
   <data name="Require TLS for token authentication" xml:space="preserve">
     <value>Wymagaj TLS do uwierzytelniania tokenem</value>
@@ -6704,6 +6722,9 @@ Kontynuować?</value>
   </data>
   <data name="Rules" xml:space="preserve">
     <value>Reguły</value>
+  </data>
+  <data name="Rules of" xml:space="preserve">
+    <value>Reguły dla</value>
   </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Wykonuj kontrole DNSBL po MAIL FROM (a nie przy nawiązaniu połączenia)</value>
@@ -8655,6 +8676,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Serwer wysyłający łączy się, wysyła wiadomość i czeka. Z jego strony widać upłynięcie limitu czasu po przesłaniu treści wiadomości - Postfix zgłasza „timed out while sending end of data”. Wiadomość nigdy nie pojawia się w kolejce.</value>
+  </data>
+  <data name="The server" xml:space="preserve">
+    <value>Serwer</value>
   </data>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Hasło administracyjne serwera oraz to, kto w ogóle może korzystać z tych narzędzi.</value>
