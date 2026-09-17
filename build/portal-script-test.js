@@ -314,6 +314,10 @@ const localStorage = {
    getItem: (k) => (store.has(k) ? store.get(k) : null),
    setItem: (k, v) => store.set(k, String(v)),
    removeItem: (k) => store.delete(k),
+   // key(i) is the rest of the Storage interface, and the page uses it to
+   // sweep out keys it can no longer name - a tally filed under an address
+   // that a session ending while the page was closed took with it.
+   key: (i) => (i >= 0 && i < store.size ? Array.from(store.keys())[i] : null),
    get length() { return store.size; }
 };
 
@@ -410,6 +414,11 @@ const keywordsById = { 101: ['$FollowUp', '$Due-' + todayStamp] };
 // send such a thing: it is that one press that throws does not take that
 // message's star down with it for the rest of the session.
 let brokenFlagsAnswerOnce = false;
+// One message whose flags this account may not change - a folder ACL that
+// allows reading and not writing, or a message already carrying as many
+// keywords as the server allows. Set to an id, it refuses that one and no
+// other, which is how a change over a whole conversation is made to half fail.
+let flagsRefuseId = 0;
 const isStarRequest = (body) => /"keywords_remove"/.test(body || '') && /\$Star2/i.test(body || '');
 const withState = (m) => Object.assign({}, m, { flags: Object.assign({}, m.flags, { flagged: !!flaggedById[m.id], keywords: (keywordsById[m.id] || []).slice() }) });
 
@@ -447,6 +456,32 @@ const OLDER = [
 ];
 
 const ARRIVAL = { id: 104, uid: 14, subject: 'Just in', from: 'd@example.net', to: 'user@example.com', date: '2026-09-09 12:00', size: 400, flags: { seen: false, flagged: false, draft: false } };
+
+// The importance checks need mail the page has not judged yet - it judges a
+// message once a session - so these arrive only when those checks ask for
+// them: at stage 1 a newsletter addressed to a list and a message from the
+// one contact in the address book the reader writes to; at stage 2 a second
+// newsletter from that same sender, to show what the reader's own mark
+// taught this browser. Nothing else in the run sets importantArrival.
+let importantArrival = 0;
+const IMPORTANT_MANY = 'list@example.net, one@example.net, two@example.net, three@example.net, four@example.net, user@example.com';
+const IMPORTANT_NEW = [
+   { id: 111, uid: 18, subject: 'Newsletter', from: 'news@stranger.example', to: IMPORTANT_MANY, category: 'promotions', date: '2026-09-09 14:30', size: 400, flags: { seen: true, flagged: false, draft: false } },
+   { id: 112, uid: 17, subject: 'Figures', from: 'Alice Example <alice@example.net>', to: 'user@example.com', date: '2026-09-09 14:00', size: 400, flags: { seen: true, flagged: false, draft: false } }
+];
+const IMPORTANT_AGAIN = { id: 113, uid: 19, subject: 'Newsletter again', from: 'news@stranger.example', to: IMPORTANT_MANY, category: 'promotions', date: '2026-09-09 15:00', size: 400, flags: { seen: true, flagged: false, draft: false } };
+// Stage 3: two senders whose address is the name of a property every object
+// in JavaScript has, and a conversation of two from one sender. The first
+// pair is the one a stranger can choose - a From header is theirs to write -
+// and neither may be taken for an address the reader writes to. The second is
+// what a mark over a conversation must count as one word about its sender.
+const IMPORTANT_PROTOTYPE = [
+   { id: 117, uid: 23, subject: 'Bulletin', from: 'Bulletin <bulletin@stranger.example>', to: 'user@example.com', references: '<bulletin@stranger.example>', date: '2026-09-09 17:00', size: 400, flags: { seen: true, flagged: false, draft: false } },
+   { id: 116, uid: 22, subject: 'Bulletin', from: 'Bulletin <bulletin@stranger.example>', to: 'user@example.com', references: '<bulletin@stranger.example>', date: '2026-09-09 16:45', size: 400, flags: { seen: true, flagged: false, draft: false } },
+   { id: 115, uid: 21, subject: 'Prototype pills', from: 'Cheap Pills <constructor>', to: 'user@example.com', date: '2026-09-09 16:30', size: 400, flags: { seen: true, flagged: false, draft: false } },
+   { id: 114, uid: 20, subject: 'Prototype more', from: 'Also Cheap <__proto__>', to: 'user@example.com', date: '2026-09-09 16:15', size: 400, flags: { seen: true, flagged: false, draft: false } }
+];
+const importantExtra = () => (importantArrival >= 3 ? IMPORTANT_PROTOTYPE : []).concat(importantArrival >= 2 ? [IMPORTANT_AGAIN] : []).concat(importantArrival >= 1 ? IMPORTANT_NEW : []);
 
 const WITH_IMAGE = {
    id: 102, folder_id: 1, uid: 12, subject: 'Second', from: 'Bee <b@example.net>', to: 'user@example.com', cc: '', brand: 'example.net',
@@ -1045,8 +1080,9 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/preferences' && method === 'PUT') { Object.assign(prefsStore, JSON.parse(body || '{}')); return json(200, { preferences: prefsStore }); }
    if (path.startsWith('/api/v1/me/folders/1/messages')) {
       if (path.indexOf('before_uid=') >= 0) { return json(200, { total: arrived ? 6 : 5, messages: OLDER.map(withState) }); }
-      if (!arrived) { return json(200, { total: LISTING.total, messages: LISTING.messages.map(withState) }); }
-      return json(200, { total: 6, messages: [ARRIVAL].concat(LISTING.messages).map(withState) });
+      const extra = importantExtra();
+      if (!arrived) { return json(200, { total: LISTING.total + extra.length, messages: extra.concat(LISTING.messages).map(withState) }); }
+      return json(200, { total: 6 + extra.length, messages: extra.concat([ARRIVAL], LISTING.messages).map(withState) });
    }
    if (path.startsWith('/api/v1/me/folders/2/messages')) { return json(200, { total: SENT_LISTING.length, messages: SENT_LISTING.map(withState) }); }
    if (path.startsWith('/api/v1/me/folders/3/messages')) { return json(200, { total: WORK_THREAD.length, messages: WORK_THREAD.map((m) => withState(Object.assign({}, m, { text: undefined }))) }); }
@@ -1074,6 +1110,13 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/messages/102' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(WITH_IMAGE)))); }
    if (path === '/api/v1/me/messages/104' && method === 'GET') {
       return json(200, withState(Object.assign({}, ARRIVAL, { folder_id: 1, received: ARRIVAL.date + ':00', cc: '', text: 'just in', html: '', attachments: [], message_id: '<four@example.net>', references: '', in_reply_to: '' })));
+   }
+   // The importance checks' own mail, opened: the sender matters, so these
+   // answer as themselves rather than out of the message below that stands in
+   // for any id.
+   if (/^\/api\/v1\/me\/messages\/11[123]$/.test(path) && method === 'GET') {
+      const one = IMPORTANT_NEW.concat([IMPORTANT_AGAIN]).filter((x) => x.id === Number(path.split('/').pop()))[0];
+      return json(200, withState(Object.assign({}, one, { folder_id: 1, received: one.date + ':00', cc: '', text: one.subject, html: '', attachments: [], message_id: '<' + one.id + '@example.net>', references: '', in_reply_to: '' })));
    }
    // The HTML document the server renders for the message, which the offline store keeps.
    if (path.startsWith('/api/v1/me/messages/102/html') && method === 'GET') {
@@ -1118,6 +1161,7 @@ function answer(method, path, body) {
    if (/\/messages\/\d+\/flags$/.test(path)) {
       // The star and the keywords are kept, removed first then added, as the server does.
       const id = Number(path.split('/')[5]);
+      if (flagsRefuseId === id) { return json(403, { error: 'The folder does not allow it' }); }
       const change = JSON.parse(body || '{}');
       if (typeof change.flagged === 'boolean') { flaggedById[id] = change.flagged; }
       let keywords = (keywordsById[id] || []).slice();
@@ -1305,9 +1349,23 @@ function idbRequest(run) {
    });
    return request;
 }
+// A real IndexedDB structured-clones what is put into it, so a page that goes
+// on mutating the object it stored does not change the store. Keeping the
+// reference instead made this stub answer yes to questions a browser would
+// answer no to - a keyword written onto the page's copy of a message looked
+// as though it had reached the kept copy, when nothing had been written at
+// all. A Blob is immutable, so passing one through cannot hide anything.
+const idbClone = (value) => {
+   if (value === null || typeof value !== 'object') { return value; }
+   if (value instanceof Blob || value instanceof ArrayBuffer || value instanceof Date) { return value; }
+   if (Array.isArray(value)) { return value.map(idbClone); }
+   const out = {};
+   Object.keys(value).forEach((k) => { out[k] = idbClone(value[k]); });
+   return out;
+};
 class IdbStore {
    constructor(keyPath) { this.keyPath = keyPath; this.records = new Map(); }
-   put(value) { return idbRequest(() => { const key = value[this.keyPath]; if (key === undefined) { throw new Error('no key'); } this.records.set(key, value); return key; }); }
+   put(value) { return idbRequest(() => { const key = value[this.keyPath]; if (key === undefined) { throw new Error('no key'); } this.records.set(key, idbClone(value)); return key; }); }
    get(key) { return idbRequest(() => this.records.get(key)); }
    delete(key) { return idbRequest(() => { this.records.delete(key); return undefined; }); }
    clear() { return idbRequest(() => { this.records.clear(); return undefined; }); }
@@ -4040,6 +4098,35 @@ async function main() {
          document.getElementById('offline-room').hidden === true && document.getElementById('offline-clear').hidden === false,
          document.getElementById('offline-kept').textContent);
 
+      // A keyword is a change to the kept copy as much as a star is. The
+      // importance marker is the shortest way to put one on: marked and then
+      // put back, the copy in this browser follows both ways, or a message
+      // read with no connection wears the wrong mark and sits in the wrong
+      // section of the inbox.
+      const keptWords = () => (idbStore('rows').get(102).row.flags.keywords || []).join(' ');
+      const savedWords = () => {
+         try {
+            const kept = JSON.parse(store.get('hmPortalOffline') || '{}');
+            const saved = ((kept.items && kept.items.list && kept.items.list.messages) || []).filter((m) => m.id === 102)[0];
+            return ((saved && saved.flags && saved.flags.keywords) || []).join(' ');
+         } catch (e) { return 'unreadable'; }
+      };
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/m/102';
+      await flush();
+      document.getElementById('message-important').dispatchEvent(makeEvent('click'));
+      await flush(); await flush();
+      check('a keyword put on a message reaches both copies this browser keeps - the message in the store, and the inbox listing saved beside it',
+         keptWords().indexOf('$Important') >= 0 && savedWords().indexOf('$Important') >= 0, keptWords() + ' / ' + savedWords());
+      const findAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const undoImportant = findAll(document.getElementById('toasts'), (n) => n.tagName === 'BUTTON' && n.textContent === words('Undo'))[0];
+      if (!undoImportant) { throw new Error('no Undo in the toast: ' + document.getElementById('toasts').textContent); }
+      undoImportant.dispatchEvent(makeEvent('click'));
+      await flush(); await flush();
+      check('and taking it off reaches them both too', keptWords().indexOf('$Important') < 0 && savedWords().indexOf('$Important') < 0, keptWords() + ' / ' + savedWords());
+      dismissAllToasts();
+
       // A server that cannot read the choice for a moment says so with a 500,
       // and the page leaves what it keeps alone: a failed read is not a
       // reader who chose nothing. Then a listing that says nothing is chosen
@@ -4278,6 +4365,14 @@ async function main() {
    // ---- Contact groups: a group in the address book, made and filled on the
    // Contacts page, offered by its name in To and expanded to the people it
    // reaches, a group inside a group expanded once, and removed with an Undo
+   // ---- Important, and sections of the inbox: a heuristic that lives in this
+   // browser, writes one IMAP keyword, and is always overruled by the reader.
+   // One session, end to end: a fresh sign-in that has learned nothing marks
+   // nothing; mail from the one contact the reader writes to is marked and
+   // says why; the reader disagrees and is obeyed; the reader marks a
+   // stranger's newsletter important and the next one from that sender is
+   // marked too; a sign-out forgets all of it, and what the reader marked by
+   // hand is never judged again.
    {
       const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
       const fill = (text, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), words(text));
@@ -4464,6 +4559,348 @@ async function main() {
          JSON.stringify(since(beforeGroupMention).map((r) => r.path)));
       document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
       await flush();
+      const hasClass = (n, name) => String(n.className).split(' ').indexOf(name) >= 0;
+      const list = () => document.getElementById('message-list');
+      // Under sections a row sits inside its section, so rows are walked for.
+      const rowsIn = (root) => walkAll(root, (n) => hasClass(n, 'msg'));
+      const msgRows = () => rowsIn(list());
+      const rowFor = (subject) => msgRows().filter((r) => r.textContent.indexOf(subject) >= 0)[0];
+      const markerIn = (row) => (row ? walkAll(row, (n) => hasClass(n, 'imp'))[0] : null);
+      const lit = (subject) => { const b = markerIn(rowFor(subject)); return !!b && hasClass(b, 'on'); };
+      const sections = () => walkAll(list(), (n) => hasClass(n, 'list-sect'));
+      const sectionHead = (box) => walkAll(box, (n) => String(n.className) === 'list-sect-toggle')[0];
+      const headings = () => sections().map((box) => sectionHead(box).textContent);
+      const tallyKey = 'hmPortalImportant:user@example.com';
+      const tally = () => { try { return JSON.parse(store.get(tallyKey) || '{}'); } catch (e) { return {}; } };
+      const keywordPuts = (from, id) => since(from).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/messages/' + id + '/flags' && /keywords_/.test(r.body || ''));
+      const adds = (put) => (put ? (JSON.parse(put.body).keywords_add || []).slice().sort() : []);
+      const removes = (put) => (put ? (JSON.parse(put.body).keywords_remove || []).slice().sort() : []);
+      const goTo = async (hash) => { if (location.hash === hash) { location.hash = '#/settings'; await flush(); } location.hash = hash; await flush(); };
+      // The run is in German by here, so the Undo button is named in German.
+      const undoNow = () => { const b = walkAll(document.getElementById('toasts'), (n) => n.tagName === 'BUTTON' && n.textContent === words('Undo'))[0]; if (!b) { throw new Error('no Undo in the toast: ' + document.getElementById('toasts').textContent); } b.dispatchEvent(makeEvent('click')); };
+      const setPrefs = async (values) => {
+         await goTo('#/settings');
+         Object.keys(values).forEach((id) => { document.getElementById(id).value = values[id]; });
+         document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+         await flush();
+      };
+      const signInAgain = async () => {
+         document.getElementById('signout').dispatchEvent(makeEvent('click'));
+         await flush();
+         document.getElementById('address').value = account;
+         document.getElementById('password').value = 'a-real-password';
+         document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
+         await flush();
+         dismissAllToasts();
+         await goTo('#/f/1');
+      };
+      const inboxWas = document.getElementById('pref-inbox').value;
+      const paneWas = document.getElementById('pref-pane').value;
+      const blockStart = requests.length;
+
+      // A session that has learned nothing: the whole inbox is judged once,
+      // and being addressed to this mailbox alone is not enough on its own.
+      await setPrefs({ 'pref-important': 'auto', 'pref-sections': '0', 'pref-inbox': 'all', 'pref-pane': 'off' });
+      await signInAgain();
+      const beforeCold = requests.length;
+      await goTo('#/f/1');
+      check('a browser that has learned nothing marks nothing, and tells the server nothing while deciding it',
+         msgRows().length === 4 && msgRows().every((r) => !!markerIn(r)) && !msgRows().some((r) => hasClass(markerIn(r), 'on')) &&
+         since(beforeCold).every((r) => r.method === 'GET'),
+         msgRows().length + ' rows, ' + JSON.stringify(since(beforeCold).filter((r) => r.method !== 'GET').map((r) => r.method + ' ' + r.path)));
+      check('and the marker is a control, named for what pressing it would do',
+         markerIn(msgRows()[0]).getAttribute('aria-pressed') === 'false' && markerIn(msgRows()[0]).getAttribute('aria-label') === words('Mark as important'),
+         String(markerIn(msgRows()[0]).getAttribute('aria-label')));
+      check('the sidebar offers the Important view beside Starred',
+         document.getElementById('folder-nav').children[2].getAttribute('data-route') === '/important',
+         String(document.getElementById('folder-nav').children[2].getAttribute('data-route')));
+      check('a row that carries the marker says so, so that the sender\'s column can be given the width the marker takes and the name is no shorter for it',
+         msgRows().every((r) => hasClass(r, 'has-imp')), String(msgRows()[0].className));
+      await goTo('#/f/2');
+      check('and mail the reader sent has no marker and asks for none of that width',
+         msgRows().length > 0 && !msgRows().some((r) => markerIn(r)) && !msgRows().some((r) => hasClass(r, 'has-imp')),
+         msgRows().length + ' rows, ' + JSON.stringify(msgRows().map((r) => String(r.className))));
+      await goTo('#/f/1');
+
+      // Mail arrives: one from the one contact in the address book the reader
+      // writes to, one a newsletter addressed to a list of six.
+      importantArrival = 1;
+      const beforeJudge = requests.length;
+      await goTo('#/f/1');
+      const judgePuts = since(beforeJudge).filter((r) => r.method === 'PUT' && /\/flags$/.test(r.path));
+      check('mail from somebody the reader writes to is marked important, as the $Important keyword, so every other client sees it',
+         judgePuts.length === 1 && judgePuts[0].path === '/api/v1/me/messages/112/flags' && adds(judgePuts[0]).join(' ') === '$Important' && lit('Figures'),
+         JSON.stringify(judgePuts.map((r) => r.path + ' ' + r.body)));
+      check('a newsletter addressed to a list of six is not', !lit('Newsletter'), String(markerIn(rowFor('Newsletter')).className));
+      check('and the marker says which reason decided it, in the reader\'s own language',
+         markerIn(rowFor('Figures')).getAttribute('title') === fill('Important because {0}. Click to mark as not important.', words('you write to this sender')),
+         String(markerIn(rowFor('Figures')).getAttribute('title')));
+      const beforeAgain = requests.length;
+      await goTo('#/f/1');
+      check('a message judged once is not judged again in the same session', !called(beforeAgain, 'PUT', /\/flags$/),
+         JSON.stringify(since(beforeAgain).filter((r) => r.method !== 'GET').map((r) => r.method + ' ' + r.path)));
+
+      // The reader disagrees, from the open message.
+      await goTo('#/m/112');
+      check('the open message offers to take the mark off', document.getElementById('message-important').hidden === false &&
+         document.getElementById('message-important').textContent === words('Not important'),
+         document.getElementById('message-important').textContent);
+      const beforeCorrect = requests.length;
+      document.getElementById('message-important').dispatchEvent(makeEvent('click'));
+      await flush();
+      const correction = keywordPuts(beforeCorrect, 112)[0];
+      check('marking it not important puts $NotImportant on and $Important off in the one request',
+         !!correction && adds(correction).join(' ') === '$NotImportant' && removes(correction).join(' ') === '$Important' &&
+         document.getElementById('message-important').textContent === words('Mark as important'),
+         correction ? correction.body : 'no flags call');
+      check('and says so, with an Undo', document.getElementById('toasts').textContent.indexOf(words('Marked as not important.')) >= 0,
+         document.getElementById('toasts').textContent);
+      const beforeUndoMark = requests.length;
+      undoNow();
+      await flush();
+      const undone = keywordPuts(beforeUndoMark, 112)[0];
+      check('Undo puts back the keywords the message had, which was the one the page had put there',
+         !!undone && adds(undone).join(' ') === '$Important' && removes(undone).join(' ') === '$NotImportant' &&
+         document.getElementById('message-important').textContent === words('Not important'),
+         undone ? undone.body : 'no flags call');
+      dismissAllToasts();
+      document.getElementById('message-important').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // The other way about: the reader raises a newsletter from the list,
+      // with Gmail's key, and this browser remembers that sender.
+      await goTo('#/f/1');
+      const at = msgRows().indexOf(rowFor('Newsletter'));
+      for (let i = 0; i < at; i += 1) { document.dispatchEvent(makeEvent('keydown', { key: 'j', target: document.body })); }
+      const beforeKey = requests.length;
+      document.dispatchEvent(makeEvent('keydown', { key: '+', target: document.body }));
+      await flush();
+      const byKey = keywordPuts(beforeKey, 111)[0];
+      check('the key + marks the row under the cursor important, and - would take it back',
+         !!byKey && adds(byKey).join(' ') === '$Important' && removes(byKey).join(' ') === '$NotImportant' && lit('Newsletter'),
+         byKey ? byKey.body : 'no flags call, cursor at ' + at);
+      dismissAllToasts();
+      check('what the reader marked is counted against that sender, in this browser',
+         tally().marked && tally().marked['news@stranger.example'] === 1 && tally().marked['alice@example.net'] === -1,
+         JSON.stringify(tally().marked));
+
+      // A second newsletter from that sender, which is the whole of what
+      // "it learns" means here: the reader taught this browser, not the server.
+      importantArrival = 2;
+      const beforeTaught = requests.length;
+      await goTo('#/f/1');
+      const taught = keywordPuts(beforeTaught, 113)[0];
+      check('the next message from a sender the reader marked important is marked too',
+         !!taught && adds(taught).join(' ') === '$Important' && lit('Newsletter again'),
+         taught ? taught.body : 'no flags call');
+      check('and it says that is why', markerIn(rowFor('Newsletter again')).getAttribute('title') ===
+         fill('Important because {0}. Click to mark as not important.', words('you marked mail from this sender important')),
+         String(markerIn(rowFor('Newsletter again')).getAttribute('title')));
+
+      // The sections. One of the older messages is starred, so all three are
+      // there to be counted.
+      flaggedById[103] = true;
+      await setPrefs({ 'pref-sections': '1' });
+      await goTo('#/f/1');
+      check('the inbox is drawn as Important, Starred and Everything else, in that order, each counted',
+         headings().length === 3 && headings()[0] === words('Important') + '2' && headings()[1].indexOf(words('Starred')) === 0 &&
+         headings()[2].indexOf(words('Everything else')) === 0 && msgRows().length === 7,
+         JSON.stringify(headings()) + ' over ' + msgRows().length + ' rows');
+      // The list says it is a list and every row says it is an item of one.
+      // A section must not come between the two, or a screen reader loses
+      // both the list and how many items are in it.
+      check('a section is not a thing between the list and its rows: the box is presentational, the heading is a heading, and the rows are a group that heading names',
+         sections().length === 3 && sections().every((box) => box.getAttribute('role') === 'presentation') &&
+         sections().every((box) => walkAll(box, (n) => n.getAttribute('role') === 'heading' && n.getAttribute('aria-level') === '3').length === 1) &&
+         sections().every((box) => {
+            const group = walkAll(box, (n) => n.getAttribute('role') === 'group')[0];
+            return !!group && group.id === sectionHead(box).getAttribute('aria-controls') &&
+               walkAll(box, (n) => n.id === group.getAttribute('aria-labelledby')).length === 1 &&
+               rowsIn(box).every((r) => r.parentNode === group);
+         }),
+         JSON.stringify(sections().map((box) => String(box.getAttribute('role')) + '/' + String(sectionHead(box).getAttribute('aria-controls')))));
+      check('a section that holds unread mail says how much of it is unread', (() => {
+         const rest = rowsIn(sections()[2]);
+         const unseen = rest.filter((r) => hasClass(r, 'unseen')).length;
+         return unseen > 0 && headings()[2] === words('Everything else') + fill('{0}, {1} unread', rest.length, unseen);
+      })(), headings()[2]);
+      check('every row under Important is marked important, and no row under the other two is',
+         rowsIn(sections()[0]).length === 2 && rowsIn(sections()[0]).every((r) => hasClass(markerIn(r), 'on')) &&
+         sections().slice(1).every((box) => rowsIn(box).every((r) => !hasClass(markerIn(r), 'on'))),
+         JSON.stringify(sections().map((box) => rowsIn(box).length)));
+      check('the starred message is under Starred, and it is only in one section',
+         rowsIn(sections()[1]).filter((r) => r.textContent.indexOf('Third') >= 0).length === 1 &&
+         msgRows().filter((r) => r.textContent.indexOf('Third') >= 0).length === 1);
+      check('and the rows are still one list to the keyboard: the cursor starts at the top of the first section',
+         hasClass(msgRows()[0], 'msg-cursor'), String(msgRows()[0].className));
+      const beforeFold = msgRows().length;
+      sectionHead(sections()[0]).dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a section folds away, keeps its count and says it is closed',
+         msgRows().length === beforeFold - 2 && sectionHead(sections()[0]).getAttribute('aria-expanded') === 'false' &&
+         headings()[0] === words('Important') + '2',
+         msgRows().length + ' rows, expanded=' + sectionHead(sections()[0]).getAttribute('aria-expanded'));
+      check('and this browser remembers which is folded', (() => { try { return JSON.parse(store.get('hmPortalSectionsClosed')).important === 1; } catch (e) { return false; } })(),
+         String(store.get('hmPortalSectionsClosed')));
+      sectionHead(sections()[0]).dispatchEvent(makeEvent('click'));
+      await flush();
+      check('and unfolds again, with nothing left behind', msgRows().length === beforeFold && !store.has('hmPortalSectionsClosed'),
+         msgRows().length + ' rows');
+
+      // The tabs sort first; the sections divide what the open tab shows.
+      await setPrefs({ 'pref-inbox': 'tabs' });
+      await goTo('#/f/1');
+      check('with the inbox in tabs the sections divide the open tab, not the whole folder',
+         document.getElementById('inbox-tabs').hidden === false && msgRows().length > 0 && msgRows().length < 7 &&
+         msgRows().length === sections().reduce((n, box) => n + rowsIn(box).length, 0),
+         msgRows().length + ' rows under ' + sections().length + ' sections');
+      await setPrefs({ 'pref-inbox': 'all' });
+
+      // No marker at all: the buttons, the sidebar entry, the section and the
+      // open message's action go with it, and nothing is judged.
+      await setPrefs({ 'pref-important': 'off' });
+      const beforeOff = requests.length;
+      await goTo('#/f/1');
+      check('with the marker off no row has one, the Important section is not offered, and nothing is judged',
+         !msgRows().some((r) => markerIn(r)) && headings().length === 2 && headings()[0].indexOf(words('Starred')) === 0 &&
+         !called(beforeOff, 'PUT', /\/flags$/), JSON.stringify(headings()));
+      check('and the sidebar drops the Important view',
+         document.getElementById('folder-nav').children[2].getAttribute('data-route') !== '/important',
+         String(document.getElementById('folder-nav').children[2].getAttribute('data-route')));
+      await goTo('#/m/112');
+      check('and the open message offers nothing to mark', document.getElementById('message-important').hidden === true);
+
+      // The reader's own marks alone: the marker stays, the judging stops.
+      await setPrefs({ 'pref-important': 'manual', 'pref-sections': '0' });
+      importantArrival = 0;
+      const beforeManual = requests.length;
+      await goTo('#/f/1');
+      check('set to the reader\'s own marks alone, the marker is on every row and nothing is judged',
+         msgRows().length === 4 && msgRows().every((r) => !!markerIn(r)) && !called(beforeManual, 'PUT', /\/flags$/),
+         msgRows().length + ' rows');
+
+      // Signing out forgets what this browser learned, which is the half of
+      // "no server learning" that no server can do for it.
+      check('the tally is kept while the session is', store.has(tallyKey), String(store.get(tallyKey)).slice(0, 60));
+      await setPrefs({ 'pref-important': 'auto' });
+
+      // The connection goes while the session is still good, and the page
+      // draws the inbox listing this browser kept. Nothing in it can be
+      // written back, so nothing in it is judged: a marker the server never
+      // took is a marker no other client would ever show.
+      // From the sender the reader marked important by hand, addressed to
+      // this mailbox alone: it scores well over the two points, so if the
+      // page judged what it drew from the store, it would mark this.
+      const keptPage = { total: 1, messages: [{ id: 120, uid: 30, subject: 'Kept listing', from: 'Newsletter <news@stranger.example>', to: account, date: '2026-09-09 18:00', size: 400, flags: { seen: true, flagged: false, draft: false } }] };
+      store.set('hmPortalOffline', JSON.stringify({ items: { list: keptPage }, order: ['list'] }));
+      networkDown = true;
+      const beforeKept = requests.length;
+      await goTo('#/f/1');
+      check('a listing drawn from this browser\'s own store, because the server cannot be reached, is not judged - though what is in it would score well over the threshold',
+         !!rowFor('Kept listing') && !lit('Kept listing') && !called(beforeKept, 'PUT', /\/flags$/),
+         JSON.stringify(since(beforeKept).filter((r) => r.method !== 'GET').map((r) => r.method + ' ' + r.path)) + ' lit=' + lit('Kept listing'));
+      networkDown = false;
+      store.delete('hmPortalOffline');
+
+      // A session that ended while the page was not open leaves a tally
+      // nobody can name: the next cold load has no address to file it under.
+      // Every tally this browser holds goes, not only the one just signed in.
+      const strandedKey = 'hmPortalImportant:someone-else@example.net';
+      store.set(strandedKey, JSON.stringify({ marked: { 'x@example.net': 3 } }));
+      importantArrival = 2;
+      await signInAgain();
+      check('signing out forgets whose mail this browser had learned to raise, and the tally of a session that ended while the page was closed with it',
+         !store.has(tallyKey) && !store.has(strandedKey), String(store.get(tallyKey)) + ' / ' + String(store.get(strandedKey)));
+
+      // And after all of it, on a browser that has forgotten: a message the
+      // reader marked by hand is never judged again. 112 is from the contact
+      // and would score enough on its own, but it carries $NotImportant.
+      const beforeRejudge = requests.length;
+      await goTo('#/f/1');
+      check('a message the reader marked by hand is never judged again, either way',
+         !called(beforeRejudge, 'PUT', '/api/v1/me/messages/112/flags') && !called(beforeRejudge, 'PUT', '/api/v1/me/messages/111/flags') &&
+         !called(beforeRejudge, 'PUT', '/api/v1/me/messages/113/flags') && !lit('Figures') && lit('Newsletter') && lit('Newsletter again'),
+         JSON.stringify(since(beforeRejudge).filter((r) => r.method === 'PUT').map((r) => r.path + ' ' + r.body)));
+
+      // A From header is whatever a stranger wrote in it, so an address is
+      // asked for as a name somebody chose and never as a property of the
+      // object it is looked up in. constructor, __proto__ and the rest are
+      // on every object in JavaScript, and a map of the addresses the reader
+      // writes to says no to all of them while it is empty of them.
+      importantArrival = 3;
+      const beforeProto = requests.length;
+      await goTo('#/f/1');
+      check('a sender whose address is the name of a property every object has - constructor, __proto__ - is not taken for somebody the reader writes to, and is not marked',
+         !!rowFor('Prototype pills') && !!rowFor('Prototype more') && !lit('Prototype pills') && !lit('Prototype more') &&
+         !called(beforeProto, 'PUT', '/api/v1/me/messages/115/flags') && !called(beforeProto, 'PUT', '/api/v1/me/messages/114/flags'),
+         JSON.stringify(since(beforeProto).filter((r) => r.method === 'PUT').map((r) => r.path + ' ' + r.body)));
+      check('and the marker on one of them offers to mark it, with no reason to give',
+         markerIn(rowFor('Prototype pills')).getAttribute('title') === words('Mark as important'),
+         String(markerIn(rowFor('Prototype pills')).getAttribute('title')));
+
+      // A mark over a conversation is one word about that sender. Counting
+      // one for each of its messages would take twenty corrections to undo a
+      // thread of twenty, and the reader's latest word would count for
+      // nothing for a long time after.
+      const beforeThread = requests.length;
+      markerIn(rowFor('Bulletin')).dispatchEvent(makeEvent('click'));
+      await flush();
+      check('marking a conversation important marks every message of it, and counts one against the sender rather than one for each message',
+         keywordPuts(beforeThread, 116).length === 1 && keywordPuts(beforeThread, 117).length === 1 && lit('Bulletin') &&
+         tally().marked && tally().marked['bulletin@stranger.example'] === 1,
+         JSON.stringify(tally().marked) + ' over ' + JSON.stringify(since(beforeThread).filter((r) => r.method === 'PUT').map((r) => r.path)));
+      const beforeThreadBack = requests.length;
+      undoNow();
+      await flush();
+      dismissAllToasts();
+      check('and the Undo takes the one count back off, not two',
+         keywordPuts(beforeThreadBack, 116).length === 1 && keywordPuts(beforeThreadBack, 117).length === 1 &&
+         (!tally().marked || !tally().marked['bulletin@stranger.example']),
+         JSON.stringify(tally().marked));
+
+      // Half of a conversation refused - one message in a folder the ACL
+      // will not let this account write to. What did change is a change the
+      // reader made, so it is said and the Undo is offered over exactly it.
+      flagsRefuseId = 117;
+      const beforeHalf = requests.length;
+      markerIn(rowFor('Bulletin')).dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a conversation the server half refuses still says so and still offers the way back',
+         keywordPuts(beforeHalf, 116).length === 1 && keywordPuts(beforeHalf, 117).length === 1 &&
+         document.getElementById('mail-status').textContent === words('Could not change the flags') &&
+         document.getElementById('toasts').textContent.indexOf(words('Marked as important.')) >= 0 && lit('Bulletin'),
+         document.getElementById('mail-status').textContent + ' / ' + document.getElementById('toasts').textContent);
+      const beforeHalfBack = requests.length;
+      undoNow();
+      await flush();
+      check('and the Undo puts back only what was changed, leaving the message the server refused alone',
+         keywordPuts(beforeHalfBack, 116).length === 1 && keywordPuts(beforeHalfBack, 117).length === 0 &&
+         removes(keywordPuts(beforeHalfBack, 116)[0]).join(' ') === '$Important $NotImportant' && !lit('Bulletin'),
+         JSON.stringify(since(beforeHalfBack).filter((r) => r.method === 'PUT').map((r) => r.path + ' ' + r.body)));
+      flagsRefuseId = 0;
+      dismissAllToasts();
+
+      // The Important view in the sidebar is a search for the keyword.
+      const beforeView = requests.length;
+      document.getElementById('folder-nav').children[2].dispatchEvent(makeEvent('click'));
+      await flush();
+      check('the Important view asks the server for the keyword, and is titled for it',
+         called(beforeView, 'GET', /^\/api\/v1\/me\/search\?q=label%3A%24Important/) &&
+         document.getElementById('view-title').textContent === words('Important') && location.hash === '#/important',
+         location.hash + ' ' + JSON.stringify(since(beforeView).map((r) => r.path)));
+
+      // Nothing in any of it but the keyword, the reader's own settings and
+      // the two sessions: no route of its own, and nothing about the reader.
+      check('the whole of it writes nothing but the keyword and the reader\'s own settings',
+         since(blockStart).filter((r) => r.method !== 'GET').every((r) => /\/messages\/\d+\/flags$/.test(r.path) || r.path === '/api/v1/me/preferences' || r.path === '/api/v1/session'),
+         JSON.stringify(since(blockStart).filter((r) => r.method !== 'GET' && !/\/flags$/.test(r.path) && r.path !== '/api/v1/me/preferences' && r.path !== '/api/v1/session').map((r) => r.method + ' ' + r.path)));
+
+      // Put the run back as it was.
+      importantArrival = 0;
+      delete flaggedById[103];
+      await setPrefs({ 'pref-sections': '0', 'pref-inbox': inboxWas, 'pref-pane': paneWas });
+      await goTo('#/f/1');
       dismissAllToasts();
    }
 

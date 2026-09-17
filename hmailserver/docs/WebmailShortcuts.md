@@ -25,6 +25,7 @@ use.
 | `x` | Tick or untick the message under the cursor |
 | `Shift` + click, `Ctrl` + click | On a row or its box: Shift ticks every row from the last one clicked (or ticked with `x`) to this one; Ctrl (Cmd on a Mac) ticks or unticks the row without opening it |
 | `s` | The star, the same on a row in the list and on an open message: each press gives the next of three - the star, a second star in amber, a third in red - and then none. The second and third are the `$Star2` and `$Star3` keywords on top of the IMAP flag, so another client sees a flagged message and the Starred view holds all three; taking the star off takes both keywords off with the flag, in the same change, so no client is left showing a star keyword on a message without the flag. The star beside a row, the star over the open message, the row's menu and the palette give the same next star. The two star keywords belong to the star, not to the reader's labels: they are not offered in the label menu and cannot be named as a label, so a star is only ever changed by a star. |
+| `+` or `=`, `-` | Mark the message as important, or as not important - on the open message, or on the row under the cursor, and over the whole conversation. The mark is the `$Important` (or `$NotImportant`) IMAP keyword, so every other client sees it, and a message carrying either is never judged by the page again. Nothing happens in Sent or Drafts, or with the marker switched off in Settings ([ImportantMail.md](ImportantMail.md)). |
 | `e` | Archive the message |
 | `!` | File the message as junk, or as not junk from the Junk folder |
 | `#` | Delete the message (to Trash) |
@@ -73,7 +74,7 @@ with `OR`.
 | `is:flagged` / `is:unflagged` | By the flag. |
 | `is:answered` | Messages that have been replied to. |
 | `is:muted` / `is:pinned` | Muted threads and pinned messages (the `$Muted` and `$Pinned` keywords). |
-| `label:name` | Messages carrying that label (an IMAP keyword); several `label:` terms must all be present. |
+| `label:name` | Messages carrying that label (an IMAP keyword); several `label:` terms must all be present. `label:$Important` is what the sidebar's **Important** view asks for, since the importance marker is that keyword on the message. |
 | `category:` | The inbox tab the message is listed under: `primary`, `social`, `promotions`, `updates` or `forums`. |
 | `in_reply_to:` | Messages whose `In-Reply-To` or `References` names the message-id (with or without its angle brackets): the replies to a message. The webmail asks it for the Sent folder's nudges. |
 

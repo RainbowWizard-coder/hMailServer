@@ -331,7 +331,10 @@
     system.forEach(function (s) {
       var f = s[0];
       entry(f, icons[s[1]], '/f/' + f.id, s[1] === 'inbox' ? t('Inbox') : (f.name || f.path), s[1] === 'drafts' ? f.count : f.unseen, '');
-      if (s[2] === 0) { entry(null, 'star', '/starred', t('Starred'), 0, ''); }
+      if (s[2] === 0) {
+        entry(null, 'star', '/starred', t('Starred'), 0, '');
+        if (markerShown()) { entry(null, 'important', '/important', t('Important'), 0, ''); }
+      }
     });
     var saved = savedSearches();
     if (saved.length) {
@@ -690,7 +693,11 @@
     row.appendChild(entry.star);
     row.appendChild(avatarFor(m.from, false, m.brand));
     var outgoing = folderIs(folderId, 'Sent') || folderIs(folderId, 'Drafts');
-    var who = node('div', outgoing ? t('To: ') + (recipientsOf(m.to).slice(0, 2).join(', ') || '?') : nameOf(m.from), 'who');
+    var who = node('div', undefined, 'who');
+    // The marker stands at the head of the sender, and the sender's column is
+    // widened for it, so that the name is no shorter than on a row without one.
+    if (markable(folderId)) { entry.imp = importanceButton([m]); who.appendChild(entry.imp); row.classList.add('has-imp'); }
+    who.appendChild(node('span', outgoing ? t('To: ') + (recipientsOf(m.to).slice(0, 2).join(', ') || '?') : nameOf(m.from)));
     who.setAttribute('title', (outgoing ? m.to : m.from) || '');
     row.appendChild(who);
     var what = node('div', undefined, 'what');
@@ -780,7 +787,9 @@
       row.appendChild(avatarFor(newest.from, false, newest.brand));
       var senders = [];
       g.messages.forEach(function (m) { var s = nameOf(m.from); if (senders.indexOf(s) < 0) { senders.push(s); } });
-      var who = node('div', senders.slice(0, 3).join(', ') + (senders.length > 3 ? ', ...' : ''), 'who');
+      var who = node('div', undefined, 'who');
+      if (markable(folderId)) { entry.imp = importanceButton(g.messages); who.appendChild(entry.imp); row.classList.add('has-imp'); }
+      who.appendChild(node('span', senders.slice(0, 3).join(', ') + (senders.length > 3 ? ', ...' : '')));
       var count = node('span', String(g.messages.length), 'tc');
       count.setAttribute('title', t('Show every message of the conversation'));
       who.appendChild(count);
@@ -831,6 +840,7 @@
     list.classList.remove('skeleton');
     listRows = []; cursor = -1;
     lastPage = page;
+    judgeListing(page);
     renderTabs(page);
     var tabbed = tabsActive(page);
     var visible = tabbed ? page.messages.filter(function (m) { return tabOf(m) === activeTab; }) : page.messages;
@@ -844,7 +854,7 @@
       return;
     }
     var shown = {};
-    renderRows(tabbed ? { messages: visible, query: page.query } : page, list, shown);
+    (sectionsActive(page) ? renderSections : renderRows)(tabbed ? { messages: visible, query: page.query } : page, list, shown);
     Object.keys(selected).forEach(function (k) { if (!shown[k]) { delete selected[k]; } });
     setCursor(0, true);
     renderBulk();
@@ -861,11 +871,13 @@
     if (result.status !== 0) { return false; }
     if (!state.everywhere && !state.query && !state.before && state.folderId === inboxId) {
       var saved = offlineRead('list');
-      if (saved) { offlineNote(true); renderMessages(saved); return true; }
+      // Drawn from this browser's own store, not from the server: what reads
+      // a listing must be able to tell, because nothing can be written back.
+      if (saved) { saved.offline = true; offlineNote(true); renderMessages(saved); return true; }
     }
     if (state.before) { return false; }
     offlineListing().then(function (page) {
-      if (page) { offlineNote(true); renderMessages(page); }
+      if (page) { page.offline = true; offlineNote(true); renderMessages(page); }
       else { say('mail-status', describe(result, t('Could not read the folder')), false); }
     });
     return true;
@@ -1073,6 +1085,8 @@
     el('message-edit').hidden = !current.flags.draft;
     el('message-pin').textContent = isPinned(current) ? t('Unpin') : t('Pin');
     el('message-mute').textContent = isMuted(current) ? t('Unmute') : t('Mute');
+    el('message-important').textContent = isImportant(current) ? t('Not important') : t('Mark as important');
+    el('message-important').hidden = !markable(current.folder_id);
     var junk = el('message-junk');
     var isJunk = folderIs(current.folder_id, 'Junk');
     junk.setAttribute('title', isJunk ? t('Not junk') : t('Junk'));
@@ -1191,6 +1205,7 @@
       showHtml = false;
       el('message-html-toggle').textContent = 'Show as sent';
       renderMessage(data);
+      learnOpened(data);
       if (!data.flags.seen) { setFlags({ seen: true }, true); }
       offlineKeep('m' + data.id, data);
       offlineKeepMessage(data);
@@ -1321,7 +1336,7 @@
       return carryAttachments(message);
     }
     if (!/^re:/i.test(subject)) { subject = 'Re: ' + subject; }
-    replyTo = message.message_id ? { message_id: message.message_id, references: ((message.references || '') + ' ' + message.message_id).trim(), id: message.id } : null;
+    replyTo = message.message_id ? { message_id: message.message_id, references: ((message.references || '') + ' ' + message.message_id).trim(), id: message.id, from: addressOf(message.from || '') } : null;
     el('compose-to').value = addressOf(message.from);
     el('compose-subject').value = subject;
     el('compose-text').value = '\n\nOn ' + (message.date || message.received) + ', ' + (message.from || '') + ' wrote:\n' + quoted(message);
@@ -1841,6 +1856,7 @@
     if (head === 'search') { cameFromList = true; showSearch(r.params); return; }
     if (head === 'm' && r.parts[1]) { showMessage(Number(r.parts[1])); return; }
     if (head === 'starred') { cameFromList = true; showSearch({ q: 'is:flagged' }); el('view-title').textContent = t('Starred'); markNav('/starred'); return; }
+    if (head === 'important') { cameFromList = true; showSearch({ q: IMPORTANT_QUERY }); el('view-title').textContent = t('Important'); markNav('/important'); return; }
     if (head === 'recover') { showPanel('recover-section', t('Recover deleted items')); markNav('/recover'); loadRecoverable(); return; }
     if (head === 'confidential') { showPanel('confidential-section', t('Messages that expire')); markNav('/confidential'); loadConfidential(); return; }
     if (head === 'scheduled') { showPanel('scheduled-section', t('Scheduled')); markNav('/scheduled'); loadScheduled(); return; }
@@ -1881,6 +1897,10 @@
   var forgetAccount = function () {
     // A send still waiting cannot go on a session that has ended.
     cancelUndo();
+    // What this browser learned about whose mail matters to this person goes
+    // with the account, whichever way the session ended - and it is filed
+    // under the address, so it goes before the address does.
+    tallyForget();
     me = '';
     identities = [];
     signature = { enabled: false, text: '' };
@@ -1897,6 +1917,8 @@
     askedReplies = {};
     clear(el('quick-steps'));
     prefetched = {};
+    judged = {}; judgedByPage = {}; openedIds = {}; judgeWaiting = false;
+    contactsCache = null;
     current = null;
     lastListing = null;
     listRows = [];
@@ -2771,6 +2793,7 @@
           closeCompose();
         }
         toast(t('Sent.'));
+        learnSent(queued);
         if (queued.draft) { call('DELETE', '/api/v1/me/messages/' + queued.draft + '?permanent=1').then(function () { loadFolders(); }); return; }
         loadFolders();
         return;
@@ -2802,7 +2825,7 @@
       files = carried.concat(files);
       if (files.length) { body.attachments = files; }
       appendLinks(body);
-      var queued = { body: body, key: composeKey, draft: draftId };
+      var queued = { body: body, key: composeKey, draft: draftId, answered: replyTo ? replyTo.from : '' };
       var delay = undoSeconds();
       if (!delay) { return submitMessage(queued); }
       var left = delay;
@@ -4315,12 +4338,21 @@
     if (!text && m.html) { try { text = new DOMParser().parseFromString(m.html, 'text/html').body.textContent || ''; } catch (e) { text = ''; } }
     return ((m.subject || '') + '\n' + (m.from || '') + '\n' + (m.to || '') + '\n' + (m.cc || '') + '\n' + text).toLowerCase();
   };
+  // The flags, copied. The kept row must not share the flags object with the
+  // message the page holds, or a change the page makes to its own copy is
+  // already in the row before anything is written to the store: the sync
+  // below then finds nothing to do, and the browser keeps the old flags.
+  var flagsCopy = function (flags) {
+    var out = {};
+    Object.keys(flags || {}).forEach(function (k) { out[k] = k === 'keywords' ? (flags[k] || []).slice() : flags[k]; });
+    return out;
+  };
   // The listing row the folder view draws, from the message's own JSON.
   var offlineRowOf = function (m) {
     var text = m.text || '';
     if (!text && m.html) { try { text = new DOMParser().parseFromString(m.html, 'text/html').body.textContent || ''; } catch (e) { text = ''; } }
     return { id: m.id, uid: m.uid, folder_id: m.folder_id, size: m.size, received: m.received, subject: m.subject || '', from: m.from || '', to: m.to || '', date: m.date || '',
-             flags: m.flags, message_id: m.message_id || '', references: m.references || '', in_reply_to: m.in_reply_to || '', has_attachments: !!(m.attachments || []).length,
+             flags: flagsCopy(m.flags), message_id: m.message_id || '', references: m.references || '', in_reply_to: m.in_reply_to || '', has_attachments: !!(m.attachments || []).length,
              snippet: text.replace(/\s+/g, ' ').trim().slice(0, 120), brand: m.brand || '', category: m.category || '',
              // The attachments' names, for filename: asked with no connection.
              names: (m.attachments || []).map(function (a) { return String(a.name || '').toLowerCase(); }).join('\n') };
@@ -4385,8 +4417,14 @@
       if (!row) { return false; }
       var seen = !!(m.flags && m.flags.seen), flagged = !!(m.flags && m.flags.flagged);
       var folderId = m.folder_id || row.folder_id;
-      if (row.row.flags && !!row.row.flags.seen === seen && !!row.row.flags.flagged === flagged && row.folder_id === folderId) { return true; }
-      row.row.flags = m.flags || row.row.flags;
+      // The keywords count as a change too: $Important, a label, $Muted. A
+      // change of nothing but those used to stop here, so the kept copy kept
+      // the old keywords and the message read offline was in the wrong
+      // section with no marker on it.
+      var words = function (flags) { return ((flags && flags.keywords) || []).slice().sort().join(','); };
+      if (row.row.flags && !!row.row.flags.seen === seen && !!row.row.flags.flagged === flagged &&
+          words(row.row.flags) === words(m.flags) && row.folder_id === folderId) { return true; }
+      row.row.flags = m.flags ? flagsCopy(m.flags) : row.row.flags;
       row.folder_id = folderId; row.row.folder_id = folderId;
       return idb('rows', 'readwrite', function (s) { return s.put(row); }).then(function () {
         return idb('messages', 'readonly', function (s) { return s.get(m.id); });
@@ -5080,7 +5118,7 @@
   // Kept with the account (GET/PUT /api/v1/me/preferences); the browser's
   // storage holds only the theme, for the sign-in page before there is one.
   var prefs = {};
-  var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', nudges: '1', timezone: '', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9', reply_place: 'below', retention_trash_days: '0', retention_junk_days: '0', retention_archive_days: '0' };
+  var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', important_marker: 'auto', inbox_sections: '0', nudges: '1', timezone: '', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9', reply_place: 'below', retention_trash_days: '0', retention_junk_days: '0', retention_archive_days: '0' };
   // The server's recovery window, learned the first time the list tools are
   // drawn: 0 means it keeps nothing, and the way in stays hidden.
   var recoverDays = 0;
@@ -5416,6 +5454,8 @@
     el('pref-notify').checked = pref('notify') === '1';
     el('pref-nudges').checked = nudgesOn();
     el('pref-inbox').value = inboxMode();
+    el('pref-important').value = markerMode();
+    el('pref-sections').value = sectionsOn() ? '1' : '0';
     el('pref-language').value = knownLanguage(pref('language') || '') || languageActive;
     fillZones();
     el('pref-timezone').value = pref('timezone') || '';
@@ -5694,11 +5734,14 @@
     var ticked = [];
     var labels = el('notify-folders').children;
     for (var i = 0; i < labels.length; i++) { var tick = labels[i].children[0]; if (tick && tick.checked) { ticked.push(tick.value); } }
+    var markerBefore = markerMode();
     savePrefs({ language: el('pref-language').value, timezone: el('pref-timezone').value, swipe_right: el('pref-swipe-right').value, swipe_left: el('pref-swipe-left').value, reply_place: el('pref-reply-place').value, retention_trash_days: el('pref-retention-trash').value, retention_junk_days: el('pref-retention-junk').value, retention_archive_days: el('pref-retention-archive').value, snooze_hours: el('pref-snooze-hours').value, snooze_hour: el('pref-snooze-hour').value, theme: el('pref-theme').value, density: el('pref-density').value, pane: el('pref-pane').value, undo_seconds: el('pref-undo').value,
-                notify: el('pref-notify').checked ? '1' : '0', notify_folders: ticked.join(','), inbox: el('pref-inbox').value, nudges: el('pref-nudges').checked ? '1' : '0' }).then(function (ok) {
+                notify: el('pref-notify').checked ? '1' : '0', notify_folders: ticked.join(','), inbox: el('pref-inbox').value, important_marker: el('pref-important').value, inbox_sections: el('pref-sections').value, nudges: el('pref-nudges').checked ? '1' : '0' }).then(function (ok) {
       if (ok) {
         say('prefs-status', t('Saved.'), true);
         if (lastPage) { renderMessages(lastPage); }
+        // The Important entry in the sidebar comes and goes with the marker.
+        if (markerBefore !== markerMode()) { loadFolders(); }
         // A reply already open moves to the slot the reader just chose.
         if (!el('compose-section').hidden && el('compose-section').classList.contains('inline')) { placeCompose('inline'); }
       }
@@ -5823,6 +5866,7 @@
       // acts on whatever is open when it is chosen rather than on the message
       // the palette was built for.
       add(['Star', 'Second star', 'Third star', 'Unstar'][starStage(current)], 'message', function () { el('message-flag').click(); });
+      if (markable(current.folder_id)) { add(isImportant(current) ? 'Not important' : 'Mark as important', 'message', function () { el('message-important').click(); }); }
       add('Delete', 'message', function () { el('message-delete').click(); });
       add('Print', 'message', function () { window.print(); });
       allFolders.forEach(function (f) {
@@ -6242,6 +6286,7 @@
         var flags = result.data && result.data.flags;
         var keywords = flags ? (flags.keywords || []) : (m.flags.keywords || []).filter(function (k) { return !isStarKeyword(k); }).concat(change.keywords_add || []);
         showStar(m, flags ? !!flags.flagged : change.flagged, keywords, button);
+        if (stage === 1) { learnStarred(m); }
         lastListing = null;
       });
     });
@@ -6300,7 +6345,7 @@
     replaceWith(listHash());
   };
   var currentNavHash = function () {
-    if (state.everywhere) { return state.query === 'is:flagged' ? '/starred' : ''; }
+    if (state.everywhere) { return state.query === 'is:flagged' ? '/starred' : state.query === IMPORTANT_QUERY ? '/important' : ''; }
     return state.folderId ? '/f/' + state.folderId : '';
   };
   var renderCount = function (page) {
@@ -6735,6 +6780,15 @@
       if (open) { cycleStar(current); } else if (row) { cycleStar(row.m, row.star); }
       return;
     }
+    // The marker's keys, Gmail's: + or = marks the open message, or else the
+    // row under the cursor, important; - marks it not important.
+    if (event.key === '+' || event.key === '=' || event.key === '-') {
+      var wanted = event.key !== '-';
+      var under = cursor >= 0 ? listRows[cursor] : null;
+      if (open && markable(current.folder_id)) { event.preventDefault(); markImportant([current], wanted); }
+      else if (!open && under && markable(under.folderId)) { event.preventDefault(); markImportant(under.ms || [under.m], wanted); }
+      return;
+    }
     if (event.key === 'o' && cursor >= 0 && listRows[cursor] && !el('message-list').hidden) { event.preventDefault(); go('/m/' + listRows[cursor].id); return; }
     // With a reading pane, moving the cursor reads the message it lands on.
     if ((event.key === 'j' || event.key === 'k' || event.key === 'ArrowDown' || event.key === 'ArrowUp') && paneMode() !== 'off' && open && cursor >= 0 && listRows[cursor] && listRows[cursor].id !== current.id) {
@@ -7060,6 +7114,390 @@
       lastListing = null;
       reloadKeepingPlace();
       toast(on ? t('Pinned to the top of the list.') : t('Unpinned.'));
+    });
+  };
+  // ---- Important, and sections of the inbox ---------------------------------
+  // Gmail's importance marker, decided in this browser from what the page
+  // holds already, and written to the message as the $Important keyword
+  // through the flags route, so any other client sees it and label:$Important
+  // finds it. The reader's own mark wins: Mark as important puts $Important
+  // on and $NotImportant off, Not important the reverse, and a message that
+  // carries either keyword is never judged again. The page judges a message
+  // once, the first time it lists it in the inbox, and only while the marker
+  // is set to decide on its own. What it counts is a tally in this browser's
+  // storage, one per account: whom the reader wrote to from here, whose mail
+  // they opened, answered, starred, marked or unmarked; it is kept until they
+  // sign out. The server learns nothing: it holds the keyword, and the
+  // contacts it collected from the mail the account sent, both of which it
+  // held already.
+  var IMPORTANT = '$Important';
+  var NOT_IMPORTANT = '$NotImportant';
+  var IMPORTANT_QUERY = 'label:' + IMPORTANT;
+  var IMPORTANT_THRESHOLD = 2;
+  var IMPORTANT_TALLY = 'hmPortalImportant';
+  var hasKeyword = function (m, keyword) { return keywordsOf(m).some(function (k) { return String(k).toLowerCase() === keyword.toLowerCase(); }); };
+  var isImportant = function (m) { return hasKeyword(m, IMPORTANT) && !hasKeyword(m, NOT_IMPORTANT); };
+  var markerMode = function () { var v = pref('important_marker'); return v === 'manual' || v === 'off' ? v : 'auto'; };
+  var markerShown = function () { return markerMode() !== 'off'; };
+  // Mail the reader sent is not mail the reader is being asked to read, so
+  // Sent and Drafts have no marker at all: no button on the row, no item in
+  // either menu, and the keys do nothing there.
+  var markable = function (folderId) { return markerShown() && !folderIs(folderId, 'Sent') && !folderIs(folderId, 'Drafts'); };
+  var sectionsOn = function () { return pref('inbox_sections') === '1'; };
+  var sectionsActive = function (page) { return sectionsOn() && !state.everywhere && !page.query && !!inboxId && state.folderId === inboxId; };
+  // An address is a name a stranger chose, so every map one is looked up in
+  // has no prototype and every lookup asks for an own property: a sender who
+  // writes From: <constructor> must not be found in a map that is empty.
+  var ownProperty = function (o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k); };
+  // The tally, read once per change rather than once per row.
+  var tallyKey = function () { return IMPORTANT_TALLY + ':' + (me || ''); };
+  var tallyMemo = { key: '', tally: null };
+  var tallyRead = function () {
+    if (tallyMemo.tally && tallyMemo.key === tallyKey()) { return tallyMemo.tally; }
+    var tally = {};
+    try { var v = JSON.parse(localStorage.getItem(tallyKey()) || '{}'); tally = v && typeof v === 'object' ? v : {}; } catch (e) { tally = {}; }
+    tallyMemo = { key: tallyKey(), tally: tally };
+    return tally;
+  };
+  var tallyWrite = function (tally) { tallyMemo = { key: tallyKey(), tally: tally }; try { localStorage.setItem(tallyKey(), JSON.stringify(tally)); } catch (e) { /* a browser that keeps nothing */ } };
+  // Every tally this browser holds goes, not only the one filed under the
+  // address that is signed in now: a session that ended while the page was
+  // closed leaves no address to name it by, and the promise is that what
+  // this browser learned goes when the session does, however it ended.
+  var tallyForget = function () {
+    tallyMemo = { key: '', tally: null };
+    try {
+      if (typeof localStorage.key !== 'function') { localStorage.removeItem(tallyKey()); return; }
+      var gone = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var name = localStorage.key(i);
+        if (name && String(name).indexOf(IMPORTANT_TALLY + ':') === 0) { gone.push(name); }
+      }
+      gone.forEach(function (name) { localStorage.removeItem(name); });
+    } catch (e) { /* nothing to forget */ }
+  };
+  var tallyCount = function (tally, heading, address) { var counts = tally[heading]; return ownProperty(counts, address) ? (Number(counts[address]) || 0) : 0; };
+  // One count per sender under a heading, held between -9 and 99; at most
+  // five hundred senders under a heading, the least counted dropped first.
+  // The counts are kept with no prototype, so that a sender calling itself
+  // __proto__ is a count like any other rather than a write that vanishes.
+  var tallyAdd = function (heading, address, by) {
+    address = String(address || '').trim().toLowerCase();
+    if (!address || !me || address === me || markerMode() !== 'auto') { return; }
+    var tally = tallyRead();
+    var counts = Object.create(null), was = tally[heading];
+    if (was && typeof was === 'object') { Object.keys(was).forEach(function (k) { counts[k] = Number(was[k]) || 0; }); }
+    counts[address] = Math.max(-9, Math.min(99, (Number(counts[address]) || 0) + by));
+    var names = Object.keys(counts);
+    if (names.length > 500) {
+      names.sort(function (a, b) { return Math.abs(counts[a]) - Math.abs(counts[b]); });
+      names.slice(0, names.length - 500).forEach(function (k) { delete counts[k]; });
+    }
+    tally[heading] = counts;
+    tallyWrite(tally);
+  };
+  // Whom the reader writes to: the contacts the server collected from the
+  // mail this account sent and the ones kept by hand, and whoever was
+  // written to from this page since.
+  var contactAddresses = { of: null, set: Object.create(null) };
+  var writtenTo = function (address, tally) {
+    if (contactAddresses.of !== contactsCache) {
+      contactAddresses = { of: contactsCache, set: Object.create(null) };
+      (contactsCache || []).forEach(function (c) { var a = String(c.address || '').toLowerCase(); if (a) { contactAddresses.set[a] = true; } });
+    }
+    return ownProperty(contactAddresses.set, address) || tallyCount(tally, 'wrote', address) > 0;
+  };
+  var ownAddresses = function () {
+    var list = me ? [me] : [];
+    (identities || []).forEach(function (i) { var a = addressOf(String(i.address || '')).toLowerCase(); if (a && list.indexOf(a) < 0) { list.push(a); } });
+    return list;
+  };
+  // Sent to the reader by name: named in a To of a few, not in a list of
+  // many. The folder listing carries To and not Cc - so this asks the To
+  // line alone, and a message that names the reader only in Cc does not earn
+  // this reason. It is worth one point of the two, so nothing is marked on
+  // it by itself; a mailing that hides its list in Cc gets no further.
+  var sentDirectly = function (m) {
+    var own = ownAddresses();
+    var named = String(m.to || '') + ',' + String(m.cc || '');
+    var to = named.split(/[,;]/).map(function (p) { return addressOf(p).toLowerCase(); }).filter(function (a) { return !!a; });
+    return to.length > 0 && to.length <= 5 && to.some(function (a) { return own.indexOf(a) >= 0; });
+  };
+  // Mail the server sorted into one of the other tabs - Social, Promotions,
+  // Updates, Forums - is mail somebody sent to a list, whatever the reader's
+  // inbox layout is; the reader's own word for a sender overrules the
+  // server's here as it does in the tab bar.
+  var bulkSender = function (m) {
+    var words = senderTabs(), sender = addressOf(m.from || '').toLowerCase();
+    var own = ownProperty(words, sender) ? String(words[sender]) : '';
+    var category = TABS.indexOf(own) >= 0 ? own : TABS.indexOf(m.category) >= 0 ? m.category : 'primary';
+    return TABS.indexOf(category) > 0;
+  };
+  // Every reason a message is important, with its weight; two points make it
+  // so. Each is a thing the reader can be told, and the docs carry the table.
+  // The reader's own mark is worth two reasons, so that it outweighs the one
+  // thing that argues the other way.
+  var importantReasons = function (m) {
+    var sender = addressOf(m.from || '').toLowerCase();
+    if (!sender || sender === me || !m.flags || m.flags.draft) { return []; }
+    var tally = tallyRead();
+    var reasons = [];
+    var marked = tallyCount(tally, 'marked', sender);
+    if (marked > 0) { reasons.push(['marked', 4]); }
+    if (marked < 0) { reasons.push(['unmarked', -4]); }
+    if (writtenTo(sender, tally)) { reasons.push(['wrote', 3]); }
+    if (tallyCount(tally, 'answered', sender) > 0) { reasons.push(['answered', 2]); }
+    if (tallyCount(tally, 'opened', sender) >= 2) { reasons.push(['opened', 1]); }
+    if (tallyCount(tally, 'starred', sender) > 0) { reasons.push(['starred', 1]); }
+    if (sentDirectly(m)) { reasons.push(['direct', 1]); }
+    if (bulkSender(m)) { reasons.push(['bulk', -2]); }
+    return reasons;
+  };
+  var importantScore = function (m) { return importantReasons(m).reduce(function (sum, r) { return sum + r[1]; }, 0); };
+  var reasonText = function (reasons) {
+    var best = null;
+    reasons.forEach(function (r) { if (r[1] > 0 && (!best || r[1] > best[1])) { best = r; } });
+    if (!best) { return ''; }
+    return best[0] === 'marked' ? t('you marked mail from this sender important') : best[0] === 'wrote' ? t('you write to this sender') : best[0] === 'answered' ? t('you answered this sender') :
+      best[0] === 'opened' ? t('you open mail from this sender') : best[0] === 'starred' ? t('you starred mail from this sender') : t('it was sent to you by name');
+  };
+  // The marker on a row: lit when the message (any of the conversation) is
+  // important, saying why when this page decided it, and a press to change it.
+  var judgedByPage = {};
+  var importanceTitle = function (ms) {
+    if (!ms.some(isImportant)) { return t('Mark as important'); }
+    var why = markerMode() === 'auto' && ms.some(function (m) { return judgedByPage[m.id]; }) ? reasonText(importantReasons(ms.filter(isImportant)[0])) : '';
+    return why ? tf('Important because {0}. Click to mark as not important.', why) : t('Important. Click to mark as not important.');
+  };
+  var paintImportance = function (b, ms) {
+    var on = ms.some(isImportant);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.setAttribute('title', importanceTitle(ms));
+    b.setAttribute('aria-label', importanceTitle(ms));
+  };
+  var importanceButton = function (ms) {
+    var b = node('button', undefined, 'imp');
+    b.type = 'button';
+    b.appendChild(icon('important', true));
+    paintImportance(b, ms);
+    b.addEventListener('click', function (e) { e.stopPropagation(); markImportant(ms, !ms.some(isImportant)); });
+    return b;
+  };
+  // The keywords a change left, put on every copy of the message the page
+  // holds - the listing, its rows, the open message - and painted there.
+  var putKeywords = function (id, keywords) {
+    var take = function (copy) { if (copy && copy.flags && copy.id === id) { copy.flags.keywords = keywords.slice(); } };
+    if (lastPage) { lastPage.messages.forEach(take); }
+    listRows.forEach(function (r) {
+      (r.ms || [r.m]).forEach(take);
+      if (r.imp && (r.ids || [r.id]).indexOf(id) >= 0) { paintImportance(r.imp, r.ms || [r.m]); }
+    });
+    if (current) { take(current); }
+  };
+  var rerenderKeeping = function (id) {
+    if (!lastPage) { return; }
+    renderMessages(lastPage);
+    if (!id) { return; }
+    listRows.forEach(function (r, i) { if (r.id === id || (r.ids || []).indexOf(id) >= 0) { setCursor(i, true); } });
+  };
+  var judged = {};
+  // The inbox listing this browser keeps for reading with no connection was
+  // saved before the mark was made; it is saved again after one, or the
+  // keyword is missing exactly when the connection is.
+  var offlineListKeep = function () {
+    if (!offline.days || !lastPage || state.everywhere || state.query || state.before || !inboxId || state.folderId !== inboxId) { return; }
+    offlineKeep('list', lastPage);
+  };
+  // One PUT per message, in turn; the answer is the messages that were
+  // changed rather than a yes or a no. A conversation the server refuses
+  // half way - a folder the ACL will not let this account write to, a
+  // message already carrying as many keywords as it may - leaves the rest
+  // changed, and the caller is told which those were so that the way back
+  // is offered over exactly them.
+  var sendMarks = function (ms, changeFor) {
+    var chain = Promise.resolve(), done = [];
+    ms.forEach(function (m) {
+      chain = chain.then(function () {
+        return call('PUT', '/api/v1/me/messages/' + m.id + '/flags', changeFor(m)).then(function (result) {
+          if (result.status !== 200 || !result.data || !result.data.flags) { return; }
+          done.push(m);
+          judged[m.id] = true;
+          putKeywords(m.id, result.data.flags.keywords || []);
+          if (offline.days) { offlineFlagsSync({ id: m.id, flags: result.data.flags, folder_id: 0 }); }
+        });
+      });
+    });
+    return chain.then(function () { if (done.length) { offlineListKeep(); } return done; });
+  };
+  var afterMarks = function (ms) {
+    if (current && ms.some(function (m) { return m.id === current.id; })) { renderActions(); }
+    if (lastPage && sectionsActive(lastPage)) { rerenderKeeping(ms[0].id); }
+  };
+  // A mark over a conversation is one word about that sender, not one word
+  // for each of its messages: raising a thread of twenty must not take
+  // twenty corrections before "not important" about the same sender counts.
+  var tallySenders = function (ms, by) {
+    var seen = Object.create(null);
+    ms.forEach(function (m) {
+      var address = addressOf(m.from || '').trim().toLowerCase();
+      if (!address || ownProperty(seen, address)) { return; }
+      seen[address] = true;
+      tallyAdd('marked', address, by);
+    });
+  };
+  // The reader's mark: the one keyword on, the other off, on every message
+  // given, and the sender tallied so the next from them is judged with it.
+  // Undo puts back the keywords each message had, which may be neither.
+  var importantOwn = function (k) { var lower = String(k).toLowerCase(); return lower === IMPORTANT.toLowerCase() || lower === NOT_IMPORTANT.toLowerCase(); };
+  var markImportant = function (ms, on) {
+    if (!markerShown() || !ms.length) { return Promise.resolve(); }
+    var had = ms.map(function (m) { return keywordsOf(m).filter(importantOwn); });
+    var change = on ? { keywords_add: [IMPORTANT], keywords_remove: [NOT_IMPORTANT] } : { keywords_add: [NOT_IMPORTANT], keywords_remove: [IMPORTANT] };
+    return sendMarks(ms, function () { return change; }).then(function (done) {
+      // Nothing changed is a failure and is said so. Some of it changed is
+      // still a change the reader made and may want back, so it is said and
+      // the Undo is offered over the messages that did change.
+      if (!done.length) { say('mail-status', t('Could not change the flags'), false); return; }
+      if (done.length < ms.length) { say('mail-status', t('Could not change the flags'), false); }
+      done.forEach(function (m) { delete judgedByPage[m.id]; });
+      tallySenders(done, on ? 1 : -1);
+      afterMarks(done);
+      toast(on ? t('Marked as important.') : t('Marked as not important.'), function () {
+        sendMarks(done, function (m) {
+          var keep = had[ms.indexOf(m)];
+          return { keywords_add: keep, keywords_remove: [IMPORTANT, NOT_IMPORTANT].filter(function (k) { return keep.indexOf(k) < 0; }) };
+        }).then(function (back) {
+          if (!back.length) { say('mail-status', t('Could not change the flags'), false); return; }
+          if (back.length < done.length) { say('mail-status', t('Could not change the flags'), false); }
+          tallySenders(back, on ? -1 : 1);
+          afterMarks(back);
+        });
+      });
+    });
+  };
+  // The listing judged: once per message per session, in the inbox, while
+  // the marker decides on its own and the server can be reached; a message
+  // carrying either keyword is left as it is. A verdict goes on the page's
+  // copy at once, so a section does not move when the answer comes, then to
+  // the server in turn, at most twenty-five in one pass - the rest wait for
+  // the next render. The contacts weigh most, so nothing is judged before
+  // they have been read once.
+  var judgeWaiting = false;
+  var judgeListing = function (page) {
+    // page.offline is the listing this browser kept, drawn because the
+    // server could not be reached. offline.only is the session that started
+    // that way; a session that merely lost its connection is not that, and
+    // judging what it draws would paint markers no PUT could ever carry.
+    if (markerMode() !== 'auto' || offline.only || !page || page.offline || page.query || state.everywhere || !inboxId || state.folderId !== inboxId) { return; }
+    if (!contactsCache) {
+      if (judgeWaiting) { return; }
+      judgeWaiting = true;
+      ensureContacts().then(function () {
+        judgeWaiting = false;
+        if (lastPage !== page || !contactsCache) { return; }
+        judgeListing(page);
+        if (sectionsActive(page)) { rerenderKeeping(cursor >= 0 && listRows[cursor] ? listRows[cursor].id : 0); }
+      });
+      return;
+    }
+    var todo = [], had = {};
+    page.messages.forEach(function (m) {
+      if (todo.length >= 25 || judged[m.id] || !m.flags || m.flags.draft || hasKeyword(m, IMPORTANT) || hasKeyword(m, NOT_IMPORTANT)) { return; }
+      judged[m.id] = true;
+      if (importantScore(m) >= IMPORTANT_THRESHOLD) { todo.push(m); }
+    });
+    todo.forEach(function (m) { had[m.id] = keywordsOf(m).slice(); judgedByPage[m.id] = true; putKeywords(m.id, keywordsOf(m).concat([IMPORTANT])); });
+    if (!todo.length) { return; }
+    sendMarks(todo, function () { return { keywords_add: [IMPORTANT] }; }).then(function (done) {
+      // A verdict the server did not take is not a verdict. The message goes
+      // back to the keywords it had and is judged again on the next listing,
+      // rather than wearing a marker no other client will ever see.
+      var lost = todo.filter(function (m) { return done.indexOf(m) < 0; });
+      lost.forEach(function (m) { delete judged[m.id]; delete judgedByPage[m.id]; putKeywords(m.id, had[m.id]); });
+      if (lost.length && lastPage === page && sectionsActive(page)) { rerenderKeeping(cursor >= 0 && listRows[cursor] ? listRows[cursor].id : 0); }
+    });
+  };
+  // What the tally counts: an opening, the first star, a send and whom it
+  // answered. Each is one count for the sender, or the recipient, and none
+  // is sent anywhere.
+  var openedIds = {};
+  var learnOpened = function (m) {
+    if (!m || !m.id || openedIds[m.id] || fromMe(m)) { return; }
+    openedIds[m.id] = true;
+    tallyAdd('opened', addressOf(m.from || ''), 1);
+  };
+  var learnStarred = function (m) { if (m && !fromMe(m)) { tallyAdd('starred', addressOf(m.from || ''), 1); } };
+  var learnSent = function (queued) {
+    var body = (queued && queued.body) || {};
+    var seen = Object.create(null);
+    [body.to, body.cc].forEach(function (field) {
+      String(field || '').split(/[,;]/).forEach(function (part) { var a = addressOf(part).toLowerCase(); if (a && !seen[a]) { seen[a] = true; tallyAdd('wrote', a, 1); } });
+    });
+    if (queued && queued.answered) { tallyAdd('answered', queued.answered, 1); }
+  };
+  el('message-important').addEventListener('click', function () { closeMenus(); if (current) { markImportant([current], !isImportant(current)); } });
+  // ---- Sections of the inbox: Important, Starred, Everything else -----------
+  // A choice in Settings. The tabs sort first and the sections divide what
+  // the open tab shows, so under Primary the sections hold Primary's mail
+  // and under Promotions its own; with the inbox in one list they divide the
+  // whole of it. A conversation goes where its messages send it: Important
+  // if any is, else Starred if any is, else Everything else. A section folds
+  // on a click, and this browser remembers which are folded.
+  var SECTIONS = ['important', 'starred', 'rest'];
+  var SECTIONS_CLOSED = 'hmPortalSectionsClosed';
+  var sectionName = function (s) { return s === 'important' ? t('Important') : s === 'starred' ? t('Starred') : t('Everything else'); };
+  var sectionOf = function (ms) {
+    if (markerShown() && ms.some(isImportant)) { return 'important'; }
+    if (ms.some(function (m) { return !!(m.flags && m.flags.flagged); })) { return 'starred'; }
+    return 'rest';
+  };
+  var closedSections = function () { try { var v = JSON.parse(localStorage.getItem(SECTIONS_CLOSED) || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } };
+  var toggleSection = function (s) {
+    var closed = closedSections();
+    if (closed[s]) { delete closed[s]; } else { closed[s] = 1; }
+    try { if (Object.keys(closed).length) { localStorage.setItem(SECTIONS_CLOSED, JSON.stringify(closed)); } else { localStorage.removeItem(SECTIONS_CLOSED); } } catch (e) { /* a browser that keeps nothing */ }
+    if (lastPage) { renderMessages(lastPage); }
+  };
+  var renderSections = function (page, list, shown) {
+    var threads = pref('view') === 'threads' && !page.query;
+    var byKey = Object.create(null), keyOf = {};
+    if (threads) { page.messages.forEach(function (m) { var k = threadKey(m); keyOf[m.id] = k; if (!byKey[k]) { byKey[k] = []; } byKey[k].push(m); }); }
+    var buckets = { important: [], starred: [], rest: [] };
+    page.messages.forEach(function (m) { buckets[sectionOf(threads ? byKey[keyOf[m.id]] : [m])].push(m); });
+    var closed = closedSections();
+    SECTIONS.forEach(function (s) {
+      var ms = buckets[s];
+      if (!ms.length) { return; }
+      // The list says it is a list and each row says it is an item of one, so
+      // a section must not come between them: the box around a section is
+      // presentational, its heading is a heading, and its rows are a group
+      // named by that heading - which is what the toggle folds away.
+      var box = node('div', undefined, 'list-sect' + (closed[s] ? ' shut' : ''));
+      box.setAttribute('role', 'presentation');
+      var head = node('div', undefined, 'list-sect-head');
+      head.setAttribute('role', 'heading');
+      head.setAttribute('aria-level', '3');
+      var toggle = node('button', undefined, 'list-sect-toggle');
+      toggle.type = 'button';
+      var name = node('span', sectionName(s), 'nm');
+      name.id = 'list-sect-name-' + s;
+      toggle.setAttribute('aria-expanded', closed[s] ? 'false' : 'true');
+      toggle.setAttribute('aria-controls', 'list-sect-rows-' + s);
+      toggle.appendChild(icon('down', true));
+      toggle.appendChild(name);
+      var unseen = ms.filter(function (m) { return !(m.flags && m.flags.seen); }).length;
+      toggle.appendChild(node('span', unseen ? tf('{0}, {1} unread', ms.length, unseen) : String(ms.length), 'ct'));
+      toggle.addEventListener('click', function () { toggleSection(s); });
+      head.appendChild(toggle);
+      box.appendChild(head);
+      var rows = node('div', undefined, 'list-sect-rows');
+      rows.id = 'list-sect-rows-' + s;
+      rows.setAttribute('role', 'group');
+      rows.setAttribute('aria-labelledby', name.id);
+      box.appendChild(rows);
+      list.appendChild(box);
+      if (!closed[s]) { renderRows({ messages: ms, query: page.query }, rows, shown); }
     });
   };
   // A rule that files what the sender sends into Junk - or discards it where
@@ -7889,6 +8327,7 @@
       if (act === 'star') { items[i].textContent = starTitle(starStage(m)); }
       if (act === 'pin') { items[i].textContent = isPinned(m) ? t('Unpin') : t('Pin'); }
       if (act === 'mute') { items[i].textContent = isMuted(m) ? t('Unmute') : t('Mute'); }
+      if (act === 'important') { items[i].textContent = isImportant(m) ? t('Not important') : t('Mark as important'); items[i].hidden = !markable(entry.folderId); }
       // Only a conversation has anything to clean up.
       if (act === 'cleanup') { items[i].hidden = !(entry.ms && entry.ms.length > 1); }
       if (act === 'junk') { items[i].textContent = folderIs(entry.folderId, 'Junk') ? t('Not junk') : t('Junk'); }
@@ -7918,6 +8357,7 @@
     else if (act === 'read') { markRows([entry], !m.flags.seen); }
     else if (act === 'star') { cycleStar(m, entry.star); }
     else if (act === 'pin') { pinMessages(entry.ids || [entry.id], !isPinned(m)); }
+    else if (act === 'important') { markImportant(entry.ms || [m], !isImportant(m)); }
     else if (act === 'block') { blockSender(addressOf(m.from)); }
     else if (act === 'sweep') { sweepSender(addressOf(m.from), entry.folderId); }
     else if (act === 'mute') { muteThread(entry, !isMuted(m)); }

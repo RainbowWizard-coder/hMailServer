@@ -276,7 +276,9 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .more-menu .sep{height:1px;background:var(--line);margin:4px 0}
 /* Placed at the pointer by the script, so physical on purpose */
 #context-menu{position:fixed;top:0;left:0;right:auto;z-index:65;min-width:220px}
-.msg.pinned .who::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-inline-end:6px;vertical-align:middle}
+/* The pinned dot belongs to the name, not to the column: on a row that
+   carries the importance marker the marker comes first, and the dot after it */
+.msg.pinned .who>span:first-of-type::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-inline-end:6px;vertical-align:middle}
 .msg.dragging{opacity:.5}
 .nav button.drop{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
 #message-list{flex:1;overflow:auto;outline:none}
@@ -306,6 +308,9 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .msg .due.late{background:var(--danger-soft);color:var(--danger)}
 .msg .avatar{margin:0;margin-inline:2px 6px}
 .msg .who{width:190px;min-width:0;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--text-2);padding-inline-end:8px}
+/* A row that carries the importance marker gives the column the marker's
+   width, so the sender's name is no shorter than on a row without one */
+.msg.has-imp .who{width:218px}
 .msg .who .n{color:var(--text-2);font-weight:400;margin-inline-start:6px;font-size:12.5px}
 .msg .what{flex:1;min-width:0;max-width:100%;display:flex;align-items:center;gap:6px;font-size:14px;overflow:hidden;white-space:nowrap}
 .msg .what .subject{color:var(--text);overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
@@ -321,6 +326,19 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .msg .clip{color:var(--muted)}
 .msg .mute{color:var(--muted);display:inline-flex}
 .msg .mute svg.i{width:16px;height:16px}
+/* The importance marker at the head of the sender, lit when the message is
+   important; and the inbox's sections, each a folding heading over its rows */
+.msg .imp{all:unset;cursor:pointer;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:var(--line-2);flex:none;margin-inline-end:4px;vertical-align:middle}
+.msg .imp:hover{color:var(--text-2);background:var(--surface-3)}
+.msg .imp.on{color:var(--star)}
+.msg .imp.on svg.i{fill:currentColor}
+.msg .imp svg.i{width:16px;height:16px}
+.list-sect-head{border-bottom:1px solid var(--line);background:var(--surface-2)}
+.list-sect-toggle{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;padding:8px 16px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.list-sect-toggle:hover{color:var(--text-2)}
+.list-sect-toggle svg.i{width:16px;height:16px;transition:transform .15s}
+.list-sect.shut .list-sect-toggle svg.i{transform:rotate(-90deg)}
+.list-sect-toggle .ct{font-weight:500;text-transform:none;letter-spacing:0}
 .msg .acts{display:none;position:absolute;inset-inline-end:8px;top:0;bottom:0;align-items:center;gap:0;background:inherit;padding-inline-start:8px}
 .msg:hover .acts,.msg.msg-cursor .acts{display:flex}
 .msg:hover .meta,.msg.msg-cursor .meta{visibility:hidden}
@@ -338,6 +356,7 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
   .msg .star{grid-row:1/3;grid-column:2}
   .msg .avatar{grid-row:1/3;grid-column:3;margin:0;margin-inline-end:8px}
   .msg .who{grid-row:1;grid-column:4;width:auto;padding-inline-end:8px}
+  .msg.has-imp .who{width:auto}
   .msg .meta{grid-row:1;grid-column:5;padding-inline-start:4px}
   .msg .what{grid-row:2;grid-column:4/6;font-size:13.5px}
   .msg .what .subject{max-width:70%}
@@ -346,6 +365,7 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 }
 [data-density="compact"] .msg .avatar{display:none}
 [data-density="compact"] .msg .who{width:160px}
+[data-density="compact"] .msg.has-imp .who{width:188px}
 
 /* ---------- One message, in the pane ---------- */
 #message-view{display:flex;flex-direction:column;min-height:0;flex:1}
@@ -493,6 +513,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 @media (max-width:1100px){
   :root{--nav:232px}
   .msg .who{width:150px}
+  .msg.has-imp .who{width:178px}
   .read-pane{flex:1.2}
 }
 @media (max-width:900px){
@@ -639,6 +660,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
     <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
     <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8l-5.8 3.1 1.1-6.5L2.6 9.8l6.5-.9z"/></symbol>
+    <symbol id="i-important" viewBox="0 0 24 24"><path d="M4 5h11l5 7-5 7H4l4-7z"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
     <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
     <symbol id="i-tasks" viewBox="0 0 24 24"><path d="m4 7 2 2 4-4M4 17l2 2 4-4M13 7h7M13 17h7"/></symbol>
@@ -852,6 +874,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <a id="message-source" href="#" download="message.eml">Download the message</a>
 <button id="message-unsubscribe" type="button" hidden>Unsubscribe</button>
 <div class="sep"></div>
+<button id="message-important" type="button">Mark as important</button>
 <button id="message-pin" type="button">Pin</button>
 <button id="message-mute" type="button">Mute</button>
 <button id="message-cleanup" type="button">Clean up conversation</button>
@@ -1122,6 +1145,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div style="flex:1;min-width:12rem"><label for="pref-retention-junk">Empty Junk after</label><select id="pref-retention-junk"><option value="0">Never</option><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="365">A year</option></select></div>
 <div style="flex:1;min-width:12rem"><label for="pref-retention-archive">Archive Inbox mail after</label><select id="pref-retention-archive"><option value="0">Never</option><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="365">A year</option></select></div>
 <div style="flex:1;min-width:12rem"><label for="pref-inbox">Inbox</label><select id="pref-inbox"><option value="tabs">In tabs: Primary, Social, Promotions, Updates, Forums</option><option value="focused">Focused and Other</option><option value="all">One list</option></select></div>
+<div style="flex:1;min-width:12rem"><label for="pref-important">Importance marker</label><select id="pref-important"><option value="auto">Decided here from whom I write to and what I open</option><option value="manual">Only what I mark by hand</option><option value="off">No marker</option></select></div>
+<div style="flex:1;min-width:12rem"><label for="pref-sections">Inbox sections</label><select id="pref-sections"><option value="0">No sections</option><option value="1">Important, Starred, Everything else</option></select></div>
 </div>
 <label class="inline"><input id="pref-notify" type="checkbox"> Notify me of new mail in these folders</label>
 <p class="note"><button type="button" id="pref-mailto">Open mailto: links here</button></p>
@@ -1488,6 +1513,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="sep"></div>
 <button type="button" data-act="read">Mark as read</button>
 <button type="button" data-act="star">Star</button>
+<button type="button" data-act="important">Mark as important</button>
 <button type="button" data-act="pin">Pin</button>
 <button type="button" data-act="mute">Mute</button>
 <button type="button" data-act="cleanup">Clean up conversation</button>
@@ -1553,6 +1579,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <tr><td><kbd>x</kbd></td><td>Tick or untick the message under the cursor</td></tr>
 <tr><td>Shift-click, Ctrl-click</td><td>Tick a range of rows, or one row without opening it</td></tr>
 <tr><td><kbd>s</kbd></td><td>Star the message; again for a second star, a third, then no star</td></tr>
+<tr><td><kbd>+</kbd> or <kbd>=</kbd>, <kbd>-</kbd></td><td>Mark the message as important, or as not important</td></tr>
 <tr><td><kbd>e</kbd></td><td>Archive the message</td></tr>
 <tr><td><kbd>!</kbd></td><td>File the message as junk, or as not junk from the Junk folder</td></tr>
 <tr><td><kbd>#</kbd></td><td>Delete the message (to Trash)</td></tr>
