@@ -197,7 +197,8 @@ namespace RegressionTests.Rules
 
             // The route tries once, so the refusal comes back to the sender at once,
             // naming the rule - which is where the reason is written, not the log.
-            string bounce = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            // The report's text part is quoted-printable, wrapped with soft breaks.
+            string bounce = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test").Replace("=\r\n", "").Replace("=20", " ");
             StringAssert.Contains("the rule Encrypt to partners requires TLS", bounce);
 
             ClassicAssert.IsFalse((server.MessageData ?? "").Contains("Not in the clear."), "The message was not handed over without TLS.");

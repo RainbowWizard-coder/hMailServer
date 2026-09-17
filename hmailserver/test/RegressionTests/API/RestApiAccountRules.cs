@@ -118,7 +118,12 @@ namespace RegressionTests.API
          ClassicAssert.AreEqual(200, Http("DELETE", Path(owner) + "/" + id).status);
          ClassicAssert.AreEqual(404, Http("DELETE", Path(owner) + "/" + id).status, "Gone.");
          StringAssert.DoesNotContain("\"id\":" + id + ",", Http("GET", Path(owner)).body);
-         ClassicAssert.IsNull(owner.Rules.get_ItemByDBID((int) id));
+         // Over COM too, once the collection is read again: the one the account
+         // handed out before the delete still holds the rule it loaded, and a
+         // collection answers an id it does not hold with an error, not null.
+         hMailServer.Rules rulesNow = owner.Rules;
+         rulesNow.Refresh();
+         Assert.Throws<System.Runtime.InteropServices.COMException>(() => rulesNow.get_ItemByDBID((int) id), "Gone.");
       }
 
       [Test]

@@ -224,7 +224,10 @@ namespace RegressionTests.API
          Assert.AreEqual(200, moved.status, moved.body);
          events = Me("GET", window, null, Address, UserPassword);
          CollectionAssert.AreEqual(new[] { "20261019T080000Z", "20261026T140000Z", "20261102T090000Z" }, Starts(events.body), events.body);
-         string overridden = Regex.Match(events.body, "\\{[^{}]*\"start\":\"20261026T140000Z\"[^{}]*\"attendees\":\\[\\][^{}]*\\}").Value;
+         // The moved occurrence's own object: split on the objects' opening, as
+         // a uid carries braces of its own and a [^{}] pattern stops at them.
+         string overridden = events.body.Split(new[] { "{\"id\":" }, StringSplitOptions.None)
+            .FirstOrDefault(item => item.Contains("\"start\":\"20261026T140000Z\"")) ?? "";
          StringAssert.Contains("\"overridden\":true", overridden, events.body);
          Assert.AreEqual(404, Me("PUT", "/api/v1/me/calendar/events/" + id, "{\"instance\":\"20261027T090000Z\",\"summary\":\"x\"}", Address, UserPassword).status, "No occurrence starts then.");
 
@@ -336,7 +339,7 @@ namespace RegressionTests.API
 
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          Pop3ClientSimulator.AssertMessageCount(GuestAddress, GuestPassword, 1);
-         string invitationMail = Pop3ClientSimulator.AssertGetFirstMessageText(GuestAddress, GuestPassword);
+         string invitationMail = FirstMessageKept(GuestAddress, GuestPassword);
          StringAssert.Contains("Subject: Invitation: Planning @", invitationMail);
          StringAssert.Contains("text/calendar; charset=utf-8; method=REQUEST", invitationMail);
          // A display name is written quoted, as RFC 5322 allows any phrase to be.
@@ -373,7 +376,7 @@ namespace RegressionTests.API
          // The REPLY delivered to the organiser is filed into their event.
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);
-         string replyMail = Pop3ClientSimulator.AssertGetFirstMessageText(Address, UserPassword);
+         string replyMail = FirstMessageKept(Address, UserPassword);
          StringAssert.Contains("Subject: Accepted: Planning @", replyMail);
          StringAssert.Contains("method=REPLY", replyMail);
          RetryHelper.TryAction(TimeSpan.FromSeconds(15), () =>
@@ -435,6 +438,17 @@ namespace RegressionTests.API
          int events = json.IndexOf("\"events\":[", StringComparison.Ordinal);
          string occurrences = events >= 0 ? json.Substring(events) : json;
          return Regex.Matches(occurrences, "\"start\":\"([0-9]{8}T[0-9]{6}Z)\"").Cast<Match>().Select(match => match.Groups[1].Value).ToList();
+      }
+
+      // The first message's text, left where it is: the helper that waits for a
+      // message also deletes it, and the searches that follow look for it there.
+      private static string FirstMessageKept(string address, string password)
+      {
+         var pop3 = new Pop3ClientSimulator();
+         ClassicAssert.IsTrue(pop3.ConnectAndLogon(address, password), "POP3 sign-in as " + address);
+         string text = pop3.RETR(1);
+         pop3.QUIT();
+         return text;
       }
 
       // The id of the first message whose subject carries the text, by the

@@ -149,7 +149,9 @@ namespace RegressionTests.API
          // The operator's route is the administrator password's alone.
          (int created, string key) = Http("POST", "/api/v1/apikeys", "{\"label\":\"person export\",\"scope\":\"full\"}");
          ClassicAssert.AreEqual(201, created, key);
-         ClassicAssert.AreEqual(403, Http("GET", "/api/v1/accounts/" + Uri.EscapeDataString(account.Address) + "/export.zip", null, "Bearer " + Extract(key, "key")).status);
+         // 401, as on every route that is the password's alone: to a key, "valid
+         // but not permitted" is kept indistinguishable from "not a key".
+         ClassicAssert.AreEqual(401, Http("GET", "/api/v1/accounts/" + Uri.EscapeDataString(account.Address) + "/export.zip", null, "Bearer " + Extract(key, "key")).status);
       }
 
       [Test]
