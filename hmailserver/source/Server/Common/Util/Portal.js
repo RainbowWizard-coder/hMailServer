@@ -2172,36 +2172,88 @@
   el('compose-discard').addEventListener('click', function () { composeKey = newComposeKey(); blankCompose(); closeCompose(); toast(t('Discarded.')); });
   // ---- Contacts ------------------------------------------------------------
   var contactsCache = null;
-  var renderContacts = function (list) {
-    var rows = el('contact-rows');
-    rows.textContent = '';
-    list.forEach(function (c) {
-      var tr = document.createElement('tr');
-      var name = document.createElement('td'); name.textContent = c.name || '';
-      var address = document.createElement('td'); address.textContent = c.address;
-      var from = document.createElement('td'); from.textContent = c.source === 'collected' ? t('a message you sent') : 'you';
-      var actions = document.createElement('td');
-      var write = document.createElement('button'); write.type = 'button'; write.className = 'btn ghost'; write.textContent = t('Write');
-      write.addEventListener('click', function () { composeTo(c.name ? c.name + ' <' + c.address + '>' : c.address); });
-      var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn ghost'; remove.textContent = t('Remove');
-      remove.addEventListener('click', function () {
-        call('DELETE', '/api/v1/me/contacts/' + c.id).then(function (result) {
-          if (result.status !== 200) { say('contact-status', describe(result, t('Could not remove the contact')), false); return; }
-          contactsCache = null; loadContacts();
-          toast(t('Contact removed.'), function () {
-            call('POST', '/api/v1/me/contacts', { name: c.name || '', address: c.address }).then(function (back) {
-              if (back.status !== 201) { say('contact-status', describe(back, t('Could not add the contact')), false); }
-              contactsCache = null; loadContacts();
-            });
+  // The card a phone stored, beside the name: the birthday (marked on the
+  // day), the phones, the note - what the listing reads from it - and the
+  // photo as the avatar, fetched as an image from the contact's own route.
+  var contactDetails = function (c) {
+    var bits = [];
+    if (c.birthday) {
+      var now = new Date();
+      var monthDay = ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+      bits.push(t('Birthday') + ' ' + c.birthday + (String(c.birthday).slice(-5) === monthDay ? ' \u00b7 ' + t('today') : ''));
+    }
+    (c.phones || []).forEach(function (p) { bits.push(p); });
+    if (c.note) { bits.push(c.note.length > 120 ? c.note.slice(0, 117) + '...' : c.note); }
+    return bits.join(' \u00b7 ');
+  };
+  var contactAvatar = function (c) {
+    if (c.has_photo) {
+      var img = document.createElement('img'); img.className = 'avatar'; img.alt = '';
+      img.src = '/api/v1/me/contacts/' + c.id + '/photo';
+      return img;
+    }
+    return node('span', initialsOf(c.name || c.address), 'avatar');
+  };
+  var contactButtons = function (c) {
+    var write = document.createElement('button'); write.type = 'button'; write.className = 'btn ghost'; write.textContent = t('Write');
+    write.addEventListener('click', function () { composeTo(c.name ? c.name + ' <' + c.address + '>' : c.address); });
+    var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn ghost'; remove.textContent = t('Remove');
+    remove.addEventListener('click', function () {
+      call('DELETE', '/api/v1/me/contacts/' + c.id).then(function (result) {
+        if (result.status !== 200) { say('contact-status', describe(result, t('Could not remove the contact')), false); return; }
+        contactsCache = null; loadContacts();
+        toast(t('Contact removed.'), function () {
+          call('POST', '/api/v1/me/contacts', { name: c.name || '', address: c.address }).then(function (back) {
+            if (back.status !== 201) { say('contact-status', describe(back, t('Could not add the contact')), false); }
+            contactsCache = null; loadContacts();
           });
         });
       });
-      actions.appendChild(write); actions.appendChild(remove);
-      tr.appendChild(name); tr.appendChild(address); tr.appendChild(from); tr.appendChild(actions);
+    });
+    return [write, remove];
+  };
+  // What the person kept, and - apart - what they merely wrote to: a collected
+  // address is a suggestion until it is kept, and only a kept one reaches
+  // the phone over CardDAV.
+  var renderContacts = function (list) {
+    var kept = list.filter(function (c) { return c.source !== 'collected'; });
+    var other = list.filter(function (c) { return c.source === 'collected'; });
+    var rows = el('contact-rows');
+    rows.textContent = '';
+    kept.forEach(function (c) {
+      var tr = document.createElement('tr');
+      var name = document.createElement('td'); name.appendChild(contactAvatar(c)); name.appendChild(node('span', c.name || ''));
+      var address = document.createElement('td'); address.textContent = c.address;
+      var details = document.createElement('td'); details.className = 'muted'; details.textContent = contactDetails(c);
+      if (c.note) { details.title = c.note; }
+      var actions = document.createElement('td');
+      contactButtons(c).forEach(function (b) { actions.appendChild(b); });
+      tr.appendChild(name); tr.appendChild(address); tr.appendChild(details); tr.appendChild(actions);
       rows.appendChild(tr);
     });
-    el('contact-empty').hidden = list.length > 0;
-    el('contact-table').hidden = list.length === 0;
+    el('contact-empty').hidden = kept.length > 0;
+    el('contact-table').hidden = kept.length === 0;
+    var otherRows = el('contact-other-rows');
+    otherRows.textContent = '';
+    other.forEach(function (c) {
+      var tr = document.createElement('tr');
+      var name = document.createElement('td'); name.textContent = c.name || '';
+      var address = document.createElement('td'); address.textContent = c.address;
+      var actions = document.createElement('td');
+      var keep = document.createElement('button'); keep.type = 'button'; keep.className = 'btn ghost'; keep.textContent = t('Keep');
+      keep.addEventListener('click', function () {
+        call('PUT', '/api/v1/me/contacts/' + c.id, { source: 'manual' }).then(function (result) {
+          if (result.status !== 200) { say('contact-status', describe(result, t('Could not keep the contact')), false); return; }
+          contactsCache = null; loadContacts();
+          toast(t('Kept as a contact.'));
+        });
+      });
+      actions.appendChild(keep);
+      contactButtons(c).forEach(function (b) { actions.appendChild(b); });
+      tr.appendChild(name); tr.appendChild(address); tr.appendChild(actions);
+      otherRows.appendChild(tr);
+    });
+    el('contact-other').hidden = other.length === 0;
   };
   var loadContacts = function () {
     return call('GET', '/api/v1/me/contacts?limit=1000').then(function (result) {
@@ -2229,6 +2281,11 @@
   var vcardUnescape = function (s) { return String(s || '').replace(/\\n/gi, '\n').replace(/\\([\\,;])/g, '$1'); };
   var contactsToVCard = function (list) {
     return list.map(function (c) {
+      // A card a phone stored goes out whole; a row without one is made into a card.
+      if (c.card) {
+        var card = String(c.card).replace(/\r?\n/g, '\r\n');
+        return card.slice(-2) === '\r\n' ? card : card + '\r\n';
+      }
       var name = c.name || c.address;
       var words = String(c.name || '').trim().split(/\s+/).filter(function (w) { return w; });
       var family = words.length > 1 ? words[words.length - 1] : '';
@@ -2250,11 +2307,14 @@
       if (colon < 0) { return; }
       var head = line.slice(0, colon); var value = line.slice(colon + 1);
       var name = head.split(';')[0].toUpperCase();
-      if (name === 'BEGIN' && value.toUpperCase() === 'VCARD') { card = { name: '', n: '', emails: [] }; return; }
+      if (name === 'BEGIN' && value.toUpperCase() === 'VCARD') { card = { name: '', n: '', emails: [], raw: [line] }; return; }
       if (!card) { return; }
+      card.raw.push(line);
       if (name === 'END') {
         var display = card.name || card.n;
-        card.emails.forEach(function (address) { if (address.indexOf('@') > 0) { out.push({ name: display, address: address }); } });
+        // The card itself rides along, so what a phone stored is kept as sent.
+        var whole = card.raw.join('\r\n') + '\r\n';
+        card.emails.forEach(function (address, i) { if (address.indexOf('@') > 0) { out.push(i === 0 ? { name: display, address: address, card: whole } : { name: display, address: address }); } });
         card = null; return;
       }
       if (/ENCODING=QUOTED-PRINTABLE/i.test(head)) { return; }
@@ -2313,8 +2373,17 @@
   var exportContacts = function (asCsv) {
     var list = contactsCache || [];
     if (!list.length) { say('contact-status', t('No contacts yet. Send a message, or add one above.'), false); return; }
-    if (asCsv) { downloadText('contacts.csv', 'text/csv', contactsToCsv(list)); } else { downloadText('contacts.vcf', 'text/vcard', contactsToVCard(list)); }
-    say('contact-status', tf('Exported {0} contact(s).', list.length), true);
+    if (asCsv) {
+      downloadText('contacts.csv', 'text/csv', contactsToCsv(list));
+      say('contact-status', tf('Exported {0} contact(s).', list.length), true);
+      return;
+    }
+    // The cards as the phones stored them, for the vCard export.
+    call('GET', '/api/v1/me/contacts?limit=1000&fields=card').then(function (result) {
+      var withCards = (result.status === 200 && result.data && result.data.contacts) ? result.data.contacts : list;
+      downloadText('contacts.vcf', 'text/vcard', contactsToVCard(withCards));
+      say('contact-status', tf('Exported {0} contact(s).', withCards.length), true);
+    });
   };
   el('contact-export-vcf').addEventListener('click', function () { exportContacts(false); });
   el('contact-export-csv').addEventListener('click', function () { exportContacts(true); });
@@ -2335,7 +2404,9 @@
       var chain = Promise.resolve();
       fresh.forEach(function (c) {
         chain = chain.then(function () {
-          return call('POST', '/api/v1/me/contacts', { name: c.name, address: c.address }).then(function (result) { if (result.status === 201) { imported++; } });
+          var body = { name: c.name, address: c.address };
+          if (c.card) { body.card = c.card; }
+          return call('POST', '/api/v1/me/contacts', body).then(function (result) { if (result.status === 201) { imported++; } });
         });
       });
       return chain.then(function () {

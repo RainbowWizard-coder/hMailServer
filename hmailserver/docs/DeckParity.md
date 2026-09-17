@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 352, 158 of them writes |
+| REST routes (path and method) | 353, 158 of them writes |
 | Deck views | 26 |
 
 ## Missing over REST, by interface
@@ -764,7 +764,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/accounts/{address}/folders/{id}/permissions` | IMAPFolderPermission | `account`, `account_id`, `administer`, `create`, `delete_mailbox`, `expunge`, `folder`, `force`, `group`, `group_id`, `insert`, `lookup`, `name`, `post`, `read`, `rights`, `type`, `write_deleted`, `write_others`, `write_seen` | - |
 | `PUT /api/v1/accounts/{address}/folders/{id}/permissions/{pid}` | IMAPFolderPermission | `account`, `account_id`, `administer`, `body`, `create`, `delete_mailbox`, `expunge`, `field`, `folder`, `force`, `group`, `group_id`, `insert`, `lookup`, `name`, `new`, `post`, `read`, `rights`, `to`, `type`, `value`, `write_deleted`, `write_others`, `write_seen` | - |
 | `PUT /api/v1/accounts/{address}/messages/{id}` | ServerMessage | `answered`, `deleted`, `draft`, `flagged`, `folder`, `seen`, `value` | - |
-| `POST /api/v1/accounts/{address}/messages/{id}/copy` | ServerMessage | `account`, `destination`, `file`, `folder`, `folder_id`, `to` | - |
+| `POST /api/v1/accounts/{address}/messages/{id}/copy` | ServerMessage | `account`, `destination`, `file`, `folder`, `folder_id`, `source`, `to` | - |
 | `POST /api/v1/accounts/{address}/move` | ? | `account`, `addresses`, `archive`, `domain`, `folder`, `group`, `keep_alias`, `mailbox`, `manage_accounts`, `message`, `new`, `new_address`, `password`, `permissions`, `role`, `sender`, `senders`, `to` | yes |
 | `PUT /api/v1/accounts/{address}/openpgp` | Settings | `account`, `allow_address_mismatch`, `domains`, `key`, `publish`, `to` | yes |
 | `POST /api/v1/accounts/{address}/password` | ? | `account`, `breach_check_enabled`, `breach_check_unavailable`, `directory`, `domain`, `password`, `reason`, `reset_password`, `role`, `to` | yes |
@@ -820,7 +820,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `domain`, `domain_members`, `field`, `members`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |
 | `POST /api/v1/me/app-passwords` | AppPassword | `account`, `address`, `name`, `password`, `text`, `to` | - |
 | `POST /api/v1/me/contacts` | ? | `account`, `address`, `name` | - |
-| `PUT /api/v1/me/contacts/{id}` | ? | `account`, `address`, `name` | - |
+| `PUT /api/v1/me/contacts/{id}` | ? | `account`, `address`, `from`, `name`, `source`, `to` | - |
 | `POST /api/v1/me/drafts` | ? | `account`, `bcc`, `cc`, `data`, `deleted`, `draft`, `folder`, `from`, `html`, `message`, `new`, `read`, `replace_id`, `subject`, `text`, `to` | - |
 | `POST /api/v1/me/drafts/{id}/schedule` | ? | `account`, `draft`, `folder`, `new`, `send_at` | - |
 | `POST /api/v1/me/files` | ? | `account`, `days`, `domain`, `file`, `max_days`, `max_mb`, `name`, `password`, `quota_mb`, `size`, `to`, `type` | - |

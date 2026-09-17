@@ -427,6 +427,109 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A collected address - somebody the person wrote to - is not a contact on the phone: CardDAV lists only what was kept, and lists the row once it is kept; a phone's PUT for a collected address makes it the contact under the phone's name rather than answering 409")]
+      public void ACollectedAddressIsServedOnlyOnceItIsKept()
+      {
+         string other = "other@" + _domain.Name;
+         string written = "written@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, other, UserPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, written, UserPassword);
+
+         var imap = new ImapClientSimulator();
+         Assert.IsTrue(imap.ConnectAndLogon(Address, UserPassword));
+         imap.CreateFolder("Sent");
+         imap.Disconnect();
+
+         Response sent = Rest("POST", "/api/v1/me/messages", "{\"to\":\"" + other + ", " + written + "\",\"subject\":\"Collected\",\"text\":\"Body.\"}");
+         Assert.AreEqual(201, sent.Status, "Body: " + sent.Body);
+
+         Response listing = Propfind(Book, "1", "<D:getetag/>");
+         Assert.AreEqual(207, listing.Status, "Body: " + listing.Body);
+         Assert.IsFalse(listing.Body.Contains(".vcf"), "Nothing kept, nothing served. Body: " + listing.Body);
+
+         Response collected = Rest("GET", "/api/v1/me/contacts?source=collected");
+         System.Text.RegularExpressions.Match row = System.Text.RegularExpressions.Regex.Match(collected.Body,
+            "\"id\":(\\d+),\"name\":\"[^\"]*\",\"address\":\"" + other.Replace(".", "\\.") + "\"");
+         Assert.IsTrue(row.Success, "Body: " + collected.Body);
+         string id = row.Groups[1].Value;
+
+         Response kept = Rest("PUT", "/api/v1/me/contacts/" + id, "{\"source\":\"manual\"}");
+         Assert.AreEqual(200, kept.Status, "Body: " + kept.Body);
+
+         Response again = Propfind(Book, "1", "<D:getetag/>");
+         CollectionAssert.Contains(Hrefs(again), Book + id + ".vcf", "Kept, and so served. Body: " + again.Body);
+         Assert.IsFalse(again.Body.Contains(written), "The other collected address is still not served. Body: " + again.Body);
+
+         // The phone creating a card for the other collected address: the row
+         // becomes that card, under the phone's name, kept.
+         string name = Book + "from-the-phone.vcf";
+         string card = string.Join("\r\n", new[]
+         {
+            "BEGIN:VCARD", "VERSION:3.0", "UID:from-the-phone-uid", "FN:Written To", "N:To;Written;;;",
+            "EMAIL;TYPE=INTERNET,PREF:" + written, "END:VCARD", ""
+         });
+         Response created = Put(name, card, "If-None-Match: *\r\n");
+         Assert.AreEqual(201, created.Status, "Body: " + created.Body);
+         Assert.AreEqual(name, created.Header("Location"), "Headers: " + created.HeaderText);
+         Response read = Dav("GET", name, Auth(Address, UserPassword));
+         Assert.AreEqual(200, read.Status, "Body: " + read.Body);
+         Assert.AreEqual(card, read.Body);
+         StringAssert.Contains("\"address\":\"" + written + "\",\"source\":\"manual\"", Rest("GET", "/api/v1/me/contacts").Body);
+      }
+
+      [Test]
+      [Description("The page reads what a phone's card carries: the birthday, the note and the phones in the listing, the photo as an image from the contact's own route, the card whole when asked for, and a card the page imports is kept as sent")]
+      public void ThePageReadsWhatACardCarries()
+      {
+         const string pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+         string name = Book + "photo-card.vcf";
+         string card = string.Join("\r\n", new[]
+         {
+            "BEGIN:VCARD", "VERSION:3.0", "UID:photo-card-uid", "FN:Paula Photo", "N:Photo;Paula;;;",
+            "EMAIL;TYPE=INTERNET,PREF:paula@example.com", "TEL;TYPE=CELL:+44 7700 900555", "BDAY:1985-04-12",
+            "NOTE:Likes tea.", "PHOTO;ENCODING=b;TYPE=PNG:" + pngBase64, "END:VCARD", ""
+         });
+         Response created = Put(name, card, "If-None-Match: *\r\n");
+         Assert.AreEqual(201, created.Status, "Body: " + created.Body);
+
+         Response rest = Rest("GET", "/api/v1/me/contacts");
+         Assert.AreEqual(200, rest.Status, "Body: " + rest.Body);
+         StringAssert.Contains("\"birthday\":\"1985-04-12\"", rest.Body);
+         StringAssert.Contains("\"note\":\"Likes tea.\"", rest.Body);
+         StringAssert.Contains("\"phones\":[\"+44 7700 900555\"]", rest.Body);
+         StringAssert.Contains("\"has_photo\":true", rest.Body);
+         StringAssert.DoesNotContain("\"card\":", rest.Body, "The card rides along only when asked for.");
+
+         string id = System.Text.RegularExpressions.Regex.Match(rest.Body, "\"id\":(\\d+),\"name\":\"Paula Photo\"").Groups[1].Value;
+         Assert.IsFalse(string.IsNullOrEmpty(id), "Body: " + rest.Body);
+
+         Response photo = Raw(RestPort, "GET", "/api/v1/me/contacts/" + id + "/photo", Auth(Address, UserPassword), null, null, null);
+         Assert.AreEqual(200, photo.Status, "Body: " + photo.Body);
+         StringAssert.Contains("image/png", photo.Header("Content-Type").ToLowerInvariant(), "Headers: " + photo.HeaderText);
+         StringAssert.Contains("PNG", photo.Body, "The image's own bytes.");
+
+         Response withCards = Rest("GET", "/api/v1/me/contacts?fields=card");
+         StringAssert.Contains("\"card\":\"BEGIN:VCARD", withCards.Body);
+         StringAssert.Contains("PHOTO;ENCODING=b;TYPE=PNG:", withCards.Body, "The export carries the card whole, photo included.");
+
+         // A card the page imports is kept as sent, and served back so.
+         string imported = string.Join("\r\n", new[]
+         {
+            "BEGIN:VCARD", "VERSION:3.0", "UID:imported-uid-1", "FN:Ian Imported", "N:Imported;Ian;;;",
+            "EMAIL:ian@example.org", "NOTE:Came from a file.", "END:VCARD", ""
+         });
+         string escaped = imported.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r\n", "\\r\\n");
+         Response posted = Rest("POST", "/api/v1/me/contacts", "{\"card\":\"" + escaped + "\"}");
+         Assert.AreEqual(201, posted.Status, "Body: " + posted.Body);
+         StringAssert.Contains("\"name\":\"Ian Imported\",\"address\":\"ian@example.org\"", posted.Body);
+         StringAssert.Contains("\"note\":\"Came from a file.\"", posted.Body);
+         string importedId = System.Text.RegularExpressions.Regex.Match(posted.Body, "\"id\":(\\d+),").Groups[1].Value;
+         Response served = Dav("GET", Book + importedId + ".vcf", Auth(Address, UserPassword));
+         Assert.AreEqual(200, served.Status, "Body: " + served.Body);
+         Assert.AreEqual(imported, served.Body, "Kept as sent.");
+      }
+
+      [Test]
       [Description("A card without an EMAIL is refused with CARDDAV:valid-address-data and the reason, and nothing is stored; a card that is not a vCard likewise")]
       public void ACardWithoutAnEmailAddressIsRefusedAndNothingIsStored()
       {

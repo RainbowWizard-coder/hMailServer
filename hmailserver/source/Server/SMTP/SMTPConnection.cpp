@@ -43,6 +43,7 @@
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/ServerStatus.h"
 #include "../Common/Application/DomainSamples.h"
+#include "../Common/Util/ContactCard.h"
 #include "../Common/Util/AWStats.h"
 #include "../Common/Util/WebhookManager.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
@@ -2541,6 +2542,24 @@ namespace HM
       // Who this account writes to is somebody it knows, so their reply is not
       // a first contact.
       RememberOutgoingRecipients_();
+
+      // And somebody the address book offers: what the person writes to from
+      // Outlook or Thunderbird over SMTP is collected as the webmail's own send
+      // collects, once per address, under the account that signed in.
+      if (isAuthenticated_ && !username_.IsEmpty() && current_message_)
+      {
+         std::shared_ptr<const Account> writer = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+         if (writer)
+         {
+            std::vector<String> written;
+            for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
+            {
+               if (recipient)
+                  written.push_back(recipient->GetOriginalAddress().IsEmpty() ? recipient->GetAddress() : recipient->GetOriginalAddress());
+            }
+            ContactCard::Collect(writer, written);
+         }
+      }
 
       if (pMsgData && !pMsgData->WriteReported(PersistentMessage::GetFileName(current_message_), "The message signature and the domain disclaimer"))
       {

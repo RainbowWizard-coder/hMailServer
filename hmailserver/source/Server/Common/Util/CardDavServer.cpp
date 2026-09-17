@@ -43,6 +43,9 @@
 #include "DavSupport.h"
 #include "CalDavServer.h"
 #include "ContactStore.h"
+#include "../Application/Application.h"
+#include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/SQLCommand.h"
 #include "VCard.h"
 #include "../BO/Account.h"
 
@@ -206,6 +209,11 @@ namespace HM
 
          for (size_t i = 0; i < records.size(); i++)
          {
+            // A collected address - somebody the person wrote to - is not a
+            // contact on the phone until the person keeps it.
+            if (records[i].source == ContactStore::SourceCollected)
+               continue;
+
             Member member;
             FillMember(context, records[i], member);
             context.members.push_back(member);
@@ -319,7 +327,7 @@ namespace HM
             // its own; any other name is a slot a PUT may fill.
             AnsiString name = segments[4];
             ContactRecord named;
-            if (ContactStore::FindByUri(context.account->GetID(), Wide(name), named))
+            if (ContactStore::FindByUri(context.account->GetID(), Wide(name), named) && named.source != ContactStore::SourceCollected)
             {
                resource.kind = KindContact;
                resource.contact = named;
@@ -341,7 +349,7 @@ namespace HM
                      id = id * 10 + (idText[i] - '0');
 
                   ContactRecord record;
-                  if (id > 0 && ContactStore::Get(context.account->GetID(), id, record) && record.uri.IsEmpty())
+                  if (id > 0 && ContactStore::Get(context.account->GetID(), id, record) && record.uri.IsEmpty() && record.source != ContactStore::SourceCollected)
                   {
                      resource.kind = KindContact;
                      resource.contact = record;
@@ -1138,6 +1146,32 @@ namespace HM
          if (ContactStore::FindByAddress(accountId, address, existing))
          {
             ContactRecord existingRecord;
+            if (ContactStore::Get(accountId, existing, existingRecord) && existingRecord.source == ContactStore::SourceCollected)
+            {
+               // A collected address the phone was never shown: the phone's card
+               // becomes the contact, under the phone's name, kept from now on.
+               if (!ContactStore::UpdateCard(accountId, existing, name, address, Wide(uid), Wide(card)) ||
+                   !ContactStore::SetSource(accountId, existing, ContactStore::SourceManual) ||
+                   !ContactStore::Get(accountId, existing, record))
+                  return Text(500, "the contact could not be saved");
+
+               // The client's own name for it, so its next listing finds it there.
+               if (record.uri.IsEmpty())
+               {
+                  SQLCommand rename("update hm_contacts set contacturi = @URI where contactid = @ID");
+                  rename.AddParameter("@URI", Wide(resource.slotName));
+                  rename.AddParameter("@ID", existing);
+                  Application::Instance()->GetDBManager()->Execute(rename);
+                  record.uri = Wide(resource.slotName);
+               }
+
+               Member kept;
+               FillMember(context, record, kept);
+               LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " kept collected contact " + StringParser::IntToString(record.id) + " at " + String(kept.href) + ".");
+
+               return Respond(201, "text/plain", "", "ETag: " + kept.etag + "\r\nLocation: " + kept.href + "\r\n");
+            }
+
             AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? ContactHref(context, existingRecord) : AnsiString("");
             return Text(409, "this address book already has a contact with the address " + addressUtf8 +
                " (" + existingHref + "); a contact is one address here - update that one, or delete it first");

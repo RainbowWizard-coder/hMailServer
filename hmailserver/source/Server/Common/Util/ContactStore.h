@@ -62,6 +62,10 @@ namespace HM
       // as the client sent it.
       static bool Update(__int64 accountId, __int64 id, const String &name, const String &address);
 
+      // Keeps a collected address as a contact (or the reverse): the source
+      // alone changes, the card and the rest stay.
+      static bool SetSource(__int64 accountId, __int64 id, int source);
+
       // The contact a CardDAV client created under this resource name, if any.
       static bool FindByUri(__int64 accountId, const String &uri, ContactRecord &contact);
 

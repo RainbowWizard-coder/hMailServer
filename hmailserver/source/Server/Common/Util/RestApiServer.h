@@ -72,6 +72,7 @@
 
 namespace HM
 {
+   struct ContactRecord;
    class HttpCompressedCache;
 
    // The cache RestApiServer.cpp holds the compressed forms of its per-request
@@ -271,6 +272,7 @@ namespace HM
          RouteMeContactCreate,
          RouteMeContactUpdate,
          RouteMeContactDelete,
+         RouteMeContactPhoto,
          RouteMeIdentities,
          RouteMePreferences,
          RouteMePreferencesPut,
@@ -909,8 +911,9 @@ namespace HM
       static HttpResponse HandleMeContactCreate_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandleMeContactUpdate_(const Caller &caller, __int64 id, const AnsiString &requestBody);
       static HttpResponse HandleMeContactDelete_(const Caller &caller, __int64 id);
+      static HttpResponse HandleMeContactPhoto_(const Caller &caller, __int64 id);
       static void CollectContacts_(std::shared_ptr<const Account> account, const std::vector<String> &entries);
-      static AnsiString ContactJson_(__int64 id, const String &name, const String &address, int source, const String &created);
+      static AnsiString ContactJson_(const ContactRecord &contact, bool includeCard);
 
       // Who the account may write as, and the From a send or draft asked for (RestApiIdentities.cpp).
       static HttpResponse HandleMeIdentities_(const Caller &caller);

@@ -614,6 +614,10 @@ function answer(method, path, body) {
       return json(200, { name: { first: 'A', last: 'B' }, forwarding: { enabled: false, address: '', keep_original: true }, signature: { enabled: false, text: '' } });
    }
    if (/^\/api\/v1\/me\/contacts\/\d+$/.test(path) && method === 'DELETE') { return json(200, { deleted: true }); }
+   if (/^\/api\/v1\/me\/contacts\/\d+$/.test(path) && method === 'PUT') {
+      const changed = JSON.parse(body || '{}');
+      return json(200, { id: Number(path.split('/')[5]), name: 'Alan Hidden', address: 'al@example.org', source: changed.source || 'collected', birthday: '', note: '', phones: [], has_photo: false });
+   }
    if (path === '/api/v1/me/contacts' && method === 'POST') {
       const added = JSON.parse(body || '{}');
       return json(201, { id: 100 + requests.length, name: added.name || '', address: added.address || '', source: 'manual' });
@@ -623,10 +627,14 @@ function answer(method, path, body) {
       // addresses containing the text.
       const q = decodeURIComponent((path.split('q=')[1] || '').split('&')[0]).toLowerCase();
       const book = [
-         { id: 1, name: 'Alice Example', address: 'alice@example.net', source: 'manual' },
-         { id: 2, name: 'Alan Hidden', address: 'al@example.org', source: 'collected' }
+         { id: 1, name: 'Alice Example', address: 'alice@example.net', source: 'manual', birthday: '', note: '', phones: [], has_photo: false },
+         { id: 2, name: 'Alan Hidden', address: 'al@example.org', source: 'collected', birthday: '', note: '', phones: [], has_photo: false },
+         { id: 3, name: 'Carol Card', address: 'carol@example.org', source: 'manual', birthday: '1985-04-12', note: 'Met at the conference.', phones: ['+1 555 0100'], has_photo: true,
+           card: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Carol Card\r\nN:Card;Carol;;;\r\nEMAIL;TYPE=INTERNET:carol@example.org\r\nTEL:+1 555 0100\r\nBDAY:1985-04-12\r\nNOTE:Met at the conference.\r\nEND:VCARD\r\n' }
       ];
-      const found = book.filter((c) => c.name.toLowerCase().indexOf(q) >= 0 || c.address.indexOf(q) >= 0);
+      const withCards = path.indexOf('fields=card') >= 0;
+      const found = book.filter((c) => c.name.toLowerCase().indexOf(q) >= 0 || c.address.indexOf(q) >= 0)
+         .map((c) => { const copy = Object.assign({}, c); if (!withCards) { delete copy.card; } return copy; });
       return json(200, { contacts: found, count: found.length, total: book.length });
    }
    if (path === '/api/v1/me/filters' && method === 'GET') { return json(200, { active: '' }); }
@@ -2342,6 +2350,21 @@ async function main() {
    location.hash = '#/contacts';
    await flush();
    const contactRows = document.getElementById('contact-rows');
+   check('what the reader kept is the address book, and what they merely wrote to is offered apart as other contacts',
+      contactRows.children.length === 2 && document.getElementById('contact-other').hidden === false && document.getElementById('contact-other-rows').children.length === 1 &&
+      document.getElementById('contact-other-rows').textContent.indexOf('al@example.org') >= 0,
+      contactRows.children.length + ' kept, other hidden=' + document.getElementById('contact-other').hidden);
+   const carolRow = Array.from(contactRows.children).find((tr) => tr.textContent.indexOf('carol@example.org') >= 0);
+   check('a card\'s photo is the avatar, from the contact\'s own photo route, and its birthday, phone and note are read beside it',
+      !!carolRow && !!carolRow.querySelector('img.avatar') && carolRow.querySelector('img.avatar').src.indexOf('/api/v1/me/contacts/3/photo') >= 0 &&
+      carolRow.textContent.indexOf('1985-04-12') >= 0 && carolRow.textContent.indexOf('+1 555 0100') >= 0 && carolRow.textContent.indexOf('Met at the conference.') >= 0,
+      carolRow ? carolRow.innerHTML.slice(0, 300) : 'no row');
+   const beforeKeep = requests.length;
+   Array.from(document.getElementById('contact-other-rows').children[0].children[2].children).find((b) => b.textContent === 'Keep').dispatchEvent(makeEvent('click'));
+   await flush();
+   const keptBody = since(beforeKeep).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/contacts/2').map((r) => JSON.parse(r.body))[0];
+   check('Keep asks the server to make the collected address a contact, and says so', !!keptBody && keptBody.source === 'manual' && document.getElementById('toasts').textContent.indexOf('Kept as a contact.') >= 0,
+      JSON.stringify(keptBody) + ' | ' + document.getElementById('toasts').textContent);
    const removeButtons = Array.from(contactRows.children).map((tr) => Array.from(tr.children[3].children).find((b) => b.textContent === 'Remove'));
    const beforeContactRemove = requests.length;
    removeButtons[0].dispatchEvent(makeEvent('click'));
@@ -2427,7 +2450,7 @@ async function main() {
    document.getElementById('contact-export-vcf').dispatchEvent(makeEvent('click'));
    await flush();
    const vcf = contactsSection.getAttribute('data-last-export') || '';
-   check('the address book exports as vCard 3.0, one card per contact', /BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Alice Example\r\nN:Example;Alice;;;\r\nEMAIL;TYPE=INTERNET:alice@example.net\r\nEND:VCARD/.test(vcf) && (vcf.match(/BEGIN:VCARD/g) || []).length === 2,
+   check('the address book exports as vCard 3.0, one card per contact', /BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Alice Example\r\nN:Example;Alice;;;\r\nEMAIL;TYPE=INTERNET:alice@example.net\r\nEND:VCARD/.test(vcf) && (vcf.match(/BEGIN:VCARD/g) || []).length === 3 && vcf.indexOf('TEL:+1 555 0100') >= 0,
       vcf.slice(0, 160));
    document.getElementById('contact-export-csv').dispatchEvent(makeEvent('click'));
    await flush();

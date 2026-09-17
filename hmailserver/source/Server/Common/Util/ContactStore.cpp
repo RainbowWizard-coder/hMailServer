@@ -134,6 +134,17 @@ namespace HM
    }
 
    bool
+   ContactStore::SetSource(__int64 accountId, __int64 id, int source)
+   {
+      SQLCommand command("update hm_contacts set contactsource = @SOURCE where contactid = @ID and contactaccountid = @ACCOUNTID");
+      command.AddParameter("@SOURCE", source);
+      command.AddParameter("@ID", id);
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
    ContactStore::Update(__int64 accountId, __int64 id, const String &name, const String &address)
    {
       SQLStatement statement;

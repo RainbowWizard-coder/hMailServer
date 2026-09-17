@@ -748,6 +748,33 @@ namespace RegressionTests.API
          Assert.AreEqual(201, sentAgain.status, "Body: " + sentAgain.body);
          (int status, string body) still = Http("GET", "/api/v1/me/contacts", UserHeader(UserPassword));
          StringAssert.Contains("\"count\":2", still.body);
+
+         // What the reader writes from a mail client over SMTP is collected too,
+         // under the account that signed in.
+         string fourth = "fourth@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, fourth, UserPassword);
+         new SmtpClientSimulator().SendRaw(Address, UserPassword, Address, fourth,
+            "From: " + Address + "\r\nTo: " + fourth + "\r\nSubject: Over SMTP\r\n\r\nBody.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(fourth, UserPassword, 1);
+
+         (int status, string body) collected = Http("GET", "/api/v1/me/contacts?source=collected", UserHeader(UserPassword));
+         Assert.AreEqual(200, collected.status, "Body: " + collected.body);
+         StringAssert.Contains("\"address\":\"" + fourth + "\",\"source\":\"collected\"", collected.body);
+         StringAssert.Contains("\"count\":3", collected.body);
+         StringAssert.Contains("\"contacts\":[]", Http("GET", "/api/v1/me/contacts?source=manual", UserHeader(UserPassword)).body,
+            "Nothing was kept yet: the kept list is empty and the collected are apart.");
+
+         // A collected address is kept by the reader's choice, and only that way.
+         System.Text.RegularExpressions.Match row = System.Text.RegularExpressions.Regex.Match(collected.body,
+            "\"id\":(\\d+),\"name\":\"[^\"]*\",\"address\":\"" + fourth.Replace(".", "\\.") + "\"");
+         Assert.IsTrue(row.Success, "Body: " + collected.body);
+         string id = row.Groups[1].Value;
+         (int status, string body) kept = Http("PUT", "/api/v1/me/contacts/" + id, UserHeader(UserPassword), "{\"source\":\"manual\"}");
+         Assert.AreEqual(200, kept.status, "Body: " + kept.body);
+         StringAssert.Contains("\"source\":\"manual\"", kept.body);
+         StringAssert.Contains("\"address\":\"" + fourth + "\"", Http("GET", "/api/v1/me/contacts?source=manual", UserHeader(UserPassword)).body);
+         Assert.AreEqual(400, Http("PUT", "/api/v1/me/contacts/" + id, UserHeader(UserPassword), "{\"source\":\"collected\"}").status,
+            "What was kept is not un-kept by the route; it is removed, if anything.");
       }
 
       [Test]
