@@ -99,12 +99,20 @@ namespace HM
       // resolution and a message's accepted/delivered pair frequently falls inside
       // one second, so ordering by it would show the story out of order. The
       // identity column is monotonic by construction.
+      // Two placeholders, named apart and both bound: SQL Server and SQL Server
+      // Compact substitute by POSITION, not by name, so one name written twice
+      // and added once leaves the second without a value - the search then
+      // answers nothing, or the provider refuses the statement. AddressTraceEraser
+      // does the same thing with @ADDRESS1 and @ADDRESS2 for the same reason.
       SQLCommand command(address.IsEmpty()
          ? "select * from hm_messagetrace order by mtid desc"
-         : "select * from hm_messagetrace where mtsender like @ADDRESS or mtrecipient like @ADDRESS order by mtid desc");
+         : "select * from hm_messagetrace where mtsender like @ADDRESS1 or mtrecipient like @ADDRESS2 order by mtid desc");
 
       if (!address.IsEmpty())
-         command.AddParameter("@ADDRESS", "%" + address + "%");
+      {
+         command.AddParameter("@ADDRESS1", "%" + address + "%");
+         command.AddParameter("@ADDRESS2", "%" + address + "%");
+      }
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
 

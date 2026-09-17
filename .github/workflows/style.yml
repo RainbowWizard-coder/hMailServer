@@ -119,6 +119,14 @@ jobs:
       - name: No file is listed twice in a project, and every source listed is there
         run: python3 build/check-project-items.py
 
+      # The providers substitute parameters by position: a placeholder written
+      # twice and bound once leaves the second without a value, and values added
+      # out of order land in the wrong columns. Compact refuses both, MySQL
+      # accepts them, so a bench on one backend can stay green while the other
+      # writes nonsense. Two of these were found on 17 September 2026.
+      - name: Every SQL placeholder has its own value, added in the order it is written
+        run: python3 build/check-sql-parameters.py
+
       # A table that holds one account's data and is in neither the backup nor
       # the list of what is carried elsewhere is data a RESTORE destroys: every
       # one of them cascades from hm_accounts and a restore deletes every domain
