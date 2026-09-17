@@ -650,7 +650,6 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ContentPolicy.cpp" />
     <ClCompile Include="..\Common\Util\CompromiseDetector.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAccountReview.cpp" />
-    <ClCompile Include="..\Common\Util\RestApiConfidential.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMaskedAddresses.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSenderAddresses.cpp" />
     <ClCompile Include="..\Common\Util\SenderAddresses.cpp" />

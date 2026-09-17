@@ -112,6 +112,13 @@ jobs:
       - name: The counter at the top of Roadmap2.md says what its rows say
         run: python3 build/check-roadmap2.py
 
+      # A source listed twice is compiled twice at once into one object file and
+      # the build fails with "Permission denied" on it - which is how a fold of
+      # two branches that had both added to the same list ended two bench builds
+      # on 17 September 2026. Nothing says so until somebody builds from clean.
+      - name: No file is listed twice in a project, and every source listed is there
+        run: python3 build/check-project-items.py
+
       # A table that holds one account's data and is in neither the backup nor
       # the list of what is carried elsewhere is data a RESTORE destroys: every
       # one of them cascades from hm_accounts and a restore deletes every domain
