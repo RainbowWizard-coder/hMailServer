@@ -7,29 +7,30 @@ name: CodeQL
 # so it is cheap enough to gate changes on.
 #
 # C++ (the mail server - every protocol parser, and the whole surface that faces
-# the internet) runs on every push to master, weekly, and on demand, and
-# deliberately NOT on pull requests. It builds on the same GitHub-hosted
+# the internet) runs on the same events. It builds on the same GitHub-hosted
 # windows-2025-vs2026 runner as server-build.yml, with the same native
-# dependencies restored from the same caches, so the reasons this used to be a
-# weekly-only job - one self-hosted machine that was never registered, shared
-# with the regression suite - are gone. What remains is the cost of the analysis
-# itself:
+# dependencies restored from the same caches. CodeQL builds its database by
+# tracing the compiler, so it needs a FULL build every time: 516 translation
+# units under the extractor, several times slower than the plain build, and then
+# query evaluation over 6.1 MB of C++. Measured on master over six runs in
+# September 2026, the whole workflow takes 40 to 54 minutes.
 #
-#   * CodeQL builds its database by tracing the compiler, so it needs a FULL
-#     build every time: 516 translation units under the extractor, which is
-#     several times slower than the plain build, and then query evaluation over
-#     6.1 MB of C++. An hour or so per run on a hosted runner, against a few
-#     minutes for the C# job.
-#   * A pull request's alerts would be attributed to the branch, and then again
-#     to master when it merges. Analysing master on every push gives one
-#     analysis per merged change, which is what the code-scanning alerts are
-#     keyed on.
+# It did not run on pull requests until 18 September 2026, to save that time.
+# Two things settled it:
 #
-# The cost of that choice, stated plainly: an alert introduced by a pull request
-# is not seen until the push to master that merges it, and is then attributed
-# to that merge rather than to the review. When a change touches the protocol
-# parsers, run this workflow by hand against the branch (workflow_dispatch)
-# before merging rather than waiting for the merge.
+#   * The check said so. Master is analysed for both languages, a pull request
+#     produced only the C# analysis, and the ruleset's code-scanning rule marked
+#     every pull request "2 configurations not found" - a red check on every
+#     branch, which the landing script had to recognise by name and ignore. A
+#     check that always fails teaches people to ignore checks.
+#   * The cost is not what it looks like. This repository is public, so hosted
+#     runner minutes are free, and a pull request already waits 50 to 90 minutes
+#     for the two halves of the Linux regression suite, which this runs beside
+#     rather than after. An alert in a protocol parser is now seen in the review
+#     that introduced it instead of in the push that merged it.
+#
+# A branch's alerts are attributed to the branch and again to master when it
+# merges; that is how code scanning works and is the price of seeing them early.
 
 on:
   push:
@@ -165,8 +166,7 @@ jobs:
 
   cpp:
     name: Analyze (c-cpp)
-    # Push to master, schedule and manual dispatch only - see the header.
-    if: github.event_name != 'pull_request'
+    # Every event the workflow takes, pull requests included - see the header.
     # The runner image is written once, here: it is both the label the job runs
     # on and part of every library cache key the native-dependencies action
     # builds, and `runs-on` does not accept the `env` context. `name:` above
