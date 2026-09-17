@@ -108,7 +108,7 @@ namespace RegressionTests.API
             StringAssert.Contains("\"enable_route_recipients\":false", created.body);
             string id = NumberAfter(created.body, "\"id\":");
 
-            FetchAccount viaCom = reader.FetchAccounts[0];
+            FetchAccount viaCom = reader.FetchAccounts.get_Item(0);
             Assert.IsTrue(viaCom.UseAntiSpam, "The filters are on as COM reads the account.");
             Assert.IsTrue(viaCom.UseAntiVirus);
             Assert.IsFalse(viaCom.ProcessMIMERecipients);
