@@ -2006,8 +2006,7 @@ STDMETHODIMP InterfaceUtilities::GetSetupChecklist(VARIANT_BOOL LookUpDns, BSTR 
    }
 }
 
-STDMETHODIMP InterfaceUtilities::GetReputationReport(BST
-R *Report)
+STDMETHODIMP InterfaceUtilities::GetReputationReport(BSTR *Report)
 {
    try
    {
