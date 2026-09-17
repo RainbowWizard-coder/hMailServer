@@ -104,7 +104,10 @@ namespace RegressionTests.API
          StringAssert.Contains("\"active\":false", replaced.body);
 
          smtp.Send("sender@example.test", owner.Address, "Another advert", "Body");
-         Pop3ClientSimulator.AssertMessageCount(owner.Address, "test", 2);
+         // One, not two: GetFirstMessageText above read "Minutes" with RETR and
+         // then DELE, so the mailbox held nothing until this advert arrived.
+         Pop3ClientSimulator.AssertMessageCount(owner.Address, "test", 1);
+         StringAssert.Contains("Another advert", new Pop3ClientSimulator().GetFirstMessageText(owner.Address, "test"));
 
          // The other account's address does not reach it, and nor does the
          // global route.

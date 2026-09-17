@@ -1036,7 +1036,11 @@ namespace HM
             section.table.rows.push_back(row);
          }
 
-         section.extra.Format(",\"retention_days\":%d", IniFileSettings::Instance()->GetMetricsHistoryDays());
+         // Appended, not formatted over: extra already holds by_domain, and
+         // Format would replace it with the retention figure alone.
+         AnsiString retention;
+         retention.Format(",\"retention_days\":%d", IniFileSettings::Instance()->GetMetricsHistoryDays());
+         section.extra += retention;
 
          return section;
       }

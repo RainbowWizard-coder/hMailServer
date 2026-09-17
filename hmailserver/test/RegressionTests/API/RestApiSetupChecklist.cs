@@ -205,7 +205,9 @@ namespace RegressionTests.API
          ClassicAssert.IsTrue(HasFinding(withTls.RootElement, "submission", "submission_tls", TlsPort.ToString(), CertificateName), Item(withTls.RootElement, "submission").ToString());
          ClassicAssert.AreEqual("action_needed", StateOf(withTls.RootElement, "submission"), "The plain port 587 still needs action beside the secured one.");
 
-         port.SSLCertificateID = 0;
+         // A port with no certificate at all cannot be saved over COM, so the
+         // case is the one an administrator meets: the certificate it names is gone.
+         port.SSLCertificateID = certificate.ID + 100000;
          port.Save();
 
          JsonDocument noCertificate = Get(Path);

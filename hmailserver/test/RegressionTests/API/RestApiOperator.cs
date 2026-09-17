@@ -113,7 +113,8 @@ namespace RegressionTests.API
             ClassicAssert.IsFalse(document.RootElement.GetProperty("include_archive").GetBoolean());
          }
          _domain.Aliases.Refresh();
-         ClassicAssert.IsNull(_domain.Aliases.get_ItemByName(erased), "The alias is gone.");
+         Assert.Throws<System.Runtime.InteropServices.COMException>(() => _domain.Aliases.get_ItemByName(erased),
+            "The alias is gone: the collection has no item by that name.");
 
          (int status, string body) again = Http("POST", "/api/v1/addresses/erase", "{\"address\":\"" + erased + "\"}");
          ClassicAssert.AreEqual(200, again.status, again.body);

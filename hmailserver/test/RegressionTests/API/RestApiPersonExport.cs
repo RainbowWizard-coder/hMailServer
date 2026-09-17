@@ -147,7 +147,7 @@ namespace RegressionTests.API
          }
 
          // The operator's route is the administrator password's alone.
-         (int created, string key) = Http("POST", "/api/v1/apikeys", "{\"label\":\"person export\",\"scope\":\"admin\"}");
+         (int created, string key) = Http("POST", "/api/v1/apikeys", "{\"label\":\"person export\",\"scope\":\"full\"}");
          ClassicAssert.AreEqual(201, created, key);
          ClassicAssert.AreEqual(403, Http("GET", "/api/v1/accounts/" + Uri.EscapeDataString(account.Address) + "/export.zip", null, "Bearer " + Extract(key, "key")).status);
       }
@@ -164,6 +164,14 @@ namespace RegressionTests.API
          ClassicAssert.AreEqual(201, Http("POST", "/api/v1/me/contacts", "{\"name\":\"Erased Person\",\"address\":\"erased@example.test\"}", UserHeader(other.Address)).status);
          SmtpClientSimulator.StaticSend(erased.Address, other.Address, "Hello", "From the person about to be erased.");
          Pop3ClientSimulator.AssertMessageCount(other.Address, "test", 1);
+         // First-contact memory is kept only where the domain has the tip on, and
+         // outgoing it is of the people an account wrote to signed in: the other
+         // writes back, and the erased address is remembered.
+         _domain.FirstContactTip = true;
+         _domain.Save();
+         new SmtpClientSimulator().SendRaw(other.Address, "test", other.Address, erased.Address,
+            "From: " + other.Address + "\r\nTo: " + erased.Address + "\r\nSubject: Re: Hello\r\n\r\nA reply.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(erased.Address, "test", 1);
          StringAssert.Contains("erased@example.test", Http("GET", "/api/v1/me/contacts", null, UserHeader(other.Address)).body);
          StringAssert.Contains("erased@example.test", LogHandler.ReadCurrentDefaultLog(), "The SMTP log names the sender.");
 

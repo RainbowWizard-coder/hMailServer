@@ -169,9 +169,17 @@ namespace RegressionTests.API
 
       private void ArchiveOneMessage(string subject)
       {
+         ArchiveMessages(subject);
+      }
+
+      // The two accounts once, however many messages: an account added twice is
+      // refused as a duplicate.
+      private void ArchiveMessages(params string[] subjects)
+      {
          Account alice = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "alice@example.test", "test");
          Account bob = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "bob@example.test", "test");
-         SmtpClientSimulator.StaticSend(alice.Address, bob.Address, subject, "Body text.");
+         foreach (string subject in subjects)
+            SmtpClientSimulator.StaticSend(alice.Address, bob.Address, subject, "Body text.");
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
       }
 
@@ -237,8 +245,7 @@ namespace RegressionTests.API
       {
          string held = Unique("Hold me");
          string swept = Unique("Sweep me");
-         ArchiveOneMessage(held);
-         ArchiveOneMessage(swept);
+         ArchiveMessages(held, swept);
 
          (int status, string body) = Http("GET", "/api/v1/archive?domain=example.test&mailbox=bob&subject=" + Uri.EscapeDataString(held));
          Assert.AreEqual(200, status, body);

@@ -519,8 +519,13 @@ namespace RegressionTests.API
 
          Assert.AreEqual(200, summary.status, "Body: " + summary.body);
          StringAssert.Contains("\"omitted\":[", summary.body);
-         StringAssert.Contains("{\"section\":\"volume\",\"reason\":", summary.body);
-         StringAssert.Contains("{\"section\":\"storage\",\"reason\":", summary.body);
+         // Volume and storage are counted per domain since schema 6062, so the
+         // summary gives them in their per-domain form; the countries have no
+         // domain in them and are the section left out.
+         StringAssert.Contains("{\"section\":\"countries\",\"reason\":", summary.body);
+         StringAssert.DoesNotContain("{\"section\":\"volume\",\"reason\":", summary.body);
+         StringAssert.Contains("\"volume\":{\"section\":\"volume\",", summary.body);
+         StringAssert.Contains("\"storage\":{\"section\":\"storage\",", summary.body);
          StringAssert.Contains("\"traffic\":{", summary.body,
             "The sections it may see must still be there.");
 

@@ -195,10 +195,10 @@ namespace RegressionTests.Rules
             new SmtpClientSimulator().Send(account.Address, "test@dummy-example.com", "a secret", "Not in the clear.");
             CustomAsserts.AssertRecipientsInDeliveryQueue(0);
 
-            RetryHelper.TryAction(TimeSpan.FromSeconds(15), () =>
-            {
-               RetryableAssert.StringContains("the rule Encrypt to partners requires TLS", LogHandler.ReadCurrentDefaultLog());
-            });
+            // The route tries once, so the refusal comes back to the sender at once,
+            // naming the rule - which is where the reason is written, not the log.
+            string bounce = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            StringAssert.Contains("the rule Encrypt to partners requires TLS", bounce);
 
             ClassicAssert.IsFalse((server.MessageData ?? "").Contains("Not in the clear."), "The message was not handed over without TLS.");
          }

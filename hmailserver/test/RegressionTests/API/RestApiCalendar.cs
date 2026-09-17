@@ -318,7 +318,9 @@ namespace RegressionTests.API
          Assert.AreEqual(404, Me("DELETE", "/api/v1/me/tasks/" + milkId, null, Address, UserPassword).status);
          StringAssert.DoesNotContain("Buy oat milk", Me("GET", "/api/v1/me/tasks", null, Address, UserPassword).body);
          Assert.AreEqual(404, Dav("GET", href, Auth(Address, UserPassword)).Status);
-         Assert.AreEqual(404, Me("PUT", "/api/v1/me/tasks/" + IdOf(report.body) + "x", "{}", Address, UserPassword).status);
+         // Not a task id at all, so no route: an account's credential is refused
+         // a path it has no route for, rather than told of a task that is missing.
+         Assert.AreEqual(403, Me("PUT", "/api/v1/me/tasks/" + IdOf(report.body) + "x", "{}", Address, UserPassword).status);
       }
 
       [Test]
@@ -337,7 +339,8 @@ namespace RegressionTests.API
          string invitationMail = Pop3ClientSimulator.AssertGetFirstMessageText(GuestAddress, GuestPassword);
          StringAssert.Contains("Subject: Invitation: Planning @", invitationMail);
          StringAssert.Contains("text/calendar; charset=utf-8; method=REQUEST", invitationMail);
-         StringAssert.Contains("From: Sam Self <" + Address + ">", invitationMail);
+         // A display name is written quoted, as RFC 5322 allows any phrase to be.
+         StringAssert.Contains("From: \"Sam Self\" <" + Address + ">", invitationMail);
 
          long messageId = MessageIdOf(GuestAddress, GuestPassword, "Planning");
          (int status, string body) message = Me("GET", "/api/v1/me/messages/" + messageId, null, GuestAddress, GuestPassword);
@@ -427,7 +430,11 @@ namespace RegressionTests.API
 
       private static List<string> Starts(string json)
       {
-         return Regex.Matches(json, "\"start\":\"([0-9]{8}T[0-9]{6}Z)\"").Cast<Match>().Select(match => match.Groups[1].Value).ToList();
+         // The occurrences' starts, not the window's: the answer opens with the
+         // start of the window it was asked for, in the same form.
+         int events = json.IndexOf("\"events\":[", StringComparison.Ordinal);
+         string occurrences = events >= 0 ? json.Substring(events) : json;
+         return Regex.Matches(occurrences, "\"start\":\"([0-9]{8}T[0-9]{6}Z)\"").Cast<Match>().Select(match => match.Groups[1].Value).ToList();
       }
 
       // The id of the first message whose subject carries the text, by the
