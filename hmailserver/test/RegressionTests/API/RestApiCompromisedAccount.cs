@@ -486,6 +486,12 @@ namespace RegressionTests.API
          IniFileSetting.Write("OAuth2UsernameClaim", "email");
          IniFileSetting.Write("OAuth2Issuer", "");
          IniFileSetting.Write("OAuth2Audience", "");
+
+         // IMAP AUTHENTICATE of every mechanism, XOAUTH2 included, is behind this
+         // one switch (IMAPCommandAUTHENTICATE answers "IMAP AUTHENTICATE is not
+         // enabled." without it), and the suite ships with it off. Put back below,
+         // as Security/OAuth2Bearer.cs puts it back.
+         _application.Settings.IMAPSASLPlainEnabled = true;
          _application.Reinitialize();
       }
 
@@ -496,6 +502,7 @@ namespace RegressionTests.API
          IniFileSetting.Write("OAuth2AllowedAlgorithms", "RS256");
          IniFileSetting.Write("OAuth2HmacSecret", "");
          IniFileSetting.Write("OAuth2UsernameClaim", "email");
+         _application.Settings.IMAPSASLPlainEnabled = false;
          _application.Reinitialize();
       }
 

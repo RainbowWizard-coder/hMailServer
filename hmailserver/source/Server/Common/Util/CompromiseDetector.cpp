@@ -311,18 +311,30 @@ namespace HM
          if (!EnsureReviewRow(accountId))
             return false;
 
+         // SQL Server and Compact bind a command's parameters by position, not by
+         // name: the values go on in the order the placeholders are written, and
+         // one name written twice is two placeholders wanting two values. So the
+         // moment is named twice over - the lock time and the alert time apart -
+         // and each parameter is added where its placeholder stands, only when
+         // the clause that carries it is there. Bound any other way the Compact
+         // provider put the epoch into arvscore and the score into arvsignals
+         // and refused the statement ("Requested conversion is not supported"),
+         // so no shape, no lock and no alert time was ever written down.
          AnsiString sql = "update hm_accountreview set arvscore = @SCORE, arvsignals = @SIGNALS, arvreason = @REASON";
          if (locked)
-            sql += ", arvlocked = 1, arvlockedat = @NOW";
+            sql += ", arvlocked = 1, arvlockedat = @LOCKEDAT";
          if (alerted)
-            sql += ", arvalertedat = @NOW";
+            sql += ", arvalertedat = @ALERTEDAT";
          sql += " where arvaccountid = @ACCOUNTID";
 
          SQLCommand update(sql);
-         update.AddParameter("@NOW", now);
          update.AddParameter("@SCORE", verdict.score);
          update.AddParameter("@SIGNALS", Clip(verdict.signals, 255));
          update.AddParameter("@REASON", Clip(verdict.reason, 255));
+         if (locked)
+            update.AddParameter("@LOCKEDAT", now);
+         if (alerted)
+            update.AddParameter("@ALERTEDAT", now);
          update.AddParameter("@ACCOUNTID", accountId);
          return Execute(update);
       }
@@ -718,11 +730,18 @@ namespace HM
          if (!alert)
             return;
 
+         // Two formats, two argument lists: the watch-mode sentence has no count
+         // in it, so a single Format call handed the count to its second %s and
+         // read the integer 1 as a pointer to a string. /EHa let the catch below
+         // swallow the access violation, so watch mode raised no alert at all
+         // and said nothing about it.
          String summary;
-         summary.Format(enforce
-               ? _T("%s was locked and %d message(s) held for review: %s")
-               : _T("%s sent in the shape of a takeover (watch mode, nothing held or locked): %s"),
-            assessment.account.c_str(), othersHeld + 1, assessment.verdict.signals.c_str());
+         if (enforce)
+            summary.Format(_T("%s was locked and %d message(s) held for review: %s"),
+               assessment.account.c_str(), othersHeld + 1, assessment.verdict.signals.c_str());
+         else
+            summary.Format(_T("%s sent in the shape of a takeover (watch mode, nothing held or locked): %s"),
+               assessment.account.c_str(), assessment.verdict.signals.c_str());
 
          String detail;
          detail.Format(_T("Account: %s\r\nClient address: %s\r\nSubmitted over: %s\r\nScore: %d\r\nSignals: %s\r\nWhy: %s\r\nMode: %s\r\n%s"),
