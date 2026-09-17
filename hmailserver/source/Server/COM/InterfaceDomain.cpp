@@ -3289,7 +3289,7 @@ STDMETHODIMP InterfaceDomain::put_QuotaWarningSubject(BSTR newVal)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
-      String value = newVal;
+      HM::String value = newVal;
 
       if (value.GetLength() > 200)
          return COMError::GenerateError("QuotaWarningSubject may be at most 200 characters.");
@@ -3334,7 +3334,7 @@ STDMETHODIMP InterfaceDomain::put_QuotaWarningText(BSTR newVal)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
-      String value = newVal;
+      HM::String value = newVal;
 
       if (value.GetLength() > 20000)
          return COMError::GenerateError("QuotaWarningText may be at most 20000 characters.");

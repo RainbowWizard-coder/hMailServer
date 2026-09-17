@@ -1972,7 +1972,7 @@ STDMETHODIMP InterfaceUtilities::RevertAuditedChange(long AuditId, BSTR *Restore
          return COMError::GenerateError(reason);
 
       HM::String logMessage = HM::String(_T("The setting ")) + entry.object_name + _T(" was put back to the value audit row ") + HM::StringParser::IntToString((__int64) AuditId) + _T(" records, over COM.");
-      LOG_APPLICATION(logMessage);
+      HM::Logger::Instance()->LogApplication(logMessage);
 
       *RestoredValue = restored.AllocSysString();
       return S_OK;
@@ -2188,7 +2188,7 @@ STDMETHODIMP InterfaceUtilities::EraseAddressLogLines(BSTR Address, long *LinesC
 
       HM::String logMessage;
       logMessage.Format(_T("Rewrote %d occurrence(s) of an address in the log files on an operator's request."), changed);
-      LOG_APPLICATION(logMessage);
+      HM::Logger::Instance()->LogApplication(logMessage);
 
       *LinesChanged = changed;
 
