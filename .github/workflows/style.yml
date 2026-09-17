@@ -107,6 +107,8 @@ jobs:
         run: python3 build/check-sql-separators.py
       - name: An upgrade step adds a setting row only if it is not already there
         run: python3 build/check-upgrade-inserts.py
+      - name: Every database setting has a row on a database made before it
+        run: python3 build/check-settings-rows.py
       - name: The counter at the top of Roadmap2.md says what its rows say
         run: python3 build/check-roadmap2.py
 

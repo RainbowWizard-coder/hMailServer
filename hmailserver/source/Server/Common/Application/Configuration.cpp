@@ -210,6 +210,13 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES, 65536);
       property_set_->EnsureLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT, 8);
       property_set_->EnsureLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, 1);
+
+      // The quota policy's two server-wide shares. Both 0, which is the server
+      // as it has always been: no grace past a mailbox's limit, and no point at
+      // which an account stops being able to send. A domain that sets its own
+      // overrides them; these are what a domain that sets none inherits.
+      property_set_->EnsureLong(PROPERTY_QUOTA_GRACE_PERCENT, 0);
+      property_set_->EnsureLong(PROPERTY_QUOTA_SEND_STOP_PERCENT, 0);
    }
 
    void

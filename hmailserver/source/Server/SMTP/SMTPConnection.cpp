@@ -1842,10 +1842,15 @@ namespace HM
 
       if (iSpamDeleteThreshold > 0 && iTotalSpamScore >= iSpamDeleteThreshold)
       {
-         // Increase the spam-counter, and the recipient domains' (none yet
-         // when the refusal comes at MAIL FROM).
+         // Increase the spam-counter, and the recipient domains'. A
+         // pre-transmission verdict is reached at MAIL FROM, before DATA and
+         // before there is a message at all, so there is nothing to read the
+         // recipients from and nothing to record: the domain counts are of
+         // messages that reached a mailbox's domain, and this one named none.
          ServerStatus::Instance()->OnSpamMessageDetected();
-         DomainSamples::Instance()->RecordFor(current_message_->GetRecipients(), true);
+
+         if (current_message_)
+            DomainSamples::Instance()->RecordFor(current_message_->GetRecipients(), true);
 
          // Generate a text string to send to the client.
          String messageText = GetSpamTestResultMessage_(spam_test_results_);
