@@ -1586,6 +1586,11 @@ interface IInterfaceUtilities : IDispatch{
    // asserts nothing about what it carried. Neither reads or writes anything.
    [id(58), helpstring("A fresh P-256 key pair of the kind a browser makes when it subscribes, as JSON {public_key, private_key} in base64url. For a caller that has to stand in for a browser; the server keeps nothing.")] HRESULT GenerateWebPushKeyPair([out, retval] BSTR *Json);
    [id(59), helpstring("Opens an RFC 8291 push message body (base64url of the aes128gcm bytes) with a subscription private key and auth secret, and returns the plain text. Raises an error when the body does not open. Reads and writes nothing.")] HRESULT WebPushDecrypt([in] BSTR BodyBase64Url, [in] BSTR PrivateKey, [in] BSTR AuthSecret, [out, retval] BSTR *PlainText);
+   // The first-hour checklist (Common/Util/SetupChecklist.h): a domain, an
+   // account, TLS on the submission port, SPF, DKIM, DMARC, a backup destination
+   // and a second factor on the administrator password, each judged by the
+   // server. The server administrator's, like the reputation report.
+   [id(60), helpstring("The first-hour checklist as JSON: eight items - domain, account, submission, spf, dkim, dmarc, backup, second_factor - each done, action_needed, cannot_tell or not_needed, with findings carrying a code, its arguments and an English sentence. With LookUpDns the SPF, DKIM and DMARC records of every active domain are looked up, which takes the resolver's timeout for each missing record; without it the record items say which host to look up.")] HRESULT GetSetupChecklist([in] VARIANT_BOOL LookUpDns, [out, retval] BSTR *Json);
    // A mailbox renamed or moved, reached by address rather than through an
    // Account object, and the journal of what has been moved - so a script, the
    // Control Panel and a support session can do and read the same thing without

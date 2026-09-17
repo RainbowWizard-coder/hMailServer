@@ -1879,6 +1879,8 @@ namespace HM
          case RouteReputationGet:
          case RouteReputationCheck:
             return HandleReputation_(caller, route, GetRequestBody_(request));
+         case RouteSetupChecklist:
+            return HandleSetupChecklist_(route);
          case RouteRuleList:
             return HandleListRules_();
          case RouteLogList:
@@ -3961,6 +3963,11 @@ namespace HM
          route.kind = RouteReputationCheck;
          return;
       }
+      if (method == "GET" && path == "/api/v1/setup/checklist")
+      {
+         route.kind = RouteSetupChecklist;
+         return;
+      }
       if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/dkim"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -4988,6 +4995,7 @@ namespace HM
       // because a route in no classification is a route nobody decided about -
       // and for these the classification says what kind of route it is, not what
       case RouteReputationGet:
+      case RouteSetupChecklist:
       // a role may read.
       case RouteUnknown:
       case RouteStatus:
@@ -6056,6 +6064,10 @@ namespace HM
       // mail is leaving, so its reputation is not any one domain's business.
       case RouteReputationGet:
       case RouteReputationCheck:
+      // The first-hour checklist judges the submission port, the backup
+      // destination and the administrator's second factor, none of which is
+      // any domain's.
+      case RouteSetupChecklist:
          // IP ranges, certificates, global rules, the logs, the backup, the
          // server settings and the update check are all server-wide: none of
          // them belongs to a domain, and the logs in particular carry every
@@ -13521,6 +13533,7 @@ namespace HM
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiReputationPaths_();
+      openApiJson += OpenApiSetupChecklistPaths_();
       openApiJson += OpenApiAuditPaths_();
       openApiJson += OpenApiBouncesPaths_();
       openApiJson += OpenApiComplaintsPaths_();

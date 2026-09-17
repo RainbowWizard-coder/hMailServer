@@ -18,8 +18,8 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 61 |
-| REST routes (path and method) | 337, 151 of them writes |
-| Deck views | 25 |
+| REST routes (path and method) | 338, 151 of them writes |
+| Deck views | 26 |
 
 ## Missing over REST, by interface
 
@@ -892,6 +892,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | View | Routes called |
 |---|---|
 | `dash` | `GET /api/v1/status` |
+| `checklist` | `GET /api/v1/setup/checklist` |
 | `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |

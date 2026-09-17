@@ -1086,6 +1086,7 @@ const ROLE_CATALOGUE = [
      permissions: 'view_accounts,view_message_trace,reset_password,unlock_account' },
    { name: 'auditor', description: 'Reads everything and changes nothing, the audit trail included.', builtin: true,
    reputationChecks: 0,
+   checklistReads: 0,
      permissions: 'view_configuration,view_accounts,view_logs,view_audit' },
    { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
 ];
@@ -1301,6 +1302,25 @@ const state = {
                   detail: 'A private address. It is not what another server sees, and asking a block list about it would tell the list what this network looks like inside.' }],
       last_checked: 1789000000, next_check: 1789086400, now: 1789000100,
       counts: { addresses: 2, lists: 2, listed: 1, not_listed: 1, unknown: 1, not_applicable: 1, not_checked: 0, skipped: 1 }
+   },
+   // The first-hour checklist. All four states at once, and the two shapes of
+   // finding the page has to draw: the one whose code it knows, rendered from the
+   // catalogue with the arguments, and one whose code it does not, where the
+   // server's own sentence is what is shown.
+   checklist: {
+      generated: 1789000000, dns_looked_up: true, done: 3, action_needed: 4, cannot_tell: 1, not_needed: 0,
+      items: [
+         { key: 'domain', state: 'done', findings: [{ state: 'done', code: 'domain_count', args: ['1', '1'], text: 'Active domains: 1 of 1.' }] },
+         { key: 'account', state: 'done', findings: [{ state: 'done', code: 'account_count', args: ['3'], text: 'Accounts: 3.' }] },
+         { key: 'submission', state: 'action_needed', findings: [
+            { state: 'action_needed', code: 'submission_plain', args: ['587'], text: 'Port 587 takes submission without TLS, so passwords and mail would cross the network in the clear.' },
+            { state: 'done', code: 'submission_tls', args: ['465', 'Example'], text: 'Port 465 offers TLS with the certificate Example.' }] },
+         { key: 'spf', state: 'action_needed', findings: [{ state: 'action_needed', code: 'record_missing', args: ['example.com', 'SPF', 'example.com'], text: 'example.com: no SPF record at example.com.' }] },
+         { key: 'dkim', state: 'cannot_tell', findings: [{ state: 'cannot_tell', code: 'lookup_failed', args: ['example.com', 'DKIM', 'mail._domainkey.example.com'], text: 'example.com: the lookup for mail._domainkey.example.com failed, which says nothing about the DKIM record.' }] },
+         { key: 'dmarc', state: 'done', findings: [{ state: 'done', code: 'record_published', args: ['example.com', 'DMARC', '_dmarc.example.com'], text: 'example.com: the DMARC record at _dmarc.example.com is published.' }] },
+         { key: 'backup', state: 'action_needed', findings: [{ state: 'action_needed', code: 'backup_none', args: [], text: 'No backup destination is set.' }] },
+         { key: 'second_factor', state: 'action_needed', findings: [{ state: 'action_needed', code: 'a_code_this_page_does_not_know', args: [], text: 'The server said this in its own words.' }] }
+      ]
    },
    // What this server has changed from stock. Five entries chosen for the five
    // things the page has to get right: a plain ini key, a secret named and not
@@ -1834,6 +1854,7 @@ function answer(method, path, headers, raw) {
       return json(201, { id: range.id });
    }
    if (path === '/api/v1/reputation' && method === 'GET') { return json(200, state.reputation); }
+   if (path === '/api/v1/setup/checklist' && method === 'GET') { state.checklistReads += 1; return json(200, state.checklist); }
    if (path === '/api/v1/reputation/check' && method === 'POST') {
       state.reputationChecks += 1;
       // A check is what turns an unanswered list into an answer: after it, the list
@@ -4373,6 +4394,56 @@ async function main() {
       content().textContent.indexOf('The watch is off') >= 0 && content().textContent.indexOf('No outbound address is configured') >= 0,
       content().textContent.slice(0, 300));
    state.reputation.enabled = true;
+
+   // ---- the first-hour checklist
+   before = requests.length;
+   await goTo('checklist');
+   check('the checklist view reads the list', called(before, 'GET', '/api/v1/setup/checklist').length === 1, paths(before));
+   check('one card per item, eight of them', content().querySelectorAll('.checkitem').length === 8,
+      String(content().querySelectorAll('.checkitem').length));
+   check('a done item is drawn as good, with its title and the finding rendered from the code and its arguments',
+      content().querySelector('.checkitem[data-key="domain"] .pill[data-level="good"]') !== null &&
+      content().querySelector('.checkitem[data-key="domain"]').textContent.indexOf('A domain') >= 0 &&
+      content().querySelector('.checkitem[data-key="domain"]').textContent.indexOf('Active domains: 1 of 1.') >= 0,
+      content().querySelector('.checkitem[data-key="domain"]').textContent);
+   check('an item that needs action is drawn as a warning and names the port',
+      content().querySelector('.checkitem[data-key="submission"] .pill[data-level="warn"]') !== null &&
+      content().querySelector('.checkitem[data-key="submission"]').textContent.indexOf('Port 587 takes submission without TLS') >= 0 &&
+      content().querySelector('.checkitem[data-key="submission"]').textContent.indexOf('Port 465 offers TLS with the certificate Example.') >= 0,
+      content().querySelector('.checkitem[data-key="submission"]').textContent);
+   check('a lookup that failed reads as cannot tell, not as missing',
+      content().querySelector('.checkitem[data-key="dkim"]').textContent.indexOf('Cannot tell') >= 0 &&
+      content().querySelector('.checkitem[data-key="dkim"]').textContent.indexOf('says nothing about the DKIM record') >= 0 &&
+      content().querySelector('.checkitem[data-key="dkim"]').textContent.indexOf('no DKIM record') < 0,
+      content().querySelector('.checkitem[data-key="dkim"]').textContent);
+   check('a code this page does not know is shown in the server\'s own words',
+      content().querySelector('.checkitem[data-key="second_factor"]').textContent.indexOf('The server said this in its own words.') >= 0,
+      content().querySelector('.checkitem[data-key="second_factor"]').textContent);
+   check('the summary counts the four states', document.getElementById('checklistSummary').textContent === '3 done, 4 need action, 1 cannot be told, 0 not needed.',
+      document.getElementById('checklistSummary').textContent);
+
+   state.checklist = {
+      generated: 1789000200, dns_looked_up: true, done: 0, action_needed: 5, cannot_tell: 0, not_needed: 3,
+      items: [
+         { key: 'domain', state: 'action_needed', findings: [{ state: 'action_needed', code: 'domain_none', args: [], text: 'No domain has been added yet.' }] },
+         { key: 'account', state: 'action_needed', findings: [{ state: 'action_needed', code: 'account_none', args: [], text: 'No account has been added in any domain.' }] },
+         { key: 'submission', state: 'action_needed', findings: [{ state: 'action_needed', code: 'submission_plain', args: ['587'], text: 'Port 587 takes submission without TLS, so passwords and mail would cross the network in the clear.' }] },
+         { key: 'spf', state: 'not_needed', findings: [{ state: 'not_needed', code: 'no_active_domain', args: [], text: 'No active domain, so there is nothing to publish yet.' }] },
+         { key: 'dkim', state: 'not_needed', findings: [{ state: 'not_needed', code: 'no_active_domain', args: [], text: 'No active domain, so there is nothing to publish yet.' }] },
+         { key: 'dmarc', state: 'not_needed', findings: [{ state: 'not_needed', code: 'no_active_domain', args: [], text: 'No active domain, so there is nothing to publish yet.' }] },
+         { key: 'backup', state: 'action_needed', findings: [{ state: 'action_needed', code: 'backup_none', args: [], text: 'No backup destination is set.' }] },
+         { key: 'second_factor', state: 'action_needed', findings: [{ state: 'action_needed', code: 'second_factor_off', args: [], text: 'The administrator signs in with a password alone.' }] }
+      ]
+   };
+   before = requests.length;
+   click(act('checklistagain'));
+   await flush();
+   check('Check again reads the list again', called(before, 'GET', '/api/v1/setup/checklist').length === 1, paths(before));
+   check('a fresh server reads as nothing added, with the record items not needed rather than failed',
+      content().querySelector('.checkitem[data-key="domain"]').textContent.indexOf('No domain has been added yet.') >= 0 &&
+      content().querySelector('.checkitem[data-key="spf"]').textContent.indexOf('Not needed') >= 0 &&
+      content().querySelector('.checkitem[data-key="spf"] .pill[data-level]') === null,
+      content().querySelector('.checkitem[data-key="spf"]').textContent);
 
    // ---- groups: the last thing the census counted as writable over REST and
    // reachable from no view here

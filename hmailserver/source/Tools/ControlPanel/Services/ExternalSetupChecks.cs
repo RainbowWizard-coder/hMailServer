@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading.Tasks;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -297,7 +298,9 @@ namespace hMailServer.ControlPanel.Services
       {
          DkimPrimary,
          DkimSecondary,
-         MtaSts
+         MtaSts,
+         Spf,
+         Dmarc
       }
 
       /// <summary>
@@ -416,6 +419,24 @@ namespace hMailServer.ControlPanel.Services
                }
                return;
 
+            case ProbeKind.Spf:
+            case ProbeKind.Dmarc:
+            {
+               // Presence of the record the receiving server would find: a TXT at
+               // the domain beginning v=spf1, a TXT at _dmarc.<domain> beginning
+               // v=DMARC1. TXT records that exist without either are "no record"
+               // for the purpose - the receiver ignores them too.
+               string kind = probe.Kind == ProbeKind.Spf ? "SPF" : "DMARC"; // no-loc
+               string marker = probe.Kind == ProbeKind.Spf ? "v=spf1" : "v=DMARC1"; // no-loc
+               bool published = result.Status == DnsTxtLookup.LookupStatus.Found &&
+                  result.Records.Any(r => (r ?? "").Trim().StartsWith(marker, StringComparison.OrdinalIgnoreCase));
+               finding.State = published ? SetupItemState.Done : SetupItemState.ActionNeeded;
+               finding.Text = published
+                  ? F("{0}: the {1} record at {2} is published.", probe.Label, kind, probe.Host)
+                  : F("{0}: no {1} record at {2}.", probe.Label, kind, probe.Host);
+               return;
+            }
+
             default: // MtaSts
                if (result.Status == DnsTxtLookup.LookupStatus.NoRecord)
                {
@@ -469,7 +490,209 @@ namespace hMailServer.ControlPanel.Services
             ServiceAccountItem(ini, iniReadable, iniExcuse, local)
          };
 
+         // The first hour comes first: a server with no domain has no use for a
+         // DANE record.
+         items.InsertRange(0, FirstHourItems());
+
          return items;
+      }
+
+      // ---- the first hour, judged by the server ----------------------------------
+
+      /// <summary>
+      /// The first-hour items the server judges itself (Common/Util/SetupChecklist.h):
+      /// a domain, an account, TLS on the submission port, SPF, DMARC, a backup
+      /// destination and a second factor on the administrator password. Read over
+      /// COM as Utilities.GetSetupChecklist without DNS lookups - the SPF and DMARC
+      /// records are looked up here, off the window thread, by the same probes the
+      /// DKIM item uses - and rendered from the finding codes, so that the sentence
+      /// is this panel's in every language while the judgement is the server's. The
+      /// server's DKIM item is left out: the DKIM item below verifies the record
+      /// against the key file, which the server's presence check does not.
+      /// </summary>
+      private List<SetupItem> FirstHourItems()
+      {
+         var items = new List<SetupItem>();
+
+         string json = Read(() => (string)ServerSession.Current.Application.Utilities.GetSetupChecklist(false));
+         if (json == null)
+         {
+            SetupItem unread = FirstHourItem("domain");
+            unread.Add(SetupItemState.CannotTell, F("The server's checklist could not be read: {0}", firstError_ ?? ""));
+            unread.AggregateFromFindings();
+            items.Add(unread);
+            return items;
+         }
+
+         try
+         {
+            using JsonDocument document = JsonDocument.Parse(json);
+            foreach (JsonElement element in document.RootElement.GetProperty("items").EnumerateArray())
+            {
+               string key = element.GetProperty("key").GetString() ?? "";
+               SetupItem item = key == "dkim" ? null : FirstHourItem(key);
+               if (item == null)
+                  continue;
+
+               foreach (JsonElement finding in element.GetProperty("findings").EnumerateArray())
+                  AddFirstHourFinding(item, key, finding);
+
+               item.AggregateFromFindings();
+               items.Add(item);
+            }
+         }
+         catch (Exception ex) when (ex is JsonException || ex is KeyNotFoundException || ex is InvalidOperationException)
+         {
+            failedReads_++;
+            firstError_ ??= ex.Message;
+         }
+
+         return items;
+      }
+
+      /// <summary>What each first-hour item is for and where it is done, or null for a key this panel does not know.</summary>
+      private static SetupItem FirstHourItem(string key)
+      {
+         switch (key)
+         {
+            case "domain":
+               return new SetupItem
+               {
+                  Title = L("A domain - the server needs one before it can receive mail"),
+                  Purpose = L("Mail is addressed to a domain, so the server needs one before it can receive anything."),
+                  Action = L("Add the domain on the Domains page. Its name is the part after the @ in every address it will hold."),
+                  Page = "domains"
+               };
+            case "account":
+               return new SetupItem
+               {
+                  Title = L("An account - a mailbox in a domain"),
+                  Purpose = L("An account is a mailbox in a domain: the address people write to, and what a client signs in as."),
+                  Action = L("Add an account under the domain on the Domains page: an address, and the password a mail client signs in with."),
+                  Page = "domains"
+               };
+            case "submission":
+               return new SetupItem
+               {
+                  Title = L("TLS on the submission port - the port mail clients send through"),
+                  Purpose = L("Mail clients send through the submission port, and without TLS their passwords cross the network in the clear."),
+                  Action = L("On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS."),
+                  Page = "ports"
+               };
+            case "spf":
+               return new SetupItem
+               {
+                  Title = L("An SPF record - which servers may send this domain's mail"),
+                  Purpose = L("SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam."),
+                  Action = L("At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish."),
+                  Page = "dnsrecords"
+               };
+            case "dmarc":
+               return new SetupItem
+               {
+                  Title = L("A DMARC record - what receivers do with mail that fails SPF and DKIM"),
+                  Purpose = L("DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it."),
+                  Action = L("At your DNS host, publish a TXT record named _dmarc.<domain>, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish."),
+                  Page = "dnsrecords"
+               };
+            case "backup":
+               return new SetupItem
+               {
+                  Title = L("A backup destination - until one is set there is no backup"),
+                  Purpose = L("The backup writes the database and the message store to a folder; until one is set there is no backup."),
+                  Action = L("On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on."),
+                  Page = "backup"
+               };
+            case "second_factor":
+               return new SetupItem
+               {
+                  Title = L("A second factor for the administrator - a one-time code beside the password"),
+                  Purpose = L("The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough."),
+                  Action = L("On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password."),
+                  Page = "adminaccess"
+               };
+            default:
+               return null;
+         }
+      }
+
+      /// <summary>
+      /// The finding codes the server writes (SetupChecklist.cpp says what each
+      /// means), each with this panel's sentence for it. A code that is not here is
+      /// shown in the server's own words, so a newer server is not silenced by an
+      /// older panel.
+      /// </summary>
+      private static readonly Dictionary<string, string> FirstHourTexts = new()
+      {
+         ["domain_none"] = N("No domain has been added yet."),
+         ["domain_none_active"] = N("{0} domains, none of them active."),
+         ["domain_count"] = N("Active domains: {0} of {1}."),
+         ["account_none"] = N("No account has been added in any domain."),
+         ["account_count"] = N("Accounts: {0}."),
+         ["submission_none"] = N("No port takes message submission, so mail clients cannot send through this server."),
+         ["submission_plain"] = N("Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear."),
+         ["submission_no_certificate"] = N("Port {0} is set to TLS but has no certificate, so TLS cannot start."),
+         ["submission_tls"] = N("Port {0} offers TLS with the certificate {1}."),
+         ["no_active_domain"] = N("No active domain, so there is nothing to publish yet."),
+         ["record_published"] = N("{0}: the {1} record at {2} is published."),
+         ["record_missing"] = N("{0}: no {1} record at {2}."),
+         ["record_not_looked_up"] = N("{0}: the {1} record at {2} was not looked up."),
+         ["lookup_failed"] = N("{0}: the lookup for {2} failed, which says nothing about the {1} record."),
+         ["domains_not_looked_up"] = N("{0} more active domains were not looked up."),
+         ["backup_none"] = N("No backup destination is set."),
+         ["backup_folder_missing"] = N("The backup destination {0} does not exist on the server."),
+         ["backup_set"] = N("Backups go to {0}."),
+         ["second_factor_on"] = N("The administrator's password is backed by a one-time code."),
+         ["second_factor_off"] = N("The administrator signs in with a password alone.")
+      };
+
+      private void AddFirstHourFinding(SetupItem item, string key, JsonElement finding)
+      {
+         string code = finding.TryGetProperty("code", out JsonElement codeElement) ? codeElement.GetString() ?? "" : "";
+         var args = new List<string>();
+         if (finding.TryGetProperty("args", out JsonElement argsElement) && argsElement.ValueKind == JsonValueKind.Array)
+         {
+            foreach (JsonElement arg in argsElement.EnumerateArray())
+               args.Add(arg.GetString() ?? "");
+         }
+
+         // The server was asked not to look the records up, so that this panel's
+         // window thread is not held for the resolver's timeout; the lookup is
+         // scheduled here and lands when the background pass completes.
+         if (code == "record_not_looked_up" && args.Count >= 3 && (key == "spf" || key == "dmarc"))
+         {
+            var pending = new SetupFinding
+            {
+               State = SetupItemState.CannotTell,
+               Text = F("{0}: checking DNS for the {1} record at {2}…", args[0], args[1], args[2])
+            };
+            item.Findings.Add(pending);
+            probes_.Add(new DnsProbe
+            {
+               Kind = key == "spf" ? ProbeKind.Spf : ProbeKind.Dmarc,
+               Host = args[2],
+               Label = args[0],
+               Target = pending
+            });
+            return;
+         }
+
+         SetupItemState state = FirstHourState(finding.TryGetProperty("state", out JsonElement stateElement) ? stateElement.GetString() : null);
+         string text = FirstHourTexts.TryGetValue(code, out string english)
+            ? F(english, args.Cast<object>().ToArray())
+            : (finding.TryGetProperty("text", out JsonElement textElement) ? textElement.GetString() : null) ?? code;
+         item.Add(state, text);
+      }
+
+      private static SetupItemState FirstHourState(string word)
+      {
+         switch (word)
+         {
+            case "done": return SetupItemState.Done;
+            case "action_needed": return SetupItemState.ActionNeeded;
+            case "not_needed": return SetupItemState.NotNeeded;
+            default: return SetupItemState.CannotTell;
+         }
       }
 
       /// <summary>

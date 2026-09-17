@@ -383,6 +383,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>En fil med en CA-sertifikatpakke må angis når klientsertifikater bes om eller kreves. Uten en slik ville «Krev» avvise hver eneste klient, og «Be om» ville ikke verifisere noe.</value>
   </data>
+  <data name="A DMARC record - what receivers do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>En DMARC-post - hva mottakere gjør med post som ikke består SPF og DKIM</value>
+  </data>
   <data name="A DMARC record with p=none is live at {0}." xml:space="preserve">
     <value>En DMARC-oppføring med p=none er aktiv på {0}.</value>
   </data>
@@ -391,6 +394,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Det finnes en TXT-oppføring på {0}, men filen med den private nøkkelen kunne ikke leses fra denne maskinen, så om den bærer RIKTIG nøkkel kan ikke verifiseres herfra. Kjør kontrollen på selve serveren, eller bruk domenets DKIM-fane.</value>
+  </data>
+  <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
+    <value>Et mål for sikkerhetskopier - til ett er angitt finnes det ingen sikkerhetskopi</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Et tak for én gjennomgang, slik at en søkebase som peker ett nivå for høyt ikke kan besvares ved å lese en hel skog. Nås taket, sier kjøringen fra og deaktiverer ingenting i det hele tatt - forbi grensen er en oppføring som finnes ikke til å skille fra en som er slettet.</value>
@@ -418,6 +424,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>En leveringsrapport</value>
+  </data>
+  <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
+    <value>Et domene - serveren trenger ett før den kan motta post</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Et domene som driftes på denne serveren</value>
@@ -541,6 +550,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
     <value>En tidsplan er konfigurert: én sikkerhetskopi hvert {0} minutt.</value>
+  </data>
+  <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
+    <value>En andre faktor for administratoren - en engangskode ved siden av passordet</value>
   </data>
   <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
     <value>En andre faktor håndheves på administratorlegitimasjonen, på hver klient.</value>
@@ -773,6 +785,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Kontoer som er merket som katalogtilknyttet. Den halvdelen finnes allerede i dette grensesnittet: åpne Domener, rediger kontoen, og kryss av for Active Directory-alternativet på Katalog-fanen og fyll inn AD-brukernavnet - sAMAccountName, som er det %u inneholder. Kontoer uten den merkingen beholder sitt vanlige hMailServer-passord og rører aldri katalogen.</value>
   </data>
+  <data name="Accounts: {0}." xml:space="preserve">
+    <value>Kontoer: {0}.</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Handling og varsler</value>
   </data>
@@ -799,6 +814,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>Aktivt Sieve-filterskript (RFC 5228) for denne kontoen. Det kjører under lokal levering og støtter keep, fileinto, discard og redirect. La det stå tomt for å slå det av. Flere navngitte skript kan håndteres over ManageSieve.</value>
+  </data>
+  <data name="Active domains: {0} of {1}." xml:space="preserve">
+    <value>Aktive domener: {0} av {1}.</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>Aktive økter</value>
@@ -863,6 +881,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add an account to this group" xml:space="preserve">
     <value>Legg til en konto i denne gruppen</value>
   </data>
+  <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
+    <value>Legg til en konto under domenet på siden Domener: en adresse og passordet en e-postklient logger inn med.</value>
+  </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Legg til sertifikat</value>
   </data>
@@ -916,6 +937,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>Legg til domenet først; kontoer, aliaser og lister henger alle under det.</value>
+  </data>
+  <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
+    <value>Legg til domenet på siden Domener. Navnet er delen etter @ i hver adresse det skal romme.</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Legg nøkkelen nedenfor inn i en autentiseringsapp, og bekreft deretter med en kode. Når den er registrert, logger administratorpassordet alene deg ikke inn - COM-API-et og REST-API-et vil også kreve en kode. Oppbevar nøkkelen trygt: mister du autentiseringsappen, må en lokal administrator fjerne AdministratorTotpSecret fra hMailServer.ini for å komme inn igjen.</value>
@@ -1100,14 +1124,23 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Et OnAcceptMessage-hendelsesskript, eller databasen.</value>
   </data>
+  <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
+    <value>En SPF-post - hvilke servere som får sende domenets post</value>
+  </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>En SPF-oppføring er aktiv på {0}, og den er ikke den foreslåtte. Det kan godt være med vilje - forslaget kan ikke kjenne til de andre avsenderne dine. Publisert: {1} — bare bekreft at alt som faktisk sender e-post som {0} er dekket.</value>
+  </data>
+  <data name="An account - a mailbox in a domain" xml:space="preserve">
+    <value>En konto - en postkasse i et domene</value>
   </data>
   <data name="An account address is required." xml:space="preserve">
     <value>En kontoadresse er påkrevd.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>En konto kan slås av uten å slettes, noe som beholder e-posten og avviser nye innlogginger.</value>
+  </data>
+  <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
+    <value>En konto er en postkasse i et domene: adressen folk skriver til, og det en klient logger inn som.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>En adresse er påkrevd.</value>
@@ -1302,8 +1335,14 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>Høyst {0} skanninger kjører samtidig. Utover det venter leveringstrådene — og etter 60 sekunders venting gir serveren opp å vente og skanner likevel, så en treg skanner viser seg som treg e-post framfor som uskannet e-post.</value>
   </data>
+  <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>Publiser hos DNS-leverandøren din en TXT-post på domenet, for eksempel v=spf1 mx -all, som navngir serverne som sender posten dets. Siden DNS-oppføringer viser posten som skal publiseres.</value>
+  </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
     <value>Hos DNS-verten din publiserer du en TXT-oppføring med navnet &lt;selector&gt;._domainkey.&lt;domain&gt; som inneholder den offentlige nøkkelen (v=DKIM1; k=rsa; p=...). Denne siden slår oppføringen opp gjennom Windows-resolveren, og der nøkkelfilen kan leses kontrollerer den også at den publiserte nøkkelen er RIKTIG nøkkel - en gal verdi kan ikke rettes ved å vente.</value>
+  </data>
+  <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>Publiser hos DNS-leverandøren din en TXT-post med navnet _dmarc.&lt;domain&gt;, som begynner med v=DMARC1; p=none mens du leser rapportene, deretter p=quarantine eller p=reject. Siden DNS-oppføringer viser posten som skal publiseres.</value>
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Vedleggsblokkering er slått på uten mønstre å blokkere, så den gjør ingenting i det hele tatt.</value>
@@ -1445,6 +1484,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Sikkerhetskopiering startet {0} - kjører i bakgrunnen på serveren.</value>
+  </data>
+  <data name="Backups go to {0}." xml:space="preserve">
+    <value>Sikkerhetskopier går til {0}.</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Blokkeringsvarighet (minutter)</value>
@@ -2482,6 +2524,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
     <value>Avsenderadresse for DMARC-rapporter (tom = deaktivert)</value>
+  </data>
+  <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
+    <value>DMARC forteller mottakere hva de skal gjøre med post som ikke består SPF og DKIM, og hvor de skal rapportere det.</value>
   </data>
   <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
     <value>DMARC — hva mottakere skal gjøre med post som feiler SPF og DKIM</value>
@@ -4336,6 +4381,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
     <value>Maskinlesbar utdata for loggsendere. Gjelder etter en omstart av tjenesten.</value>
   </data>
+  <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
+    <value>E-postklienter sender gjennom innleveringsporten, og uten TLS går passordene deres i klartekst over nettet.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Post hentet fra eksterne POP3-kontoer skannes bare når den hentekontoen sier det — {0} av {1} har for øyeblikket antivirus slått av. Den bryteren sitter på kontoen, ikke på denne siden.</value>
   </data>
@@ -4347,6 +4395,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post utenfra organisasjonen kan merkes slik at en leser ser det med én gang. En avsender er utenfor når økten ikke logget på, meldingen ikke kom gjennom et betrodd innkommende relé, og verken konvoluttavsenderen eller From-adressen hører til et domene denne serveren er vert for.</value>
+  </data>
+  <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
+    <value>Post adresseres til et domene, så serveren trenger ett før den kan motta noe.</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>Post beveger seg ikke og ingenting har krasjet: hvilken halvdel som har stoppet, logglinjene som navngir årsaken, og innstillingen som begrenser hvert trinn.</value>
@@ -4846,8 +4897,14 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Ingen konto funnet med adressen '{0}'.</value>
   </data>
+  <data name="No account has been added in any domain." xml:space="preserve">
+    <value>Ingen konto er lagt til i noe domene.</value>
+  </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Ingen kontoer i dette domenet ennå.</value>
+  </data>
+  <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
+    <value>Ingen aktive domener, så det er ingenting å publisere ennå.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Ingen aktive økter</value>
@@ -4860,6 +4917,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Ingen app-passord. Opprett ett per e-postklient, slik at tap av en enhet bare tilbakekaller den enheten.</value>
+  </data>
+  <data name="No backup destination is set." xml:space="preserve">
+    <value>Ingen mål for sikkerhetskopier er angitt.</value>
   </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Ingen sikkerhetskopi har noen gang blitt fullført til {0} - det finnes ikke noe HMBackup-arkiv der.</value>
@@ -4905,6 +4965,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ingen domener har DKIM-signering slått på, så ingen DNS-oppføring kreves.</value>
+  </data>
+  <data name="No domain has been added yet." xml:space="preserve">
+    <value>Ingen domener er lagt til ennå.</value>
   </data>
   <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
     <value>Ingen domener er konfigurert, så det er ingen oppføringer per domene å lage. Legg til et domene først.</value>
@@ -4998,6 +5061,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Ingen port har en klientsertifikatpolicy, så ingen CA-pakke eller klientsertifikater kreves.</value>
+  </data>
+  <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
+    <value>Ingen port tar imot innlevering av meldinger, så e-postklienter kan ikke sende gjennom denne serveren.</value>
   </data>
   <data name="No ports configured." xml:space="preserve">
     <value>Ingen porter konfigurert.</value>
@@ -5278,8 +5344,17 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Ved stopp, vent opptil N sekunder på at aktive økter fullfører (0 = stopp umiddelbart)</value>
   </data>
+  <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
+    <value>Registrer en autentiseringsapp for administratorpassordet på fanen Tofaktor på siden Administrativ tilgang.</value>
+  </data>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>På siden Antispam-innstillinger, list opp forseglingsdomenene du stoler på (e-postliste- og videresendingstjenestene brukerne dine er avhengige av) og slå på ARC-forskyvningen. Å navngi hvem du stoler på er en vurdering bare du kan gjøre, som er grunnen til at det ikke finnes noen standard.</value>
+  </data>
+  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Angi på siden Sikkerhetskopi mappen sikkerhetskopien skrives til, på en annen disk enn den meldingslageret ligger på.</value>
+  </data>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Gi innleveringsporten (587) STARTTLS med et sertifikat fra siden SSL-sertifikater på siden TCP/IP-porter, eller legg til port 465 med implisitt TLS.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>På, men kan ikke kjøre</value>
@@ -5741,6 +5816,15 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port for http-01-utfordringer</value>
+  </data>
+  <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
+    <value>Port {0} er satt til TLS, men har ikke noe sertifikat, så TLS kan ikke starte.</value>
+  </data>
+  <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
+    <value>Port {0} tilbyr TLS med sertifikatet {1}.</value>
+  </data>
+  <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
+    <value>Port {0} tar imot innlevering uten TLS, så passord og post ville gå i klartekst over nettet.</value>
   </data>
   <data name="Ports…" xml:space="preserve">
     <value>Porter…</value>
@@ -6632,6 +6716,9 @@ Fortsette?</value>
   </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Poengsum for SPF-feil</value>
+  </data>
+  <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
+    <value>SPF forteller mottakere hvilke servere som får sende domenets post; uten det blir posten oftere avvist eller lagt i søppelpost.</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — hvilke maskiner som kan sende post som </value>
@@ -7700,6 +7787,9 @@ Starte den på nytt nå?</value>
   <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
     <value>TLS er konfigurert uten noe sertifikat tilordnet, så denne lytteren klarer ikke å starte, og ingenting kan koble til denne porten i det hele tatt. Serverloggen registrerer dette som feil HM5113 ved hver start.</value>
   </data>
+  <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
+    <value>TLS på innleveringsporten - porten e-postklienter sender gjennom</value>
+  </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
     <value>TLS-privatnøkkelfil (PEM, valgfri)</value>
   </data>
@@ -7918,8 +8008,17 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratorpassordet og tofaktorautentisering er på siden Administrativ tilgang.</value>
   </data>
+  <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
+    <value>Administratorpassordet åpner alt; en engangskode ved siden av gjør at et lekket passord ikke er nok.</value>
+  </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Administratorpassordet, og en andre faktor serveren selv håndhever overfor hver klient.</value>
+  </data>
+  <data name="The administrator signs in with a password alone." xml:space="preserve">
+    <value>Administratoren logger inn med bare et passord.</value>
+  </data>
+  <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
+    <value>Administratorens passord er sikret med en engangskode.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet til bearer-tokenet, for innsamlere som bare snakker HTTP Basic. Brukernavnet og passordet må BEGGE være satt: med bare ett av dem logger serveren en advarsel ved oppstart og oppfører seg som om ingen av dem var satt.</value>
@@ -7932,6 +8031,12 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: det første tokenet i hver Authentication-Results-header denne serveren skriver, alltid med små bokstaver, og navnet et nedstrøms filter sjekker før det stoler på avgjørelsene. Det samme navnet avgjør hvilke ankommende Authentication-Results-headere som behandles som forfalskede: en som hevder denne identiteten, fjernes, mens en som nevner en hvilken som helst annen identitet, lar være helt urørt.</value>
+  </data>
+  <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
+    <value>Målet for sikkerhetskopier {0} finnes ikke på serveren.</value>
+  </data>
+  <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
+    <value>Sikkerhetskopien skriver databasen og meldingslageret til en mappe; til en er angitt finnes det ingen sikkerhetskopi.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Bindingsadressen er ikke en loopback-adresse, og ingen legitimasjon er satt, så /metrics svarer 503 (Service Unavailable) på hver innsamling. Sett et bearer-token, eller begge HTTP Basic-feltene, eller bind til 127.0.0.1. Helseprobene fortsetter å svare uansett.</value>
@@ -8456,6 +8561,9 @@ Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Serverens svar kunne ikke leses: {0}</value>
+  </data>
+  <data name="The server's checklist could not be read: {0}" xml:space="preserve">
+    <value>Serverens sjekkliste kunne ikke leses: {0}</value>
   </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>Serverens vertsnavn kunne ikke leses, så navnet den annonserer i HELO/EHLO, er ukjent herfra.</value>
@@ -10768,6 +10876,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} svarte ikke innen 10 sekunder fra denne maskinen. Sannsynlige årsaker: ingen A/CNAME-oppføring for mta-sts.{1}, HTTPS-lytteren kjører ikke (WebServicesHttpsPort), eller en brannmur imellom. Kontrollert bare fra denne maskinen.</value>
   </data>
+  <data name="{0} domains, none of them active." xml:space="preserve">
+    <value>{0} domener, ingen av dem aktive.</value>
+  </data>
   <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
     <value>{0} aktivert. Begge er avviklet av RFC 8996 og avvises blankt av dagens klienter, så å la dem stå på gir sjelden kompatibiliteten de ble beholdt for, og en klient som faktisk forhandler fram en av dem, får vesentlig svakere beskyttelse enn resten.</value>
   </data>
@@ -10842,6 +10953,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>for {0} minutter siden</value>
+  </data>
+  <data name="{0} more active domains were not looked up." xml:space="preserve">
+    <value>{0} aktive domener til ble ikke slått opp.</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} må være et heltall.</value>
@@ -11011,6 +11125,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: sjekker DNS for TXT-oppføringen {1}…</value>
   </data>
+  <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
+    <value>{0}: {1}-posten på {2} kontrolleres i DNS…</value>
+  </data>
   <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
     <value>{0}: ingen CA-fil er satt, så det finnes ikke noe tillitsanker å verifisere klientsertifikater mot{1}</value>
   </data>
@@ -11022,6 +11139,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: ingen privat nøkkelfil er satt, så dette sertifikatet kan ikke brukes av noen lytter.</value>
+  </data>
+  <data name="{0}: no {1} record at {2}." xml:space="preserve">
+    <value>{0}: ingen {1}-post på {2}.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selektor '{1}' og nøkkelfil er satt. {2} Sjekker DNS for TXT-oppføringen {3}…</value>
@@ -11077,6 +11197,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
     <value>{0}: nøkkelfilen {1} finnes ikke på denne maskinen, så signeringen feiler og post går ut usignert. Gjenopprett filen eller generer en ny nøkkel, og publiser deretter den samsvarende DNS-oppføringen.</value>
   </data>
+  <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
+    <value>{0}: oppslaget av {2} mislyktes, noe som ikke sier noe om {1}-posten.</value>
+  </data>
   <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
     <value>{0}: porten har en klientsertifikatpolicy, men ingen SSL/TLS eller STARTTLS, så det skjer aldri noe håndtrykk{1} Aktiver tilkoblingssikkerhet på porten, eller sett policyen til av.</value>
   </data>
@@ -11088,6 +11211,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: TXT-oppføringen {1} er publisert. Kan ikke kontrolleres herfra: at mta-sts.{2} peker til denne serveren, og at sertifikatet dekker det navnet.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} is published." xml:space="preserve">
+    <value>{0}: {1}-posten på {2} er publisert.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
+    <value>{0}: {1}-posten på {2} ble ikke slått opp.</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

@@ -383,6 +383,9 @@
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>クライアント証明書を要求または必須にする場合は、CA 証明書バンドル ファイルを指定する必要があります。指定がないと、「必須」ではすべてのクライアントが拒否され、「要求」では何も検証されません。</value>
   </data>
+  <data name="A DMARC record - what receivers do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>DMARC レコード - SPF と DKIM に失敗したメールを受信側がどう扱うか</value>
+  </data>
   <data name="A DMARC record with p=none is live at {0}." xml:space="preserve">
     <value>p=none の DMARC レコードが {0} に公開されています。</value>
   </data>
@@ -391,6 +394,9 @@
   </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>{0} に TXT レコードは存在しますが、秘密鍵ファイルをこのコンピューターから読み取れなかったため、正しい鍵が入っているかどうかをここでは検証できません。チェックをサーバー自身の上で実行するか、ドメインの DKIM タブを使用してください。</value>
+  </data>
+  <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
+    <value>バックアップ先 - 設定されるまでバックアップは存在しません</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>1 回の処理に対する上限です。これにより、検索ベースを 1 階層上に指定してしまっても、フォレスト全体を読み取って応答することはできなくなります。上限に達した場合、実行はその旨を報告し、何も無効化しません。上限を超えた先では、存在するエントリと削除されたエントリを区別できないためです。</value>
@@ -418,6 +424,9 @@
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>配信レポート</value>
+  </data>
+  <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
+    <value>ドメイン - サーバーがメールを受信するにはまずドメインが必要です</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>このサーバーでホストしているドメイン</value>
@@ -541,6 +550,9 @@
   </data>
   <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
     <value>スケジュールが設定されています: {0} 分ごとにバックアップを 1 回。</value>
+  </data>
+  <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
+    <value>管理者の第二要素 - パスワードに併用するワンタイムコード</value>
   </data>
   <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
     <value>管理者の資格情報には、すべてのクライアントで第 2 要素が強制されます。</value>
@@ -773,6 +785,9 @@
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その「ディレクトリ」タブで Active Directory のオプションをオンにして、AD のユーザー名 (sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
   </data>
+  <data name="Accounts: {0}." xml:space="preserve">
+    <value>アカウント: {0} 件。</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>アクションと通知</value>
   </data>
@@ -799,6 +814,9 @@
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>このアカウントで有効な Sieve (RFC 5228) フィルター スクリプトです。ローカル配信の際に実行され、keep、fileinto、discard、redirect をサポートします。無効にするには空のままにしてください。名前を付けた複数のスクリプトは ManageSieve で管理できます。</value>
+  </data>
+  <data name="Active domains: {0} of {1}." xml:space="preserve">
+    <value>有効なドメイン: {1} 件中 {0} 件。</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>アクティブなセッション</value>
@@ -863,6 +881,9 @@
   <data name="Add an account to this group" xml:space="preserve">
     <value>このグループにアカウントを追加します</value>
   </data>
+  <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
+    <value>ドメイン ページでドメインの下にアカウントを追加します。アドレスと、メールクライアントがサインインに使うパスワードです。</value>
+  </data>
   <data name="Add certificate" xml:space="preserve">
     <value>証明書を追加</value>
   </data>
@@ -916,6 +937,9 @@
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>最初にドメインを追加してください。アカウント、エイリアス、リストはすべてドメインにぶら下がります。</value>
+  </data>
+  <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
+    <value>ドメイン ページでドメインを追加します。ドメイン名は、そのドメインが持つすべてのアドレスの @ より後の部分です。</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>下のキーを認証アプリに追加し、コードで確認してください。登録が済むと、管理者パスワードだけではサインインできなくなり、COM API と REST API でもコードが必要になります。キーは安全な場所に保管してください。認証アプリを失った場合は、ローカルの管理者が hMailServer.ini から AdministratorTotpSecret を削除して復旧する必要があります。</value>
@@ -1100,14 +1124,23 @@
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>OnAcceptMessage イベント スクリプト、またはデータベースです。</value>
   </data>
+  <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
+    <value>SPF レコード - このドメインのメールを送信してよいサーバー</value>
+  </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>SPF レコードが {0} に公開されていますが、提案されたものとは異なります。これは意図的なものかもしれません。提案はほかの送信元まで知り得ないからです。公開されている値: {1} — {0} として実際にメールを送るものがすべて含まれているか、確認してください。</value>
+  </data>
+  <data name="An account - a mailbox in a domain" xml:space="preserve">
+    <value>アカウント - ドメイン内のメールボックス</value>
   </data>
   <data name="An account address is required." xml:space="preserve">
     <value>アカウントのアドレスが必要です。</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>アカウントは削除せずに無効にできます。メールはそのまま残り、新しいログオンは拒否されます。</value>
+  </data>
+  <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
+    <value>アカウントはドメイン内のメールボックスです。人が宛先にする住所であり、クライアントがサインインする際の名義です。</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>アドレスが必要です。</value>
@@ -1302,8 +1335,14 @@
   <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>同時に実行されるスキャンは最大 {0} 件です。それを超えると配信スレッドは待機します。ただし 60 秒待ったところでサーバーは待つのをやめ、いずれにせよスキャンを実行します。そのため、遅いスキャナーは未スキャンのメールではなく、遅いメールとして現れます。</value>
   </data>
+  <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>DNS ホスティング先で、このドメインのメールを送信するサーバーを示す v=spf1 mx -all のような TXT レコードをドメインに公開します。DNS レコード ページに公開すべきレコードが表示されます。</value>
+  </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
     <value>DNS のホスティング事業者で、&lt;selector&gt;.domainkey.&lt;domain&gt; という名前の TXT レコードを公開し、公開鍵 (v=DKIM1; k=rsa; p=...) を格納してください。このページはそのレコードを Windows のリゾルバーを通じて参照し、鍵ファイルが読み取れる場合は、公開されている鍵が正しい鍵かどうかも確認します。値が誤っている場合、待っても直りません。(_D)</value>
+  </data>
+  <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>DNS ホスティング先で、_dmarc.&lt;domain&gt; という名前の TXT レコードを公開します。レポートを読む間は v=DMARC1; p=none で始め、その後 p=quarantine または p=reject にします。DNS レコード ページに公開すべきレコードが表示されます。</value>
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>添付ファイルのブロックは有効になっていますが、ブロックするパターンが 1 つもないため、まったく何もしません。</value>
@@ -1445,6 +1484,9 @@
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>バックアップを {0} に開始しました。サーバー上でバックグラウンドで実行されます。</value>
+  </data>
+  <data name="Backups go to {0}." xml:space="preserve">
+    <value>バックアップは {0} に保存されます。</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>ブロック期間 (分)</value>
@@ -2482,6 +2524,9 @@
   </data>
   <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
     <value>DMARC レポートの送信者アドレス (空 = 無効)</value>
+  </data>
+  <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
+    <value>DMARC は SPF と DKIM に失敗したメールをどう扱うか、そしてどこに報告するかを受信側に伝えます。</value>
   </data>
   <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
     <value>DMARC — SPF と DKIM に失敗したメールを受信側がどう扱うべきか</value>
@@ -4336,6 +4381,9 @@
   <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
     <value>ログ シッパー向けの機械可読な出力。サービスの再起動後に適用されます。</value>
   </data>
+  <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
+    <value>メールクライアントはサブミッションポートを通じて送信します。TLS がなければパスワードは平文でネットワークを流れます。</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>外部 POP3 アカウントから収集したメールは、その取り込みアカウントが指定した場合にのみスキャンされます — 現在 {1} 件中 {0} 件でウイルス対策がオフになっています。そのスイッチはこのページではなくアカウントにあります。</value>
   </data>
@@ -4347,6 +4395,9 @@
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>組織外から届いたメールには印を付けて、読み手が一目で分かるようにできます。送信者が外部だと判断されるのは、セッションがサインインしておらず、メッセージが信頼された受信リレーを経由しておらず、エンベロープ送信者も From アドレスもこのサーバーがホストするドメインに属していない場合です。</value>
+  </data>
+  <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
+    <value>メールはドメイン宛てに届くため、サーバーが何かを受信するにはまずドメインが必要です。</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>メールが動いておらず、何もクラッシュしていない: どちらの半分が停滞しているか、原因を示すログ行、各ステージを制限する設定。</value>
@@ -4846,8 +4897,14 @@
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>アドレス '{0}' のアカウントが見つかりません。</value>
   </data>
+  <data name="No account has been added in any domain." xml:space="preserve">
+    <value>どのドメインにもアカウントが追加されていません。</value>
+  </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>このドメインにはまだアカウントがありません。</value>
+  </data>
+  <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
+    <value>有効なドメインがないため、公開するものはまだありません。</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>アクティブなセッションはありません</value>
@@ -4860,6 +4917,9 @@
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>アプリ パスワードはありません。メール クライアントごとに 1 つ作成すると、デバイスを紛失してもそのデバイスだけを失効させられます。</value>
+  </data>
+  <data name="No backup destination is set." xml:space="preserve">
+    <value>バックアップ先が設定されていません。</value>
   </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>{0} に完了したバックアップは 1 つもありません。そこに HMBackup アーカイブがありません。</value>
@@ -4905,6 +4965,9 @@
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>DKIM 署名がオンになっているドメインがないため、DNS レコードは不要です。</value>
+  </data>
+  <data name="No domain has been added yet." xml:space="preserve">
+    <value>ドメインはまだ追加されていません。</value>
   </data>
   <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
     <value>ドメインが設定されていないため、生成するドメインごとのレコードはありません。先にドメインを追加してください。</value>
@@ -4998,6 +5061,9 @@
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>クライアント証明書ポリシーを持つポートがないため、CA バンドルもクライアント証明書も不要です。</value>
+  </data>
+  <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
+    <value>メッセージのサブミッションを受け付けるポートがないため、メールクライアントはこのサーバー経由で送信できません。</value>
   </data>
   <data name="No ports configured." xml:space="preserve">
     <value>ポートが設定されていません。</value>
@@ -5278,8 +5344,17 @@
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>停止時、アクティブなセッションの完了を最大 N 秒待つ (0 = 直ちに停止)</value>
   </data>
+  <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
+    <value>管理者アクセス ページの 2 要素 タブで、管理者パスワード用の認証アプリを登録します。</value>
+  </data>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>スパム対策の設定ページで、信頼するシール付与ドメイン (ユーザーが頼っているメーリング リストや転送サービス) を列挙し、ARC の相殺をオンにしてください。誰を信頼するかを決めるのはあなたにしかできない判断であり、だからこそ既定値がありません。</value>
+  </data>
+  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>バックアップ ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
+  </data>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>TCP/IP ポート ページで、サブミッションポート (587) に SSL 証明書 ページの証明書を使った STARTTLS を設定するか、暗黙の TLS を使うポート 465 を追加します。</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>オンですが、実行できません</value>
@@ -5741,6 +5816,15 @@
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>http-01 チャレンジ用のポート</value>
+  </data>
+  <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
+    <value>ポート {0} は TLS に設定されていますが証明書がないため、TLS を開始できません。</value>
+  </data>
+  <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
+    <value>ポート {0} は証明書 {1} で TLS を提供しています。</value>
+  </data>
+  <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
+    <value>ポート {0} は TLS なしでサブミッションを受け付けているため、パスワードとメールが平文でネットワークを流れます。</value>
   </data>
   <data name="Ports…" xml:space="preserve">
     <value>ポート…</value>
@@ -6632,6 +6716,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>SPF 失敗時のスコア</value>
+  </data>
+  <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
+    <value>SPF はこのドメインのメールを送信してよいサーバーを受信側に伝えます。なければメールは拒否されたり迷惑メールに振り分けられたりしやすくなります。</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — 次の名前としてメールを送信できるマシン: </value>
@@ -7700,6 +7787,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
     <value>証明書が割り当てられないまま TLS が設定されているため、このリスナーは起動に失敗し、このポートには何も接続できません。サーバー ログは起動のたびにこれをエラー HM5113 として記録します。</value>
   </data>
+  <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
+    <value>サブミッションポートの TLS - メールクライアントが送信に使うポート</value>
+  </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
     <value>TLS 秘密鍵ファイル (PEM、省略可)</value>
   </data>
@@ -7918,8 +8008,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理者パスワードと 2 要素認証は管理アクセス ページにあります。</value>
   </data>
+  <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
+    <value>管理者パスワードはすべてを開きます。ワンタイムコードを併用すれば、漏えいしたパスワードだけでは足りなくなります。</value>
+  </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>管理者パスワードと、サーバー自身がすべてのクライアントに強制する第 2 要素。</value>
+  </data>
+  <data name="The administrator signs in with a password alone." xml:space="preserve">
+    <value>管理者はパスワードだけでサインインしています。</value>
+  </data>
+  <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
+    <value>管理者のパスワードはワンタイムコードで保護されています。</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>HTTP Basic しか話せないスクレイパー向けの、ベアラー トークンの代替。ユーザー名とパスワードの両方を設定する必要があります。片方だけの場合、サーバーは起動時に警告を記録し、どちらも設定されていないものとして動作します。</value>
@@ -7932,6 +8031,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: このサーバーが書くすべての Authentication-Results ヘッダーの最初のトークンで、常に小文字です。下流のフィルターが判定を信頼する前に確認する名前です。同じ名前が、到着した Authentication-Results ヘッダーのどれを偽造として扱うかも決めます。この ID を名乗るものは削除され、他の ID を名乗るものはまったく手を付けられません。</value>
+  </data>
+  <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
+    <value>バックアップ先 {0} はサーバー上に存在しません。</value>
+  </data>
+  <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
+    <value>バックアップはデータベースとメッセージストアをフォルダーに書き出します。バックアップ先が設定されるまでバックアップは存在しません。</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>バインド アドレスがループバック アドレスではなく、資格情報も設定されていないため、/metrics はすべてのスクレイプに 503 (Service Unavailable) を返します。ベアラー トークンか HTTP Basic の両フィールドを設定するか、127.0.0.1 にバインドしてください。ヘルス プローブはどちらでも応答し続けます。</value>
@@ -8456,6 +8561,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>サーバーの応答を読み取れませんでした: {0}</value>
+  </data>
+  <data name="The server's checklist could not be read: {0}" xml:space="preserve">
+    <value>サーバーのチェックリストを読み取れませんでした: {0}</value>
   </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>サーバーのホスト名を読み取れなかったため、HELO/EHLO で名乗る名前はここからは分かりません。</value>
@@ -10768,6 +10876,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} はこのコンピューターから 10 秒以内に応答しませんでした。考えられる原因: mta-sts.{1} の A/CNAME レコードがない、HTTPS リスナーが動作していない (WebServicesHttpsPort)、または途中にファイアウォールがある、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
   </data>
+  <data name="{0} domains, none of them active." xml:space="preserve">
+    <value>{0} 件のドメインがありますが、有効なものはありません。</value>
+  </data>
   <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
     <value>{0} 有効になっています。どちらも RFC 8996 で非推奨とされ、現在のクライアントからは端的に拒否されます。そのため、有効のままにしても、残しておいた目的である互換性が得られることはめったになく、実際にどちらかをネゴシエートしたクライアントは、ほかより明らかに弱い保護しか受けられません。</value>
   </data>
@@ -10842,6 +10953,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} 分前</value>
+  </data>
+  <data name="{0} more active domains were not looked up." xml:space="preserve">
+    <value>さらに {0} 件の有効なドメインは検索されませんでした。</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} は整数でなければなりません。</value>
@@ -11011,6 +11125,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: {1} の TXT レコードを DNS で確認しています…</value>
   </data>
+  <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
+    <value>{0}: {2} の {1} レコードを DNS で確認しています…</value>
+  </data>
   <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
     <value>{0}: CA ファイルが設定されていないため、クライアント証明書を検証するトラスト アンカーがない状態{1}</value>
   </data>
@@ -11022,6 +11139,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: 秘密鍵ファイルが設定されていないため、この証明書はどのリスナーでも使用できません。</value>
+  </data>
+  <data name="{0}: no {1} record at {2}." xml:space="preserve">
+    <value>{0}: {2} に {1} レコードがありません。</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: セレクター '{1}' と鍵ファイルが設定されています。{2} TXT レコード {3} を DNS で確認しています…</value>
@@ -11077,6 +11197,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
     <value>{0}: 鍵ファイル {1} がこのコンピューターに存在しないため、署名は失敗し、メールは署名されずに送信されます。ファイルを復元するか新しい鍵を生成してから、対応する DNS レコードを公開してください。</value>
   </data>
+  <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
+    <value>{0}: {2} の検索に失敗しました。{1} レコードについては何も分かりません。</value>
+  </data>
   <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
     <value>{0}: このポートにはクライアント証明書のポリシーが設定されていますが、SSL/TLS も STARTTLS もないため、ハンドシェイクが一度も行われない状態{1} ポートで接続のセキュリティを有効にするか、ポリシーをオフに設定してください。</value>
   </data>
@@ -11088,6 +11211,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: {1} の TXT レコードは公開されています。ここからは確認できないこと: mta-sts.{2} がこのサーバーに解決されること、および証明書がその名前を含んでいること。</value>
+  </data>
+  <data name="{0}: the {1} record at {2} is published." xml:space="preserve">
+    <value>{0}: {2} の {1} レコードは公開されています。</value>
+  </data>
+  <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
+    <value>{0}: {2} の {1} レコードは検索されませんでした。</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

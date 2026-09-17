@@ -383,6 +383,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>Een CA-certificaatbundelbestand moet worden opgegeven wanneer clientcertificaten worden gevraagd of vereist. Zonder zou "Vereisen" elke client afwijzen en zou "Vragen" niets verifiëren.</value>
   </data>
+  <data name="A DMARC record - what receivers do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>Een DMARC-record - wat ontvangers doen met mail die SPF en DKIM niet doorstaat</value>
+  </data>
   <data name="A DMARC record with p=none is live at {0}." xml:space="preserve">
     <value>Een DMARC-record met p=none staat live op {0}.</value>
   </data>
@@ -391,6 +394,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Er bestaat een TXT-record op {0}, maar het privésleutelbestand kon niet vanaf deze machine worden gelezen, dus of het de JUISTE sleutel draagt kan vanaf hier niet worden geverifieerd. Voer de controle op de server zelf uit, of gebruik het DKIM-tabblad van het domein.</value>
+  </data>
+  <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
+    <value>Een back-upbestemming - zolang er geen is ingesteld, is er geen back-up</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Een plafond voor één doorloop, zodat een zoekbasis die één niveau te hoog staat niet kan worden beantwoord door een heel forest te lezen. Wordt het bereikt, dan zegt de run dat en schakelt hij helemaal niets uit - voorbij de grens is een bestaande vermelding niet te onderscheiden van een verwijderde.</value>
@@ -418,6 +424,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>Een afleverrapport</value>
+  </data>
+  <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
+    <value>Een domein - de server heeft er een nodig voordat hij mail kan ontvangen</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Een domein dat op deze server wordt gehost</value>
@@ -541,6 +550,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
     <value>Er is een schema geconfigureerd: één back-up elke {0} minuut/minuten.</value>
+  </data>
+  <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
+    <value>Een tweede factor voor de beheerder - een eenmalige code naast het wachtwoord</value>
   </data>
   <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
     <value>Een tweede factor wordt afgedwongen op de beheerdersreferentie, op elke client.</value>
@@ -773,6 +785,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Accounts die als directorygekoppeld zijn gemarkeerd. Die helft zit al in deze GUI: open Domeinen, bewerk het account, en vink op het tabblad Directory de optie Active Directory aan en vul de AD-gebruikersnaam in - de sAMAccountName, wat %u draagt. Accounts zonder die markering houden hun gewone hMailServer-wachtwoord en raken de directory nooit aan.</value>
   </data>
+  <data name="Accounts: {0}." xml:space="preserve">
+    <value>Accounts: {0}.</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Actie en meldingen</value>
   </data>
@@ -799,6 +814,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>Actief Sieve-filterscript (RFC 5228) voor dit account. Het draait tijdens lokale bezorging en ondersteunt keep, fileinto, discard en redirect. Laat leeg om uit te schakelen. Meerdere benoemde scripts kunnen via ManageSieve worden beheerd.</value>
+  </data>
+  <data name="Active domains: {0} of {1}." xml:space="preserve">
+    <value>Actieve domeinen: {0} van {1}.</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>Actieve sessies</value>
@@ -863,6 +881,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add an account to this group" xml:space="preserve">
     <value>Een account aan deze groep toevoegen</value>
   </data>
+  <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
+    <value>Voeg op de pagina Domeinen onder het domein een account toe: een adres en het wachtwoord waarmee een mailprogramma zich aanmeldt.</value>
+  </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Certificaat toevoegen</value>
   </data>
@@ -916,6 +937,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>Voeg eerst het domein toe; accounts, aliassen en lijsten hangen er allemaal aan.</value>
+  </data>
+  <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
+    <value>Voeg het domein toe op de pagina Domeinen. De naam is het deel na de @ in elk adres dat het zal bevatten.</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Voeg de sleutel hieronder toe aan een authenticator-app en bevestig dan met een code. Na inschrijving meldt het beheerderswachtwoord alleen niet meer aan - de COM-API en REST-API hebben dan ook een code nodig. Bewaar de sleutel ergens veilig: als u de authenticator verliest, moet een lokale beheerder AdministratorTotpSecret uit hMailServer.ini wissen om weer binnen te komen.</value>
@@ -1100,14 +1124,23 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Een OnAcceptMessage-gebeurtenisscript, of de database.</value>
   </data>
+  <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
+    <value>Een SPF-record - welke servers de mail van dit domein mogen verzenden</value>
+  </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>Een SPF-record staat live op {0} en het is niet het voorgestelde. Dat kan heel goed bewust zijn - de suggestie kan uw andere afzenders niet kennen. Gepubliceerd: {1} — bevestig alleen dat alles wat echt mail als {0} verstuurt gedekt is.</value>
+  </data>
+  <data name="An account - a mailbox in a domain" xml:space="preserve">
+    <value>Een account - een postvak in een domein</value>
   </data>
   <data name="An account address is required." xml:space="preserve">
     <value>Een accountadres is vereist.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Een account kan worden uitgeschakeld zonder het te verwijderen, wat de mail bewaart en nieuwe aanmeldingen weigert.</value>
+  </data>
+  <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
+    <value>Een account is een postvak in een domein: het adres waarnaar mensen schrijven en waarmee een client zich aanmeldt.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Een adres is vereist.</value>
@@ -1302,8 +1335,14 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>Hooguit {0} scans draaien tegelijk. Daarboven wachten bezorgthreads — en na 60 seconden wachten geeft de server het wachten op en scant hij toch, dus een trage scanner toont zich als trage mail in plaats van als ongescande mail.</value>
   </data>
+  <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>Publiceer bij uw DNS-provider een TXT-record op het domein, zoals v=spf1 mx -all, dat de servers noemt die zijn mail verzenden. De pagina DNS-records toont het te publiceren record.</value>
+  </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
     <value>Publiceer bij uw DNS-host een TXT-record met de naam &lt;selector&gt;._domainkey.&lt;domain&gt; dat de publieke sleutel bevat (v=DKIM1; k=rsa; p=...). Deze pagina zoekt het record op via de Windows-resolver, en waar het sleutelbestand leesbaar is, controleert hij ook of de gepubliceerde sleutel de JUISTE sleutel is - een verkeerde waarde wordt niet beter door te wachten.</value>
+  </data>
+  <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>Publiceer bij uw DNS-provider een TXT-record met de naam _dmarc.&lt;domain&gt;, te beginnen met v=DMARC1; p=none zolang u de rapporten leest, daarna p=quarantine of p=reject. De pagina DNS-records toont het te publiceren record.</value>
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Bijlageblokkering staat aan zonder patronen om te blokkeren, dus het doet helemaal niets.</value>
@@ -1445,6 +1484,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Back-up gestart {0} - draait op de achtergrond op de server.</value>
+  </data>
+  <data name="Backups go to {0}." xml:space="preserve">
+    <value>Back-ups gaan naar {0}.</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Duur van het verbannen (minuten)</value>
@@ -2482,6 +2524,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
     <value>Afzenderadres voor DMARC-rapporten (leeg = uitgeschakeld)</value>
+  </data>
+  <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
+    <value>DMARC vertelt ontvangers wat ze moeten doen met mail die SPF en DKIM niet doorstaat, en waar ze dat melden.</value>
   </data>
   <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
     <value>DMARC — wat ontvangers moeten doen met mail die niet door SPF en DKIM komt</value>
@@ -4336,6 +4381,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
     <value>Machineleesbare uitvoer voor logverzamelaars. Geldt na een herstart van de service.</value>
   </data>
+  <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
+    <value>Mailprogramma's verzenden via de submission-poort, en zonder TLS gaan hun wachtwoorden onversleuteld over het netwerk.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Mail die van externe POP3-accounts wordt opgehaald, wordt alleen gescand wanneer dat ophaalaccount dat zegt — bij {0} van de {1} staat antivirus momenteel uit. Die schakelaar zit op het account, niet op deze pagina.</value>
   </data>
@@ -4347,6 +4395,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post van buiten de organisatie kan gemarkeerd worden zodat een lezer het in één oogopslag ziet. Een afzender is van buiten wanneer de sessie niet is aangemeld, het bericht niet via een vertrouwd inkomend relais is binnengekomen en noch de envelopafzender noch het From-adres bij een domein hoort dat deze server host.</value>
+  </data>
+  <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
+    <value>Mail is aan een domein geadresseerd, dus de server heeft er een nodig voordat hij iets kan ontvangen.</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>De mail beweegt niet en er is niets gecrasht: welke helft is vastgelopen, de logregels die de oorzaak noemen, en de instelling die elke fase begrenst.</value>
@@ -4846,8 +4897,14 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Geen account gevonden met adres '{0}'.</value>
   </data>
+  <data name="No account has been added in any domain." xml:space="preserve">
+    <value>In geen enkel domein is een account toegevoegd.</value>
+  </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Nog geen accounts in dit domein.</value>
+  </data>
+  <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
+    <value>Geen actief domein, dus er valt nog niets te publiceren.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Geen actieve sessies</value>
@@ -4860,6 +4917,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Geen app-wachtwoorden. Maak er een per e-mailclient, zodat het verliezen van een apparaat alleen dat apparaat intrekt.</value>
+  </data>
+  <data name="No backup destination is set." xml:space="preserve">
+    <value>Er is geen back-upbestemming ingesteld.</value>
   </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Er is nog nooit een back-up voltooid naar {0} - daar staat geen HMBackup-archief.</value>
@@ -4905,6 +4965,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Geen enkel domein heeft DKIM-ondertekening aanstaan, dus er is geen DNS-record vereist.</value>
+  </data>
+  <data name="No domain has been added yet." xml:space="preserve">
+    <value>Er is nog geen domein toegevoegd.</value>
   </data>
   <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
     <value>Er zijn geen domeinen geconfigureerd, dus er zijn geen records per domein te maken. Voeg eerst een domein toe.</value>
@@ -4998,6 +5061,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Geen enkele poort heeft een beleid voor clientcertificaten, dus er zijn geen CA-bundel en geen clientcertificaten vereist.</value>
+  </data>
+  <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
+    <value>Geen enkele poort neemt berichten aan voor verzending, dus mailprogramma's kunnen niet via deze server verzenden.</value>
   </data>
   <data name="No ports configured." xml:space="preserve">
     <value>Geen poorten geconfigureerd.</value>
@@ -5278,8 +5344,17 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Bij stoppen tot N seconden wachten tot actieve sessies klaar zijn (0 = meteen stoppen)</value>
   </data>
+  <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
+    <value>Registreer op het tabblad Tweefactor van de pagina Beheerderstoegang een authenticator-app voor het beheerderswachtwoord.</value>
+  </data>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Som op de pagina Antispaminstellingen de verzegelende domeinen op die u vertrouwt (de mailinglijst- en doorstuurdiensten waarvan uw gebruikers afhankelijk zijn) en zet de ARC-offset aan. Benoemen wie u vertrouwt is een afweging die alleen u kunt maken, en daarom is er geen standaard.</value>
+  </data>
+  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Stel op de pagina Back-up de map in waarnaar de back-up wordt geschreven, op een andere schijf dan die van de berichtenopslag.</value>
+  </data>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Geef op de pagina TCP/IP-poorten de submission-poort (587) STARTTLS met een certificaat van de pagina SSL-certificaten, of voeg poort 465 met impliciete TLS toe.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Aan, maar kan niet draaien</value>
@@ -5741,6 +5816,15 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Poort voor http-01-challenges</value>
+  </data>
+  <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
+    <value>Poort {0} staat op TLS maar heeft geen certificaat, dus TLS kan niet starten.</value>
+  </data>
+  <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
+    <value>Poort {0} biedt TLS met het certificaat {1}.</value>
+  </data>
+  <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
+    <value>Poort {0} neemt berichten aan zonder TLS, dus wachtwoorden en mail zouden onversleuteld over het netwerk gaan.</value>
   </data>
   <data name="Ports…" xml:space="preserve">
     <value>Poorten…</value>
@@ -6632,6 +6716,9 @@ Doorgaan?</value>
   </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Score bij SPF-fout</value>
+  </data>
+  <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
+    <value>SPF vertelt ontvangers welke servers de mail van dit domein mogen verzenden; zonder SPF wordt de mail eerder geweigerd of als spam weggezet.</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — welke machines mail mogen versturen als </value>
@@ -7700,6 +7787,9 @@ Nu herstarten?</value>
   <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
     <value>TLS is geconfigureerd zonder toegewezen certificaat, dus deze listener start niet en er kan helemaal niets verbinden met deze poort. Het serverlogboek legt dit bij elke start vast als fout HM5113.</value>
   </data>
+  <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
+    <value>TLS op de submission-poort - de poort waarover mailprogramma's verzenden</value>
+  </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
     <value>TLS-privésleutelbestand (PEM, optioneel)</value>
   </data>
@@ -7918,8 +8008,17 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Het beheerderswachtwoord en tweefactorauthenticatie staan op de pagina Beheerderstoegang.</value>
   </data>
+  <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
+    <value>Het beheerderswachtwoord opent alles; een eenmalige code ernaast zorgt dat een gelekt wachtwoord niet genoeg is.</value>
+  </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Het beheerderswachtwoord, en een tweede factor die de server zelf op elke client afdwingt.</value>
+  </data>
+  <data name="The administrator signs in with a password alone." xml:space="preserve">
+    <value>De beheerder meldt zich alleen met een wachtwoord aan.</value>
+  </data>
+  <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
+    <value>Het wachtwoord van de beheerder wordt gedekt door een eenmalige code.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Het alternatief voor het bearertoken, voor scrapers die alleen HTTP Basic spreken. De gebruikersnaam en het wachtwoord moeten ALLEBEI zijn ingesteld: met slechts één van de twee logt de server bij het opstarten een waarschuwing en gedraagt hij zich alsof geen van beide is ingesteld.</value>
@@ -7932,6 +8031,12 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>De authserv-id: het eerste token van elke Authentication-Results-header die deze server schrijft, altijd in kleine letters, en de naam die een filter verderop controleert voordat het de oordelen vertrouwt. Dezelfde naam bepaalt welke binnenkomende Authentication-Results-headers als vervalst worden behandeld: een header die deze identiteit claimt wordt verwijderd, terwijl een header die een andere identiteit noemt volledig onaangeroerd blijft.</value>
+  </data>
+  <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
+    <value>De back-upbestemming {0} bestaat niet op de server.</value>
+  </data>
+  <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
+    <value>De back-up schrijft de database en de berichtenopslag naar een map; zolang er geen is ingesteld, is er geen back-up.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Het bindadres is geen loopbackadres en er is geen referentie ingesteld, dus /metrics antwoordt op elke scrape met 503 (Service Unavailable). Stel een bearertoken in, of beide HTTP Basic-velden, of bind aan 127.0.0.1. De gezondheidsprobes blijven hoe dan ook antwoorden.</value>
@@ -8456,6 +8561,9 @@ Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezo
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Het antwoord van de server kon niet worden gelezen: {0}</value>
+  </data>
+  <data name="The server's checklist could not be read: {0}" xml:space="preserve">
+    <value>De checklist van de server kon niet worden gelezen: {0}</value>
   </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>De hostnaam van de server kon niet worden gelezen, dus de naam die hij aankondigt in HELO/EHLO is hiervandaan onbekend.</value>
@@ -10768,6 +10876,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} antwoordde niet binnen 10 seconden vanaf deze machine. Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{1}, de HTTPS-listener draait niet (WebServicesHttpsPort), of een firewall ertussen. Alleen vanaf deze machine gecontroleerd.</value>
   </data>
+  <data name="{0} domains, none of them active." xml:space="preserve">
+    <value>{0} domeinen, geen ervan actief.</value>
+  </data>
   <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
     <value>{0} ingeschakeld. Beide zijn door RFC 8996 afgekeurd en worden door actuele clients botweg geweigerd, dus ze aan laten staan levert zelden de compatibiliteit op waarvoor ze zijn behouden, en een client die er wél een onderhandelt, krijgt wezenlijk zwakkere bescherming dan de rest.</value>
   </data>
@@ -10842,6 +10953,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} minuten geleden</value>
+  </data>
+  <data name="{0} more active domains were not looked up." xml:space="preserve">
+    <value>{0} andere actieve domeinen zijn niet opgezocht.</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} moet een geheel getal zijn.</value>
@@ -11011,6 +11125,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: DNS wordt gecontroleerd op het {1}-TXT-record…</value>
   </data>
+  <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
+    <value>{0}: het {1}-record op {2} wordt in DNS gecontroleerd…</value>
+  </data>
   <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
     <value>{0}: er is geen CA-bestand ingesteld, dus er is geen vertrouwensanker om clientcertificaten tegen te verifiëren{1}</value>
   </data>
@@ -11022,6 +11139,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: er is geen privésleutelbestand ingesteld, dus dit certificaat kan door geen enkele listener worden gebruikt.</value>
+  </data>
+  <data name="{0}: no {1} record at {2}." xml:space="preserve">
+    <value>{0}: geen {1}-record op {2}.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selector '{1}' en sleutelbestand zijn ingesteld. {2} DNS wordt gecontroleerd op het TXT-record {3}…</value>
@@ -11077,6 +11197,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
     <value>{0}: het sleutelbestand {1} bestaat niet op deze machine, dus ondertekenen mislukt en mail gaat ongetekend de deur uit. Zet het bestand terug of genereer een nieuwe sleutel, en publiceer daarna het bijbehorende DNS-record.</value>
   </data>
+  <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
+    <value>{0}: het opzoeken van {2} is mislukt, wat niets zegt over het {1}-record.</value>
+  </data>
   <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
     <value>{0}: de poort heeft een clientcertificaatbeleid maar geen SSL/TLS of STARTTLS, dus er vindt nooit een handshake plaats{1} Schakel verbindingsbeveiliging in op de poort, of zet het beleid uit.</value>
   </data>
@@ -11088,6 +11211,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: het {1}-TXT-record is gepubliceerd. Niet vanaf hier te controleren: dat mta-sts.{2} naar deze server verwijst, en dat het certificaat die naam dekt.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} is published." xml:space="preserve">
+    <value>{0}: het {1}-record op {2} is gepubliceerd.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
+    <value>{0}: het {1}-record op {2} is niet opgezocht.</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

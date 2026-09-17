@@ -383,6 +383,9 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>En fil med CA-certifikatpaket måste anges när klientcertifikat begärs eller krävs. Utan en skulle Kräv avvisa varje klient och Begär inte verifiera något.</value>
   </data>
+  <data name="A DMARC record - what receivers do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>En DMARC-post - vad mottagare gör med post som inte klarar SPF och DKIM</value>
+  </data>
   <data name="A DMARC record with p=none is live at {0}." xml:space="preserve">
     <value>En DMARC-post med p=none är i drift på {0}.</value>
   </data>
@@ -391,6 +394,9 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>En TXT-post finns på {0}, men den privata nyckelfilen kunde inte läsas från den här datorn, så om den bär RÄTT nyckel kan inte verifieras härifrån. Kör kontrollen på själva servern, eller använd domänens DKIM-flik.</value>
+  </data>
+  <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
+    <value>Ett mål för säkerhetskopior - tills ett är angivet finns ingen säkerhetskopia</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Ett tak för en körning, så att en sökbas som pekar en nivå för högt inte kan besvaras genom att läsa en hel skog. Om det nås säger körningen det och inaktiverar ingenting alls - bortom gränsen går en post som finns inte att skilja från en som togs bort.</value>
@@ -418,6 +424,9 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>En leveransrapport</value>
+  </data>
+  <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
+    <value>En domän - servern behöver en innan den kan ta emot post</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>En domän som hyses på den här servern</value>
@@ -541,6 +550,9 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
     <value>Ett schema är konfigurerat: en säkerhetskopiering var {0}:e minut.</value>
+  </data>
+  <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
+    <value>En andra faktor för administratören - en engångskod bredvid lösenordet</value>
   </data>
   <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
     <value>En andra faktor krävs för administratörsuppgifterna, på varje klient.</value>
@@ -773,6 +785,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konton markerade som katalogkopplade. Den halvan finns redan i det här gränssnittet: öppna Domäner, redigera kontot, och kryssa på dess Katalog-flik i alternativet Active Directory och fyll i AD-användarnamnet - sAMAccountName, vilket är vad %u bär. Konton utan den markeringen behåller sitt vanliga hMailServer-lösenord och rör aldrig katalogen.</value>
   </data>
+  <data name="Accounts: {0}." xml:space="preserve">
+    <value>Konton: {0}.</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Åtgärd &amp; aviseringar</value>
   </data>
@@ -799,6 +814,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>Aktivt Sieve-filterskript (RFC 5228) för det här kontot. Det körs under lokal leverans och stöder keep, fileinto, discard och redirect. Lämna tomt för att inaktivera. Flera namngivna skript kan hanteras över ManageSieve.</value>
+  </data>
+  <data name="Active domains: {0} of {1}." xml:space="preserve">
+    <value>Aktiva domäner: {0} av {1}.</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>Aktiva sessioner</value>
@@ -863,6 +881,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add an account to this group" xml:space="preserve">
     <value>Lägg till ett konto i den här gruppen</value>
   </data>
+  <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
+    <value>Lägg till ett konto under domänen på sidan Domäner: en adress och lösenordet som en e-postklient loggar in med.</value>
+  </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Lägg till certifikat</value>
   </data>
@@ -916,6 +937,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>Lägg till domänen först; konton, alias och listor hänger alla på den.</value>
+  </data>
+  <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
+    <value>Lägg till domänen på sidan Domäner. Namnet är delen efter @ i varje adress den kommer att rymma.</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Lägg till nyckeln nedan i en autentiseringsapp och bekräfta sedan med en kod. När den är registrerad loggar administratörslösenordet inte in på egen hand - COM API:et och REST API:et kommer också att kräva en kod. Förvara nyckeln säkert: om du förlorar autentiseringsappen måste en lokal administratör rensa AdministratorTotpSecret från hMailServer.ini för att återställa.</value>
@@ -1100,14 +1124,23 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Ett OnAcceptMessage-händelseskript, eller databasen.</value>
   </data>
+  <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
+    <value>En SPF-post - vilka servrar som får skicka domänens post</value>
+  </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>En SPF-post är i drift på {0} och det är inte den föreslagna. Det kan mycket väl vara avsiktligt - förslaget kan inte känna till dina andra avsändare. Publicerat: {1} — bekräfta bara att allt som verkligen skickar post som {0} täcks.</value>
+  </data>
+  <data name="An account - a mailbox in a domain" xml:space="preserve">
+    <value>Ett konto - en brevlåda i en domän</value>
   </data>
   <data name="An account address is required." xml:space="preserve">
     <value>En kontoadress krävs.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Ett konto kan stängas av utan att tas bort, vilket behåller posten och avvisar nya inloggningar.</value>
+  </data>
+  <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
+    <value>Ett konto är en brevlåda i en domän: adressen folk skriver till, och det en klient loggar in som.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>En adress krävs.</value>
@@ -1302,8 +1335,14 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>Högst {0} skanningar körs samtidigt. Utöver det väntar leveranstrådarna — och efter 60 sekunders väntan ger servern upp väntandet och skannar ändå, så en långsam skanner visar sig som långsam post snarare än som oskannad post.</value>
   </data>
+  <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>Publicera hos din DNS-leverantör en TXT-post på domänen, till exempel v=spf1 mx -all, som namnger servrarna som skickar dess post. Sidan DNS-poster visar posten att publicera.</value>
+  </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
     <value>Publicera hos din DNS-leverantör en TXT-post med namnet &lt;selector&gt;._domainkey.&lt;domain&gt; som innehåller den publika nyckeln (v=DKIM1; k=rsa; p=...). Den här sidan slår upp posten genom Windows-resolvern, och där nyckelfilen är läsbar kontrollerar den också att den publicerade nyckeln är RÄTT nyckel - ett felaktigt värde kan inte åtgärdas genom att vänta.</value>
+  </data>
+  <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>Publicera hos din DNS-leverantör en TXT-post med namnet _dmarc.&lt;domain&gt;, som börjar med v=DMARC1; p=none medan du läser rapporterna, sedan p=quarantine eller p=reject. Sidan DNS-poster visar posten att publicera.</value>
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Bilageblockering är påslagen utan några mönster att blockera, så den gör ingenting alls.</value>
@@ -1445,6 +1484,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Säkerhetskopieringen startade {0} - körs i bakgrunden på servern.</value>
+  </data>
+  <data name="Backups go to {0}." xml:space="preserve">
+    <value>Säkerhetskopior går till {0}.</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Spärrens varaktighet (minuter)</value>
@@ -2482,6 +2524,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
     <value>Avsändaradress för DMARC-rapporter (tomt = inaktiverat)</value>
+  </data>
+  <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
+    <value>DMARC talar om för mottagare vad de ska göra med post som inte klarar SPF och DKIM, och vart de ska rapportera det.</value>
   </data>
   <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
     <value>DMARC — vad mottagare ska göra med post som underkänns i SPF och DKIM</value>
@@ -4336,6 +4381,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
     <value>Maskinläsbar utdata för loggtransportörer. Gäller efter en omstart av tjänsten.</value>
   </data>
+  <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
+    <value>E-postklienter skickar via inlämningsporten, och utan TLS går deras lösenord i klartext över nätet.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Post som hämtas från externa POP3-konton skannas bara när det hämtningskontot säger så — {0} av {1} har för närvarande antivirus avstängt. Den brytaren finns på kontot, inte på den här sidan.</value>
   </data>
@@ -4347,6 +4395,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post utifrån organisationen kan märkas så att en läsare ser det på en gång. En avsändare är utanför när sessionen inte loggade in, meddelandet inte kom genom ett betrott inkommande relä och varken kuvertavsändaren eller From-adressen hör till en domän som den här servern är värd för.</value>
+  </data>
+  <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
+    <value>Post adresseras till en domän, så servern behöver en innan den kan ta emot något.</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>Posten rör sig inte och inget har kraschat: vilken halva som har fastnat, loggraderna som pekar ut orsaken, och inställningen som begränsar varje steg.</value>
@@ -4846,8 +4897,14 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Inget konto hittades med adressen '{0}'.</value>
   </data>
+  <data name="No account has been added in any domain." xml:space="preserve">
+    <value>Inget konto har lagts till i någon domän.</value>
+  </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Inga konton i den här domänen än.</value>
+  </data>
+  <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
+    <value>Ingen aktiv domän, så det finns inget att publicera ännu.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Inga aktiva sessioner</value>
@@ -4860,6 +4917,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Inga applösenord. Skapa ett per e-postklient, så att en förlorad enhet bara återkallar den enheten.</value>
+  </data>
+  <data name="No backup destination is set." xml:space="preserve">
+    <value>Inget mål för säkerhetskopior är angivet.</value>
   </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Ingen säkerhetskopiering har någonsin slutförts till {0} - det finns inget HMBackup-arkiv där.</value>
@@ -4905,6 +4965,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ingen domän har DKIM-signering påslagen, så ingen DNS-post krävs.</value>
+  </data>
+  <data name="No domain has been added yet." xml:space="preserve">
+    <value>Ingen domän har lagts till ännu.</value>
   </data>
   <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
     <value>Inga domäner är konfigurerade, så det finns inga poster per domän att ta fram. Lägg till en domän först.</value>
@@ -4998,6 +5061,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Ingen port har en policy för klientcertifikat, så inget CA-paket eller några klientcertifikat krävs.</value>
+  </data>
+  <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
+    <value>Ingen port tar emot inlämning av meddelanden, så e-postklienter kan inte skicka via den här servern.</value>
   </data>
   <data name="No ports configured." xml:space="preserve">
     <value>Inga portar konfigurerade.</value>
@@ -5278,8 +5344,17 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Vid stopp, vänta upp till N sekunder på att aktiva sessioner ska bli klara (0 = stoppa omedelbart)</value>
   </data>
+  <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
+    <value>Registrera en autentiseringsapp för administratörslösenordet på fliken Tvåfaktor på sidan Administrativ åtkomst.</value>
+  </data>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Lista på sidan Skräppostinställningar de förseglande domäner du litar på (de sändlist- och vidarebefordringstjänster dina användare förlitar sig på) och slå på ARC-kompensationen. Att namnge vem du litar på är en bedömning bara du kan göra, vilket är varför det inte finns någon standard.</value>
+  </data>
+  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Ange på sidan Säkerhetskopiering mappen som säkerhetskopian skrivs till, på en annan disk än den meddelandelagret ligger på.</value>
+  </data>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Ge inlämningsporten (587) STARTTLS med ett certifikat från sidan SSL-certifikat på sidan TCP/IP-portar, eller lägg till port 465 med implicit TLS.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>På, men kan inte köras</value>
@@ -5741,6 +5816,15 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port för http-01-utmaningar</value>
+  </data>
+  <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
+    <value>Port {0} är inställd på TLS men har inget certifikat, så TLS kan inte starta.</value>
+  </data>
+  <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
+    <value>Port {0} erbjuder TLS med certifikatet {1}.</value>
+  </data>
+  <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
+    <value>Port {0} tar emot inlämning utan TLS, så lösenord och post skulle gå i klartext över nätet.</value>
   </data>
   <data name="Ports…" xml:space="preserve">
     <value>Portar…</value>
@@ -6632,6 +6716,9 @@ Fortsätt?</value>
   </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Poäng vid SPF-fel</value>
+  </data>
+  <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
+    <value>SPF talar om för mottagare vilka servrar som får skicka domänens post; utan det blir posten oftare avvisad eller sorterad som skräppost.</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — vilka maskiner som får skicka post som </value>
@@ -7700,6 +7787,9 @@ Starta om den nu?</value>
   <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
     <value>TLS är konfigurerat utan något certifikat tilldelat, så den här lyssnaren misslyckas att starta och inget kan ansluta till den här porten alls. Serverloggen registrerar detta som fel HM5113 vid varje start.</value>
   </data>
+  <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
+    <value>TLS på inlämningsporten - porten e-postklienter skickar genom</value>
+  </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
     <value>Privat TLS-nyckelfil (PEM, valfritt)</value>
   </data>
@@ -7918,8 +8008,17 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratörslösenordet och tvåfaktorsautentiseringen finns på sidan Administrativ åtkomst.</value>
   </data>
+  <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
+    <value>Administratörslösenordet öppnar allt; en engångskod bredvid det gör att ett läckt lösenord inte räcker.</value>
+  </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Administratörslösenordet, och en andra faktor servern själv tvingar på varje klient.</value>
+  </data>
+  <data name="The administrator signs in with a password alone." xml:space="preserve">
+    <value>Administratören loggar in med enbart ett lösenord.</value>
+  </data>
+  <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
+    <value>Administratörens lösenord backas upp av en engångskod.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet till bearer-token, för skrapare som bara talar HTTP Basic. Användarnamnet och lösenordet måste BÅDA vara satta: med bara ett av dem loggar servern en varning vid start och beter sig som om inget av dem vore satt.</value>
@@ -7932,6 +8031,12 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>Authserv-id:t: det första ordet i varje Authentication-Results-rubrik den här servern skriver, alltid i gemener, och det namn ett filter längre fram kontrollerar innan det litar på domarna. Samma namn avgör vilka inkommande Authentication-Results-rubriker som behandlas som förfalskade: en som utger sig för den här identiteten tas bort, medan en som namnger någon annan identitet lämnas helt orörd.</value>
+  </data>
+  <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
+    <value>Målet för säkerhetskopior {0} finns inte på servern.</value>
+  </data>
+  <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
+    <value>Säkerhetskopian skriver databasen och meddelandelagret till en mapp; tills en är angiven finns ingen säkerhetskopia.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Bindningsadressen är inte en loopback-adress och ingen inloggningsuppgift är satt, så /metrics svarar 503 (Service Unavailable) på varje skrapning. Sätt en bearer-token, eller båda HTTP Basic-fälten, eller bind till 127.0.0.1. Hälsokontrollerna fortsätter svara oavsett.</value>
@@ -8456,6 +8561,9 @@ Det är serverns egen resolver som svarar - samma som SMTP-leveransen använder,
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Serverns svar kunde inte läsas: {0}</value>
+  </data>
+  <data name="The server's checklist could not be read: {0}" xml:space="preserve">
+    <value>Serverns checklista kunde inte läsas: {0}</value>
   </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>Serverns värdnamn kunde inte läsas, så namnet den annonserar i HELO/EHLO är okänt härifrån.</value>
@@ -10768,6 +10876,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} svarade inte inom 10 sekunder från den här datorn. Troliga orsaker: ingen A-/CNAME-post för mta-sts.{1}, HTTPS-lyssnaren körs inte (WebServicesHttpsPort), eller en brandvägg emellan. Kontrollerat bara från den här datorn.</value>
   </data>
+  <data name="{0} domains, none of them active." xml:space="preserve">
+    <value>{0} domäner, ingen av dem aktiv.</value>
+  </data>
   <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
     <value>{0} aktiverade. Båda är utfasade av RFC 8996 och avvisas rakt av av dagens klienter, så att låta dem vara på köper sällan den kompatibilitet de behölls för, och en klient som faktiskt förhandlar en av dem får väsentligt svagare skydd än de övriga.</value>
   </data>
@@ -10842,6 +10953,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} minuter sedan</value>
+  </data>
+  <data name="{0} more active domains were not looked up." xml:space="preserve">
+    <value>{0} aktiva domäner till slogs inte upp.</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} måste vara ett heltal.</value>
@@ -11011,6 +11125,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: kontrollerar DNS efter TXT-posten {1}…</value>
   </data>
+  <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
+    <value>{0}: {1}-posten på {2} kontrolleras i DNS…</value>
+  </data>
   <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
     <value>{0}: ingen CA-fil är satt, så det finns inget förtroendeankare att verifiera klientcertifikat mot{1}</value>
   </data>
@@ -11022,6 +11139,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: ingen privat nyckelfil är satt, så det här certifikatet kan inte användas av någon lyssnare.</value>
+  </data>
+  <data name="{0}: no {1} record at {2}." xml:space="preserve">
+    <value>{0}: ingen {1}-post på {2}.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selektorn '{1}' och nyckelfilen är satta. {2} Kontrollerar DNS efter TXT-posten {3}…</value>
@@ -11077,6 +11197,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
     <value>{0}: nyckelfilen {1} finns inte på den här datorn, så signeringen misslyckas och post går ut osignerad. Återställ filen eller generera en ny nyckel, och publicera sedan den matchande DNS-posten.</value>
   </data>
+  <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
+    <value>{0}: uppslagningen av {2} misslyckades, vilket inte säger något om {1}-posten.</value>
+  </data>
   <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
     <value>{0}: porten har en policy för klientcertifikat men ingen SSL/TLS eller STARTTLS, så ingen handskakning sker någonsin{1} Aktivera anslutningssäkerhet på porten, eller sätt policyn till av.</value>
   </data>
@@ -11088,6 +11211,12 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: TXT-posten {1} är publicerad. Kan inte kontrolleras härifrån: att mta-sts.{2} slås upp till den här servern, och att certifikatet täcker det namnet.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} is published." xml:space="preserve">
+    <value>{0}: {1}-posten på {2} är publicerad.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
+    <value>{0}: {1}-posten på {2} slogs inte upp.</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

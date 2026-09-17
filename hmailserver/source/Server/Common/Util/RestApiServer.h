@@ -218,6 +218,11 @@ namespace HM
          // server's rather than a domain's.
          RouteReputationGet,
          RouteReputationCheck,
+         // The first-hour checklist (RestApiSetupChecklist.cpp): what a new
+         // server still needs done, judged by the server. The server's, not a
+         // domain's: the submission port, the backup destination and the
+         // administrator's second factor belong to no domain.
+         RouteSetupChecklist,
          RouteRuleList,
          RouteLogList,
          RouteLogTail,
@@ -1177,6 +1182,9 @@ namespace HM
 
       HttpResponse HandleReputation_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiReputationPaths_();
+
+      HttpResponse HandleSetupChecklist_(const Route &route);
+      static AnsiString OpenApiSetupChecklistPaths_();
       HttpResponse HandleListRules_();
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);

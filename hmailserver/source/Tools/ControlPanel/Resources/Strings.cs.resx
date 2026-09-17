@@ -383,6 +383,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>Když jsou klientské certifikáty vyžádány nebo vyžadovány, musí být zadán soubor s balíkem certifikátů CA. Bez něj by volba Vyžadovat odmítla každého klienta a volba Vyžádat by nic neověřila.</value>
   </data>
+  <data name="A DMARC record - what receivers do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>Záznam DMARC - co příjemci dělají s poštou, která neprojde SPF a DKIM</value>
+  </data>
   <data name="A DMARC record with p=none is live at {0}." xml:space="preserve">
     <value>DMARC záznam s p=none je publikován na {0}.</value>
   </data>
@@ -391,6 +394,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Na {0} existuje TXT záznam, ale soubor soukromého klíče nelze z tohoto počítače přečíst, takže odsud nelze ověřit, zda obsahuje SPRÁVNÝ klíč. Spusťte kontrolu přímo na serveru, nebo použijte kartu DKIM u domény.</value>
+  </data>
+  <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
+    <value>Cíl zálohy - dokud není nastaven, žádná záloha není</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Strop pro jeden průchod, aby na příliš vysoko nastavenou bázi hledání nebylo možné odpovědět přečtením celé doménové struktury. Pokud se ho dosáhne, běh to oznámí a nezakáže vůbec nic – za limitem je položka, která existuje, nerozeznatelná od položky, která byla smazána.</value>
@@ -418,6 +424,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>Zpráva o doručení</value>
+  </data>
+  <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
+    <value>Doména - server nějakou potřebuje, než může přijímat poštu</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Doména hostovaná na tomto serveru</value>
@@ -541,6 +550,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
     <value>Je nastaven plán: jedna záloha každých {0} minut(y).</value>
+  </data>
+  <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
+    <value>Druhý faktor pro správce - jednorázový kód vedle hesla</value>
   </data>
   <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
     <value>Na přihlašovacích údajích správce je vynucen druhý faktor, a to u každého klienta.</value>
@@ -773,6 +785,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Účty označené jako propojené s adresářem. Tato polovina už v tomto GUI je: otevřete Domény, upravte účet a na jeho kartě Adresář zaškrtněte volbu Active Directory a vyplňte uživatelské jméno v AD – sAMAccountName, což je to, co nese %u. Účty bez tohoto označení si ponechají své běžné heslo hMailServeru a adresáře se nikdy nedotknou.</value>
   </data>
+  <data name="Accounts: {0}." xml:space="preserve">
+    <value>Účty: {0}.</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Akce a oznámení</value>
   </data>
@@ -799,6 +814,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>Aktivní filtrovací skript Sieve (RFC 5228) pro tento účet. Běží při místním doručování a podporuje keep, fileinto, discard a redirect. Ponecháním prázdného pole jej vypnete. Více pojmenovaných skriptů lze spravovat přes ManageSieve.</value>
+  </data>
+  <data name="Active domains: {0} of {1}." xml:space="preserve">
+    <value>Aktivní domény: {0} z {1}.</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>Aktivní relace</value>
@@ -863,6 +881,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add an account to this group" xml:space="preserve">
     <value>Přidat účet do této skupiny</value>
   </data>
+  <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
+    <value>Přidejte účet pod doménou na stránce Domény: adresu a heslo, kterým se přihlašuje poštovní klient.</value>
+  </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Přidat certifikát</value>
   </data>
@@ -916,6 +937,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>Nejprve přidejte doménu; účty, aliasy i seznamy visí na ní.</value>
+  </data>
+  <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
+    <value>Přidejte doménu na stránce Domény. Její název je část za @ v každé adrese, kterou bude obsahovat.</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Přidejte klíč níže do ověřovací aplikace a potvrďte jej kódem. Po registraci samotné heslo správce nepřihlásí – kód budou vyžadovat i COM API a REST API. Klíč uschovejte na bezpečném místě: pokud o ověřovací aplikaci přijdete, musí obnovu provést místní správce vymazáním AdministratorTotpSecret z hMailServer.ini.</value>
@@ -1100,14 +1124,23 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Skript události OnAcceptMessage, nebo databáze.</value>
   </data>
+  <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
+    <value>Záznam SPF - které servery smějí posílat poštu této domény</value>
+  </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>SPF záznam je publikován na {0} a není to ten navržený. To může být zcela záměrné – návrh nemůže znát vaše ostatní odesílatele. Publikováno: {1} — jen ověřte, že je pokryto vše, co skutečně odesílá poštu jako {0}.</value>
+  </data>
+  <data name="An account - a mailbox in a domain" xml:space="preserve">
+    <value>Účet - schránka v doméně</value>
   </data>
   <data name="An account address is required." xml:space="preserve">
     <value>Je vyžadována adresa účtu.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Účet lze vypnout, aniž byste jej smazali, čímž se zachová pošta a nová přihlášení se odmítají.</value>
+  </data>
+  <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
+    <value>Účet je schránka v doméně: adresa, na kterou se píše, a to, jako co se klient přihlašuje.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Je vyžadována adresa.</value>
@@ -1302,8 +1335,14 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>Najednou běží nejvýše {0} kontrol. Nad tento počet doručovací vlákna čekají — a po 60 sekundách čekání server čekat přestane a zprávu zkontroluje i tak, takže se pomalý skener projeví jako pomalá pošta, ne jako nezkontrolovaná pošta.</value>
   </data>
+  <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>U svého poskytovatele DNS zveřejněte záznam TXT na doméně, například v=spf1 mx -all, který jmenuje servery odesílající její poštu. Stránka Záznamy DNS ukazuje záznam ke zveřejnění.</value>
+  </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
     <value>U svého poskytovatele DNS publikujte TXT záznam s názvem &lt;selector&gt;._domainkey.&lt;domain&gt; obsahující veřejný klíč (v=DKIM1; k=rsa; p=...). Tato stránka záznam vyhledává přes resolver systému Windows, a je-li soubor klíče čitelný, kontroluje také, že publikovaný klíč je ten SPRÁVNÝ – chybnou hodnotu čekáním nespravíte.</value>
+  </data>
+  <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>U svého poskytovatele DNS zveřejněte záznam TXT s názvem _dmarc.&lt;domain&gt;, zpočátku s v=DMARC1; p=none, dokud čtete zprávy, poté p=quarantine nebo p=reject. Stránka Záznamy DNS ukazuje záznam ke zveřejnění.</value>
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Blokování příloh je zapnuto, ale nejsou zadány žádné vzory k blokování, takže nedělá vůbec nic.</value>
@@ -1445,6 +1484,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Záloha spuštěna {0} – běží na pozadí na serveru.</value>
+  </data>
+  <data name="Backups go to {0}." xml:space="preserve">
+    <value>Zálohy jdou do {0}.</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Doba zablokování (minuty)</value>
@@ -2482,6 +2524,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
     <value>Adresa odesílatele hlášení DMARC (prázdné = vypnuto)</value>
+  </data>
+  <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
+    <value>DMARC říká příjemcům, co dělat s poštou, která neprojde SPF a DKIM, a kam to hlásit.</value>
   </data>
   <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
     <value>DMARC — co mají příjemci dělat s poštou, která neprojde SPF ani DKIM</value>
@@ -4336,6 +4381,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
     <value>Strojově čitelný výstup pro nástroje sbírající logy. Projeví se po restartu služby.</value>
   </data>
+  <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
+    <value>Poštovní klienti odesílají přes port pro odesílání a bez TLS jejich hesla putují sítí v otevřené podobě.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Pošta vyzvednutá z externích POP3 účtů se kontroluje jen tehdy, když to daný účet pro vyzvedávání říká — {0} z {1} jich má právě teď antivirus vypnutý. Tento přepínač je na účtu, ne na této stránce.</value>
   </data>
@@ -4347,6 +4395,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Poštu z vnějšku organizace lze označit tak, aby ji čtenář poznal na první pohled. Odesílatel je zvenčí, když se relace nepřihlásila, zpráva nepřišla přes důvěryhodné příchozí relé a ani odesílatel obálky, ani adresa From nepatří doméně, kterou tento server hostuje.</value>
+  </data>
+  <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
+    <value>Pošta se adresuje doméně, takže server nějakou potřebuje, než může cokoli přijmout.</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>Pošta se nehýbe a nic nespadlo: která polovina uvázla, řádky logu, které pojmenují příčinu, a nastavení, které omezuje každou fázi.</value>
@@ -4846,8 +4897,14 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Nebyl nalezen žádný účet s adresou '{0}'.</value>
   </data>
+  <data name="No account has been added in any domain." xml:space="preserve">
+    <value>V žádné doméně nebyl přidán účet.</value>
+  </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>V této doméně zatím nejsou žádné účty.</value>
+  </data>
+  <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
+    <value>Žádná aktivní doména, takže zatím není co zveřejnit.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Žádné aktivní relace</value>
@@ -4860,6 +4917,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Žádná hesla aplikací. Vytvořte jedno pro každého poštovního klienta, aby ztráta zařízení odvolala jen dané zařízení.</value>
+  </data>
+  <data name="No backup destination is set." xml:space="preserve">
+    <value>Není nastaven žádný cíl zálohy.</value>
   </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Do {0} nikdy žádná záloha nedoběhla – není tam žádný archiv HMBackup.</value>
@@ -4905,6 +4965,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Žádná doména nemá zapnuté podepisování DKIM, takže není potřeba žádný DNS záznam.</value>
+  </data>
+  <data name="No domain has been added yet." xml:space="preserve">
+    <value>Zatím nebyla přidána žádná doména.</value>
   </data>
   <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
     <value>Nejsou nastaveny žádné domény, takže není z čeho vytvářet záznamy pro jednotlivé domény. Nejprve přidejte doménu.</value>
@@ -4998,6 +5061,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Žádný port nemá politiku klientských certifikátů, takže není potřeba ani balík CA, ani klientské certifikáty.</value>
+  </data>
+  <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
+    <value>Žádný port nepřijímá odesílání zpráv, takže poštovní klienti nemohou přes tento server odesílat.</value>
   </data>
   <data name="No ports configured." xml:space="preserve">
     <value>Nejsou nastaveny žádné porty.</value>
@@ -5278,8 +5344,17 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Při zastavení počkat až N sekund, než aktivní relace skončí (0 = zastavit okamžitě)</value>
   </data>
+  <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
+    <value>Na kartě Dvoufaktorové stránky Přístup pro správu zaregistrujte ověřovací aplikaci pro heslo správce.</value>
+  </data>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Na stránce Nastavení antispamu uveďte pečetící domény, kterým důvěřujete (konferenční a přeposílací služby, na které vaši uživatelé spoléhají), a zapněte offset ARC. Pojmenovat, komu důvěřujete, je úsudek, který můžete udělat jen vy – proto zde není žádná výchozí hodnota.</value>
+  </data>
+  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Na stránce Zálohování nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
+  </data>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Na stránce Porty TCP/IP dejte portu pro odesílání (587) STARTTLS s certifikátem ze stránky Certifikáty SSL, nebo přidejte port 465 s implicitním TLS.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Zapnuto, ale nemůže běžet</value>
@@ -5741,6 +5816,15 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port pro výzvy http-01</value>
+  </data>
+  <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
+    <value>Port {0} je nastaven na TLS, ale nemá certifikát, takže TLS nelze zahájit.</value>
+  </data>
+  <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
+    <value>Port {0} nabízí TLS s certifikátem {1}.</value>
+  </data>
+  <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
+    <value>Port {0} přijímá odesílání bez TLS, takže hesla a pošta by putovaly sítí v otevřené podobě.</value>
   </data>
   <data name="Ports…" xml:space="preserve">
     <value>Porty…</value>
@@ -6632,6 +6716,9 @@ Pokračovat?</value>
   </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Skóre selhání SPF</value>
+  </data>
+  <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
+    <value>SPF říká příjemcům, které servery smějí posílat poštu této domény; bez něj je pošta častěji odmítnuta nebo zařazena jako spam.</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — které počítače smějí posílat poštu jako </value>
@@ -7700,6 +7787,9 @@ Restartovat ji nyní?</value>
   <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
     <value>TLS je nastaveno, ale není přiřazen žádný certifikát, takže se tento listener nespustí a k tomuto portu se nedá vůbec připojit. Log serveru to při každém startu zaznamená jako chybu HM5113.</value>
   </data>
+  <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
+    <value>TLS na portu pro odesílání - port, přes který odesílají poštovní klienti</value>
+  </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
     <value>Soubor soukromého klíče TLS (PEM, nepovinné)</value>
   </data>
@@ -7918,8 +8008,17 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Heslo správce a dvoufaktorové ověření najdete na stránce Přístup pro správu.</value>
   </data>
+  <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
+    <value>Heslo správce otevírá vše; jednorázový kód vedle něj zajistí, že uniklé heslo nestačí.</value>
+  </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Heslo správce a druhý faktor, který sám server vynucuje u každého klienta.</value>
+  </data>
+  <data name="The administrator signs in with a password alone." xml:space="preserve">
+    <value>Správce se přihlašuje pouze heslem.</value>
+  </data>
+  <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
+    <value>Heslo správce je kryto jednorázovým kódem.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativa k bearer tokenu pro odběratele metrik, kteří umí jen HTTP Basic. Nastaveno musí být OBOJÍ, uživatelské jméno i heslo: je-li nastaveno jen jedno z nich, server při startu zapíše do logu varování a chová se, jako by nebylo nastaveno ani jedno.</value>
@@ -7932,6 +8031,12 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>Hodnota authserv-id: první token každé hlavičky Authentication-Results, kterou tento server zapíše, vždy malými písmeny, a název, který navazující filtr kontroluje, než verdiktům uvěří. Tentýž název rozhoduje, které příchozí hlavičky Authentication-Results se považují za podvržené: hlavička, která si nárokuje tuto identitu, se odstraní, zatímco hlavička uvádějící jakoukoli jinou identitu zůstane zcela nedotčena.</value>
+  </data>
+  <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
+    <value>Cíl zálohy {0} na serveru neexistuje.</value>
+  </data>
+  <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
+    <value>Záloha zapisuje databázi a úložiště zpráv do složky; dokud není nastavena, žádná záloha není.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Adresa pro navázání není adresa smyčky a nejsou nastaveny žádné přihlašovací údaje, takže /metrics odpovídá na každý odběr 503 (Service Unavailable). Nastavte bearer token, nebo obě pole HTTP Basic, nebo naslouchejte na 127.0.0.1. Kontroly stavu odpovídají tak jako tak.</value>
@@ -8456,6 +8561,9 @@ Odpovídá vlastní resolver serveru - tentýž, který používá doručování
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Odpověď serveru nelze přečíst: {0}</value>
+  </data>
+  <data name="The server's checklist could not be read: {0}" xml:space="preserve">
+    <value>Kontrolní seznam serveru se nepodařilo přečíst: {0}</value>
   </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>Název hostitele serveru nešlo přečíst, takže název, který oznamuje v HELO/EHLO, odsud není znám.</value>
@@ -10768,6 +10876,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} z tohoto počítače neodpověděl do 10 sekund. Pravděpodobné příčiny: žádný záznam A/CNAME pro mta-sts.{1}, neběžící HTTPS listener (WebServicesHttpsPort), nebo firewall mezi nimi. Zkontrolováno pouze z tohoto počítače.</value>
   </data>
+  <data name="{0} domains, none of them active." xml:space="preserve">
+    <value>{0} domén, žádná z nich aktivní.</value>
+  </data>
   <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
     <value>{0} povoleno. Obě jsou podle RFC 8996 zastaralé a současní klienti je rovnou odmítají, takže jejich ponechání jen zřídka přinese kompatibilitu, kvůli které byly ponechány, a klient, který některou z nich vyjedná, dostane podstatně slabší ochranu než ostatní.</value>
   </data>
@@ -10842,6 +10953,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>před {0} minutami</value>
+  </data>
+  <data name="{0} more active domains were not looked up." xml:space="preserve">
+    <value>{0} dalších aktivních domén nebylo vyhledáno.</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} musí být celé číslo.</value>
@@ -11011,6 +11125,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: kontroluje se v DNS TXT záznam {1}…</value>
   </data>
+  <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
+    <value>{0}: kontrola záznamu {1} na {2} v DNS…</value>
+  </data>
   <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
     <value>{0}: není nastaven žádný soubor CA, takže není žádná kotva důvěry, proti které by se klientské certifikáty ověřovaly{1}</value>
   </data>
@@ -11022,6 +11139,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: není nastaven žádný soubor soukromého klíče, takže tento certifikát nemůže použít žádný listener.</value>
+  </data>
+  <data name="{0}: no {1} record at {2}." xml:space="preserve">
+    <value>{0}: žádný záznam {1} na {2}.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selektor '{1}' a soubor klíče jsou nastaveny. {2} Kontroluje se v DNS TXT záznam {3}…</value>
@@ -11077,6 +11197,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
     <value>{0}: soubor klíče {1} na tomto počítači neexistuje, takže podepisování selhává a pošta odchází nepodepsaná. Obnovte soubor nebo vygenerujte nový klíč a poté publikujte odpovídající DNS záznam.</value>
   </data>
+  <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
+    <value>{0}: vyhledání {2} selhalo, což o záznamu {1} nic neříká.</value>
+  </data>
   <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
     <value>{0}: port má politiku klientských certifikátů, ale žádné SSL/TLS ani STARTTLS, takže k handshaku nikdy nedojde{1} Zapněte na portu zabezpečení připojení, nebo politiku vypněte.</value>
   </data>
@@ -11088,6 +11211,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: TXT záznam {1} je publikován. Odsud nelze zkontrolovat: že se mta-sts.{2} překládá na tento server a že certifikát tento název pokrývá.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} is published." xml:space="preserve">
+    <value>{0}: záznam {1} na {2} je zveřejněn.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
+    <value>{0}: záznam {1} na {2} nebyl vyhledán.</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

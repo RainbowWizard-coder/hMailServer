@@ -84,6 +84,7 @@ public:
    STDMETHOD(ClearSpamTrapHits)(/*[in]*/ BSTR Domain, /*[out, retval]*/ long *Removed);
    STDMETHOD(RunReputationCheck)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetReputationReport)(/*[out, retval]*/ BSTR *Report);
+   STDMETHOD(GetSetupChecklist)(/*[in]*/ VARIANT_BOOL LookUpDns, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(GetSuppressionList)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(AddSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[in]*/ BSTR Note, /*[in]*/ long ExpiresDays, /*[out, retval]*/ VARIANT_BOOL *Added);
    STDMETHOD(RemoveSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[out, retval]*/ VARIANT_BOOL *Removed);

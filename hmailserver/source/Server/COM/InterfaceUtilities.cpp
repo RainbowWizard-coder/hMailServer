@@ -36,6 +36,7 @@
 #include "../Common/Util/AuditTrail.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
+#include "../Common/Util/SetupChecklist.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/Application/RoleManager.h"
 #include "../Common/BO/Account.h"
@@ -1863,7 +1864,31 @@ STDMETHODIMP InterfaceUtilities::RunReputationCheck(BSTR *Report)
    }
 }
 
-STDMETHODIMP InterfaceUtilities::GetReputationReport(BSTR *Report)
+STDMETHODIMP InterfaceUtilities::GetSetupChecklist(VARIANT_BOOL LookUpDns, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // The submission port, the backup destination and the administrator's
+      // second factor are the server's: the server administrator's to read,
+      // like the reputation report.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String json = HM::String(HM::SetupChecklist::Json(LookUpDns == VARIANT_TRUE));
+      *Json = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetReputationReport(BST
+R *Report)
 {
    try
    {

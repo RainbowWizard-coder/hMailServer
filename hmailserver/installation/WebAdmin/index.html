@@ -106,6 +106,8 @@ kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface
 .pill[data-level="warn"]{background:var(--warn-soft);color:var(--warn)}
 .pill[data-level="bad"]{background:var(--danger-soft);color:var(--danger)}
 .pill[data-level="info"]{background:var(--accent-soft);color:var(--accent-text)}
+.checkitem ul.findings{margin:var(--s2) 0 0;padding-left:0;list-style:none}
+.checkitem ul.findings li{margin:var(--s1) 0;display:flex;gap:var(--s2);align-items:baseline;flex-wrap:wrap}
 
 /* ---------- The navigation column, and its rail ---------- */
 .side{width:var(--nav);flex:none;display:flex;flex-direction:column;padding:var(--s2);gap:var(--s1);
@@ -301,6 +303,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
     <aside class="side">
       <nav class="nav" id="nav">
         <button data-view="dash" data-needs="view_configuration" class="on" title="Dashboard"><span class="ico">◈</span><span>Dashboard</span></button>
+        <button data-view="checklist" data-serverwide="1" data-needs="view_configuration" title="Checklist"><span class="ico">☑</span><span>Checklist</span></button>
         <button data-view="domains" data-needs="view_accounts" title="Domains"><span class="ico">⌂</span><span>Domains</span></button>
         <button data-view="groups" data-serverwide="1" data-needs="view_accounts" title="Groups"><span class="ico">⚇</span><span>Groups</span></button>
         <button data-view="ipranges" data-serverwide="1" data-needs="view_configuration" title="IP ranges"><span class="ico">⌗</span><span>IP ranges</span></button>
@@ -749,7 +752,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -761,6 +764,7 @@ async function render(silent){
     else if(view==="fetch")await renderFetch();
     else if(view==="lists")await renderLists();
     else if(view==="reputation")await renderReputation();
+    else if(view==="checklist")await renderChecklist();
     else if(view==="spamtraps")await renderSpamTraps();
     else if(view==="queue")await renderQueue();
     else if(view==="tlsa")await renderTlsa();
@@ -1127,6 +1131,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
   else if(d.act==="auditverify")verifyAuditChain();
   else if(d.act==="repwatchcheck")runReputationCheck();
+  else if(d.act==="checklistagain")render();
   else if(d.act==="rdnew")openRemoteDomain(0);
   else if(d.act==="devshow")showDevices();
   else if(d.act==="devrevoke")revokeDevice(d.id);
@@ -4346,6 +4351,84 @@ async function verifyAuditChain(){
    What is checked, and which lists, are settings (reputation_watch_addresses,
    reputation_watch_lists) and so live on the Settings page with every other one;
    this view is the answer and the button that asks again. */
+/* The first-hour checklist: eight items the server judges itself (SetupChecklist.cpp).
+   Every finding carries a code and its arguments beside the server's English
+   sentence, so the sentence is rendered from the catalogue here and the server's
+   own is the fallback for a code this page does not know. */
+const CHECKLIST_TITLE={domain:K("A domain"),account:K("An account"),submission:K("TLS on the submission port"),
+  spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
+  second_factor:K("A second factor for the administrator")};
+const CHECKLIST_PURPOSE={
+  domain:K("Mail is addressed to a domain, so the server needs one before it can receive anything."),
+  account:K("An account is a mailbox in a domain: the address people write to, and what a client signs in as."),
+  submission:K("Mail clients send through the submission port, and without TLS their passwords cross the network in the clear."),
+  spf:K("SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam."),
+  dkim:K("DKIM signs outgoing mail so receivers can verify it left this domain unchanged; the public key has to be published in DNS."),
+  dmarc:K("DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it."),
+  backup:K("The backup writes the database and the message store to a folder; until one is set there is no backup."),
+  second_factor:K("The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough.")};
+const CHECKLIST_STATE={done:K("Done"),action_needed:K("Action needed"),cannot_tell:K("Cannot tell"),not_needed:K("Not needed")};
+const CHECKLIST_TEXT={
+  domain_none:K("No domain has been added yet."),
+  domain_none_active:K("{0} domains, none of them active."),
+  domain_count:K("Active domains: {0} of {1}."),
+  account_none:K("No account has been added in any domain."),
+  account_count:K("Accounts: {0}."),
+  submission_none:K("No port takes message submission, so mail clients cannot send through this server."),
+  submission_plain:K("Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear."),
+  submission_no_certificate:K("Port {0} is set to TLS but has no certificate, so TLS cannot start."),
+  submission_tls:K("Port {0} offers TLS with the certificate {1}."),
+  no_active_domain:K("No active domain, so there is nothing to publish yet."),
+  record_published:K("{0}: the {1} record at {2} is published."),
+  record_missing:K("{0}: no {1} record at {2}."),
+  record_not_looked_up:K("{0}: the {1} record at {2} was not looked up."),
+  lookup_failed:K("{0}: the lookup for {2} failed, which says nothing about the {1} record."),
+  domains_not_looked_up:K("{0} more active domains were not looked up."),
+  dkim_off:K("{0}: signing is off, so receivers cannot verify the mail as this domain's."),
+  dkim_no_selector:K("{0}: signing is on but no selector is set."),
+  dkim_key_missing:K("{0}: signing is on but the key file {1} was not found."),
+  backup_none:K("No backup destination is set."),
+  backup_folder_missing:K("The backup destination {0} does not exist on the server."),
+  backup_set:K("Backups go to {0}."),
+  second_factor_on:K("The administrator's password is backed by a one-time code."),
+  second_factor_off:K("The administrator signs in with a password alone.")};
+function checklistLevel(state){
+  if(state==="done")return "good";
+  if(state==="action_needed")return "warn";
+  return "info";
+}
+function checklistPill(state){
+  const level=state==="not_needed"?"":' data-level="'+checklistLevel(state)+'"';
+  return '<span class="pill"'+level+'><span class="mark">●</span>'+escHtml(t(CHECKLIST_STATE[state]||state))+"</span>";
+}
+function checklistText(finding){
+  const key=CHECKLIST_TEXT[finding.code];
+  return key?tf(key,...(finding.args||[])):(finding.text||finding.code||"");
+}
+async function renderChecklist(){
+  const answer=await api("/api/v1/setup/checklist");
+  const items=answer.items||[];
+  const cards=items.map(item=>{
+    const findings=(item.findings||[]).map(f=>'<li>'+checklistPill(f.state)+' '+escHtml(checklistText(f))+'</li>').join("");
+    return `<div class="card flat checkitem" data-key="${escHtml(item.key)}">
+      <div class="row" style="gap:10px;align-items:center">${checklistPill(item.state)}<b>${escHtml(t(CHECKLIST_TITLE[item.key]||item.key))}</b></div>
+      <p class="note">${escHtml(t(CHECKLIST_PURPOSE[item.key]||""))}</p>
+      <ul class="findings">${findings}</ul></div>`;
+  });
+  const summary=tf("{0} done, {1} need action, {2} cannot be told, {3} not needed.",
+    Number(answer.done)||0,Number(answer.action_needed)||0,Number(answer.cannot_tell)||0,Number(answer.not_needed)||0);
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <p class="note">${t("The first hour: what this server still needs before it is a mail server anybody can use, judged by the server itself. The record items look SPF, DKIM and DMARC up in DNS for every active domain.")}</p>
+      <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="muted" id="checklistSummary">${escHtml(summary)}</span>
+        <span class="muted">${escHtml(answer.generated?tf("Checked {0}",auditWhen(answer.generated)):"")}</span>
+        <button class="btn ghost sm" data-act="checklistagain">${t("Check again")}</button>
+      </div>
+    </div>
+    ${cards.join("")}</div>`;
+}
+
 const REPUTATION_STATUS={listed:K("Listed"),not_listed:K("Not listed"),refused:K("Refused"),
   lookup_failed:K("Lookup failed"),unexpected_answer:K("Unexpected answer"),
   list_not_answering:K("List not answering"),list_lists_everything:K("List lists everything"),

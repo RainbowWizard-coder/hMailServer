@@ -383,6 +383,9 @@ Salvar esta senha fraca mesmo assim?</value>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>Um arquivo de pacote de certificados de CA deve ser especificado quando certificados de cliente são solicitados ou exigidos. Sem ele, "Exigir" rejeitaria todos os clientes e "Solicitar" não verificaria nada.</value>
   </data>
+  <data name="A DMARC record - what receivers do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>Um registro DMARC - o que os destinatários fazem com o e-mail que falha no SPF e no DKIM</value>
+  </data>
   <data name="A DMARC record with p=none is live at {0}." xml:space="preserve">
     <value>Um registro DMARC com p=none está ativo em {0}.</value>
   </data>
@@ -391,6 +394,9 @@ Salvar esta senha fraca mesmo assim?</value>
   </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Existe um registro TXT em {0}, mas o arquivo de chave privada não pôde ser lido nesta máquina, então não é possível verificar daqui se ele carrega a chave CERTA. Execute a verificação no próprio servidor, ou use a aba DKIM do domínio.</value>
+  </data>
+  <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
+    <value>Um destino de backup - até que um seja definido, não há backup</value>
   </data>
   <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
     <value>Um teto para uma passagem, para que uma base de busca apontada um nível acima do devido não possa ser respondida lendo uma floresta inteira. Se for atingido, a execução avisa e não desativa nada - além do limite, uma entrada que existe é indistinguível de uma excluída.</value>
@@ -418,6 +424,9 @@ Salvar esta senha fraca mesmo assim?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>Um relatório de entrega</value>
+  </data>
+  <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
+    <value>Um domínio - o servidor precisa de um antes de poder receber e-mail</value>
   </data>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Um domínio hospedado neste servidor</value>
@@ -541,6 +550,9 @@ Salvar esta senha fraca mesmo assim?</value>
   </data>
   <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
     <value>Um agendamento está configurado: um backup a cada {0} minuto(s).</value>
+  </data>
+  <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
+    <value>Um segundo fator para o administrador - um código de uso único ao lado da senha</value>
   </data>
   <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
     <value>Um segundo fator é imposto na credencial de administrador, em todos os clientes.</value>
@@ -773,6 +785,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Contas marcadas como vinculadas ao diretório. Essa metade já vive nesta interface: abra Domínios, edite a conta e, na aba Diretório, marque a opção Active Directory e preencha o nome de usuário do AD - o sAMAccountName, que é o que %u carrega. Contas sem essa marca mantêm a senha comum do hMailServer e nunca tocam o diretório.</value>
   </data>
+  <data name="Accounts: {0}." xml:space="preserve">
+    <value>Contas: {0}.</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Ação e notificações</value>
   </data>
@@ -799,6 +814,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>Script de filtro Sieve (RFC 5228) ativo para esta conta. Ele roda durante a entrega local e suporta keep, fileinto, discard e redirect. Deixe vazio para desativar. Vários scripts nomeados podem ser gerenciados via ManageSieve.</value>
+  </data>
+  <data name="Active domains: {0} of {1}." xml:space="preserve">
+    <value>Domínios ativos: {0} de {1}.</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>Sessões ativas</value>
@@ -863,6 +881,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Add an account to this group" xml:space="preserve">
     <value>Adicionar uma conta a este grupo</value>
   </data>
+  <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
+    <value>Adicione uma conta sob o domínio na página Domínios: um endereço e a senha com a qual um cliente de e-mail entra.</value>
+  </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Adicionar certificado</value>
   </data>
@@ -916,6 +937,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>Adicione o domínio primeiro; contas, aliases e listas dependem dele.</value>
+  </data>
+  <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
+    <value>Adicione o domínio na página Domínios. O nome é a parte após o @ em cada endereço que ele conterá.</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Adicione a chave abaixo a um aplicativo autenticador e depois confirme com um código. Uma vez registrado, a senha de administrador sozinha não fará login - a API COM e a API REST também precisarão de um código. Guarde a chave em lugar seguro: se perder o autenticador, um administrador local precisa apagar AdministratorTotpSecret de hMailServer.ini para recuperar o acesso.</value>
@@ -1100,14 +1124,23 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Um script de evento OnAcceptMessage, ou o banco de dados.</value>
   </data>
+  <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
+    <value>Um registro SPF - quais servidores podem enviar o e-mail deste domínio</value>
+  </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>Um registro SPF está ativo em {0} e não é o sugerido. Isso pode muito bem ser deliberado - a sugestão não conhece seus outros remetentes. Publicado: {1} — apenas confirme que tudo o que realmente envia e-mails como {0} está coberto.</value>
+  </data>
+  <data name="An account - a mailbox in a domain" xml:space="preserve">
+    <value>Uma conta - uma caixa postal em um domínio</value>
   </data>
   <data name="An account address is required." xml:space="preserve">
     <value>É necessário um endereço de conta.</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
     <value>Uma conta pode ser desligada sem ser excluída, o que mantém os e-mails e recusa novos logins.</value>
+  </data>
+  <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
+    <value>Uma conta é uma caixa postal em um domínio: o endereço para o qual as pessoas escrevem e a identidade com a qual um cliente entra.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>É necessário um endereço.</value>
@@ -1302,8 +1335,14 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>No máximo {0} verificações rodam ao mesmo tempo. Além disso, as threads de entrega esperam — e após 60 segundos de espera o servidor desiste de esperar e verifica mesmo assim, então um verificador lento aparece como e-mail lento e não como e-mail não verificado.</value>
   </data>
+  <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>No seu provedor de DNS, publique um registro TXT no domínio, como v=spf1 mx -all, nomeando os servidores que enviam o e-mail dele. A página Registros DNS mostra o registro a publicar.</value>
+  </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
     <value>No seu provedor de DNS, publique um registro TXT chamado &lt;selector&gt;._domainkey.&lt;domain&gt; contendo a chave pública (v=DKIM1; k=rsa; p=...). Esta página consulta o registro através do resolvedor do Windows e, onde o arquivo de chave é legível, também verifica se a chave publicada é a chave CERTA - um valor errado não se corrige esperando.</value>
+  </data>
+  <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
+    <value>No seu provedor de DNS, publique um registro TXT chamado _dmarc.&lt;domain&gt;, começando com v=DMARC1; p=none enquanto lê os relatórios, depois p=quarantine ou p=reject. A página Registros DNS mostra o registro a publicar.</value>
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>O bloqueio de anexos está ligado sem padrões para bloquear, então não faz nada.</value>
@@ -1445,6 +1484,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Backup iniciado {0} - roda em segundo plano no servidor.</value>
+  </data>
+  <data name="Backups go to {0}." xml:space="preserve">
+    <value>Os backups vão para {0}.</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Duração do banimento (minutos)</value>
@@ -2482,6 +2524,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
     <value>Endereço do remetente dos relatórios DMARC (vazio = desativado)</value>
+  </data>
+  <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
+    <value>O DMARC diz aos destinatários o que fazer com o e-mail que falha no SPF e no DKIM, e para onde relatar.</value>
   </data>
   <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
     <value>DMARC — o que os receptores devem fazer com e-mails que falham no SPF e no DKIM</value>
@@ -4336,6 +4381,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
     <value>Saída legível por máquina para coletores de log. Vale após reiniciar o serviço.</value>
   </data>
+  <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
+    <value>Clientes de e-mail enviam pela porta de envio, e sem TLS as senhas deles cruzam a rede em texto claro.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>E-mails coletados de contas POP3 externas só são verificados quando a conta de coleta assim determina — {0} de {1} estão atualmente com o antivírus desligado. Essa opção fica na conta, não nesta página.</value>
   </data>
@@ -4347,6 +4395,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>As mensagens vindas de fora da organização podem ser marcadas para que o leitor perceba de imediato. Um remetente é de fora quando a sessão não fez login, a mensagem não chegou por um relé de entrada confiável e nem o remetente do envelope nem o endereço From pertencem a um domínio hospedado por este servidor.</value>
+  </data>
+  <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
+    <value>O e-mail é endereçado a um domínio, então o servidor precisa de um antes de poder receber qualquer coisa.</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>Os e-mails não estão andando e nada travou: qual metade parou, as linhas de log que nomeiam a causa, e a configuração que limita cada estágio.</value>
@@ -4846,8 +4897,14 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Nenhuma conta encontrada com o endereço '{0}'.</value>
   </data>
+  <data name="No account has been added in any domain." xml:space="preserve">
+    <value>Nenhuma conta foi adicionada em nenhum domínio.</value>
+  </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Ainda não há contas neste domínio.</value>
+  </data>
+  <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
+    <value>Nenhum domínio ativo, então ainda não há nada a publicar.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Nenhuma sessão ativa</value>
@@ -4860,6 +4917,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Nenhuma senha de aplicativo. Crie uma por cliente de e-mail, para que perder um dispositivo revogue apenas aquele dispositivo.</value>
+  </data>
+  <data name="No backup destination is set." xml:space="preserve">
+    <value>Nenhum destino de backup foi definido.</value>
   </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Nenhum backup jamais foi concluído em {0} - não há nenhum arquivo HMBackup lá.</value>
@@ -4905,6 +4965,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Nenhum domínio tem a assinatura DKIM ligada, então nenhum registro DNS é necessário.</value>
+  </data>
+  <data name="No domain has been added yet." xml:space="preserve">
+    <value>Nenhum domínio foi adicionado ainda.</value>
   </data>
   <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
     <value>Nenhum domínio está configurado, então não há registros por domínio a produzir. Adicione um domínio primeiro.</value>
@@ -4998,6 +5061,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Nenhuma porta tem política de certificado de cliente, então nenhum pacote de CA ou certificado de cliente é necessário.</value>
+  </data>
+  <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
+    <value>Nenhuma porta aceita envio de mensagens, então clientes de e-mail não podem enviar por este servidor.</value>
   </data>
   <data name="No ports configured." xml:space="preserve">
     <value>Nenhuma porta configurada.</value>
@@ -5278,8 +5344,17 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Ao parar, aguardar até N segundos para que as sessões ativas terminem (0 = parar imediatamente)</value>
   </data>
+  <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
+    <value>Na aba Dois fatores da página Acesso administrativo, registre um aplicativo autenticador para a senha do administrador.</value>
+  </data>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Na página Configurações antispam, liste os domínios seladores em que você confia (os serviços de lista de discussão e de encaminhamento dos quais seus usuários dependem) e ligue o deslocamento ARC. Nomear em quem você confia é um julgamento que só você pode fazer, e é por isso que não há padrão.</value>
+  </data>
+  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Na página Backup, defina a pasta em que o backup é gravado, em um disco diferente daquele em que está o armazenamento de mensagens.</value>
+  </data>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Na página Portas TCP/IP, dê à porta de envio (587) STARTTLS com um certificado da página Certificados SSL, ou adicione a porta 465 com TLS implícito.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Ligado, mas não consegue rodar</value>
@@ -5741,6 +5816,15 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Porta para os desafios http-01</value>
+  </data>
+  <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
+    <value>A porta {0} está definida como TLS mas não tem certificado, então o TLS não pode iniciar.</value>
+  </data>
+  <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
+    <value>A porta {0} oferece TLS com o certificado {1}.</value>
+  </data>
+  <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
+    <value>A porta {0} aceita envio sem TLS, então senhas e e-mails cruzariam a rede em texto claro.</value>
   </data>
   <data name="Ports…" xml:space="preserve">
     <value>Portas…</value>
@@ -6632,6 +6716,9 @@ Continuar?</value>
   </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Pontuação de falha de SPF</value>
+  </data>
+  <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
+    <value>O SPF diz aos destinatários quais servidores podem enviar o e-mail deste domínio; sem ele, o e-mail tem mais chance de ser recusado ou marcado como spam.</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — quais máquinas podem enviar e-mails como </value>
@@ -7700,6 +7787,9 @@ Reiniciá-lo agora?</value>
   <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
     <value>O TLS está configurado sem nenhum certificado atribuído, então este ouvinte não inicia e nada consegue se conectar a esta porta. O log do servidor registra isso como erro HM5113 a cada inicialização.</value>
   </data>
+  <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
+    <value>TLS na porta de envio - a porta pela qual os clientes de e-mail enviam</value>
+  </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
     <value>Arquivo de chave privada TLS (PEM, opcional)</value>
   </data>
@@ -7918,8 +8008,17 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>A senha de administrador e a autenticação de dois fatores ficam na página Acesso administrativo.</value>
   </data>
+  <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
+    <value>A senha do administrador abre tudo; um código de uso único ao lado dela impede que uma senha vazada seja suficiente.</value>
+  </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>A senha de administrador, e um segundo fator que o próprio servidor impõe em todos os clientes.</value>
+  </data>
+  <data name="The administrator signs in with a password alone." xml:space="preserve">
+    <value>O administrador entra apenas com uma senha.</value>
+  </data>
+  <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
+    <value>A senha do administrador é respaldada por um código de uso único.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>A alternativa ao token portador, para coletores que só falam HTTP Basic. O nome de usuário e a senha precisam AMBOS estar definidos: com apenas um deles, o servidor registra um aviso na inicialização e se comporta como se nenhum estivesse definido.</value>
@@ -7932,6 +8031,12 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>O authserv-id: o primeiro token de cada cabeçalho Authentication-Results que este servidor escreve, sempre em minúsculas, e o nome que um filtro adiante verifica antes de confiar nos vereditos. O mesmo nome decide quais cabeçalhos Authentication-Results que chegam são tratados como forjados: um que alega esta identidade é removido, enquanto um que nomeia qualquer outra identidade é deixado completamente intacto.</value>
+  </data>
+  <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
+    <value>O destino de backup {0} não existe no servidor.</value>
+  </data>
+  <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
+    <value>O backup grava o banco de dados e o armazenamento de mensagens em uma pasta; até que uma seja definida, não há backup.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>O endereço de vínculo não é um endereço de loopback e nenhuma credencial está definida, então /metrics responde 503 (Service Unavailable) a cada coleta. Defina um token portador, ou ambos os campos do HTTP Basic, ou vincule a 127.0.0.1. As sondagens de saúde continuam respondendo de qualquer forma.</value>
@@ -8456,6 +8561,9 @@ Quem responde é o resolvedor do próprio servidor - o mesmo que a entrega SMTP 
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Não foi possível ler a resposta do servidor: {0}</value>
+  </data>
+  <data name="The server's checklist could not be read: {0}" xml:space="preserve">
+    <value>A lista de verificação do servidor não pôde ser lida: {0}</value>
   </data>
   <data name="The server's host name could not be read, so the name it announces in HELO/EHLO is unknown from here." xml:space="preserve">
     <value>O nome do host do servidor não pôde ser lido, então o nome que ele anuncia em HELO/EHLO é desconhecido daqui.</value>
@@ -10768,6 +10876,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} não respondeu em 10 segundos a partir desta máquina. Causas prováveis: nenhum registro A/CNAME para mta-sts.{1}, o ouvinte HTTPS não está em execução (WebServicesHttpsPort), ou um firewall no meio do caminho. Verificado somente a partir desta máquina.</value>
   </data>
+  <data name="{0} domains, none of them active." xml:space="preserve">
+    <value>{0} domínios, nenhum deles ativo.</value>
+  </data>
   <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
     <value>{0} ativados. Ambos são declarados obsoletos pela RFC 8996 e são recusados de imediato pelos clientes atuais, então deixá-los ligados raramente compra a compatibilidade pela qual foram mantidos, e um cliente que de fato negocia um deles fica com proteção sensivelmente mais fraca que a dos demais.</value>
   </data>
@@ -10842,6 +10953,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} minutos atrás</value>
+  </data>
+  <data name="{0} more active domains were not looked up." xml:space="preserve">
+    <value>Mais {0} domínios ativos não foram consultados.</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} deve ser um número inteiro.</value>
@@ -11011,6 +11125,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: verificando no DNS o registro TXT {1}…</value>
   </data>
+  <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
+    <value>{0}: verificando no DNS o registro {1} em {2}…</value>
+  </data>
   <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
     <value>{0}: nenhum arquivo de CA está definido, então não há âncora de confiança contra a qual verificar certificados de cliente{1}</value>
   </data>
@@ -11022,6 +11139,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: nenhum arquivo de chave privada está definido, então este certificado não pode ser usado por nenhum ouvinte.</value>
+  </data>
+  <data name="{0}: no {1} record at {2}." xml:space="preserve">
+    <value>{0}: nenhum registro {1} em {2}.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: o seletor '{1}' e o arquivo de chave estão definidos. {2} Verificando no DNS o registro TXT {3}…</value>
@@ -11077,6 +11197,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
     <value>{0}: o arquivo de chave {1} não existe nesta máquina, então a assinatura falha e os e-mails saem sem assinatura. Restaure o arquivo ou gere uma nova chave, depois publique o registro DNS correspondente.</value>
   </data>
+  <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
+    <value>{0}: a consulta de {2} falhou, o que não diz nada sobre o registro {1}.</value>
+  </data>
   <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
     <value>{0}: a porta tem uma política de certificado de cliente mas não tem SSL/TLS nem STARTTLS, então nenhum handshake chega a acontecer{1} Ative a segurança de conexão na porta, ou defina a política como desligada.</value>
   </data>
@@ -11088,6 +11211,12 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: o registro TXT {1} está publicado. Não verificável daqui: que mta-sts.{2} resolve para este servidor, e que o certificado cobre esse nome.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} is published." xml:space="preserve">
+    <value>{0}: o registro {1} em {2} está publicado.</value>
+  </data>
+  <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
+    <value>{0}: o registro {1} em {2} não foi consultado.</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

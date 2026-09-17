@@ -2222,6 +2222,17 @@ namespace hMailServer
       private const string SyntaxAccountPassword = "sieve-syntax-secret";
 
       /// <summary>
+      ///    Utilities.GetSetupChecklist: GET /api/v1/setup/checklist, with dns=0 when the
+      ///    caller asks for no lookups - the same document SetupChecklist::Json writes,
+      ///    which is what the COM method answers.
+      /// </summary>
+      public string GetSetupChecklist(bool lookUpDns)
+      {
+         string path = "/api/v1/setup/checklist" + (lookUpDns ? "" : "?dns=0");
+         return ServerApi.Get(path).Expect(200, "GET " + path).Body;
+      }
+
+      /// <summary>
       ///    Utilities.GetSessionPolicy: GET /api/v1/domains/{domain}/session-policy for a
       ///    domain, GET /api/v1/session-policy for the server alone - the document
       ///    SessionPolicies::ToJson writes, which is what the COM method answers. A
