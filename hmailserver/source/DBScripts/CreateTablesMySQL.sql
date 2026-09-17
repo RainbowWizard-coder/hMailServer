@@ -27,6 +27,7 @@ drop table if exists hm_spamtraps;
 drop table if exists hm_spamtraphits;
 
 drop table if exists hm_calendarshares;
+
 drop table if exists hm_calendarobjects;
 
 drop table if exists hm_calendars;
@@ -1323,6 +1324,7 @@ ALTER TABLE hm_files ENGINE=InnoDB;
 ALTER TABLE hm_smimekeys ENGINE=InnoDB;
 
 ALTER TABLE hm_calendars ENGINE=InnoDB;
+
 ALTER TABLE hm_calendarshares ENGINE=InnoDB;
 
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;

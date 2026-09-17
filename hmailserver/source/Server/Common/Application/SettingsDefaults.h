@@ -368,6 +368,8 @@ namespace HM
          _T("protocolsmtp"),
          _T("quarantinedigestbaseurl"),
          _T("quarantinedigestlinkhours"),
+         _T("quotagracepercent"),
+         _T("quotasendstoppercent"),
          _T("reputationwatchaddresses"),
          _T("reputationwatchenabled"),
          _T("reputationwatchlists"),
