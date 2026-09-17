@@ -18,7 +18,8 @@ namespace RegressionTests.Infrastructure
    ///    Windows LogHandler reads and deletes the files on the bench; here the files
    ///    are the server's and the route serves the last 2000 lines of one, so the
    ///    ERROR log is judged by a mark rather than by deletion: SetUp notes how the
-   ///    log ends, TearDown asks what came after.
+   ///    log ends, TearDown asks what came after, and a test that reads the log
+   ///    reads what came after too.
    ///
    ///    The mark is the tail's last line and the tail's length, not a byte offset the
    ///    route does not offer. New lines are everything after the last occurrence of
@@ -136,9 +137,35 @@ namespace RegressionTests.Infrastructure
          _defaultMark = Tail(CurrentLogNamed("current_default_log", "hmailserver_"));
       }
 
+      /// <summary>
+      ///    The ERROR log as the Windows test finds the file: what has been written
+      ///    since the mark - taken at SetUp and moved by DeleteErrorLog,
+      ///    ReadAndDeleteErrorLog and ClearErrorLogUntilSettled, which is what
+      ///    deleting the file does there - and not the whole of a file that holds
+      ///    the run. It is the same text GetErrorLogFileName writes to its scratch
+      ///    file, so the file exists exactly when this answers something. Reading
+      ///    the whole tail instead failed the LDAP fixture's "disabled" test, which
+      ///    asserts HM5920 is NOT in the log, on the HM5920 its own outage test had
+      ///    written and cleared eight seconds earlier.
+      ///
+      ///    The Windows one waits up to ten seconds for the file to appear, because
+      ///    the line a test has just provoked is written by another thread - the
+      ///    delivery worker whose bind failed, the logon that was refused. The same
+      ///    wait is kept for the first line; nothing arriving answers the empty
+      ///    string rather than failing, and the caller's own assertion then says
+      ///    what it wanted in its own words.
+      /// </summary>
       public static string ReadErrorLog()
       {
-         return string.Join(Environment.NewLine, Tail(CurrentLogNamed("current_error_log", "ERROR_hmailserver_")));
+         var fresh = ErrorLogLinesSinceMark();
+
+         for (var i = 0; i < 40 && fresh.Length == 0; i++)
+         {
+            Thread.Sleep(250);
+            fresh = ErrorLogLinesSinceMark();
+         }
+
+         return string.Join(Environment.NewLine, fresh);
       }
 
       /// <summary>

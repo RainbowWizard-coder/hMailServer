@@ -395,6 +395,10 @@ namespace RegressionTests.Shared
       public const string NoEmptyPassword =
          "creates an account with an empty password, which POST /api/v1/domains/{domain}/accounts refuses (a password is required)";
 
+      public const string NoDanglingCertificate =
+         "binds a port to a certificate id that names no certificate, which COM stores and PUT /api/v1/ports refuses on purpose; "
+         + "DELETE /api/v1/certificates refuses a bound certificate too, so a port pointing at a certificate that is gone cannot be made over REST";
+
       /// <summary>
       ///    The fixtures and tests the shims cannot stop at the point of use, ignored
       ///    from TestFixtureBase.SetUp before they start, with the reason:
