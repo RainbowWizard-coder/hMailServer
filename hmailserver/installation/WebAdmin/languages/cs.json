@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "Záznamy DANE TLSA pro vaše certifikáty připravené ke zveřejnění. Přidejte je do DNS (s DNSSEC), aby odesílající servery mohly ověřovat DANE.",
   "Published": "Zveřejněno",
   "Put an address on the list": "Přidat adresu na seznam",
+  "Put back": "Vrátit zpět",
+  "Put back: {0} is {1} again.": "Vráceno: {0} je opět {1}.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "Vloží text značky na začátek předmětu pošty, kterou tato doména přijme zvenčí. Poruší tím jakýkoli podpis DKIM, který odesílatel vytvořil nad svým předmětem, přesně jako to dělá předpona předmětu u antispamu; hlavička níže odesílatele nestojí nic.",
   "Quarantine digest": "Souhrn karantény",
   "Queue": "Fronta",

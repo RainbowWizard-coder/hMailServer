@@ -788,6 +788,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Tilejä: {0}.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Toiminto</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Toiminto ja ilmoitukset</value>
   </data>
@@ -1022,6 +1025,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Administrator menu" xml:space="preserve">
     <value>Järjestelmänvalvojan valikko</value>
   </data>
+  <data name="Administrator or key contains" xml:space="preserve">
+    <value>Ylläpitäjä tai avain sisältää</value>
+  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Ylläpitäjän salasana</value>
   </data>
@@ -1039,6 +1045,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Koosteraportin skeema jota tämä palvelin lähettää: 1 = RFC 7489 liite C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alias address" xml:space="preserve">
+    <value>Aliasosoite</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>Aliasvälimuistin TTL (sekuntia)</value>
@@ -1361,6 +1370,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Yritykset tavoittaa tietokanta käynnistyksessä</value>
+  </data>
+  <data name="Audit trail" xml:space="preserve">
+    <value>Tarkastusloki</value>
   </data>
   <data name="Auth" xml:space="preserve">
     <value>Todennus</value>
@@ -1907,6 +1919,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Tyhjennä kirjautumisvirheiden luettelo</value>
+  </data>
+  <data name="Cleared" xml:space="preserve">
+    <value>Tyhjennetty</value>
   </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>Asiakkaiden automaattinen määritys (autoconfig ja autodiscover)</value>
@@ -2775,6 +2790,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Delete {0}?" xml:space="preserve">
     <value>Poistetaanko {0}?</value>
   </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Poistettu</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Verkkotunnuksen poistaminen poistaa sen sisältämät tilit. Tarkista ensin siihen osoittavat aliakset ja listat.</value>
   </data>
@@ -2837,6 +2855,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
     <value>Kohde_kansio (palvelimella)</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Yksityiskohta</value>
   </data>
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Kehittäjä ja ylläpitäjä</value>
@@ -3247,6 +3268,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Jokainen LDAP-kirjautuminen hylätään: suojaamaton LDAP yksinkertaisella sidonnalla lähettäisi salasanat selväkielisinä, ja AllowUnprotectedPassword on pois päältä.</value>
+  </data>
+  <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
+    <value>Jokainen hallinnollinen muutos yhtenä rivinä hajautusketjussa: kuka sen teki, milloin, minkä rajapinnan kautta, mistä ja millä valtuudella. Asetuksen muutos voidaan palauttaa sen riviltä.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Jokainen tarkistus siinä järjestyksessä, jossa palvelin ajaa ne, ja mitä sen lisäämä pistemäärä tekee viestille. Mitään tällä sivulla ei voi muokata - jokainen rivi avaa sivun, joka omistaa asetuksen.</value>
@@ -3994,6 +4018,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Asennetaan {0}: palvelu pysähtyy ja käynnistyy</value>
   </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Rajapinta</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Virheellisten komentojen raja</value>
   </data>
@@ -4422,6 +4449,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Mail may be forwarded to this domain" xml:space="preserve">
     <value>Postia saa välittää tähän verkkotunnukseen</value>
+  </data>
+  <data name="Mail rule" xml:space="preserve">
+    <value>Sähköpostisääntö</value>
   </data>
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Postipalvelimet kohteelle {0} siinä järjestyksessä, jossa tämä palvelin yrittäisi niitä:</value>
@@ -5221,6 +5251,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Mikään ei tutki saapuvaa postia. Yksikään tarkistin ei voi toimia ja liitteiden esto on pois päältä, joten tartunnan saanut viesti toimitetaan postilaatikkoon täsmälleen sellaisena kuin se saapui.</value>
   </data>
+  <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
+    <value>Mitään ei ole vielä kirjattu. Jokainen hallinnollinen muutos näkyy täällä.</value>
+  </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Mikään täällä ei vaadi päätöstä: yhtään postilaatikkoa ei ohiteta eikä yhtään poisteta käytöstä.</value>
   </data>
@@ -5307,6 +5340,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="ON." xml:space="preserve">
     <value>PÄÄLLÄ.</value>
+  </data>
+  <data name="Object" xml:space="preserve">
+    <value>Kohde</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>Pois</value>
@@ -5406,6 +5442,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Jokaisesta avaimesta tallennetaan vain tiiviste, joten avainta ei voi lukea takaisin täältä eikä tiedostosta. Kumoaminen poistaa sen osion varastosta ja tulee voimaan heti seuraavassa pyynnössä.</value>
+  </data>
+  <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
+    <value>Vain asetuksen muutos voidaan palauttaa: rivin on kannettava arvoa, joka asetuksella oli.</value>
   </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Arkistoi vain näiden verkkotunnusten posti (pilkuin eroteltuina; tyhjä = jokainen viesti)</value>
@@ -6017,6 +6056,12 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Laita kuormantasaaja, TLS-terminaattori tai Postfix-välitys SMTP-kuuntelijan eteen, niin jokainen yhteys näyttää tulevan SIITÄ - mikä rikkoo hiljaa DNSBL-tarkistukset, SPF:n, harmaalistauksen, automaattisen eston ja IP-aluesäännöt kerralla, vaikka kaikki raportoi yhä onnistumista. Näillä nimetty ylävirran palvelin voi välittää todellisen asiakasosoitteen. Molemmat ovat oletuksena pois päältä eivätkä luota keneenkään, ennen kuin osoite on lueteltu, koska vastapuoli, joka voi kirjoittaa oman lähdeosoitteensa uusiksi, on kukistanut jokaisen IP-pohjaisen valvonnan tällä palvelimella. Ylävirran palvelin on määritettävä lähettämään se, tai mikään täällä ei muutu: HAProxy tarvitsee send-proxy- tai send-proxy-v2-asetuksen palvelinrivilleen, ja Postfix-välitys tarvitsee XCLIENTin käyttöön tätä konetta kohti. hMailServer ei voi tarkistaa sitä täältä - ja huomaa, että kun osoite on lueteltu PROXY-protokollan välityspalvelimena, otsake tulee siltä PAKOLLISEKSI, joten välityspalvelimen, joka ei lähetä sitä, yhteydet pudotetaan.</value>
+  </data>
+  <data name="Put a setting back" xml:space="preserve">
+    <value>Palauta asetus</value>
+  </data>
+  <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Palautetaanko {0} arvoon, joka sillä oli ennen tätä muutosta? Palautus kirjataan omana muutoksenaan.</value>
   </data>
   <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
     <value>QRESYNC- ja CONDSTORE-asiakkaat kysyvät, mitä katosi niiden poissa ollessa, sen sijaan että luetteloisivat kansion uudelleen. Palvelin vastaa expunge-tietueiden taulusta, joka karsitaan uusimpaan N:ään kahdentoista tunnin välein ja kerran palvelun käynnistyessä. Asiakas, jonka viimeisin synkronointi on säilytettyä historiaa vanhempi, saa täyden uudelleensynkronoinnin - ei koskaan väärää vastausta. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
@@ -7107,6 +7152,9 @@ Jatketaanko?</value>
   <data name="Select a rule first." xml:space="preserve">
     <value>Valitse ensin sääntö.</value>
   </data>
+  <data name="Select a setting's change first." xml:space="preserve">
+    <value>Valitse ensin asetuksen muutos.</value>
+  </data>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Valitse Active Directory -tili</value>
   </data>
@@ -7382,6 +7430,9 @@ Jatketaanko?</value>
   </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Määritä kaksivaiheinen todennus…</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Asetus</value>
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Asetus  -  {0}</value>
@@ -8121,6 +8172,12 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The certificates this server presents, which port uses which, and when each expires." xml:space="preserve">
     <value>Tämän palvelimen esittämät varmenteet, mikä portti käyttää mitäkin ja milloin kukin vanhenee.</value>
+  </data>
+  <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
+    <value>Ketju on katkennut rivillä {0}. {1}</value>
+  </data>
+  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
+    <value>Ketju on ehjä. {0} riviä tarkistettu.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Salauslista on esiasetus AEAD-ONLY, vaikka TLS 1.0 tai 1.1 on käytössä. Näillä versioilla ei ole lainkaan AEAD-salausryhmää, joten ne ilmoitetaan, mutta kättely ei onnistu - asiakkaan silmin se näyttää rikkinäiseltä palvelimelta eikä käytännöltä.</value>
@@ -9049,6 +9106,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Unknown error." xml:space="preserve">
     <value>Tuntematon virhe.</value>
   </data>
+  <data name="Unlocked" xml:space="preserve">
+    <value>Lukitus avattu</value>
+  </data>
   <data name="Unprotected LDAP - cleartext (lab networks only)" xml:space="preserve">
     <value>Suojaamaton LDAP - selväkielinen (vain laboratorioverkot)</value>
   </data>
@@ -9060,6 +9120,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Update" xml:space="preserve">
     <value>Päivitä</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Päivitetty</value>
   </data>
   <data name="Updates" xml:space="preserve">
     <value>Päivitykset</value>
@@ -9322,6 +9385,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Mitä tahansa hakemistosi hyväksyy yksinkertaiseen sidontaan: UPN (svc-mail@example.local), DOMAIN\name tai täydellinen DN. Tyhjäksi jätettynä palvelin hakee anonyymisti - mikä yleensä epäonnistuu Active Directorya vastaan raportoidulla syyllä, joka nimeää tämän asetuksen.</value>
   </data>
+  <data name="When" xml:space="preserve">
+    <value>Milloin</value>
+  </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Milloin DKIM-allekirjoitus tehtiin ja milloin se lakkaa olemasta sellainen, jota tarkistajan pitäisi kunnioittaa (RFC 6376 3.5).</value>
   </data>
@@ -9435,6 +9501,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Lisää lähettäjä tai hänen IP-alueensa sallittujen listalle, jotta viesti ohittaa roskapostisuojauksen.</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Kuka</value>
+  </data>
+  <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
+    <value>Kuka muutti mitä, milloin, minkä rajapinnan kautta ja mistä - jokainen hallinnollinen muutos yhtenä rivinä hajautusketjussa - ja asetus palautettuna arvoon, joka sillä oli.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kuka saa hallita mitäkin: tämän palvelimen nimetyt roolit ja tilit, joilla ne ovat.</value>
@@ -9814,11 +9886,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Uusi osoite (se voi olla missä tahansa tämän palvelimen verkkotunnuksessa)</value>
   </data>
+  <data name="_Newer" xml:space="preserve">
+    <value>_Uudemmat</value>
+  </data>
   <data name="_Note" xml:space="preserve">
     <value>_Muistiinpano</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>_Toimituksen uudelleenyritysten määrä</value>
+  </data>
+  <data name="_Older" xml:space="preserve">
+    <value>_Vanhemmat</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Avaa _raportti</value>
@@ -9867,6 +9945,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokolla</value>
+  </data>
+  <data name="_Put back" xml:space="preserve">
+    <value>_Palauta</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Kysely</value>
@@ -9981,6 +10062,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>_Tarkista jokainen varmuuskopio purkamalla sen viestisäilö ja täsmäyttämällä se riveihin</value>
+  </data>
+  <data name="_Verify the chain" xml:space="preserve">
+    <value>Tarkista _ketju</value>
   </data>
   <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
     <value>Tarkista hakemistopalvelimen _varmenne (VerifyCertificate)</value>
@@ -10957,6 +11041,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} on kytketty päälle, mutta ei voi toimia. {1} Jokainen siltä pyydetty skannaus epäonnistuu, eikä epäonnistunut skannaus ole epäonnistunut viesti: virhe kirjataan lokiin ja viesti toimitetaan kuin se olisi tutkittu ja todettu puhtaaksi.</value>
   </data>
+  <data name="{0} is {1} again." xml:space="preserve">
+    <value>{0} on jälleen {1}.</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} kohdetta ei voi tarkistaa täältä</value>
   </data>
@@ -11067,6 +11154,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} things need attention" xml:space="preserve">
     <value>{0} asiaa vaatii huomiota</value>
+  </data>
+  <data name="{0} to {1} of {2}" xml:space="preserve">
+    <value>{0}–{1} / {2}</value>
   </data>
   <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea palvelimelta, joten tämä yhteenveto voi olla puutteellinen.</value>

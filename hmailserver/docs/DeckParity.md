@@ -17,8 +17,8 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 4 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
-| desktop pages read | 61 |
-| REST routes (path and method) | 349, 157 of them writes |
+| desktop pages read | 62 |
+| REST routes (path and method) | 350, 158 of them writes |
 | Deck views | 26 |
 
 ## Missing over REST, by interface
@@ -676,12 +676,14 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Aliases | `Add` | DomainsView | - |
 | Utilities | `AddSuppression` | SuppressionListView | - |
 | Utilities | `EmailAllAccounts` | UtilityViews | - |
+| Utilities | `GetAuditTrail` | AuditTrailView | - |
 | Utilities | `GetBounceCounts` | SuppressionListView | - |
 | Utilities | `GetMetricHistory` | DashboardView | - |
 | Utilities | `GetSuppressionList` | SuppressionListView | - |
 | Utilities | `PerformMaintenance` | ServerSettingsView | - |
 | Utilities | `RemoveSuppression` | SuppressionListView | `POST /api/v1/accounts/{address}/move` |
 | Utilities | `ResolveMXRecords` | UtilityViews | - |
+| Utilities | `VerifyAuditTrail` | AuditTrailView | - |
 | DistributionLists | `Add` | DomainsView | - |
 | DistributionListRecipients | `Add` | RecipientsDialog | - |
 | SecurityRanges | `Add` | IPRangesView | - |
@@ -768,6 +770,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/alerts/test` | ? | `manage_settings` | - |
 | `POST /api/v1/apikeys` | - | - | - |
 | `POST /api/v1/archive/{id}/hold` | - | - | - |
+| `POST /api/v1/audit/{id}/revert` | ? | `manage_settings` | yes |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
 | `POST /api/v1/backup/restore` | ? | `account`, `domain`, `domains`, `file`, `folder`, `from`, `keys`, `passphrase`, `reason`, `restore_domains`, `restore_messages`, `restore_settings` | yes |
 | `POST /api/v1/blocked-attachments` | BlockedAttachment | `description`, `domain`, `file`, `keys`, `message`, `name`, `read`, `wildcard` | yes |
@@ -928,6 +931,6 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `logs` | `GET /api/v1/logs`, `GET /api/v1/logs/{}?lines={}` |
 | `reputation` | `GET /api/v1/reputation`, `POST /api/v1/reputation/check` |
 | `reports` | `GET /api/v1/domains`, `GET /api/v1/reports`, `GET /api/v1/reports/summary?{}` |
-| `audit` | `GET /api/v1/audit/verify`, `GET /api/v1/audit{}` |
+| `audit` | `GET /api/v1/audit/verify`, `POST /api/v1/audit/{}/revert`, `GET /api/v1/audit{}` |
 | `webhooks` | `GET /api/v1/openapi.json`, `GET /api/v1/session`, `GET /api/v1/status`, `GET /api/v1/webhooks`, `POST /api/v1/webhooks`, `GET /api/v1/webhooks/deliveries?limit={}`, `POST /api/v1/webhooks/run`, `POST /api/v1/webhooks/test`, `DELETE /api/v1/webhooks/{}`, `PUT /api/v1/webhooks/{}` |
 

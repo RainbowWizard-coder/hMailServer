@@ -788,6 +788,9 @@
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Облікових записів: {0}.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Дія</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Дія та сповіщення</value>
   </data>
@@ -1022,6 +1025,9 @@
   <data name="Administrator menu" xml:space="preserve">
     <value>Меню адміністратора</value>
   </data>
+  <data name="Administrator or key contains" xml:space="preserve">
+    <value>Адміністратор або ключ містить</value>
+  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Пароль адміністратора</value>
   </data>
@@ -1039,6 +1045,9 @@
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Схема зведених звітів, які надсилає цей сервер: 1 = RFC 7489, додаток C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alias address" xml:space="preserve">
+    <value>Адреса псевдоніма</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL кешу псевдонімів (секунд)</value>
@@ -1361,6 +1370,9 @@
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Кількість спроб дістатися бази даних під час запуску</value>
+  </data>
+  <data name="Audit trail" xml:space="preserve">
+    <value>Журнал аудиту</value>
   </data>
   <data name="Auth" xml:space="preserve">
     <value>Автентифікація</value>
@@ -1907,6 +1919,9 @@
   </data>
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Очистити список невдалих входів</value>
+  </data>
+  <data name="Cleared" xml:space="preserve">
+    <value>Очищено</value>
   </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>Автоналаштування клієнтів (autoconfig і autodiscover)</value>
@@ -2775,6 +2790,9 @@
   <data name="Delete {0}?" xml:space="preserve">
     <value>Видалити {0}?</value>
   </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Видалено</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Видалення домену видаляє облікові записи в ньому. Спершу перевірте псевдоніми та списки, що на нього вказують.</value>
   </data>
@@ -2837,6 +2855,9 @@
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
     <value>Папка _призначення (на сервері)</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Подробиці</value>
   </data>
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Розроблено та підтримується</value>
@@ -3247,6 +3268,9 @@
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Кожен вхід через LDAP буде відхилено: незахищений LDAP із простою прив'язкою надсилав би паролі відкритим текстом, а AllowUnprotectedPassword вимкнено.</value>
+  </data>
+  <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
+    <value>Кожна адміністративна зміна як один рядок хеш-ланцюга: хто її зробив, коли, через який інтерфейс, звідки і з якими повноваженнями. Зміну налаштування можна повернути з її рядка.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Кожна перевірка в порядку, в якому сервер їх виконує, і що оцінка, яку вона додає, робить із повідомленням. На цій сторінці нічого не можна редагувати - кожен рядок відкриває сторінку, якій належить параметр.</value>
@@ -3994,6 +4018,9 @@
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Установлення {0}: служба зупиниться і запуститься</value>
   </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Інтерфейс</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Обмеження недійсних команд</value>
   </data>
@@ -4422,6 +4449,9 @@
   </data>
   <data name="Mail may be forwarded to this domain" xml:space="preserve">
     <value>Пошту можна пересилати в цей домен</value>
+  </data>
+  <data name="Mail rule" xml:space="preserve">
+    <value>Поштове правило</value>
   </data>
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Поштові сервери для {0} в тому порядку, в якому цей сервер їх пробував би:</value>
@@ -5221,6 +5251,9 @@
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Вхідну пошту ніщо не перевіряє. Жоден сканер не може працювати, а блокування вкладень вимкнено, тому заражене повідомлення доставляється до поштової скриньки точно таким, яким надійшло.</value>
   </data>
+  <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
+    <value>Поки нічого не записано. Кожна адміністративна зміна з'являється тут.</value>
+  </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Тут нічого не потребує рішення: жодну поштову скриньку не пропущено й жодну не вимикають.</value>
   </data>
@@ -5307,6 +5340,9 @@
   </data>
   <data name="ON." xml:space="preserve">
     <value>УВІМКНЕНО.</value>
+  </data>
+  <data name="Object" xml:space="preserve">
+    <value>Об'єкт</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>Вимкнено</value>
@@ -5406,6 +5442,9 @@
   </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Зберігається лише дайджест кожного ключа, тому ключ неможливо прочитати ані звідси, ані з файлу. Відкликання вилучає його розділ зі сховища й набуває чинності вже з наступного запиту.</value>
+  </data>
+  <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
+    <value>Повернути можна лише зміну налаштування: рядок має містити значення, яке налаштування мало.</value>
   </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Архівувати пошту лише для цих доменів (через кому; порожньо = кожне повідомлення)</value>
@@ -6017,6 +6056,12 @@
   </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Поставте перед слухачем SMTP балансувальник навантаження, термінатор TLS або ретранслятор Postfix — і кожне підключення виглядатиме так, ніби надходить від НЬОГО, що непомітно ламає перевірки DNSBL, SPF, сірий список, автоблокування та правила діапазонів IP одночасно, тоді як усе й далі звітує про успіх. Ці параметри дозволяють названому вищому вузлу передавати справжню адресу клієнта. Обидва типово вимкнені й не довіряють нікому, доки адресу не перелічено, бо співрозмовник, здатний переписати власну адресу джерела, обійшов кожен засіб керування на основі IP на цьому сервері. Вищий вузол має бути налаштований надсилати її, інакше тут нічого не зміниться: HAProxy потребує send-proxy або send-proxy-v2 у своєму рядку server, а ретранслятору Postfix потрібен увімкнений XCLIENT у бік цього вузла. hMailServer не може перевірити це звідси — і зверніть увагу: щойно адресу перелічено як проксі протоколу PROXY, заголовок від неї стає ОБОВ’ЯЗКОВИМ, тож підключення проксі, який його не надсилає, розриватимуться.</value>
+  </data>
+  <data name="Put a setting back" xml:space="preserve">
+    <value>Повернути налаштування</value>
+  </data>
+  <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Повернути {0} до значення до цієї зміни? Повернення записується як окрема зміна.</value>
   </data>
   <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
     <value>Клієнти QRESYNC і CONDSTORE запитують, що зникло за їхньої відсутності, замість повторного перелічування папки. Сервер відповідає з таблиці записів про знищення, яка скорочується до найновіших N кожні дванадцять годин і один раз під час запуску служби. Клієнт, чия остання синхронізація старіша за збережену історію, отримує повну повторну синхронізацію — ніколи не хибну відповідь. Застосовується після перезапуску служби.</value>
@@ -7107,6 +7152,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Select a rule first." xml:space="preserve">
     <value>Спершу виберіть правило.</value>
   </data>
+  <data name="Select a setting's change first." xml:space="preserve">
+    <value>Спочатку виберіть зміну налаштування.</value>
+  </data>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Виберіть обліковий запис Active Directory</value>
   </data>
@@ -7382,6 +7430,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Налаштувати двофакторну автентифікацію…</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Налаштування</value>
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Параметр  -  {0}</value>
@@ -8121,6 +8172,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The certificates this server presents, which port uses which, and when each expires." xml:space="preserve">
     <value>Сертифікати, які пред'являє цей сервер, який порт який використовує і коли кожен спливає.</value>
+  </data>
+  <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
+    <value>Ланцюг порушено на рядку {0}. {1}</value>
+  </data>
+  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
+    <value>Ланцюг цілий. Перевірено рядків: {0}.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Список шифрів - це попереднє налаштування AEAD-ONLY, тоді як увімкнено TLS 1.0 або 1.1. У цих версій немає жодного набору AEAD, тому вони оголошуються, а потім не можуть завершити рукостискання - для клієнта це виглядає як зламаний сервер, а не як політика.</value>
@@ -9049,6 +9106,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Unknown error." xml:space="preserve">
     <value>Невідома помилка.</value>
   </data>
+  <data name="Unlocked" xml:space="preserve">
+    <value>Розблоковано</value>
+  </data>
   <data name="Unprotected LDAP - cleartext (lab networks only)" xml:space="preserve">
     <value>Незахищений LDAP - відкритий текст (лише лабораторні мережі)</value>
   </data>
@@ -9060,6 +9120,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Update" xml:space="preserve">
     <value>Оновити</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Оновлено</value>
   </data>
   <data name="Updates" xml:space="preserve">
     <value>Оновлення</value>
@@ -9322,6 +9385,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Будь-що, що ваш каталог приймає для простої прив'язки: UPN (svc-mail@example.local), DOMAIN\name або повне DN. Якщо залишити порожнім, сервер шукає анонімно - що зазвичай не вдається проти Active Directory, з повідомленою причиною, що називає цей параметр.</value>
   </data>
+  <data name="When" xml:space="preserve">
+    <value>Коли</value>
+  </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Коли підпис DKIM було створено і коли він перестає бути тим, який перевіряльник має визнавати (RFC 6376 3.5).</value>
   </data>
@@ -9435,6 +9501,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Внесіть відправника або його діапазон IP до білого списку, щоб повідомлення оминало захист від спаму.</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Хто</value>
+  </data>
+  <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
+    <value>Хто що змінив, коли, через який інтерфейс і звідки — кожна адміністративна зміна як один рядок хеш-ланцюга — і налаштування, повернуте до значення, яке воно мало.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Хто чим керує: іменовані ролі цього сервера та облікові записи, які їх мають.</value>
@@ -9814,11 +9886,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Нова адреса (вона може бути в будь-якому домені цього сервера)</value>
   </data>
+  <data name="_Newer" xml:space="preserve">
+    <value>Нові_ші</value>
+  </data>
   <data name="_Note" xml:space="preserve">
     <value>_Примітка</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>_Кількість повторних спроб доставки</value>
+  </data>
+  <data name="_Older" xml:space="preserve">
+    <value>_Старіші</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Відкрити звіт</value>
@@ -9867,6 +9945,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Протокол</value>
+  </data>
+  <data name="_Put back" xml:space="preserve">
+    <value>_Повернути</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Запит</value>
@@ -9981,6 +10062,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>Перевіряти кожну _резервну копію, видобуваючи її сховище повідомлень і звіряючи його з рядками</value>
+  </data>
+  <data name="_Verify the chain" xml:space="preserve">
+    <value>Пере_вірити ланцюг</value>
   </data>
   <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
     <value>Перевіряти _сертифікат сервера каталогу (VerifyCertificate)</value>
@@ -10957,6 +11041,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} увімкнено, але не може працювати. {1} Кожне сканування, яке від нього просять, зазнає невдачі, а невдале сканування — це не невдале повідомлення: помилка записується в журнал, а повідомлення доставляється так, ніби його перевірили й визнали чистим.</value>
   </data>
+  <data name="{0} is {1} again." xml:space="preserve">
+    <value>{0} знову {1}.</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} пунктів неможливо перевірити звідси</value>
   </data>
@@ -11067,6 +11154,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} things need attention" xml:space="preserve">
     <value>{0} пунктів потребують уваги</value>
+  </data>
+  <data name="{0} to {1} of {2}" xml:space="preserve">
+    <value>{0}–{1} з {2}</value>
   </data>
   <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} значень не вдалося прочитати з сервера, тому цей підсумок може бути неповним.</value>

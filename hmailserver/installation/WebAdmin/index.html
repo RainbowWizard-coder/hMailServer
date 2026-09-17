@@ -1130,6 +1130,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="roledel")deleteRole(d.name);
   else if(d.act==="auditpage"){auditOffset=Math.max(0,auditOffset+Number(d.by));render();}
   else if(d.act==="auditverify")verifyAuditChain();
+  else if(d.act==="auditrevert")revertAuditedChange(d.id);
   else if(d.act==="repwatchcheck")runReputationCheck();
   else if(d.act==="checklistagain")render();
   else if(d.act==="rdnew")openRemoteDomain(0);
@@ -4320,10 +4321,14 @@ async function renderAudit(){
   const answer=await api("/api/v1/audit"+query);
   const entries=answer.entries||[];
   const total=Number(answer.total)||0;
+  // A setting's change carries the value it had, so it can be put back - by
+  // a credential that may change settings, as one more row in the trail.
+  const canPutBack=e=>e.object_type==="setting"&&(e.action==="updated"||e.action==="deleted")&&may("manage_settings");
   const rows=entries.map(e=>`
     <tr><td>${escHtml(auditWhen(e.time))}</td><td>${escHtml(e.actor||"—")}</td><td>${escHtml(e.interface||"—")}</td>
         <td>${escHtml(e.address||"—")}</td><td>${escHtml(e.object_type||"—")}</td><td>${escHtml(e.object||"—")}</td>
-        <td>${escHtml(e.action||"—")}</td><td>${escHtml(e.detail||"")}</td></tr>`).join("");
+        <td>${escHtml(e.action||"—")}</td><td>${escHtml(e.detail||"")}</td>
+        <td>${canPutBack(e)?'<button class="btn ghost sm" data-act="auditrevert" data-id="'+escHtml(e.id)+'">'+t("Put back")+"</button>":""}</td></tr>`).join("");
   $("#content").innerHTML=`<div class="card view">
     <div class="row" style="gap:10px;align-items:center;margin-bottom:12px">
       <input id="auditFilter" placeholder="${t("Filter by administrator or API key")}" value="${escHtml(filter)}" style="flex:1">
@@ -4333,13 +4338,21 @@ async function renderAudit(){
     </div>
     <div class="err" id="err_audit"></div>
     <div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Who")}</th><th>${t("Interface")}</th><th>${t("From")}</th>
-      <th>${t("Object")}</th><th>${t("Name")}</th><th>${t("Action")}</th><th>${t("Detail")}</th></tr></thead>
-    <tbody>${rows||'<tr><td colspan="8" class="empty">'+t("Nothing has been recorded yet. Every administrative change appears here.")+'</td></tr>'}</tbody></table></div>
+      <th>${t("Object")}</th><th>${t("Name")}</th><th>${t("Action")}</th><th>${t("Detail")}</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="9" class="empty">'+t("Nothing has been recorded yet. Every administrative change appears here.")+'</td></tr>'}</tbody></table></div>
     <p class="note" style="margin-top:12px">${tf("{0} to {1} of {2}",total?auditOffset+1:0,auditOffset+entries.length,total)}</p></div>`;
   const box=$("#auditFilter");
   if(box)box.onchange=e=>{auditFilter=e.target.value;auditOffset=0;render();};
 }
 let auditFilter="";
+async function revertAuditedChange(id){
+  setErr("err_audit","");
+  try{
+    const answer=await api("/api/v1/audit/"+encodeURIComponent(id)+"/revert",{method:"POST",body:"{}"});
+    toast(tf("Put back: {0} is {1} again.",answer.setting||"",answer.value||""));
+    render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_audit",refusalText(e));}
+}
 async function verifyAuditChain(){
   setErr("err_audit","");
   try{

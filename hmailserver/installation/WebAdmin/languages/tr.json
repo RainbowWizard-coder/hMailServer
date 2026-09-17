@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "Sertifikalarınız için yayımlanmaya hazır DANE TLSA kayıtları. Gönderen sunucuların DANE doğrulaması yapabilmesi için bunları DNS'e ekleyin (DNSSEC ile birlikte).",
   "Published": "Yayımlandı",
   "Put an address on the list": "Listeye bir adres koy",
+  "Put back": "Geri al",
+  "Put back: {0} is {1} again.": "Geri alındı: {0} yeniden {1}.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "Bu etki alanının dışarıdan aldığı postanın konusunun başına etiket metnini koyar. Bu, gönderenin kendi konusu üzerinde oluşturduğu her DKIM imzasını bozar; istenmeyen posta korumasının konu öneki de aynısını yapar. Aşağıdaki başlık gönderene hiçbir şeye mal olmaz.",
   "Quarantine digest": "Karantina özeti",
   "Queue": "Kuyruk",

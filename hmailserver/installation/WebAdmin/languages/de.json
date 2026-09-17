@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "Veröffentlichungsfertige DANE-TLSA-Einträge für Ihre Zertifikate. Tragen Sie sie im DNS (mit DNSSEC) ein, damit sendende Server DANE prüfen können.",
   "Published": "Veröffentlicht",
   "Put an address on the list": "Eine Adresse auf die Liste setzen",
+  "Put back": "Zurücksetzen",
+  "Put back: {0} is {1} again.": "Zurückgesetzt: {0} ist wieder {1}.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "Den Markierungstext an den Anfang des Betreffs von Post setzen, die diese Domäne von außen empfängt. Das bricht jede DKIM-Signatur, die der Absender über seinen Betreff gebildet hat, genau wie das Betreffpräfix des Spamschutzes; die Kopfzeile unten kostet den Absender nichts.",
   "Quarantine digest": "Quarantäne-Übersicht",
   "Queue": "Warteschlange",

@@ -589,6 +589,7 @@ namespace HM
          // manage_server to run a pass.
          RouteAuditList,
          RouteAuditVerify,
+         RouteAuditRevert,
          RouteAlertRuleList,
          RouteAlertRuleUpdate,
          RouteAlertEventList,

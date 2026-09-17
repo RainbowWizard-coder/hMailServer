@@ -14,6 +14,7 @@
 #include "../SQL/SQLParameter.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/DatabaseSettings.h"
+#include "Unicode.h"
 
 #include <ctime>
 
@@ -802,6 +803,89 @@ namespace HM
       }
    }
 
+   void
+   AuditTrail::ReadRow_(std::shared_ptr<DALRecordset> recordset, Entry &entry)
+   {
+      entry.id = recordset->GetInt64Value("auditid");
+      entry.time = recordset->GetInt64Value("audittime");
+      entry.actor = recordset->GetStringValue("auditactor");
+      entry.actor_kind = recordset->GetStringValue("auditactortype");
+      entry.interface_name = recordset->GetStringValue("auditinterface");
+      entry.address = recordset->GetStringValue("auditaddress");
+      entry.object_type = recordset->GetStringValue("auditobjecttype");
+      entry.object_name = recordset->GetStringValue("auditobjectname");
+      entry.action = recordset->GetStringValue("auditaction");
+      entry.detail = recordset->GetStringValue("auditdetail");
+      entry.previous_hash = recordset->GetStringValue("auditprevhash");
+      entry.hash = recordset->GetStringValue("audithash");
+   }
+
+   bool
+   AuditTrail::Read(__int64 id, Entry &entry)
+   {
+      SQLCommand command("select * from hm_audit where auditid = @ID");
+      command.AddParameter("@ID", id);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadRow_(recordset, entry);
+      return true;
+   }
+
+   AnsiString
+   AuditTrail::EntryJson(const Entry &entry)
+   {
+      auto escape = [] (const String &value) -> AnsiString
+      {
+         AnsiString utf8;
+         Unicode::WideToMultiByte(value, utf8);
+
+         AnsiString out;
+         const char *chars = utf8.c_str();
+         for (size_t i = 0; i < utf8.size(); i++)
+         {
+            const unsigned char c = (unsigned char) chars[i];
+            switch (c)
+            {
+            case '"': out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default:
+               if (c < 0x20)
+               {
+                  AnsiString escaped;
+                  escaped.Format("\\u%04x", (int) c);
+                  out += escaped;
+               }
+               else
+                  out.append(1, (char) c);
+            }
+         }
+         return out;
+      };
+
+      AnsiString json;
+      AnsiString numbers;
+      numbers.Format("{\"id\":%I64d,\"time\":%I64d,", entry.id, entry.time);
+      json += numbers;
+      json += "\"actor\":\"" + escape(entry.actor) + "\",";
+      json += "\"actor_type\":\"" + escape(entry.actor_kind) + "\",";
+      json += "\"interface\":\"" + escape(entry.interface_name) + "\",";
+      json += "\"address\":\"" + escape(entry.address) + "\",";
+      json += "\"object_type\":\"" + escape(entry.object_type) + "\",";
+      json += "\"object\":\"" + escape(entry.object_name) + "\",";
+      json += "\"action\":\"" + escape(entry.action) + "\",";
+      json += "\"detail\":\"" + escape(entry.detail) + "\",";
+      json += "\"hash\":\"" + escape(entry.hash) + "\",";
+      json += "\"previous_hash\":\"" + escape(entry.previous_hash) + "\"";
+      json += "}";
+      return json;
+   }
+
    bool
    AuditTrail::Query(const Filter &filter, std::vector<Entry> &entries, int &total)
    {
@@ -908,18 +992,7 @@ namespace HM
             break;
 
          Entry entry;
-         entry.id = recordset->GetInt64Value("auditid");
-         entry.time = recordset->GetInt64Value("audittime");
-         entry.actor = recordset->GetStringValue("auditactor");
-         entry.actor_kind = recordset->GetStringValue("auditactortype");
-         entry.interface_name = recordset->GetStringValue("auditinterface");
-         entry.address = recordset->GetStringValue("auditaddress");
-         entry.object_type = recordset->GetStringValue("auditobjecttype");
-         entry.object_name = recordset->GetStringValue("auditobjectname");
-         entry.action = recordset->GetStringValue("auditaction");
-         entry.detail = recordset->GetStringValue("auditdetail");
-         entry.previous_hash = recordset->GetStringValue("auditprevhash");
-         entry.hash = recordset->GetStringValue("audithash");
+         ReadRow_(recordset, entry);
 
          entries.push_back(entry);
 

@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "인증서에 대해 그대로 공개할 수 있는 DANE TLSA 레코드입니다. DNSSEC를 적용한 DNS에 등록하면 보내는 서버가 DANE 검증을 할 수 있습니다.",
   "Published": "게시됨",
   "Put an address on the list": "주소를 목록에 올리기",
+  "Put back": "되돌리기",
+  "Put back: {0} is {1} again.": "되돌렸습니다: {0}이(가) 다시 {1}입니다.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "이 도메인이 외부에서 받은 메일의 제목 앞에 태그 문구를 붙입니다. 스팸 방지의 제목 접두어와 똑같이, 보낸 사람이 자기 제목에 만든 DKIM 서명을 깨뜨립니다. 아래의 헤더는 보낸 사람에게 아무 비용도 들지 않습니다.",
   "Quarantine digest": "격리 요약",
   "Queue": "대기열",

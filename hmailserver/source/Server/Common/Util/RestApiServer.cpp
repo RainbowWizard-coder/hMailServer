@@ -1855,6 +1855,7 @@ namespace HM
             return HandleGroups_(route, GetRequestBody_(request));
          case RouteAuditList:
          case RouteAuditVerify:
+         case RouteAuditRevert:
          case RouteAlertRuleList:
          case RouteAlertRuleUpdate:
          case RouteAlertEventList:
@@ -4511,6 +4512,19 @@ namespace HM
          return;
       }
 
+      if (method == "POST" && path.StartsWith("/api/v1/audit/") && path.EndsWith("/revert"))
+      {
+         const AnsiString prefix = "/api/v1/audit/";
+         AnsiString idPart = path.Mid(prefix.GetLength(), path.GetLength() - prefix.GetLength() - AnsiString("/revert").GetLength());
+         __int64 id = 0;
+         if (!idPart.IsEmpty() && idPart.Find("/") < 0 && ParseQueueId(idPart, id))
+         {
+            route.kind = RouteAuditRevert;
+            route.record_id = id;
+            return;
+         }
+      }
+
       if (method == "GET" && path == "/api/v1/audit/verify")
       {
          route.kind = RouteAuditVerify;
@@ -4667,6 +4681,7 @@ namespace HM
       // them, whatever its scope or role.
       case RouteAuditList:
       case RouteAuditVerify:
+      case RouteAuditRevert:
       case RouteAlertRuleList:
       case RouteAlertRuleUpdate:
       case RouteAlertEventList:
@@ -4816,6 +4831,7 @@ namespace HM
       // The most destructive thing this API can be asked to do: it deletes every
       // domain, account and public folder and puts the archive's back.
       case RouteBackupRestore:
+      case RouteAuditRevert:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamPut:
       case RouteSettingsAntiVirusPut:
@@ -5218,6 +5234,10 @@ namespace HM
       case RouteAuditList:
       case RouteAuditVerify:
          return RolePermission::ViewAudit;
+
+      // Putting a setting back is changing a setting, whoever the row names.
+      case RouteAuditRevert:
+         return RolePermission::ManageSettings;
 
       // The names: which domains there are, and which mailboxes, aliases,
       // lists, groups and fetch accounts are in them. A help desk holds this
@@ -5860,6 +5880,7 @@ namespace HM
          {
          case RouteAuditList:
          case RouteAuditVerify:
+         case RouteAuditRevert:
          case RouteAlertRuleList:
          case RouteAlertRuleUpdate:
          case RouteAlertEventList:
@@ -6132,6 +6153,7 @@ namespace HM
       // a list of domains - does, and is refused here.
       case RouteAuditList:
       case RouteAuditVerify:
+      case RouteAuditRevert:
       case RouteAlertRuleList:
       case RouteAlertRuleUpdate:
       case RouteAlertEventList:

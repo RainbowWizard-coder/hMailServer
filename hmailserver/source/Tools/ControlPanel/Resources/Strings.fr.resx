@@ -788,6 +788,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Comptes : {0}.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Action et notifications</value>
   </data>
@@ -1022,6 +1025,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Administrator menu" xml:space="preserve">
     <value>Menu de l'administrateur</value>
   </data>
+  <data name="Administrator or key contains" xml:space="preserve">
+    <value>Administrateur ou clé contenant</value>
+  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Mot de passe administrateur</value>
   </data>
@@ -1039,6 +1045,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schéma de rapport agrégé envoyé par ce serveur : 1 = RFC 7489 annexe C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alias address" xml:space="preserve">
+    <value>Adresse alias</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL du cache des alias (secondes)</value>
@@ -1361,6 +1370,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Tentatives pour atteindre la base de données au démarrage</value>
+  </data>
+  <data name="Audit trail" xml:space="preserve">
+    <value>Journal d'audit</value>
   </data>
   <data name="Auth" xml:space="preserve">
     <value>Auth</value>
@@ -1907,6 +1919,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Effacer la liste des échecs de connexion</value>
+  </data>
+  <data name="Cleared" xml:space="preserve">
+    <value>Effacé</value>
   </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>Autoconfiguration des clients (autoconfig et autodiscover)</value>
@@ -2775,6 +2790,9 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   <data name="Delete {0}?" xml:space="preserve">
     <value>Supprimer {0} ?</value>
   </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Supprimé</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Supprimer un domaine supprime les comptes qu'il contient. Vérifiez d'abord les alias et les listes qui pointent dessus.</value>
   </data>
@@ -2837,6 +2855,9 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
     <value>Dossier de _destination (sur le serveur)</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Détail</value>
   </data>
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Développé et maintenu par</value>
@@ -3247,6 +3268,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Chaque connexion LDAP sera refusée : un LDAP non protégé avec un bind simple enverrait les mots de passe en clair, et AllowUnprotectedPassword est désactivé.</value>
+  </data>
+  <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
+    <value>Chaque modification administrative comme une ligne d'une chaîne de hachage : qui l'a faite, quand, par quelle interface, d'où et avec quelle autorité. La modification d'un réglage peut être remise depuis sa ligne.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Chaque vérification dans l'ordre où le serveur les exécute, et ce que le score qu'elle ajoute fait au message. Rien sur cette page ne peut être modifié - chaque ligne ouvre la page qui possède le réglage.</value>
@@ -3994,6 +4018,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Installation de {0} : le service va s'arrêter et redémarrer</value>
   </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Interface</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limite de commandes invalides</value>
   </data>
@@ -4422,6 +4449,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Mail may be forwarded to this domain" xml:space="preserve">
     <value>Le courrier peut être transféré vers ce domaine</value>
+  </data>
+  <data name="Mail rule" xml:space="preserve">
+    <value>Règle de courrier</value>
   </data>
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Serveurs de messagerie de {0}, dans l'ordre où ce serveur les essaierait :</value>
@@ -5221,6 +5251,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Rien n'examine le courrier entrant. Aucun analyseur ne peut s'exécuter et le blocage des pièces jointes est désactivé : un message infecté est donc livré dans la boîte exactement tel qu'il est arrivé.</value>
   </data>
+  <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
+    <value>Rien n'a encore été enregistré. Chaque modification administrative apparaît ici.</value>
+  </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Rien ici ne demande de décision : aucune boîte n'est ignorée et aucune n'est désactivée.</value>
   </data>
@@ -5307,6 +5340,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="ON." xml:space="preserve">
     <value>ACTIVÉE.</value>
+  </data>
+  <data name="Object" xml:space="preserve">
+    <value>Objet</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>Désactivé</value>
@@ -5406,6 +5442,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Seul un digest de chaque clé est stocké, une clé ne peut donc pas être relue d'ici ni depuis le fichier. En révoquer une retire sa section du magasin et prend effet dès la toute prochaine requête.</value>
+  </data>
+  <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
+    <value>Seule la modification d'un réglage peut être remise : la ligne doit porter la valeur que le réglage avait.</value>
   </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>N'archiver le courrier que pour ces domaines (séparés par des virgules ; vide = tous les messages)</value>
@@ -6017,6 +6056,12 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Placez un répartiteur de charge, un terminateur TLS ou un relais Postfix devant l'écouteur SMTP et chaque connexion semble venir de LUI - ce qui casse silencieusement les vérifications DNSBL, SPF, le greylisting, le bannissement automatique et les règles de plages IP d'un seul coup, alors que tout continue de rapporter un succès. Ceux-ci permettent à un amont nommé de transmettre l'adresse réelle du client. Les deux sont désactivés par défaut et ne font confiance à personne tant qu'une adresse n'est pas listée, parce qu'un pair capable de réécrire sa propre adresse source a vaincu tous les contrôles fondés sur l'IP de ce serveur. L'amont doit être configuré pour l'envoyer, sinon rien ne change ici : HAProxy a besoin de send-proxy ou send-proxy-v2 sur sa ligne server, et un relais Postfix a besoin de XCLIENT activé vers cet hôte. hMailServer ne peut pas le vérifier d'ici - et notez qu'une fois qu'une adresse est listée comme proxy du protocole PROXY, l'en-tête devient OBLIGATOIRE de sa part : un proxy qui n'en envoie pas verra ses connexions coupées.</value>
+  </data>
+  <data name="Put a setting back" xml:space="preserve">
+    <value>Remettre un réglage</value>
+  </data>
+  <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Remettre {0} à la valeur qu'il avait avant cette modification ? La remise est enregistrée comme une modification à part entière.</value>
   </data>
   <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
     <value>Les clients QRESYNC et CONDSTORE demandent ce qui a disparu pendant leur absence au lieu de relister le dossier. Le serveur répond depuis une table d'enregistrements d'expunge, élaguée aux N plus récents toutes les douze heures et une fois au démarrage du service. Un client dont la dernière synchronisation est plus ancienne que l'historique conservé obtient une resynchronisation complète - jamais une réponse fausse. S'applique après un redémarrage du service.</value>
@@ -7107,6 +7152,9 @@ Continuer ?</value>
   <data name="Select a rule first." xml:space="preserve">
     <value>Sélectionnez d'abord une règle.</value>
   </data>
+  <data name="Select a setting's change first." xml:space="preserve">
+    <value>Sélectionnez d'abord la modification d'un réglage.</value>
+  </data>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Sélectionner un compte Active Directory</value>
   </data>
@@ -7382,6 +7430,9 @@ Continuer ?</value>
   </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Configurer l'authentification à deux facteurs…</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Réglage</value>
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Réglage  -  {0}</value>
@@ -8121,6 +8172,12 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   </data>
   <data name="The certificates this server presents, which port uses which, and when each expires." xml:space="preserve">
     <value>Les certificats que ce serveur présente, quel port utilise lequel, et quand chacun expire.</value>
+  </data>
+  <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
+    <value>La chaîne est rompue à la ligne {0}. {1}</value>
+  </data>
+  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
+    <value>La chaîne est intacte. {0} ligne(s) vérifiée(s).</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>La liste de chiffrements est le préréglage AEAD-ONLY alors que TLS 1.0 ou 1.1 est activé. Ces versions n'ont aucune suite AEAD, elles sont donc annoncées puis ne peuvent pas mener une poignée de main à son terme - ce qui, pour le client, ressemble à un serveur cassé plutôt qu'à une politique.</value>
@@ -9049,6 +9106,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Unknown error." xml:space="preserve">
     <value>Erreur inconnue.</value>
   </data>
+  <data name="Unlocked" xml:space="preserve">
+    <value>Déverrouillé</value>
+  </data>
   <data name="Unprotected LDAP - cleartext (lab networks only)" xml:space="preserve">
     <value>LDAP non protégé - en clair (réseaux de laboratoire uniquement)</value>
   </data>
@@ -9060,6 +9120,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Mettre à jour</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Mis à jour</value>
   </data>
   <data name="Updates" xml:space="preserve">
     <value>Mises à jour</value>
@@ -9322,6 +9385,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Ce que votre annuaire accepte pour une liaison simple : un UPN (svc-mail@example.local), DOMAIN\name, ou un DN complet. Laissé vide, le serveur cherche de façon anonyme - ce qui échoue généralement contre Active Directory, avec une raison signalée qui nomme ce réglage.</value>
   </data>
+  <data name="When" xml:space="preserve">
+    <value>Quand</value>
+  </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Quand une signature DKIM a été faite, et quand elle cesse d'être une signature qu'un vérificateur devrait honorer (RFC 6376 3.5).</value>
   </data>
@@ -9435,6 +9501,12 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Mettre l'expéditeur ou sa plage IP en liste blanche pour que le message contourne la protection anti-spam.</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Qui</value>
+  </data>
+  <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
+    <value>Qui a changé quoi, quand, par quelle interface et d'où - chaque modification administrative comme une ligne d'une chaîne de hachage - et un réglage remis à la valeur qu'il avait.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Qui administre quoi : les rôles nommés de ce serveur et les comptes qui les détiennent.</value>
@@ -9814,11 +9886,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Nouvelle adresse (elle peut être dans n'importe quel domaine de ce serveur)</value>
   </data>
+  <data name="_Newer" xml:space="preserve">
+    <value>Plus _récentes</value>
+  </data>
   <data name="_Note" xml:space="preserve">
     <value>_Note</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>_Nombre de tentatives de livraison</value>
+  </data>
+  <data name="_Older" xml:space="preserve">
+    <value>Plus a_nciennes</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Ouvrir le rapport</value>
@@ -9867,6 +9945,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocole</value>
+  </data>
+  <data name="_Put back" xml:space="preserve">
+    <value>Re_mettre</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Requête</value>
@@ -9981,6 +10062,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>_Vérifier chaque sauvegarde en extrayant son magasin de messages et en le confrontant aux lignes de la base</value>
+  </data>
+  <data name="_Verify the chain" xml:space="preserve">
+    <value>_Vérifier la chaîne</value>
   </data>
   <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
     <value>_Vérifier le certificat du serveur d'annuaire (VerifyCertificate)</value>
@@ -10957,6 +11041,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} est activé mais ne peut pas s'exécuter. {1} Chaque analyse qu'on lui demande échoue, et une analyse échouée n'est pas un message échoué : l'erreur est consignée et le message est livré comme s'il avait été examiné et jugé sain.</value>
   </data>
+  <data name="{0} is {1} again." xml:space="preserve">
+    <value>{0} vaut de nouveau {1}.</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} éléments ne peuvent pas être vérifiés d'ici</value>
   </data>
@@ -11067,6 +11154,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} things need attention" xml:space="preserve">
     <value>{0} points demandent votre attention</value>
+  </data>
+  <data name="{0} to {1} of {2}" xml:space="preserve">
+    <value>{0} à {1} sur {2}</value>
   </data>
   <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} valeur(s) n'ont pas pu être lues depuis le serveur, ce résumé peut donc être incomplet.</value>

@@ -110,6 +110,7 @@
     <Compile Include="..\RegressionTests\API\RestApiSetupChecklist.cs" Link="API\RestApiSetupChecklist.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountRules.cs" Link="API\RestApiAccountRules.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOperator.cs" Link="API\RestApiOperator.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiAuditRevert.cs" Link="API\RestApiAuditRevert.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSpamTraps.cs" Link="API\RestApiSpamTraps.cs" />
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />

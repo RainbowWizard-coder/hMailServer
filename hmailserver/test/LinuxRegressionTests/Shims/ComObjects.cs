@@ -2233,6 +2233,36 @@ namespace hMailServer
    /// </summary>
    public class Utilities
    {
+      /// <summary>Utilities.GetAuditTrail: GET /api/v1/audit, the same document, filtered by actor.</summary>
+      public string GetAuditTrail(string actor, int maxRows, int offset)
+      {
+         string path = "/api/v1/audit?limit=" + maxRows + "&offset=" + offset + (string.IsNullOrEmpty(actor) ? "" : "&actor=" + Uri.EscapeDataString(actor));
+         return ServerApi.Get(path).Expect(200, "GET " + path).Body;
+      }
+
+      /// <summary>Utilities.VerifyAuditTrail: GET /api/v1/audit/verify.</summary>
+      public string VerifyAuditTrail()
+      {
+         return ServerApi.Get("/api/v1/audit/verify").Expect(200, "GET /api/v1/audit/verify").Body;
+      }
+
+      /// <summary>
+      ///    Utilities.RevertAuditedChange: POST /api/v1/audit/{id}/revert, answering
+      ///    the value written. A refusal is the route's 409, or 404 for a row that is
+      ///    not there, raised as the COM method raises it.
+      /// </summary>
+      public string RevertAuditedChange(int auditId)
+      {
+         string path = "/api/v1/audit/" + auditId + "/revert";
+         var answer = ServerApi.Post(path, "{}");
+         if (answer.Status == 404)
+            throw new System.Runtime.InteropServices.COMException("No audit row has that id.");
+         if (answer.Status == 409)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(200, "POST " + path);
+         return ServerApi.StringOf(answer.Json.Value, "value");
+      }
+
       /// <summary>
       ///    Utilities.EraseAddressTraces: POST /api/v1/addresses/erase, answering
       ///    the count of what was removed. A step that failed is the route's 500,

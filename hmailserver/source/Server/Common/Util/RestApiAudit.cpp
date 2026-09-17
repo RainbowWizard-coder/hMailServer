@@ -8,6 +8,9 @@
 //                                    paging and filters.
 //   GET /api/v1/audit/verify         walks the hash chain and names the first
 //                                    row that does not check out.
+//   POST /api/v1/audit/<id>/revert   puts a setting back to the value the row
+//                                    says it had (AuditRevert.h), which is
+//                                    itself recorded as a change.
 //   GET /api/v1/alerts/rules         the conditions, their thresholds and what
 //                                    each one does.
 //   PUT /api/v1/alerts/rules/<name>  change one, or create one for a condition
@@ -33,6 +36,7 @@
 
 #include "RestApiServer.h"
 
+#include "AuditRevert.h"
 #include "AuditTrail.h"
 #include "AlertManager.h"
 #include "JsonDocument.h"
@@ -195,6 +199,24 @@ namespace HM
                intact ? "true" : "false", rowsChecked, firstBroken, escape(Utf8_(reason)).c_str());
 
             return BuildResponse_(200, body);
+         }
+
+      case RouteAuditRevert:
+         {
+            AuditTrail::Entry entry;
+            if (!AuditTrail::Instance()->Read(route.record_id, entry))
+               return BuildResponse_(404, "{\"error\":\"no audit row has that id\"}");
+
+            String restored;
+            String reason;
+            if (!AuditRevert::PutBack(entry, restored, reason))
+               return BuildResponse_(409, "{\"error\":\"" + escape(Utf8_(reason)) + "\"}");
+
+            LOG_APPLICATION(String(_T("The setting ")) + entry.object_name + _T(" was put back to the value audit row ") + StringParser::IntToString(entry.id) + _T(" records, over the REST API."));
+
+            AnsiString body;
+            body.Format("{\"reverted\":true,\"id\":%I64d,\"setting\":\"", entry.id);
+            return BuildResponse_(200, body + escape(Utf8_(entry.object_name)) + "\",\"value\":\"" + escape(Utf8_(restored)) + "\"}");
          }
 
       case RouteAlertRuleList:
@@ -375,6 +397,9 @@ namespace HM
          "{\"name\":\"limit\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Rows to return, 1 to 1000. Default 100.\"},"
          "{\"name\":\"offset\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Rows to skip.\"}"
          "],\"responses\":{\"200\":{\"description\":\"The page of entries and the total that match.\"}}}}"
+         ",\"/api/v1/audit/{id}/revert\":{\"post\":{\"summary\":\"Put a setting back to the value an audit row says it had\","
+         "\"description\":\"The row must record a setting's change - name: old -> new in its detail - and the old value is written through the same setter the change came through, so the put-back is itself a row in the trail made by whoever asked. Refused with 409 for a row that is not a setting's, for a secret (the trail never holds its values), for a value the trail cut at 120 characters, and for a setting this server no longer has. A [Settings] key whose old side is (default) is returned to its default. Needs manage_settings; refused to every API key.\","
+         "\"responses\":{\"200\":{\"description\":\"reverted, id, setting and value\"},\"404\":{\"description\":\"No such row\"},\"409\":{\"description\":\"The row cannot be put back, with the reason\"}}}}"
          ",\"/api/v1/audit/verify\":{\"get\":{\"summary\":\"Verify the audit chain\","
          "\"description\":\"Walks the hash chain from the first row and reports the first row whose stored hash is not the hash its contents produce, or which does not carry the hash of the row before it. Refused to every API key. The administrator password, or an account whose role holds view_audit and reaches every domain.\","
          "\"responses\":{\"200\":{\"description\":\"intact, rows_checked, first_broken_id and the reason.\"}}}}"

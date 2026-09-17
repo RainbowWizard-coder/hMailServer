@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "Έτοιμες προς δημοσίευση εγγραφές DANE TLSA για τα πιστοποιητικά σας. Προσθέστε τις στο DNS (με DNSSEC) ώστε οι διακομιστές που στέλνουν να μπορούν να κάνουν επικύρωση DANE.",
   "Published": "Δημοσιευμένο",
   "Put an address on the list": "Προσθήκη διεύθυνσης στη λίστα",
+  "Put back": "Επαναφορά",
+  "Put back: {0} is {1} again.": "Επαναφέρθηκε: το {0} είναι ξανά {1}.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "Τοποθετεί το κείμενο της ετικέτας στην αρχή του θέματος της αλληλογραφίας που δέχεται αυτός ο τομέας από έξω. Χαλάει κάθε υπογραφή DKIM που έφτιαξε ο αποστολέας πάνω στο θέμα του, ακριβώς όπως κάνει το πρόθεμα θέματος της προστασίας από ανεπιθύμητα· η κεφαλίδα παρακάτω δεν κοστίζει τίποτα στον αποστολέα.",
   "Quarantine digest": "Σύνοψη καραντίνας",
   "Queue": "Ουρά",

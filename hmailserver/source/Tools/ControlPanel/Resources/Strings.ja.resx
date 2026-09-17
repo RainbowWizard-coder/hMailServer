@@ -788,6 +788,9 @@
   <data name="Accounts: {0}." xml:space="preserve">
     <value>アカウント: {0} 件。</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>操作</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>アクションと通知</value>
   </data>
@@ -1022,6 +1025,9 @@
   <data name="Administrator menu" xml:space="preserve">
     <value>管理者メニュー</value>
   </data>
+  <data name="Administrator or key contains" xml:space="preserve">
+    <value>管理者またはキーに含まれる文字</value>
+  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>管理者パスワード</value>
   </data>
@@ -1039,6 +1045,9 @@
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>このサーバーが送信する集約レポートのスキーマ: 1 = RFC 7489 付録 C、2 = RFC 9990</value>
+  </data>
+  <data name="Alias address" xml:space="preserve">
+    <value>エイリアスアドレス</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>エイリアス キャッシュの TTL (秒)</value>
@@ -1361,6 +1370,9 @@
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>起動時にデータベースへ接続を試みる回数</value>
+  </data>
+  <data name="Audit trail" xml:space="preserve">
+    <value>監査ログ</value>
   </data>
   <data name="Auth" xml:space="preserve">
     <value>認証</value>
@@ -1907,6 +1919,9 @@
   </data>
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>ログオン失敗リストをクリア</value>
+  </data>
+  <data name="Cleared" xml:space="preserve">
+    <value>消去</value>
   </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>クライアントの自動設定 (autoconfig と autodiscover)</value>
@@ -2775,6 +2790,9 @@
   <data name="Delete {0}?" xml:space="preserve">
     <value>{0} を削除しますか?</value>
   </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>削除</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>ドメインを削除すると、その中のアカウントも削除されます。先に、そのドメインを指しているエイリアスとリストがないか確認してください。</value>
   </data>
@@ -2837,6 +2855,9 @@
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
     <value>宛先フォルダー (サーバー上)(_F)</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>詳細</value>
   </data>
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>開発と保守</value>
@@ -3247,6 +3268,9 @@
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>すべての LDAP ログオンが拒否されます: 保護されていない LDAP でのシンプル バインドはパスワードを平文で送信することになり、AllowUnprotectedPassword がオフだからです。</value>
+  </data>
+  <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
+    <value>すべての管理上の変更をハッシュチェーンの 1 行として記録します。誰が、いつ、どのインターフェースで、どこから、どの権限で行ったか。設定の変更はその行から元に戻せます。</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのチェックと、それぞれが加えるスコアがメッセージに何をもたらすか。このページでは何も編集できません。各行は、その設定を持つページを開きます。</value>
@@ -3994,6 +4018,9 @@
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>{0} をインストール中: サービスは停止して起動します</value>
   </data>
+  <data name="Interface" xml:space="preserve">
+    <value>インターフェース</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>無効なコマンドの上限</value>
   </data>
@@ -4422,6 +4449,9 @@
   </data>
   <data name="Mail may be forwarded to this domain" xml:space="preserve">
     <value>このドメインへメールを転送してよい</value>
+  </data>
+  <data name="Mail rule" xml:space="preserve">
+    <value>メールルール</value>
   </data>
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>{0} のメール サーバー (このサーバーが試す順):</value>
@@ -5221,6 +5251,9 @@
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>受信メールを調べるものは何もありません。実行できるスキャナーがなく、添付ファイルのブロックもオフなので、感染したメッセージは到着したそのままの状態でメールボックスに配信されます。</value>
   </data>
+  <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
+    <value>まだ何も記録されていません。すべての管理上の変更がここに表示されます。</value>
+  </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>ここで決めることは何もありません: スキップされるメールボックスも、無効化されるメールボックスもありません。</value>
   </data>
@@ -5307,6 +5340,9 @@
   </data>
   <data name="ON." xml:space="preserve">
     <value>オン。</value>
+  </data>
+  <data name="Object" xml:space="preserve">
+    <value>対象</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>オフ</value>
@@ -5406,6 +5442,9 @@
   </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>保存されるのは各キーのダイジェストだけなので、キーをここからもファイルからも読み出すことはできません。取り消すと、そのキーのセクションはストアから削除され、次のリクエストからすぐに有効になります。</value>
+  </data>
+  <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
+    <value>元に戻せるのは設定の変更だけです。行に設定の以前の値が含まれている必要があります。</value>
   </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>これらのドメインのメールのみアーカイブする (カンマ区切り、空 = すべてのメッセージ)</value>
@@ -6017,6 +6056,12 @@
   </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>SMTP リスナーの前にロード バランサー、TLS ターミネーター、Postfix リレーを置くと、すべての接続がそこから来ているように見えます。これにより、DNSBL のチェック、SPF、グレイリスティング、自動ブロック、IP 範囲のルールが一度に、しかも黙って壊れ、それでいてすべてが成功したと報告し続けます。この 2 つは、指定した上流が本当のクライアント アドレスを伝えられるようにするものです。どちらも既定では無効で、アドレスが列挙されるまで誰も信頼しません。自分の送信元アドレスを書き換えられる相手は、このサーバーの IP ベースの制御をすべて突破してしまっているからです。上流側がそれを送るように設定されていなければ、ここでは何も変わりません。HAProxy はサーバー行に send-proxy または send-proxy-v2 が必要で、Postfix リレーはこのホストに対して XCLIENT を有効にする必要があります。hMailServer はここからそれを確認できません。また、いったんアドレスが PROXY プロトコルのプロキシとして列挙されると、そのアドレスからのヘッダーは必須になるため、ヘッダーを送らないプロキシは接続を切断される点にも注意してください。</value>
+  </data>
+  <data name="Put a setting back" xml:space="preserve">
+    <value>設定を元に戻す</value>
+  </data>
+  <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>{0} をこの変更前の値に戻しますか? 元に戻す操作自体も変更として記録されます。</value>
   </data>
   <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
     <value>QRESYNC と CONDSTORE のクライアントは、フォルダーを一覧表示し直す代わりに、離れている間に何が消えたかを問い合わせます。サーバーは抹消 (Expunge) レコードのテーブルから応答します。このテーブルは 12 時間ごとと、サービス開始時に 1 回、新しい N 件まで整理されます。最後の同期が保持されている履歴より古いクライアントは完全な再同期を行います。誤った答えが返ることは決してありません。サービスの再起動後に有効になります。</value>
@@ -7107,6 +7152,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Select a rule first." xml:space="preserve">
     <value>先にルールを選択してください。</value>
   </data>
+  <data name="Select a setting's change first." xml:space="preserve">
+    <value>先に設定の変更を選択してください。</value>
+  </data>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Active Directory アカウントを選択</value>
   </data>
@@ -7382,6 +7430,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>2 要素認証を設定…</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>設定</value>
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>設定  -  {0}</value>
@@ -8121,6 +8172,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The certificates this server presents, which port uses which, and when each expires." xml:space="preserve">
     <value>このサーバーが提示する証明書、どのポートがどの証明書を使うか、そしてそれぞれの有効期限。</value>
+  </data>
+  <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
+    <value>チェーンは行 {0} で壊れています。{1}</value>
+  </data>
+  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
+    <value>チェーンは無傷です。{0} 行を確認しました。</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>TLS 1.0 または 1.1 が有効なのに、暗号スイート リストが AEAD-ONLY プリセットになっています。これらのバージョンには AEAD スイートが 1 つもないため、アドバタイズはされてもハンドシェイクを完了できません。クライアントからは、ポリシーではなく壊れたサーバーに見えます。</value>
@@ -9049,6 +9106,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Unknown error." xml:space="preserve">
     <value>不明なエラーです。</value>
   </data>
+  <data name="Unlocked" xml:space="preserve">
+    <value>ロック解除</value>
+  </data>
   <data name="Unprotected LDAP - cleartext (lab networks only)" xml:space="preserve">
     <value>保護されていない LDAP - 平文 (ラボ ネットワークのみ)</value>
   </data>
@@ -9059,6 +9119,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
     <value>オフの場合、サーバーがスパムと分類したメッセージも、マークなしでここに配信されます。スパム ヘッダーと件名のタグはこのアカウントのコピーから削除されます。メールを決して失ってはならないアドレス向けです。</value>
   </data>
   <data name="Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
     <value>更新</value>
   </data>
   <data name="Updates" xml:space="preserve">
@@ -9322,6 +9385,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>ディレクトリが簡易バインドで受け入れるもの: UPN (svc-mail@example.local)、DOMAIN\name、または完全な DN。空のままにすると、サーバーは匿名で検索します。これは通常 Active Directory に対して失敗し、この設定を名指しする理由が報告されます。</value>
   </data>
+  <data name="When" xml:space="preserve">
+    <value>日時</value>
+  </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>DKIM 署名がいつ作成され、いつ検証者が尊重すべき署名ではなくなるか (RFC 6376 3.5)。</value>
   </data>
@@ -9435,6 +9501,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>送信者またはその IP 範囲をホワイト リストに登録して、メッセージがスパム対策をバイパスするようにします。</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>実行者</value>
+  </data>
+  <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
+    <value>誰が何をいつ、どのインターフェースでどこから変更したか (すべての管理上の変更をハッシュチェーンの 1 行として)、そして設定を以前の値に戻します。</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>誰が何を管理できるか。このサーバーの名前付きロールと、それを持つアカウント。</value>
@@ -9814,11 +9886,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>新しいアドレス (このサーバーが保持するどのドメインでも可)(_N)</value>
   </data>
+  <data name="_Newer" xml:space="preserve">
+    <value>新しい方(_N)</value>
+  </data>
   <data name="_Note" xml:space="preserve">
     <value>メモ(_N)</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>配信の再試行回数(_N)</value>
+  </data>
+  <data name="_Older" xml:space="preserve">
+    <value>古い方(_O)</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>レポートを開く(_O)</value>
@@ -9867,6 +9945,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>プロトコル(_P)</value>
+  </data>
+  <data name="_Put back" xml:space="preserve">
+    <value>元に戻す(_P)</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>照会(_Q)</value>
@@ -9981,6 +10062,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>バックアップごとにメッセージ ストアを展開し、行と突き合わせて検証する(_V)</value>
+  </data>
+  <data name="_Verify the chain" xml:space="preserve">
+    <value>チェーンを検証(_V)</value>
   </data>
   <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
     <value>ディレクトリ サーバーの証明書を検証する (VerifyCertificate)(_V)</value>
@@ -10957,6 +11041,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} は有効になっていますが実行できません。{1} 要求されたスキャンはすべて失敗します。そして、スキャンの失敗はメッセージの失敗ではありません。エラーはログに記録され、メッセージは検査されて問題なしと判定されたかのように配信されます。</value>
   </data>
+  <data name="{0} is {1} again." xml:space="preserve">
+    <value>{0} は再び {1} です。</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} 件の項目はここでは確認できません</value>
   </data>
@@ -11067,6 +11154,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} things need attention" xml:space="preserve">
     <value>{0} 件の項目に対応が必要です</value>
+  </data>
+  <data name="{0} to {1} of {2}" xml:space="preserve">
+    <value>{2} 件中 {0}～{1} 件</value>
   </data>
   <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>サーバーから {0} 件の値を読み取れなかったため、この概要は不完全な可能性があります。</value>

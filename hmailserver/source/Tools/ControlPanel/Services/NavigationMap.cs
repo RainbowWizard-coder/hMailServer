@@ -481,6 +481,16 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "messagetrace|queue|delivery",
                   needs: "administer_domain"),
 
+               // Who changed what: every administrative change as one row of a hash
+               // chain, over Utilities.GetAuditTrail, with a setting's change put back
+               // from its row. The server administrator's: the trail records every
+               // domain's changes.
+               Page("audit", N("Audit trail"),
+                  N("Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had."),
+                  aliases: "Audit|Who changed|History|Change log|Put back|Undo a setting|Revert a change|Compliance",
+                  seeAlso: "adminaccess|logs",
+                  needs: "administer_server"),
+
                Page("logs", N("Live logs"),
                   N("Stream the server log as it is written - the fastest way to see what happened to one message."),
                   aliases: "Log viewer|Tail|Trace|Debug|SMTP conversation|Error log|Awstats",

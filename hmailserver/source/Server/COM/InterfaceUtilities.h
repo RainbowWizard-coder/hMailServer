@@ -85,6 +85,9 @@ public:
    STDMETHOD(RunReputationCheck)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetReputationReport)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetSetupChecklist)(/*[in]*/ VARIANT_BOOL LookUpDns, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(GetAuditTrail)(/*[in]*/ BSTR Actor, /*[in]*/ long MaxRows, /*[in]*/ long Offset, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(VerifyAuditTrail)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(RevertAuditedChange)(/*[in]*/ long AuditId, /*[out, retval]*/ BSTR *RestoredValue);
    STDMETHOD(GetSuppressionList)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Search, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(AddSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[in]*/ BSTR Note, /*[in]*/ long ExpiresDays, /*[out, retval]*/ VARIANT_BOOL *Added);
    STDMETHOD(RemoveSuppression)(/*[in]*/ BSTR DomainName, /*[in]*/ BSTR Address, /*[out, retval]*/ VARIANT_BOOL *Removed);

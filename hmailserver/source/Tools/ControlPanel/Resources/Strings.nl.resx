@@ -788,6 +788,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Accounts: {0}.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Actie</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Actie en meldingen</value>
   </data>
@@ -1022,6 +1025,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Administrator menu" xml:space="preserve">
     <value>Beheerdersmenu</value>
   </data>
+  <data name="Administrator or key contains" xml:space="preserve">
+    <value>Beheerder of sleutel bevat</value>
+  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Beheerderswachtwoord</value>
   </data>
@@ -1039,6 +1045,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schema voor samengevoegde rapporten dat deze server verstuurt: 1 = RFC 7489 bijlage C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alias address" xml:space="preserve">
+    <value>Aliasadres</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL van aliascache (seconden)</value>
@@ -1361,6 +1370,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Pogingen om de database bij het opstarten te bereiken</value>
+  </data>
+  <data name="Audit trail" xml:space="preserve">
+    <value>Auditlogboek</value>
   </data>
   <data name="Auth" xml:space="preserve">
     <value>Auth</value>
@@ -1907,6 +1919,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Lijst met mislukte aanmeldingen wissen</value>
+  </data>
+  <data name="Cleared" xml:space="preserve">
+    <value>Gewist</value>
   </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>Clientautoconfiguratie (autoconfig en autodiscover)</value>
@@ -2775,6 +2790,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delete {0}?" xml:space="preserve">
     <value>{0} verwijderen?</value>
   </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Verwijderd</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Een domein verwijderen verwijdert de accounts erin. Controleer eerst op aliassen en lijsten die ernaar verwijzen.</value>
   </data>
@@ -2837,6 +2855,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
     <value>Doel_map (op de server)</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Detail</value>
   </data>
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Ontwikkeld en onderhouden door</value>
@@ -3247,6 +3268,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Elke LDAP-aanmelding wordt geweigerd: onbeschermd LDAP met een simple bind zou wachtwoorden in klare tekst versturen, en AllowUnprotectedPassword staat uit.</value>
+  </data>
+  <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
+    <value>Elke beheerwijziging als één rij in een hashketen: wie ze maakte, wanneer, via welke interface, van waar en met welke bevoegdheid. De wijziging van een instelling kan vanuit haar rij worden teruggezet.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Elke controle in de volgorde waarin de server ze uitvoert, en wat de score die ze toevoegen met het bericht doet. Niets op deze pagina kan worden bewerkt - elke rij opent de pagina waar de instelling thuishoort.</value>
@@ -3994,6 +4018,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>{0} wordt geïnstalleerd: de service stopt en start</value>
   </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Interface</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limiet voor ongeldige commando's</value>
   </data>
@@ -4422,6 +4449,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Mail may be forwarded to this domain" xml:space="preserve">
     <value>Post mag naar dit domein worden doorgestuurd</value>
+  </data>
+  <data name="Mail rule" xml:space="preserve">
+    <value>E-mailregel</value>
   </data>
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Mailservers voor {0}, in de volgorde waarin deze server ze zou proberen:</value>
@@ -5221,6 +5251,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Niets onderzoekt inkomende mail. Geen enkele scanner kan draaien en bijlageblokkering staat uit, dus een geïnfecteerd bericht wordt precies zo aan het postvak bezorgd als het binnenkwam.</value>
   </data>
+  <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
+    <value>Er is nog niets vastgelegd. Elke beheerwijziging verschijnt hier.</value>
+  </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Hier hoeft niets te worden besloten: er wordt geen postvak overgeslagen en er wordt er geen uitgeschakeld.</value>
   </data>
@@ -5307,6 +5340,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="ON." xml:space="preserve">
     <value>AAN.</value>
+  </data>
+  <data name="Object" xml:space="preserve">
+    <value>Object</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>Uit</value>
@@ -5406,6 +5442,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Van elke sleutel wordt alleen een digest opgeslagen, dus een sleutel kan hier noch uit het bestand worden teruggelezen. Een sleutel intrekken verwijdert zijn sectie uit de opslag en werkt vanaf het eerstvolgende verzoek.</value>
+  </data>
+  <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
+    <value>Alleen de wijziging van een instelling kan worden teruggezet: de rij moet de waarde dragen die de instelling had.</value>
   </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Alleen mail voor deze domeinen archiveren (door komma's gescheiden; leeg = elk bericht)</value>
@@ -6017,6 +6056,12 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Zet een load balancer, een TLS-terminator of een Postfix-relay vóór de SMTP-listener en elke verbinding lijkt van DAT apparaat te komen - wat in één klap en zonder waarschuwing de DNSBL-controles, SPF, greylisting, automatisch verbannen en de regels voor IP-bereiken breekt, terwijl alles nog steeds succes meldt. Hiermee kan een met name genoemde upstream het echte clientadres doorgeven. Beide staan standaard uit en vertrouwen niemand totdat een adres is vermeld, want een tegenpartij die haar eigen bronadres kan herschrijven, heeft elke op IP gebaseerde controle op deze server verslagen. De upstream moet zo worden geconfigureerd dat hij het stuurt, anders verandert hier niets: HAProxy heeft send-proxy of send-proxy-v2 op zijn server-regel nodig, en een Postfix-relay heeft XCLIENT richting deze host nodig. hMailServer kan dat van hieruit niet controleren - en let op: zodra een adres als PROXY-protocolproxy is vermeld, wordt de header van dat adres VERPLICHT, dus bij een proxy die er geen stuurt, worden de verbindingen verbroken.</value>
+  </data>
+  <data name="Put a setting back" xml:space="preserve">
+    <value>Een instelling terugzetten</value>
+  </data>
+  <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>{0} terugzetten naar de waarde van vóór deze wijziging? Het terugzetten wordt als eigen wijziging vastgelegd.</value>
   </data>
   <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
     <value>QRESYNC- en CONDSTORE-clients vragen wat er is verdwenen terwijl zij weg waren, in plaats van de map opnieuw op te sommen. De server antwoordt uit een tabel met expunge-records, die elke twaalf uur en eenmaal bij het starten van de service tot de nieuwste N wordt teruggesnoeid. Een client waarvan de laatste synchronisatie ouder is dan de bewaarde geschiedenis krijgt een volledige hersynchronisatie - nooit een verkeerd antwoord. Geldt na een herstart van de service.</value>
@@ -7107,6 +7152,9 @@ Doorgaan?</value>
   <data name="Select a rule first." xml:space="preserve">
     <value>Selecteer eerst een regel.</value>
   </data>
+  <data name="Select a setting's change first." xml:space="preserve">
+    <value>Selecteer eerst de wijziging van een instelling.</value>
+  </data>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Selecteer een Active Directory-account</value>
   </data>
@@ -7382,6 +7430,9 @@ Doorgaan?</value>
   </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Tweefactorauthenticatie instellen…</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Instelling</value>
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Instelling  -  {0}</value>
@@ -8121,6 +8172,12 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The certificates this server presents, which port uses which, and when each expires." xml:space="preserve">
     <value>De certificaten die deze server aanbiedt, welke poort welk certificaat gebruikt, en wanneer elk verloopt.</value>
+  </data>
+  <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
+    <value>De keten is gebroken bij rij {0}. {1}</value>
+  </data>
+  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
+    <value>De keten is intact. {0} rij(en) gecontroleerd.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>De cipherlijst is de voorinstelling AEAD-ONLY terwijl TLS 1.0 of 1.1 is ingeschakeld. Die versies hebben helemaal geen AEAD-suite, dus ze worden aangekondigd en kunnen vervolgens geen handshake voltooien - wat voor de client eerder op een kapotte server lijkt dan op een beleid.</value>
@@ -9049,6 +9106,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Unknown error." xml:space="preserve">
     <value>Onbekende fout.</value>
   </data>
+  <data name="Unlocked" xml:space="preserve">
+    <value>Ontgrendeld</value>
+  </data>
   <data name="Unprotected LDAP - cleartext (lab networks only)" xml:space="preserve">
     <value>Onbeschermde LDAP - klare tekst (alleen labnetwerken)</value>
   </data>
@@ -9060,6 +9120,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Update" xml:space="preserve">
     <value>Bijwerken</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Bijgewerkt</value>
   </data>
   <data name="Updates" xml:space="preserve">
     <value>Updates</value>
@@ -9322,6 +9385,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Wat uw directory ook accepteert voor een simple bind: een UPN (svc-mail@example.local), DOMAIN\name of een volledige DN. Leeg gelaten zoekt de server anoniem - wat tegen Active Directory meestal mislukt, met een gemelde reden die deze instelling noemt.</value>
   </data>
+  <data name="When" xml:space="preserve">
+    <value>Wanneer</value>
+  </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Wanneer een DKIM-handtekening is gemaakt, en wanneer die ophoudt er een te zijn die een verifieerder zou moeten honoreren (RFC 6376 3.5).</value>
   </data>
@@ -9435,6 +9501,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Zet de afzender of zijn IP-bereik op de witte lijst zodat het bericht de spambescherming overslaat.</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Wie</value>
+  </data>
+  <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
+    <value>Wie wat wanneer wijzigde, via welke interface en van waar - elke beheerwijziging als één rij in een hashketen - en een instelling teruggezet naar de waarde die ze had.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Wie wat mag beheren: de benoemde rollen van deze server en de accounts die ze hebben.</value>
@@ -9814,11 +9886,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Nieuw adres (het mag in elk domein van deze server liggen)</value>
   </data>
+  <data name="_Newer" xml:space="preserve">
+    <value>_Nieuwere</value>
+  </data>
   <data name="_Note" xml:space="preserve">
     <value>_Notitie</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>Aantal _bezorgpogingen</value>
+  </data>
+  <data name="_Older" xml:space="preserve">
+    <value>_Oudere</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Rapport _openen</value>
@@ -9867,6 +9945,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocol</value>
+  </data>
+  <data name="_Put back" xml:space="preserve">
+    <value>_Terugzetten</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Query</value>
@@ -9981,6 +10062,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>_Elke back-up verifiëren door de berichtenopslag ervan uit te pakken en die af te stemmen op de rijen</value>
+  </data>
+  <data name="_Verify the chain" xml:space="preserve">
+    <value>Keten _controleren</value>
   </data>
   <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
     <value>Het _certificaat van de directoryserver verifiëren (VerifyCertificate)</value>
@@ -10957,6 +11041,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} staat aan maar kan niet draaien. {1} Elke scan die eraan wordt gevraagd, mislukt, en een mislukte scan is geen mislukt bericht: de fout wordt gelogd en het bericht wordt bezorgd alsof het was onderzocht en schoon bevonden.</value>
   </data>
+  <data name="{0} is {1} again." xml:space="preserve">
+    <value>{0} is weer {1}.</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} items kunnen vanaf hier niet worden gecontroleerd</value>
   </data>
@@ -11067,6 +11154,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} things need attention" xml:space="preserve">
     <value>{0} punten vragen aandacht</value>
+  </data>
+  <data name="{0} to {1} of {2}" xml:space="preserve">
+    <value>{0} tot {1} van {2}</value>
   </data>
   <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} waarde(n) konden niet van de server worden gelezen, dus deze samenvatting kan onvolledig zijn.</value>

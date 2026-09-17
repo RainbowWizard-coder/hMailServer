@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "Готовые к публикации записи DANE TLSA для ваших сертификатов. Добавьте их в DNS (с DNSSEC), чтобы отправляющие серверы могли проверять DANE.",
   "Published": "Опубликован",
   "Put an address on the list": "Внести адрес в список",
+  "Put back": "Вернуть",
+  "Put back: {0} is {1} again.": "Возвращено: {0} снова {1}.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "Ставит текст метки в начало темы почты, которую этот домен получает извне. Это ломает любую подпись DKIM, сделанную отправителем над его темой, точно так же, как префикс темы в защите от спама; заголовок ниже не стоит отправителю ничего.",
   "Quarantine digest": "Сводка карантина",
   "Queue": "Очередь",

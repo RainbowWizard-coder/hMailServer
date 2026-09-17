@@ -112,6 +112,7 @@ namespace HM
 {
    class SQLCommand;
    class AuditDescription;
+   class DALRecordset;
 
    class AuditTrail : public Singleton<AuditTrail>
    {
@@ -193,6 +194,14 @@ namespace HM
 
       bool Query(const Filter &filter, std::vector<Entry> &entries, int &total);
 
+      // One row by its id; false when there is none.
+      bool Read(__int64 id, Entry &entry);
+
+      // A row as the REST API and the COM report both write it: id, time, actor,
+      // actor_type, interface, address, object_type, object, action, detail,
+      // hash and previous_hash.
+      static AnsiString EntryJson(const Entry &entry);
+
       // Walks the chain from the first row. Returns true when every row's stored
       // hash is the hash its contents produce and each row carries the hash of
       // the row before it. On false, firstBroken names the first row that does
@@ -227,6 +236,7 @@ namespace HM
       String ReadHeadHash_();
       static String Describe_(const SQLCommand &command, String &table, String &action, String &objectName);
       static String ColumnOfParameter_(const String &parameterName);
+      static void ReadRow_(std::shared_ptr<DALRecordset> recordset, Entry &entry);
 
       boost::recursive_mutex mutex_;
 

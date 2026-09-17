@@ -1603,6 +1603,11 @@ interface IInterfaceUtilities : IDispatch{
    // account, TLS on the submission port, SPF, DKIM, DMARC, a backup destination
    // and a second factor on the administrator password, each judged by the
    // server. The server administrator's, like the reputation report.
+   // The audit trail for the Control Panel's page: what GET /api/v1/audit,
+   // /api/v1/audit/verify and POST /api/v1/audit/{id}/revert answer.
+   [id(61), helpstring("The audit trail as JSON - total, offset and entries, newest first, each with id, time, actor, actor_type, interface, address, object_type, object, action, detail, hash and previous_hash - filtered by a substring of the actor when Actor is not empty. MaxRows 1 to 1000, Offset from 0.")] HRESULT GetAuditTrail([in] BSTR Actor, [in] long MaxRows, [in] long Offset, [out, retval] BSTR *Json);
+   [id(62), helpstring("Walks the audit trail's hash chain: JSON with intact, rows_checked, first_broken_id and reason.")] HRESULT VerifyAuditTrail([out, retval] BSTR *Json);
+   [id(63), helpstring("Puts a setting back to the value the audit row with this id says it had, through the same setter the change came through, so the put-back is itself recorded. Answers the value written, or (default) for a [Settings] key returned to its default. Raises an error for a row that is not a setting's change, a secret, a value the trail cut, or a setting this server no longer has.")] HRESULT RevertAuditedChange([in] long AuditId, [out, retval] BSTR *RestoredValue);
    [id(60), helpstring("The first-hour checklist as JSON: eight items - domain, account, submission, spf, dkim, dmarc, backup, second_factor - each done, action_needed, cannot_tell or not_needed, with findings carrying a code, its arguments and an English sentence. With LookUpDns the SPF, DKIM and DMARC records of every active domain are looked up, which takes the resolver's timeout for each missing record; without it the record items say which host to look up.")] HRESULT GetSetupChecklist([in] VARIANT_BOOL LookUpDns, [out, retval] BSTR *Json);
    // A mailbox renamed or moved, reached by address rather than through an
    // Account object, and the journal of what has been moved - so a script, the

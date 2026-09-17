@@ -76,6 +76,12 @@ namespace HM
       }
    }
 
+   bool
+   PropertySet::Exists(const String &sPropertyName) const
+   {
+      return items_.find(sPropertyName) != items_.end();
+   }
+
    std::shared_ptr<Property>
    PropertySet::GetProperty_(const String & sPropertyName)
    {

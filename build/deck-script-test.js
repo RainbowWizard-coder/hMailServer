@@ -1090,6 +1090,7 @@ const ROLE_CATALOGUE = [
      permissions: 'view_accounts,view_message_trace,reset_password,unlock_account' },
    { name: 'auditor', description: 'Reads everything and changes nothing, the audit trail included.', builtin: true,
    reputationChecks: 0,
+   auditReverts: 0,
    checklistReads: 0,
      permissions: 'view_configuration,view_accounts,view_logs,view_audit' },
    { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
@@ -2254,6 +2255,13 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/settings/changed' && method === 'GET') { return json(200, state.changed); }
+   if (/^\/api\/v1\/audit\/\d+\/revert$/.test(path) && method === 'POST') {
+      state.auditReverts += 1;
+      const id = Number(path.split('/')[4]);
+      const row = state.audit.filter((e) => e.id === id)[0];
+      if (!row || row.object_type !== 'setting') { return json(409, { error: 'Only a setting\'s change can be put back; this row records a change to a domain.' }); }
+      return json(200, { reverted: true, id, setting: row.object, value: '60' });
+   }
    if (path === '/api/v1/audit/verify' && method === 'GET') {
       if (state.auditIntact) { return json(200, { intact: true, rows_checked: state.audit.length, first_broken_id: 0, reason: '' }); }
       return json(200, { intact: false, rows_checked: 1, first_broken_id: 2, reason: 'the row has been edited' });
@@ -4254,6 +4262,21 @@ async function main() {
       document.getElementById('err_audit').textContent.indexOf('2') >= 0 && document.getElementById('err_audit').textContent.indexOf('edited') >= 0,
       document.getElementById('err_audit').textContent);
    state.auditIntact = true;
+   check('a setting\'s row offers Put back and a domain\'s does not',
+      rows()[1].querySelector('[data-act="auditrevert"]') !== null && rows()[0].querySelector('[data-act="auditrevert"]') === null,
+      rows()[1].innerHTML);
+   before = requests.length;
+   click(act('auditrevert', { id: '1' }));
+   await flush();
+   check('Put back asks the server for that row and reads the trail again',
+      called(before, 'POST', '/api/v1/audit/1/revert').length === 1 && called(before, 'GET', /^\/api\/v1\/audit\?/).length === 1, paths(before));
+   check('and says what is what again', toastText().indexOf('AutoBanMinutes') >= 0 && toastText().indexOf('60') >= 0, toastText());
+   nextRefusal = 'A secret\'s values are never kept in the trail';
+   click(act('auditrevert', { id: '1' }));
+   await flush();
+   check('a refused put-back is shown in the server\'s own words', document.getElementById('err_audit').textContent.indexOf('never kept in the trail') >= 0,
+      document.getElementById('err_audit').textContent);
+   nextRefusal = null;
    const auditRows = state.audit;
    state.audit = [];
    await goTo('audit');

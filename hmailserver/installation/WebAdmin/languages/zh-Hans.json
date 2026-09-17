@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "可直接发布的、与您的证书对应的 DANE TLSA 记录。把它们添加到启用了 DNSSEC 的 DNS 中，发送方服务器便能进行 DANE 验证。",
   "Published": "已发布",
   "Put an address on the list": "将地址加入列表",
+  "Put back": "恢复",
+  "Put back: {0} is {1} again.": "已恢复：{0} 又是 {1} 了。",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "在此域从外部收到的邮件主题前面加上标记文字。这会破坏发件人对自己主题所做的任何 DKIM 签名，和反垃圾邮件的主题前缀完全一样；下面的邮件头则不会让发件人付出任何代价。",
   "Quarantine digest": "隔离摘要",
   "Queue": "队列",

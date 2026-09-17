@@ -37,6 +37,11 @@ namespace HM
       // that is running at that point, before any other thread can read the set -
       // which is why this may write to items_ and the getters may not.
       void EnsureLong(const String &sPropertyName, long lValue);
+
+      // Whether the set holds a row of this name - without the HM5015 a read
+      // of a missing name reports, for a caller that is asking rather than
+      // assuming.
+      bool Exists(const String &sPropertyName) const;
       void EnsureString(const String &sPropertyName, const String &sValue);
 
       bool Contains(const String &sPropertyName) const;

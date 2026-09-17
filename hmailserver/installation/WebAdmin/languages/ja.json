@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "証明書に対応する、そのまま公開できる DANE TLSA レコードです。DNSSEC を有効にした DNS に登録すると、送信側のサーバーが DANE 検証を行えるようになります。",
   "Published": "公開済み",
   "Put an address on the list": "アドレスをリストに載せる",
+  "Put back": "元に戻す",
+  "Put back: {0} is {1} again.": "元に戻しました: {0} は再び {1} です。",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "このドメインが外部から受け取ったメールの件名の先頭にタグの文字列を付けます。迷惑メール対策の件名プレフィックスと同じく、送信者が自分の件名に対して作成した DKIM 署名を壊します。下のヘッダーなら送信者の署名は損なわれません。",
   "Quarantine digest": "検疫ダイジェスト",
   "Queue": "キュー",

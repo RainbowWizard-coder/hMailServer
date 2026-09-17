@@ -788,6 +788,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konton: {0}.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Åtgärd</value>
+  </data>
   <data name="Action &amp; notifications" xml:space="preserve">
     <value>Åtgärd &amp; aviseringar</value>
   </data>
@@ -1022,6 +1025,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Administrator menu" xml:space="preserve">
     <value>Administratörsmeny</value>
   </data>
+  <data name="Administrator or key contains" xml:space="preserve">
+    <value>Administratör eller nyckel innehåller</value>
+  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Administratörslösenord</value>
   </data>
@@ -1039,6 +1045,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schema för sammanställda rapporter som den här servern skickar: 1 = RFC 7489 bilaga C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alias address" xml:space="preserve">
+    <value>Aliasadress</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL för aliascache (sekunder)</value>
@@ -1361,6 +1370,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Försök att nå databasen vid start</value>
+  </data>
+  <data name="Audit trail" xml:space="preserve">
+    <value>Granskningslogg</value>
   </data>
   <data name="Auth" xml:space="preserve">
     <value>Aut.</value>
@@ -1907,6 +1919,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Rensa listan över misslyckade inloggningar</value>
+  </data>
+  <data name="Cleared" xml:space="preserve">
+    <value>Rensat</value>
   </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>Automatisk klientkonfiguration (autoconfig &amp; autodiscover)</value>
@@ -2775,6 +2790,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Delete {0}?" xml:space="preserve">
     <value>Ta bort {0}?</value>
   </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Borttaget</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Att ta bort en domän tar bort kontona i den. Kontrollera först om alias och listor pekar på den.</value>
   </data>
@@ -2837,6 +2855,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
     <value>Målmapp (på se_rvern)</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Detalj</value>
   </data>
   <data name="Developed &amp; maintained by" xml:space="preserve">
     <value>Utvecklad &amp; underhållen av</value>
@@ -3247,6 +3268,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Varje LDAP-inloggning avvisas: oskyddad LDAP med en enkel bindning skulle skicka lösenord i klartext, och AllowUnprotectedPassword är av.</value>
+  </data>
+  <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
+    <value>Varje administrativ ändring som en rad i en hashkedja: vem som gjorde den, när, över vilket gränssnitt, varifrån och med vilken behörighet. En inställnings ändring kan sättas tillbaka från sin rad.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Varje kontroll i den ordning servern kör dem, och vad poängen de lägger till gör med meddelandet. Inget på den här sidan kan redigeras - varje rad öppnar sidan som äger inställningen.</value>
@@ -3994,6 +4018,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Installerar {0}: tjänsten kommer att stoppas och startas</value>
   </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Gränssnitt</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Gräns för ogiltiga kommandon</value>
   </data>
@@ -4422,6 +4449,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Mail may be forwarded to this domain" xml:space="preserve">
     <value>Post får vidarebefordras till den här domänen</value>
+  </data>
+  <data name="Mail rule" xml:space="preserve">
+    <value>E-postregel</value>
   </data>
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>E-postservrar för {0}, i den ordning den här servern skulle prova dem:</value>
@@ -5221,6 +5251,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Inget undersöker inkommande post. Ingen skanner kan köras och bilageblockering är av, så ett infekterat meddelande levereras till brevlådan exakt som det kom.</value>
   </data>
+  <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
+    <value>Inget har registrerats ännu. Varje administrativ ändring visas här.</value>
+  </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Inget här kräver ett beslut: ingen brevlåda hoppas över och ingen inaktiveras.</value>
   </data>
@@ -5307,6 +5340,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="ON." xml:space="preserve">
     <value>PÅ.</value>
+  </data>
+  <data name="Object" xml:space="preserve">
+    <value>Objekt</value>
   </data>
   <data name="Off" xml:space="preserve">
     <value>Av</value>
@@ -5406,6 +5442,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Bara en digest av varje nyckel lagras, så en nyckel kan inte läsas tillbaka härifrån eller från filen. Att återkalla en tar bort dess sektion från lagret och träder i kraft vid allra nästa begäran.</value>
+  </data>
+  <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
+    <value>Bara en inställnings ändring kan sättas tillbaka: raden måste bära värdet som inställningen hade.</value>
   </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Arkivera bara post för de här domänerna (kommaseparerade; tomt = varje meddelande)</value>
@@ -6017,6 +6056,12 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Sätt en lastbalanserare, en TLS-terminator eller ett Postfix-relä framför SMTP-lyssnaren och varje anslutning ser ut att komma från DEN - vilket tyst bryter DNSBL-kontroller, SPF, gråstlistning, automatisk spärr och IP-intervallreglerna på en gång, medan allt fortfarande rapporterar framgång. De här låter en namngiven uppströmsvärd lämna vidare den verkliga klientadressen. Båda är av som standard och litar inte på någon förrän en adress listas, eftersom en motpart som kan skriva om sin egen källadress har besegrat varje IP-baserad kontroll på den här servern. Uppströmsvärden måste konfigureras att skicka den, annars ändras inget här: HAProxy behöver send-proxy eller send-proxy-v2 på sin serverrad, och ett Postfix-relä behöver XCLIENT aktiverat mot den här värden. hMailServer kan inte kontrollera det härifrån - och observera att när en adress väl listas som PROXY-protokollproxy blir rubriken OBLIGATORISK från den, så en proxy som inte skickar en får sina anslutningar släppta.</value>
+  </data>
+  <data name="Put a setting back" xml:space="preserve">
+    <value>Sätt tillbaka en inställning</value>
+  </data>
+  <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Sätta tillbaka {0} till värdet den hade före den här ändringen? Tillbakasättningen registreras som en egen ändring.</value>
   </data>
   <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
     <value>QRESYNC- och CONDSTORE-klienter frågar vad som försvann medan de var borta i stället för att lista om mappen. Servern svarar från en tabell med expunge-poster, gallrad till de N nyaste var tolfte timme och en gång vid tjänstens start. En klient vars senaste synkronisering är äldre än den behållna historiken får en fullständig omsynkronisering - aldrig ett felaktigt svar. Gäller efter en omstart av tjänsten.</value>
@@ -7107,6 +7152,9 @@ Fortsätt?</value>
   <data name="Select a rule first." xml:space="preserve">
     <value>Välj en regel först.</value>
   </data>
+  <data name="Select a setting's change first." xml:space="preserve">
+    <value>Välj en inställnings ändring först.</value>
+  </data>
   <data name="Select an Active Directory account" xml:space="preserve">
     <value>Välj ett Active Directory-konto</value>
   </data>
@@ -7382,6 +7430,9 @@ Fortsätt?</value>
   </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Konfigurera tvåfaktorsautentisering…</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Inställning</value>
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Inställning  -  {0}</value>
@@ -8121,6 +8172,12 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   </data>
   <data name="The certificates this server presents, which port uses which, and when each expires." xml:space="preserve">
     <value>Certifikaten den här servern presenterar, vilken port som använder vilket, och när vart och ett går ut.</value>
+  </data>
+  <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
+    <value>Kedjan är bruten vid rad {0}. {1}</value>
+  </data>
+  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
+    <value>Kedjan är intakt. {0} rad(er) kontrollerade.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Chifferlistan är förinställningen AEAD-ONLY medan TLS 1.0 eller 1.1 är aktiverat. De versionerna har ingen AEAD-svit alls, så de annonseras och kan sedan inte fullborda en handskakning - vilket för klienten ser ut som en trasig server snarare än en policy.</value>
@@ -9049,6 +9106,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="Unknown error." xml:space="preserve">
     <value>Okänt fel.</value>
   </data>
+  <data name="Unlocked" xml:space="preserve">
+    <value>Upplåst</value>
+  </data>
   <data name="Unprotected LDAP - cleartext (lab networks only)" xml:space="preserve">
     <value>Oskyddad LDAP - klartext (bara labbnätverk)</value>
   </data>
@@ -9060,6 +9120,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Uppdatering</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Uppdaterad</value>
   </data>
   <data name="Updates" xml:space="preserve">
     <value>Uppdateringar</value>
@@ -9322,6 +9385,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Vad din katalog än godtar för en enkel bindning: ett UPN (svc-mail@example.local), DOMÄN\namn, eller ett fullständigt DN. Lämnat tomt söker servern anonymt - vilket oftast misslyckas mot Active Directory, med en rapporterad orsak som namnger den här inställningen.</value>
   </data>
+  <data name="When" xml:space="preserve">
+    <value>När</value>
+  </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>När en DKIM-signatur gjordes, och när den slutar vara en som en verifierare bör respektera (RFC 6376 3.5).</value>
   </data>
@@ -9435,6 +9501,12 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Vitlista avsändaren eller dess IP-intervall så att meddelandet går förbi skräppostskyddet.</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Vem</value>
+  </data>
+  <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
+    <value>Vem som ändrade vad, när, över vilket gränssnitt och varifrån - varje administrativ ändring som en rad i en hashkedja - och en inställning tillbakasatt till värdet den hade.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Vem som får administrera vad: de namngivna rollerna på den här servern och kontona som har dem.</value>
@@ -9814,11 +9886,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Ny adress (den får ligga i vilken domän som helst på den här servern)</value>
   </data>
+  <data name="_Newer" xml:space="preserve">
+    <value>_Nyare</value>
+  </data>
   <data name="_Note" xml:space="preserve">
     <value>A_nteckning</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>_Antal leveransomförsök</value>
+  </data>
+  <data name="_Older" xml:space="preserve">
+    <value>_Äldre</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Öppna ra_pport</value>
@@ -9867,6 +9945,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokoll</value>
+  </data>
+  <data name="_Put back" xml:space="preserve">
+    <value>Sätt _tillbaka</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Fråga</value>
@@ -9981,6 +10062,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>_Verifiera varje säkerhetskopia genom att packa upp dess meddelandelager och stämma av det mot raderna</value>
+  </data>
+  <data name="_Verify the chain" xml:space="preserve">
+    <value>_Verifiera kedjan</value>
   </data>
   <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
     <value>Verifiera katalogserverns _certifikat (VerifyCertificate)</value>
@@ -10957,6 +11041,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} är påslagen men kan inte köras. {1} Varje skanning den ombeds göra misslyckas, och en misslyckad skanning är inte ett misslyckat meddelande: felet loggas och meddelandet levereras som om det hade undersökts och befunnits rent.</value>
   </data>
+  <data name="{0} is {1} again." xml:space="preserve">
+    <value>{0} är {1} igen.</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} punkter kan inte kontrolleras härifrån</value>
   </data>
@@ -11067,6 +11154,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} things need attention" xml:space="preserve">
     <value>{0} saker behöver åtgärdas</value>
+  </data>
+  <data name="{0} to {1} of {2}" xml:space="preserve">
+    <value>{0} till {1} av {2}</value>
   </data>
   <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} värde(n) kunde inte läsas från servern, så den här sammanfattningen kan vara ofullständig.</value>

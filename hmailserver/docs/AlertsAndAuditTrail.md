@@ -278,7 +278,30 @@ tampering.
 with `total` for the whole filtered set.
 
 The Deck has an **Audit trail** page that reads it, with the filter, paging and
-a *Verify the chain* button.
+a *Verify the chain* button. The Control Panel has the same page (Utilities >
+Audit trail), over `Utilities.GetAuditTrail`, `Utilities.VerifyAuditTrail` and
+`Utilities.RevertAuditedChange`, which answer what the three routes answer.
+
+### Putting a change back
+
+    POST /api/v1/audit/{id}/revert
+
+A setting's row says what the setting had and what it was given (`name: old ->
+new`), so the old value can be written back - through the same setter the
+change came through, which means the put-back is itself a row in the trail,
+made by whoever asked for it and never a quiet edit of history. The answer
+names the setting and the value; a `[Settings]` key whose old side is
+`(default)` is returned to its default. It needs `manage_settings` and is
+refused to every API key, like the rest of the trail.
+
+The trail is honest about what it does not hold, and so is the put-back: a row
+that is not a setting's change (an account created, a rule deleted) is refused
+with 409, because there is no old value to write; a secret's row is refused,
+because the trail records `(changed)` and never the values; a value the trail
+cut at 120 characters is refused, because what the trail holds is not the
+value; and a setting this version of the server no longer has is refused. Each
+refusal says which. The Deck's page has *Put back* on every row that qualifies,
+and the Control Panel's page a *Put back* button for the selected row.
 
 **Refused to every API key.** An API key of any scope is refused, and refused
 with a 401 rather than a 403 so that it learns nothing from asking. A key that

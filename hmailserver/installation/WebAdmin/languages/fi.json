@@ -586,6 +586,8 @@
   "Publish-ready DANE TLSA records for your certificates. Add these to DNS (with DNSSEC) to enable DANE validation by sending servers.": "Julkaisuvalmiit DANE-TLSA-tietueet varmenteillesi. Lisää ne DNS:ään (DNSSEC käytössä), jotta lähettävät palvelimet voivat tehdä DANE-vahvistuksen.",
   "Published": "Julkaistu",
   "Put an address on the list": "Lisää osoite listaan",
+  "Put back": "Palauta",
+  "Put back: {0} is {1} again.": "Palautettu: {0} on jälleen {1}.",
   "Put the tag text at the front of the subject of mail this domain receives from outside. It breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does; the header below costs the sender nothing.": "Lisää merkintätekstin tämän toimialueen ulkopuolelta vastaanottaman postin aiheen alkuun. Se rikkoo kaikki DKIM-allekirjoitukset, jotka lähettäjä on tehnyt aiheestaan, aivan kuten roskapostisuojauksen aihe-etuliite; alla oleva otsake ei maksa lähettäjälle mitään.",
   "Quarantine digest": "Karanteenikooste",
   "Queue": "Jono",

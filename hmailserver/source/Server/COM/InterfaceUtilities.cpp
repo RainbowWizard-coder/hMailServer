@@ -37,6 +37,8 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Util/SetupChecklist.h"
+#include "../Common/Util/AuditRevert.h"
+#include "../Common/Util/AuditTrail.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/Application/RoleManager.h"
 #include "../Common/BO/Account.h"
@@ -1856,6 +1858,122 @@ STDMETHODIMP InterfaceUtilities::RunReputationCheck(BSTR *Report)
 
       HM::String json = HM::String(HM::ReputationWatch::RunJson(summary, now));
       *Report = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetAuditTrail(BSTR Actor, long MaxRows, long Offset, BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      if (MaxRows < 1 || MaxRows > 1000)
+         return COMError::GenerateError("MaxRows must be between 1 and 1000.");
+
+      if (Offset < 0)
+         return COMError::GenerateError("Offset must be 0 or more.");
+
+      HM::AuditTrail::Filter filter;
+      filter.actor = Actor;
+      filter.limit = MaxRows;
+      filter.offset = Offset;
+
+      std::vector<HM::AuditTrail::Entry> entries;
+      int total = 0;
+      if (!HM::AuditTrail::Instance()->Query(filter, entries, total))
+         return COMError::GenerateError("The audit trail could not be read.");
+
+      HM::AnsiString json;
+      json.Format("{\"total\":%d,\"offset\":%d,\"entries\":[", total, (int) Offset);
+      for (size_t i = 0; i < entries.size(); i++)
+      {
+         if (i > 0)
+            json += ",";
+         json += HM::AuditTrail::EntryJson(entries[i]);
+      }
+      json += "]}";
+
+      *Json = HM::String(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::VerifyAuditTrail(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      __int64 firstBroken = 0;
+      __int64 rowsChecked = 0;
+      HM::String reason;
+      const bool intact = HM::AuditTrail::Instance()->Verify(firstBroken, rowsChecked, reason);
+
+      HM::AnsiString utf8Reason;
+      HM::Unicode::WideToMultiByte(reason, utf8Reason);
+      HM::AnsiString escaped;
+      for (size_t i = 0; i < utf8Reason.size(); i++)
+      {
+         const char c = utf8Reason.c_str()[i];
+         if (c == '"' || c == '\\')
+            escaped += '\\';
+         if ((unsigned char) c >= 0x20)
+            escaped.append(1, c);
+      }
+
+      HM::AnsiString json;
+      json.Format("{\"intact\":%s,\"rows_checked\":%I64d,\"first_broken_id\":%I64d,\"reason\":\"", intact ? "true" : "false", rowsChecked, firstBroken);
+      json += escaped + "\"}";
+
+      *Json = HM::String(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RevertAuditedChange(long AuditId, BSTR *RestoredValue)
+{
+   try
+   {
+      if (!RestoredValue)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AuditTrail::Entry entry;
+      if (!HM::AuditTrail::Instance()->Read(AuditId, entry))
+         return COMError::GenerateError("No audit row has that id.");
+
+      HM::String restored;
+      HM::String reason;
+      if (!HM::AuditRevert::PutBack(entry, restored, reason))
+         return COMError::GenerateError(reason);
+
+      HM::String logMessage = HM::String(_T("The setting ")) + entry.object_name + _T(" was put back to the value audit row ") + HM::StringParser::IntToString((__int64) AuditId) + _T(" records, over COM.");
+      LOG_APPLICATION(logMessage);
+
+      *RestoredValue = restored.AllocSysString();
       return S_OK;
    }
    catch (...)
