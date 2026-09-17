@@ -6524,11 +6524,17 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uten tilkoblingssikkerhet. TLS-porter og eg
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>Svar bare k_olleger - avsendere utenfra får ingenting, eller domenets tekst når overstyringen dets er på</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>Rapport_postkasse (én adresse i et domene denne serveren er vert for; tom leser ingenting)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Rapportpostboks:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Rapporter den asynkrone arbeidskøen som stoppet etter (sekunder)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>Mottatte rapporter</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>Repositoriet signeringssertifikatet må navngi (tom = dette prosjektet; - = ikke kontroller)</value>
@@ -8127,6 +8133,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel er koblet til en annen vert, så kontoen DENS tjeneste kjører som, kan ikke leses herfra. Åpne Control Panel på selve serveren for å se den.</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>De samlede DMARC-rapportene og TLS-RPT-rapportene som mottakerne av dette domenets post sender tilbake, leses fra én av domenets adresser, og Control Deck tegner hvem som sender som domenet og med hvilket resultat. Publiser adressen som rua=mailto: i domenets TXT-oppføringer _dmarc og _smtp._tls. Opprett kontoen eller aliaset på den selv; serveren gjør det ikke, og uten en angitt adresse leses ingenting.</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC-feilpoengene er for øyeblikket {0}. ARC virker ved å oppveie de poengene, så ved null kan ARC-filtrering ikke gjøre noe selv med betrodde forseglere oppført. Sett først positive DMARC-feilpoeng på siden Antispam-innstillinger.</value>

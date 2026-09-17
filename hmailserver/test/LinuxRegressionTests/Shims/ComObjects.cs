@@ -2820,6 +2820,7 @@ namespace hMailServer
       private string _dkimSecondarySelector = string.Empty; public string DKIMSecondarySelector { get { return _dkimSecondarySelector; } set { _dkimSecondarySelector = value; Pend("dkim_secondary_selector", Q(value)); } }
       private string _dkimSecondaryKeyFile = string.Empty; public string DKIMSecondaryPrivateKeyFile { get { return _dkimSecondaryKeyFile; } set { _dkimSecondaryKeyFile = value; Pend("dkim_secondary_private_key_file", Q(value)); } }
       private string _adDomainName = string.Empty; public string ADDomainName { get { return _adDomainName; } set { _adDomainName = value; Pend("ad_domain_name", Q(value)); } }
+      private string _reportMailbox = string.Empty; public string ReportMailbox { get { return _reportMailbox; } set { _reportMailbox = value; Pend("report_mailbox", Q(value)); } }
       public bool MaxMessageSizeEnabled { get { Unsupported("MaxMessageSizeEnabled"); return false; } set { Unsupported("MaxMessageSizeEnabled", value); } }
       public bool MaxAccountSizeEnabled { get { Unsupported("MaxAccountSizeEnabled"); return false; } set { Unsupported("MaxAccountSizeEnabled", value); } }
       public bool EnableLimitations { get { Unsupported("EnableLimitations"); return false; } set { Unsupported("EnableLimitations", value); } }

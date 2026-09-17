@@ -175,6 +175,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox digestHour_ = NewInput();
       private FieldRow digestHourRow_;
 
+      // The reports the domain receives, read: the address its DMARC aggregate
+      // and TLS-RPT reports are posted to and read from (Domain.ReportMailbox).
+      private readonly TextBox reportMailbox_ = NewInput();
+
       public DomainDialog(Window owner, string domainName)
       {
          domainName_ = domainName;
@@ -193,6 +197,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("DKIM"), Content = BuildDkim() });
          tabs.Items.Add(new TabItem { Header = L("Allow and block list"), Content = BuildSenderList() });
          tabs.Items.Add(new TabItem { Header = L("Quarantine digest"), Content = BuildQuarantineDigest() });
+         tabs.Items.Add(new TabItem { Header = L("Reports received"), Content = BuildReportsReceived() });
          DialogFields.FillTabs(tabs);
 
          var body = new StackPanel();
@@ -326,6 +331,14 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Check(digestOn_));
          digestHourRow_ = Label(L("Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)"), digestHour_);
          panel.Children.Add(digestHourRow_);
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildReportsReceived()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read.")));
+         panel.Children.Add(Label(L("Report _mailbox (one address in a domain this server hosts; empty reads nothing)"), reportMailbox_));
          return DialogFields.Scroll(panel);
       }
 
@@ -927,6 +940,18 @@ namespace hMailServer.ControlPanel.Views
                digestHour_.IsEnabled = false;
             }
 
+            // The report mailbox, the same way: a server from before schema 6070
+            // has no such property, and the box is then disabled rather than
+            // saved back as empty.
+            try
+            {
+               reportMailbox_.Text = (string)d.ReportMailbox ?? "";
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               reportMailbox_.IsEnabled = false;
+            }
+
             ServerSession.Release(d);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1099,6 +1124,11 @@ namespace hMailServer.ControlPanel.Views
                d.QuarantineDigest = digestOn_.IsChecked is true;
                if (hasDigestHour) d.QuarantineDigestHour = digestHourValue;
             }
+
+            // The server judges the address - one in a domain it hosts, or empty -
+            // and its refusal reaches the dialog as the save's error.
+            if (reportMailbox_.IsEnabled)
+               d.ReportMailbox = reportMailbox_.Text.Trim();
 
             d.DKIMSignEnabled = dkimOn_.IsChecked is true;
             d.DKIMSignAliasesEnabled = dkimAliases_.IsChecked is true;

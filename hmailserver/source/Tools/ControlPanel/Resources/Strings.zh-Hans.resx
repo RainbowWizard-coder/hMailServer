@@ -6524,11 +6524,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>只答复同事 - 外部发件人收不到任何内容，或在域的覆盖开启时收到域的正文(_O)</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>报告邮箱 (此服务器托管的某个域中的一个地址；留空则不读取任何内容) (_M)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>报告邮箱：</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>在多长时间后把异步工作队列报告为已停滞（秒）</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>收到的报告</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>签名证书必须指明的仓库（留空 = 本项目；- = 不检查）</value>
@@ -8127,6 +8133,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>控制面板连接的是另一台主机，因此无法从此处读取该主机的服务所运行的账户。请在服务器本身上打开控制面板查看。</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>此域邮件的接收方回送的 DMARC 汇总报告和 TLS-RPT 报告从该域的一个地址读取，Control Deck 会以图表显示谁在以此域名发送以及结果如何。请将该地址以 rua=mailto: 的形式发布到该域的 _dmarc 和 _smtp._tls TXT 记录中。该地址对应的账户或别名需要您自行创建；服务器不会创建，未指定地址时不读取任何内容。</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC 失败分数当前为 {0}。ARC 通过抵消该分数起作用，因此在为零时，即使列出了受信任的密封者，ARC 过滤也无能为力。请先在“反垃圾邮件设置”页设置一个正的 DMARC 失败分数。</value>

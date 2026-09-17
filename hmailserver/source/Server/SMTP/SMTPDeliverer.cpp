@@ -60,6 +60,7 @@
 #include "DeliveryFailure.h"
 #include "BounceTracker.h"
 #include "ComplaintTracker.h"
+#include "../Common/Util/DomainReports.h"
 #include "../Common/Util/WebhookManager.h"
 
 #ifdef _DEBUG
@@ -361,6 +362,12 @@ namespace HM
       // is on and a mailbox is named. The message is delivered unchanged either
       // way. See ComplaintTracker.
       ComplaintTracker::InspectIncomingComplaint(pMessage);
+
+      // A DMARC aggregate or TLS-RPT report posted to a hosted domain's report
+      // mailbox is read here too, in the same place and for the same reason.
+      // Returns at once unless the one local recipient is such a mailbox. The
+      // message is delivered unchanged either way. See DomainReports.
+      DomainReports::InspectIncomingReport(pMessage);
 
       std::vector<DeliveryFailure> saErrorMessages;
 

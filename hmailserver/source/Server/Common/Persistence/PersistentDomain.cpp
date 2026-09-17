@@ -16,6 +16,7 @@
 #include "PersistentSpamTrap.h"
 #include "PersistentRule.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
+#include "../Util/DomainReports.h"
 
 #include "../Util/Crypt.h"
 #include "../BO/Domain.h"
@@ -295,6 +296,85 @@ namespace HM
          }
       }
 
+      // The fourth column that names an address outside its own row's domain:
+      // hm_domains.domainreportmailbox, the mailbox a domain's DMARC and TLS-RPT
+      // reports are read from, which an organisation with several domains
+      // points at one mailbox on one of them. Left alone it would go on naming
+      // the old domain after a rename, so no report would be read and nothing
+      // would say so, and the value would then fail the "hosted" check every
+      // later save applies to it. On a rename the address follows the domain;
+      // on a delete it is cleared and the log says which domains lost their
+      // mailbox. Written with a plain update rather than a domain save, because
+      // a domain save is what called this.
+      void UpdateDependentReportMailboxes_(const std::set<String> &oldDomainNames, const String &newDomainName)
+      {
+         SQLCommand command("select domainid, domainname, domainreportmailbox from hm_domains where domainreportmailbox <> ''");
+
+         std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!pRS)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5980, "PersistentDomain::UpdateDependentReportMailboxes_",
+               "Could not read hm_domains. A domain's report mailbox may still name a domain which is no longer hosted here, in which case no DMARC or TLS-RPT report is read for it.");
+            return;
+         }
+
+         struct Affected
+         {
+            __int64 id;
+            String name;
+            String mailbox;
+         };
+
+         std::vector<Affected> affected;
+
+         while (!pRS->IsEOF())
+         {
+            Affected row;
+            row.id = pRS->GetInt64Value("domainid");
+            row.name = pRS->GetStringValue("domainname");
+            row.mailbox = pRS->GetStringValue("domainreportmailbox");
+
+            if (AddressIsInDomains_(row.mailbox, oldDomainNames))
+               affected.push_back(row);
+
+            pRS->MoveNext();
+         }
+
+         for (const Affected &row : affected)
+         {
+            const String updated = newDomainName.IsEmpty() ? String() : MoveAddressToDomain_(row.mailbox, newDomainName);
+
+            SQLCommand update("update hm_domains set domainreportmailbox = @MAILBOX where domainid = @DOMAINID");
+            update.AddParameter("@MAILBOX", updated);
+            update.AddParameter("@DOMAINID", row.id);
+
+            if (!Application::Instance()->GetDBManager()->Execute(update))
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::High, 5981, "PersistentDomain::UpdateDependentReportMailboxes_",
+                  Formatter::Format("Could not update the report mailbox of {0}. It still names {1}, which is no longer hosted here, so no DMARC or TLS-RPT report is read for that domain.", row.name, row.mailbox));
+               continue;
+            }
+
+            // The cached domain object still holds the old value; the next read
+            // comes from the row.
+            std::shared_ptr<Domain> cached = std::shared_ptr<Domain>(new Domain());
+            if (PersistentDomain::ReadObject(cached, row.id))
+               CacheContainer::Instance()->RemoveDomain(cached);
+
+            if (newDomainName.IsEmpty())
+            {
+               LOG_APPLICATION(Formatter::Format("The report mailbox of {0} was cleared: its mailbox {1} is no longer hosted on this server, so no DMARC or TLS-RPT report is read for {0} until another is named.", row.name, row.mailbox));
+            }
+            else
+            {
+               LOG_APPLICATION(Formatter::Format("The report mailbox of {0} is now {1}, following the rename of the domain that hosts it.", row.name, updated));
+            }
+         }
+
+         if (!affected.empty())
+            DomainReports::ForgetIntakes();
+      }
+
       void UpdateDependentAddresses_(const std::set<String> &oldDomainNames, const String &newDomainName)
       {
          if (oldDomainNames.empty())
@@ -303,6 +383,7 @@ namespace HM
          UpdateDependentAliases_(oldDomainNames, newDomainName);
          UpdateDependentListMembers_(oldDomainNames, newDomainName);
          UpdateDependentForwards_(oldDomainNames, newDomainName);
+         UpdateDependentReportMailboxes_(oldDomainNames, newDomainName);
       }
    }
 
@@ -502,6 +583,7 @@ namespace HM
       pDomain->SetSessionOnePerDevice(pRS->GetLongValue("domainsessiononeperdevice"));
       pDomain->SetSessionBindToAddress(pRS->GetLongValue("domainsessionbindaddress"));
       pDomain->SetCountryPolicy(pRS->GetStringValue("domaincountrypolicy"));
+      pDomain->SetReportMailbox(pRS->GetStringValue("domainreportmailbox"));
       pDomain->SetWebhooksEnabled(pRS->GetLongValue("domainwebhooksenabled") == 1);
       pDomain->SetWebhookSubjects(pRS->GetLongValue("domainwebhooksubjects") == 1);
 
@@ -631,6 +713,16 @@ namespace HM
 
             // Remove the old domain from the cache.
             CacheContainer::Instance()->RemoveDomain(pTempDomain);
+
+            // The domain's own report mailbox, when it is in the domain itself,
+            // follows the rename with the row: the object the caller holds then
+            // says the same as the row, and the sweep below sees nothing left
+            // to rewrite in this row.
+            std::set<String> renamedFrom;
+            renamedFrom.insert(renamedFromDomainName.ToLower());
+
+            if (AddressIsInDomains_(pDomain->GetReportMailbox(), renamedFrom))
+               pDomain->SetReportMailbox(MoveAddressToDomain_(pDomain->GetReportMailbox(), pDomain->GetName()));
          }
       }
 
@@ -643,6 +735,7 @@ namespace HM
       oStatement.AddColumn("domainsessionbindaddress", (long) pDomain->GetSessionBindToAddress());
       oStatement.AddColumn("domainpostmaster", pDomain->GetPostmaster());
       oStatement.AddColumn("domaincountrypolicy", pDomain->GetCountryPolicy());
+      oStatement.AddColumn("domainreportmailbox", pDomain->GetReportMailbox());
       oStatement.AddColumn("domainmaxsize", pDomain->GetMaxSizeMB());
       oStatement.AddColumn("domainmessageretentiondays", pDomain->GetMessageRetentionDays());
       oStatement.AddColumn("domainquarantinedigest", pDomain->GetQuarantineDigest() ? 1L : 0L);
@@ -741,6 +834,13 @@ namespace HM
       // the read and every other message pays nothing.
       if (bRetVal)
          SpamTrapMonitor::SetNeedRefresh();
+
+      // The same for the report mailboxes: DomainReports keeps the set of
+      // addresses that take reports in and compares every delivered message
+      // against it, so a mailbox named here has to reach it before the next
+      // message and not a minute later.
+      if (bRetVal)
+         DomainReports::ForgetIntakes();
 
       // NameChanger::RenameDomain only walks the objects this domain owns. An
       // alias target, a distribution list membership or a forward address held by

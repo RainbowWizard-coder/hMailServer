@@ -33,6 +33,7 @@
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
+#include "DomainReports.h"
 #include "../../SMTP/FeedbackReportParser.h"
 #include "../Util/AcmeClient.h"
 #include "../Util/FileUtilities.h"
@@ -254,6 +255,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ComplaintTracker\n"));
       ComplaintTrackerTester complaintTrackerTester;
       complaintTrackerTester.Test();
+
+      // The reports our own domains receive: the XML reader, the gzip and zip
+      // unwrapping, the MIME walk, the TLS-RPT reader and the keys - every one
+      // of them handed hostile input by construction.
+      OutputDebugString(_T("hMailServer: Testing DomainReports\n"));
+      DomainReportsTester domainReportsTester;
+      domainReportsTester.Test();
 
       // The reputation watch's rules: the two settings as an administrator writes
       // them, which answers mean listed, which addresses are worth asking about,

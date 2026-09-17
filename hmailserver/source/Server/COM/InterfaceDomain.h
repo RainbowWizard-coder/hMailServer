@@ -260,6 +260,12 @@ END_COM_MAP()
    STDMETHOD(get_WebhookSubjects)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_WebhookSubjects)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // The reports the domain receives, read: the address its DMARC aggregate
+   // and TLS-RPT reports are posted to. Saved by Save. See
+   // Common/Util/DomainReports.h.
+   STDMETHOD(get_ReportMailbox)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ReportMailbox)(/*[in]*/ BSTR newVal);
+
    // dkim end.
 
    // Spam traps. See Common/AntiSpam/SpamTrapMonitor.h.

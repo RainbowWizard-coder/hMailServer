@@ -33,6 +33,7 @@
 #include "../Common/BO/SenderListEntry.h"
 #include "../Common/AntiSpam/DKIM/DkimRotation.h"
 #include "../Common/AntiSpam/SpamTrapMonitor.h"
+#include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/Unicode.h"
 
 #include <ctime>
@@ -3111,6 +3112,75 @@ STDMETHODIMP InterfaceDomain::put_WebhookSubjects(VARIANT_BOOL newVal)
          return authentication_->GetAccessDenied();
 
       object_->SetWebhookSubjects(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_ReportMailbox(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetReportMailbox().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_ReportMailbox(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // The same rule, in the same sentence, as PUT /api/v1/domains/{domain}
+      // applies: empty, or one address in a domain this server hosts - this
+      // one, under the name it is being saved with, or another. A provider
+      // delivers a report to the address the rua= tag names, so an address
+      // somewhere else would read no report and never say so. Whether an
+      // account or alias answers at it is the administrator's to arrange; the
+      // domain may be new and its mailboxes not yet made.
+      HM::String mailbox = newVal;
+      mailbox.Trim();
+      mailbox.ToLower();
+
+      if (!mailbox.IsEmpty())
+      {
+         const HM::String mailboxDomain = HM::StringParser::ExtractDomain(mailbox);
+         const bool own = !mailboxDomain.IsEmpty() && mailboxDomain.CompareNoCase(object_->GetName()) == 0;
+         const bool hosted = own || (!mailboxDomain.IsEmpty() && HM::CacheContainer::Instance()->GetDomain(mailboxDomain));
+
+         if (!HM::StringParser::IsValidEmailAddress(mailbox) || !hosted)
+            return COMError::GenerateError("ReportMailbox is one address in a domain this server hosts, or empty; the DMARC and TLS-RPT reports are delivered to it.");
+
+         // A mailbox in ANOTHER hosted domain makes this server open every
+         // attachment delivered to that address alone, so a credential that
+         // reaches a list of domains rather than every one may name a mailbox
+         // only in its own domain; the cross-domain form is the server
+         // administrator's, as it is over REST.
+         if (!own && !authentication_->ReachesEveryDomain())
+            return COMError::GenerateError("ReportMailbox names an address in another domain; a domain administrator may name a mailbox only in the domain it administers.");
+      }
+
+      object_->SetReportMailbox(mailbox);
+
       return S_OK;
    }
    catch (...)

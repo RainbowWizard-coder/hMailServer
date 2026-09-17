@@ -888,6 +888,19 @@ namespace
            return String();
         } },
 
+      // The reports our own domains receive (Util/DomainReports.h): how long a
+      // DMARC aggregate or TLS-RPT report read from a domain's report mailbox is
+      // kept. Which mailbox is the domain's own field, report_mailbox.
+      { "domain_report_retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days a DMARC aggregate report or a TLS-RPT report read from a domain's report mailbox is kept, by the day it was read; the retention task removes older ones, and POST /api/v1/domain-reports/expire runs that now. 0 keeps them for ever; at most 3650. 365 by default, which is what the paid services keep. Which address the reports are read from is each domain's report_mailbox.",
+        ROW_NUMBER(Config()->GetDomainReportRetentionDays()), ROW_SET(Config()->SetDomainReportRetentionDays((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 0 || v.number > 3650)
+              return String(_T("domain_report_retention_days is between 0 and 3650."));
+           return String();
+        } },
+
       // Masked addresses a reader makes (Util/MaskedAddresses.h).
       { "reader_masked_addresses_max", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many masked addresses a reader may make in the webmail: an address in their own domain for one sign-up, delivering to their mailbox and switched off when it starts to receive spam. 0 offers none; at most 200. An account, alias or list an administrator makes later with the same address takes it over.",

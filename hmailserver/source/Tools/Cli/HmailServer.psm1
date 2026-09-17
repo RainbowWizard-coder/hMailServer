@@ -1751,6 +1751,93 @@ function Invoke-HmComplaintMaintenance {
     }
 }
 
+function Get-HmDmarcSummary {
+    <#
+    .SYNOPSIS
+        Who sends as a domain, and with what result: the DMARC aggregate
+        reports the receivers of its mail posted to its report mailbox, added
+        up over the window. messages, passed (aligned DKIM or aligned SPF),
+        failed, quarantined and rejected, then by_day for a chart and sources
+        (one per address that sent as the domain, most messages first).
+    .EXAMPLE
+        Get-HmDmarcSummary -Domain example.com -Days 30 | Select-Object -ExpandProperty sources | Format-Table ip, header_from, messages, passed, failed
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [int] $Days = 30
+    )
+    Invoke-HmApi -Method GET -Path ((Get-HmSuppressionPath -Domain $Domain -Tail '/dmarc-reports/summary') + '?days=' + $Days)
+}
+
+function Get-HmDmarcReport {
+    <#
+    .SYNOPSIS
+        The DMARC aggregate reports read for a domain, newest first - or, with
+        -Id, one report with its records: the source, the count, what the
+        receiver did and the aligned DKIM and SPF verdicts.
+    .EXAMPLE
+        Get-HmDmarcReport -Domain example.com | Format-Table id, org, begin, end, messages, passed
+    .EXAMPLE
+        (Get-HmDmarcReport -Domain example.com -Id 31).records | Format-Table source_ip, count, disposition, dkim, spf
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [long] $Id = 0,
+        [int] $Limit = 50,
+        [int] $Offset = 0
+    )
+    if ($Id -gt 0) {
+        return Invoke-HmApi -Method GET -Path (Get-HmSuppressionPath -Domain $Domain -Tail ('/dmarc-reports/' + $Id))
+    }
+    $path = (Get-HmSuppressionPath -Domain $Domain -Tail '/dmarc-reports') + '?limit=' + $Limit + '&offset=' + $Offset
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path $path) -Key 'items'
+}
+
+function Get-HmTlsReport {
+    <#
+    .SYNOPSIS
+        The TLS-RPT reports read for a domain over the window: one item per
+        policy of each report, with the sessions that succeeded and failed and
+        the failures by type.
+    .EXAMPLE
+        Get-HmTlsReport -Domain example.com | Format-Table org, policy_type, successful, failed
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Domain,
+        [int] $Days = 30,
+        [int] $Limit = 50,
+        [int] $Offset = 0
+    )
+    $path = (Get-HmSuppressionPath -Domain $Domain -Tail '/tls-reports') + '?days=' + $Days + '&limit=' + $Limit + '&offset=' + $Offset
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path $path) -Key 'items'
+}
+
+function Invoke-HmDomainReportMaintenance {
+    <#
+    .SYNOPSIS
+        Runs the domain reports' retention sweep now: DMARC aggregate and
+        TLS-RPT reports read more than domain_report_retention_days ago are
+        removed, or more than -OlderThanDays ago when given (0 removes every
+        report of every domain). The sweep runs in passes of 5,000 of each kind,
+        a hundred at most; the answer's complete is false when rows remain, and
+        another call removes them.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [int] $OlderThanDays = -1
+    )
+    if ($PSCmdlet.ShouldProcess('the DMARC and TLS-RPT reports', 'Prune the old ones')) {
+        if ($OlderThanDays -ge 0) {
+            Invoke-HmApi -Method POST -Path '/api/v1/domain-reports/expire' -Body @{ older_than_days = $OlderThanDays }
+        } else {
+            Invoke-HmApi -Method POST -Path '/api/v1/domain-reports/expire'
+        }
+    }
+}
+
 # ---------------------------------------------------------------------------
 # Accounts in bulk
 # ---------------------------------------------------------------------------
@@ -2599,9 +2686,11 @@ Register-ArgumentCompleter -CommandName Get-HmDomain, Set-HmDomain, Remove-HmDom
 Register-ArgumentCompleter -CommandName Get-HmDkimRotation, Start-HmDkimRotation, Test-HmDkimRotation, Complete-HmDkimRotation, Remove-HmDkimRetiringKey, Stop-HmDkimRotation -ParameterName Domain -ScriptBlock $script:CompleterDomain
 Register-ArgumentCompleter -CommandName Get-HmAccount, Set-HmAccount, Remove-HmAccount, Get-HmMailboxMove, Move-HmMailbox -ParameterName Address -ScriptBlock $script:CompleterAddress
 Register-ArgumentCompleter -CommandName Get-HmSpamTrap, Add-HmSpamTrap, Get-HmSpamTrapHit -ParameterName Domain -ScriptBlock $script:CompleterDomain
+Register-ArgumentCompleter -CommandName Get-HmDmarcSummary, Get-HmDmarcReport, Get-HmTlsReport -ParameterName Domain -ScriptBlock $script:CompleterDomain
 
 Export-ModuleMember -Function @(
     'Get-HmComplaint', 'Get-HmComplaintRate', 'Invoke-HmComplaintMaintenance',
+    'Get-HmDmarcSummary', 'Get-HmDmarcReport', 'Get-HmTlsReport', 'Invoke-HmDomainReportMaintenance',
     'Get-HmDevice', 'Revoke-HmDevice',
     'Connect-HmServer', 'Disconnect-HmServer', 'Get-HmSession', 'Invoke-HmApi', 'Get-HmCollection',
     'Get-HmStatus',

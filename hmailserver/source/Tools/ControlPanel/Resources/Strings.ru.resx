@@ -6524,11 +6524,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>Отвечать только _коллегам — посторонние отправители не получают ничего или получают текст домена, если его переопределение включено</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>Почтовый ящик для отчётов (один адрес в домене, который обслуживает этот сервер; пусто — ничего не читается) (_M)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Почтовый ящик для отчётов:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Сообщать о зависании асинхронной рабочей очереди через (секунды)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>Получаемые отчёты</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>Репозиторий, который должен быть указан в сертификате подписи (пусто — этот проект; «-» — не проверять)</value>
@@ -8127,6 +8133,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel подключён к другому узлу, поэтому учётную запись, от имени которой работает ЕГО служба, отсюда прочитать нельзя. Чтобы её увидеть, откройте Control Panel на самом сервере.</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>Сводные отчёты DMARC и отчёты TLS-RPT, которые получатели почты этого домена присылают обратно, читаются с одного адреса домена, а Control Deck строит график того, кто отправляет от имени домена и с каким результатом. Опубликуйте адрес как rua=mailto: в записях TXT _dmarc и _smtp._tls домена. Учётную запись или псевдоним по этому адресу создайте сами; сервер этого не делает, а без указанного адреса ничего не читается.</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Оценка за провал DMARC сейчас равна {0}. ARC работает, компенсируя эту оценку, поэтому при нуле фильтрация ARC не может сделать ничего, даже если перечислены доверенные подписывающие домены. Сначала задайте положительную оценку за провал DMARC на странице «Параметры антиспама».</value>

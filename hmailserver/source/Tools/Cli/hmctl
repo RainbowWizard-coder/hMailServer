@@ -2161,6 +2161,93 @@ def complaints_command(client, arguments):
 
     raise ApiError(0, "complaints takes rates or expire")
 
+
+def dmarc_command(client, arguments):
+    """The reports a domain receives, read: who sends as the domain and with
+    what result, from the DMARC aggregate reports and the TLS-RPT reports the
+    receivers of its mail posted to its report mailbox. The sums are the
+    server's - a DMARC pass is an aligned DKIM or an aligned SPF, judged there
+    once - and this only prints them.
+    """
+    if arguments.verb == "expire":
+        if arguments.older_than_days is None:
+            answer = client.request("POST", "/api/v1/domain-reports/expire")
+        else:
+            answer = client.request("POST", "/api/v1/domain-reports/expire", body={"older_than_days": arguments.older_than_days})
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        if answer.get("kept_for_ever"):
+            print("Nothing removed: domain_report_retention_days is 0, so the reports are kept for ever.")
+        else:
+            print("%d DMARC report(s) and %d TLS-RPT report(s) read more than %d days ago removed."
+                  % (answer.get("dmarc_reports_pruned", 0), answer.get("tls_reports_pruned", 0), answer.get("older_than_days", 0)))
+            if not answer.get("complete", True):
+                print("More remain: the sweep stopped after its hundred passes of 5,000. Run it again to remove the rest.")
+        return EXIT_OK
+
+    base = "/api/v1/domains/%s" % urllib.parse.quote(arguments.domain, safe="")
+
+    if arguments.verb == "summary":
+        answer = client.request("GET", base + "/dmarc-reports/summary", query={"days": arguments.days})
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        if not answer.get("mailbox_configured"):
+            print("No report mailbox is named for %s, so no report is read: set report_mailbox on the domain and publish it as rua=."
+                  % answer.get("domain", arguments.domain))
+        print("%s over %d days: %d report(s) from %d reporter(s); %d message(s), %d passed DMARC, %d failed; "
+              "%d quarantined, %d rejected by the receivers."
+              % (answer.get("domain", arguments.domain), answer.get("days", arguments.days), answer.get("reports", 0),
+                 len(collection(answer, "reporters") or []), answer.get("messages", 0), answer.get("passed", 0),
+                 answer.get("failed", 0), answer.get("quarantined", 0), answer.get("rejected", 0)))
+        sources = collection(answer, "sources")
+        if sources:
+            print_table(sources, ["ip", "header_from", "messages", "passed", "failed", "dkim_passed", "spf_passed",
+                                  "quarantined", "rejected", "reporters"])
+        else:
+            print("No source has been reported in this window.")
+        return EXIT_OK
+
+    if arguments.verb == "reports":
+        answer = client.request("GET", base + "/dmarc-reports", query={"limit": arguments.limit, "offset": arguments.offset})
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        render(collection(answer, "items"), False,
+               ["id", "org", "report_id", "begin", "end", "p", "sp", "pct", "messages", "passed", "records", "received",
+                "message_from", "message_dmarc"])
+        return EXIT_OK
+
+    if arguments.verb == "report":
+        answer = client.request("GET", base + "/dmarc-reports/%d" % arguments.id)
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        print("Report %s from %s (%s), %s to %s, read %s: p=%s sp=%s adkim=%s aspf=%s pct=%s; %s message(s), %s passed DMARC."
+              % (answer.get("report_id"), answer.get("org"), answer.get("email"), answer.get("begin"), answer.get("end"),
+                 answer.get("received"), answer.get("p"), answer.get("sp"), answer.get("adkim"), answer.get("aspf"),
+                 answer.get("pct"), answer.get("messages"), answer.get("passed")))
+        render(collection(answer, "records"), False,
+               ["source_ip", "count", "disposition", "dkim", "spf", "header_from", "envelope_from", "dkim_auth", "spf_auth"])
+        return EXIT_OK
+
+    if arguments.verb == "tls":
+        answer = client.request("GET", base + "/tls-reports",
+                                query={"days": arguments.days, "limit": arguments.limit, "offset": arguments.offset})
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        print("%s over %d days: %d session(s) succeeded and %d failed, by what the senders that keep TLS-RPT reported."
+              % (answer.get("domain", arguments.domain), answer.get("days", arguments.days),
+                 answer.get("sessions_succeeded", 0), answer.get("sessions_failed", 0)))
+        render(collection(answer, "items"), False,
+               ["id", "org", "policy_type", "begin", "end", "successful", "failed", "received"])
+        return EXIT_OK
+
+    raise ApiError(0, "dmarc takes summary, reports, report, tls or expire")
+
+
 def api_command(client, arguments):
     body = None
     if arguments.body:
@@ -2512,6 +2599,26 @@ def build_parser():
     complaints_verbs = complaints.add_subparsers(dest="verb")
     complaints_verbs.add_parser("rates", parents=[common])
     complaints_verbs.add_parser("expire", parents=[common])
+
+    dmarc = commands.add_parser("dmarc", help="the DMARC aggregate and TLS-RPT reports a domain receives: who sends as it, and with what result")
+    dmarc.set_defaults(handler=dmarc_command)
+    dmarc_verbs = dmarc.add_subparsers(dest="verb")
+    for verb, text in (("summary", "who sends as the domain over a window, with the totals, per source"),
+                       ("reports", "the aggregate reports read for the domain, newest first"),
+                       ("report", "one report with its records, by the id the listing shows"),
+                       ("tls", "the TLS-RPT reports read for the domain over a window")):
+        p = dmarc_verbs.add_parser(verb, parents=[common], help=text)
+        p.add_argument("domain")
+        if verb == "report":
+            p.add_argument("id", type=int)
+        if verb in ("summary", "tls"):
+            p.add_argument("--days", type=int, default=30, help="the window, in days back from now (default 30)")
+        if verb in ("reports", "tls"):
+            p.add_argument("--limit", type=int, default=50, help="rows to return, 1 to 1000")
+            p.add_argument("--offset", type=int, default=0, help="rows to skip")
+    expire = dmarc_verbs.add_parser("expire", parents=[common], help="run the reports' retention sweep now")
+    expire.add_argument("--older-than-days", type=int, dest="older_than_days",
+                        help="use this instead of domain_report_retention_days; 0 removes every report of every domain")
     api = commands.add_parser("api", parents=[common], help="any method on any path - the escape hatch")
     api.set_defaults(handler=api_command)
     api.add_argument("method")

@@ -6524,11 +6524,17 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>Odpovídat _pouze kolegům - odesílatelé zvenčí nedostanou nic, nebo text domény, je-li její přepsání zapnuté</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>Schránka pro _zprávy (jedna adresa v doméně, kterou tento server hostuje; prázdná nečte nic)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Schránka pro hlášení:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Hlásit asynchronní pracovní frontu jako zaseknutou po (sekundy)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>Přijímané zprávy</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>Repozitář, který musí podpisový certifikát uvádět (prázdné = tento projekt; - = nekontrolovat)</value>
@@ -8127,6 +8133,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel je připojen k jinému hostiteli, takže účet, pod kterým běží JEHO služba, odsud přečíst nelze. Chcete-li jej zjistit, otevřete Control Panel přímo na serveru.</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>Souhrnné zprávy DMARC a zprávy TLS-RPT, které příjemci pošty této domény posílají zpět, se čtou z jedné adresy domény a Control Deck zobrazuje v grafu, kdo odesílá jako tato doména a s jakým výsledkem. Zveřejněte adresu jako rua=mailto: v záznamech TXT _dmarc a _smtp._tls domény. Účet nebo alias na této adrese vytvořte sami; server to neudělá, a bez uvedené adresy se nic nečte.</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Skóre za selhání DMARC je nyní {0}. ARC funguje tak, že toto skóre vyvažuje, takže při nule nemůže filtrování ARC udělat nic, ani když jsou uvedeni důvěryhodní pečetitelé. Nejprve nastavte kladné skóre za selhání DMARC na stránce Nastavení antispamu.</value>

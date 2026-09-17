@@ -643,6 +643,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RecoverableStore.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRecoverable.cpp" />
     <ClCompile Include="..\Common\Util\ConfidentialMessages.cpp" />
+    <ClCompile Include="..\Common\Util\DomainReports.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiDomainReports.cpp" />
     <ClCompile Include="..\Common\Util\RestApiConfidential.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOffline.cpp" />
     <ClCompile Include="..\Common\Util\ContentPolicy.cpp" />
@@ -1467,6 +1469,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\RecoverableStore.h" />
     <ClInclude Include="..\Common\Util\ConfidentialMessages.h" />
     <ClInclude Include="..\Common\Util\ContentPolicy.h" />
+    <ClInclude Include="..\Common\Util\DomainReports.h" />
     <ClInclude Include="..\Common\Util\SenderAddresses.h" />
     <ClInclude Include="..\Common\Util\CalDavServer.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKeyStore.h" />

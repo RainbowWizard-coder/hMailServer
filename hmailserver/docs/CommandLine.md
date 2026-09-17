@@ -78,6 +78,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `bounces` | classify, expire | How the server would read a status or a reply, and the list's hourly sweep run now. |
 | `complaint` | list | The abuse reports a domain's mail has drawn, under `--domain`, with `--search` over the complained-of address, the sender, the subject and the provider. |
 | `complaints` | rates, expire | Every domain's complaint rate over the last seven days, and the feedback loops' hourly sweep run now. |
+| `dmarc` | summary, reports, report, tls, expire | The reports a domain receives, read ([DmarcReports.md](DmarcReports.md)): who sends as the domain and with what result over `--days`, the aggregate reports a page at a time with what carried each (`message_from`, `message_dmarc`), one report's records by id, the TLS-RPT reports, and the retention sweep run now (`--older-than-days 0` removes every report; it says when a hundred passes of 5,000 left rows for another run). |
 | `openpgp` | list, show, store, remove, publish | The OpenPGP PUBLIC keys this server publishes ([OpenPGP.md](OpenPGP.md)): a domain's whole listing, one account's document, a key stored from a file or from standard input, one removed by fingerprint, and an account's own publishing switched on or off. |
 | `queue` | list, retry, delete | |
 | `spamtrap` | list, create, delete | A domain's spam traps: addresses of it that were never real. Made under the domain, taken back at the address itself. |
@@ -307,6 +308,35 @@ denominator are the server's, and a second implementation of them would drift
 from the one the `complaints.rate.high` alert fires on. A domain that has sent too
 little is said to be so rather than given a rate.
 [Complaints.md](Complaints.md) is the whole of it.
+
+The reports a domain receives: DMARC and TLS-RPT
+------------------------------------------------
+
+```bash
+hmctl domain update example.com --set-string report_mailbox=dmarc@example.com
+hmctl dmarc summary example.com --days 30
+hmctl dmarc reports example.com
+hmctl dmarc report example.com 31
+hmctl dmarc tls example.com --days 90
+hmctl dmarc expire
+hmctl dmarc expire --older-than-days 0
+```
+
+```powershell
+Set-HmDomain -Name example.com -Property @{ report_mailbox = 'dmarc@example.com' }
+Get-HmDmarcSummary -Domain example.com | Select-Object -ExpandProperty sources | Format-Table ip, header_from, messages, passed, failed
+Get-HmDmarcReport -Domain example.com | Format-Table id, org, begin, end, messages, passed
+(Get-HmDmarcReport -Domain example.com -Id 31).records | Format-Table source_ip, count, disposition, dkim, spf
+Get-HmTlsReport -Domain example.com | Format-Table org, policy_type, successful, failed
+Invoke-HmDomainReportMaintenance
+```
+
+`dmarc summary` prints the server's sums and never its own: a DMARC pass is an
+aligned DKIM or an aligned SPF, judged once in `DomainReports::SummaryJson`, and
+the sources are the addresses that sent as the domain, most messages first. With
+no report mailbox named on the domain the command says so, because an empty
+summary and one nobody is filling look the same otherwise.
+[DmarcReports.md](DmarcReports.md) is the whole of it.
 
 Renaming a mailbox, and moving one to another domain
 ----------------------------------------------------

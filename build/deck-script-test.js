@@ -524,8 +524,9 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'external_tag_subject', 'external_tag_header', 'external_tag_text', 'first_contact_tip',
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour',
-   'openpgp_publish', 'openpgp_publish_new_accounts', 'country_policy', 'session_idle_seconds', 'session_lifetime_seconds', 'session_one_per_device', 'session_bind_to_address'];
-const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with), country_policy (which countries may sign in to the accounts of the domain: empty judges nothing, allow:GB,IE admits only those countries, block:CN,RU refuses those), session_idle_seconds, session_lifetime_seconds, session_one_per_device and session_bind_to_address (the session policy for the accounts of this domain). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
+   'openpgp_publish', 'openpgp_publish_new_accounts', 'country_policy', 'session_idle_seconds', 'session_lifetime_seconds', 'session_one_per_device', 'session_bind_to_address',
+   'report_mailbox'];
+const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with), country_policy (which countries may sign in to the accounts of the domain: empty judges nothing, allow:GB,IE admits only those countries, block:CN,RU refuses those), session_idle_seconds, session_lifetime_seconds, session_one_per_device and session_bind_to_address (the session policy for the accounts of this domain), and report_mailbox (the address this domain\'s DMARC aggregate and TLS-RPT reports are posted to and read from; one address in a domain this server hosts, or empty). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
 // The account's update schema as RestApiRoutes.cpp emits it - every field
@@ -701,7 +702,7 @@ function domainRecord(name, active, postmaster) {
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
       quarantine_digest: false, quarantine_digest_hour: 7,
-      openpgp_publish: false, openpgp_publish_new_accounts: false, country_policy: '' };
+      openpgp_publish: false, openpgp_publish_new_accounts: false, country_policy: '', report_mailbox: '' };
 }
 
 const SUPPRESSIONS_POST = 'Body: address (required), note (kept as the entry\'s diagnostic) and expires_days (0, the default, for an entry that stays until it is removed; at most 3650). An address this server hosts is refused.';
@@ -1046,6 +1047,12 @@ const spec = {
       '/api/v1/complaints/expire': { post: { summary: 'Run the feedback loops\' maintenance sweep now', description: 'What the hourly task does: complaints older than retention_days, and the daily tally rows behind the rate, are removed.' } },
       '/api/v1/domains/{domain}/complaints': { get: { summary: 'The abuse reports recorded about a domain\'s mail', description: 'What the large providers\' feedback loops have reported about this domain: who complained, about which message, and which provider reported it.' } },
       '/api/v1/complaints/rates': { get: { summary: 'Every domain\'s complaint rate', description: 'The complaint rate of each locally hosted domain over the last seven days, worst first.' } },
+      // The reports our own domains receive, read (RestApiDomainReports.cpp).
+      '/api/v1/domains/{domain}/dmarc-reports/summary': { get: { summary: 'Who sends as a domain, and with what result: the DMARC aggregate reports read from its report mailbox, charted', description: 'Over the last days days: messages, passed, failed, by_day and sources.' } },
+      '/api/v1/domains/{domain}/dmarc-reports': { get: { summary: 'The DMARC aggregate reports read for a domain', description: 'Newest first, a page at a time.' } },
+      '/api/v1/domains/{domain}/dmarc-reports/{id}': { get: { summary: 'One DMARC aggregate report with its records', description: 'The item as the listing shows it, and records.' } },
+      '/api/v1/domains/{domain}/tls-reports': { get: { summary: 'The TLS-RPT reports read for a domain', description: 'One item per policy of each report, newest first.' } },
+      '/api/v1/domain-reports/expire': { post: { summary: 'Run the domain reports\' retention sweep now', description: 'Reports read more than domain_report_retention_days ago are removed.' } },
       ...collectionPaths(),
       '/api/v1/settings/messages': { get: { summary: 'The server\'s message texts', description: 'The texts the server puts in the mail it writes itself - Settings.ServerMessages over COM. Each entry: id, name, text. Server-wide; refused for domain-restricted keys.' } },
       '/api/v1/settings/messages/{name}': { put: { summary: 'Change one server message text', description: 'Body: text. The name is the table\'s own, as the listing shows it. In use at once. Server-wide; refused for domain-restricted and read-only keys.', requestBody: body({ text: { type: 'string' } }, ['text']) } },
@@ -1226,6 +1233,31 @@ const state = {
       ]
    },
    complaintSweeps: 0,
+   // The DMARC aggregate and TLS-RPT reports read for a domain, as
+   // DomainReports::SummaryJson, ReportsJson, ReportJson and TlsReportsJson
+   // emit them: one report from google.com covering one day, with two records.
+   dmarc: {
+      'example.com': {
+         reports: [
+            { id: 31, org: 'google.com', email: 'noreply-dmarc-support@google.com', report_id: '12345678901234567890', begin: 1789430400, end: 1789516799,
+               policy_domain: 'example.com', adkim: 'r', aspf: 'r', p: 'quarantine', sp: 'reject', pct: 100, messages: 15, passed: 12, received: 1789520000,
+               source: 'google.com!example.com!1789430400!1789516799.xml.gz', records_kept: 2, message_dmarc: 'pass', message_from: 'google.com',
+               records: [
+                  { source_ip: '192.0.2.10', count: 12, disposition: 'none', dkim: 'pass', spf: 'pass', header_from: 'example.com', envelope_from: 'example.com',
+                     dkim_auth: 'd=example.com s=s1 result=pass', spf_auth: 'd=example.com scope=mfrom result=pass' },
+                  { source_ip: '198.51.100.7', count: 3, disposition: 'quarantine', dkim: 'fail', spf: 'fail', header_from: 'example.com', envelope_from: '',
+                     dkim_auth: '', spf_auth: 'd=forger.test scope=mfrom result=pass' }
+               ] }
+         ],
+         tls: [
+            { id: 41, org: 'Company-X', contact: 'sts-reporting@company-x.example', report_id: '5065427c-23d3-47ca-b6e0-946ea0e8c4be', begin: 1789430400, end: 1789516799,
+               policy_type: 'sts', policy_domain: 'example.com', successful: 5326, failed: 303,
+               failures: [{ result_type: 'certificate-expired', sending_mta_ip: '2001:db8:abcd:12::1', receiving_mx_hostname: 'mx1.mail.example.com', receiving_ip: '203.0.113.6', count: 100 }],
+               received: 1789520000, source: 'company-x.example!example.com!1789430400!1789516799!001.json.gz' }
+         ]
+      }
+   },
+   domainReportSweeps: 0,
    fetcherDown: false,
    backup: { status: '', log: ['2026-09-13 02:00:00 Backup started.', '2026-09-13 02:00:09 Backup completed.'] },
    backupRunning: false,
@@ -2126,6 +2158,56 @@ function answer(method, path, headers, raw) {
          rate_ppm: 250, rate_judged: true, total: matching.length, offset, items: matching.slice(offset, offset + limit) });
    }
    if (path === '/api/v1/complaints/expire' && method === 'POST') { state.complaintSweeps += 1; return json(200, { complaints_pruned: 0 }); }
+
+   // The reports a domain receives, read: the summary the chart is drawn from,
+   // the listing, one report with its records, and the TLS-RPT reports. A
+   // domain with no report mailbox answers empty documents and says so.
+   if (/^\/api\/v1\/domains\/[^/]+\/(dmarc-reports|tls-reports)(\/|\?|$)/.test(path) && method === 'GET') {
+      const domain = segment(path, 4);
+      const record = state.domains.find((d) => d.name === domain);
+      if (!record) { return json(404, { error: 'domain not found' }); }
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      const parameter = (name) => { const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0]; return hit ? decodeURIComponent(hit.split('=').slice(1).join('=')) : ''; };
+      const days = Number(parameter('days') || 30);
+      const offset = Number(parameter('offset') || 0);
+      const limit = Number(parameter('limit') || 50);
+      const held = record.report_mailbox ? (state.dmarc[domain] || { reports: [], tls: [] }) : { reports: [], tls: [] };
+      const plain = path.split('?')[0];
+      if (plain.endsWith('/dmarc-reports/summary')) {
+         const sources = {};
+         let messages = 0, passed = 0, failed = 0, dkim = 0, spf = 0, quarantined = 0, rejected = 0;
+         held.reports.forEach((r) => r.records.forEach((x) => {
+            const ok = x.dkim === 'pass' || x.spf === 'pass';
+            const s = sources[x.source_ip] || (sources[x.source_ip] = { ip: x.source_ip, messages: 0, passed: 0, failed: 0, dkim_passed: 0, spf_passed: 0, quarantined: 0, rejected: 0, header_from: x.header_from, reporters: 1 });
+            messages += x.count; s.messages += x.count;
+            if (ok) { passed += x.count; s.passed += x.count; } else { failed += x.count; s.failed += x.count; }
+            if (x.dkim === 'pass') { dkim += x.count; s.dkim_passed += x.count; }
+            if (x.spf === 'pass') { spf += x.count; s.spf_passed += x.count; }
+            if (x.disposition === 'quarantine') { quarantined += x.count; s.quarantined += x.count; }
+            if (x.disposition === 'reject') { rejected += x.count; s.rejected += x.count; }
+         }));
+         const byDay = [];
+         for (let d = 0; d < days; d += 1) { byDay.push({ day: '2026-09-' + String(d + 1).padStart(2, '0'), messages: d === 14 ? messages : 0, passed: d === 14 ? passed : 0, failed: d === 14 ? failed : 0 }); }
+         return json(200, { domain, days, since: 1786838400, until: 1789430400, report_mailbox: record.report_mailbox, mailbox_configured: !!record.report_mailbox,
+            reports: held.reports.length, messages, passed, failed, dkim_passed: dkim, spf_passed: spf, quarantined, rejected,
+            reporters: held.reports.map((r) => ({ org: r.org, reports: 1, messages: r.messages, checked: r.message_dmarc ? 1 : 0, authenticated: r.message_dmarc === 'pass' ? 1 : 0 })),
+            by_day: byDay, sources: Object.keys(sources).map((k) => sources[k]), sources_total: Object.keys(sources).length });
+      }
+      if (plain.endsWith('/tls-reports')) {
+         return json(200, { domain, days, since: 1786838400, mailbox_configured: !!record.report_mailbox,
+            sessions_succeeded: held.tls.reduce((n, r) => n + r.successful, 0), sessions_failed: held.tls.reduce((n, r) => n + r.failed, 0),
+            total: held.tls.length, offset, items: held.tls.slice(offset, offset + limit) });
+      }
+      if (plain.endsWith('/dmarc-reports')) {
+         const items = held.reports.map((r) => { const item = Object.assign({}, r); item.records = r.records_kept; delete item.records_kept; return item; });
+         return json(200, { domain, report_mailbox: record.report_mailbox, mailbox_configured: !!record.report_mailbox, total: items.length, offset, items: items.slice(offset, offset + limit) });
+      }
+      const id = Number(plain.split('/').pop());
+      const one = held.reports.find((r) => r.id === id);
+      if (!one) { return json(404, { error: 'not one of this domain\'s reports' }); }
+      return json(200, one);
+   }
+   if (path === '/api/v1/domain-reports/expire' && method === 'POST') { state.domainReportSweeps += 1; return json(200, { dmarc_reports_pruned: 0, tls_reports_pruned: 0, older_than_days: 365, complete: true }); }
 
    if (path === '/api/v1/tlsa') { return json(200, state.tlsa); }
 
@@ -3153,6 +3235,67 @@ async function main() {
    await flush();
    check('searching asks the server for the substring and draws what it answers',
       called(before, 'GET', '/api/v1/domains/example.com/complaints?limit=50&offset=0&search=reader').length === 1 && rows().length === 1, paths(before));
+
+   // ---- the reports a domain receives (DMARC aggregate and TLS-RPT)
+   click(act('domains'));
+   await flush();
+   check('each domain row carries a way to its DMARC reports', act('dmarc', { domain: 'example.com' }) !== null && act('dmarc', { domain: 'second.example' }) !== null);
+   before = requests.length;
+   click(act('dmarc', { domain: 'example.com' }));
+   await flush();
+   check('with no report mailbox named the page says so rather than drawing an empty chart',
+      called(before, 'GET', '/api/v1/domains/example.com/dmarc-reports/summary?days=30').length === 1 &&
+      content().textContent.indexOf('No report mailbox is named for this domain') >= 0 && content().querySelectorAll('svg').length === 0, content().textContent.slice(0, 400));
+   state.domains[0].report_mailbox = 'dmarc@example.com';
+   click(act('domains'));
+   await flush();
+   before = requests.length;
+   click(act('dmarc', { domain: 'example.com' }));
+   await flush();
+   check('DMARC reads the summary, the reports a page at a time and the TLS reports over the same window',
+      called(before, 'GET', '/api/v1/domains/example.com/dmarc-reports/summary?days=30').length === 1 &&
+      called(before, 'GET', '/api/v1/domains/example.com/dmarc-reports?limit=25&offset=0').length === 1 &&
+      called(before, 'GET', '/api/v1/domains/example.com/tls-reports?days=30&limit=25&offset=0').length === 1, paths(before));
+   check('the mailbox and the records to publish are named, and the chart is drawn passed against failed',
+      content().textContent.indexOf('Reports arrive at dmarc@example.com') >= 0 && content().textContent.indexOf('rua=mailto:dmarc@example.com') >= 0 &&
+      content().querySelectorAll('svg').length === 1 && content().querySelectorAll('svg rect').length === 60, content().textContent.slice(0, 400));
+   check('the totals are the summary\'s, with the pass rate beside the count',
+      content().textContent.indexOf('12 (80%)') >= 0 && content().textContent.indexOf('No mailbox') < 0, content().textContent.slice(0, 600));
+   check('a source is drawn with its address, who it sends as, its pass rate and what the receivers did',
+      Array.from(rows()).some((r) => r.textContent.indexOf('192.0.2.10') >= 0 && r.textContent.indexOf('100%') >= 0) &&
+      Array.from(rows()).some((r) => r.textContent.indexOf('198.51.100.7') >= 0 && r.textContent.indexOf('0%') >= 0), rows().map((r) => r.textContent).join(' | '));
+   check('the reporter and the report are listed, the report with the policy the reporter saw and a way into its records',
+      content().textContent.indexOf('google.com') >= 0 && content().textContent.indexOf('p=quarantine sp=reject adkim=r aspf=r') >= 0 && act('dmarcreport', { id: '31' }) !== null, content().textContent.slice(0, 800));
+   check('the reporter\'s row says how many of its reports arrived in a message that passed DMARC, and the report says what carried it',
+      Array.from(rows()).some((r) => r.textContent.indexOf('google.com') >= 0 && r.textContent.indexOf('1 / 1') >= 0) &&
+      content().textContent.indexOf('Arrived from google.com') >= 0 && Array.from(content().querySelectorAll('.badge.good')).some((b) => b.textContent === 'pass'),
+      rows().map((r) => r.textContent).join(' | '));
+   state.dmarc['example.com'].reports[0].message_dmarc = '';
+   click(act('dmarcrange', { days: '30' }));
+   await flush();
+   check('a report whose carrying message this server did not evaluate says nothing about it, and the reporter is Not checked',
+      content().textContent.indexOf('Arrived from') < 0 && Array.from(rows()).some((r) => r.textContent.indexOf('google.com') >= 0 && r.textContent.indexOf('Not checked') >= 0),
+      rows().map((r) => r.textContent).join(' | '));
+   state.dmarc['example.com'].reports[0].message_dmarc = 'pass';
+   check('the TLS reports say how many sessions succeeded and failed, and each failure by its type',
+      content().textContent.indexOf('5326 session(s) to this domain succeeded and 303 failed') >= 0 && content().textContent.indexOf('certificate-expired ×100 (mx1.mail.example.com)') >= 0, content().textContent.slice(-600));
+   before = requests.length;
+   click(act('dmarcrange', { days: '90' }));
+   await flush();
+   check('choosing a window asks the server for it', called(before, 'GET', '/api/v1/domains/example.com/dmarc-reports/summary?days=90').length === 1 &&
+      called(before, 'GET', '/api/v1/domains/example.com/tls-reports?days=90&limit=25&offset=0').length === 1, paths(before));
+   before = requests.length;
+   click(act('dmarcreport', { id: '31' }));
+   await flush();
+   check('Records reads the one report and draws its records with the aligned verdicts and the raw authentication results',
+      called(before, 'GET', '/api/v1/domains/example.com/dmarc-reports/31').length === 1 && rows().length === 2 &&
+      rows()[0].textContent.indexOf('192.0.2.10') >= 0 && rows()[0].textContent.indexOf('d=example.com s=s1 result=pass') >= 0 &&
+      rows()[1].textContent.indexOf('quarantine') >= 0 && rows()[1].textContent.indexOf('fail') >= 0, rows().map((r) => r.textContent).join(' | '));
+   before = requests.length;
+   click(act('dmarcback'));
+   await flush();
+   check('Back returns to the reports at the window that was chosen', called(before, 'GET', '/api/v1/domains/example.com/dmarc-reports/summary?days=90').length === 1, paths(before));
+   state.domains[0].report_mailbox = '';
 
 
    // ---- the OpenPGP key directory of a domain

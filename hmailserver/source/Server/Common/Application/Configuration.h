@@ -243,6 +243,12 @@ namespace HM
       String GetDlpAccountNumberPattern() const;
       void SetDlpAccountNumberPattern(const String &pattern);
 
+      // The reports our own domains receive (Util/DomainReports.h): how many
+      // days a DMARC aggregate or TLS-RPT report read from a domain's report
+      // mailbox is kept, by the day it was read. 0 keeps for ever; at most 3650.
+      int GetDomainReportRetentionDays() const;
+      void SetDomainReportRetentionDays(int days);
+
       String GetImportOAuthRedirectBaseUrl() const;
       void SetImportOAuthRedirectBaseUrl(const String &url);
       String GetImportOAuthString(const String &propertyName) const;

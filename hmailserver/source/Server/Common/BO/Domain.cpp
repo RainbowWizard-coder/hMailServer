@@ -233,6 +233,7 @@ namespace HM
       pNode->AppendAttr(_T("WebhookSubjects"), webhook_subjects_ ? _T("1") : _T("0"));
 
       pNode->AppendAttr(_T("CountryPolicy"), country_policy_);
+      pNode->AppendAttr(_T("ReportMailbox"), report_mailbox_);
 
       pNode->AppendAttr(_T("SessionIdleSeconds"), StringParser::IntToString(session_idle_seconds_));
       pNode->AppendAttr(_T("SessionLifetimeSeconds"), StringParser::IntToString(session_lifetime_seconds_));
@@ -406,6 +407,10 @@ namespace HM
       // no attribute and restores with no policy, which is every domain until an
       // administrator writes one.
       country_policy_ = pNode->GetAttrValue(_T("CountryPolicy"));
+
+      // And again: a backup taken before schema 6070 names no report mailbox, and
+      // the domain restores taking no reports in until an administrator names one.
+      report_mailbox_ = pNode->GetAttrValue(_T("ReportMailbox"));
 
       // The session policies, under the same rule: an archive written before
       // schema 6050 carries none of these attributes and restores with all four at

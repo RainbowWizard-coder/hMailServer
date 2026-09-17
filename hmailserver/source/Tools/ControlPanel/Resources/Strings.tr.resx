@@ -6524,11 +6524,17 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>Yalnızca iş arkadaşlarına yanıt _ver - dışarıdaki gönderenler hiçbir şey almaz ya da geçersiz kılması açıksa alan adının metnini alır</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>_Rapor posta kutusu (bu sunucunun barındırdığı bir etki alanındaki tek bir adres; boşsa hiçbir şey okunmaz)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Rapor posta kutusu:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Eşzamansız iş kuyruğunu şu süre sonra takılmış olarak bildir (saniye)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>Alınan raporlar</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>İmzalama sertifikasının adını taşıması gereken depo (boş = bu proje; - = denetleme)</value>
@@ -8127,6 +8133,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Denetim Masası başka bir ana bilgisayara bağlı, bu yüzden O sunucunun hizmetinin çalıştığı hesap buradan okunamaz. Görmek için Denetim Masası'nı sunucunun kendisinde açın.</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>Bu etki alanının postasını alan tarafların geri gönderdiği toplu DMARC raporları ve TLS-RPT raporları, etki alanının tek bir adresinden okunur ve Control Deck, kimin bu etki alanı olarak gönderdiğini ve hangi sonuçla gönderdiğini grafikle gösterir. Adresi, etki alanının _dmarc ve _smtp._tls TXT kayıtlarında rua=mailto: olarak yayımlayın. Bu adresteki hesabı veya takma adı kendiniz oluşturun; sunucu oluşturmaz ve adres belirtilmemişse hiçbir şey okunmaz.</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC başarısızlık puanı şu anda {0}. ARC bu puanı dengeleyerek çalışır, bu yüzden sıfırda ARC filtreleme, güvenilen mühürleyiciler listelenmiş olsa bile hiçbir şey yapamaz. Önce Spam önleme ayarları sayfasında pozitif bir DMARC başarısızlık puanı ayarlayın.</value>

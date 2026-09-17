@@ -6524,11 +6524,17 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>Alleen _collega's beantwoorden - afzenders van buiten krijgen niets, of de tekst van het domein als de overschrijving ervan aan staat</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>_Rapportpostvak (één adres in een domein dat deze server host; leeg leest niets)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Rapportpostvak:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>De asynchrone werkwachtrij als vastgelopen melden na (seconden)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>Ontvangen rapporten</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>Repository die het ondertekeningscertificaat moet noemen (leeg = dit project; - = niet controleren)</value>
@@ -8127,6 +8133,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Het Control Panel is verbonden met een andere host, dus het account waaronder DIE service draait kan hiervandaan niet worden gelezen. Open het Control Panel op de server zelf om het te zien.</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>De geaggregeerde DMARC-rapporten en de TLS-RPT-rapporten die de ontvangers van de post van dit domein terugsturen, worden gelezen uit één adres van het domein, en het Control Deck tekent wie als het domein verzendt en met welk resultaat. Publiceer het adres als rua=mailto: in de TXT-records _dmarc en _smtp._tls van het domein. Maak het account of de alias op dat adres zelf aan; de server doet dat niet, en zonder opgegeven adres wordt niets gelezen.</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>De DMARC-faalscore is momenteel {0}. ARC werkt door die score te compenseren, dus bij nul kan ARC-filtering niets doen, zelfs niet met vertrouwde verzegelaars in de lijst. Stel eerst een positieve DMARC-faalscore in op de pagina Antispaminstellingen.</value>

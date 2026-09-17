@@ -1072,6 +1072,11 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="complaints")showComplaints(d.domain,"",0);
   else if(d.act==="cmpsearch")showComplaints(complaintView.domain,($("#cmpSearch")||{}).value||"",0);
   else if(d.act==="cmppage")showComplaints(complaintView.domain,complaintView.search,Math.max(0,complaintView.offset+Number(d.by)));
+  else if(d.act==="dmarc")showDmarc(d.domain,30,0);
+  else if(d.act==="dmarcrange")showDmarc(dmarcView.domain,Number(d.days),0);
+  else if(d.act==="dmarcpage")showDmarc(dmarcView.domain,dmarcView.days,Math.max(0,dmarcView.offset+Number(d.by)));
+  else if(d.act==="dmarcreport")showDmarcReport(dmarcView.domain,Number(d.id));
+  else if(d.act==="dmarcback")showDmarc(dmarcView.domain,dmarcView.days,dmarcView.offset);
   else if(d.act==="domains"){editing=null;render();}
   else if(d.act==="domainnew")createDomain();
   else if(d.act==="domainedit")openDomain(d.name);
@@ -1579,6 +1584,8 @@ const DOMAIN_GROUPS=[
   {title:K("Quarantine digest"),props:{
     quarantine_digest:{type:"boolean",description:K("Send each account of this domain a daily message listing what the quarantine is holding for it, with a link that releases it. Off by default, and nothing is sent until the server's QuarantineDigestBaseUrl names the address those links point at.")},
     quarantine_digest_hour:{type:"integer",description:K("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")}}},
+  {title:K("Reports the domain receives"),props:{
+    report_mailbox:{type:"string",description:K("The address this domain's DMARC aggregate and TLS-RPT reports are posted to, and the one address they are read from into the DMARC page: what the domain's rua= tags name. One address in a domain this server hosts, or empty, which is the default and reads nothing. Make the account or alias at it yourself; the server does not.")}}},
   {title:K("Web Key Directory"),props:{
     openpgp_publish:{type:"boolean",description:K("Publish this domain's accounts' OpenPGP public keys, so that anybody on the internet can find a key from the address alone. Off by default; the server setting and each account's own switch have to be on as well, and only public keys are ever held.")},
     openpgp_publish_new_accounts:{type:"boolean",description:K("What an account CREATED in this domain from now on starts with. It never changes an account that already exists, so switching it on publishes nobody who is already here.")}}},
@@ -1612,6 +1619,7 @@ async function renderDomains(){
           <button class="btn ghost sm" data-act="lists" data-domain="${escHtml(x.name)}">${t("Lists ›")}</button>
           <button class="btn ghost sm" data-act="suppressions" data-domain="${escHtml(x.name)}">${t("Suppressions ›")}</button>
           <button class="btn ghost sm" data-act="complaints" data-domain="${escHtml(x.name)}">${t("Complaints ›")}</button>
+          <button class="btn ghost sm" data-act="dmarc" data-domain="${escHtml(x.name)}">${t("DMARC ›")}</button>
           <button class="btn ghost sm" data-act="openpgp" data-domain="${escHtml(x.name)}">${t("OpenPGP ›")}</button>
           <button class="btn ghost sm" data-act="domainedit" data-name="${escHtml(x.name)}">${t("Edit")}</button>
           <button class="btn danger sm" data-act="domaindel" data-name="${escHtml(x.name)}">${t("Delete")}</button>
@@ -2690,6 +2698,145 @@ async function showComplaints(domain,search,offset){
         <div class="tablewrap"><table><thead><tr><th>${t("Who complained")}</th><th>${t("Type")}</th><th>${t("Sender")}</th><th>${t("Message")}</th><th>${t("Reported by")}</th><th>${t("Arrived")}</th></tr></thead>
         <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No abuse report has been recorded for this domain.")+'</td></tr>'}</tbody></table></div>
         <p class="note" style="margin-top:12px">${tf("{0} to {1} of {2}",total?complaintView.offset+1:0,complaintView.offset+items.length,total)}</p>
+      </div></div></div>`;
+}
+
+/* ---------- DMARC and TLS-RPT reports ----------
+   The reports our own domains receive, read: the DMARC aggregate reports and
+   the TLS-RPT reports that the receivers of a domain's mail posted to its
+   report mailbox - GET /api/v1/domains/{domain}/dmarc-reports/summary, the
+   listing under /dmarc-reports, one report by id, and /tls-reports. Reached
+   from a domain's row, beside its complaints, because both are what the world
+   says about the domain's mail.
+
+   The chart is the point of the page and is what dmarcian sells: who sends as
+   the domain, how much, and whether it passed. The bars are the window's days,
+   passed against failed, drawn with the reports' own chart; under them the
+   sources most messages first, then who reported, then the reports themselves
+   a page at a time with a way into one report's records, then the TLS reports.
+   With no report mailbox named the page says so, because an empty chart and a
+   chart nobody is filling look the same otherwise. A reporter's row says how
+   many of its reports arrived in a message this server's own inbound path
+   passed for DMARC (checked and authenticated, from the Authentication-Results
+   field it writes when that is on), and each report says what it made of the
+   message that carried it - the mailbox address is published, so a stranger
+   can post rows, and this is how the reader tells a stranger's from google's. */
+const DMARC_PAGE=25;
+let dmarcView={domain:"",days:30,offset:0};
+function dmarcPercent(part,whole){return whole?String(Math.round(Number(part)*1000/Number(whole))/10)+"%":"—";}
+function dmarcDate(seconds){const n=Number(seconds);return n>0?new Date(n*1000).toISOString().slice(0,10):"—";}
+function dmarcVerdict(word){
+  const pass=word==="pass",tone=pass?"good":word==="fail"?"warn":"";
+  return '<span class="badge '+tone+'">'+escHtml(word||"—")+'</span>';
+}
+async function showDmarc(domain,days,offset){
+  editing=null;
+  dmarcView={domain:domain,days:days||30,offset:offset||0};
+  await loadSpec();
+  const base="/api/v1/domains/"+encodeURIComponent(domain);
+  let summary,list,tls;
+  try{
+    summary=await api(base+"/dmarc-reports/summary?days="+dmarcView.days);
+    list=await api(base+"/dmarc-reports?limit="+DMARC_PAGE+"&offset="+dmarcView.offset);
+    tls=await api(base+"/tls-reports?days="+dmarcView.days+"&limit="+DMARC_PAGE+"&offset=0");
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}toast(e.message);return;}
+  const byDay=asList(summary,"by_day"),sources=asList(summary,"sources"),reporters=asList(summary,"reporters");
+  const items=asList(list,"items"),total=Number(list.total)||0,tlsItems=asList(tls,"items");
+  const nomailbox=summary.mailbox_configured?"":'<p class="note"><span class="badge warn">'+t("No mailbox")+'</span> '+t("No report mailbox is named for this domain, so no report is ever read. Edit the domain and name one: it is the address to publish in the domain's DMARC and TLS-RPT records.")+'</p>';
+  const where=summary.mailbox_configured?'<p class="note">'+tf("Reports arrive at {0}. Publish that address in the domain's DNS: rua=mailto:{0} in the _dmarc TXT record for DMARC reports and in the _smtp._tls TXT record for TLS reports.",escHtml(summary.report_mailbox||""))+'</p>':"";
+  const ranges=[7,30,90,365].map(d=>'<button class="btn '+(d===dmarcView.days?"":"ghost ")+'sm" data-act="dmarcrange" data-days="'+d+'">'+escHtml(tf("{0} days",d))+'</button>').join(" ");
+  const chart=summary.messages>0?reportChartHtml(byDay.map(d=>String(d.day).slice(5)),[
+    {label:K("Passed DMARC"),colour:"#3fb950",values:byDay.map(d=>Number(d.passed)||0)},
+    {label:K("Failed DMARC"),colour:"#f85149",values:byDay.map(d=>Number(d.failed)||0)}]):"";
+  const totals=`<div class="tablewrap"><table><thead><tr><th>${t("Messages")}</th><th>${t("Passed DMARC")}</th><th>${t("DKIM aligned")}</th><th>${t("SPF aligned")}</th><th>${t("Quarantined")}</th><th>${t("Rejected")}</th><th>${t("Reports")}</th></tr></thead>
+    <tbody><tr><td>${Number(summary.messages)||0}</td><td>${Number(summary.passed)||0} (${dmarcPercent(summary.passed,summary.messages)})</td><td>${Number(summary.dkim_passed)||0}</td><td>${Number(summary.spf_passed)||0}</td><td>${Number(summary.quarantined)||0}</td><td>${Number(summary.rejected)||0}</td><td>${Number(summary.reports)||0}</td></tr></tbody></table></div>`;
+  const sourceRows=sources.map(x=>`
+    <tr><td><code>${escHtml(x.ip)}</code></td>
+        <td>${escHtml(x.header_from||"")}</td>
+        <td>${Number(x.messages)||0}</td>
+        <td>${dmarcPercent(x.passed,x.messages)}</td>
+        <td>${Number(x.dkim_passed)||0}</td>
+        <td>${Number(x.spf_passed)||0}</td>
+        <td>${(Number(x.quarantined)||0)+(Number(x.rejected)||0)}</td>
+        <td>${Number(x.reporters)||0}</td></tr>`).join("");
+  const reporterRows=reporters.map(x=>`<tr><td>${escHtml(x.org)}</td><td>${Number(x.reports)||0}</td><td>${Number(x.messages)||0}</td><td>${Number(x.checked)>0?(Number(x.authenticated)||0)+" / "+Number(x.checked):escHtml(t("Not checked"))}</td></tr>`).join("");
+  const reportRows=items.map(x=>`
+    <tr><td>${escHtml(x.org||"")}${x.email?'<div class="hint muted">'+escHtml(x.email)+'</div>':""}${x.message_dmarc?'<div class="hint muted">'+escHtml(tf("Arrived from {0}",x.message_from||"—"))+" "+dmarcVerdict(x.message_dmarc)+'</div>':""}</td>
+        <td>${escHtml(dmarcDate(x.begin))} – ${escHtml(dmarcDate(x.end))}</td>
+        <td><code>p=${escHtml(x.p||"")}${x.sp?" sp="+escHtml(x.sp):""} adkim=${escHtml(x.adkim||"r")} aspf=${escHtml(x.aspf||"r")}</code></td>
+        <td>${Number(x.messages)||0}</td>
+        <td>${dmarcPercent(x.passed,x.messages)}</td>
+        <td>${escHtml(dmarcDate(x.received))}</td>
+        <td><button class="btn ghost sm" data-act="dmarcreport" data-id="${Number(x.id)||0}">${t("Records ›")}</button></td></tr>`).join("");
+  const tlsRows=tlsItems.map(x=>`
+    <tr><td>${escHtml(x.org||"")}</td>
+        <td>${escHtml(dmarcDate(x.begin))} – ${escHtml(dmarcDate(x.end))}</td>
+        <td><code>${escHtml(x.policy_type||"")}</code></td>
+        <td>${Number(x.successful)||0}</td>
+        <td>${Number(x.failed)||0}</td>
+        <td>${asList(x,"failures").map(f=>escHtml((f.result_type||"")+" ×"+(Number(f.count)||0)+(f.receiving_mx_hostname?" ("+f.receiving_mx_hostname+")":""))).join("<br>")||"—"}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="domains">${t("‹ All domains")}</button>
+    <div class="sect"><h2>${tf("{0} — DMARC and TLS reports",escHtml(domain))}</h2>
+      <div class="card flat">
+        ${nomailbox}${where}
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/dmarc-reports/summary","get").summary||"")}</p>
+        <div class="row" style="gap:8px;margin-bottom:12px">${ranges}</div>
+        ${chart||'<div class="empty">'+t("No report has been read for this domain in this window.")+'</div>'}
+        ${totals}
+      </div></div>
+    <div class="sect"><h2>${tf("Who sends as {0}",escHtml(domain))}</h2>
+      <div class="card flat">
+        <div class="tablewrap"><table><thead><tr><th>${t("Source")}</th><th>${t("Sends as")}</th><th>${t("Messages")}</th><th>${t("Pass rate")}</th><th>${t("DKIM aligned")}</th><th>${t("SPF aligned")}</th><th>${t("Held or refused")}</th><th>${t("Reporters")}</th></tr></thead>
+        <tbody>${sourceRows||'<tr><td colspan="8" class="empty">'+t("No source has been reported in this window.")+'</td></tr>'}</tbody></table></div>
+        ${Number(summary.sources_total)>sources.length?'<p class="note">'+escHtml(tf("{0} of {1} sources are shown, most messages first.",sources.length,summary.sources_total))+'</p>':""}
+      </div></div>
+    <div class="sect"><h2>${t("Who reports")}</h2>
+      <div class="card flat">
+        <div class="tablewrap"><table><thead><tr><th>${t("Reporter")}</th><th>${t("Reports")}</th><th>${t("Messages")}</th><th>${t("Message passed DMARC")}</th></tr></thead>
+        <tbody>${reporterRows||'<tr><td colspan="4" class="empty">'+t("Nobody has reported in this window.")+'</td></tr>'}</tbody></table></div>
+      </div></div>
+    <div class="sect"><h2>${t("The reports")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation("/api/v1/domains/{domain}/dmarc-reports","get").summary||"")}</p>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn ghost sm" data-act="dmarcpage" data-by="-${DMARC_PAGE}">${t("Newer")}</button>
+          <button class="btn ghost sm" data-act="dmarcpage" data-by="${DMARC_PAGE}">${t("Older")}</button>
+        </div>
+        <div class="tablewrap"><table><thead><tr><th>${t("Reporter")}</th><th>${t("Covers")}</th><th>${t("Policy seen")}</th><th>${t("Messages")}</th><th>${t("Pass rate")}</th><th>${t("Read")}</th><th></th></tr></thead>
+        <tbody>${reportRows||'<tr><td colspan="7" class="empty">'+t("No DMARC report has been read for this domain.")+'</td></tr>'}</tbody></table></div>
+        <p class="note" style="margin-top:12px">${tf("{0} to {1} of {2}",total?dmarcView.offset+1:0,dmarcView.offset+items.length,total)}</p>
+      </div></div>
+    <div class="sect"><h2>${t("TLS reports")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(tf("{0} session(s) to this domain succeeded and {1} failed, by what the senders that keep TLS-RPT reported over the window.",Number(tls.sessions_succeeded)||0,Number(tls.sessions_failed)||0))}</p>
+        <div class="tablewrap"><table><thead><tr><th>${t("Reporter")}</th><th>${t("Covers")}</th><th>${t("Policy type")}</th><th>${t("Succeeded")}</th><th>${t("Failed")}</th><th>${t("Failures")}</th></tr></thead>
+        <tbody>${tlsRows||'<tr><td colspan="6" class="empty">'+t("No TLS report has been read for this domain in this window.")+'</td></tr>'}</tbody></table></div>
+      </div></div></div>`;
+}
+async function showDmarcReport(domain,id){
+  editing=null;
+  await loadSpec();
+  let report;
+  try{
+    report=await api("/api/v1/domains/"+encodeURIComponent(domain)+"/dmarc-reports/"+id);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}toast(e.message);return;}
+  const records=asList(report,"records");
+  const rows=records.map(x=>`
+    <tr><td><code>${escHtml(x.source_ip)}</code></td>
+        <td>${Number(x.count)||0}</td>
+        <td>${dmarcVerdict(x.disposition)}</td>
+        <td>${dmarcVerdict(x.dkim)}</td>
+        <td>${dmarcVerdict(x.spf)}</td>
+        <td>${escHtml(x.header_from||"")}${x.envelope_from?'<div class="hint muted">'+escHtml(x.envelope_from)+'</div>':""}</td>
+        <td>${x.dkim_auth?'<div><code>'+escHtml(x.dkim_auth)+'</code></div>':""}${x.spf_auth?'<div><code>'+escHtml(x.spf_auth)+'</code></div>':""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="dmarcback">${t("‹ Back to the reports")}</button>
+    <div class="sect"><h2>${tf("{0} — a DMARC report from {1}",escHtml(domain),escHtml(report.org||""))}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(tf("Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.",report.report_id||"",dmarcDate(report.begin),dmarcDate(report.end),dmarcDate(report.received),report.p||"none"))}</p>
+        <div class="tablewrap"><table><thead><tr><th>${t("Source")}</th><th>${t("Count")}</th><th>${t("Disposition")}</th><th>${t("DKIM")}</th><th>${t("SPF")}</th><th>${t("Sends as")}</th><th>${t("Authentication")}</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("The report holds no records.")+'</td></tr>'}</tbody></table></div>
       </div></div></div>`;
 }
 

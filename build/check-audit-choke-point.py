@@ -351,6 +351,13 @@ NOT_AUDITED = {
                     "complaint made (hm_bouncesuppressions), and both are audited.",
    "hm_complaintvolume": "the per-domain daily tally of messages delivered and complaints received that the complaint rate is "
                          "worked out from, written by delivery and by an arriving report, with no actor; traffic.",
+   "hm_dmarcreports": "one row per DMARC aggregate report a receiver posted to a domain's report mailbox, written by the arriving "
+                      "report with no actor at all and pruned by the retention sweep; traffic. The mailbox it is read from is an "
+                      "hm_domains column, which is audited.",
+   "hm_dmarcreportrecords": "the records of those reports - one per source and verdict a receiver counted - written with the report "
+                            "and gone with it by the cascade; traffic.",
+   "hm_tlsreports": "one row per TLS-RPT report a sender posted to a domain's report mailbox, written by the arriving report with "
+                    "no actor and pruned by the retention sweep; traffic.",
    "hm_knownsenders": "who an account has corresponded with, learned from its mail.",
    "hm_passwordhistory": "the hashes of an account's earlier passwords, written as a consequence of the password change the hm_accounts row already records.",
    "hm_accountprefs": "an account's own webmail preferences, set by the account in the portal.",

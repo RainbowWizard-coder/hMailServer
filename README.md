@@ -50,6 +50,7 @@ Transport security
 * An `AEAD-ONLY` cipher preset, which excludes every CBC construction and the Lucky13 family; nothing below TLS 1.2 can connect under it.
 * DNSSEC validation also protects SPF, DKIM and DMARC record lookups.
 * **TLS-RPT** (RFC 8460) daily aggregate reports to recipient domains — off until `TlsRptFromAddress` is set (the server notes this in the application log while statistics are collected unsent).
+* **The reports our own domains receive, read**: name a report mailbox on a domain (`Domain.ReportMailbox`, `report_mailbox`), publish it as `rua=mailto:` in the domain's `_dmarc` and `_smtp._tls` records, and the DMARC aggregate reports (RFC 7489 and RFC 9990) and TLS-RPT reports (RFC 8460) that arrive there - gzip, zip or plain, XML or JSON - are parsed into `hm_dmarcreports`, `hm_dmarcreportrecords` and `hm_tlsreports`. The Control Deck's DMARC page charts who sends as the domain and with what result, per source and per day, the way the paid DMARC services do; `hmctl dmarc` and `GET /api/v1/domains/{domain}/dmarc-reports/summary` answer the same numbers. Only the named mailbox is an intake, a report about a domain that names none is not recorded, and nothing read here acts on any mail ([DmarcReports.md](hmailserver/docs/DmarcReports.md)).
 * **ACME v2 (Let's Encrypt)** built in: certificates are issued, renewed, assigned to TLS ports and hot-reloaded without a restart. The private key is reused across renewals, so published DANE TLSA records stay valid.
 
 Sender authentication and anti-abuse

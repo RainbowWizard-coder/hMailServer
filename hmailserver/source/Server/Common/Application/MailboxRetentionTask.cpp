@@ -23,6 +23,7 @@
 #include "../Util/MessageUtilities.h"
 #include "../Util/RecoverableStore.h"
 #include "../Util/ConfidentialMessages.h"
+#include "../Util/DomainReports.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/IMAPSpecialUse.h"
 #include "../../IMAP/MessagesContainer.h"
@@ -395,6 +396,10 @@ namespace HM
       // removes the directories of accounts that no longer exist).
       RecoverableStore::Sweep();
       ConfidentialMessages::Sweep(true);
+
+      // And the DMARC aggregate and TLS-RPT reports read more than
+      // DomainReportRetentionDays ago.
+      DomainReports::Sweep();
 
       return deleted;
    }

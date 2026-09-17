@@ -6524,11 +6524,17 @@ SMTP 25 e 587, POP3 110, IMAP 143 - sem segurança de conexão. As portas TLS e 
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>Responder s_omente a colegas - remetentes de fora não recebem nada, ou o texto do domínio quando a substituição dele está ligada</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>_Caixa de relatórios (um endereço em um domínio hospedado por este servidor; vazia não lê nada)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Caixa de relatórios:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Relatar a fila de trabalho assíncrona como travada após (segundos)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>Relatórios recebidos</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>Repositório que o certificado de assinatura deve nomear (vazio = este projeto; - = não verificar)</value>
@@ -8127,6 +8133,9 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>O Control Panel está conectado a outro host, então a conta com a qual o serviço DELE roda não pode ser lida daqui. Abra o Control Panel no próprio servidor para vê-la.</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>Os relatórios agregados DMARC e os relatórios TLS-RPT que os receptores do correio deste domínio devolvem são lidos de um endereço do domínio, e o Control Deck mostra em gráfico quem envia como o domínio e com que resultado. Publique o endereço como rua=mailto: nos registros TXT _dmarc e _smtp._tls do domínio. Crie você mesmo a conta ou o alias nesse endereço; o servidor não cria, e sem um endereço indicado nada é lido.</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>A pontuação de falha do DMARC é atualmente {0}. O ARC funciona compensando essa pontuação, então em zero a filtragem ARC não pode fazer nada, mesmo com seladores confiáveis listados. Defina primeiro uma pontuação de falha do DMARC positiva na página Configurações antispam.</value>

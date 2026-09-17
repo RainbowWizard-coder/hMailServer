@@ -190,6 +190,7 @@
 // account_number detector searches the readable text for. Empty, the default,
 // is a detector that never fires; a card number and an IBAN need no pattern.
 #define PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN     _T("DlpAccountNumberPattern")
+#define PROPERTY_DOMAIN_REPORT_RETENTION_DAYS   _T("DomainReportRetentionDays")
 // Importing from the old provider with a sign-in (Util/ReaderOAuth.h): the base
 // URL the providers send the reader back to, and per provider the client this
 // server is registered as and the two endpoints of the authorization code flow.
@@ -448,4 +449,11 @@
 //      the backup archive is encrypted with, protected by the platform's secret
 //      store, with the integer as "a passphrase is set". Empty on every existing
 //      installation, where backups go on being written unencrypted.
-#define REQUIRED_DB_VERSION            6069
+// 6070 adds hm_domains.domainreportmailbox (the address a domain's DMARC and
+//      TLS-RPT aggregate reports are posted to, '' until an administrator names
+//      one), hm_dmarcreports and hm_dmarcreportrecords (one row per aggregate
+//      report read from that mailbox and one per <record> of it) and hm_tlsreports
+//      (one row per TLS-RPT policy result), and seeds the hm_settings row
+//      DomainReportRetentionDays (365). Nothing is read until a domain names a
+//      mailbox, so an upgraded database behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6070

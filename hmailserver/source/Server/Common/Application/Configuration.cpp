@@ -256,6 +256,11 @@ namespace HM
       // Outbound content policy: no account-number pattern until one is set;
       // the card and IBAN detectors need none.
       property_set_->EnsureString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN, _T(""));
+
+      // The reports our own domains receive: a year, which is what the paid
+      // services keep, by the day the report was read. Nothing is read until a
+      // domain names a report mailbox, so the row costs an upgraded server nothing.
+      property_set_->EnsureLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS, 365);
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
@@ -570,6 +575,18 @@ namespace HM
    Configuration::SetDlpAccountNumberPattern(const String &pattern)
    {
       GetSettings()->SetString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN, pattern);
+   }
+
+   int
+   Configuration::GetDomainReportRetentionDays() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS);
+   }
+
+   void
+   Configuration::SetDomainReportRetentionDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS, days);
    }
 
    String

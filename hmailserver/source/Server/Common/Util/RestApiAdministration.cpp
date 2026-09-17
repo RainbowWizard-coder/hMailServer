@@ -54,6 +54,7 @@
 #include "../BO/DistributionListRecipient.h"
 #include "../BO/SecurityRanges.h"
 #include "../BO/SecurityRange.h"
+#include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/PersistentDomainAlias.h"
 #include "../Persistence/PersistentDistributionList.h"
@@ -282,14 +283,22 @@ namespace HM
          "openpgp_publish", "openpgp_publish_new_accounts",
          "webhooks_enabled", "webhook_subjects",
          "country_policy",
-         "session_idle_seconds", "session_lifetime_seconds", "session_one_per_device", "session_bind_to_address"
+         "session_idle_seconds", "session_lifetime_seconds", "session_one_per_device", "session_bind_to_address",
+         "report_mailbox"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
       // the first problem is the answer and nothing has been applied when it
       // is given. renamed says whether the name changed, for the log line.
-      bool ApplyDomainBody(const JsonValue &body, std::shared_ptr<Domain> domain, AnsiString &error, bool &renamed)
+      // callerDomains is the list a confined credential reaches (empty for one
+      // that is not confined to a list), and forbidden is set with error when
+      // the refusal is about the caller's authority rather than the body, so
+      // the handler answers 403 and not 400.
+      bool ApplyDomainBody(const JsonValue &body, std::shared_ptr<Domain> domain, const std::vector<String> &callerDomains,
+                           AnsiString &error, bool &renamed, bool &forbidden)
       {
+         forbidden = false;
+
          if (UnknownKey(body, DomainKeys, sizeof(DomainKeys) / sizeof(DomainKeys[0]), error))
             return false;
 
@@ -311,6 +320,7 @@ namespace HM
          String externalTagText = domain->GetExternalTagText();
          String disclaimerPlainText = domain->GetDisclaimerPlainText(), disclaimerHtml = domain->GetDisclaimerHTML();
          String countryPolicy = domain->GetCountryPolicy();
+         String reportMailbox = domain->GetReportMailbox();
 
          if (!ReadString(body, "name", name, error) ||
              !ReadString(body, "postmaster", postmaster, error) ||
@@ -339,8 +349,63 @@ namespace HM
              !ReadString(body, "external_tag_text", externalTagText, error) ||
              !ReadString(body, "disclaimer_plain_text", disclaimerPlainText, error) ||
              !ReadString(body, "disclaimer_html", disclaimerHtml, error) ||
-             !ReadString(body, "country_policy", countryPolicy, error))
+             !ReadString(body, "country_policy", countryPolicy, error) ||
+             !ReadString(body, "report_mailbox", reportMailbox, error))
             return false;
+
+         // The report mailbox: empty, or one address in a domain this server
+         // hosts - this one, under the name it is being saved with, or another.
+         // A provider delivers a DMARC or TLS-RPT report to the address the rua=
+         // tag names, so an address somewhere else would read no report and never
+         // say so; the same rule the complaint mailbox is held to. Whether an
+         // account or alias answers at it is the administrator's to arrange - the
+         // domain may be new and its mailboxes not yet made.
+         //
+         // Judged only when the body names it. The stored value is kept valid by
+         // PersistentDomain - rewritten on a rename, cleared when the domain that
+         // hosts it is deleted - and judging it again on every save would refuse
+         // a PUT of some other field, and the Control Panel's Save, for a value
+         // the caller did not touch.
+         reportMailbox.Trim();
+         reportMailbox.ToLower();
+
+         if (body.Get("report_mailbox") && !reportMailbox.IsEmpty())
+         {
+            const String mailboxDomain = StringParser::ExtractDomain(reportMailbox);
+            const bool own = !mailboxDomain.IsEmpty() && mailboxDomain.CompareNoCase(name) == 0;
+            const bool hosted = own || (!mailboxDomain.IsEmpty() && CacheContainer::Instance()->GetDomain(mailboxDomain));
+
+            if (!StringParser::IsValidEmailAddress(reportMailbox) || !hosted)
+            {
+               error = "report_mailbox is one address in a domain this server hosts, or empty; the DMARC and TLS-RPT reports are delivered to it.";
+               return false;
+            }
+
+            // A mailbox in ANOTHER hosted domain makes this server open every
+            // attachment delivered to that address alone, so a credential
+            // confined to a list of domains may name one only in a domain on
+            // its list; the cross-domain form is otherwise the server
+            // administrator's.
+            if (!own && !callerDomains.empty())
+            {
+               bool reaches = false;
+               for (const String &allowed : callerDomains)
+               {
+                  if (allowed.CompareNoCase(mailboxDomain) == 0)
+                  {
+                     reaches = true;
+                     break;
+                  }
+               }
+
+               if (!reaches)
+               {
+                  error = "report_mailbox names an address in a domain this credential does not administer; a key confined to a list of domains may name a mailbox only in one of them.";
+                  forbidden = true;
+                  return false;
+               }
+            }
+         }
 
          // The country policy, in the grammar CountryBlocking owns: refused here
          // in the setting's own words, and stored in the one canonical spelling
@@ -600,6 +665,7 @@ namespace HM
          domain->SetOpenPGPPublishNewAccounts(openPgpPublishNewAccounts);
          domain->SetQuarantineDigestHour((int) digestHour);
          domain->SetCountryPolicy(canonicalCountryPolicy);
+         domain->SetReportMailbox(reportMailbox);
          domain->SetADDomainName(adDomainName);
          domain->SetExternalTagSubject(externalTagSubject);
          domain->SetExternalTagHeader(externalTagHeader);
@@ -738,6 +804,7 @@ namespace HM
       text("disclaimer_plain_text", domain->GetDisclaimerPlainText());
       text("disclaimer_html", domain->GetDisclaimerHTML());
       text("country_policy", domain->GetCountryPolicy());
+      text("report_mailbox", domain->GetReportMailbox());
       entry += "}";
       return entry;
    }
@@ -790,8 +857,9 @@ namespace HM
 
       AnsiString error;
       bool renamed = false;
-      if (!ApplyDomainBody(body, domain, error, renamed))
-         return BuildResponse_(400, ErrorBody(quote, String(error)));
+      bool forbidden = false;
+      if (!ApplyDomainBody(body, domain, caller.domains, error, renamed, forbidden))
+         return BuildResponse_(forbidden ? 403 : 400, ErrorBody(quote, String(error)));
 
       String rotationRefusal;
       if (DkimRotation::RefusesKeyChange(*stored, *domain, rotationRefusal))

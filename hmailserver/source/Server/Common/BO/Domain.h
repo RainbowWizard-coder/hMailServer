@@ -122,6 +122,14 @@ namespace HM
       String GetCountryPolicy() const { return country_policy_; }
       void SetCountryPolicy(const String &newVal) { country_policy_ = newVal; }
 
+      // The address this domain's DMARC aggregate and TLS-RPT reports are posted
+      // to - what its rua= tags name - and the one address this server reads such
+      // reports from (schema 6070). Empty, the default, means the domain takes no
+      // reports in and a report to any of its addresses is ordinary mail. Read and
+      // recorded by DomainReports.
+      String GetReportMailbox() const { return report_mailbox_; }
+      void SetReportMailbox(const String &newVal) { report_mailbox_ = newVal; }
+
       // The session policies for the accounts of this domain (schema 6050). The
       // two numbers are seconds, and 0 means "take the server's answer"; the two
       // switches are 0 to take the server's answer, 1 for on and 2 for off, because
@@ -438,6 +446,7 @@ namespace HM
       int session_one_per_device_;
       int session_bind_to_address_;
       String country_policy_;
+      String report_mailbox_;
 
       bool enable_signature_;
       DomainSignatureMethod signature_method_;

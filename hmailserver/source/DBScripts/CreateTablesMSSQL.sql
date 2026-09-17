@@ -17,6 +17,9 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraps') and obj
 
 if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
+if exists (select * from sysobjects where id = object_id('hm_dmarcreportrecords') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreportrecords
+if exists (select * from sysobjects where id = object_id('hm_dmarcreports') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreports
+if exists (select * from sysobjects where id = object_id('hm_tlsreports') and objectproperty(id, 'isusertable') = 1) drop table hm_tlsreports
 if exists (select * from sysobjects where id = object_id('hm_confidential') and objectproperty(id, 'isusertable') = 1) drop table hm_confidential
 if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
@@ -338,7 +341,8 @@ create table hm_domains (
 	domainsessionidleseconds int not null default 0,
 	domainsessionlifetimeseconds int not null default 0,
 	domainsessiononeperdevice int not null default 0,
-	domainsessionbindaddress int not null default 0
+	domainsessionbindaddress int not null default 0,
+	domainreportmailbox nvarchar(255) not null default ''
 ) 
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
@@ -829,6 +833,85 @@ ALTER TABLE hm_confidential ADD CONSTRAINT hm_confidential_pk PRIMARY KEY NONCLU
 CREATE UNIQUE CLUSTERED INDEX idx_hm_confidential_token ON hm_confidential (cftoken)
 
 CREATE INDEX idx_hm_confidential_account ON hm_confidential (cfaccountid)
+
+create table hm_dmarcreports
+(
+	drid int identity(1,1) not null,
+	drdomainid int not null,
+	drkey nvarchar(64) not null,
+	drorgname nvarchar(255) not null,
+	dremail nvarchar(255) not null,
+	drreportid nvarchar(255) not null,
+	drbegin bigint not null,
+	drend bigint not null,
+	drpolicydomain nvarchar(255) not null,
+	dradkim nvarchar(8) not null,
+	draspf nvarchar(8) not null,
+	drp nvarchar(16) not null,
+	drsp nvarchar(16) not null,
+	drpct int not null,
+	drmessages int not null,
+	drpassed int not null,
+	drreceived bigint not null,
+	drsource nvarchar(255) not null,
+	drrecords int not null,
+	drmsgdmarc nvarchar(16) not null,
+	drmsgfrom nvarchar(255) not null
+)
+
+ALTER TABLE hm_dmarcreports ADD CONSTRAINT hm_dmarcreports_pk PRIMARY KEY NONCLUSTERED (drid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_dmarcreports_key ON hm_dmarcreports (drkey)
+
+CREATE INDEX idx_hm_dmarcreports_domain ON hm_dmarcreports (drdomainid)
+
+CREATE INDEX idx_hm_dmarcreports_received ON hm_dmarcreports (drreceived)
+
+create table hm_dmarcreportrecords
+(
+	rrid int identity(1,1) not null,
+	rrreportid int not null,
+	rrsourceip nvarchar(45) not null,
+	rrcount int not null,
+	rrdisposition nvarchar(16) not null,
+	rrdkim nvarchar(8) not null,
+	rrspf nvarchar(8) not null,
+	rrheaderfrom nvarchar(255) not null,
+	rrenvelopefrom nvarchar(255) not null,
+	rrdkimauth nvarchar(500) not null,
+	rrspfauth nvarchar(255) not null
+)
+
+ALTER TABLE hm_dmarcreportrecords ADD CONSTRAINT hm_dmarcreportrecords_pk PRIMARY KEY NONCLUSTERED (rrid)
+
+CREATE CLUSTERED INDEX idx_hm_dmarcreportrecords_report ON hm_dmarcreportrecords (rrreportid)
+
+create table hm_tlsreports
+(
+	trid int identity(1,1) not null,
+	trdomainid int not null,
+	trkey nvarchar(64) not null,
+	trorgname nvarchar(255) not null,
+	trcontact nvarchar(255) not null,
+	trreportid nvarchar(255) not null,
+	trbegin bigint not null,
+	trend bigint not null,
+	trpolicytype nvarchar(16) not null,
+	trpolicydomain nvarchar(255) not null,
+	trsuccess int not null,
+	trfailure int not null,
+	trfailures nvarchar(2000) not null,
+	trreceived bigint not null,
+	trsource nvarchar(255) not null
+)
+
+ALTER TABLE hm_tlsreports ADD CONSTRAINT hm_tlsreports_pk PRIMARY KEY NONCLUSTERED (trid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_tlsreports_key ON hm_tlsreports (trkey)
+
+CREATE INDEX idx_hm_tlsreports_domain ON hm_tlsreports (trdomainid)
+
+CREATE INDEX idx_hm_tlsreports_received ON hm_tlsreports (trreceived)
 
 create table hm_remotedomainpolicies
 (
@@ -1732,6 +1815,12 @@ ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY 
 
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_dmarcreports ADD CONSTRAINT fk_hm_dmarcreports_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+ALTER TABLE hm_dmarcreportrecords ADD CONSTRAINT fk_hm_dmarcreportrecords_report FOREIGN KEY (rrreportid) REFERENCES hm_dmarcreports (drid) ON DELETE CASCADE
+
+ALTER TABLE hm_tlsreports ADD CONSTRAINT fk_hm_tlsreports_domain FOREIGN KEY (trdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
 
 ALTER TABLE hm_rule_actions ADD CONSTRAINT fk_hm_rule_actions_rule FOREIGN KEY (actionruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
@@ -2176,4 +2265,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6069)
+insert into hm_dbversion values (6070)

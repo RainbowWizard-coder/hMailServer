@@ -638,6 +638,16 @@ namespace HM
          RouteComplaintExpire,
          RouteSettingsComplaintsGet,
          RouteSettingsComplaintsPut,
+         // The reports our own domains receive, read (RestApiDomainReports.cpp):
+         // the DMARC aggregate reports and the TLS-RPT reports read from a
+         // domain's report mailbox. The four under a domain are scoped to it in
+         // Authorize_ as the complaints are; the sweep prunes every domain's rows
+         // and is server-wide.
+         RouteDomainReportsSummary,
+         RouteDomainReportsList,
+         RouteDomainReportGet,
+         RouteDomainTlsReportsList,
+         RouteDomainReportsExpire,
          RouteMessageTraceQueue,
          // The audit trail and the alerts (RestApiAudit.cpp). Every one of these
          // is refused to an API key of any scope - they are in IsApiKeyRoute_ -
@@ -1595,6 +1605,11 @@ namespace HM
       // RestApiComplaints.cpp.
       HttpResponse HandleComplaints_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiComplaintsPaths_();
+
+      // The DMARC aggregate and TLS-RPT reports read for a domain, and the
+      // sweep. In RestApiDomainReports.cpp.
+      HttpResponse HandleDomainReports_(const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiDomainReportsPaths_();
 
       std::shared_ptr<HttpServer> server_;
       bool running_;

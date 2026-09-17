@@ -1185,6 +1185,19 @@ namespace DBUpdater
          // link, with the expiry, the first opening and the revocation.
          new SchemaProbe(6069, "hm_confidential.cfexpires",
                          "update hm_confidential set cfexpires = cfexpires where 1 = 0"),
+         // Upgrade6069to6070* - the reports our own domains receive, read: the
+         // domain's report mailbox, the DMARC aggregate reports and their records,
+         // and the TLS-RPT reports.
+         new SchemaProbe(6070, "hm_domains.domainreportmailbox",
+                         "update hm_domains set domainreportmailbox = domainreportmailbox where 1 = 0"),
+         new SchemaProbe(6070, "hm_dmarcreports.drreceived",
+                         "update hm_dmarcreports set drreceived = drreceived where 1 = 0"),
+         new SchemaProbe(6070, "hm_dmarcreports.drrecords",
+                         "update hm_dmarcreports set drrecords = drrecords where 1 = 0"),
+         new SchemaProbe(6070, "hm_dmarcreportrecords.rrcount",
+                         "update hm_dmarcreportrecords set rrcount = rrcount where 1 = 0"),
+         new SchemaProbe(6070, "hm_tlsreports.trreceived",
+                         "update hm_tlsreports set trreceived = trreceived where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

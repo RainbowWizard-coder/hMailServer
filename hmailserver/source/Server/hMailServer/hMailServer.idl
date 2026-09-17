@@ -1216,6 +1216,10 @@ interface IInterfaceDomain : IDispatch
       [propget, id(87), helpstring("Whether a webhook body about this domain may carry a message subject. OFF by default on every domain, because a subject line is what a message is about and a stream of them to a third-party endpoint is a disclosure nobody asked for. A subject travels only where this and the subscription's own include_subject both say so, and only on message.received and message.quarantined. Saved by Save.")] HRESULT WebhookSubjects([out, retval] VARIANT_BOOL *pVal);
       [propput, id(87), helpstring("Whether a webhook body about this domain may carry a message subject. OFF by default on every domain, because a subject line is what a message is about and a stream of them to a third-party endpoint is a disclosure nobody asked for. A subject travels only where this and the subscription's own include_subject both say so, and only on message.received and message.quarantined. Saved by Save.")] HRESULT WebhookSubjects([in] VARIANT_BOOL newVal);
 
+      // The reports the domain receives, read. See Common/Util/DomainReports.h.
+      [propget, id(175), helpstring("The address this domain's DMARC aggregate and TLS-RPT reports are posted to - what its rua= tags name - and the one address this server reads such reports from. One address in a domain this server hosts, or empty, which is the default and reads nothing. The account or alias at it is the administrator's to make. Saved by Save.")] HRESULT ReportMailbox([out, retval] BSTR *pVal);
+      [propput, id(175), helpstring("The address this domain's DMARC aggregate and TLS-RPT reports are posted to - what its rua= tags name - and the one address this server reads such reports from. One address in a domain this server hosts, or empty, which is the default and reads nothing. The account or alias at it is the administrator's to make. Saved by Save.")] HRESULT ReportMailbox([in] BSTR newVal);
+
 
       // Spam traps: addresses of this domain that were never real. See
       // Common/AntiSpam/SpamTrapMonitor.h.

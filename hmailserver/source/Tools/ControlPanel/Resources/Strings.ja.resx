@@ -6524,11 +6524,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
     <value>同僚にのみ返信 - 外部の送信者には何も送らず、ドメインの上書きがオンならドメインの本文を送ります(_O)</value>
   </data>
+  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
+    <value>レポート用メールボックス (このサーバーがホストするドメイン内のアドレス 1 つ。空欄なら何も読み取りません) (_M)</value>
+  </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>レポートのメールボックス:</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>非同期ワーク キューを停滞と報告するまでの時間 (秒)</value>
+  </data>
+  <data name="Reports received" xml:space="preserve">
+    <value>受信するレポート</value>
   </data>
   <data name="Repository the signing certificate must name (empty = this project; - = do not check)" xml:space="preserve">
     <value>署名証明書が示していなければならないリポジトリ (空 = このプロジェクト、- = 確認しない)</value>
@@ -8127,6 +8133,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>コントロールパネルは別のホストに接続しているため、そのホストのサービスが実行されているアカウントをここから読み取ることはできません。サーバー自体でコントロールパネルを開いて確認してください。</value>
+  </data>
+  <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
+    <value>このドメインのメールの受信側が送り返す DMARC 集計レポートと TLS-RPT レポートは、ドメインのアドレス 1 つから読み取られ、Control Deck が誰がこのドメインとして送信し、どのような結果だったかをグラフにします。そのアドレスを、ドメインの _dmarc および _smtp._tls の TXT レコードに rua=mailto: として公開してください。そのアドレスのアカウントまたはエイリアスはご自身で作成してください。サーバーは作成せず、アドレスが指定されていなければ何も読み取りません。</value>
   </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC 失敗スコアは現在 {0} です。ARC はそのスコアを相殺することで機能するため、ゼロでは信頼されたシーラーを列挙しても ARC フィルタリングは何もできません。まずスパム対策の設定ページで正の DMARC 失敗スコアを設定してください。</value>
