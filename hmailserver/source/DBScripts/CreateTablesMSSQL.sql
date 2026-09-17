@@ -17,6 +17,7 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraps') and obj
 
 if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
+if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
 if exists (select * from sysobjects where id = object_id('hm_senderaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_senderaddresses
 if exists (select * from sysobjects where id = object_id('hm_calendarshares') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarshares
@@ -786,6 +787,24 @@ ALTER TABLE hm_maskedaddresses ADD CONSTRAINT hm_maskedaddresses_pk PRIMARY KEY 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress)
 
 CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid)
+
+create table hm_recoverable
+(
+	rcid int identity(1,1) not null,
+	rcaccountid int not null,
+	rcfolderid int not null,
+	rcfolder nvarchar(255) not null,
+	rcfile nvarchar(255) not null,
+	rcsize int not null,
+	rcsubject nvarchar(255) not null,
+	rcfrom nvarchar(255) not null,
+	rcflags int not null,
+	rcdeleted bigint not null
+)
+
+ALTER TABLE hm_recoverable ADD CONSTRAINT hm_recoverable_pk PRIMARY KEY NONCLUSTERED (rcid)
+
+CREATE CLUSTERED INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid)
 
 create table hm_remotedomainpolicies
 (
@@ -1685,6 +1704,8 @@ ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FORE
 
 ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
 
 ALTER TABLE hm_rule_actions ADD CONSTRAINT fk_hm_rule_actions_rule FOREIGN KEY (actionruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
@@ -2129,4 +2150,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6067)
+insert into hm_dbversion values (6068)

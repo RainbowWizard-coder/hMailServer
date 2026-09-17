@@ -693,6 +693,21 @@ function answerMaskedAddresses(method, path, body) {
    if (method === 'DELETE') { maskedAddresses.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
+// Recover deleted items: a window of 14 days and two deleted messages.
+let recoverable = { days: 14, items: [
+   { id: 41, folder_id: 1, folder: 'INBOX', subject: 'Quarterly figures', from: 'Finance <finance@example.com>', size: 20480, seen: true, deleted: 1789600000 },
+   { id: 40, folder_id: 7, folder: 'Projects.Garden', subject: 'Seed order', from: 'shop@example.com', size: 4096, seen: false, deleted: 1789500000 }
+] };
+function answerRecoverable(method, path) {
+   if (!path.startsWith('/api/v1/me/recoverable')) { return null; }
+   if (path === '/api/v1/me/recoverable' && method === 'GET') { return json(200, { days: recoverable.days, items: recoverable.items.slice() }); }
+   const m = /^\/api\/v1\/me\/recoverable\/(\d+)(\/restore)?$/.exec(path);
+   const at = m ? recoverable.items.findIndex((i) => i.id === Number(m[1])) : -1;
+   if (at < 0) { return json(404, { error: 'not found' }); }
+   if (m[2] && method === 'POST') { const item = recoverable.items.splice(at, 1)[0]; return json(200, { folder_id: item.folder_id, message_id: 900 }); }
+   if (!m[2] && method === 'DELETE') { recoverable.items.splice(at, 1); return json(200, { deleted: true }); }
+   return json(404, { error: 'not found' });
+}
 let importOffer = { google: true, microsoft: false };
 function answerFetchAccounts(method, path, body) {
    if (!path.startsWith('/api/v1/me/fetch-accounts')) { return null; }
@@ -730,6 +745,7 @@ function answer(method, path, body) {
    { const fetches = answerFetchAccounts(method, path, body); if (fetches) { return fetches; } }
    { const senders = answerSenderAddresses(method, path, body); if (senders) { return senders; } }
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
+   { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
    if (path === '/api/v1/me') {
       return json(200, {
          address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
@@ -3629,6 +3645,46 @@ async function main() {
       await flush();
       check('Remove asks, saying mail to it will be refused, and removes it',
          confirms[confirms.length - 1].indexOf('news.a2b3c4@example.com') >= 0 && called(beforeRemove, 'DELETE', '/api/v1/me/masked-addresses/2') && !rowFor('news.a2b3c4@example.com'));
+   }
+
+   // ---- Recover deleted items: put back, or deleted for good
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const rows = () => walkAll(document.getElementById('recover-rows'), (n) => n.tagName === 'TR');
+      const rowFor = (subject) => rows().filter((r) => r.textContent.indexOf(subject) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+
+      const beforeLoad = requests.length;
+      location.hash = '#/recover';
+      await flush();
+      check('the Recover deleted items page lists what was deleted within the window, with where it was',
+         called(beforeLoad, 'GET', '/api/v1/me/recoverable') && document.getElementById('recover-section').hidden === false && rows().length === 2 &&
+         rowFor('Seed order').textContent.indexOf('Projects.Garden') >= 0 && document.getElementById('recover-note').textContent.indexOf('14') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      const beforeRestore = requests.length;
+      buttonIn(rowFor('Quarterly figures'), 'Put back').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Put back asks the server to restore it, and it leaves the list',
+         called(beforeRestore, 'POST', '/api/v1/me/recoverable/41/restore') && !rowFor('Quarterly figures') &&
+         String(document.getElementById('recover-status').className).indexOf('ok') >= 0);
+
+      confirmAnswer = true;
+      const beforePurge = requests.length;
+      buttonIn(rowFor('Seed order'), 'Delete for good').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Delete for good asks first, and deletes it', confirms[confirms.length - 1].indexOf('Seed order') >= 0 &&
+         called(beforePurge, 'DELETE', '/api/v1/me/recoverable/40') && !rowFor('Seed order') && document.getElementById('recover-empty').hidden === false);
+
+      recoverable.days = 0;
+      location.hash = '#/settings';
+      await flush();
+      location.hash = '#/recover';
+      await flush();
+      check('a server that keeps nothing says so', document.getElementById('recover-note').textContent === words('Your server keeps nothing that is deleted.') &&
+         document.getElementById('recover-empty').hidden === true, document.getElementById('recover-note').textContent);
+      recoverable.days = 14;
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

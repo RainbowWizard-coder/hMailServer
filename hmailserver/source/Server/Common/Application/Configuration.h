@@ -224,6 +224,10 @@ namespace HM
       int GetReaderMaskedAddressesMax() const;
       void SetReaderMaskedAddressesMax(int count);
 
+      // How many days a message a person deletes can be recovered (RecoverableStore.h); 0 keeps none.
+      int GetRecoverDeletedDays() const;
+      void SetRecoverDeletedDays(int days);
+
       String GetImportOAuthRedirectBaseUrl() const;
       void SetImportOAuthRedirectBaseUrl(const String &url);
       String GetImportOAuthString(const String &propertyName) const;

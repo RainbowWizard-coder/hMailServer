@@ -11,6 +11,7 @@
 #include "IMAPNotificationClient.h"
 
 #include "../Common/BO/Messages.h"
+#include "../Common/Util/RecoverableStore.h"
 #include "../Common/BO/Message.h"
 
 #include "../Common/BO/IMAPFolder.h"
@@ -83,7 +84,11 @@ namespace HM
             messages_to_delete.insert(entry.second.message_id);
       }
 
-      std::vector<__int64> deleted_message_ids = messages->DeleteMessagesById(messages_to_delete);
+      std::vector<__int64> deleted_message_ids;
+      {
+         RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
+         deleted_message_ids = messages->DeleteMessagesById(messages_to_delete);
+      }
 
       // EXPUNGE is a point where an untagged EXPUNGE may be sent, so whatever earlier
       // commands found gone joins this one: the client learns of both at once.

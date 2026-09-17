@@ -824,6 +824,17 @@ namespace
         "Whether a reader's other account may be on a host that resolves to a private, loopback or link-local address. Off by default: the server makes the connection from inside its own network, on the reader's word. Turn it on to let people collect from an old mail server inside the network.",
         ROW_FLAG(Config()->GetReaderFetchAccountsPrivateAddresses()), ROW_SET(Config()->SetReaderFetchAccountsPrivateAddresses(v.flag)), ROW_NO_CHECK },
 
+      // Deleted items kept for recovery (Util/RecoverableStore.h).
+      { "recover_deleted_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days a message a person deletes - by IMAP EXPUNGE or CLOSE, a POP3 DELE, the webmail's delete or emptying of a folder, or their own retention choices - is kept aside, listed on the webmail's Recover deleted items page and put back from there. 0, the default, keeps nothing. At most 365. The copies are under the data directory's Recoverable folder and count against no quota; the retention task ends them when the window passes.",
+        ROW_NUMBER(Config()->GetRecoverDeletedDays()), ROW_SET(Config()->SetRecoverDeletedDays((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 0 || v.number > 365)
+              return String(_T("recover_deleted_days is between 0 and 365."));
+           return String();
+        } },
+
       // Masked addresses a reader makes (Util/MaskedAddresses.h).
       { "reader_masked_addresses_max", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many masked addresses a reader may make in the webmail: an address in their own domain for one sign-up, delivering to their mailbox and switched off when it starts to receive spam. 0 offers none; at most 200. An account, alias or list an administrator makes later with the same address takes it over.",

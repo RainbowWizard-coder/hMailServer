@@ -50,6 +50,8 @@ select hm_drop_table('hm_scheduled');
 select hm_drop_table('hm_files');
 select hm_drop_table('hm_smimekeys');
 
+select hm_drop_table('hm_recoverable');
+
 select hm_drop_table('hm_maskedaddresses');
 
 select hm_drop_table('hm_senderaddresses');
@@ -632,6 +634,22 @@ create table hm_maskedaddresses
 CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
 
 CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid);
+
+create table hm_recoverable
+(
+	rcid serial not null primary key,
+	rcaccountid int not null,
+	rcfolderid int not null,
+	rcfolder varchar(255) not null,
+	rcfile varchar(255) not null,
+	rcsize int not null,
+	rcsubject varchar(255) not null,
+	rcfrom varchar(255) not null,
+	rcflags int not null,
+	rcdeleted bigint not null
+);
+
+CREATE INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1461,6 +1479,8 @@ ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FORE
 
 ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_autoreplies ADD CONSTRAINT fk_hm_autoreplies_account FOREIGN KEY (araccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
@@ -1871,4 +1891,4 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6067);
+insert into hm_dbversion values (6068);

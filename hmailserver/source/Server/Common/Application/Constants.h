@@ -178,6 +178,7 @@
 #define PROPERTY_READER_FETCH_PRIVATE_ADDRESSES _T("ReaderFetchPrivateHosts")
 #define PROPERTY_READER_SENDER_ADDRESSES_MAX    _T("ReaderSenderAddressesMax")
 #define PROPERTY_READER_MASKED_ADDRESSES_MAX    _T("ReaderMaskedAddressesMax")
+#define PROPERTY_RECOVER_DELETED_DAYS           _T("RecoverDeletedDays")
 // Importing from the old provider with a sign-in (Util/ReaderOAuth.h): the base
 // URL the providers send the reader back to, and per provider the client this
 // server is registered as and the two endpoints of the authorization code flow.
@@ -436,4 +437,4 @@
 //      the backup archive is encrypted with, protected by the platform's secret
 //      store, with the integer as "a passphrase is set". Empty on every existing
 //      installation, where backups go on being written unencrypted.
-#define REQUIRED_DB_VERSION            6067
+#define REQUIRED_DB_VERSION            6068

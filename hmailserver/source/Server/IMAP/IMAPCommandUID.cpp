@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "IMAPCommandUID.h"
+#include "../Common/Util/RecoverableStore.h"
 #include "IMAPCommandAppend.h"
 #include "IMAPConnection.h"
 #include "IMAPSimpleCommandParser.h"
@@ -319,7 +320,11 @@ namespace HM
                messages_to_delete.insert(message_id);
          }
 
-         std::vector<__int64> deleted_message_ids = messages->DeleteMessagesById(messages_to_delete);
+         std::vector<__int64> deleted_message_ids;
+         {
+            RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
+            deleted_message_ids = messages->DeleteMessagesById(messages_to_delete);
+         }
 
          std::vector<__int64> ids_to_report = deleted_message_ids;
          std::vector<__int64> vanished_elsewhere = view->TakeVanished();

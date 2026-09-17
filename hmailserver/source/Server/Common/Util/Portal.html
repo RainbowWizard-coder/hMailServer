@@ -799,6 +799,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button id="view-threads" type="button">Threads</button>
 <button id="list-mark-all-read" type="button">Mark all as read</button>
 <button id="folder-empty" class="danger" type="button">Empty this folder</button>
+<button id="folder-recover" type="button">Recover deleted items</button>
 <div class="sep"></div>
 <button id="pane-right" type="button">Reading pane on the right</button>
 <button id="pane-bottom" type="button">Reading pane below</button>
@@ -970,6 +971,15 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </section>
 
+<section id="recover-section" class="view page" hidden>
+<div class="page-head"><h1>Recover deleted items</h1></div>
+<div class="card">
+<p class="note" id="recover-note"></p>
+<table class="list" id="recover-table" hidden><thead><tr><th>Subject</th><th>From</th><th>Folder</th><th>Deleted</th><th></th></tr></thead><tbody id="recover-rows"></tbody></table>
+<div id="recover-empty" class="hint" hidden>Nothing deleted can be recovered.</div>
+<div id="recover-status" class="status" aria-live="polite"></div>
+</div>
+</section>
 <section id="scheduled-section" class="view page" hidden>
 <div class="page-head"><h1>Scheduled</h1></div>
 <div class="card">

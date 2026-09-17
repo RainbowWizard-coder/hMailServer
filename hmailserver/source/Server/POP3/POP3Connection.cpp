@@ -44,6 +44,7 @@
 #include "../Common/Scripting/ScriptObjectContainer.h"
 
 #include "../Common/TCPIP/CipherInfo.h"
+#include "../Common/Util/RecoverableStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -1986,6 +1987,7 @@ namespace HM
                messagesToDelete.insert(message->GetUID());
          }
 
+         RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
          Application::Instance()->GetFolderManager()->DeleteInboxMessages((int) account_->GetID(), messagesToDelete, std::bind(&POP3Connection::UpdateAutoLogoutTimer, this));
       }
    }

@@ -320,6 +320,8 @@ namespace HM
         _T("The recipients of a message still in the delivery queue. A queued message is in flight, not in a mailbox; the backup carries mailboxes.") },
       { _T("hm_message_metadata"),
         _T("Per-message annotations (RFC 5257), keyed on a message id the restore reassigns. Not carried: the roadmap row is what would carry them, with the message.") },
+      { _T("hm_recoverable"),
+        _T("Deleted mail waiting out its recovery window, its copies outside the message store. A backup carries what is in the mailboxes, and a restore brings that back; what was deleted before the backup stays deleted.") },
       { _T("hm_calendarshares"),
         _T("A share names another account of this server by id, which an archive restored elsewhere cannot map; the person shares again.") },
       { _T("hm_autoreplies"),

@@ -238,7 +238,7 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section'];
   var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
@@ -1810,6 +1810,7 @@
     if (head === 'search') { cameFromList = true; showSearch(r.params); return; }
     if (head === 'm' && r.parts[1]) { showMessage(Number(r.parts[1])); return; }
     if (head === 'starred') { cameFromList = true; showSearch({ q: 'is:flagged' }); el('view-title').textContent = t('Starred'); markNav('/starred'); return; }
+    if (head === 'recover') { showPanel('recover-section', t('Recover deleted items')); markNav('/recover'); loadRecoverable(); return; }
     if (head === 'scheduled') { showPanel('scheduled-section', t('Scheduled')); markNav('/scheduled'); loadScheduled(); return; }
     if (head === 'compose') {
       // The window opens over whatever page is shown; on a reload, over the list.
@@ -4432,10 +4433,22 @@
   // storage holds only the theme, for the sign-in page before there is one.
   var prefs = {};
   var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', nudges: '1', timezone: '', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9', reply_place: 'below', retention_trash_days: '0', retention_junk_days: '0', retention_archive_days: '0' };
+  // The server's recovery window, learned the first time the list tools are
+  // drawn: 0 means it keeps nothing, and the way in stays hidden.
+  var recoverDays = 0;
+  var recoverAsked = false;
   var renderListTools = function () {
+    if (!recoverAsked) {
+      recoverAsked = true;
+      call('GET', '/api/v1/me/recoverable').then(function (result) {
+        recoverDays = result.status === 200 && result.data ? Number(result.data.days) || 0 : 0;
+        el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && recoverDays > 0);
+      });
+    }
     el('view-threads').textContent = pref('view') === 'threads' ? t('Show messages one by one') : t('Show conversations');
     var emptyable = !state.everywhere && (folderIs(state.folderId, 'Junk') || folderIs(state.folderId, 'Trash'));
     el('folder-empty').hidden = !emptyable;
+    el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && recoverDays > 0);
     el('folder-empty').textContent = t('Empty this folder');
     ['right', 'bottom', 'off'].forEach(function (mode) { el('pane-' + mode).classList.toggle('on', paneMode() === mode); });
     el('mail-search-clear').hidden = !state.query;
@@ -5135,6 +5148,7 @@
     add('New event', 'action', function () { go('/calendar'); openEvent(null, { day: wallKey(new Date()) }); });
     add('Away and forwarding', 'page', function () { go('/away'); });
     add('Storage', 'page', function () { go('/storage'); });
+    add('Recover deleted items', 'page', function () { go('/recover'); });
     add('Safe senders', 'page', function () { go('/senders'); });
     add('Subscriptions', 'page', function () { go('/subscriptions'); });
     add('Other accounts', 'page', function () { go('/accounts'); });
@@ -6862,6 +6876,58 @@
       loadFetchAccounts();
     });
   });
+  // ---- Recover deleted items -------------------------------------------------
+  // What a person deleted within the server's window, put back into the folder
+  // it came from or deleted for good. The server keeps the copies and decides
+  // where a restored message goes; the page lists and asks.
+  el('folder-recover').addEventListener('click', function () { el('list-more').hidden = true; go('/recover'); });
+  var renderRecoverable = function (data) {
+    var rows = el('recover-rows');
+    clear(rows);
+    var items = data.items || [];
+    recoverDays = Number(data.days) || 0;
+    el('recover-note').textContent = recoverDays > 0
+      ? tf('Messages you deleted in the last {0} days: put one back and it returns to the folder it was deleted from.', recoverDays)
+      : t('Your server keeps nothing that is deleted.');
+    items.forEach(function (item) {
+      var tr = document.createElement('tr');
+      tr.appendChild(node('td', item.subject || t('(no subject)')));
+      tr.appendChild(node('td', item.from || ''));
+      tr.appendChild(node('td', item.folder || ''));
+      tr.appendChild(node('td', new Date(Number(item.deleted) * 1000).toLocaleString() + ' \u00b7 ' + format(item.size || 0)));
+      var actions = document.createElement('td');
+      var restore = button(t('Put back'), 'btn sm');
+      restore.addEventListener('click', function () {
+        call('POST', '/api/v1/me/recoverable/' + item.id + '/restore').then(function (result) {
+          if (result.status !== 200) { say('recover-status', describe(result, t('Could not put it back')), false); return; }
+          say('recover-status', tf('{0} is back where it was.', item.subject || t('(no subject)')), true);
+          loadRecoverable();
+          loadFolders();
+        });
+      });
+      actions.appendChild(restore);
+      var purge = button(t('Delete for good'));
+      purge.addEventListener('click', function () {
+        if (!window.confirm(tf('Delete {0} for good? It cannot be recovered after this.', item.subject || t('(no subject)')))) { return; }
+        call('DELETE', '/api/v1/me/recoverable/' + item.id).then(function (result) {
+          if (result.status !== 200) { say('recover-status', describe(result, t('Could not delete it')), false); return; }
+          say('recover-status', t('Deleted for good.'), true);
+          loadRecoverable();
+        });
+      });
+      actions.appendChild(purge);
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('recover-table').hidden = !items.length;
+    el('recover-empty').hidden = items.length > 0 || recoverDays === 0;
+  };
+  var loadRecoverable = function () {
+    return call('GET', '/api/v1/me/recoverable').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('recover-status', describe(result, t('Could not read your deleted items')), false); return; }
+      renderRecoverable(result.data);
+    });
+  };
   // ---- Masked addresses -------------------------------------------------------
   // An address of the reader's own for one sign-up: made in a click, copied,
   // switched off when it turns to spam. The server makes the address and

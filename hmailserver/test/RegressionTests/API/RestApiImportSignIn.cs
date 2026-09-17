@@ -92,7 +92,7 @@ namespace RegressionTests.API
          string url = Regex.Unescape(Regex.Match(started.Body, "\"url\":\"([^\"]+)\"").Groups[1].Value);
          StringAssert.StartsWith("https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=client-g&", url);
          StringAssert.Contains("&redirect_uri=https%3A%2F%2Fmail.example.test%2Fportal%2Foauth%2Fcallback&", url, "The base URL's trailing slash is not doubled.");
-         StringAssert.Contains("&scope=https%3A%2F%2Fmail.google.com%2F+openid+email&", url);
+         StringAssert.Contains("&scope=https%3A%2F%2Fmail.google.com%2F%20openid%20email&", url);
          StringAssert.Contains("&code_challenge_method=S256", url);
          StringAssert.Contains("&access_type=offline&prompt=consent", url);
          Assert.AreEqual(43, Parameter(url, "state").Length, "32 random bytes, base64url.");

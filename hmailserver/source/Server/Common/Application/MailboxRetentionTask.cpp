@@ -21,6 +21,7 @@
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "../Util/MessageUtilities.h"
+#include "../Util/RecoverableStore.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/IMAPSpecialUse.h"
 #include "../../IMAP/MessagesContainer.h"
@@ -113,6 +114,7 @@ namespace HM
 
          messages->Refresh(false);
 
+         RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
          const std::vector<__int64> deleted = messages->DeleteMessagesById(messageIDs);
          if (deleted.empty())
             return 0;
@@ -385,6 +387,9 @@ namespace HM
             deleted += SweepReaderChoices_(account, archived);
          }
       }
+
+      // And the deleted items whose recovery window has ended.
+      RecoverableStore::Sweep();
 
       return deleted;
    }

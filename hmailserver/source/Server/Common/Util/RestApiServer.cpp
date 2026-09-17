@@ -70,6 +70,7 @@
 #include "../Sieve/SieveScript.h"
 #include "GUIDCreator.h"
 #include "InlineImageParts.h"
+#include "RecoverableStore.h"
 #include <iterator>
 #include <list>
 #include <set>
@@ -2389,6 +2390,11 @@ namespace HM
          case RouteMeMaskedAddressDelete:
             return HandleMeMaskedAddresses_(caller, route.kind, route.record_id, GetRequestBody_(request));
 
+         case RouteMeRecoverable:
+         case RouteMeRecoverableRestore:
+         case RouteMeRecoverableDelete:
+            return HandleMeRecoverable_(caller, route.kind, route.record_id);
+
          case RouteMeDraftSchedule:
             return HandleMeDraftSchedule_(caller, route.message_id, GetRequestBody_(request));
 
@@ -3019,6 +3025,33 @@ namespace HM
             route.kind = RouteMeFetchAccounts;
          else if (method == "POST")
             route.kind = RouteMeFetchAccountCreate;
+
+         return;
+      }
+
+      // Deleted items still within the recovery window.
+      if (path == "/api/v1/me/recoverable")
+      {
+         if (method == "GET")
+            route.kind = RouteMeRecoverable;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/recoverable/"))
+      {
+         AnsiString rest = path.Mid(AnsiString("/api/v1/me/recoverable/").GetLength());
+         const bool restore = rest.EndsWith("/restore");
+         if (restore)
+            rest = rest.Mid(0, rest.GetLength() - AnsiString("/restore").GetLength());
+
+         if (!ParseQueueId(rest, route.record_id))
+            return;
+
+         if (restore && method == "POST")
+            route.kind = RouteMeRecoverableRestore;
+         else if (!restore && method == "DELETE")
+            route.kind = RouteMeRecoverableDelete;
 
          return;
       }
@@ -5115,6 +5148,8 @@ namespace HM
       case RouteMeMaskedAddressCreate:
       case RouteMeMaskedAddressUpdate:
       case RouteMeMaskedAddressDelete:
+      case RouteMeRecoverableRestore:
+      case RouteMeRecoverableDelete:
       case RouteMeFileCreate:
       case RouteMeFileContent:
       case RouteMeFileUpdate:
@@ -9078,6 +9113,9 @@ namespace HM
       case RouteMeMaskedAddressCreate:
       case RouteMeMaskedAddressUpdate:
       case RouteMeMaskedAddressDelete:
+      case RouteMeRecoverable:
+      case RouteMeRecoverableRestore:
+      case RouteMeRecoverableDelete:
       case RouteMeAppPasswords:
       case RouteMeAppPasswordCreate:
       case RouteMeAppPasswordDelete:
@@ -11443,6 +11481,7 @@ namespace HM
       std::set<__int64> ids;
       ids.insert(message->GetID());
 
+      RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
       std::vector<__int64> deleted = messages->DeleteMessagesById(ids);
       if (deleted.empty())
          return false;
@@ -11838,6 +11877,7 @@ namespace HM
       std::vector<__int64> deleted;
       if (!ids.empty())
       {
+         RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
          deleted = messages->DeleteMessagesById(ids);
          if (!deleted.empty())
             NotifyFolder(folder, ChangeNotification::NotificationMessageDeleted, deleted);
@@ -14192,6 +14232,7 @@ namespace HM
       openApiJson += OpenApiReaderFetchImportPaths_();
       openApiJson += OpenApiSenderAddressesPaths_();
       openApiJson += OpenApiMaskedAddressesPaths_();
+      openApiJson += OpenApiRecoverablePaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();

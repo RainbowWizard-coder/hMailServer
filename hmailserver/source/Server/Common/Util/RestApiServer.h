@@ -352,6 +352,9 @@ namespace HM
          RouteMeMaskedAddressCreate,
          RouteMeMaskedAddressUpdate,
          RouteMeMaskedAddressDelete,
+         RouteMeRecoverable,
+         RouteMeRecoverableRestore,
+         RouteMeRecoverableDelete,
          RouteMeDraftSchedule,
          RouteMeDraftUnschedule,
          RouteMeMessageSnooze,
@@ -1100,6 +1103,9 @@ namespace HM
       // Masked addresses, the reader's own (RestApiMaskedAddresses.cpp).
       static HttpResponse HandleMeMaskedAddresses_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &requestBody);
       static AnsiString OpenApiMaskedAddressesPaths_();
+      // Deleted items still within the recovery window (RestApiRecoverable.cpp).
+      static HttpResponse HandleMeRecoverable_(const Caller &caller, RouteKind kind, __int64 id);
+      static AnsiString OpenApiRecoverablePaths_();
       HttpResponse HandlePortalOAuthCallback_(const AnsiString &request, const AnsiString &query);
       static AnsiString OpenApiReaderFetchAccountsPaths_();
       static AnsiString OpenApiReaderFetchImportPaths_();

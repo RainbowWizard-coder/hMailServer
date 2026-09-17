@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "Messages.h"
+#include "../Util/RecoverableStore.h"
 
 using namespace std;
 
@@ -196,6 +197,7 @@ namespace HM
          // the rest of the folder.
          if (oMessage->GetFlagDeleted())
          {
+            RecoverableStore::Keep(oMessage);
             if (!PersistentMessage::DeleteObject(oMessage))
             {
                ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6093, "Messages::Save",
@@ -244,6 +246,9 @@ namespace HM
             // Read before the delete: PersistentMessage::DeleteObject resets the id, and
             // the id is what every session's view is keyed on.
             const __int64 message_id = message->GetID();
+
+            // A copy aside first when this is a person deleting mail (RecoverableStore.h).
+            RecoverableStore::Keep(message);
 
             // This is what an IMAP EXPUNGE runs, and the delete was unchecked while
             // the erase below happened regardless - so a message the database refused

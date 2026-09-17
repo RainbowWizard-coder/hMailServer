@@ -240,6 +240,10 @@ namespace HM
 
       // Masked addresses a reader makes for one sign-up each: twenty.
       property_set_->EnsureLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, 20);
+
+      // Deleted items kept for recovery: off, as the roadmap row says, since it
+      // keeps a copy of everything a person deletes for as long as it says.
+      property_set_->EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
@@ -506,6 +510,18 @@ namespace HM
    Configuration::SetReaderMaskedAddressesMax(int count)
    {
       GetSettings()->SetLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, count);
+   }
+
+   int
+   Configuration::GetRecoverDeletedDays() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_RECOVER_DELETED_DAYS);
+   }
+
+   void
+   Configuration::SetRecoverDeletedDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_RECOVER_DELETED_DAYS, days);
    }
 
    String

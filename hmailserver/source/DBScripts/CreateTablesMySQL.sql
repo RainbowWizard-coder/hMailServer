@@ -26,6 +26,8 @@ drop table if exists hm_spamtraps;
 
 drop table if exists hm_spamtraphits;
 
+drop table if exists hm_recoverable;
+
 drop table if exists hm_maskedaddresses;
 
 drop table if exists hm_senderaddresses;
@@ -625,6 +627,22 @@ create table hm_maskedaddresses
 CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
 
 CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid);
+
+create table hm_recoverable
+(
+	rcid int auto_increment not null, primary key(`rcid`), unique(`rcid`),
+	rcaccountid int not null,
+	rcfolderid int not null,
+	rcfolder varchar(255) not null,
+	rcfile varchar(255) not null,
+	rcsize int not null,
+	rcsubject varchar(255) not null,
+	rcfrom varchar(255) not null,
+	rcflags int not null,
+	rcdeleted bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1366,6 +1384,8 @@ ALTER TABLE hm_senderaddresses ENGINE=InnoDB;
 
 ALTER TABLE hm_maskedaddresses ENGINE=InnoDB;
 
+ALTER TABLE hm_recoverable ENGINE=InnoDB;
+
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;
 
 ALTER TABLE hm_remotedomainpolicies ENGINE=InnoDB;
@@ -1536,6 +1556,8 @@ ALTER TABLE hm_calendarshares ADD CONSTRAINT fk_hm_calendarshares_calendar FOREI
 ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FOREIGN KEY (saaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -1971,4 +1993,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6067);
+insert into hm_dbversion values (6068);

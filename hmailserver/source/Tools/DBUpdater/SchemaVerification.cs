@@ -1178,6 +1178,9 @@ namespace DBUpdater
          // sign-up that delivers to the mailbox and can be switched off.
          new SchemaProbe(6067, "hm_maskedaddresses.macreated",
                          "update hm_maskedaddresses set macreated = macreated where 1 = 0"),
+         // Upgrade6067to6068* - deleted messages kept for the recovery window.
+         new SchemaProbe(6068, "hm_recoverable.rcdeleted",
+                         "update hm_recoverable set rcdeleted = rcdeleted where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

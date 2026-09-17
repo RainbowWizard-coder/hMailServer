@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "IMAPCommandClose.h"
+#include "../Common/Util/RecoverableStore.h"
 #include "IMAPConnection.h"
 
 #include "MessagesContainer.h"
@@ -43,7 +44,11 @@ namespace HM
             };
 
          auto messages = MessagesContainer::Instance()->GetMessages(pCurFolder->GetAccountID(), pCurFolder->GetID());
-         std::vector<__int64> deleted_message_ids = messages->DeleteMessages(filter);
+         std::vector<__int64> deleted_message_ids;
+         {
+            RecoverableStore::Scope recoverable;   // a person deleting mail: kept for recovery
+            deleted_message_ids = messages->DeleteMessages(filter);
+         }
 
          if (!deleted_message_ids.empty())
          {
