@@ -724,7 +724,7 @@ jobs:
     # skipped; with the route backlog waves most of it runs, and a server that
     # stops answering costs two minutes per test (TestPorts.ReceiveTimeoutMilliseconds),
     # so this is the backstop, not the budget.
-    timeout-minutes: 90
+    timeout-minutes: 150
     services:
       postgres:
         image: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94

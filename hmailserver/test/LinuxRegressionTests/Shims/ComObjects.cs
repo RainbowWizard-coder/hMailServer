@@ -2248,14 +2248,27 @@ namespace hMailServer
       /// </summary>
       public bool SetDomainSessionPolicy(string domainName, int idleSeconds, int lifetimeSeconds, int onePerDevice, int bindToAddress)
       {
-         var current = ServerApi.Get("/api/v1/domains/" + Uri.EscapeDataString(domainName));
-         if (current.Status == 404)
+         // There is no GET for one domain - the listing is the row - so the domain
+         // is looked for there, and a name the server does not host is not in it.
+         var listing = ServerApi.Get("/api/v1/domains").Expect(200, "GET /api/v1/domains");
+         bool found = false;
+         bool active = false;
+         using (var document = JsonDocument.Parse(listing.Body))
+         {
+            JsonElement rows = document.RootElement.ValueKind == JsonValueKind.Array
+               ? document.RootElement
+               : document.RootElement.GetProperty("domains");
+            foreach (JsonElement row in rows.EnumerateArray())
+            {
+               if (!string.Equals(row.GetProperty("name").GetString(), domainName, StringComparison.OrdinalIgnoreCase))
+                  continue;
+               found = true;
+               active = row.TryGetProperty("active", out JsonElement flag) && flag.GetBoolean();
+               break;
+            }
+         }
+         if (!found)
             return false;
-         current.Expect(200, "GET /api/v1/domains/" + domainName);
-
-         bool active;
-         using (var document = JsonDocument.Parse(current.Body))
-            active = document.RootElement.GetProperty("active").GetBoolean();
 
          string body = "{\"active\":" + (active ? "true" : "false") +
                        ",\"session_idle_seconds\":" + idleSeconds +
