@@ -22,6 +22,12 @@ database. The quota policy's two server-wide shares were exactly that on 17
 September 2026: the fourth batch-12 gate logged HM5015 over nine thousand times
 and failed 458 tests in their SetUp, because every delivery reads the grace.
 
+And every name fits the column it is kept in: hm_settings.settingname is
+nvarchar(30), and SQL Server Compact refuses - with "Unknown error", HM10046 -
+any comparison of that column with a longer parameter, so a longer name has no
+row, cannot be given one, and fails every read. Three names of batch 13 were 32
+and 35 characters on 17 September 2026 and the server logged errors at start.
+
 Usage: python build/check-settings-rows.py
 """
 import io
@@ -52,6 +58,13 @@ def main():
         return 1
 
     constants = dict(CONSTANT.findall(read(CONSTANTS)))
+
+    too_long = sorted(set(n for n in list(names) + list(constants.values()) if len(n) > 30 and n in names))
+    if too_long:
+        for name in too_long:
+            print('%s: %d characters, and hm_settings.settingname holds 30 - SQL Server Compact refuses the row' % (name, len(name)))
+        print('FAIL: %d setting name(s) do not fit the settings table' % len(too_long))
+        return 1
     ensured = set()
     for constant, literal in ENSURE.findall(read(CONFIGURATION)):
         name = literal or constants.get(constant)

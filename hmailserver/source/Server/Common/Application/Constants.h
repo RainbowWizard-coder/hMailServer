@@ -175,7 +175,7 @@
 #define PROPERTY_QUARANTINE_DIGEST_LINK_HOURS   _T("QuarantineDigestLinkHours")
 #define PROPERTY_BRAND_LOGOS_ENABLED            _T("BrandLogosEnabled")
 #define PROPERTY_READER_FETCH_ACCOUNTS_MAX      _T("ReaderFetchAccountsMax")
-#define PROPERTY_READER_FETCH_PRIVATE_ADDRESSES _T("ReaderFetchAccountsPrivateAddresses")
+#define PROPERTY_READER_FETCH_PRIVATE_ADDRESSES _T("ReaderFetchPrivateHosts")
 #define PROPERTY_READER_SENDER_ADDRESSES_MAX    _T("ReaderSenderAddressesMax")
 #define PROPERTY_READER_MASKED_ADDRESSES_MAX    _T("ReaderMaskedAddressesMax")
 // Importing from the old provider with a sign-in (Util/ReaderOAuth.h): the base
@@ -186,10 +186,10 @@
 #define PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET       _T("ImportOAuthGoogleClientSecret")
 #define PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL       _T("ImportOAuthGoogleAuthorizeUrl")
 #define PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL           _T("ImportOAuthGoogleTokenUrl")
-#define PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID        _T("ImportOAuthMicrosoftClientId")
-#define PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET    _T("ImportOAuthMicrosoftClientSecret")
-#define PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL    _T("ImportOAuthMicrosoftAuthorizeUrl")
-#define PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL        _T("ImportOAuthMicrosoftTokenUrl")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID        _T("ImportOAuthMsClientId")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET    _T("ImportOAuthMsClientSecret")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL    _T("ImportOAuthMsAuthorizeUrl")
+#define PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL        _T("ImportOAuthMsTokenUrl")
 
 // Country blocking. Seven rows in hm_settings, which is where a setting belongs:
 // the MaxMind database the administrator supplies (this project ships none and
