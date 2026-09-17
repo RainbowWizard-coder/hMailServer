@@ -2355,10 +2355,11 @@ async function main() {
       document.getElementById('contact-other-rows').textContent.indexOf('al@example.org') >= 0,
       contactRows.children.length + ' kept, other hidden=' + document.getElementById('contact-other').hidden);
    const carolRow = Array.from(contactRows.children).find((tr) => tr.textContent.indexOf('carol@example.org') >= 0);
+   const carolAvatar = carolRow ? Array.from(carolRow.children[0].children).find((n) => n.className === 'avatar' && typeof n.src === 'string') : null;
    check('a card\'s photo is the avatar, from the contact\'s own photo route, and its birthday, phone and note are read beside it',
-      !!carolRow && !!carolRow.querySelector('img.avatar') && carolRow.querySelector('img.avatar').src.indexOf('/api/v1/me/contacts/3/photo') >= 0 &&
+      !!carolAvatar && String(carolAvatar.src).indexOf('/api/v1/me/contacts/3/photo') >= 0 &&
       carolRow.textContent.indexOf('1985-04-12') >= 0 && carolRow.textContent.indexOf('+1 555 0100') >= 0 && carolRow.textContent.indexOf('Met at the conference.') >= 0,
-      carolRow ? carolRow.innerHTML.slice(0, 300) : 'no row');
+      carolRow ? String(carolRow.textContent).slice(0, 300) : 'no row');
    const beforeKeep = requests.length;
    Array.from(document.getElementById('contact-other-rows').children[0].children[2].children).find((b) => b.textContent === 'Keep').dispatchEvent(makeEvent('click'));
    await flush();
