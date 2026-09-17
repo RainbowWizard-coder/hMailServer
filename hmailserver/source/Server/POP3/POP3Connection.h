@@ -35,6 +35,7 @@ namespace HM
 
       virtual void OnConnected();
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "POP3"; }
 
       virtual void EnqueueWrite_(const String &sData) ;
 

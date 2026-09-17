@@ -1413,6 +1413,14 @@ const state = {
       { name: 'ERROR_hmailserver_2026-09-14.log', size: 10, created: '2026-09-14 00:00:02' }
    ],
    logLines: ['"SMTPD" 1 "2026-09-14 09:00:00.000" "127.0.0.1" "SENT: 220 mail.example.com"', '"SMTPD" 1 "2026-09-14 09:00:01.000" "127.0.0.1" "RECEIVED: QUIT"'],
+   // The sessions open now and lately ended, and the lines a follow of one
+   // of them answers. Empty until the follow checks fill them, so that the
+   // file listing's own checks see the page they always saw.
+   sessions: [],
+   followLines: [],
+   // Whether the route left open sessions out of the listing, which it does
+   // past a thousand of them.
+   sessionsTruncated: false,
    // The audit trail. Two rows, one made over COM by the Control Panel and one
    // made over REST by an API key, because the column that tells them apart is
    // the point of the page.
@@ -2516,6 +2524,19 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/logs' && method === 'GET') { return json(200, state.logs); }
+   if (path === '/api/v1/logs/sessions' && method === 'GET') {
+      return json(200, { sessions: state.sessions, open: state.sessions.filter((s) => s.open).length, ended: state.sessions.filter((s) => !s.open).length,
+         truncated: !!state.sessionsTruncated, held_lines: state.followLines.length, logging_enabled: true });
+   }
+   if (/^\/api\/v1\/logs\/sessions\/\d+/.test(path) && method === 'GET') {
+      const id = Number(segment(path, 5));
+      const session = state.sessions.find((s) => s.id === id);
+      if (!session) { return json(404, { error: 'no such session' }); }
+      const after = Number((/after=(\d+)/.exec(path) || [0, 0])[1]);
+      const lines = state.followLines.filter((l) => l.seq > after);
+      return json(200, { session: id, known: true, open: session.open, logged: true, cursor: lines.length ? lines[lines.length - 1].seq : after,
+         dropped: false, waited: false, protocol: session.protocol, peer: session.peer, account: session.account, started: session.started, ended: session.ended, lines });
+   }
    if (/^\/api\/v1\/logs\/[^/]+/.test(path) && method === 'GET') {
       const name = segment(path, 4);
       // A file that was in the listing a moment ago and has been rotated away
@@ -4710,6 +4731,104 @@ async function main() {
    check('a file the server no longer has is an error under the list, naming it', document.getElementById('err_log').textContent.indexOf('gone.log') >= 0 && document.getElementById('err_log').textContent.indexOf('No such log file') >= 0,
       document.getElementById('err_log').textContent);
    state.logs.pop();
+
+   // ---- one connection followed live
+   state.sessions = [
+      { id: 42, protocol: 'SMTP', peer: '203.0.113.9', port: 25, client: false, open: true, account: 'relay@example.com', started: '2026-09-17 09:00:04', ended: '' },
+      { id: 41, protocol: 'IMAP', peer: '192.0.2.7', port: 143, client: false, open: true, account: 'anna@example.com', started: '2026-09-17 09:00:00', ended: '' },
+      { id: 40, protocol: 'SMTP', peer: '198.51.100.2', port: 25, client: false, open: false, account: '', started: '2026-09-17 08:59:58', ended: '2026-09-17 08:59:59' },
+      { id: 39, protocol: 'POP3', peer: '192.0.2.8', port: 110, client: false, open: false, account: 'ben@example.com', started: '2026-09-17 08:59:50', ended: '2026-09-17 08:59:51' }
+   ];
+   state.followLines = [
+      { seq: 10, time: '2026-09-17 09:00:00.100', category: 'IMAPD', message: 'RECEIVED: A1 LOGIN anna@example.com ***' },
+      { seq: 11, time: '2026-09-17 09:00:00.120', category: 'IMAPD', message: 'SENT: A1 OK LOGIN completed' }
+   ];
+   before = requests.length;
+   await goTo('logs');
+   check('the logs view lists the sessions open now and lately ended, with the ids the log carries',
+      called(before, 'GET', '/api/v1/logs/sessions').length === 1 && content().textContent.indexOf('41') >= 0 && content().textContent.indexOf('anna@example.com') >= 0 &&
+      content().textContent.indexOf('198.51.100.2') >= 0 && content().querySelectorAll('button[data-act="follow"]').length === 4,
+      content().textContent.slice(0, 400));
+   check('an open session shows when it started and an ended one when it ended',
+      content().textContent.indexOf('2026-09-17 09:00:00') >= 0 && content().textContent.indexOf('2026-09-17 08:59:59') >= 0 && content().textContent.indexOf('08:59:58') < 0);
+   // Past a thousand open sessions the route lists the newest thousand and says
+   // it has cut the list. A page that drew them and said nothing would be
+   // describing a server with a thousand connections open as though that were
+   // the whole of it.
+   state.sessionsTruncated = true;
+   await goTo('logs');
+   check('a listing the server had to cut says so rather than presenting the newest as all there are',
+      content().textContent.indexOf('More connections are open than this list holds') >= 0 && content().textContent.indexOf('the newest 2 are shown') >= 0,
+      content().textContent.slice(0, 400));
+   state.sessionsTruncated = false;
+   await goTo('logs');
+   check('and says nothing of the kind when the listing is the whole of it',
+      content().textContent.indexOf('More connections are open') < 0);
+   before = requests.length;
+   click(act('follow', { id: 41 }));
+   await flush();
+   check('Follow asks for the session\'s lines from the start, waiting for the next', called(before, 'GET', '/api/v1/logs/sessions/41?after=0&wait=10').length === 1, paths(before));
+   check('and shows them as they come, oldest first', $('#followBox').hidden === false && $('#followTitle').textContent === 'Following session 41' &&
+      $('#followPre').textContent.indexOf('IMAPD  RECEIVED: A1 LOGIN') >= 0 && $('#followPre').textContent.indexOf('SENT: A1 OK') > $('#followPre').textContent.indexOf('RECEIVED: A1 LOGIN'),
+      $('#followPre').textContent);
+   check('the next request continues from the cursor the server answered', called(before, 'GET', '/api/v1/logs/sessions/41?after=11&wait=10').length >= 1, paths(before));
+   click(act('followcopy'));
+   await flush();
+   check('Copy puts the lines on the clipboard', clipboard === $('#followPre').textContent && toastText() === 'Copied to clipboard', String(clipboard));
+   before = requests.length;
+   click(act('followstop'));
+   await flush();
+   check('Stop following hides the pane', $('#followBox').hidden === true);
+   // A Follow after a Stop is a follow of its own. The stopped loop is parked
+   // on the pause it takes when an answer brought no line, and when it wakes it
+   // has to see that it is no longer the current follow - which it can only do
+   // if the new follow's ticket is a number the old one never had. fireTimers
+   // wakes it here rather than waiting a second for it.
+   before = requests.length;
+   click(act('follow', { id: 42 }));
+   await flush();
+   fireTimers();
+   await flush();
+   check('a Follow after a Stop is its own: the stopped one wakes, sees it is not the current follow and asks for nothing more',
+      called(before, 'GET', /^\/api\/v1\/logs\/sessions\/41/).length === 0 && $('#followTitle').textContent === 'Following session 42' &&
+      called(before, 'GET', /^\/api\/v1\/logs\/sessions\/42/).length >= 1,
+      paths(before));
+   click(act('followstop'));
+   await flush();
+   // The session ended between the listing and the click.
+   state.sessions = state.sessions.filter((s) => s.id !== 39);
+   click(act('follow', { id: 39 }));
+   await flush();
+   check('a session the server no longer holds is a refusal under the pane, in the server\'s words',
+      document.getElementById('err_follow').textContent.indexOf('39') >= 0 && document.getElementById('err_follow').textContent.indexOf('no such session') >= 0,
+      document.getElementById('err_follow').textContent);
+   // The pane is bounded. The server bounds an answer and its ring; nothing in
+   // the page used to bound the pane, so a follow left running on a busy
+   // session grew the tab until it was unusable and Copy pulled megabytes onto
+   // the clipboard. What falls off the front is in the log file below it.
+   state.sessions = [
+      { id: 41, protocol: 'IMAP', peer: '192.0.2.7', port: 143, client: false, open: true, account: 'anna@example.com', started: '2026-09-17 09:00:00', ended: '' }
+   ];
+   state.followLines = [];
+   for (let i = 1; i <= 5200; i++) { state.followLines.push({ seq: i, time: '2026-09-17 09:00:00.000', category: 'IMAPD', message: 'SENT: line ' + i }); }
+   await goTo('logs');
+   click(act('follow', { id: 41 }));
+   await flush();
+   const heldLines = $('#followPre').textContent.split('\n').filter((line) => line !== '');
+   check('the pane keeps only the most recent lines rather than growing for as long as the tab is open',
+      heldLines.length === 5000 && heldLines[0].indexOf('SENT: line 201') >= 0 && heldLines[heldLines.length - 1].indexOf('SENT: line 5200') >= 0,
+      heldLines.length + ' lines, first ' + heldLines[0]);
+   check('and says so, rather than letting the reader think the pane is the whole of it',
+      $('#followNote').textContent.indexOf('5000') >= 0 && $('#followNote').textContent.indexOf('log file') >= 0,
+      $('#followNote').textContent);
+   click(act('followstop'));
+   await flush();
+   state.sessions = [];
+   state.followLines = [];
+   await goTo('logs');
+   check('with no session the view says so rather than drawing an empty table',
+      content().textContent.indexOf('No SMTP, POP3 or IMAP session is open') >= 0 && content().querySelectorAll('button[data-act="follow"]').length === 0 && rows().length === 2,
+      String(rows().length));
 
    // ---- what this server has changed from stock
    before = requests.length;

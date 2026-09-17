@@ -10,6 +10,7 @@
 #include "../Common/Util/File.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
+#include "../Common/Util/SessionFollow.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/Util/Pop3LoginDelay.h"
 #include "../Common/Util/ByteBuffer.h"
@@ -854,6 +855,9 @@ namespace HM
 
       if (!device.IsEmpty())
          SignInStore::Attach(account_->GetID(), device, shared_from_this());
+
+      // The live session list shows who the session belongs to from here on.
+      SessionFollow::Instance()->OnSessionAuthenticated(GetSessionID(), account_->GetAddress());
 
       EnqueueWrite_("+OK Mailbox locked and ready" );
       current_state_ = TRANSACTION;

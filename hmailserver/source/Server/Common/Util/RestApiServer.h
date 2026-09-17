@@ -246,6 +246,11 @@ namespace HM
          RouteRuleList,
          RouteLogList,
          RouteLogTail,
+         // The sessions the server has open and one of them followed live
+         // (RestApiSessionFollow.cpp): the log's own permission, server-wide,
+         // since a session's lines are whichever domain's traffic it carried.
+         RouteLogSessions,
+         RouteLogSessionFollow,
          RouteBackupStart,
          RouteBackupStatus,
          RouteBackupRestore,
@@ -1397,6 +1402,13 @@ namespace HM
       HttpResponse HandleListRules_(__int64 accountId, __int64 domainId = 0);
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);
+
+      // Follow one connection live (RestApiSessionFollow.cpp): the sessions
+      // open now and lately ended, and one session's lines after a cursor,
+      // waited for when there are none yet.
+      HttpResponse HandleLogSessions_();
+      HttpResponse HandleLogSessionFollow_(const Route &route);
+      static AnsiString OpenApiSessionFollowPaths_();
       HttpResponse HandleBackupStart_();
       HttpResponse HandleBackupStatus_();
       HttpResponse HandleBackupRestore_(const AnsiString &requestBody);

@@ -28,6 +28,7 @@ namespace HM
       virtual void OnConnectionTimeout() {};
       virtual void OnExcessiveDataReceived() {};
       virtual AnsiString GetCommandSeparator() const { return "\r\n"; }
+      virtual AnsiString GetSessionProtocolName() const { return "Diagnostics"; }
 
       virtual void ParseData(const AnsiString &Request) {};
       virtual void ParseData(std::shared_ptr<ByteBuffer> ) {}

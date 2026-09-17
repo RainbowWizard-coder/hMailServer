@@ -43,6 +43,7 @@ namespace HM
       virtual void ParseData(const AnsiString &Request);
       virtual void ParseData(std::shared_ptr<ByteBuffer> pBuf);
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "IMAP client"; }
 
       void OnCouldNotConnect(const AnsiString &sErrorDescription);
 

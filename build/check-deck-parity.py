@@ -151,6 +151,9 @@ PATH_SCOPE = {
     'session': [],
     'status': [],
     'logs': [],
+    # The sessions open now and one of them followed live, under /api/v1/logs:
+    # read from the logger's ring, with no COM interface behind them.
+    'sessions': [],
     'tlsa': [],
     'srv': [],
     'update': [],

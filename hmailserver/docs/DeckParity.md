@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 98 |
 | desktop pages read | 62 |
-| REST routes (path and method) | 421, 188 of them writes |
+| REST routes (path and method) | 423, 188 of them writes |
 | Deck views | 35 |
 
 ## Missing over REST, by interface
@@ -964,7 +964,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `ports` | `GET /api/v1/certificates`, `GET /api/v1/openapi.json`, `GET /api/v1/ports`, `POST /api/v1/ports`, `DELETE /api/v1/ports/{}`, `PUT /api/v1/ports/{}`, `POST /api/v1/server/reinitialize` |
 | `roles` | `GET /api/v1/role-assignments`, `DELETE /api/v1/role-assignments/{}`, `PUT /api/v1/role-assignments/{}`, `GET /api/v1/roles`, `DELETE /api/v1/roles/{}` |
 | `devices` | `GET /api/v1/accounts/{}/devices`, `DELETE /api/v1/accounts/{}/devices/{}` |
-| `logs` | `GET /api/v1/logs`, `GET /api/v1/logs/{}?lines={}` |
+| `logs` | `GET /api/v1/logs`, `GET /api/v1/logs/sessions`, `GET /api/v1/logs/{}?lines={}` |
 | `reputation` | `GET /api/v1/reputation`, `POST /api/v1/reputation/check` |
 | `reports` | `GET /api/v1/domains`, `GET /api/v1/reports`, `GET /api/v1/reports/summary?{}` |
 | `audit` | `GET /api/v1/audit/verify`, `POST /api/v1/audit/{}/revert`, `GET /api/v1/audit{}` |

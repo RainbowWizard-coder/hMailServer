@@ -43,6 +43,7 @@ namespace HM
       virtual void OnHandshakeCompleted() {};
       virtual void OnHandshakeFailed() {};
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "SpamAssassin"; }
       virtual void OnConnectionTimeout();
       virtual void OnExcessiveDataReceived();
 

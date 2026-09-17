@@ -56,6 +56,7 @@ namespace HM
       virtual void OnHandshakeCompleted();
       virtual void OnHandshakeFailed();
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "SMTP client"; }
 
       virtual void EnqueueWrite_(const String &sData);
       virtual void OnConnectionTimeout();

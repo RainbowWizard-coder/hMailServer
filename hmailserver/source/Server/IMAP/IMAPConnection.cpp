@@ -15,6 +15,7 @@
 #include "../Common/Application/TimeoutCalculator.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
+#include "../Common/Util/SessionFollow.h"
 
 // Business data/storage
 #include "../Common/BO/Account.h"
@@ -600,6 +601,9 @@ namespace HM
 
       if (!device.IsEmpty())
          SignInStore::Attach(account->GetID(), device, shared_from_this());
+
+      // The live session list shows who the session belongs to from here on.
+      SessionFollow::Instance()->OnSessionAuthenticated(GetSessionID(), account->GetAddress());
 
       RefreshIMAPFolders();
    }

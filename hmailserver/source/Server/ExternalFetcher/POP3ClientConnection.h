@@ -32,6 +32,7 @@ namespace HM
 
       
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "POP3 client"; }
 
       void OnCouldNotConnect(const AnsiString &sErrorDescription);
 

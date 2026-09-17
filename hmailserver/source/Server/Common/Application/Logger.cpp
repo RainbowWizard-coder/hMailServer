@@ -13,6 +13,7 @@
 #include "../Util/FileUtilities.h"
 #include "../Util/OtelLogExporter.h"
 #include "../Util/SyslogSink.h"
+#include "../Util/SessionFollow.h"
 
 #include "NcsaLogFormatter.h"
 #include "SqlLogDevice.h"
@@ -190,6 +191,12 @@ namespace HM
       SyslogSink::Instance()->OnLogEntry(entry.category, entry.thread, entry.session,
                                          entry.remote_host, entry.time, entry.message);
 
+      // And into the ring an administrator follows one connection from
+      // (SessionFollow): the last few thousand entries, each with its session,
+      // handed to a follower as they arrive. From the entry, like the two
+      // above, and beside the devices for the same reason.
+      SessionFollow::Instance()->OnLogEntry(entry.category, entry.session, entry.time, entry.message);
+
       if (log_device_ == DeviceSQL)
       {
          if (SqlLogDevice::Instance()->Enqueue(entry.category, (int) lt, entry.thread, entry.session,
@@ -340,6 +347,7 @@ namespace HM
                                                  entry.remote_host, entry.message);
          SyslogSink::Instance()->OnLogEntry(entry.category, entry.thread, entry.session,
                                             entry.remote_host, entry.time, entry.message);
+         SessionFollow::Instance()->OnLogEntry(entry.category, entry.session, entry.time, entry.message);
       }
    }
 

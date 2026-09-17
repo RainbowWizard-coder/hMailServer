@@ -664,6 +664,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\CalDavServer.cpp" />
     <ClCompile Include="..\Common\Util\Reports.cpp" />
     <ClCompile Include="..\Common\Util\RestApiReports.cpp" />
+    <ClCompile Include="..\Common\Util\SessionFollow.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSessionFollow.cpp" />
     <ClCompile Include="..\Common\Util\RestApiBranding.cpp" />
     <ClCompile Include="..\Common\Util\RestApiFiles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiLanguages.cpp" />
@@ -1458,6 +1460,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\HttpCompression.h" />
     <ClInclude Include="..\Common\Util\HttpServer.h" />
     <ClInclude Include="..\Common\Util\Reports.h" />
+    <ClInclude Include="..\Common\Util\SessionFollow.h" />
     <ClInclude Include="..\Common\Util\RestApiServer.h" />
     <ClInclude Include="..\Common\Util\WebServicesServer.h" />
     <ClInclude Include="..\Common\Util\ContactStore.h" />

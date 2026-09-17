@@ -66,6 +66,7 @@ namespace HM
       virtual void OnHandshakeCompleted();
       virtual void OnHandshakeFailed() {};
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "SMTP"; }
 
       virtual void ParseData(const AnsiString &sRequest);
       virtual void ParseData(std::shared_ptr<ByteBuffer> pBuf);

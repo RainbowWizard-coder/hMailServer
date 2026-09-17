@@ -186,6 +186,13 @@ namespace HM
 
       int GetSessionID();
 
+      // The protocol this session speaks, as the live session list names it
+      // (SessionFollow): "SMTP", "POP3" and "IMAP" for a session this server
+      // answers, "SMTP client", "POP3 client" and "IMAP client" for one it
+      // opened, and the two internal clients by their names. The base answers
+      // by direction alone.
+      virtual AnsiString GetSessionProtocolName() const;
+
    protected:
 
       ConnectionState GetConnectionState() { return connection_state_;  }

@@ -17,6 +17,7 @@
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
+#include "../Common/Util/SessionFollow.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
 #include "../Common/Util/OAuth2TokenValidator.h"
@@ -4873,6 +4874,9 @@ namespace HM
 
       if (!device.IsEmpty())
          SignInStore::Attach(account->GetID(), device, shared_from_this());
+
+      // The live session list shows who the session belongs to from here on.
+      SessionFollow::Instance()->OnSessionAuthenticated(GetSessionID(), account->GetAddress());
    }
 
    void

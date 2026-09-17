@@ -118,6 +118,7 @@
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOffline.cs" Link="API\RestApiOffline.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiSessionFollow.cs" Link="API\RestApiSessionFollow.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDevices.cs" Link="API\RestApiDevices.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSignatureImages.cs" Link="API\RestApiSignatureImages.cs" />
     <Compile Include="..\RegressionTests\API\RestApiFetchAccounts.cs" Link="API\RestApiFetchAccounts.cs" />

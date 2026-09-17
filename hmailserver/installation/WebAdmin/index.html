@@ -1120,6 +1120,10 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="retry")retryMsg(d.id);
   else if(d.act==="delmsg")delMsg(d.id);
   else if(d.act==="log")showLog(d.name,d.lines);
+  else if(d.act==="sessrefresh")render();
+  else if(d.act==="follow")followSession(Number(d.id));
+  else if(d.act==="followstop")stopFollow();
+  else if(d.act==="followcopy")navigator.clipboard.writeText($("#followPre").textContent).then(()=>toast(t("Copied to clipboard")));
   else if(d.act==="repshow")reportShow();
   else if(d.act==="repdays")reportLastDays(d.days);
   else if(d.act==="copy")navigator.clipboard.writeText($("#tlsaPre").textContent).then(()=>toast(t("Copied to clipboard")));
@@ -4986,18 +4990,112 @@ async function revokeDevice(id){
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_devices",e.message);}
 }
 
+/* ---------- Logs: the files, and one connection followed live ----------
+   GET /api/v1/logs/sessions lists every SMTP, POP3 and IMAP session open now
+   and the last ones that ended, each with the id its log lines carry. Follow
+   asks GET /api/v1/logs/sessions/{id}?after=<cursor>&wait=10 in a loop; the
+   server holds each request until the session's next line arrives, so the
+   lines appear as they are written. It is a cursor and a wait rather than an
+   event stream because the listener writes a response whole (HttpServer.cpp).
+   `follow` is the loop's ticket: a new Follow, Stop, or leaving the view
+   changes it, and the loop that no longer holds it ends. The ticket number
+   comes from a counter that only ever grows, never from the ticket being
+   replaced - two Follows either side of a Stop would otherwise both be
+   number 1, and the first one's answers would land in the second one's pane.
+
+   The pane holds the most recent FOLLOW_PANE_LINES lines and no more. The
+   server bounds one answer (500) and its ring (4,096), but a follow left
+   running on a busy debug-logged session appends answer after answer for as
+   long as the tab is open, and nothing in the page would ever have let go of
+   one: the tab would grow until it was unusable and Copy would put megabytes
+   on the clipboard. What falls off the front is in the log file, which is on
+   the same page. */
+let follow=null,followGen=0;
+const FOLLOW_PANE_LINES=5000;
 async function renderLogs(){
+  follow=null;
   const files=asList(await api("/api/v1/logs"),"files");
+  let sessions=null;
+  try{sessions=await api("/api/v1/logs/sessions");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}sessions={sessions:[],error:e.message};}
   const rows=files.map(f=>`
     <tr><td>${escHtml(f.name)}</td><td>${escHtml(fmtBytes(f.size))}</td><td>${escHtml(f.created||"—")}</td>
         <td style="text-align:right;white-space:nowrap"><button class="btn ghost sm" data-act="log" data-name="${escHtml(f.name)}" data-lines="200">${t("Last 200")}</button>
         <button class="btn ghost sm" data-act="log" data-name="${escHtml(f.name)}" data-lines="2000">${t("Last 2000")}</button></td></tr>`).join("");
   $("#content").innerHTML=`<div class="card view">
+    <div class="sect"><h2>${t("Connections")} <code class="muted">GET /api/v1/logs/sessions</code> <button class="btn ghost sm" data-act="sessrefresh">${t("Refresh")}</button></h2>
+    <p class="note">${t("Every connection this server has open now - the SMTP, POP3 and IMAP sessions it answers, and the ones it opens itself - and the last ones that ended. Follow one and its log lines appear below as the server writes them - what a grep through the day's log for its session id stands in for.")}</p>
+    ${sessionsHtml(sessions)}
+    <div class="err" id="err_sessions">${escHtml(sessions.error||"")}</div>
+    <div id="followBox" hidden>
+      <div class="actions"><strong id="followTitle"></strong> <button class="btn ghost sm" data-act="followcopy">${t("Copy")}</button> <button class="btn ghost sm" data-act="followstop">${t("Stop following")}</button></div>
+      <div class="hint" id="followNote"></div>
+      <div class="err" id="err_follow"></div>
+      <pre id="followPre" style="margin-top:10px;max-height:50vh;overflow:auto;white-space:pre-wrap"></pre>
+    </div></div>
+    <div class="sect"><h2>${t("Log files")}</h2>
     <div class="tablewrap"><table><thead><tr><th>${t("Log file")}</th><th>${t("Size")}</th><th>${t("Created")}</th><th></th></tr></thead>
     <tbody>${rows||'<tr><td colspan="4" class="empty">'+t("No log files. Logging may be off, or the folder is empty.")+'</td></tr>'}</tbody></table></div>
     <div class="err" id="err_log" style="margin-top:10px"></div>
-    <pre id="logPre" style="margin-top:14px;max-height:60vh;overflow:auto;white-space:pre-wrap" hidden></pre></div>`;
+    <pre id="logPre" style="margin-top:14px;max-height:60vh;overflow:auto;white-space:pre-wrap" hidden></pre></div></div>`;
 }
+function sessionsHtml(answer){
+  const list=asList(answer,"sessions");
+  if(!list.length)return '<p class="empty">'+t("No SMTP, POP3 or IMAP session is open, and none has ended since the server started.")+'</p>';
+  const open=list.filter(s=>s.open),ended=list.filter(s=>!s.open);
+  const table=(items,whenHeading)=>`<div class="tablewrap"><table><thead><tr><th>${t("Session")}</th><th>${t("Protocol")}</th><th>${t("Address")}</th><th>${t("Port")}</th><th>${t("Account")}</th><th>${whenHeading}</th><th></th></tr></thead><tbody>${items.map(s=>`
+    <tr><td><code>${escHtml(s.id)}</code></td><td>${escHtml(s.protocol)}</td><td>${escHtml(s.peer)}</td><td>${escHtml(s.port||"")}</td><td>${escHtml(s.account||"—")}</td><td>${escHtml(s.open?s.started:s.ended)}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="btn ghost sm" data-act="follow" data-id="${escHtml(s.id)}">${t("Follow")}</button></td></tr>`).join("")}</tbody></table></div>`;
+  // The route lists the newest sessions and says so when it left some out; a
+  // page that drew the thousand and nothing else would be describing a server
+  // with a thousand connections open as though that were all of them.
+  const truncated=answer.truncated?'<p class="note">'+tf("More connections are open than this list holds; the newest {0} are shown.",open.length)+'</p>':"";
+  return `<h3>${t("Open now")} (${open.length})</h3>`+(open.length?table(open,t("Started")):'<p class="empty">'+t("None open.")+'</p>')+truncated+
+    (ended.length?`<h3>${t("Ended recently")} (${ended.length})</h3>`+table(ended,t("Ended")):"");
+}
+async function followSession(id){
+  const gen=++followGen;
+  follow={id:id,cursor:0,gen:gen};
+  const box=$("#followBox");if(!box)return;
+  box.hidden=false;
+  $("#followTitle").textContent=tf("Following session {0}",id);
+  $("#followNote").textContent=t("Waiting for the next line…");
+  setErr("err_follow","");
+  const pre=$("#followPre");pre.textContent="";
+  while(follow&&follow.gen===gen&&view==="logs"){
+    let answer;
+    try{answer=await api("/api/v1/logs/sessions/"+encodeURIComponent(id)+"?after="+encodeURIComponent(follow.cursor)+"&wait=10");}
+    catch(e){
+      if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+      if(follow&&follow.gen===gen){setErr("err_follow",tf("Could not follow session {0}: {1}",id,e.message));follow=null;}
+      return;
+    }
+    if(!follow||follow.gen!==gen)return;
+    follow.cursor=Number(answer.cursor)||0;
+    const lines=answer.lines||[];
+    if(lines.length){
+      const atEnd=pre.scrollTop+pre.clientHeight>=pre.scrollHeight-8;
+      let text=pre.textContent+lines.map(l=>l.time+"  "+l.category+"  "+l.message).join("\n")+"\n";
+      const held=text.split("\n");
+      // held ends with "" because the text ends in a newline, so the count of
+      // lines is one less than the count of pieces.
+      if(held.length-1>FOLLOW_PANE_LINES){text=held.slice(held.length-1-FOLLOW_PANE_LINES).join("\n");follow.trimmed=true;}
+      pre.textContent=text;
+      if(atEnd)pre.scrollTop=pre.scrollHeight;
+    }
+    if(answer.dropped)$("#followNote").textContent=t("Lines arrived faster than they were read; the server holds only the most recent few thousand, and the ones between are gone.");
+    else if(answer.open===false){$("#followNote").textContent=t("The session ended.");if(!lines.length){follow=null;return;}}
+    else if(answer.logged===false)$("#followNote").textContent=t("Logging is off for this session's protocol, so no line will appear. Turn it on under Settings, Logging.");
+    else if(follow.trimmed)$("#followNote").textContent=tf("Only the most recent {0} lines are kept here, and Copy takes those; the ones before them are in the log file below.",FOLLOW_PANE_LINES);
+    else $("#followNote").textContent=t("Waiting for the next line…");
+    // The server answers at once, rather than waiting, when another follow is
+    // already waiting on it - one at a time, since a waiting follow holds one
+    // of the four worker threads that also serve the webmail; a pause here is
+    // what keeps that from becoming a tight loop.
+    if(!lines.length&&!answer.waited)await new Promise(r=>setTimeout(r,1000));
+  }
+}
+function stopFollow(){follow=null;const box=$("#followBox");if(box)box.hidden=true;}
 function fmtBytes(n){n=Number(n)||0;if(n>=1048576)return (n/1048576).toFixed(1)+" MB";if(n>=1024)return (n/1024).toFixed(1)+" KB";return n+" B";}
 /* ---------- Audit trail ----------
    Who changed what, when, from where, and over which interface. The rows are

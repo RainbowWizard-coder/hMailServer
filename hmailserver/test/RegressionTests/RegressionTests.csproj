@@ -681,6 +681,7 @@
     <Compile Include="API\RestApiQueue.cs" />
     <Compile Include="API\RestApiQuarantineAndAliases.cs" />
     <Compile Include="API\RestApiReports.cs" />
+    <Compile Include="API\RestApiSessionFollow.cs" />
     <Compile Include="API\RestApiSrvRecords.cs" />
     <Compile Include="API\ScriptReload.cs" />
     <Compile Include="API\ScriptObjectPolicy.cs" />

@@ -283,6 +283,7 @@ namespace HM
       virtual void OnHandshakeCompleted();
       virtual void OnHandshakeFailed() {};
       virtual AnsiString GetCommandSeparator() const;
+      virtual AnsiString GetSessionProtocolName() const { return "IMAP"; }
 
       // IMAP commands are "<tag> <COMMAND> ...", so the verb is the second token.
       virtual AnsiString GetOtelOperationName_(const AnsiString &sData) const;

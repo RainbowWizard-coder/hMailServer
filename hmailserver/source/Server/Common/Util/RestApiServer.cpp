@@ -27,6 +27,7 @@
 #include "Totp.h"
 #include "AccountLogon.h"
 #include "SignInStore.h"
+#include "SessionFollow.h"
 #include "SessionPolicies.h"
 #include "PasswordPolicy.h"
 #include "PasswordBreachCheck.h"
@@ -908,6 +909,12 @@ namespace HM
 
       server_ = server;
       running_ = true;
+
+      // A previous Stop left the session ring refusing to hold a follow open;
+      // this listener can hold one again. Before the workers start, so no
+      // request of this listener's can be refused a wait it should have had.
+      SessionFollow::Instance()->AllowWaits();
+
       server_->Start();
 
       String message;
@@ -924,6 +931,11 @@ namespace HM
          return;
 
       running_ = false;
+
+      // A follow waiting for a session's next line holds a worker thread
+      // until its wait ends; woken here, so the stop below never waits on a
+      // follower's timer.
+      SessionFollow::Instance()->CancelWaits();
 
       if (server_)
       {
@@ -1943,6 +1955,10 @@ namespace HM
             return HandleMessageTrace_(caller, route.kind, route.identifier);
          case RouteLogTail:
             return HandleLogTail_(route.identifier, route.query);
+         case RouteLogSessions:
+            return HandleLogSessions_();
+         case RouteLogSessionFollow:
+            return HandleLogSessionFollow_(route);
          case RouteBackupStart:
             return HandleBackupStart_();
          case RouteBackupStatus:
@@ -4859,6 +4875,28 @@ namespace HM
          }
          return;
       }
+      // The live sessions and one of them followed (RestApiSessionFollow.cpp).
+      // Before the log-file tail below, whose {name} would otherwise take
+      // "sessions" for a file.
+      if (method == "GET" && path == "/api/v1/logs/sessions")
+      {
+         route.kind = RouteLogSessions;
+         return;
+      }
+
+      const AnsiString sessionsPrefix = "/api/v1/logs/sessions/";
+      if (method == "GET" && path.StartsWith(sessionsPrefix))
+      {
+         AnsiString idPart = path.Mid(sessionsPrefix.GetLength());
+         __int64 sessionId = 0;
+         if (idPart.Find("/") < 0 && ParseQueueId(idPart, sessionId))
+         {
+            route.kind = RouteLogSessionFollow;
+            route.record_id = sessionId;
+         }
+         return;
+      }
+
       const AnsiString logsPrefix = "/api/v1/logs/";
       if (method == "GET" && path.StartsWith(logsPrefix))
       {
@@ -6063,6 +6101,8 @@ namespace HM
       // a domain-confined role's.
       case RouteLogList:
       case RouteLogTail:
+      case RouteLogSessions:
+      case RouteLogSessionFollow:
          return RolePermission::ViewLogs;
 
       // Where a message went. The recent events and one message's story are
@@ -6826,6 +6866,8 @@ namespace HM
       case RouteAdminSecondFactorGet:
       case RouteLogList:
       case RouteLogTail:
+      case RouteLogSessions:
+      case RouteLogSessionFollow:
       // A search that matches any address, and one queued message whose
       // recipients are in any number of domains, have no domain to confine to.
       case RouteMessageTraceRecent:
@@ -14818,6 +14860,7 @@ namespace HM
       openApiJson += OpenApiComplaintsPaths_();
       openApiJson += OpenApiDomainReportsPaths_();
       openApiJson += OpenApiReportsPaths_();
+      openApiJson += OpenApiSessionFollowPaths_();
       openApiJson += OpenApiRolesPaths_();
       openApiJson += OpenApiOpenPgpPaths_();
       openApiJson += OpenApiWebhooksPaths_();

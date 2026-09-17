@@ -16,6 +16,7 @@
 #include "../Util/ByteBuffer.h"
 #include "../Util/ServerStatus.h"
 #include "../Util/OtelTracer.h"
+#include "../Util/SessionFollow.h"
 #include "../BO/TCPIPPorts.h"
 #include "../Persistence/PersistentSecurityRange.h"
 
@@ -82,6 +83,10 @@ namespace HM
       try
       {
          LOG_DEBUG("Ending session " + StringParser::IntToString(session_id_));
+
+         // After the line above, so that a follower reads it under the session
+         // before the session is listed as ended.
+         SessionFollow::Instance()->OnSessionEnded(session_id_);
 
          if (disconnected_)
             disconnected_->Set();
@@ -290,6 +295,20 @@ namespace HM
    void
    TCPConnection::ContinueStart_()
    {
+      // The live session list an administrator follows a connection from.
+      // Here rather than in Start(), so that a session behind a PROXY protocol
+      // header is listed under the client address the header named. The peer
+      // of a session that has already gone is not worth an exception on the
+      // I/O thread; such a session is simply not listed.
+      try
+      {
+         SessionFollow::Instance()->OnSessionStarted(session_id_, GetSessionProtocolName(),
+            GetRemoteEndpointAddress().ToString(), (int) GetLocalEndpointPort(), is_client_);
+      }
+      catch (...)
+      {
+      }
+
       OnConnected();
 
       if (connection_security_ == CSSSL)
@@ -1371,6 +1390,12 @@ namespace HM
 
       operation_queue_.Pop(IOOperation::BCTWrite);
       ProcessOperationQueue_(0);
+   }
+
+   AnsiString
+   TCPConnection::GetSessionProtocolName() const
+   {
+      return is_client_ ? "outbound" : "inbound";
    }
 
    IPAddress
