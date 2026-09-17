@@ -645,6 +645,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ConfidentialMessages.cpp" />
     <ClCompile Include="..\Common\Util\RestApiConfidential.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOffline.cpp" />
+    <ClCompile Include="..\Common\Util\ContentPolicy.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMaskedAddresses.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSenderAddresses.cpp" />
     <ClCompile Include="..\Common\Util\SenderAddresses.cpp" />
@@ -1465,6 +1466,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\MaskedAddresses.h" />
     <ClInclude Include="..\Common\Util\RecoverableStore.h" />
     <ClInclude Include="..\Common\Util\ConfidentialMessages.h" />
+    <ClInclude Include="..\Common\Util\ContentPolicy.h" />
     <ClInclude Include="..\Common\Util\SenderAddresses.h" />
     <ClInclude Include="..\Common\Util\CalDavServer.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKeyStore.h" />

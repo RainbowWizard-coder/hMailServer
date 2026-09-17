@@ -186,6 +186,10 @@
 // links in the notices are written against. Empty falls back to the digest's
 // and then the import sign-in's base URL; with none set, none can be sent.
 #define PROPERTY_CONFIDENTIAL_BASE_URL          _T("ConfidentialBaseUrl")
+// Outbound content policy (Util/ContentPolicy.h): the regular expression the
+// account_number detector searches the readable text for. Empty, the default,
+// is a detector that never fires; a card number and an IBAN need no pattern.
+#define PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN     _T("DlpAccountNumberPattern")
 // Importing from the old provider with a sign-in (Util/ReaderOAuth.h): the base
 // URL the providers send the reader back to, and per provider the client this
 // server is registered as and the two endpoints of the authorization code flow.

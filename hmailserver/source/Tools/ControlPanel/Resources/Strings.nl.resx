@@ -1377,6 +1377,12 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Attachment name" xml:space="preserve">
     <value>Bijlagenaam</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Bijlagetype</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Bijlagetype op basis van de bytes (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Pogingen om de database bij het opstarten te bereiken</value>
   </data>
@@ -3434,6 +3440,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Time-out voor externe processen, bijv. een virusscanner op de opdrachtregel (seconden)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Externe ontvangers</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Externe ontvangers (adressen die deze server niet host)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Externe configuratie</value>
   </data>
@@ -4852,6 +4864,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format schrijft per vermelding één regel als host, ident, sessie, [datum], "categorie en bericht", status, bytes - zodat een loganalyseprogramma 5xx-antwoorden kan tellen zonder iets van hMailServer te weten. Ident en bytes zijn altijd "-" (de server bevraagt identd nooit en de logger krijgt de overdrachtsgroottes niet te horen), en het AWStats-journaal is een apart bestand dat deze instelling niet verandert: de schakelaar daarvoor staat hierboven.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>T_ekst van de melding (gestuurd aan een afzender die deze server host, met de naam van de regel)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Naam</value>
   </data>
@@ -6216,6 +6231,12 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Alleen-lezen. Verloopt {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Leesbare tekst</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Leesbare tekst (berichttekst en tekstbijlagen)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>De directory wordt gelezen...</value>
   </data>
@@ -7304,6 +7325,12 @@ Doorgaan?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Stuurt het adres van de ontvanger als de User:-header, zodat spamd de eigen voorkeuren van dat postvak toepast - de vorm die een spamd met virtuele gebruikers (--virtual-config-dir met %u of %d) verwacht. Een scan draait één keer per bericht, niet één keer per ontvanger, dus een bericht aan meerdere mensen kan niet onder de voorkeuren van een van hen worden gescand en gebruikt in plaats daarvan het profiel hierboven.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Gevoelige inhoud</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Gevoelige inhoud gevonden (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Los daarvan VERSTUURT deze server zulke rapporten naar andere domeinen: TlsRptFromAddress is ingesteld op {0}, dus zijn eigen rapporten gaan de deur uit.</value>
@@ -9357,6 +9384,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Eigenaar waarschuwen bij (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Afzender waarschuwen</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Waarschuwing</value>

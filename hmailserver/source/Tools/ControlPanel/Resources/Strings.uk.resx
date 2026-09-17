@@ -1377,6 +1377,12 @@
   <data name="Attachment name" xml:space="preserve">
     <value>Ім’я вкладення</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Тип вкладення</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Тип вкладення за його байтами (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Кількість спроб дістатися бази даних під час запуску</value>
   </data>
@@ -3434,6 +3440,12 @@
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Час очікування зовнішнього процесу, наприклад антивірусного сканера з командного рядка (секунд)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Зовнішні одержувачі</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Зовнішні одержувачі (адреси, які цей сервер не обслуговує)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Зовнішнє налаштування</value>
   </data>
@@ -4852,6 +4864,9 @@
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format записує по одному рядку на запис як host, ident, session, [date], "category and message", status, bytes — тож аналізатор журналів може порахувати відповіді 5xx, нічого не знаючи про hMailServer. Ident і bytes завжди «-» (сервер ніколи не запитує identd, а журналювальнику не повідомляють розміри передач), а журнал AWStats — окремий файл, якого цей параметр не змінює: його власний перемикач вище.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Текст сповіщення (надсилається відправнику, якого обслуговує цей сервер, із назвою правила) (_N)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Ім’я</value>
   </data>
@@ -6216,6 +6231,12 @@
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Лише читання. Термін дії спливає {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Читабельний текст</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Читабельний текст (тіло листа та текстові вкладення)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Читання каталогу...</value>
   </data>
@@ -7304,6 +7325,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Надсилає адресу отримувача як заголовок User:, щоб spamd застосував власні налаштування цієї скриньки - саме цього очікує spamd з віртуальними користувачами (--virtual-config-dir з %u або %d). Сканування виконується один раз на повідомлення, а не на кожного отримувача, тому повідомлення кільком людям не може бути проскановане за налаштуваннями жодного з них і використовує профіль вище.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Конфіденційний вміст</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Знайдено конфіденційний вміст (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Окремо, цей сервер НАДСИЛАЄ такі звіти іншим доменам: TlsRptFromAddress встановлено в {0}, тому його власні звіти виходять.</value>
@@ -9357,6 +9384,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Попередити власника при (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Попередити відправника</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Попередження</value>

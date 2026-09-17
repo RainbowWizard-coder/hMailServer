@@ -3396,11 +3396,11 @@ async function settingsPost(groupId,path,label){
    is being used, the document and this page have drifted apart and the document
    is the one to fix. */
 const RULE_FALLBACK={
-  fields:["from","to","cc","subject","body","message_size","recipient_list","delivery_attempts","attachment_name","header"],
+  fields:["from","to","cc","subject","body","message_size","recipient_list","delivery_attempts","attachment_name","sensitive_content","attachment_type","external_recipient","content","header"],
   matches:["equals","not_equals","contains","not_contains","less_than","greater_than","regex","wildcard"],
   actions:{forward:["to"],reply:["from_name","from_address","subject","body"],move_to_folder:["folder"],
     script_function:["script_function"],set_header:["header","value"],send_using_route:["route_id"],
-    bind_to_address:["value"],add_disclaimer:["body"],reject:["value"],require_tls:[],quarantine:[],"delete":[],stop:[],copy:[]}
+    bind_to_address:["value"],add_disclaimer:["body"],reject:["value"],warn_sender:["value"],require_tls:[],quarantine:[],"delete":[],stop:[],copy:[]}
 };
 /* Whose rules the page shows: the server's, or one domain's - the same
    documents at /api/v1/domains/{name}/rules, run for that domain's mail after
@@ -3422,7 +3422,10 @@ function ruleWords(){
   const actions={};
   const m=/the parameters that type takes\s*-\s*([^.]*)\./.exec(text);
   if(m){
-    m[1].split(";").forEach(segment=>{
+    /* An explanation in brackets after a parameter - "value (the text of
+       the 550 ...)" - is prose, not parameters; without this its words became
+       inputs. */
+    m[1].replace(/\([^)]*\)/g,"").split(";").forEach(segment=>{
       const colon=segment.indexOf(":");
       if(colon>=0){
         const type=tokens(segment.slice(0,colon))[0];

@@ -36,6 +36,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox bindAddress_ = new();
       private readonly TextBox disclaimerText_ = new() { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 90, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
       private readonly TextBox rejectText_ = new();
+      private readonly TextBox warnText_ = new() { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 70, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
 
       private readonly StackPanel forwardPanel_ = new();
       private readonly StackPanel replyPanel_ = new();
@@ -46,6 +47,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly StackPanel bindPanel_ = new();
       private readonly StackPanel disclaimerPanel_ = new();
       private readonly StackPanel rejectPanel_ = new();
+      private readonly StackPanel warnPanel_ = new();
       private readonly TextBlock noParams_ = DialogFields.Note(L("This action has no additional parameters."));
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
@@ -76,6 +78,7 @@ namespace hMailServer.ControlPanel.Views
          type_.Items.Add(DialogFields.Combo(L("Reject with a text"), 12));
          type_.Items.Add(DialogFields.Combo(L("Require TLS for delivery"), 13));
          type_.Items.Add(DialogFields.Combo(L("Quarantine"), 14));
+         type_.Items.Add(DialogFields.Combo(L("Warn the sender"), 15));
          if (serverLevel)
             type_.Items.Add(DialogFields.Combo(L("Bind to address"), 10));
          type_.SelectionChanged += (s, e) => UpdateVisibility();
@@ -119,6 +122,9 @@ namespace hMailServer.ControlPanel.Views
          rejectPanel_.Children.Add(Label(L("Refusal te_xt (what the 550 says to the sender)"), rejectText_));
          body.Children.Add(rejectPanel_);
 
+         warnPanel_.Children.Add(Label(L("N_otice text (mailed to a sender this server hosts, naming the rule)"), warnText_));
+         body.Children.Add(warnPanel_);
+
          body.Children.Add(noParams_);
 
          // Enter saves, Escape cancels. Safe alongside the multi-line reply body:
@@ -148,6 +154,7 @@ namespace hMailServer.ControlPanel.Views
          bindPanel_.Visibility = type == 10 ? Visibility.Visible : Visibility.Collapsed;
          disclaimerPanel_.Visibility = type == 11 ? Visibility.Visible : Visibility.Collapsed;
          rejectPanel_.Visibility = type == 12 ? Visibility.Visible : Visibility.Collapsed;
+         warnPanel_.Visibility = type == 15 ? Visibility.Visible : Visibility.Collapsed;
          noParams_.Visibility = (type == 1 || type == 6 || type == 9 || type == 13 || type == 14) ? Visibility.Visible : Visibility.Collapsed;
       }
 
@@ -208,6 +215,7 @@ namespace hMailServer.ControlPanel.Views
                bindAddress_.Text = (string)a.Value ?? "";
                disclaimerText_.Text = (string)a.Body ?? "";
                rejectText_.Text = (string)a.Value ?? "";
+               warnText_.Text = (string)a.Value ?? "";
                DialogFields.SelectCombo(route_, (int)a.RouteID);
                ServerSession.Release(a);
             }
@@ -281,6 +289,9 @@ namespace hMailServer.ControlPanel.Views
                      break;
                   case 12:
                      a.Value = rejectText_.Text.Trim();
+                     break;
+                  case 15:
+                     a.Value = warnText_.Text.Trim();
                      break;
                }
                a.Save();

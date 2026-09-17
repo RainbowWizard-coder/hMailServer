@@ -1377,6 +1377,12 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Attachment name" xml:space="preserve">
     <value>Liitteen nimi</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Liitteen tyyppi</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Liitteen tyyppi sen tavujen perusteella (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Yritykset tavoittaa tietokanta käynnistyksessä</value>
   </data>
@@ -3434,6 +3440,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Ulkoisen prosessin, esim. komentorivin virustarkistimen, aikakatkaisu (sekuntia)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Ulkoiset vastaanottajat</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Ulkoiset vastaanottajat (osoitteet, joita tämä palvelin ei isännöi)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Ulkoinen määritys</value>
   </data>
@@ -4852,6 +4864,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format kirjoittaa yhden rivin merkintää kohden muodossa kone, ident, istunto, [päivämäärä], "luokka ja viesti", tila, tavut - joten lokianalysaattori voi laskea 5xx-vastaukset tietämättä mitään hMailServeristä. Ident ja tavut ovat aina "-" (palvelin ei koskaan kysy identd:tä eikä lokittajalle kerrota siirtokokoja), ja AWStats-päiväkirja on erillinen tiedosto, jota tämä asetus ei muuta: sen oma kytkin on yllä.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Ilmoit_uksen teksti (lähetetään tämän palvelimen isännöimälle lähettäjälle, säännön nimen kera)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Nimi</value>
   </data>
@@ -6216,6 +6231,12 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Vain luku. Vanhenee {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Luettava teksti</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Luettava teksti (viestin runko ja tekstiliitteet)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Luetaan hakemistoa...</value>
   </data>
@@ -7304,6 +7325,12 @@ Jatketaanko?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Lähettää vastaanottajan osoitteen User:-otsakkeena, jotta spamd soveltaa juuri sen postilaatikon omia asetuksia - muoto, jota virtuaalikäyttäjä-spamd (--virtual-config-dir ja %u tai %d) odottaa. Tarkistus ajetaan kerran viestiä kohden, ei kerran vastaanottajaa kohden, joten usealle henkilölle menevää viestiä ei voi tarkistaa kenenkään heistä asetuksilla, ja se käyttää yllä olevaa profiilia.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Arkaluonteinen sisältö</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Arkaluonteista sisältöä löytyi (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Erikseen: tämä palvelin LÄHETTÄÄ tällaisia raportteja muille verkkotunnuksille: TlsRptFromAddress on asetettu arvoon {0}, joten sen omat raportit lähtevät.</value>
@@ -9357,6 +9384,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Varoita omistajaa kohdassa (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Varoita lähettäjää</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Varoitus</value>

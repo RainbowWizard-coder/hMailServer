@@ -452,7 +452,7 @@ let nextId = 100;
 let catalogueMissing = false;
 let droppedKey = null;
 
-const RULES_POST = 'Body: name (required, at most 100 characters), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, or header with the header\'s name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; delete, stop and copy take none. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.';
+const RULES_POST = 'Body: name (required, at most 100 characters, no control characters: it is written into a 550 reply and into the headers of a policy notice), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, attachment_name, sensitive_content, attachment_type, external_recipient, content, or header with the header\'s name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; add_disclaimer: body (the text appended to the message\'s plain and HTML parts); reject: value (one line, no control characters: the text of the 550 the SMTP session answers with, before the message is accepted, when the rule matches there, and of the 403 policy_rejected the self-service send route answers with before it queues; a message that reached delivery another way is dropped, and a sender this server hosts is mailed a notice saying it was not sent); warn_sender: value (the text of a notice mailed to the sender naming the rule, once per message on its first delivery attempt and not again on a release from the quarantine, only when this server hosts the sender\'s domain - the message itself is not held by this action); require_tls, quarantine, delete, stop and copy take none. The sensitive_content condition is the detectors that found something in the readable text, with ; between them: card_number (13 to 19 digits that pass the Luhn check), iban (a country in the IBAN registry, its length and check digits) and account_number (the dlp_account_number_pattern setting\'s regular expression); attachment_type is every attachment\'s type by its first bytes rather than its name (executable, elf, pdf, zip, office_xml, jar, office, rar, 7z, gzip, png, jpeg, gif, rtf, script, text, empty, binary); external_recipient is every recipient this server does not host; content is the readable text itself - the plain and HTML parts and every attachment whose bytes are text - for a pattern of the rule\'s own; a sealed message declines all but attachment_type and external_recipient, as the body condition does. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.';
 
 const ROUTE_PROPS = {
    domain_name: { type: 'string' }, description: { type: 'string' }, target_smtp_host: { type: 'string' },
@@ -4211,7 +4211,7 @@ async function main() {
    click(act('critadd'));
    await flush();
    const field = content().querySelector('[data-r="crit-field"]');
-   check('a criterion\'s fields are the words of the document\'s sentence', field !== null && field.querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'from,to,cc,subject,body,message_size,recipient_list,delivery_attempts,header',
+   check('a criterion\'s fields are the words of the document\'s sentence', field !== null && field.querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'from,to,cc,subject,body,message_size,recipient_list,delivery_attempts,attachment_name,sensitive_content,attachment_type,external_recipient,content,header',
       field ? field.innerHTML : 'none');
    check('and its matches', content().querySelector('[data-r="crit-match"]').querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'equals,not_equals,contains,not_contains,less_than,greater_than,regex,wildcard');
    check('the header name is hidden until the field is header', content().querySelector('[data-r="crit-header"]').hidden === true);
@@ -4224,9 +4224,30 @@ async function main() {
    content().querySelector('[data-r="crit-value"]').value = 'YES';
    click(act('actadd'));
    await flush();
-   const type = content().querySelector('[data-r="act-type"]');
-   check('an action\'s types are the document\'s', type !== null && type.querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'forward,reply,move_to_folder,script_function,set_header,send_using_route,bind_to_address,delete,stop,copy',
+   let type = content().querySelector('[data-r="act-type"]');
+   check('an action\'s types are the document\'s', type !== null && type.querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'forward,reply,move_to_folder,script_function,set_header,send_using_route,bind_to_address,add_disclaimer,reject,warn_sender,require_tls,quarantine,delete,stop,copy',
       type ? type.innerHTML : 'none');
+   // ---- the outbound content policy's action, and the bracketed prose after a parameter
+   const actParams = () => content().querySelectorAll('[data-r]').filter((el) => el.dataset.r.indexOf('act-') === 0 && el.dataset.r !== 'act-type').map((el) => el.dataset.r).join(',');
+   type = content().querySelector('[data-r="act-type"]');
+   type.value = 'warn_sender';
+   type.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('warn_sender offers its text as the one value input', actParams() === 'act-value',
+      actParams());
+   type = content().querySelector('[data-r="act-type"]');
+   type.value = 'reject';
+   type.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('the words in brackets after reject\'s value are prose, not parameters', actParams() === 'act-value',
+      actParams());
+   type = content().querySelector('[data-r="act-type"]');
+   type.value = 'add_disclaimer';
+   type.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('add_disclaimer takes its body alone, as a text area', actParams() === 'act-body' && content().querySelector('[data-r="act-body"]').tagName === 'TEXTAREA',
+      actParams());
+   type = content().querySelector('[data-r="act-type"]');
    type.value = 'send_using_route';
    type.dispatchEvent(makeEvent('change'));
    await flush();

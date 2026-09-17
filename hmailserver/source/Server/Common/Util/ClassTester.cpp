@@ -13,6 +13,7 @@
 #include "../Util/MessageUtilities.h"
 #include "../Util/MessageOrigin.h"
 #include "../Util/PasswordBreachCheck.h"
+#include "../Util/ContentPolicy.h"
 #include "../Util/WebPush.h"
 #include "../Util/PushSubscriptions.h"
 #include "../Util/PushNotifier.h"
@@ -152,6 +153,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing PasswordBreachCheck\n"));
       PasswordBreachCheckTester passwordBreachCheckTester;
       passwordBreachCheckTester.Test();
+
+      // The outbound content policy's detectors, on published vectors: the
+      // card numbers and IBANs every payment page tests with, a phone number
+      // and a run of one digit that must not count, the registry's lengths.
+      OutputDebugString(_T("hMailServer: Testing ContentPolicy\n"));
+      ContentPolicyTester contentPolicyTester;
+      contentPolicyTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing ExternalSenderTagger\n"));
       ExternalSenderTaggerTester externalSenderTaggerTester;

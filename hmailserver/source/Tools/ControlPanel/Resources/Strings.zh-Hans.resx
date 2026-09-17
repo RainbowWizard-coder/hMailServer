@@ -1377,6 +1377,12 @@
   <data name="Attachment name" xml:space="preserve">
     <value>附件名称</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>附件类型</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>按字节判断的附件类型 (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>启动时尝试连接数据库的次数</value>
   </data>
@@ -3434,6 +3440,12 @@
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>外部进程超时，例如命令行病毒扫描器（秒）</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>外部收件人</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>外部收件人 (此服务器未托管的地址)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>外部设置</value>
   </data>
@@ -4852,6 +4864,9 @@
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA 通用日志格式每个条目写一行，格式为 host、ident、session、[date]、"category and message"、status、bytes - 这样日志分析器无需了解 hMailServer 的任何知识就能统计 5xx 应答。ident 和 bytes 始终为 "-"（服务器从不查询 identd，日志记录器也不知道传输大小），而 AWStats 日志是一个独立的文件，此设置不会改变它：它自己的开关在上面。</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>通知文本 (发送给此服务器托管的发件人，并注明规则名称) (_O)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>名称</value>
   </data>
@@ -6216,6 +6231,12 @@
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>只读。{0} 过期。</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>可读文本</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>可读文本 (正文和文本附件)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>正在读取目录...</value>
   </data>
@@ -7304,6 +7325,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>将收件人的地址作为 User: 标头发送，这样 spamd 就会应用该邮箱自己的偏好设置 - 这是虚拟用户 spamd (带 %u 或 %d 的 --virtual-config-dir) 所期望的形式。扫描按每封邮件运行一次，而不是按每个收件人一次，因此发给多人的邮件无法按其中任何一人的偏好扫描，而是改用上面的配置文件。</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>敏感内容</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>发现敏感内容 (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>另外，本服务器会向其他域发送此类报告: TlsRptFromAddress 已设为 {0}，因此它自己的报告会发出。</value>
@@ -9357,6 +9384,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>警告所有者的时点 (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>警告发件人</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>警告</value>

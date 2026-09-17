@@ -1167,7 +1167,11 @@ namespace hMailServer
       eFTMessageSize = 6,
       eFTRecipientList = 7,
       eFTDeliveryAttempts = 8,
-      eFTAttachmentName = 9
+      eFTAttachmentName = 9,
+      eFTSensitiveContent = 10,
+      eFTAttachmentType = 11,
+      eFTExternalRecipient = 12,
+      eFTContent = 13
    }
 
    public enum eRuleActionType
@@ -1186,7 +1190,8 @@ namespace hMailServer
       eRAAddDisclaimer = 11,
       eRAReject = 12,
       eRARequireTLS = 13,
-      eRAQuarantine = 14
+      eRAQuarantine = 14,
+      eRAWarnSender = 15
    }
 
    public enum eDistributionListMode
@@ -1384,6 +1389,10 @@ namespace hMailServer
             case eRulePredefinedField.eFTRecipientList: return "recipient_list";
             case eRulePredefinedField.eFTDeliveryAttempts: return "delivery_attempts";
             case eRulePredefinedField.eFTAttachmentName: return "attachment_name";
+            case eRulePredefinedField.eFTSensitiveContent: return "sensitive_content";
+            case eRulePredefinedField.eFTAttachmentType: return "attachment_type";
+            case eRulePredefinedField.eFTExternalRecipient: return "external_recipient";
+            case eRulePredefinedField.eFTContent: return "content";
             default: return "from";
          }
       }
@@ -1491,6 +1500,7 @@ namespace hMailServer
                json.Append(",\"body\":").Append(ServerApi.Quote(Body ?? string.Empty));
                break;
             case eRuleActionType.eRAReject:
+            case eRuleActionType.eRAWarnSender:
                json.Append(",\"value\":").Append(ServerApi.Quote(Value ?? string.Empty));
                break;
          }
@@ -1515,6 +1525,7 @@ namespace hMailServer
             case eRuleActionType.eRAReject: return "reject";
             case eRuleActionType.eRARequireTLS: return "require_tls";
             case eRuleActionType.eRAQuarantine: return "quarantine";
+            case eRuleActionType.eRAWarnSender: return "warn_sender";
             case eRuleActionType.eRACreateCopy: return "copy";
             default: return "delete";
          }

@@ -29,6 +29,12 @@ namespace HM
          Reject = 12,
          RequireTLS = 13,
          Quarantine = 14,
+
+         // A notice to the sender, naming the rule, with the action's Value as
+         // its text - only when this server hosts the sender's domain, since a
+         // notice to an outside sender about a policy of ours is backscatter.
+         // The message itself is not held by this action.
+         WarnSender = 15,
       };
 
       String GetName() const {return ""; }

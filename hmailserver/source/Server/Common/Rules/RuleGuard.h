@@ -156,6 +156,30 @@ namespace HM
       // on who asked.
       static bool SieveRegexMatches(const String &pattern, const String &subject, bool caseSensitive);
 
+      // The same breaker for the outbound content policy's account-number
+      // detector (the DlpAccountNumberPattern setting; Util/ContentPolicy.h),
+      // which is a SEARCH over the readable text of a message - the plain and
+      // HTML parts and every text attachment, up to a megabyte - so the budget
+      // and the suspension matter more here than for a criterion against a
+      // subject line, not less: a sender who can make the organisation's
+      // pattern back-track hard pays one message to make the server pay per
+      // message, and the pattern is administrator-supplied while the text is
+      // not.
+      //
+      // The third parallel sibling, for the reason given above
+      // SieveRegexMatches: its own wording, because the person reading the log
+      // set a setting and not a rule or a script, and its own codes - HM6821
+      // (will not compile) and HM6822 (abandoned by Boost, or over the budget)
+      // - because a fault in that setting must not read as a fault in a rule,
+      // and an abandonment must not read as a pattern that does not compile,
+      // which is what one catch for both said before this existed.
+      //
+      // Suspended means the detector finds nothing for the window, which is
+      // the fail-open direction the whole breaker takes and the doc says so;
+      // what changes is that it is said as an abandonment, once per window,
+      // rather than silently and for ever.
+      static bool PolicyRegexMatches(const String &pattern, const String &subject);
+
       // A rule action failed and may have left the message file in a state nobody
       // chose.
       //

@@ -46,6 +46,8 @@
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "CountryBlocking.h"
+#include "ContentPolicy.h"
+#include <boost/regex.hpp>
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "Utilities.h"
@@ -863,6 +865,26 @@ namespace
            lowered.MakeLower();
            if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
               return String(_T("The base URL is absolute and begins with http:// or https://, such as https://mail.example.com."));
+           return String();
+        } },
+
+      // Outbound content policy (Util/ContentPolicy.h): the one detector that
+      // needs to be told what to look for. Refused unless it compiles, so the
+      // detector cannot be switched off in silence by a pattern that does not.
+      { "dlp_account_number_pattern", KindString, ReadWrite, EffectNow, nullptr,
+        "The regular expression the account_number detector of the sensitive_content rule condition searches a message's readable text for - the plain and HTML parts and every attachment whose bytes are text - such as an account-number format of this organisation. Perl syntax, searched anywhere in the text, at most 2000 characters. Empty, the default, is a detector that never fires; the card_number and iban detectors need no pattern. Refused unless it compiles.",
+        ROW_TEXT(Config()->GetDlpAccountNumberPattern()),
+        [] (const Value &v) { String pattern = v.text; pattern.Trim(); Config()->SetDlpAccountNumberPattern(pattern); return Applied(); },
+        [] (const Value &v) -> String
+        {
+           String pattern = v.text;
+           pattern.Trim();
+           if (pattern.IsEmpty())
+              return String();
+           if (pattern.GetLength() > 2000)
+              return String(_T("dlp_account_number_pattern is at most 2000 characters."));
+           if (!ContentPolicy::PatternCompiles(pattern))
+              return String(_T("dlp_account_number_pattern is not a regular expression this server can use; it has not been saved."));
            return String();
         } },
 

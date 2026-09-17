@@ -252,6 +252,10 @@ namespace HM
       // Messages that expire: no base URL of their own until one is set; the
       // digest's or the import sign-in's serves until then.
       property_set_->EnsureString(PROPERTY_CONFIDENTIAL_BASE_URL, _T(""));
+
+      // Outbound content policy: no account-number pattern until one is set;
+      // the card and IBAN detectors need none.
+      property_set_->EnsureString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
@@ -554,6 +558,18 @@ namespace HM
    Configuration::SetConfidentialBaseUrl(const String &url)
    {
       GetSettings()->SetString(PROPERTY_CONFIDENTIAL_BASE_URL, url);
+   }
+
+   String
+   Configuration::GetDlpAccountNumberPattern() const
+   {
+      return GetSettings()->GetString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN);
+   }
+
+   void
+   Configuration::SetDlpAccountNumberPattern(const String &pattern)
+   {
+      GetSettings()->SetString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN, pattern);
    }
 
    String

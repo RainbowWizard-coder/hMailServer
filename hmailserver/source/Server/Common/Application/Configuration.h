@@ -238,6 +238,11 @@ namespace HM
       String GetConfidentialBaseUrl() const;
       void SetConfidentialBaseUrl(const String &url);
 
+      // Outbound content policy (Util/ContentPolicy.h): the regular expression
+      // the account_number detector searches for; empty never fires.
+      String GetDlpAccountNumberPattern() const;
+      void SetDlpAccountNumberPattern(const String &pattern);
+
       String GetImportOAuthRedirectBaseUrl() const;
       void SetImportOAuthRedirectBaseUrl(const String &url);
       String GetImportOAuthString(const String &propertyName) const;

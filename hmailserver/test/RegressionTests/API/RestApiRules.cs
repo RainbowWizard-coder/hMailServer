@@ -415,6 +415,72 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The outbound content policy's words round-trip through the listing: the four conditions and the warn_sender action with its text, and an unknown detector value is still just a value")]
+      public void TheContentPolicyWordsRoundTrip()
+      {
+         string name = RulePrefix + "content-policy";
+         string criteria =
+            "{\"field\":\"sensitive_content\",\"match\":\"contains\",\"value\":\"card_number\"}," +
+            "{\"field\":\"attachment_type\",\"match\":\"not_contains\",\"value\":\"executable\"}," +
+            "{\"field\":\"external_recipient\",\"match\":\"contains\",\"value\":\"@\"}," +
+            "{\"field\":\"content\",\"match\":\"regex\",\"value\":\"(?s).*PRJ-[0-9]{4}.*\"}";
+         string actions = "{\"type\":\"warn_sender\",\"value\":\"Use the portal.\"},{\"type\":\"quarantine\"}";
+
+         (int status, string body) created = Http("POST", "/api/v1/rules", RuleBody(name, criteria, actions, active: false, allCriteria: true));
+         Assert.AreEqual(201, created.status, created.body);
+         StringAssert.Contains("{\"field\":\"sensitive_content\",\"header\":\"\",\"match\":\"contains\",\"value\":\"card_number\"}", created.body);
+         StringAssert.Contains("{\"field\":\"attachment_type\",\"header\":\"\",\"match\":\"not_contains\",\"value\":\"executable\"}", created.body);
+         StringAssert.Contains("{\"field\":\"external_recipient\",\"header\":\"\",\"match\":\"contains\",\"value\":\"@\"}", created.body);
+         StringAssert.Contains("{\"field\":\"content\",\"header\":\"\",\"match\":\"regex\",\"value\":\"(?s).*PRJ-[0-9]{4}.*\"}", created.body);
+         StringAssert.Contains("{\"type\":\"warn_sender\",\"value\":\"Use the portal.\"}", created.body);
+         int id = ExtractId(created.body);
+
+         // What COM reads back is the numbers the server stored: the fields
+         // 10 to 13 and the action 15 of the IDL.
+         Rule rule = RuleOverCom(id);
+         Assert.IsNotNull(rule, "The rule exists in the collection the Control Panel edits.");
+         Assert.AreEqual(4, rule.Criterias.Count);
+         Assert.AreEqual(10, (int) rule.Criterias[0].PredefinedField);
+         Assert.AreEqual(11, (int) rule.Criterias[1].PredefinedField);
+         Assert.AreEqual(12, (int) rule.Criterias[2].PredefinedField);
+         Assert.AreEqual(13, (int) rule.Criterias[3].PredefinedField);
+         Assert.AreEqual(15, (int) rule.Actions[0].Type);
+         Assert.AreEqual("Use the portal.", rule.Actions[0].Value);
+
+         // A warn_sender with no text is allowed: the notice names the rule anyway.
+         (int status, string body) replaced = Http("PUT", "/api/v1/rules/" + id,
+            RuleBody(name, "{\"field\":\"external_recipient\",\"match\":\"equals\",\"value\":\"\"}", "{\"type\":\"warn_sender\"}", active: false, allCriteria: true));
+         Assert.AreEqual(200, replaced.status, replaced.body);
+         StringAssert.Contains("{\"type\":\"warn_sender\",\"value\":\"\"}", replaced.body);
+
+         // A parameter the action does not take is refused, as for every other type.
+         (int status, string body) refused = Http("PUT", "/api/v1/rules/" + id,
+            RuleBody(name, "{\"field\":\"content\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"warn_sender\",\"to\":\"someone@example.test\"}", active: false, allCriteria: true));
+         Assert.AreEqual(400, refused.status, refused.body);
+         StringAssert.Contains("to is not a parameter of a warn_sender action", refused.body);
+
+         // A line break in a name or a reject text is refused: the name goes
+         // into a 550 line and the notice's headers, the text is the 550 line.
+         // A warn_sender text is a body, and may have paragraphs.
+         (int status, string body) splitName = Http("PUT", "/api/v1/rules/" + id,
+            RuleBody(name + "\\r\\nX-Injected: yes", "{\"field\":\"content\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"warn_sender\"}", active: false, allCriteria: true));
+         Assert.AreEqual(400, splitName.status, splitName.body);
+         StringAssert.Contains("name must not contain control characters", splitName.body);
+
+         (int status, string body) splitReply = Http("PUT", "/api/v1/rules/" + id,
+            RuleBody(name, "{\"field\":\"content\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"reject\",\"value\":\"No.\\r\\n250 OK\"}", active: false, allCriteria: true));
+         Assert.AreEqual(400, splitReply.status, splitReply.body);
+         StringAssert.Contains("value must not contain control characters", splitReply.body);
+
+         (int status, string body) paragraphs = Http("PUT", "/api/v1/rules/" + id,
+            RuleBody(name, "{\"field\":\"content\",\"match\":\"contains\",\"value\":\"x\"}", "{\"type\":\"warn_sender\",\"value\":\"Use the portal.\\nThank you.\"}", active: false, allCriteria: true));
+         Assert.AreEqual(200, paragraphs.status, paragraphs.body);
+         StringAssert.Contains("{\"type\":\"warn_sender\",\"value\":\"Use the portal.\\nThank you.\"}", paragraphs.body);
+
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/rules/" + id).status);
+      }
+
+      [Test]
       [Description("A domain's rules are its own over REST: created under the domain with the new condition and the four new actions, listed there and not among the server's, replaced and deleted there")]
       public void ADomainsRulesAreItsOwnOverRest()
       {

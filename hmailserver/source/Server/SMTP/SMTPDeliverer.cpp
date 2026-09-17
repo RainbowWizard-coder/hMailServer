@@ -1218,7 +1218,22 @@ namespace HM
          return false;
       }
 
-      if (ruleResult.GetQuarantine())
+      if (ruleResult.GetQuarantine() && pMessage->GetReleasedFromQuarantine())
+      {
+         // A message the quarantine released has been judged by a person, and
+         // the rule that held it would hold it again on the way back: the same
+         // text, the same recipients, the same match, for ever. The release
+         // mark is what says the judgement has been made - as it says it to
+         // the recipients' own lists in local delivery - so the hold is
+         // skipped and the review can end in delivery. The rule's other
+         // actions have run as usual; the mark is cleared before the message
+         // reaches a mailbox.
+         String sMessage;
+         sMessage.Format(_T("SMTPDeliverer - Message %I64d: A rule (%s) asked for the message to be quarantined, and it was released from the quarantine by a person, so it is being delivered."),
+            pMessage->GetID(), ruleResult.GetQuarantineRuleName().c_str());
+         LOG_APPLICATION(sMessage);
+      }
+      else if (ruleResult.GetQuarantine())
       {
          // Held rather than delivered, for an administrator to release or
          // delete; the copy the store keeps is the message as it is now, rules

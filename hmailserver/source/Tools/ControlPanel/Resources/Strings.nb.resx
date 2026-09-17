@@ -1377,6 +1377,12 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Attachment name" xml:space="preserve">
     <value>Vedleggsnavn</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Vedleggstype</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Vedleggstype etter bytene (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Forsøk på å nå databasen ved oppstart</value>
   </data>
@@ -3434,6 +3440,12 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Tidsavbrudd for eksterne prosesser, f.eks. en kommandolinjebasert virusskanner (sekunder)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Eksterne mottakere</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Eksterne mottakere (adresser denne serveren ikke er vert for)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Eksternt oppsett</value>
   </data>
@@ -4852,6 +4864,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format skriver én linje per oppføring som vert, ident, økt, [dato], "kategori og melding", status, byte - så et logganalyseverktøy kan telle 5xx-svar uten å vite noe om hMailServer. Ident og byte er alltid "-" (serveren spør aldri identd, og loggeren får ikke vite overføringsstørrelser), og AWStats-journalen er en egen fil som denne innstillingen ikke endrer: dens egen bryter er ovenfor.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Varseltekst (sendes til en avsender denne serveren er vert f_or, med regelens navn)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Navn</value>
   </data>
@@ -6216,6 +6231,12 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Skrivebeskyttet. Utløper {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Lesbar tekst</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Lesbar tekst (brødtekst og tekstvedlegg)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Leser katalogen...</value>
   </data>
@@ -7304,6 +7325,12 @@ Fortsette?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Sender mottakerens adresse som User:-headeren, slik at spamd bruker den postboksens egne preferanser - formen en virtual-user-spamd (--virtual-config-dir med %u eller %d) forventer. En skanning kjører én gang per melding, ikke én gang per mottaker, så en melding til flere personer kan ikke skannes under noen av deres preferanser og bruker profilen ovenfor i stedet.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Sensitivt innhold</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Sensitivt innhold funnet (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Separat SENDER denne serveren slike rapporter til andre domener: TlsRptFromAddress er satt til {0}, så dens egne rapporter går ut.</value>
@@ -9357,6 +9384,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Varsle eieren ved (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Varsle avsenderen</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Advarsel</value>

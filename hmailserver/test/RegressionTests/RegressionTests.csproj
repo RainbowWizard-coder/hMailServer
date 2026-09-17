@@ -468,6 +468,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rules\Rules.cs" />
     <Compile Include="Rules\MailFlowRules.cs" />
+    <Compile Include="Rules\OutboundContentPolicy.cs" />
     <Compile Include="Rules\SealedMessageRules.cs" />
     <Compile Include="Shared\SingletonProvider.cs" />
     <Compile Include="SMTP\BareLineFeedEndOfData.cs" />

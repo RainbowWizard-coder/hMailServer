@@ -313,16 +313,22 @@ namespace HM
       // quota, the account actually existing. What it deliberately skips is the spam
       // filtering, and that skip is free rather than argued for - the verdict that
       // quarantined this message was reached during the SMTP conversation, and a
-      // message entering at the queue never goes near it. Releasing therefore cannot
-      // re-quarantine, which would otherwise be an infinite and very confusing loop.
+      // message entering at the queue never goes near it. A spam verdict therefore
+      // cannot re-quarantine; the two holds that run in the queue - a recipient's
+      // block list and a rule's quarantine action - are told apart by the mark
+      // below, since either would otherwise hold the message again on the way
+      // back, for ever.
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetState(Message::Delivering);
       message->SetFromAddress(quarantined.sender);
 
-      // Marked, so that the recipients' own block lists do not hold it a second
-      // time on its way back in: a release is a person overruling the filters,
-      // and a message released from a block would otherwise go straight back
-      // into the quarantine it was just taken out of.
+      // Marked, so that the recipients' own block lists (LocalDelivery) and the
+      // rule that held it (SMTPDeliverer::RunGlobalRules_) do not hold it a
+      // second time on its way back in, and the rule's warn_sender does not
+      // write to the sender twice: a release is a person overruling the filters,
+      // and a message released from a hold would otherwise go straight back
+      // into the quarantine it was just taken out of. Saved with the row, in
+      // messageflags, so the deliverer reads it back.
       message->SetReleasedFromQuarantine(true);
 
       const String targetFile = PersistentMessage::GetFileName(message);

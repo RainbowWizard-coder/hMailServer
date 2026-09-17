@@ -6,6 +6,8 @@
 
 #include "./RuleApplier.h"
 #include "../Common/Util/DisclaimerAdder.h"
+#include "../Common/Util/ContentPolicy.h"
+#include "../Common/BO/Domain.h"
 #include "../Common/BO/Attachments.h"
 #include "../Common/BO/Attachment.h"
 
@@ -22,6 +24,7 @@
 #include "../Common/BO/Account.h"
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Cache/CacheContainer.h"
+#include "../Common/Application/ObjectCache.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/RegularExpression.h"
 #include "../Common/Rules/RuleGuard.h"
@@ -47,6 +50,23 @@
 
 namespace HM
 {
+   namespace
+   {
+      // A rule's name and a reject's text go into one line of a 550 reply and
+      // into the Subject and X-hMailServer-Policy headers of the notice a
+      // policy sends. REST refuses a control character in either
+      // (RestApiRules.cpp); the COM and Control Panel paths check nothing, so
+      // the line break is taken out where the value is written, and whoever
+      // could put one in cannot split the reply or add a header with it.
+      String OneLine_(const String &text)
+      {
+         String line = text;
+         line.Replace(_T("\r"), _T(" "));
+         line.Replace(_T("\n"), _T(" "));
+         return line;
+      }
+   }
+
    RuleApplier::RuleApplier(void) :
       rule_account_id_(0)
    {
@@ -252,12 +272,22 @@ namespace HM
          {
             // After acceptance there is nobody left to refuse to: the SMTP
             // session refused the message before accepting it where the rule
-            // matched there (WouldReject); here, on a message that reached
-            // delivery by another path, the rule drops it as a delete does.
+            // matched there (WouldReject), and the self-service send route
+            // refuses before it queues (RejectedBySubmissionRules); here, on a
+            // message that reached delivery another way - a scheduled send, a
+            // marker an earlier rule wrote, a rule added while the message
+            // waited in the queue - the rule drops it as a delete does. A
+            // hosted sender is told, as warn_sender would tell them, that it
+            // was not sent: the alternative is a Sent folder that says it was.
+            // Only for the server's and the domains' rules, which are the
+            // policy on what leaves; an account's rule is the recipient's own
+            // filter, and a filter does not write to the people it filters.
             ruleResult.SetDeleteEmail(true);
             String sDeleteRuleName;
             sDeleteRuleName.Format(_T("Rule name: %s, ID: %d (reject)"), pRule->GetName().c_str(), pRule->GetID());
             ruleResult.SetDeleteRuleName(sDeleteRuleName);
+            if (!account)
+               SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, true);
             break;
          }
       case RuleAction::RequireTLS:
@@ -270,7 +300,163 @@ namespace HM
             ruleResult.SetQuarantine(pRule->GetName());
             break;
          }
+      case RuleAction::WarnSender:
+         {
+            ApplyAction_WarnSender(pRule, pAction, account, pMsgData);
+            break;
+         }
       }
+   }
+
+   void
+   RuleApplier::ApplyAction_WarnSender(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
+   {
+      SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, false);
+   }
+
+   void
+   RuleApplier::SendPolicyNotice_(std::shared_ptr<Rule> pRule, const String &actionText, std::shared_ptr<MessageData> pMsgData, bool notSent) const
+   {
+      std::shared_ptr<Message> pOriginalMessage = pMsgData->GetMessage();
+      if (!pOriginalMessage)
+         return;
+
+      // Once per message. The deliverer runs the server's and the domains'
+      // rules on every attempt, and a recipient that greylists (a 451 on first
+      // contact, the common case) or is down for an hour would otherwise mean
+      // a notice per attempt, up to the route's number of tries. The first
+      // pass is the one that tells the sender, as it is the one that
+      // DKIM-signs and mirrors. A message the quarantine released is a new
+      // queue row with a retry count of nought, so the flag the release sets
+      // is what says its sender was told when it was held. Neither guard
+      // applies to "not sent": that message is gone, and its sender has not
+      // been told anything.
+      if (!notSent && pOriginalMessage->GetNoOfRetries() != 0)
+      {
+         LOG_DEBUG("RuleApplier::SendPolicyNotice_: not the first delivery attempt, so the sender has been told already.");
+         return;
+      }
+      if (!notSent && pOriginalMessage->GetReleasedFromQuarantine())
+      {
+         LOG_DEBUG("RuleApplier::SendPolicyNotice_: the message was released from the quarantine, so the sender was told when it was held.");
+         return;
+      }
+
+      // Only a sender this server hosts is told. A notice to an outside
+      // sender about a policy of ours is backscatter: it goes to whoever the
+      // envelope named, which for spam is somebody else.
+      const String sender = pOriginalMessage->GetFromAddress();
+      if (sender.IsEmpty())
+         return;
+
+      std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(sender));
+      if (!senderDomain)
+      {
+         LOG_DEBUG("RuleApplier::SendPolicyNotice_: the sender is not hosted here, so no notice is sent.");
+         return;
+      }
+
+      // An auto-submitted message is answered by nothing, and a message that
+      // has been through the loop limit's worth of rule-generated mail gets
+      // no more of it.
+      if (pMsgData->IsAutoSubmitted())
+      {
+         LOG_DEBUG("RuleApplier::SendPolicyNotice_: the message is auto-submitted, so no notice is sent.");
+         return;
+      }
+      if (!IsGeneratedResponseAllowed(pMsgData, false))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6820, "RuleApplier::SendPolicyNotice_", "Could not send the sender a policy notice: the maximum rule loop count was reached.");
+         return;
+      }
+
+      String recipients;
+      for (std::shared_ptr<MessageRecipient> recipient : pOriginalMessage->GetRecipients()->GetVector())
+      {
+         if (!recipient)
+            continue;
+         if (!recipients.IsEmpty())
+            recipients += _T(", ");
+         recipients += recipient->GetAddress();
+      }
+
+      // The name as one line: it is a Subject and a header below, and a
+      // Control Panel or COM rule name is not checked for a line break.
+      const String ruleName = OneLine_(pRule->GetName());
+
+      String text = actionText;
+      text.Trim();
+
+      String body;
+      if (notSent)
+      {
+         body.Format(_T("Your message to %s with the subject \"%s\" was not sent: it matched the outbound content policy \"%s\" of this mail server, which refuses it.\r\n\r\n"),
+            recipients.c_str(), pMsgData->GetSubject().c_str(), ruleName.c_str());
+      }
+      else
+      {
+         body.Format(_T("Your message to %s with the subject \"%s\" matched the outbound content policy \"%s\" of this mail server.\r\n\r\n"),
+            recipients.c_str(), pMsgData->GetSubject().c_str(), ruleName.c_str());
+      }
+      if (!text.IsEmpty())
+         body += text + _T("\r\n\r\n");
+      if (notSent)
+         body += _T("This notice is sent automatically. The message has not been delivered to anyone and will not be tried again; a copy in your Sent folder is the only copy.\r\n");
+      else
+         body += _T("This notice is sent automatically. What happened to the message is decided by the rule's other actions; a rule with no other action delivered it.\r\n");
+
+      std::shared_ptr<Message> pMsg = std::shared_ptr<Message>(new Message());
+      pMsg->SetState(Message::Delivering);
+
+      String newMessageFileName = PersistentMessage::GetFileName(pMsg);
+
+      std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
+      pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);
+      pNewMsgData->GenerateMessageID();
+      pNewMsgData->SetTo(sender);
+      // From the postmaster of the sender's own domain, as the quota warning
+      // is: this is the server telling somebody something about their own
+      // mail, and a reply to it should reach whoever runs the domain.
+      pNewMsgData->SetFrom(_T("postmaster@") + senderDomain->GetName());
+      pNewMsgData->SetSubject(_T("Policy notice: ") + ruleName);
+      pNewMsgData->SetBody(body);
+      pNewMsgData->SetSentTime(Time::GetCurrentMimeDate());
+      pNewMsgData->SetFieldValue(_T("X-hMailServer-Policy"), ruleName);
+      pNewMsgData->SetFieldValue(_T("X-hMailServer-Policy-Outcome"), notSent ? _T("not-sent") : _T("delivered"));
+      pNewMsgData->SetAutoGenerated();
+
+      RuleGuard::CarryLoopCountForward(pMsgData, pNewMsgData);
+
+      if (!pNewMsgData->WriteReported(newMessageFileName, "A rule's notice to the sender"))
+         return;
+
+      bool recipientOK = false;
+      RecipientParser recipientParser;
+      recipientParser.CreateMessageRecipientList(sender, pMsg->GetRecipients(), recipientOK);
+
+      // Two failures with two causes, told apart as the forward action tells
+      // its own apart: a sender in a hosted domain whose address is no
+      // mailbox, alias or list here (a MAIL FROM an outside connection was
+      // allowed to give), and a queue row that could not be written.
+      if (pMsg->GetRecipients()->GetCount() == 0)
+      {
+         FileUtilities::DeleteFile(newMessageFileName);
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6823, "RuleApplier::SendPolicyNotice_",
+            Formatter::Format("Could not send the sender a policy notice: {0} is in a domain this server hosts but is not a mailbox, an alias or a list here, so there is nowhere to deliver it. The notice file has been removed.", sender));
+         return;
+      }
+
+      if (!PersistentMessage::SaveObject(pMsg))
+      {
+         FileUtilities::DeleteFile(newMessageFileName);
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6824, "RuleApplier::SendPolicyNotice_", "Could not send the sender a policy notice; the notice could not be saved to the queue. The file has been removed rather than left on disk with nothing referring to it.");
+         return;
+      }
+
+      LOG_APPLICATION(Formatter::Format("RuleApplier - Message {0}: the sender {1} has been sent a notice naming the rule \"{2}\"{3}.",
+         pOriginalMessage->GetID(), sender, ruleName, notSent ? String(_T(", saying the message was not sent")) : String()));
    }
 
    void
@@ -367,11 +553,70 @@ namespace HM
          if (!reject || !RuleMatches_(pRule, pMsgData))
             continue;
 
-         text = reject->GetValue();
+         // One line, whatever was typed into the action or the rule's name:
+         // this is the text of a single 550 reply, and a line break in it
+         // would be a second reply of the sender's choosing.
+         text = OneLine_(reject->GetValue());
          text.Trim();
+         // Without a text of its own the refusal names the rule, so the
+         // sender is told which policy stopped the message rather than that
+         // one did.
          if (text.IsEmpty())
-            text = _T("Message refused by a rule of this server.");
+            text = _T("Message refused by the rule \"") + OneLine_(pRule->GetName()) + _T("\" of this server.");
          return true;
+      }
+
+      return false;
+   }
+
+   bool
+   RuleApplier::RejectedBySubmissionRules(std::shared_ptr<Message> message, String &text)
+   {
+      if (!message)
+         return false;
+
+      // The collections first, because they are in memory: only when one of
+      // them has a reject action at all is the message parsed for the match.
+      std::vector<std::shared_ptr<Rules> > collections;
+      collections.push_back(ObjectCache::Instance()->GetGlobalRules());
+
+      // Every domain a local recipient is in, and the sender's when it is
+      // hosted here, each once - the same set the deliverer runs.
+      std::set<__int64> domainIds;
+      for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
+      {
+         if (!recipient || !recipient->GetIsLocalName())
+            continue;
+
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+         if (domain)
+            domainIds.insert(domain->GetID());
+      }
+
+      std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(message->GetFromAddress()));
+      if (senderDomain)
+         domainIds.insert(senderDomain->GetID());
+
+      for (__int64 domainId : domainIds)
+         collections.push_back(ObjectCache::Instance()->GetDomainRules(domainId));
+
+      bool anyReject = false;
+      for (std::shared_ptr<Rules> rules : collections)
+         anyReject = anyReject || HasRejectAction(rules);
+
+      if (!anyReject)
+         return false;
+
+      std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
+      std::shared_ptr<const Account> noAccount;
+      if (!data->LoadFromMessage(noAccount, message))
+         return false;
+
+      RuleApplier applier;
+      for (std::shared_ptr<Rules> rules : collections)
+      {
+         if (applier.WouldReject(rules, data, text))
+            return true;
       }
 
       return false;
@@ -737,6 +982,30 @@ namespace HM
                }
                break;
             }
+         case RuleCriteria::FTSensitiveContent:
+         case RuleCriteria::FTContent:
+            {
+               // The readable text, or the names of the detectors that found
+               // something in it. A sealed message has none the server can
+               // read, and declines exactly as the body criterion does above.
+               if (SealedMessage::IsOpaque(pMsgData))
+               {
+                  sealedBodyDeclined = true;
+                  return false;
+               }
+
+               const String text = ContentPolicy::ReadableText(pMsgData);
+               sFieldValue = pCriteria->GetPredefinedField() == RuleCriteria::FTContent
+                  ? text
+                  : ContentPolicy::Detectors(text);
+               break;
+            }
+         case RuleCriteria::FTAttachmentType:
+            sFieldValue = ContentPolicy::AttachmentTypes(pMsgData);
+            break;
+         case RuleCriteria::FTExternalRecipient:
+            sFieldValue = ContentPolicy::ExternalRecipients(pMsgData->GetMessage());
+            break;
          case RuleCriteria::FTRecipientList:
             {
                std::shared_ptr<Message> pMessage = pMsgData->GetMessage();

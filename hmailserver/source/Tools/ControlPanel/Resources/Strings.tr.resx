@@ -1377,6 +1377,12 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Attachment name" xml:space="preserve">
     <value>Ek adı</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Ek türü</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Baytlarına göre ek türü (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Başlangıçta veritabanına ulaşma denemeleri</value>
   </data>
@@ -3434,6 +3440,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Dış işlem zaman aşımı, örneğin komut satırı virüs tarayıcısı (saniye)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Dış alıcılar</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Dış alıcılar (bu sunucunun barındırmadığı adresler)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Dış kurulum</value>
   </data>
@@ -4852,6 +4864,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format, girdi başına bir satırı ana bilgisayar, ident, oturum, [tarih], "kategori ve ileti", durum, bayt olarak yazar - böylece bir günlük çözümleyici hMailServer hakkında hiçbir şey bilmeden 5xx yanıtlarını sayabilir. Ident ve bayt her zaman "-" olur (sunucu hiçbir zaman identd sorgulamaz ve günlükleyiciye aktarım boyutları söylenmez); AWStats günlüğü ise bu ayarın değiştirmediği ayrı bir dosyadır: kendi anahtarı yukarıdadır.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Bildirim me_tni (bu sunucunun barındırdığı bir göndericiye, kuralın adıyla gönderilir)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Ad</value>
   </data>
@@ -6216,6 +6231,12 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Salt okunur. Süre sonu {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Okunabilir metin</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Okunabilir metin (gövde ve metin ekleri)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Dizin okunuyor...</value>
   </data>
@@ -7304,6 +7325,12 @@ Devam edilsin mi?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Alıcının adresini User: başlığı olarak gönderir; böylece spamd o posta kutusunun kendi tercihlerini uygular - sanal kullanıcılı bir spamd'nin (%u veya %d ile --virtual-config-dir) beklediği biçim. Tarama alıcı başına değil, ileti başına bir kez çalışır; bu yüzden birden çok kişiye giden bir ileti hiçbirinin tercihleriyle taranamaz ve bunun yerine yukarıdaki profili kullanır.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Hassas içerik</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Hassas içerik bulundu (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Ayrıca bu sunucu bu tür raporları başka etki alanlarına GÖNDERİYOR: TlsRptFromAddress {0} olarak ayarlı, bu yüzden kendi raporları dışarı gidiyor.</value>
@@ -9357,6 +9384,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Sahibi şurada uyar (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Göndereni uyar</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Uyarı</value>

@@ -47,6 +47,12 @@ namespace hMailServer.ControlPanel.Views
          field_.Items.Add(DialogFields.Combo(L("Recipient list"), 7));
          field_.Items.Add(DialogFields.Combo(L("Delivery attempts"), 8));
          field_.Items.Add(DialogFields.Combo(L("Attachment name"), 9));
+         // Outbound content policy: each a list with ";" between its entries,
+         // so "contains" reads as "any of them is".
+         field_.Items.Add(DialogFields.Combo(L("Sensitive content found (card_number, iban, account_number)"), 10));
+         field_.Items.Add(DialogFields.Combo(L("Attachment type by its bytes (executable, pdf, zip, office, text…)"), 11));
+         field_.Items.Add(DialogFields.Combo(L("External recipients (addresses this server does not host)"), 12));
+         field_.Items.Add(DialogFields.Combo(L("Readable text (body and text attachments)"), 13));
          field_.Items.Add(DialogFields.Combo(L("Custom header…"), 0));
          field_.SelectionChanged += (s, e) => UpdateVisibility();
 

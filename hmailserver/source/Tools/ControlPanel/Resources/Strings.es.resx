@@ -1377,6 +1377,12 @@ Los detalles completos se escribieron en:
   <data name="Attachment name" xml:space="preserve">
     <value>Nombre del adjunto</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Tipo de adjunto</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Tipo de adjunto según sus bytes (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Intentos de alcanzar la base de datos al arrancar</value>
   </data>
@@ -3434,6 +3440,12 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Tiempo máximo de procesos externos, p. ej. un antivirus de línea de comandos (segundos)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Destinatarios externos</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Destinatarios externos (direcciones que este servidor no aloja)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Configuración externa</value>
   </data>
@@ -4852,6 +4864,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format escribe una línea por entrada con host, ident, sesión, [fecha], "categoría y mensaje", estado y bytes - de modo que un analizador de registros pueda contar respuestas 5xx sin saber nada de hMailServer. Ident y bytes son siempre "-" (el servidor nunca consulta identd y al registrador no se le indican los tamaños de transferencia), y el diario de AWStats es un archivo aparte que este ajuste no cambia: su propio interruptor está arriba.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Text_o del aviso (enviado a un remitente alojado en este servidor, con el nombre de la regla)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Nombre</value>
   </data>
@@ -6216,6 +6231,12 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Solo lectura. Caduca el {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Texto legible</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Texto legible (cuerpo y adjuntos de texto)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Leyendo el directorio...</value>
   </data>
@@ -7304,6 +7325,12 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Envía la dirección del destinatario como cabecera User:, para que spamd aplique las preferencias propias de ese buzón - la forma que espera un spamd de usuarios virtuales (--virtual-config-dir con %u o %d). El análisis se ejecuta una vez por mensaje, no una vez por destinatario, así que un mensaje dirigido a varias personas no puede analizarse con las preferencias de ninguna de ellas y usa en su lugar el perfil de arriba.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Contenido sensible</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Contenido sensible encontrado (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Aparte, este servidor ENVÍA tales informes a otros dominios: TlsRptFromAddress está definido como {0}, así que sus propios informes sí salen.</value>
@@ -9357,6 +9384,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Avisar al dueño al (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Avisar al remitente</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Advertencia</value>

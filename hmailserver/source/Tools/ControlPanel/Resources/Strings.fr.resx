@@ -1377,6 +1377,12 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Attachment name" xml:space="preserve">
     <value>Nom de la pièce jointe</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Type de pièce jointe</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Type de pièce jointe d'après ses octets (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Tentatives pour atteindre la base de données au démarrage</value>
   </data>
@@ -3434,6 +3440,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Délai des processus externes, p. ex. un antivirus en ligne de commande (secondes)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Destinataires externes</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Destinataires externes (adresses que ce serveur n'héberge pas)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Configuration externe</value>
   </data>
@@ -4852,6 +4864,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>Le NCSA Common Log Format écrit une ligne par entrée sous la forme hôte, ident, session, [date], « catégorie et message », statut, octets - un analyseur de journaux peut donc compter les réponses 5xx sans rien connaître de hMailServer. Ident et octets valent toujours « - » (le serveur n'interroge jamais identd, et les tailles de transfert ne sont pas communiquées à la journalisation), et le journal AWStats est un fichier séparé que ce réglage ne change pas : son propre interrupteur est ci-dessus.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Texte de l'avis (env_oyé à un expéditeur hébergé sur ce serveur, avec le nom de la règle)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Nom</value>
   </data>
@@ -6216,6 +6231,12 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Lecture seule. Expire le {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Texte lisible</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Texte lisible (corps et pièces jointes texte)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Lecture de l'annuaire...</value>
   </data>
@@ -7304,6 +7325,12 @@ Continuer ?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Envoie l'adresse du destinataire comme en-tête User:, pour que spamd applique les préférences propres à cette boîte - la forme qu'attend un spamd en utilisateurs virtuels (--virtual-config-dir avec %u ou %d). Une analyse s'exécute une fois par message, pas une fois par destinataire : un message adressé à plusieurs personnes ne peut donc être analysé sous les préférences d'aucune d'entre elles et utilise le profil ci-dessus à la place.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Contenu sensible</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Contenu sensible détecté (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Par ailleurs, ce serveur ENVOIE de tels rapports à d'autres domaines : TlsRptFromAddress est réglé sur {0}, ses propres rapports partent donc.</value>
@@ -9357,6 +9384,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Avertir le propriétaire à (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Avertir l'expéditeur</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Avertissement</value>

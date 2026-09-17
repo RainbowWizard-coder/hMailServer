@@ -195,14 +195,16 @@ namespace hMailServer.ControlPanel.Views
          => ListSearch.Apply(RuleGrid, SearchBar.SearchText);
 
       private static readonly string[] FieldNames =
-         { "?", L("From"), L("To"), L("CC"), L("Subject"), L("Body"), L("Message size"), L("Recipient list"), L("Delivery attempts") };
+         { "?", L("From"), L("To"), L("CC"), L("Subject"), L("Body"), L("Message size"), L("Recipient list"), L("Delivery attempts"),
+           L("Attachment name"), L("Sensitive content"), L("Attachment type"), L("External recipients"), L("Readable text") };
 
       private static readonly string[] MatchNames =
          { "?", L("equals"), L("contains"), L("is less than"), L("is greater than"), L("matches regex"), L("does not contain"), L("does not equal"), L("matches wildcard") };
 
       private static readonly string[] ActionNames =
          { "?", L("Delete e-mail"), L("Forward e-mail"), L("Reply"), L("Move to IMAP folder"), L("Run script function"),
-           L("Stop rule processing"), L("Set header value"), L("Send using route"), L("Create copy"), L("Bind to address") };
+           L("Stop rule processing"), L("Set header value"), L("Send using route"), L("Create copy"), L("Bind to address"),
+           L("Add disclaimer"), L("Reject with a text"), L("Require TLS for delivery"), L("Quarantine"), L("Warn the sender") };
 
       private static string Pick(string[] names, int index)
          => index >= 0 && index < names.Length ? names[index] : "#" + index;

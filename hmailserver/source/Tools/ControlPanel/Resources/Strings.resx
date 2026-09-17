@@ -1377,6 +1377,12 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Attachment name" xml:space="preserve">
     <value>Attachment name</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Attachment type</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Attachment type by its bytes (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Attempts to reach the database at start-up</value>
   </data>
@@ -3434,6 +3440,12 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>External process timeout, e.g. a command-line virus scanner (seconds)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>External recipients</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>External recipients (addresses this server does not host)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>External setup</value>
   </data>
@@ -4852,6 +4864,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format writes one line per entry as host, ident, session, [date], "category and message", status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always "-" (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>N_otice text (mailed to a sender this server hosts, naming the rule)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
@@ -6216,6 +6231,12 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Read-only. Expires {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Readable text</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Readable text (body and text attachments)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Reading the directory...</value>
   </data>
@@ -7304,6 +7325,12 @@ Continue?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Sensitive content</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Sensitive content found (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out.</value>
@@ -9357,6 +9384,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Warn the owner at (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Warn the sender</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>

@@ -1377,6 +1377,12 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Attachment name" xml:space="preserve">
     <value>Název přílohy</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Typ přílohy</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Typ přílohy podle jejích bajtů (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Počet pokusů o dosažení databáze při startu</value>
   </data>
@@ -3434,6 +3440,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Časový limit externího procesu, např. antivirového skeneru z příkazového řádku (sekundy)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Externí příjemci</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Externí příjemci (adresy, které tento server nehostuje)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Externí nastavení</value>
   </data>
@@ -4852,6 +4864,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format zapisuje jeden řádek na položku ve tvaru hostitel, ident, relace, [datum], „kategorie a zpráva“, stav, bajty – aby analyzátor logů dokázal spočítat odpovědi 5xx, aniž by o hMailServeru cokoli věděl. Ident a bajty jsou vždy „-“ (server se nikdy neptá identd a loggeru se velikosti přenosů nesdělují) a žurnál AWStats je samostatný soubor, který toto nastavení nemění: má vlastní přepínač výše.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Text up_ozornění (zasílá se odesílateli hostovanému na tomto serveru, s názvem pravidla)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Název</value>
   </data>
@@ -6216,6 +6231,12 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Pouze pro čtení. Platnost vyprší {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Čitelný text</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Čitelný text (tělo zprávy a textové přílohy)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Čte se adresář...</value>
   </data>
@@ -7304,6 +7325,12 @@ Pokračovat?</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Odesílá adresu příjemce jako hlavičku User:, takže spamd uplatní vlastní předvolby dané poštovní schránky – přesně to, co očekává spamd v režimu virtuálních uživatelů (--virtual-config-dir s %u nebo %d). Kontrola probíhá jednou na zprávu, ne jednou na příjemce, takže zprávu pro několik lidí nelze zkontrolovat pod předvolbami žádného z nich a použije se místo toho profil uvedený výše.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Citlivý obsah</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Nalezen citlivý obsah (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Nezávisle na tom tento server takováto hlášení jiným doménám ODESÍLÁ: TlsRptFromAddress je nastaveno na {0}, takže jeho vlastní hlášení odcházejí.</value>
@@ -9357,6 +9384,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Upozornit majitele při (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Upozornit odesílatele</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Varování</value>

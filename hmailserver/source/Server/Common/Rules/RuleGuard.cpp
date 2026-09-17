@@ -408,6 +408,79 @@ namespace HM
       return false;
    }
 
+   bool
+   RuleGuard::PolicyRegexMatches(const String &pattern, const String &subject)
+   {
+      if (PatternIsSuspended_(pattern))
+         return false;
+
+      bool compiled = false;
+
+      try
+      {
+         // Perl syntax, as for a rule criterion and as the setting's own check
+         // over REST compiles it (RestApiSettings.cpp).
+         boost::wregex expression(pattern);
+         compiled = true;
+
+         const ULONGLONG startTick = ::GetTickCount64();
+
+         // regex_search, not regex_match: the number is somewhere in the text,
+         // which is the question a policy asks.
+         const bool matched = boost::regex_search(subject, expression);
+
+         const ULONGLONG elapsed = ::GetTickCount64() - startTick;
+
+         if (elapsed >= static_cast<ULONGLONG>(EvaluationBudgetMilliseconds) &&
+             SuspendPatternAndClaimReport_(pattern))
+         {
+            // The cast, as in the two siblings above: it names the FormatArgument
+            // constructor the Windows build binds and is an identity there.
+            String errorMessage = Formatter::Format("The DlpAccountNumberPattern setting took {0} ms to search a {1} character message text, over the {2} ms budget, and the account_number detector will find nothing for {3} seconds. Any sender can make this cost recur once per message, so it is being paid once per pattern instead. Pattern begins: {4}",
+               (unsigned __int64) elapsed, subject.GetLength(), EvaluationBudgetMilliseconds, SuspensionSeconds, DescribePattern_(pattern));
+
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6822, "RuleGuard::PolicyRegexMatches", errorMessage);
+         }
+
+         return matched;
+      }
+      catch (const std::runtime_error &)
+      {
+         if (!compiled)
+         {
+            // The setting's check refuses one that does not compile over REST,
+            // so reaching this means a restore or a direct edit of the row.
+            // Said once per window rather than once per pattern for ever, as
+            // for a rule: an administrator watching the log sees it recur.
+            if (SuspendPatternAndClaimReport_(pattern))
+            {
+               String errorMessage = Formatter::Format("The DlpAccountNumberPattern setting is not a regular expression this server can use, so the account_number detector of the sensitive_content rule condition finds nothing. Set a pattern that compiles, or an empty one. Pattern: {0}",
+                  DescribePattern_(pattern));
+
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6821, "RuleGuard::PolicyRegexMatches", errorMessage);
+            }
+
+            return false;
+         }
+
+         // Boost gave up: error_complexity or its stack guard. No match, said
+         // as what it is - the message this happened on has left without the
+         // detector's answer, and the pattern is not asked again this window.
+         if (SuspendPatternAndClaimReport_(pattern))
+         {
+            String errorMessage = Formatter::Format("The DlpAccountNumberPattern setting was abandoned as too complex against a {0} character message text, and the account_number detector will find nothing for {1} seconds. The message it happened on was judged without that detector. Pattern begins: {2}",
+               subject.GetLength(), SuspensionSeconds, DescribePattern_(pattern));
+
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6822, "RuleGuard::PolicyRegexMatches", errorMessage);
+         }
+
+         return false;
+      }
+
+      // Unreachable, for the same /WX reason as in RegexCriteriaMatches.
+      return false;
+   }
+
    void
    RuleGuard::ReportActionFailed(const String &actionName, const String &detail)
    {

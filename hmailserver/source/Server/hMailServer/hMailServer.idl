@@ -252,6 +252,18 @@ typedef
    eFTDeliveryAttempts = 8,
    eFTAttachmentName = 9,
 
+   [helpstring("The detectors that found something in the readable text - card_number, iban, account_number - with ; between them.")]
+   eFTSensitiveContent = 10,
+
+   [helpstring("Every attachment's type by its first bytes, not its name - executable, pdf, zip, office, text and the rest - with ; between them.")]
+   eFTAttachmentType = 11,
+
+   [helpstring("Every recipient this server does not host, with ; between them; empty when every recipient is local.")]
+   eFTExternalRecipient = 12,
+
+   [helpstring("The readable text: the plain and HTML parts and every attachment whose bytes are text.")]
+   eFTContent = 13,
+
 } eRulePredefinedField;
 
 typedef
@@ -329,6 +341,9 @@ typedef
    eRAReject = 12,
    eRARequireTLS = 13,
    eRAQuarantine = 14,
+
+   [helpstring("Mail the sender a notice naming the rule, with Value as its text - only a sender this server hosts; the message itself is not held by this action.")]
+   eRAWarnSender = 15,
 
 } eRuleActionType;
 

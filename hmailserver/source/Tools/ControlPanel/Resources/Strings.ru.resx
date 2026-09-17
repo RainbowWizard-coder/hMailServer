@@ -1377,6 +1377,12 @@ Control Panel может читать файлы сообщений только
   <data name="Attachment name" xml:space="preserve">
     <value>Имя вложения</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>Тип вложения</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>Тип вложения по его байтам (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Число попыток подключиться к базе данных при запуске</value>
   </data>
@@ -3434,6 +3440,12 @@ Control Panel может читать файлы сообщений только
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Тайм-аут внешнего процесса, например антивирусного сканера командной строки (секунды)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>Внешние получатели</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>Внешние получатели (адреса, которые этот сервер не обслуживает)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>Внешняя настройка</value>
   </data>
@@ -4852,6 +4864,9 @@ Control Panel может читать файлы сообщений только
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format пишет по одной строке на запись в виде: узел, ident, сеанс, [дата], «категория и сообщение», статус, байты — поэтому анализатор журналов может подсчитывать ответы 5xx, ничего не зная о hMailServer. Поля ident и байты всегда равны «-» (сервер никогда не обращается к identd, а размеры передачи журналу не сообщаются), а журнал AWStats — это отдельный файл, который этот параметр не меняет: его собственный переключатель находится выше.</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>Текст уведомления (отправляется отправителю, обслуживаемому этим сервером, с названием правила) (_N)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>
@@ -6216,6 +6231,12 @@ Control Panel может читать файлы сообщений только
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Только чтение. Истекает {0}.</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>Читаемый текст</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>Читаемый текст (тело письма и текстовые вложения)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Чтение каталога...</value>
   </data>
@@ -7304,6 +7325,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Передаёт адрес получателя в заголовке User:, чтобы spamd применял собственные настройки этого почтового ящика, — именно такой вид ожидает spamd в режиме виртуальных пользователей (--virtual-config-dir с %u или %d). Сканирование выполняется один раз на сообщение, а не один раз на получателя, поэтому сообщение, адресованное нескольким людям, невозможно проверить с настройками кого-то одного из них, и оно проверяется по профилю, указанному выше.</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>Конфиденциальное содержимое</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>Найдено конфиденциальное содержимое (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Отдельно от этого данный сервер сам ОТПРАВЛЯЕТ такие отчёты другим доменам: TlsRptFromAddress имеет значение {0}, поэтому его собственные отчёты уходят.</value>
@@ -9357,6 +9384,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>Предупредить владельца при (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>Предупредить отправителя</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Предупреждение</value>

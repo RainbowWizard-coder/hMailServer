@@ -92,6 +92,10 @@ namespace HM
          case RuleCriteria::FTRecipientList: return "recipient_list";
          case RuleCriteria::FTDeliveryAttempts: return "delivery_attempts";
          case RuleCriteria::FTAttachmentName: return "attachment_name";
+         case RuleCriteria::FTSensitiveContent: return "sensitive_content";
+         case RuleCriteria::FTAttachmentType: return "attachment_type";
+         case RuleCriteria::FTExternalRecipient: return "external_recipient";
+         case RuleCriteria::FTContent: return "content";
          default: return "unknown";
          }
       }
@@ -102,7 +106,9 @@ namespace HM
          {
             RuleCriteria::FTFrom, RuleCriteria::FTTo, RuleCriteria::FTCC, RuleCriteria::FTSubject,
             RuleCriteria::FTBody, RuleCriteria::FTMessageSize, RuleCriteria::FTRecipientList,
-            RuleCriteria::FTDeliveryAttempts, RuleCriteria::FTAttachmentName
+            RuleCriteria::FTDeliveryAttempts, RuleCriteria::FTAttachmentName,
+            RuleCriteria::FTSensitiveContent, RuleCriteria::FTAttachmentType,
+            RuleCriteria::FTExternalRecipient, RuleCriteria::FTContent
          };
 
          for (size_t i = 0; i < sizeof(fields) / sizeof(fields[0]); i++)
@@ -171,6 +177,7 @@ namespace HM
          case RuleAction::Reject: return "reject";
          case RuleAction::RequireTLS: return "require_tls";
          case RuleAction::Quarantine: return "quarantine";
+         case RuleAction::WarnSender: return "warn_sender";
          default: return "unknown";
          }
       }
@@ -182,7 +189,8 @@ namespace HM
             RuleAction::Delete, RuleAction::Forward, RuleAction::Reply, RuleAction::MoveToIMAPFolder,
             RuleAction::ScriptFunction, RuleAction::StopRuleProcessing, RuleAction::SetHeaderValue,
             RuleAction::SendUsingRoute, RuleAction::CreateCopy, RuleAction::BindToAddress,
-            RuleAction::AddDisclaimer, RuleAction::Reject, RuleAction::RequireTLS, RuleAction::Quarantine
+            RuleAction::AddDisclaimer, RuleAction::Reject, RuleAction::RequireTLS, RuleAction::Quarantine,
+            RuleAction::WarnSender
          };
 
          for (size_t i = 0; i < sizeof(types) / sizeof(types[0]); i++)
@@ -254,6 +262,25 @@ namespace HM
          char buffer[32];
          sprintf_s(buffer, sizeof(buffer), "%d", width);
          error = position + key + " is longer than " + buffer + " characters";
+         return false;
+      }
+
+      // A CR, LF, NUL or any other control character. A rule's name goes into
+      // one line of a 550 reply and into the Subject and X-hMailServer-Policy
+      // headers of the notice a policy sends, and a reject's text is that 550
+      // line; a line break in either would end the line and begin another of
+      // the author's choosing. A warn_sender text is a body, so its line
+      // breaks and tabs are paragraphs, and only the rest is refused.
+      bool HasControlCharacters(const String &text, bool lineBreaksAllowed)
+      {
+         for (int i = 0; i < text.GetLength(); i++)
+         {
+            const wchar_t c = text[i];
+            if (lineBreaksAllowed && (c == L'\r' || c == L'\n' || c == L'\t'))
+               continue;
+            if (c < 0x20 || c == 0x7f)
+               return true;
+         }
          return false;
       }
 
@@ -420,6 +447,7 @@ namespace HM
          case RuleAction::BindToAddress: return "value";
          case RuleAction::AddDisclaimer: return "body";
          case RuleAction::Reject: return "value";
+         case RuleAction::WarnSender: return "value";
          default: return nullptr;
          }
       }
@@ -613,6 +641,17 @@ namespace HM
          if (!WithinWidth(headerName, ActionHeaderNameWidth, "header", position, error)) return false;
          if (!WithinWidth(value, ActionTextWidth, "value", position, error)) return false;
 
+         if (type == RuleAction::Reject && HasControlCharacters(value, false))
+         {
+            error = position + "value must not contain control characters: it is the one line of the 550 reply";
+            return false;
+         }
+         if (type == RuleAction::WarnSender && HasControlCharacters(value, true))
+         {
+            error = position + "value must not contain control characters other than line breaks and tabs";
+            return false;
+         }
+
          action = std::shared_ptr<RuleAction>(new RuleAction());
          action->SetType(type);
          action->SetSortOrder(sortOrder);
@@ -661,6 +700,11 @@ namespace HM
          }
          if (!WithinWidth(document.name, NameWidth, "name", "", error))
             return false;
+         if (HasControlCharacters(document.name, false))
+         {
+            error = "name must not contain control characters: it is written into a 550 reply line and into the headers of a policy notice";
+            return false;
+         }
 
          const JsonValue *activeValue = root.Get("active");
          if (activeValue)
@@ -829,6 +873,7 @@ namespace HM
                   extra.Format(",\"body\":\"%hs\"", escape(value).c_str());
                   break;
                case RuleAction::Reject:
+               case RuleAction::WarnSender:
                   value = Utf8(action->GetValue());
                   break;
                default:
@@ -911,12 +956,12 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/rules\":{"
          "\"get\":{\"summary\":\"List the global rules with their criteria and actions\",\"description\":\"Each entry: id, name, active, all_criteria, criteria (field, header, match, value) and actions (type, value, and the parameters the type takes beside it - a forward's and a reply's abort_spam_flagged among them). Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of rules\"}}},"
-         "\"post\":{\"summary\":\"Create a global rule\",\"description\":\"Body: name (required, at most 100 characters), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, attachment_name, or header with the header's name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; add_disclaimer: body (the text appended to the message's plain and HTML parts); reject: value (the text of the 550 the SMTP session answers with, before the message is accepted, when the rule matches there; a message that reached delivery by another path is dropped); require_tls, quarantine, delete, stop and copy take none. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.\","
-         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"attachment_name\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\",\"add_disclaimer\",\"reject\",\"require_tls\",\"quarantine\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
+         "\"post\":{\"summary\":\"Create a global rule\",\"description\":\"Body: name (required, at most 100 characters, no control characters: it is written into a 550 reply and into the headers of a policy notice), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, attachment_name, sensitive_content, attachment_type, external_recipient, content, or header with the header's name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; add_disclaimer: body (the text appended to the message's plain and HTML parts); reject: value (one line, no control characters: the text of the 550 the SMTP session answers with, before the message is accepted, when the rule matches there, and of the 403 policy_rejected the self-service send route answers with before it queues; a message that reached delivery another way is dropped, and a sender this server hosts is mailed a notice saying it was not sent); warn_sender: value (the text of a notice mailed to the sender naming the rule, once per message on its first delivery attempt and not again on a release from the quarantine, only when this server hosts the sender's domain - the message itself is not held by this action); require_tls, quarantine, delete, stop and copy take none. The sensitive_content condition is the detectors that found something in the readable text, with ; between them: card_number (13 to 19 digits that pass the Luhn check), iban (a country in the IBAN registry, its length and check digits) and account_number (the dlp_account_number_pattern setting's regular expression); attachment_type is every attachment's type by its first bytes rather than its name (executable, elf, pdf, zip, office_xml, jar, office, rar, 7z, gzip, png, jpeg, gif, rtf, script, text, empty, binary); external_recipient is every recipient this server does not host; content is the readable text itself - the plain and HTML parts and every attachment whose bytes are text - for a pattern of the rule's own; a sealed message declines all but attachment_type and external_recipient, as the body condition does. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.\","
+         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"attachment_name\",\"sensitive_content\",\"attachment_type\",\"external_recipient\",\"content\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\",\"add_disclaimer\",\"reject\",\"require_tls\",\"quarantine\",\"warn_sender\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
          "\"responses\":{\"201\":{\"description\":\"Created: the rule as the listing shows it, with its id, and each action's parameters beside its value\"},\"400\":{\"description\":\"name missing, the body not JSON, or a criterion or action refused (the reason names it in error)\"}}}},"
          "\"/api/v1/rules/{id}\":{"
          "\"put\":{\"summary\":\"Replace a global rule\",\"description\":\"The same body as POST. The rule's name, flags, criteria and actions are all replaced - the old criteria and actions are deleted and the new ones created, which is what saving an edited rule in the Control Panel comes to - and its place in the order is kept. A rule that belongs to an account is not reachable here.\","
-         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"attachment_name\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\",\"add_disclaimer\",\"reject\",\"require_tls\",\"quarantine\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
+         "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"all_criteria\":{\"type\":\"boolean\"},\"criteria\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"field\",\"match\",\"value\"],\"properties\":{\"field\":{\"type\":\"string\",\"enum\":[\"from\",\"to\",\"cc\",\"subject\",\"body\",\"message_size\",\"recipient_list\",\"delivery_attempts\",\"attachment_name\",\"sensitive_content\",\"attachment_type\",\"external_recipient\",\"content\",\"header\"]},\"header\":{\"type\":\"string\"},\"match\":{\"type\":\"string\",\"enum\":[\"equals\",\"contains\",\"less_than\",\"greater_than\",\"regex\",\"not_contains\",\"not_equals\",\"wildcard\"]},\"value\":{\"type\":\"string\"}}}},\"actions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"delete\",\"forward\",\"reply\",\"move_to_folder\",\"script_function\",\"stop\",\"set_header\",\"send_using_route\",\"copy\",\"bind_to_address\",\"add_disclaimer\",\"reject\",\"require_tls\",\"quarantine\",\"warn_sender\"]},\"value\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"from_name\":{\"type\":\"string\"},\"from_address\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\"},\"header\":{\"type\":\"string\"},\"route_id\":{\"type\":\"integer\"},\"script_function\":{\"type\":\"string\"},\"abort_spam_flagged\":{\"type\":\"boolean\"}}}}}}}}},"
          "\"responses\":{\"200\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"As for POST; the rule is unchanged\"},\"404\":{\"description\":\"No global rule with that id\"}}},"
          "\"delete\":{\"summary\":\"Delete a global rule\",\"description\":\"With its criteria and actions, as the Control Panel deletes one. A rule that belongs to an account is not reachable here.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"No global rule with that id\"}}}},"
          "\"/api/v1/rules/match\":{\"post\":{\"summary\":\"Try a rule criterion against a value, without a rule\",\"description\":\"Body: match_value (the criterion's value, as a rule stores it), match_type (equals, contains, less_than, greater_than, regex, not_contains, not_equals or wildcard - the words the rule listing uses) and test_value (what the criterion is tried against). match is what the delivery path would decide for a criterion of that value and type meeting that text. What Utilities.CriteriaMatch answers over COM: nothing is read or written. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"match_value\",\"match_type\",\"test_value\"],\"properties\":{\"match_value\":{\"type\":\"string\"},\"match_type\":{\"type\":\"string\"},\"test_value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{match}\"},\"400\":{\"description\":\"A field missing or of the wrong type, a match_type not among the eight words, or an unknown field (error names it)\"}}}}";

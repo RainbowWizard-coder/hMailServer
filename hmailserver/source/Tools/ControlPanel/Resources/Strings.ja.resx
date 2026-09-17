@@ -1377,6 +1377,12 @@
   <data name="Attachment name" xml:space="preserve">
     <value>添付ファイル名</value>
   </data>
+  <data name="Attachment type" xml:space="preserve">
+    <value>添付ファイルの種類</value>
+  </data>
+  <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
+    <value>バイト列による添付ファイルの種類 (executable, pdf, zip, office, text…)</value>
+  </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>起動時にデータベースへ接続を試みる回数</value>
   </data>
@@ -3434,6 +3440,12 @@
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>外部プロセスのタイムアウト。コマンド ライン ウイルス スキャナーなど (秒)</value>
   </data>
+  <data name="External recipients" xml:space="preserve">
+    <value>外部の受信者</value>
+  </data>
+  <data name="External recipients (addresses this server does not host)" xml:space="preserve">
+    <value>外部の受信者 (このサーバーがホストしていないアドレス)</value>
+  </data>
   <data name="External setup" xml:space="preserve">
     <value>外部セットアップ</value>
   </data>
@@ -4852,6 +4864,9 @@
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format は、エントリごとに host、ident、session、[date]、"category and message"、status、bytes という 1 行を書き出すため、ログ解析ツールは hMailServer について何も知らなくても 5xx 応答を数えられます。ident と bytes は常に "-" です (サーバーは identd に問い合わせず、ロガーには転送サイズが伝えられません)。AWStats ジャーナルは別のファイルで、この設定では変わりません。そのスイッチは上にあります。</value>
   </data>
+  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
+    <value>通知の本文 (このサーバーがホストする送信者に、ルール名とともに送信) (_O)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>名前</value>
   </data>
@@ -6216,6 +6231,12 @@
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>読み取り専用。{0} に期限切れになります。</value>
   </data>
+  <data name="Readable text" xml:space="preserve">
+    <value>読み取り可能なテキスト</value>
+  </data>
+  <data name="Readable text (body and text attachments)" xml:space="preserve">
+    <value>読み取り可能なテキスト (本文とテキスト添付ファイル)</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>ディレクトリを読み取っています...</value>
   </data>
@@ -7304,6 +7325,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>受信者のアドレスを User: ヘッダーとして送信し、spamd がそのメールボックス固有の設定を適用するようにします。仮想ユーザー spamd (--virtual-config-dir と %u または %d) が期待する形式です。スキャンは受信者ごとではなくメッセージごとに 1 回実行されるため、複数人宛てのメッセージは誰か 1 人の設定ではスキャンできず、代わりに上のプロファイルを使います。</value>
+  </data>
+  <data name="Sensitive content" xml:space="preserve">
+    <value>機密性の高い内容</value>
+  </data>
+  <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
+    <value>機密性の高い内容を検出 (card_number, iban, account_number)</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>これとは別に、このサーバーは他のドメインにそのようなレポートを送信しています。TlsRptFromAddress が {0} に設定されているため、自身のレポートが送信されます。</value>
@@ -9357,6 +9384,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Warn the owner at (%)" xml:space="preserve">
     <value>所有者に警告する時点 (%)</value>
+  </data>
+  <data name="Warn the sender" xml:space="preserve">
+    <value>送信者に警告する</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>警告</value>

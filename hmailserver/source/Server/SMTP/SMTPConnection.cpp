@@ -2649,52 +2649,10 @@ namespace HM
    bool
    SMTPConnection::RejectedByRule_(String &text)
    {
-      if (!current_message_)
-         return false;
-
-      // The collections first, because they are in memory: only when one of
-      // them has a reject action at all is the message parsed for the match.
-      std::vector<std::shared_ptr<Rules> > collections;
-      collections.push_back(ObjectCache::Instance()->GetGlobalRules());
-
-      std::set<__int64> domainIds;
-      for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
-      {
-         if (!recipient || !recipient->GetIsLocalName())
-            continue;
-
-         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
-         if (domain)
-            domainIds.insert(domain->GetID());
-      }
-
-      std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(current_message_->GetFromAddress()));
-      if (senderDomain)
-         domainIds.insert(senderDomain->GetID());
-
-      for (__int64 domainId : domainIds)
-         collections.push_back(ObjectCache::Instance()->GetDomainRules(domainId));
-
-      bool anyReject = false;
-      for (std::shared_ptr<Rules> rules : collections)
-         anyReject = anyReject || RuleApplier::HasRejectAction(rules);
-
-      if (!anyReject)
-         return false;
-
-      std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
-      std::shared_ptr<const Account> noAccount;
-      if (!data->LoadFromMessage(noAccount, current_message_))
-         return false;
-
-      RuleApplier applier;
-      for (std::shared_ptr<Rules> rules : collections)
-      {
-         if (applier.WouldReject(rules, data, text))
-            return true;
-      }
-
-      return false;
+      // The same question the self-service send route asks before it queues,
+      // so a rule that blocks speaks to the webmail as it does to this session
+      // - the collections and the parse live in RuleApplier for that reason.
+      return RuleApplier::RejectedBySubmissionRules(current_message_, text);
    }
 
    void

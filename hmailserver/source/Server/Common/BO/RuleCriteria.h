@@ -21,7 +21,14 @@ namespace HM
          FTMessageSize = 6,
          FTRecipientList = 7,
          FTDeliveryAttempts = 8,
-         FTAttachmentName = 9
+         FTAttachmentName = 9,
+
+         // Outbound content policy (Util/ContentPolicy.h): each answered as a
+         // list with ";" between the entries, as the attachment name is.
+         FTSensitiveContent = 10,   // the detectors that found something: card_number, iban, account_number
+         FTAttachmentType = 11,     // every attachment's type by its first bytes, not its name
+         FTExternalRecipient = 12,  // every recipient this server does not host
+         FTContent = 13             // the readable text: the parts and every attachment whose bytes are text
       };
 
       enum MatchType
