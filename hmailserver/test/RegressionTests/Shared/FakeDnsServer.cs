@@ -297,8 +297,9 @@ namespace RegressionTests.Shared
             {
                var remote = new IPEndPoint(IPAddress.Any, 0);
                byte[] query = udp_.Receive(ref remote);
-               byte[] response = BuildResponse_(query);
-               udp_.Send(response, response.Length, remote);
+               byte[] response = TryBuildResponse_(query);
+               if (response != null)
+                  udp_.Send(response, response.Length, remote);
             }
             catch (SocketException)
             {
@@ -324,7 +325,10 @@ namespace RegressionTests.Shared
                   int queryLength = (lengthPrefix[0] << 8) | lengthPrefix[1];
                   byte[] query = ReadExactly_(stream, queryLength);
 
-                  byte[] response = BuildResponse_(query);
+                  byte[] response = TryBuildResponse_(query);
+                  if (response == null)
+                     continue;
+
                   stream.Write(new[] { (byte) (response.Length >> 8), (byte) (response.Length & 0xFF) }, 0, 2);
                   stream.Write(response, 0, response.Length);
                   stream.Flush();
@@ -521,6 +525,35 @@ namespace RegressionTests.Shared
       {
          lock (queries_)
             queries_.Clear();
+      }
+
+      /// <summary>
+      ///    BuildResponse_ for a packet that may not be a query at all. The zone is
+      ///    bound on 127.0.0.1:53 for the whole run, and a packet that is not a DNS
+      ///    query - shorter than a header, a name that runs off its end - used to
+      ///    throw out of the serving thread and, as an unhandled exception on a
+      ///    background thread, take the test host with it: the Linux half of
+      ///    17 September 2026 was aborted that way after every one of its 765 tests
+      ///    had run. Such a packet is nobody's test. It is dropped, and a resolver
+      ///    that sent it retries.
+      /// </summary>
+      private byte[] TryBuildResponse_(byte[] query)
+      {
+         if (query == null || query.Length < 17)
+            return null;
+
+         try
+         {
+            return BuildResponse_(query);
+         }
+         catch (IndexOutOfRangeException)
+         {
+            return null;
+         }
+         catch (ArgumentOutOfRangeException)
+         {
+            return null;
+         }
       }
 
       private byte[] BuildResponse_(byte[] query)
