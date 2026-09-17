@@ -190,10 +190,10 @@ cache, scripting, indexing, the server messages), certificates and the
 listeners that bind them, application passwords, folder permissions, the
 message store and the account groups with their members; and the Deck reaches every property its views cover, measured
 by `build/check-deck-parity.py` against the desktop Control Panel's every
-field ([DeckParity.md](hmailserver/docs/DeckParity.md): 329 of 337 on 15
-September 2026, the eight outside the Deck's views being the folder
-permissions, the application passwords and the groups, which it has no page
-for). The wiki's *Installing on Linux* page walks from the package
+field ([DeckParity.md](hmailserver/docs/DeckParity.md): 382 of 388 on 17
+September 2026: two settings of the quarantine digest have no REST setter
+yet, and a folder permission's four fields are writable over REST but no
+Deck view reaches them). The wiki's *Installing on Linux* page walks from the package
 to a domain with an account, using the Deck. Files written by one
 platform are readable by the other: the UTF-16LE on-disk format is a codec of
 our own on both, rather than a `wchar_t` that is two bytes on Windows and four
