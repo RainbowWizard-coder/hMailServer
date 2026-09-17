@@ -173,6 +173,51 @@ running. A rebuild restarts the service under the tests, the fixtures' restart
 detector then fails every test that follows, and the run can neither convict nor
 exonerate the code - thirty minutes are simply thrown away.
 
+10. A second bench, and the gate in halves
+------------------------------------------
+
+One bench runs one gate at a time, and a gate is the whole suite: about fifty
+minutes of tests once the build is done, and rising. Since 16 September 2026 a
+second Windows bench takes half of it. It is a Windows Server 2025 VM
+(192.168.11.150) that was provisioned entirely over SSH, and what it needed is
+the list of what any new bench needs beyond this document:
+
+* Git, the .NET 10 SDK, the .NET Framework 4.8.1 developer pack and PowerShell 7
+  (all from `winget`), and the Visual Studio 2026 Build Tools with the C++
+  workload, ATL, the Windows 11 SDK and the MSBuild and managed-desktop
+  workloads. The project's toolset is v145, so the 2022 Build Tools will not do;
+  the bootstrapper is `https://aka.ms/vs/18/stable/vs_BuildTools.exe` (the
+  `/release/` names are dead).
+* The prebuilt libraries under `C:\Dev\hMailLibs` - Boost 1.92 (only `boost\`
+  and `stage\` are used), OpenSSL 4.0.2's `out64` and PostgreSQL 18.3 - and the
+  machine-wide `hMailServerLibs` variable pointing at them.
+* Four things the repository does not carry, copied from a working bench:
+  `libraries\msado28`, `libraries\mariadb-connector-c-3.4.9`,
+  `installation\Extrasza.exe` and the two `Languages\*.ini` files of the Release
+  output. SQL Server Compact 4.0 from `installation\SQLCE` (also untracked).
+* ClamAV at `C:\clamav`, run as a scheduled task at start-up rather than from a
+  shell - a process started from an SSH session dies with the session - and
+  SpamAssassin as the `SpamAssassinJAM` service (the JAM build under Strawberry
+  Perl, as on the first bench).
+
+Then sections 1 to 8 as written: `build.ps1`, `post-build.ps1`, the layout of
+the output directory, the database created over COM, the password, the grants.
+
+The two benches split the suite by namespace, chosen from the measured
+durations so that the halves are about equal (1,900 seconds each in the run
+that drew them): API, IMAP, AntiSpam, Sieve, POP3, Rules, Domains, MIME, Stress,
+Installation and Shared on one, Security, Infrastructure, SMTP, AntiVirus, SSL
+and ExternalAccounts on the other, each through `run-tests.ps1 -Where` with a
+class pattern, started together and reported together. Both halves are the
+gate; a run that reports one is not one. The same split, by the same rule,
+runs the Linux suite in CI as two matrix halves of the `regression-on-linux`
+job, after the whole suite grew past the job's ninety-minute limit.
+
+A faster bench finds what a slower one cannot: the first split run found a
+fixture that waited for a restore by watching a stamp of one-second resolution
+and, on the new machine, missed a restore that finished inside the same second
+as the previous test's reinitialisation.
+
 On Linux
 --------
 
@@ -218,7 +263,7 @@ keeps under that on its own.
 
 The server it runs against is any hMailServer with the REST listener on, on any
 host; the defaults are the PostgreSQL-backed tree the CI job lays out
-(`.github/workflows/linux-build.yml`, job `regression-on-linux`), which is also
+(`.github/workflows/linux-build.yml`, job `regression-on-linux`, run as two halves), which is also
 the recipe for a hand-made one: `DBScripts` from the checkout beside the binary,
 `tlds.txt` and `dh2048.pem` from `installation/Extras`, an INI with
 `Type=PostgreSQL` and `RestApiPort=8045`, `--create-database`, the listeners

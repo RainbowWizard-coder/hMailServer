@@ -717,14 +717,27 @@ jobs:
   # without POST /api/v1/domains cannot make it; one that has the route deletes and
   # remakes it before every test anyway.
   regression-on-linux:
-    name: regression suite against the Linux server
+    name: regression suite against the Linux server (${{ matrix.half.name }})
     needs: build
     runs-on: ubuntu-latest
-    # A local run took about fifteen minutes while two thirds of the suite was
-    # skipped; with the route backlog waves most of it runs, and a server that
+    # The suite is run as two halves on two runners, the way the Windows gate is
+    # run on two benches: whole, it took seventy-five to ninety minutes and was
+    # cut off at the ninety-minute limit on 16 September 2026. The halves are
+    # drawn by namespace from that run's trx - 2,609 and 2,689 seconds of test
+    # time - so each is about forty-five minutes plus the setup. A server that
     # stops answering costs two minutes per test (TestPorts.ReceiveTimeoutMilliseconds),
-    # so this is the backstop, not the budget.
-    timeout-minutes: 150
+    # so the limit is the backstop, not the budget.
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        half:
+          - name: one
+            filter: >-
+              FullyQualifiedName~RegressionTests.API.|FullyQualifiedName~RegressionTests.Sieve.|FullyQualifiedName~RegressionTests.AntiSpam.|FullyQualifiedName~RegressionTests.POP3.|FullyQualifiedName~RegressionTests.SSL.|FullyQualifiedName~RegressionTests.ExternalAccounts.|FullyQualifiedName~RegressionTests.Domains.|FullyQualifiedName~RegressionTests.MIME.|FullyQualifiedName~RegressionTests.Stress.|FullyQualifiedName~RegressionTests.Rules.|FullyQualifiedName~RegressionTests.Installation.|FullyQualifiedName~RegressionTests.Shared.
+          - name: two
+            filter: >-
+              FullyQualifiedName~RegressionTests.IMAP.|FullyQualifiedName~RegressionTests.Security.|FullyQualifiedName~RegressionTests.Infrastructure.|FullyQualifiedName~RegressionTests.SMTP.|FullyQualifiedName~RegressionTests.AntiVirus.
     services:
       postgres:
         image: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
@@ -889,7 +902,8 @@ jobs:
       - name: Run the fixtures against the server
         run: |
           dotnet test hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj -c Release --no-restore \
-            --logger "trx;LogFileName=linux-regression.trx" --results-directory "$HMTEST_TREE/results"
+            --filter "${{ matrix.half.filter }}" \
+            --logger "trx;LogFileName=linux-regression-${{ matrix.half.name }}.trx" --results-directory "$HMTEST_TREE/results"
 
       - name: Stop the server
         if: always()
@@ -903,7 +917,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: linux-regression-results
+          name: linux-regression-results-${{ matrix.half.name }}
           path: |
             ${{ env.HMTEST_TREE }}/results/*.trx
             ${{ env.HMTEST_TREE }}/Logs/
