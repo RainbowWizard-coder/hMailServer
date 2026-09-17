@@ -238,7 +238,7 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section', 'confidential-section'];
   var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
@@ -1231,6 +1231,7 @@
     ['compose-to', 'compose-cc', 'compose-bcc', 'compose-subject', 'compose-text'].forEach(function (id) { el(id).value = ''; });
     carried = []; replyTo = null; draftId = 0; dropped = [];
     el('compose-receipt').checked = false;
+    el('compose-expires').value = '0'; el('compose-passcode').value = ''; syncExpiry();
     el('compose-sign').checked = false; el('compose-encrypt').checked = false; smimeComposeHints();
     if (richOn) { setRich(false); }
     selectIdentity('');
@@ -1318,6 +1319,11 @@
     var body = { to: el('compose-to').value, cc: el('compose-cc').value, bcc: el('compose-bcc').value, subject: el('compose-subject').value, text: el('compose-text').value };
     if (!el('compose-from').hidden) { body.from = el('compose-from').value; }
     if (el('compose-receipt').checked) { body.receipt = true; }
+    if (confidentialOffered && Number(el('compose-expires').value) > 0) {
+      body.expires_in = Number(el('compose-expires').value);
+      var passcode = el('compose-passcode').value.trim();
+      if (passcode) { body.passcode = passcode; }
+    }
     if (el('compose-sign').checked) { body.sign = true; }
     if (el('compose-encrypt').checked) { body.encrypt = true; }
     if (richOn) { body.html = cleanHtml(el('compose-editor')); body.text = plainOf(el('compose-editor')).replace(/\n+$/, ''); }
@@ -1784,6 +1790,7 @@
     return ['mailto', 'share', 'to', 'cc', 'bcc', 'subject', 'body'].some(function (key) { return params[key] !== undefined; });
   };
   var showCompose = function (params) {
+    learnConfidential();
     var mode = params.reply !== undefined ? 'reply' : params.replyall !== undefined ? 'replyall' :
       params.forward !== undefined ? 'forward' : params.draft !== undefined ? 'draft' : 'new';
     var id = Number(params[mode] || 0);
@@ -1811,6 +1818,7 @@
     if (head === 'm' && r.parts[1]) { showMessage(Number(r.parts[1])); return; }
     if (head === 'starred') { cameFromList = true; showSearch({ q: 'is:flagged' }); el('view-title').textContent = t('Starred'); markNav('/starred'); return; }
     if (head === 'recover') { showPanel('recover-section', t('Recover deleted items')); markNav('/recover'); loadRecoverable(); return; }
+    if (head === 'confidential') { showPanel('confidential-section', t('Messages that expire')); markNav('/confidential'); loadConfidential(); return; }
     if (head === 'scheduled') { showPanel('scheduled-section', t('Scheduled')); markNav('/scheduled'); loadScheduled(); return; }
     if (head === 'compose') {
       // The window opens over whatever page is shown; on a reload, over the list.
@@ -4070,6 +4078,7 @@
     reader.readAsText(file);
   });
   el('compose-send-later').addEventListener('click', function () {
+    if (expiryChosen()) { say('compose-status', t('A message that expires cannot be scheduled: send it now, or set Expires to Never.'), false); return; }
     var at = fromPicker(el('compose-later').value);
     if (at.length !== 16) { say('compose-status', t('Choose when to send it.'), false); return; }
     if (!el('compose-to').value.trim()) { say('compose-status', t('Say who it is to.'), false); return; }
@@ -4437,7 +4446,11 @@
   // drawn: 0 means it keeps nothing, and the way in stays hidden.
   var recoverDays = 0;
   var recoverAsked = false;
+  // Whether the server offers a message that expires, learned the same way.
+  var confidentialOffered = false;
+  var confidentialAsked = false;
   var renderListTools = function () {
+    learnConfidential();
     if (!recoverAsked) {
       recoverAsked = true;
       call('GET', '/api/v1/me/recoverable').then(function (result) {
@@ -4449,6 +4462,7 @@
     var emptyable = !state.everywhere && (folderIs(state.folderId, 'Junk') || folderIs(state.folderId, 'Trash'));
     el('folder-empty').hidden = !emptyable;
     el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && recoverDays > 0);
+    el('folder-confidential').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && confidentialOffered);
     el('folder-empty').textContent = t('Empty this folder');
     ['right', 'bottom', 'off'].forEach(function (mode) { el('pane-' + mode).classList.toggle('on', paneMode() === mode); });
     el('mail-search-clear').hidden = !state.query;
@@ -5149,6 +5163,7 @@
     add('Away and forwarding', 'page', function () { go('/away'); });
     add('Storage', 'page', function () { go('/storage'); });
     add('Recover deleted items', 'page', function () { go('/recover'); });
+    add('Messages that expire', 'page', function () { go('/confidential'); });
     add('Safe senders', 'page', function () { go('/senders'); });
     add('Subscriptions', 'page', function () { go('/subscriptions'); });
     add('Other accounts', 'page', function () { go('/accounts'); });
@@ -6926,6 +6941,78 @@
     return call('GET', '/api/v1/me/recoverable').then(function (result) {
       if (result.status !== 200 || !result.data) { say('recover-status', describe(result, t('Could not read your deleted items')), false); return; }
       renderRecoverable(result.data);
+    });
+  };
+  // ---- Messages that expire ---------------------------------------------------
+  // Gmail's confidential mode: an expiry on the compose form keeps the message on
+  // this server and sends the recipients a link; this page lists what was sent,
+  // whether and by whom it was opened, and withdraws one. Whether the server
+  // offers it at all is learned once (it needs a public address for the links).
+  el('folder-confidential').addEventListener('click', function () { el('list-more').hidden = true; go('/confidential'); });
+  // A message that expires is sent now: the schedule route sends a draft as
+  // it is, with no expiry, so Send at goes away while one is chosen and the
+  // Schedule button refuses it if reached anyway.
+  var expiryChosen = function () { return confidentialOffered && Number(el('compose-expires').value) > 0; };
+  var syncExpiry = function () {
+    var on = Number(el('compose-expires').value) > 0;
+    el('compose-passcode').hidden = !on;
+    el('compose-expires-note').hidden = !on;
+    el('later-row').hidden = on;
+  };
+  el('compose-expires').addEventListener('change', syncExpiry);
+  var learnConfidential = function () {
+    if (confidentialAsked) { return; }
+    confidentialAsked = true;
+    call('GET', '/api/v1/me/confidential').then(function (result) {
+      confidentialOffered = !!(result.status === 200 && result.data && result.data.available);
+      el('expires-row').hidden = !confidentialOffered;
+      el('folder-confidential').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && confidentialOffered);
+    });
+  };
+  var renderConfidential = function (data) {
+    var rows = el('confidential-rows');
+    clear(rows);
+    var items = data.items || [];
+    confidentialOffered = !!data.available;
+    el('confidential-note').textContent = confidentialOffered
+      ? t('A message sent with an expiry stays here and its recipients read it through a link until then. What was sent, and whether it was opened. Withdrawing one ends it now.')
+      : t('Your server does not offer this: it has no public address for the links. Ask whoever runs it.');
+    items.forEach(function (item) {
+      var tr = document.createElement('tr');
+      var subject = document.createElement('td');
+      subject.appendChild(node('span', item.subject || t('(no subject)')));
+      if (item.passcode) { subject.appendChild(node('span', ' ')); subject.appendChild(node('span', t('Passcode'), 'badge info')); }
+      if (item.revoked) { subject.appendChild(node('span', ' ')); subject.appendChild(node('span', t('Withdrawn'), 'badge warn')); }
+      else if (item.expired) { subject.appendChild(node('span', ' ')); subject.appendChild(node('span', t('Expired'), 'badge')); }
+      tr.appendChild(subject);
+      tr.appendChild(node('td', (item.recipients || []).join(', ')));
+      tr.appendChild(node('td', new Date(Number(item.expires) * 1000).toLocaleString()));
+      tr.appendChild(node('td', Number(item.opened) > 0
+        ? new Date(Number(item.opened) * 1000).toLocaleString() + (item.opened_by === 'passcode' ? ' · ' + t('with the passcode') : ' · ' + item.opened_by)
+        : t('Not yet')));
+      var actions = document.createElement('td');
+      if (!item.revoked && !item.expired) {
+        var revoke = button(t('Withdraw'), 'btn ghost sm danger');
+        revoke.addEventListener('click', function () {
+          if (!window.confirm(tf('Withdraw {0}? Nobody can read it after this, and the copy kept here is deleted.', item.subject || t('(no subject)')))) { return; }
+          call('POST', '/api/v1/me/confidential/' + item.id + '/revoke').then(function (result) {
+            if (result.status !== 200) { say('confidential-status', describe(result, t('Could not withdraw it')), false); return; }
+            say('confidential-status', t('Withdrawn; the link no longer works.'), true);
+            loadConfidential();
+          });
+        });
+        actions.appendChild(revoke);
+      }
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('confidential-table').hidden = !items.length;
+    el('confidential-empty').hidden = items.length > 0 || !confidentialOffered;
+  };
+  var loadConfidential = function () {
+    return call('GET', '/api/v1/me/confidential').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('confidential-status', describe(result, t('Could not read your messages that expire')), false); return; }
+      renderConfidential(result.data);
     });
   };
   // ---- Masked addresses -------------------------------------------------------

@@ -708,6 +708,22 @@ function answerRecoverable(method, path) {
    if (!m[2] && method === 'DELETE') { recoverable.items.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
+// Messages that expire: offered, one not yet opened and set with a passcode, one
+// opened by its recipient.
+let confidentialOffered = true;
+let confidential = [
+   { id: 12, subject: 'The board pack', recipients: ['ann@example.net'], created: 1789600000, expires: 1789686400, expired: false, opened: 0, opened_by: '', revoked: false, passcode: true, link: 'https://mail.example.com/confidential/abc' },
+   { id: 11, subject: 'Salary review', recipients: ['bob@example.net', 'cy@example.org'], created: 1789500000, expires: 1789586400, expired: false, opened: 1789510000, opened_by: 'bob@example.net', revoked: false, passcode: false, link: 'https://mail.example.com/confidential/def' }
+];
+function answerConfidential(method, path) {
+   if (!path.startsWith('/api/v1/me/confidential')) { return null; }
+   if (path === '/api/v1/me/confidential' && method === 'GET') { return json(200, { available: confidentialOffered, max_seconds: 7776000, items: confidential.map((i) => Object.assign({}, i)) }); }
+   const m = /^\/api\/v1\/me\/confidential\/(\d+)\/revoke$/.exec(path);
+   const at = m ? confidential.findIndex((i) => i.id === Number(m[1])) : -1;
+   if (at < 0) { return json(404, { error: 'not one of your messages that expire' }); }
+   if (method === 'POST') { confidential[at].revoked = true; return json(200, { revoked: true }); }
+   return json(404, { error: 'not found' });
+}
 let importOffer = { google: true, microsoft: false };
 function answerFetchAccounts(method, path, body) {
    if (!path.startsWith('/api/v1/me/fetch-accounts')) { return null; }
@@ -746,6 +762,7 @@ function answer(method, path, body) {
    { const senders = answerSenderAddresses(method, path, body); if (senders) { return senders; } }
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
+   { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
    if (path === '/api/v1/me') {
       return json(200, {
          address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
@@ -3685,6 +3702,84 @@ async function main() {
       check('a server that keeps nothing says so', document.getElementById('recover-note').textContent === words('Your server keeps nothing that is deleted.') &&
          document.getElementById('recover-empty').hidden === true, document.getElementById('recover-note').textContent);
       recoverable.days = 14;
+   }
+
+   // ---- Messages that expire: an expiry and a passcode on the compose form, and the list with Withdraw
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const rows = () => walkAll(document.getElementById('confidential-rows'), (n) => n.tagName === 'TR');
+      const rowFor = (subject) => rows().filter((r) => r.textContent.indexOf(subject) >= 0)[0];
+      const buttonIn = (row, english) => walkAll(row, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+      const expires = document.getElementById('compose-expires');
+      const passcode = document.getElementById('compose-passcode');
+
+      document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+      await flush();
+      check('a server that offers a message that expires shows the expiry on the compose form, with no passcode field until one is chosen',
+         document.getElementById('expires-row').hidden === false && passcode.hidden === true && document.getElementById('compose-expires-note').hidden === true,
+         'row hidden=' + document.getElementById('expires-row').hidden + ' passcode hidden=' + passcode.hidden);
+      expires.value = '3600';
+      expires.dispatchEvent(makeEvent('change'));
+      check('choosing an expiry shows the passcode field and says what the expiry does and does not do',
+         passcode.hidden === false && document.getElementById('compose-expires-note').hidden === false &&
+         document.getElementById('compose-expires-note').textContent.length > 40,
+         'passcode hidden=' + passcode.hidden);
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-subject').value = 'For your eyes only';
+      document.getElementById('compose-text').value = 'The figures are in the room, not in this message.';
+      passcode.value = 'orange';
+      confirmAnswer = true;
+      const beforeExpiring = requests.length;
+      document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      fireTimers();
+      await flush();
+      await flush();
+      const expiringSend = since(beforeExpiring).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/messages').map((r) => JSON.parse(r.body))[0];
+      check('the send carries expires_in in seconds and the passcode', !!expiringSend && expiringSend.expires_in === 3600 && expiringSend.passcode === 'orange',
+         expiringSend ? JSON.stringify(expiringSend) : 'no POST');
+      check('and the next message starts without an expiry', expires.value === '0' && passcode.hidden === true && passcode.value === '', 'value=' + expires.value);
+      dismissAllToasts();
+
+      // Send later would deliver the draft in full at the hour, with no expiry:
+      // the row goes while an expiry is chosen, and the button refuses.
+      check('with no expiry chosen, Send at is offered', document.getElementById('later-row').hidden === false, 'later-row hidden=' + document.getElementById('later-row').hidden);
+      expires.value = '86400';
+      expires.dispatchEvent(makeEvent('change'));
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-later').value = '2030-01-01T09:00';
+      const beforeLater = requests.length;
+      document.getElementById('compose-send-later').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a message that expires cannot be scheduled: Send at is hidden while an expiry is chosen, and Schedule refuses without saving a draft',
+         document.getElementById('later-row').hidden === true && !called(beforeLater, 'POST', '/api/v1/me/drafts') &&
+         document.getElementById('compose-status').textContent === words('A message that expires cannot be scheduled: send it now, or set Expires to Never.'),
+         'later-row hidden=' + document.getElementById('later-row').hidden + ' status=' + document.getElementById('compose-status').textContent);
+      expires.value = '0';
+      expires.dispatchEvent(makeEvent('change'));
+      check('and Send at comes back when the expiry is set to Never', document.getElementById('later-row').hidden === false, 'later-row hidden=' + document.getElementById('later-row').hidden);
+      document.getElementById('compose-later').value = '';
+
+      const beforeList = requests.length;
+      location.hash = '#/confidential';
+      await flush();
+      check('the Messages that expire page lists what was sent, to whom, and who opened it',
+         called(beforeList, 'GET', '/api/v1/me/confidential') && document.getElementById('confidential-section').hidden === false && rows().length === 2 &&
+         rowFor('Salary review').textContent.indexOf('bob@example.net') >= 0 && rowFor('The board pack').textContent.indexOf(words('Not yet')) >= 0 &&
+         rowFor('The board pack').textContent.indexOf(words('Passcode')) >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      confirmAnswer = true;
+      const beforeRevoke = requests.length;
+      buttonIn(rowFor('The board pack'), 'Withdraw').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Withdraw asks first, saying the copy is deleted, and the row is marked withdrawn with nothing more to do to it',
+         confirms[confirms.length - 1].indexOf('The board pack') >= 0 && called(beforeRevoke, 'POST', '/api/v1/me/confidential/12/revoke') &&
+         rowFor('The board pack').textContent.indexOf(words('Withdrawn')) >= 0 && !buttonIn(rowFor('The board pack'), 'Withdraw') &&
+         String(document.getElementById('confidential-status').className).indexOf('ok') >= 0,
+         rowFor('The board pack') ? rowFor('The board pack').textContent : 'no row');
+      confidential[0].revoked = false;
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

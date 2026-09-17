@@ -26,6 +26,8 @@ drop table if exists hm_spamtraps;
 
 drop table if exists hm_spamtraphits;
 
+drop table if exists hm_confidential;
+
 drop table if exists hm_recoverable;
 
 drop table if exists hm_maskedaddresses;
@@ -643,6 +645,27 @@ create table hm_recoverable
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid);
+
+create table hm_confidential
+(
+	cfid int auto_increment not null, primary key(`cfid`), unique(`cfid`),
+	cfaccountid int not null,
+	cftoken varchar(64) not null,
+	cfsubject varchar(255) not null,
+	cfsender varchar(255) not null,
+	cfrecipients varchar(2000) not null,
+	cffile varchar(255) not null,
+	cfpasscode varchar(255) not null,
+	cfcreated bigint not null,
+	cfexpires bigint not null,
+	cfopened bigint not null,
+	cfopenedby varchar(255) not null,
+	cfrevoked int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_confidential_token ON hm_confidential (cftoken);
+
+CREATE INDEX idx_hm_confidential_account ON hm_confidential (cfaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1386,6 +1409,8 @@ ALTER TABLE hm_maskedaddresses ENGINE=InnoDB;
 
 ALTER TABLE hm_recoverable ENGINE=InnoDB;
 
+ALTER TABLE hm_confidential ENGINE=InnoDB;
+
 ALTER TABLE hm_calendarobjects ENGINE=InnoDB;
 
 ALTER TABLE hm_remotedomainpolicies ENGINE=InnoDB;
@@ -1558,6 +1583,8 @@ ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FORE
 ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -1993,4 +2020,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6068);
+insert into hm_dbversion values (6069);

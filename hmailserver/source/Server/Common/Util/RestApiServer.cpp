@@ -71,6 +71,7 @@
 #include "GUIDCreator.h"
 #include "InlineImageParts.h"
 #include "RecoverableStore.h"
+#include "ConfidentialMessages.h"
 #include <iterator>
 #include <list>
 #include <set>
@@ -1536,6 +1537,12 @@ namespace HM
       if ((method == "GET" || method == "POST") && path.StartsWith("/files/"))
          return HandlePublicFile_(method, path.Mid(7), GetRequestBody_(request));
 
+      // A message that expires: the page a recipient's notice links to. No
+      // credentials to get there; the reader proves they are a recipient on the
+      // page itself, or is already signed in to the webmail as one.
+      if ((method == "GET" || method == "POST") && path.StartsWith("/confidential/"))
+         return HandleConfidentialPage_(method, path.Mid(14), request, peer_address);
+
       // The two links a quarantine digest carries. No credentials: the token in
       // the query string is the whole capability, it names one account and one
       // entry, it works once and it expires. See RestApiQuarantineDigest.cpp.
@@ -2395,6 +2402,10 @@ namespace HM
          case RouteMeRecoverableDelete:
             return HandleMeRecoverable_(caller, route.kind, route.record_id);
 
+         case RouteMeConfidential:
+         case RouteMeConfidentialRevoke:
+            return HandleMeConfidential_(caller, route.kind, route.record_id);
+
          case RouteMeDraftSchedule:
             return HandleMeDraftSchedule_(caller, route.message_id, GetRequestBody_(request));
 
@@ -3052,6 +3063,29 @@ namespace HM
             route.kind = RouteMeRecoverableRestore;
          else if (!restore && method == "DELETE")
             route.kind = RouteMeRecoverableDelete;
+
+         return;
+      }
+
+      // Messages that expire: the ones this account sent, and withdrawing one.
+      if (path == "/api/v1/me/confidential")
+      {
+         if (method == "GET")
+            route.kind = RouteMeConfidential;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/confidential/") && path.EndsWith("/revoke"))
+      {
+         AnsiString rest = path.Mid(AnsiString("/api/v1/me/confidential/").GetLength());
+         rest = rest.Mid(0, rest.GetLength() - AnsiString("/revoke").GetLength());
+
+         if (!ParseQueueId(rest, route.record_id))
+            return;
+
+         if (method == "POST")
+            route.kind = RouteMeConfidentialRevoke;
 
          return;
       }
@@ -5150,6 +5184,7 @@ namespace HM
       case RouteMeMaskedAddressDelete:
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
+      case RouteMeConfidentialRevoke:
       case RouteMeFileCreate:
       case RouteMeFileContent:
       case RouteMeFileUpdate:
@@ -9116,6 +9151,8 @@ namespace HM
       case RouteMeRecoverable:
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
+      case RouteMeConfidential:
+      case RouteMeConfidentialRevoke:
       case RouteMeAppPasswords:
       case RouteMeAppPasswordCreate:
       case RouteMeAppPasswordDelete:
@@ -12701,6 +12738,45 @@ namespace HM
       return value;
    }
 
+   int
+   RestApiServer::JsonWholeNumber_(const AnsiString &json, const AnsiString &key, __int64 &value)
+   {
+      JsonValue document;
+      std::string parseError;
+      if (JsonValue::Parse(std::string(json.c_str(), json.size()), document, parseError) && document.IsObject())
+      {
+         const JsonValue *found = FindJsonMember_(document, std::string(key.c_str()));
+         if (!found)
+            return 0;
+         if (found->IsString())
+         {
+            // Digits in quotes are read as the other readers read them; any
+            // other string is not a number.
+            const std::string &text = found->AsString();
+            if (text.empty() || text.size() > 15 || text.find_first_not_of("0123456789") != std::string::npos)
+               return -1;
+            value = _atoi64(text.c_str());
+            return 1;
+         }
+         if (!found->IsNumber())
+            return -1;
+         const double number = found->AsNumber();
+         if (number < 0 || number > 9007199254740991.0)
+            return -1;
+         const __int64 whole = (__int64) number;
+         if ((double) whole != number)
+            return -1;
+         value = whole;
+         return 1;
+      }
+
+      // What does not parse is read the way the other readers read it: a bare
+      // run of digits after the key, or nothing.
+      if (JsonNumber(json, key, value))
+         return 1;
+      return json.Find("\"" + key + "\"") >= 0 ? -1 : 0;
+   }
+
    namespace
    {
       // "a@x, Name <b@y>; c@z" -> the three addresses, and the entries as
@@ -12785,6 +12861,51 @@ namespace HM
 
       if (recipients.empty())
          return BuildResponse_(400, "{\"error\":\"at least one recipient is required, in to, cc or bcc\"}");
+
+      // A message that expires (ConfidentialMessages.h): expires_in is seconds
+      // from now, and passcode a word the sender gives the readers another way.
+      // Everything about it is refused here, before anything is written - and
+      // an expires_in that is not a whole number of seconds is refused too,
+      // never read as absent: a client that wrote the key asked for an expiry,
+      // and sending the message in full, for ever, is the opposite of that.
+      __int64 expiresIn = 0;
+      String passcode;
+      const int expiresState = JsonWholeNumber_(requestBody, "expires_in", expiresIn);
+      if (expiresState < 0)
+      {
+         AnsiString json;
+         json.Format("{\"error\":\"expires_in is a whole number of seconds from now, from %d to %d (ninety days), or 0 for no expiry\"}", ConfidentialMessages::MinimumSeconds, ConfidentialMessages::MaximumSeconds);
+         return BuildResponse_(400, json);
+      }
+      const bool confidential = expiresState > 0 && expiresIn != 0;
+      if (!confidential && !JsonUtf8Value_(requestBody, "passcode").IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"passcode is for a message that expires: give expires_in with it\"}");
+      if (confidential)
+      {
+         if (expiresIn < ConfidentialMessages::MinimumSeconds || expiresIn > ConfidentialMessages::MaximumSeconds)
+         {
+            AnsiString json;
+            json.Format("{\"error\":\"expires_in is seconds from now, from %d to %d (ninety days)\"}", ConfidentialMessages::MinimumSeconds, ConfidentialMessages::MaximumSeconds);
+            return BuildResponse_(400, json);
+         }
+         if (ConfidentialMessages::BaseUrl().IsEmpty())
+            return BuildResponse_(403, "{\"error\":\"a message that expires is not offered on this server: no public address is set for its links (confidential_base_url)\",\"code\":\"confidential_unavailable\"}");
+         if (!JsonUtf8Value_(requestBody, "mime").IsEmpty())
+            return BuildResponse_(400, "{\"error\":\"a message the page signed or encrypted cannot be one that expires: the reading page could not show it\"}");
+         passcode = JsonUtf8Value_(requestBody, "passcode");
+         passcode.Trim();
+         if (!passcode.IsEmpty() && (passcode.GetLength() < ConfidentialMessages::PasscodeMinimum || passcode.GetLength() > ConfidentialMessages::PasscodeMaximum))
+         {
+            AnsiString json;
+            json.Format("{\"error\":\"passcode is %d to %d characters\"}", ConfidentialMessages::PasscodeMinimum, ConfidentialMessages::PasscodeMaximum);
+            return BuildResponse_(400, json);
+         }
+         int recipientsLength = 0;
+         for (size_t i = 0; i < recipients.size(); i++)
+            recipientsLength += recipients[i].GetLength() + 1;
+         if (recipientsLength > ConfidentialMessages::RecipientsMaximum)
+            return BuildResponse_(400, "{\"error\":\"too many recipients for a message that expires\"}");
+      }
 
       std::shared_ptr<SMTPConfiguration> smtpConfiguration = Configuration::Instance()->GetSMTPConfiguration();
 
@@ -12935,10 +13056,63 @@ namespace HM
          return BuildResponse_(413, "{\"error\":\"the message is larger than the server allows\"}");
       }
 
+      // A message that expires: the full message, footers and all, is kept on
+      // this server and what goes into the queue in its place is the notice
+      // with the link. Done before the queue row exists, so the deliverer can
+      // never pick up the full message; the \Sent copy below is the full one.
+      ConfidentialMessages::Entry kept;
+      String keptPath;
+      if (confidential)
+      {
+         // The kept copy is the mailbox's, kept elsewhere: it counts against
+         // the quota with everything else kept for the account, and an account
+         // has at most so many outstanding, so the data disk is bounded by the
+         // quotas and not by the request rate.
+         const __int64 quotaBytes = (__int64) account->GetAccountMaxSize() * 1024 * 1024;
+         if (quotaBytes > 0 && AccountSizeCache::Instance()->GetSize(account->GetID()) + ConfidentialMessages::KeptBytes(account->GetID()) + (__int64) message->GetSize() > quotaBytes)
+         {
+            FileUtilities::DeleteFile(fileName);
+            return BuildResponse_(413, "{\"error\":\"the mailbox's quota has no room for the copy this server keeps of a message that expires\",\"code\":\"quota_exceeded\"}");
+         }
+         const int live = ConfidentialMessages::CountLive(account->GetID());
+         if (live < 0)
+         {
+            FileUtilities::DeleteFile(fileName);
+            return BuildResponse_(500, "{\"error\":\"the messages that expire could not be counted\"}");
+         }
+         if (live >= ConfidentialMessages::LiveMaximum)
+         {
+            FileUtilities::DeleteFile(fileName);
+            AnsiString json;
+            json.Format("{\"error\":\"this account has %d messages that expire outstanding, which is the most it may; withdraw some, or wait for them to expire\",\"code\":\"confidential_ceiling\"}", ConfidentialMessages::LiveMaximum);
+            return BuildResponse_(400, json);
+         }
+
+         const __int64 expires = (__int64) time(nullptr) + expiresIn;
+         if (!ConfidentialMessages::Create(account, fileName, JsonUtf8Value_(requestBody, "subject"), fromHeader, recipients, expires, passcode, kept))
+         {
+            FileUtilities::DeleteFile(fileName);
+            return BuildResponse_(500, "{\"error\":\"the message could not be kept\"}");
+         }
+         keptPath = ConfidentialMessages::PathOf(kept);
+
+         const AnsiString link = Utf8_(ConfidentialMessages::BaseUrl()) + "/confidential/" + kept.token;
+         if (!ConfidentialMessages::WriteNotice(message, fileName, fromHeader, JoinEntries(toEntries), ccEntries.empty() ? String() : JoinEntries(ccEntries),
+                                                JsonUtf8Value_(requestBody, "subject"), ConfidentialMessages::DisplayName(fromHeader), link, expires, !passcode.IsEmpty()))
+         {
+            ConfidentialMessages::Discard(kept);
+            FileUtilities::DeleteFile(fileName);
+            return BuildResponse_(500, "{\"error\":\"the notice could not be written\"}");
+         }
+         message->SetSize((int) FileUtilities::FileSize(fileName));
+      }
+
       message->SetState(Message::Delivering);
 
       if (!PersistentMessage::SaveObject(message))
       {
+         if (confidential)
+            ConfidentialMessages::Discard(kept);
          FileUtilities::DeleteFile(fileName);
          return BuildResponse_(500, "{\"error\":\"the message could not be queued\"}");
       }
@@ -12952,11 +13126,16 @@ namespace HM
       {
          __int64 maxBytes = (__int64) account->GetAccountMaxSize() * 1024 * 1024;
          __int64 used = AccountSizeCache::Instance()->GetSize(account->GetID());
-         bool fits = maxBytes <= 0 || used + message->GetSize() <= maxBytes;
+         const __int64 copySize = confidential ? (__int64) FileUtilities::FileSize(keptPath) : (__int64) message->GetSize();
+         bool fits = maxBytes <= 0 || used + copySize <= maxBytes;
 
          if (fits && RightOn_(account, sent, ACLPermission::PermissionInsert))
          {
-            std::shared_ptr<Message> copy = PersistentMessage::CopyToIMAPFolder(message, sent);
+            // The queued file of a message that expires is the notice; the copy
+            // the sender keeps is the message itself, from the kept file.
+            std::shared_ptr<Message> copy = confidential
+               ? ConfidentialMessages::CopyKeptToFolder(keptPath, from, sent)
+               : PersistentMessage::CopyToIMAPFolder(message, sent);
             if (copy)
             {
                copy->SetFlagSeen(true);
@@ -13006,7 +13185,10 @@ namespace HM
       CollectContacts_(caller.account, ccEntries);
       CollectContacts_(caller.account, bccEntries);
 
-      json.Format("{\"queued\":true,\"recipients\":%d,\"sent_id\":%I64d}", message->GetRecipients()->GetCount(), sentId);
+      if (confidential)
+         json.Format("{\"queued\":true,\"recipients\":%d,\"sent_id\":%I64d,\"confidential_id\":%I64d,\"expires\":%I64d}", message->GetRecipients()->GetCount(), sentId, kept.id, kept.expires);
+      else
+         json.Format("{\"queued\":true,\"recipients\":%d,\"sent_id\":%I64d}", message->GetRecipients()->GetCount(), sentId);
       return BuildResponse_(201, json);
    }
 
@@ -14126,7 +14308,7 @@ namespace HM
          "\"/api/v1/me/settings\":{\"get\":{\"summary\":\"The signed-in account's own settings\",\"responses\":{\"200\":{\"description\":\"name (first, last), forwarding (enabled, address, keep_original), signature (enabled, text, html)\"}}},\"put\":{\"summary\":\"Change the signed-in account's own settings\",\"description\":\"Each of name, forwarding and signature the body names is applied whole; one it does not name is left as it is. A forwarding that is enabled needs an e-mail address, and not the account's own. signature.text is at most 20,000 characters; signature.html, the formatted signature - where the webmail keeps an image as a data: URL - is at most 64,000 bytes of UTF-8, images included, which is what the narrowest backend's column (MySQL's text) holds. A request to this route may be as large as a message's, so the limit is answered here as a sentence rather than by the listener.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"object\"},\"forwarding\":{\"type\":\"object\"},\"signature\":{\"type\":\"object\"}}}}}},\"responses\":{\"200\":{\"description\":\"The settings as saved\"},\"400\":{\"description\":\"Nothing named, a name or signature too long, or a forwarding address refused\"}}}},"
          "\"/api/v1/me/filters\":{\"get\":{\"summary\":\"The signed-in account's active Sieve script\",\"responses\":{\"200\":{\"description\":\"active (the script, empty when none), name (the active script's name when ManageSieve set one)\"}}},\"put\":{\"summary\":\"Set the signed-in account's active Sieve script\",\"description\":\"Body: script. Checked as ManageSieve's PUTSCRIPT checks it, with the same wording in error; an empty script removes the filter. The script runs on every message that arrives from then on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"script\"],\"properties\":{\"script\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"active\"},\"400\":{\"description\":\"script missing, over 256 KB, or not parsing (the reason is in error)\"}}}},"
          "\"/api/v1/me/search\":{\"get\":{\"x-operators\":\"q takes words (every one must be found), quoted phrases, -term (a word, phrase or operator the message must not match), a OR b (one of the two must match, and so on through a OR b OR c; OR in capitals), and from:, to:, cc:, bcc: (address or name in that header; Bcc only where the sender's own copy kept it), subject:, has:attachment, has:link (an http or https address in the text, or a link to one in the HTML; the message is read for it), filename: (an attachment's file name contains), larger:10M and smaller: (bytes, or K, M, G for multiples of 1024), before:YYYY-MM-DD, after:YYYY-MM-DD, older_than:7d and newer_than: (d, w, m or y, against the time the message was stored, as before: and after: are), in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned (the $Muted and $Pinned keywords), label:name (an IMAP keyword the message carries; several must all be there), category: (primary, social, promotions, updates or forums - the tab the listing gives the message), in_reply_to:<message-id> (the id, with or without its angle brackets, is in In-Reply-To or References: the replies to that message, which is what the webmail asks for the Sent folder's nudges); a folder listing's q takes the same, without in:.\",\"summary\":\"Search every folder of the signed-in account\",\"description\":\"Query parameters: q (required) and limit (1-200, default 50). The same match as q on a folder listing, over every folder the account may read, newest first; at most 2000 messages are looked at per request (scanned, complete), and more says whether hits beyond limit were cut. Each hit names its folder_id and folder path.\",\"responses\":{\"200\":{\"description\":\"query, scanned, complete, more, messages\"},\"400\":{\"description\":\"q missing\"}}}},"
-         "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept)\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error). A recipient on the sending domain's suppression list also answers code recipient_suppressed, address, and source - bounce or report for an address that bounced, manual for one an administrator listed.\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
+         "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; expires_in and passcode for a message that expires; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page. expires_in (seconds from now, 1 to 7776000) makes a message that expires, Gmail's confidential mode: the message is kept on this server under the data directory and each recipient is sent a short notice with a link to /confidential/{token} under confidential_base_url, where they read it after proving they are a recipient; passcode (4 to 64 characters) adds a word the sender gives them another way. The copy in Sent is the full message; the answer adds confidential_id and expires; GET /api/v1/me/confidential lists them and POST .../{id}/revoke withdraws one. Refused with 403 and code confidential_unavailable when no base URL is set, and with 400 beside mime; an expires_in that is not a whole number of seconds (negative, a fraction, a string, true, null) is refused with 400 rather than read as no expiry, and so is passcode without expires_in. The kept copy counts against the mailbox's quota with everything else the account keeps (413, code quota_exceeded), and an account has at most 1000 outstanding (400, code confidential_ceiling).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept), and for a message that expires confidential_id and expires\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error). A recipient on the sending domain's suppression list also answers code recipient_suppressed, address, and source - bounce or report for an address that bounced, manual for one an administrator listed.\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
          "\"/api/v1/me/messages/{id}\":{\"get\":{\"summary\":\"One message, read\",\"description\":\"The listing's fields plus folder_id, to, cc, text, html and attachments (index, name, size, content_type, content_id). content_type is the media type the part declares, lower-cased and without its parameters, and is the empty string when the part declares none; content_id is the part's Content-ID with the angle brackets stripped - the form a cid: URL in html uses - and is the empty string when the part carries none. An inline image is an attachment here like any other part, so a page renders one by matching a cid: URL in html against content_id and pointing at the attachment route. A message over one megabyte is described with truncated true and no body. Another account's message, or one in a folder the ACL keeps from this account, is 404.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"Not this account's message\"}}},\"delete\":{\"summary\":\"Delete one message\",\"description\":\"Moved to the folder designated \\\\Trash when the account has one and the message is not in it already; expunged instead when the account has no Trash folder, when the message is already in it, or when the caller adds ?permanent=1. The rights EXPUNGE asks for.\",\"responses\":{\"200\":{\"description\":\"deleted true, or deleted false with moved_to and the new id\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/flags\":{\"put\":{\"summary\":\"Change one message's flags\",\"description\":\"Body: any of seen, flagged, answered, draft, deleted as booleans; only the flags named change. The rights STORE asks for - seen, deleted and the rest are three permissions. Every IMAP session on the folder is told.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, folder_id, flags\"},\"400\":{\"description\":\"No flag named\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/html\":{\"get\":{\"summary\":\"The message's HTML part as a document for a frame\",\"description\":\"text/html under a policy of its own: nothing runs, no form is submitted, no address is rewritten, and remote images and styles are blocked unless ?remote=1 is given - which the page does when the reader allowed this message or this sender. Images the message embeds (cid:) are inlined as data: URLs under the inline budget. The message JSON's html_remote says whether the part names anything remote at all. 404 when the message has no HTML part.\",\"responses\":{\"200\":{\"description\":\"The document\"},\"404\":{\"description\":\"No such message, or no HTML part\"}}}},"
@@ -14233,6 +14415,7 @@ namespace HM
       openApiJson += OpenApiSenderAddressesPaths_();
       openApiJson += OpenApiMaskedAddressesPaths_();
       openApiJson += OpenApiRecoverablePaths_();
+      openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();

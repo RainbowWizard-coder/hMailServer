@@ -22,6 +22,7 @@
 #include "../Tracking/NotificationServer.h"
 #include "../Util/MessageUtilities.h"
 #include "../Util/RecoverableStore.h"
+#include "../Util/ConfidentialMessages.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/IMAPSpecialUse.h"
 #include "../../IMAP/MessagesContainer.h"
@@ -388,8 +389,12 @@ namespace HM
          }
       }
 
-      // And the deleted items whose recovery window has ended.
+      // And the deleted items whose recovery window has ended, and the kept
+      // copies of messages that have expired (the minute task sweeps those too;
+      // this is the sweep an administrator can run on demand, and the one that
+      // removes the directories of accounts that no longer exist).
       RecoverableStore::Sweep();
+      ConfidentialMessages::Sweep(true);
 
       return deleted;
    }

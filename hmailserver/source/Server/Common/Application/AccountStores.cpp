@@ -322,6 +322,8 @@ namespace HM
         _T("Per-message annotations (RFC 5257), keyed on a message id the restore reassigns. Not carried: the roadmap row is what would carry them, with the message.") },
       { _T("hm_recoverable"),
         _T("Deleted mail waiting out its recovery window, its copies outside the message store. A backup carries what is in the mailboxes, and a restore brings that back; what was deleted before the backup stays deleted.") },
+      { _T("hm_confidential"),
+        _T("Messages that expire, kept outside the message store behind links that name this server and end on a timer. The sender's own copy is in the mailbox the backup carries; a copy made to be deleted at a time is not one to carry into an archive that outlives it, and a restore elsewhere could not serve its links.") },
       { _T("hm_calendarshares"),
         _T("A share names another account of this server by id, which an archive restored elsewhere cannot map; the person shares again.") },
       { _T("hm_autoreplies"),

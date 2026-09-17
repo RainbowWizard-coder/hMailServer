@@ -22,6 +22,7 @@
 #include "../Util/MessageUtilities.h"
 #include "../Util/OutgoingFooters.h"
 #include "../Util/RestApiServer.h"
+#include "../Util/ConfidentialMessages.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "../../IMAP/IMAPFolderContainer.h"
@@ -103,8 +104,10 @@ namespace HM
    ScheduledMailTask::DoWork()
    {
       RunDue();
-      // Files sent as links that have expired go on the same minute.
+      // Files sent as links that have expired go on the same minute, and so do
+      // the kept copies of messages that expire (ConfidentialMessages.h).
       RestApiServer::SweepExpiredFiles();
+      ConfidentialMessages::Sweep(false);
    }
 
    int

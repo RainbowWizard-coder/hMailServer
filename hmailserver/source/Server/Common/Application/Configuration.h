@@ -228,6 +228,11 @@ namespace HM
       int GetRecoverDeletedDays() const;
       void SetRecoverDeletedDays(int days);
 
+      // The address the links to messages that expire are written against
+      // (ConfidentialMessages.h); empty falls back to the two base URLs below.
+      String GetConfidentialBaseUrl() const;
+      void SetConfidentialBaseUrl(const String &url);
+
       String GetImportOAuthRedirectBaseUrl() const;
       void SetImportOAuthRedirectBaseUrl(const String &url);
       String GetImportOAuthString(const String &propertyName) const;

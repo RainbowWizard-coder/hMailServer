@@ -50,6 +50,8 @@ select hm_drop_table('hm_scheduled');
 select hm_drop_table('hm_files');
 select hm_drop_table('hm_smimekeys');
 
+select hm_drop_table('hm_confidential');
+
 select hm_drop_table('hm_recoverable');
 
 select hm_drop_table('hm_maskedaddresses');
@@ -650,6 +652,27 @@ create table hm_recoverable
 );
 
 CREATE INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid);
+
+create table hm_confidential
+(
+	cfid serial not null primary key,
+	cfaccountid int not null,
+	cftoken varchar(64) not null,
+	cfsubject varchar(255) not null,
+	cfsender varchar(255) not null,
+	cfrecipients varchar(2000) not null,
+	cffile varchar(255) not null,
+	cfpasscode varchar(255) not null,
+	cfcreated bigint not null,
+	cfexpires bigint not null,
+	cfopened bigint not null,
+	cfopenedby varchar(255) not null,
+	cfrevoked int not null
+);
+
+CREATE UNIQUE INDEX idx_hm_confidential_token ON hm_confidential (cftoken);
+
+CREATE INDEX idx_hm_confidential_account ON hm_confidential (cfaccountid);
 
 create table hm_remotedomainpolicies
 (
@@ -1481,6 +1504,8 @@ ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FORE
 
 ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 ALTER TABLE hm_knownsenders ADD CONSTRAINT fk_hm_knownsenders_account FOREIGN KEY (ksaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_autoreplies ADD CONSTRAINT fk_hm_autoreplies_account FOREIGN KEY (araccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
@@ -1891,4 +1916,4 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6068);
+insert into hm_dbversion values (6069);

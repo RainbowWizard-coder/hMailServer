@@ -359,6 +359,7 @@ NOT_AUDITED = {
    "hm_calendarshares": "who else an account shares a calendar with, written by the account itself over the portal and CalDAV.",
    "hm_contacts": "an account's own address book, written by it over CardDAV and the portal.",
    "hm_recoverable": "copies of the messages an account deleted, written as the delete happens and ended by the retention sweep or the account itself; traffic.",
+   "hm_confidential": "the messages that expire an account sent, written as it sends them, opened by their readers, withdrawn by the account and ended by the sweep; traffic.",
    "hm_maskedaddresses": "the masked addresses an account made for itself in the portal, switched off and removed by it there; the delivery count is traffic.",
    "hm_senderaddresses": "the addresses elsewhere an account proved with a code and sends as, added and removed by the account itself in the portal.",
    "hm_files": "files an account attached as links from webmail; the account's own data.",

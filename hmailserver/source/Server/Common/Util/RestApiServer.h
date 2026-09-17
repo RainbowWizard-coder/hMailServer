@@ -355,6 +355,8 @@ namespace HM
          RouteMeRecoverable,
          RouteMeRecoverableRestore,
          RouteMeRecoverableDelete,
+         RouteMeConfidential,
+         RouteMeConfidentialRevoke,
          RouteMeDraftSchedule,
          RouteMeDraftUnschedule,
          RouteMeMessageSnooze,
@@ -950,6 +952,13 @@ namespace HM
       static std::shared_ptr<IMAPFolder> FindDesignatedFolder_(std::shared_ptr<const Account> account, int designation);
       static HttpResponse HandleMeMessageSend_(const Caller &caller, const AnsiString &requestBody);
       static String JsonUtf8Value_(const AnsiString &json, const AnsiString &key);
+
+      // A member that is a whole number, zero or more: 1 when read into value,
+      // 0 when the body does not name the key at all, -1 when it names it as
+      // something else - a negative number, a fraction, a string, true, null -
+      // which a route refuses rather than reads as absent, since a client
+      // that wrote the key meant something by it.
+      static int JsonWholeNumber_(const AnsiString &json, const AnsiString &key, __int64 &value);
       static HttpResponse HandleMeMessageAttachment_(const Caller &caller, __int64 messageId, int index);
       static HttpResponse HandleMeSearch_(const Caller &caller, const AnsiString &query);
       static HttpResponse HandleMeSettings_(const Caller &caller);
@@ -1106,6 +1115,12 @@ namespace HM
       // Deleted items still within the recovery window (RestApiRecoverable.cpp).
       static HttpResponse HandleMeRecoverable_(const Caller &caller, RouteKind kind, __int64 id);
       static AnsiString OpenApiRecoverablePaths_();
+      // Messages that expire, the sender's side, and the reading page a
+      // recipient's notice links to (RestApiConfidential.cpp). The page is not
+      // static: the grant cookie it sets is Secure over TLS.
+      static HttpResponse HandleMeConfidential_(const Caller &caller, RouteKind kind, __int64 id);
+      HttpResponse HandleConfidentialPage_(const AnsiString &method, const AnsiString &token, const AnsiString &request, const IPAddress &peer_address);
+      static AnsiString OpenApiConfidentialPaths_();
       HttpResponse HandlePortalOAuthCallback_(const AnsiString &request, const AnsiString &query);
       static AnsiString OpenApiReaderFetchAccountsPaths_();
       static AnsiString OpenApiReaderFetchImportPaths_();

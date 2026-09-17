@@ -835,6 +835,26 @@ namespace
            return String();
         } },
 
+      // Messages that expire (Util/ConfidentialMessages.h): where the link in
+      // the notice points. The same shape as the digest's base URL, and the
+      // digest's or the import sign-in's serves when this one is empty.
+      { "confidential_base_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Where the link in the notice of a message that expires points - the address the webmail answers on from outside, such as https://mail.example.com; the reading page is /confidential/<token> under it. Absolute, beginning with http:// or https://. Empty uses quarantine_digest_base_url, then import_oauth_redirect_base_url; with none of the three set, the webmail does not offer an expiry and the route refuses one.",
+        ROW_TEXT(Config()->GetConfidentialBaseUrl()),
+        [] (const Value &v) { String url = v.text; url.Trim(); Config()->SetConfidentialBaseUrl(url); return Applied(); },
+        [] (const Value &v) -> String
+        {
+           String url = v.text;
+           url.Trim();
+           if (url.IsEmpty())
+              return String();
+           String lowered = url;
+           lowered.MakeLower();
+           if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
+              return String(_T("The base URL is absolute and begins with http:// or https://, such as https://mail.example.com."));
+           return String();
+        } },
+
       // Masked addresses a reader makes (Util/MaskedAddresses.h).
       { "reader_masked_addresses_max", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many masked addresses a reader may make in the webmail: an address in their own domain for one sign-up, delivering to their mailbox and switched off when it starts to receive spam. 0 offers none; at most 200. An account, alias or list an administrator makes later with the same address takes it over.",

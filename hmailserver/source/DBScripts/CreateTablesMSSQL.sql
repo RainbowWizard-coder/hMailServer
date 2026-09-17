@@ -17,6 +17,7 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraps') and obj
 
 if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
+if exists (select * from sysobjects where id = object_id('hm_confidential') and objectproperty(id, 'isusertable') = 1) drop table hm_confidential
 if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
 if exists (select * from sysobjects where id = object_id('hm_senderaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_senderaddresses
@@ -805,6 +806,29 @@ create table hm_recoverable
 ALTER TABLE hm_recoverable ADD CONSTRAINT hm_recoverable_pk PRIMARY KEY NONCLUSTERED (rcid)
 
 CREATE CLUSTERED INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid)
+
+create table hm_confidential
+(
+	cfid int identity(1,1) not null,
+	cfaccountid int not null,
+	cftoken nvarchar(64) not null,
+	cfsubject nvarchar(255) not null,
+	cfsender nvarchar(255) not null,
+	cfrecipients nvarchar(2000) not null,
+	cffile nvarchar(255) not null,
+	cfpasscode nvarchar(255) not null,
+	cfcreated bigint not null,
+	cfexpires bigint not null,
+	cfopened bigint not null,
+	cfopenedby nvarchar(255) not null,
+	cfrevoked int not null
+)
+
+ALTER TABLE hm_confidential ADD CONSTRAINT hm_confidential_pk PRIMARY KEY NONCLUSTERED (cfid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_confidential_token ON hm_confidential (cftoken)
+
+CREATE INDEX idx_hm_confidential_account ON hm_confidential (cfaccountid)
 
 create table hm_remotedomainpolicies
 (
@@ -1706,6 +1730,8 @@ ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FORE
 
 ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_rule_criterias ADD CONSTRAINT fk_hm_rule_criterias_rule FOREIGN KEY (criteriaruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
 
 ALTER TABLE hm_rule_actions ADD CONSTRAINT fk_hm_rule_actions_rule FOREIGN KEY (actionruleid) REFERENCES hm_rules (ruleid) ON DELETE CASCADE
@@ -2150,4 +2176,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6068)
+insert into hm_dbversion values (6069)

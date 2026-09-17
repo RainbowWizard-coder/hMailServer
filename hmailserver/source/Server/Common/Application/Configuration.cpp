@@ -244,6 +244,10 @@ namespace HM
       // Deleted items kept for recovery: off, as the roadmap row says, since it
       // keeps a copy of everything a person deletes for as long as it says.
       property_set_->EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
+
+      // Messages that expire: no base URL of their own until one is set; the
+      // digest's or the import sign-in's serves until then.
+      property_set_->EnsureString(PROPERTY_CONFIDENTIAL_BASE_URL, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
@@ -522,6 +526,18 @@ namespace HM
    Configuration::SetRecoverDeletedDays(int days)
    {
       GetSettings()->SetLong(PROPERTY_RECOVER_DELETED_DAYS, days);
+   }
+
+   String
+   Configuration::GetConfidentialBaseUrl() const
+   {
+      return GetSettings()->GetString(PROPERTY_CONFIDENTIAL_BASE_URL);
+   }
+
+   void
+   Configuration::SetConfidentialBaseUrl(const String &url)
+   {
+      GetSettings()->SetString(PROPERTY_CONFIDENTIAL_BASE_URL, url);
    }
 
    String

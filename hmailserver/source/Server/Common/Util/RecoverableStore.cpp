@@ -280,12 +280,16 @@ namespace HM
    {
       const __int64 cutoff = (__int64) time(nullptr) - (__int64) Days() * 24 * 60 * 60;
 
+      // No recordset is the database not answering, and a sweep that cannot
+      // read the rows must not act on the files: nothing below runs.
       SQLCommand command("select rcid, rcaccountid from hm_recoverable where rcdeleted <= @CUTOFF");
       command.AddParameter("@CUTOFF", cutoff);
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return 0;
 
       std::vector<std::pair<__int64, __int64> > expired;
-      while (recordset && !recordset->IsEOF())
+      while (!recordset->IsEOF())
       {
          expired.push_back(std::make_pair(recordset->GetInt64Value("rcaccountid"), recordset->GetInt64Value("rcid")));
          recordset->MoveNext();
@@ -299,7 +303,10 @@ namespace HM
       }
 
       // A deleted account's rows went with it; its directory is removed here. Only
-      // a real directory named by a number is ever looked at, and a symlink never.
+      // a real directory named by a number is ever looked at, and a symlink never
+      // - and "gone" is what the database said when asked for that account, never
+      // a cache lookup that came back empty because the database was away: an
+      // outage must not delete every account's recoverable items.
       const String root = Root();
       if (FileUtilities::DirectoryExists(root))
       {
@@ -318,7 +325,12 @@ namespace HM
             if (name.empty() || name.find_first_not_of("0123456789") != std::string::npos || name.size() > 18)
                continue;
             const __int64 accountId = std::stoll(name);
-            if (accountId > 0 && !CacheContainer::Instance()->GetAccount(accountId))
+            if (accountId <= 0)
+               continue;
+            SQLCommand exists("select accountid from hm_accounts where accountid = @ID");
+            exists.AddParameter("@ID", accountId);
+            std::shared_ptr<DALRecordset> answer = Application::Instance()->GetDBManager()->OpenRecordset(exists);
+            if (answer && answer->IsEOF())
                gone.push_back(current);
          }
          for (const boost::filesystem::path &directory : gone)

@@ -800,6 +800,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button id="list-mark-all-read" type="button">Mark all as read</button>
 <button id="folder-empty" class="danger" type="button">Empty this folder</button>
 <button id="folder-recover" type="button">Recover deleted items</button>
+<button id="folder-confidential" type="button">Messages that expire</button>
 <div class="sep"></div>
 <button id="pane-right" type="button">Reading pane on the right</button>
 <button id="pane-bottom" type="button">Reading pane below</button>
@@ -978,6 +979,16 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <table class="list" id="recover-table" hidden><thead><tr><th>Subject</th><th>From</th><th>Folder</th><th>Deleted</th><th></th></tr></thead><tbody id="recover-rows"></tbody></table>
 <div id="recover-empty" class="hint" hidden>Nothing deleted can be recovered.</div>
 <div id="recover-status" class="status" aria-live="polite"></div>
+</div>
+</section>
+
+<section id="confidential-section" class="view page" hidden>
+<div class="page-head"><h1>Messages that expire</h1></div>
+<div class="card">
+<p class="note" id="confidential-note"></p>
+<table class="list" id="confidential-table" hidden><thead><tr><th>Subject</th><th>To</th><th>Expires</th><th>Opened</th><th></th></tr></thead><tbody id="confidential-rows"></tbody></table>
+<div id="confidential-empty" class="hint" hidden>You have not sent a message that expires.</div>
+<div id="confidential-status" class="status" aria-live="polite"></div>
 </div>
 </section>
 <section id="scheduled-section" class="view page" hidden>
@@ -1432,6 +1443,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="row" id="template-row"><select id="template-pick" aria-label="Templates"><option value="">Templates</option></select><button id="template-use" class="btn ghost sm" type="button">Use</button><button id="template-save" class="btn quiet sm" type="button">Save as template</button></div>
 <div class="row" id="later-row"><label for="compose-later" class="inline">Send at</label><input id="compose-later" type="datetime-local" aria-label="Send at" style="width:auto"><button id="compose-send-later" class="btn ghost sm" type="button">Schedule</button></div>
 <label class="inline"><input id="compose-receipt" type="checkbox"> Ask for a read receipt</label>
+<div class="row" id="expires-row" hidden><label for="compose-expires" class="inline">Expires</label><select id="compose-expires" aria-label="Expires" style="width:auto"><option value="0" selected>Never</option><option value="3600">In an hour</option><option value="86400">In a day</option><option value="604800">In a week</option><option value="2592000">In a month</option></select><input id="compose-passcode" type="text" maxlength="64" autocomplete="off" placeholder="Passcode (optional)" aria-label="Passcode (optional)" hidden></div>
+<p id="compose-expires-note" class="hint" hidden>The message stays on this server and each recipient gets a link that works until then. The page they read it on offers nothing to download, forward or print, and you can withdraw it early. A reader who can see it can still photograph it, and it is not end-to-end encrypted: this stops a message being forwarded on by accident or found in a mailbox years later, not a determined recipient.</p>
 <label class="inline" id="compose-sign-label" hidden><input id="compose-sign" type="checkbox"> Sign with my certificate</label>
 <label class="inline" id="compose-encrypt-label" hidden><input id="compose-encrypt" type="checkbox"> Encrypt for the recipients</label>
 <div id="compose-smime-note" class="hint" hidden></div>
