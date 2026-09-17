@@ -1730,6 +1730,11 @@ namespace HM
          for (size_t i = 0; i < tree.children.size() && !had; i++)
             had = tree.children[i].Property("RECURRENCE-ID") != nullptr && tree.children[i].name == master->name && FindInstance(tree, instant, found) && found.overridden;
          ICalComponent &component = OverrideFor(tree, instant, allDay, tz);
+         // OverrideFor appends the override when there is none yet, and the
+         // append can move every component: master is found again rather than
+         // read through a pointer into the old storage. component is the one
+         // just appended and stays where it is, since nothing is appended after.
+         master = MasterOf(tree);
          if (!found.overridden)
             GiveInstanceTimes(component, found, tz, allDay);
          Fields one = fields;
