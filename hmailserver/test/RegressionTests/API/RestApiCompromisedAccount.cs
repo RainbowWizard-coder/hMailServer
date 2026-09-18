@@ -259,20 +259,24 @@ namespace RegressionTests.API
          // whether it is delivered or swept into the hold is decided by whether
          // the deliverer or the hold reaches its row first - which is no way to
          // ask what this test is asking.
-         ScheduleDraft(sender.Address, second.Address, 1);
-         Thread.Sleep(2500);
+         ScheduleDraft(sender.Address, second.Address, 3);
+         Thread.Sleep(4500);
          (int status, string body) went = Admin("POST", "/api/v1/scheduled/run", null);
          Assert.AreEqual(200, went.status, went.body);
          StringAssert.Contains("\"ran\":1", went.body);
          Pop3ClientSimulator.AssertMessageCount(second.Address, Password, 1);
 
-         // A second apart, so that the task runs them in this order.
-         ScheduleDraft(sender.Address, third.Address, 1);
-         ScheduleDraft(sender.Address, fourth.Address, 2);
+         // A second apart, so that the task runs them in this order; three
+         // seconds out rather than one, because the server refuses a time that
+         // is not after its own clock at second resolution, and the draft's
+         // creation and the schedule request can straddle a second - one gate
+         // failed on exactly that, with "send_at is in the past".
+         ScheduleDraft(sender.Address, third.Address, 3);
+         ScheduleDraft(sender.Address, fourth.Address, 4);
 
          // The minute comes. The first of these is the third submission and
          // completes the shape; the second is submitted on the standing lock.
-         Thread.Sleep(3500);
+         Thread.Sleep(5500);
          (int status, string body) ran = Admin("POST", "/api/v1/scheduled/run", null);
          Assert.AreEqual(200, ran.status, ran.body);
          StringAssert.Contains("\"ran\":2", ran.body);
