@@ -11,7 +11,6 @@ namespace HM
    class Message;
    class MimeHeader;
    class IMAPFolder;
-   class Account;
 
    class MessageUtilities
    {
