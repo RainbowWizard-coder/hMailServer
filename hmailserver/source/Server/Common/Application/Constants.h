@@ -187,6 +187,13 @@
 #define PROPERTY_READER_SENDER_ADDRESSES_MAX    _T("ReaderSenderAddressesMax")
 #define PROPERTY_READER_MASKED_ADDRESSES_MAX    _T("ReaderMaskedAddressesMax")
 #define PROPERTY_RECOVER_DELETED_DAYS           _T("RecoverDeletedDays")
+// A recovery address and one-time recovery codes (Util/AccountRecovery.h):
+// whether the webmail offers them at all, and how long each of the two links
+// lives - the one that proves a recovery address, and the one that resets a
+// password.
+#define PROPERTY_ACCOUNT_RECOVERY_ENABLED       _T("AccountRecoveryEnabled")
+#define PROPERTY_RECOVERY_RESET_LINK_MINUTES    _T("RecoveryResetLinkMinutes")
+#define PROPERTY_RECOVERY_VERIFY_LINK_HOURS     _T("RecoveryVerifyLinkHours")
 // Offline in the webmail (Util/RestApiOffline.cpp): the most days of bodies
 // and attachments a reader may keep in their browser; 0 offers none.
 #define PROPERTY_READER_OFFLINE_DAYS_MAX        _T("ReaderOfflineDaysMax")
@@ -529,4 +536,4 @@
 //      envelope report with the original attached or the original itself.
 //      Nothing is journaled until a row exists, so an upgraded database
 //      behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6075
+#define REQUIRED_DB_VERSION            6076

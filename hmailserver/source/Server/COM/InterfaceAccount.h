@@ -190,6 +190,12 @@ public:
    STDMETHOD(get_PushSubscriptionCount)(/*[out, retval]*/ long *pVal);
    STDMETHOD(RemovePushSubscriptions)(/*[out, retval]*/ long *RemovedCount);
 
+   STDMETHOD(get_RecoveryAddress)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_RecoveryAddressVerified)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(get_RecoveryCodesUnused)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(ClearRecoveryAddress)();
+   STDMETHOD(ClearRecoveryCodes)();
+
    STDMETHOD(MoveTo)(/*[in]*/ BSTR NewAddress, /*[in]*/ VARIANT_BOOL KeepOldAddressAsAlias, /*[out, retval]*/ BSTR *Summary);
    STDMETHOD(get_InUseReason)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(get_LastMove)(/*[out, retval]*/ BSTR *pVal);

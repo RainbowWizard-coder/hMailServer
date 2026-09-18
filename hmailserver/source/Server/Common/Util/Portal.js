@@ -117,6 +117,28 @@
   // account is the active one carries it as Authorization: Bearer. `who`
   // names the account a request is for when it is not the active one:
   // 'first' or 'second'.
+  // The second factor a self-service form asks for, in BOTH of the places it
+  // can come from: the one-time code from an authenticator app, and - for
+  // somebody whose authenticator is gone - one of the recovery codes they
+  // saved. The server takes either at every one of these routes
+  // (AccountRecovery.h), so the page offers either at every one of them; it
+  // used to offer the recovery code at the sign-in alone, which left the way
+  // back in ending at a Security page with a box no lost authenticator could
+  // fill. An empty field sends no header, because call() drops a header with
+  // no value.
+  var secondFactorHeaders = function (otpId, codeId) {
+    return { 'X-hMailServer-OTP': el(otpId).value.trim(), 'X-hMailServer-Recovery-Code': el(codeId).value.trim() };
+  };
+  // What a 401 asking for the code does to the form: both fields appear, the
+  // authenticator's takes the focus because most people have one, and the
+  // sentence names both so that somebody who has lost theirs knows the other
+  // field is for them.
+  var askSecondFactor = function (otpId, codeId, statusId) {
+    el(otpId).hidden = false;
+    el(codeId).hidden = false;
+    el(otpId).focus();
+    say(statusId, t('Enter the code from your authenticator app, or one of your recovery codes.'), false);
+  };
   var call = function (method, path, body, extra, who) {
     var h = {};
     if (extra) { for (var k in extra) { if (extra[k]) { h[k] = extra[k]; } } }
@@ -2073,6 +2095,15 @@
     forgetAccount();
     el('account').hidden = true;
     el('signin').hidden = false;
+    // The gate holds two forms - signing in, and asking for a reset link -
+    // and the one that shows is always the first of them when the gate goes
+    // up, so a session that ended does not put somebody back at a form they
+    // had opened once.
+    el('signin-form').hidden = false;
+    el('reset-form').hidden = true;
+    el('signin-code-row').hidden = true;
+    el('signin-code').value = '';
+    say('reset-status', '', true);
     el('address').focus();
   };
   var render = function (account) {
@@ -2183,9 +2214,50 @@
     // A new session is a new server as far as this page knows: whatever the
     // last one answered about the change route, ask again.
     probe.token = ''; probe.off = false; probeIn = probeEvery;
-    call('POST', '/api/v1/session', undefined, { 'Authorization': basic }).then(function (result) {
-      if (result.status === 201) { load(false); return; }
+    // A recovery code in place of the code from an authenticator app, for
+    // somebody whose authenticator is gone: the server spends it, and says how
+    // many are left so the page can say so too. The field is empty and hidden
+    // unless the reader asked for it, and the header is then not sent at all.
+    var recoveryCode = el('signin-code').value.trim();
+    el('signin-code').value = '';
+    call('POST', '/api/v1/session', undefined, { 'Authorization': basic, 'X-hMailServer-Recovery-Code': recoveryCode }).then(function (result) {
+      if (result.status === 201) {
+        var left = result.data && typeof result.data.recovery_codes_left === 'number' ? result.data.recovery_codes_left : -1;
+        load(false).then(function () {
+          if (left >= 0) { toast(tf('A recovery code was used to sign in. {0} of your codes are left.', String(left)), null, true); }
+        });
+        return;
+      }
       say('signin-status', describe(result, t('Could not sign in')), false);
+    });
+  });
+  el('signin-code-toggle').addEventListener('click', function () {
+    el('signin-code-row').hidden = false;
+    el('signin-code').focus();
+  });
+  el('signin-forgot').addEventListener('click', function () {
+    say('signin-status', '', true);
+    say('reset-status', '', true);
+    el('reset-address').value = el('address').value.trim();
+    el('signin-form').hidden = true;
+    el('reset-form').hidden = false;
+    el('reset-address').focus();
+  });
+  el('reset-cancel').addEventListener('click', function () {
+    el('reset-form').hidden = true;
+    el('signin-form').hidden = false;
+    el('address').focus();
+  });
+  el('reset-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var address = el('reset-address').value.trim();
+    if (!address) { return; }
+    // One answer, whatever the server found: the route is written not to say
+    // whether an address exists, and the page must not undo that by saying
+    // something different when it does.
+    call('POST', '/api/v1/password-reset', { address: address }).then(function (result) {
+      if (result.status === 202) { say('reset-status', t('If that address can be sent a link, one is on its way. It works once and for half an hour.'), true); return; }
+      say('reset-status', describe(result, t('This server does not offer that')), false);
     });
   });
   el('signout').addEventListener('click', function () {
@@ -3583,16 +3655,16 @@
     event.preventDefault();
     forgetSecret();
     var body = { name: el('apppassword-name').value, password: el('apppassword-password').value };
-    call('POST', '/api/v1/me/app-passwords', body, { 'X-hMailServer-OTP': el('apppassword-otp').value.trim() }).then(function (result) {
+    call('POST', '/api/v1/me/app-passwords', body, secondFactorHeaders('apppassword-otp', 'apppassword-code')).then(function (result) {
       if (result.status === 201 && result.data) {
         el('apppassword-secret').textContent = result.data.password || '';
         el('apppassword-new').hidden = false;
-        el('apppassword-name').value = ''; el('apppassword-password').value = ''; el('apppassword-otp').value = '';
+        el('apppassword-name').value = ''; el('apppassword-password').value = ''; el('apppassword-otp').value = ''; el('apppassword-code').value = '';
         say('apppassword-status', '', true);
         loadAppPasswords();
         return;
       }
-      if (result.otp === 'required') { el('apppassword-otp').hidden = false; el('apppassword-otp').focus(); say('apppassword-status', t('Enter the code from your authenticator app.'), false); return; }
+      if (result.otp === 'required') { askSecondFactor('apppassword-otp', 'apppassword-code', 'apppassword-status'); return; }
       say('apppassword-status', describe(result, t('Could not make the password')), false);
     });
   });
@@ -3669,7 +3741,75 @@
       el('device-table').hidden = list.length === 0;
     });
   };
-  var loadSecurity = function () { loadAppPasswords(); loadSessions(); loadDevices(); loadSmime(); };
+  // The recovery address and the one-time codes. The address is only ever
+  // shown masked, here as everywhere: the page never holds the whole of it
+  // after it has been set, because the server never answers it.
+  var renderRecovery = function (state) {
+    var card = el('recovery-card');
+    card.hidden = !state.enabled;
+    if (!state.enabled) { return; }
+    var address = state.address || '';
+    if (!state.address_set) { el('recovery-state').textContent = t('No recovery address yet.'); }
+    else if (state.address_verified) { el('recovery-state').textContent = tf('Confirmed: {0}', address); }
+    else { el('recovery-state').textContent = tf('Waiting to be confirmed: {0}', address); }
+    el('recovery-resend').hidden = !state.address_set || !!state.address_verified;
+    el('recovery-clear').hidden = !state.address_set;
+    if (!state.available) { el('recovery-state').textContent += ' ' + t('This server has no public address of its own, so it cannot send the link.'); }
+    var codes = state.codes || { total: 0, unused: 0 };
+    el('recovery-codes-state').textContent = codes.total
+      ? tf('{0} of {1} codes are unused.', String(codes.unused), String(codes.total))
+      : t('No codes yet.');
+  };
+  var loadRecovery = function () {
+    return call('GET', '/api/v1/me/recovery').then(function (result) {
+      if (result.status !== 200 || !result.data) { el('recovery-card').hidden = true; return; }
+      renderRecovery(result.data);
+    });
+  };
+  el('recovery-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = { address: el('recovery-address').value.trim(), password: el('recovery-password').value };
+    call('PUT', '/api/v1/me/recovery', body, secondFactorHeaders('recovery-otp', 'recovery-code')).then(function (result) {
+      if (result.status === 200) {
+        el('recovery-address').value = ''; el('recovery-password').value = ''; el('recovery-otp').value = ''; el('recovery-code').value = '';
+        say('recovery-status', t('Saved. Open the link in the message just sent there to confirm it.'), true);
+        loadRecovery();
+        return;
+      }
+      if (result.otp === 'required') { askSecondFactor('recovery-otp', 'recovery-code', 'recovery-status'); return; }
+      say('recovery-status', describe(result, t('Could not save that address')), false);
+    });
+  });
+  el('recovery-resend').addEventListener('click', function () {
+    call('POST', '/api/v1/me/recovery/resend', {}).then(function (result) {
+      if (result.status === 200) { say('recovery-status', t('Sent. Open the link in the message to confirm it.'), true); return; }
+      say('recovery-status', describe(result, t('Could not send it')), false);
+    });
+  });
+  el('recovery-clear').addEventListener('click', function () {
+    if (!window.confirm(t('Remove the recovery address? A forgotten password would then need an administrator.'))) { return; }
+    call('DELETE', '/api/v1/me/recovery').then(function (result) {
+      if (result.status === 200) { say('recovery-status', t('Removed.'), true); loadRecovery(); return; }
+      say('recovery-status', describe(result, t('Could not remove it')), false);
+    });
+  });
+  el('recovery-codes-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = { password: el('recovery-codes-password').value };
+    call('POST', '/api/v1/me/recovery/codes', body, secondFactorHeaders('recovery-codes-otp', 'recovery-codes-code')).then(function (result) {
+      if (result.status === 201 && result.data) {
+        el('recovery-codes-list').textContent = (result.data.codes || []).join('  ');
+        el('recovery-codes-new').hidden = false;
+        el('recovery-codes-password').value = ''; el('recovery-codes-otp').value = ''; el('recovery-codes-code').value = '';
+        say('recovery-codes-status', '', true);
+        loadRecovery();
+        return;
+      }
+      if (result.otp === 'required') { askSecondFactor('recovery-codes-otp', 'recovery-codes-code', 'recovery-codes-status'); return; }
+      say('recovery-codes-status', describe(result, t('Could not make the codes')), false);
+    });
+  });
+  var loadSecurity = function () { loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); };
 
   // Focus follows a change of view to its title, unless the view put the
   // focus somewhere itself, so that a screen reader announces where it is.
@@ -5824,16 +5964,16 @@
     event.preventDefault();
     var now = el('current').value, fresh = el('new').value, again = el('confirm').value;
     if (fresh !== again) { say('password-status', t('The two new passwords differ.'), false); return; }
-    call('POST', '/api/v1/me/password', { current: now, 'new': fresh }, { 'X-hMailServer-OTP': el('otp').value.trim() }).then(function (result) {
+    call('POST', '/api/v1/me/password', { current: now, 'new': fresh }, secondFactorHeaders('otp', 'password-code')).then(function (result) {
       if (result.status === 200) {
-        el('current').value = ''; el('new').value = ''; el('confirm').value = ''; el('otp').value = '';
+        el('current').value = ''; el('new').value = ''; el('confirm').value = ''; el('otp').value = ''; el('password-code').value = '';
         smimeRewrap(now, fresh).then(function (note) {
           say('password-status', t('Password changed. Other browsers signed in to this account have been signed out.') + (note ? ' ' + note : ''), true);
           load(true);
         });
         return;
       }
-      if (result.otp === 'required') { el('otp-row').hidden = false; say('password-status', t('Enter the code from your authenticator app.'), false); return; }
+      if (result.otp === 'required') { el('otp-row').hidden = false; askSecondFactor('otp', 'password-code', 'password-status'); return; }
       say('password-status', refusal(result, t('Could not change the password')), false);
     });
   });

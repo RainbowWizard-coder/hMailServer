@@ -659,7 +659,9 @@ EXIT 0
     <ClCompile Include="..\Common\Util\BrandLogo.cpp" />
     <ClCompile Include="..\Common\Util\ReaderOAuth.cpp" />
     <ClCompile Include="..\Common\Util\MaskedAddresses.cpp" />
+    <ClCompile Include="..\Common\Util\AccountRecovery.cpp" />
     <ClCompile Include="..\Common\Util\RecoverableStore.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiAccountRecovery.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRecoverable.cpp" />
     <ClCompile Include="..\Common\Util\DistributionListMembership.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDistributionLists.cpp" />
@@ -1508,6 +1510,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\BrandLogo.h" />
     <ClInclude Include="..\Common\Util\ReaderOAuth.h" />
     <ClInclude Include="..\Common\Util\MaskedAddresses.h" />
+    <ClInclude Include="..\Common\Util\AccountRecovery.h" />
     <ClInclude Include="..\Common\Util\RecoverableStore.h" />
     <ClInclude Include="..\Common\Util\DistributionListMembership.h" />
     <ClInclude Include="..\Common\Util\ConfidentialMessages.h" />

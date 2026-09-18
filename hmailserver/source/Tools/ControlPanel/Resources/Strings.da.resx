@@ -1257,6 +1257,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Anonym kataloglæsning accepteret. </value>
   </data>
+  <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
+    <value>En anden postkasse, kontohaveren har, og som et nulstillingslink kan sendes til, samt ti engangskoder, der træder i stedet for en kode fra en autentificeringsapp. Begge dele sætter kontohaveren selv, i webmailen, med sin egen adgangskode: en administrator, der kunne sætte adressen, kunne nulstille adgangskoden ved at pege den mod sig selv. Det, der kan gøres her, er at fjerne en adresse.</value>
+  </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
     <value>Svar 451 på en SPF-temperror i stedet for at acceptere den</value>
   </data>
@@ -1995,6 +1998,15 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Ryd liste over pålogningsfejl</value>
   </data>
+  <data name="Clear the recovery address" xml:space="preserve">
+    <value>Slet gendannelsesadressen</value>
+  </data>
+  <data name="Clear the recovery co_des" xml:space="preserve">
+    <value>Slet _gendannelseskoderne</value>
+  </data>
+  <data name="Clear the recovery codes" xml:space="preserve">
+    <value>Slet gendannelseskoderne</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Ryddet</value>
   </data>
@@ -2072,6 +2084,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>Bekræft og _aktivér</value>
+  </data>
+  <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
+    <value>Bekræftet: {0}. Et nulstillingslink kan sendes dertil.</value>
   </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Forbind til server</value>
@@ -3283,6 +3298,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Adgangssætning til kr_yptering</value>
+  </data>
+  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Afslut denne kontos engangskoder til gendannelse? En kode træder i stedet for kontoens anden faktor, så et sæt, en anden har set, er en vedvarende vej uden om den. Kontohaveren laver et nyt sæt i webmailen. Gendannelsesadressen røres ikke.</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motor-URL (tomt = ingen ekstern motor)</value>
@@ -5308,6 +5326,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Der er ikke konfigureret noget offentligt værtsnavn i SMTP-indstillingerne.</value>
   </data>
+  <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
+    <value>Der er ingen gendannelsesadresse sat. Indtil kontohaveren sætter en i webmailen, kan en glemt adgangskode kun nulstilles her.</value>
+  </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ingen rotation er planlagt. Start en med »Rotér nu«.</value>
   </data>
@@ -6487,6 +6508,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Registrerer de afgørelser, denne server selv nåede frem til om hver indgående meddelelse - SPF, DKIM og DMARC - som sporingsheadere på den leverede meddelelse, til efterfølgende filtre og diagnostik (RFC 8601, RFC 7208).</value>
   </data>
+  <data name="Recovery" xml:space="preserve">
+    <value>Gendannelse</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>Omdirigér /.well-known/caldav til (tomt = svar 404)</value>
   </data>
@@ -6639,6 +6663,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>F_jern den gemte adgangskode til tjenestekontoen, når der gemmes</value>
+  </data>
+  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Fjern denne kontos gendannelsesadresse? Ethvert nulstillingslink, der allerede er på vej dertil, holder op med at virke, og kontohaveren sætter en ny adresse i webmailen. Engangskoderne røres ikke.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Fjern {0} fra listen?
@@ -7135,6 +7162,9 @@ Vil du fortsætte?</value>
   </data>
   <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
     <value>Gem LDAP-indstillingerne i hMailServer.INI</value>
+  </data>
+  <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
+    <value>Gem kontoen, og åbn den igen - en gendannelsesadresse hører til en konto, der findes.</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>Gem kontoen og åbn den igen - en anden faktor hører til en konto, der findes.</value>
@@ -7684,6 +7714,9 @@ Vil du fortsætte?</value>
   </data>
   <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
     <value>Sæt en konto på siden Servergrænser og ekspertindstillinger - NT SERVICE\hMailServer behøver ingen adgangskode - og kør så fra en kommandoprompt med forhøjede rettigheder hMailServer.exe /Register og genstart tjenesten. Giv den konto "Log på som en tjeneste" (secpol.msc &gt; Lokale politikker &gt; Tildeling af brugerrettigheder), læseadgang til programmappen og fuld kontrol over data-, log- og databasemapperne. En ekstern database har også brug for et login til den.</value>
+  </data>
+  <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
+    <value>Sat, men ikke bekræftet: {0}. Indtil kontohaveren følger linket, der blev sendt dertil, bruges den til ingenting.</value>
   </data>
   <data name="Set flags" xml:space="preserve">
     <value>Sæt flag</value>
@@ -8402,6 +8435,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Kontoen holder op med at sende, før den holder op med at modtage: ejeren ser afvisningen i sit eget program, med årsagen, mens post til vedkommende stadig ankommer op til grænsen og margenen forbi den. Hvert domæne kan sætte sin egen. Gælder straks.</value>
+  </data>
+  <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
+    <value>Adressen vises maskeret her som alle andre steder, og ingen grænseflade udleverer den hel: den er en postkasse, personen har, og intet, en administrator gør, har brug for at læse den.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adressen skal være et navn efterfulgt af @</value>
@@ -10095,6 +10131,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Clear" xml:space="preserve">
     <value>_Ryd</value>
   </data>
+  <data name="_Clear the recovery address" xml:space="preserve">
+    <value>_Slet gendannelsesadressen</value>
+  </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Komprimér destinationsfiler (_zip)</value>
   </data>
@@ -11528,6 +11567,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} ingen kryptering tilgængelig, så adgangskoder, der bruges på {1}, krydser netværket i klartekst.</value>
+  </data>
+  <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
+    <value>{0} af kontoens engangskoder til gendannelse er ubrugte.</value>
   </data>
   <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} af {1} IP-interval(ler) afviser godkendelse, indtil sessionen er krypteret.</value>

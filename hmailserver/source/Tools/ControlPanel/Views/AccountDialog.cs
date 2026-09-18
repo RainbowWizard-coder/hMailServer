@@ -120,6 +120,7 @@ namespace hMailServer.ControlPanel.Views
       private CollectionEditorView fetchEditor_;
       private AppPasswordsPanel appPasswords_;
       private AccountTwoFactorPanel twoFactor_;
+      private AccountRecoveryPanel recovery_;
       private RulesView accountRules_;
       private readonly ListBox folderList_ = new() { Height = 220 };
       private readonly TextBlock folderStatus_ = new();
@@ -147,6 +148,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("External"), Content = BuildExternal() });
          tabs.Items.Add(new TabItem { Header = L("App passwords"), Content = BuildAppPasswords() });
          tabs.Items.Add(new TabItem { Header = L("Two-factor"), Content = BuildTwoFactor() });
+         tabs.Items.Add(new TabItem { Header = L("Recovery"), Content = BuildRecovery() });
          tabs.Items.Add(new TabItem { Header = L("Rules"), Content = BuildRules() });
          tabs.Items.Add(new TabItem { Header = L("Folders"), Content = BuildFolders() });
          tabs.Items.Add(new TabItem { Header = L("Directory"), Content = BuildDirectory() });
@@ -452,6 +454,16 @@ namespace hMailServer.ControlPanel.Views
          twoFactor_ = new AccountTwoFactorPanel(domainName_, address_) { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
          twoFactor_.Reload();
          return twoFactor_;
+      }
+
+      // And immediately after the second factor, because it is the other half of the
+      // same sentence: a lost authenticator is what a recovery code is for, and this
+      // is where an administrator finds out whether the account has any.
+      private FrameworkElement BuildRecovery()
+      {
+         recovery_ = new AccountRecoveryPanel(domainName_, address_) { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
+         recovery_.Reload();
+         return recovery_;
       }
 
       private FrameworkElement BuildRules()

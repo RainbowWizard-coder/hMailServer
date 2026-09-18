@@ -176,6 +176,63 @@ namespace RegressionTests.Infrastructure
          StringAssert.Contains("After the restore", Pop3ClientSimulator.AssertGetFirstMessageText(_address, UserPassword));
       }
 
+      // --------------------------------------- hm_accountrecovery, hm_recoverycodes
+
+      [Test]
+      [Description("hm_accountrecovery and hm_recoverycodes: the recovery address the account proved, and its "
+                   + "one-time codes, survive a backup and a restore that deleted the domain - so a restore does "
+                   + "not quietly take away the only way back in that the person set for themselves")]
+      public void TheRecoveryAddressAndCodesComeBack()
+      {
+         // The links have to be able to point somewhere before an address can be
+         // set at all, and the setting goes back whatever happens: another fixture
+         // reading it would otherwise find this one's.
+         Assert.AreEqual(200, Rest("PUT", "/api/v1/settings", BasicAuth("Administrator", AdminPassword),
+            "{\"confidential_base_url\":\"https://mail.example.test\"}").Status);
+
+         try
+         {
+            string elsewhere = "stores-recovery@" + _domain.Name;
+            SingletonProvider<TestSetup>.Instance.AddAccount(_domain, elsewhere, UserPassword);
+
+            Response set = Rest("PUT", "/api/v1/me/recovery", User(),
+               "{\"address\":\"" + elsewhere + "\",\"password\":\"" + UserPassword + "\"}");
+            Assert.AreEqual(200, set.Status, "Body: " + set.Body);
+
+            // Proved by the link the server really posted, so what the restore has
+            // to bring back is a confirmation this installation actually saw.
+            string letter = Pop3ClientSimulator.AssertGetFirstMessageText(elsewhere, UserPassword);
+            Match token = Regex.Match(letter, "/recovery/verify\\?token=([0-9a-f]{64})");
+            Assert.IsTrue(token.Success, "No confirmation link in: " + letter);
+            Assert.AreEqual(200, Rest("POST", "/recovery/verify?token=" + token.Groups[1].Value, null).Status);
+
+            Response made = Rest("POST", "/api/v1/me/recovery/codes", User(), "{\"password\":\"" + UserPassword + "\"}");
+            Assert.AreEqual(201, made.Status, "Body: " + made.Body);
+
+            Response before = Rest("GET", "/api/v1/me/recovery", User());
+            Assert.AreEqual(200, before.Status, "Body: " + before.Body);
+            string masked = Regex.Match(before.Body, "\"address\":\"([^\"]*)\"").Groups[1].Value;
+            Assert.IsTrue(masked.Length > 0, "Body: " + before.Body);
+
+            BackupDeleteAndRestore();
+
+            Response after = Rest("GET", "/api/v1/me/recovery", User());
+            Assert.AreEqual(200, after.Status, "Body: " + after.Body);
+            StringAssert.Contains("\"address_set\":true", after.Body);
+            StringAssert.Contains("\"address_verified\":true", after.Body,
+               "A confirmation this installation saw must not have to be asked for again.");
+            StringAssert.Contains("\"address\":\"" + masked + "\"", after.Body);
+            StringAssert.Contains("\"total\":10", after.Body);
+            StringAssert.Contains("\"unused\":10", after.Body,
+               "Ten codes on a card in a drawer must still be ten codes that work.");
+         }
+         finally
+         {
+            Rest("PUT", "/api/v1/settings", BasicAuth("Administrator", AdminPassword),
+               "{\"confidential_base_url\":\"\"}");
+         }
+      }
+
       // ---------------------------------------------------- hm_senderaddresses
 
       [Test]

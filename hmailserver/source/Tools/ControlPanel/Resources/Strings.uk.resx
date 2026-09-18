@@ -1257,6 +1257,9 @@
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Анонімне читання каталогу прийнято. </value>
   </data>
+  <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
+    <value>Інша поштова скринька власника облікового запису, на яку можна надіслати посилання для скидання пароля, і десять одноразових кодів, що заміняють код із застосунку автентифікації. І те й інше задає сам власник, у вебпошті, власним паролем: адміністратор, який міг би задати адресу, міг би скинути пароль, спрямувавши її на себе. Тут можна адресу прибрати.</value>
+  </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
     <value>Відповідати 451 на temperror SPF замість приймати його</value>
   </data>
@@ -1995,6 +1998,15 @@
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Очистити список невдалих входів</value>
   </data>
+  <data name="Clear the recovery address" xml:space="preserve">
+    <value>Видалити адресу відновлення</value>
+  </data>
+  <data name="Clear the recovery co_des" xml:space="preserve">
+    <value>Видалити _коди відновлення</value>
+  </data>
+  <data name="Clear the recovery codes" xml:space="preserve">
+    <value>Видалити коди відновлення</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Очищено</value>
   </data>
@@ -2072,6 +2084,9 @@
   </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>_Підтвердити та увімкнути</value>
+  </data>
+  <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
+    <value>Підтверджено: {0}. Посилання для скидання пароля можна надіслати туди.</value>
   </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Підключитися до сервера</value>
@@ -3283,6 +3298,9 @@
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольна фраза _шифрування</value>
+  </data>
+  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Завершити одноразові коди відновлення цього облікового запису? Код замінює другий чинник, тож набір, який побачив хтось інший, — це сталий обхід його. Власник створить новий набір у вебпошті. Адреса відновлення лишається недоторканою.</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL рушія (порожньо = без зовнішнього рушія)</value>
@@ -5308,6 +5326,9 @@
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>У параметрах SMTP не налаштовано публічне ім’я вузла.</value>
   </data>
+  <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
+    <value>Адресу відновлення не задано. Доки власник облікового запису не задасть її у вебпошті, забутий пароль можна скинути лише тут.</value>
+  </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ротацію не заплановано. Запустіть її кнопкою «Виконати ротацію зараз».</value>
   </data>
@@ -6487,6 +6508,9 @@
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Записує вердикти, яких цей сервер сам дійшов щодо кожного вхідного повідомлення, — SPF, DKIM і DMARC — як заголовки трасування на доставленому повідомленні, для подальших фільтрів і діагностики (RFC 8601, RFC 7208).</value>
   </data>
+  <data name="Recovery" xml:space="preserve">
+    <value>Відновлення</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>Перенаправляти /.well-known/caldav на (порожньо = відповідати 404)</value>
   </data>
@@ -6639,6 +6663,9 @@
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Вилучати збережений пароль _облікового запису служби під час збереження</value>
+  </data>
+  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Видалити адресу відновлення цього облікового запису? Кожне посилання для скидання пароля, що вже надіслано туди, перестає діяти, і власник задає нову адресу у вебпошті. Одноразові коди лишаються недоторканими.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Вилучити {0} зі списку?
@@ -7135,6 +7162,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
     <value>Зберегти параметри LDAP у hMailServer.INI</value>
+  </data>
+  <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
+    <value>Збережіть обліковий запис і відкрийте його знову - адреса відновлення належить обліковому запису, який існує.</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>Збережіть обліковий запис і відкрийте його знову - другий фактор належить обліковому запису, який існує.</value>
@@ -7684,6 +7714,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
     <value>Задайте обліковий запис на сторінці «Обмеження сервера та експертні параметри» - NT SERVICE\hMailServer пароля не потребує, - потім із командного рядка з підвищеними правами виконайте hMailServer.exe /Register і перезапустіть службу. Надайте цьому обліковому запису право «Вхід як служба» (secpol.msc &gt; Локальні політики &gt; Призначення прав користувача), доступ на читання до папки програми та повний доступ до папок даних, журналів і бази даних. Зовнішня база даних потребує ще й логіна для нього.</value>
+  </data>
+  <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
+    <value>Задано, але не підтверджено: {0}. Доки власник не перейде за надісланим туди посиланням, адреса ні для чого не використовується.</value>
   </data>
   <data name="Set flags" xml:space="preserve">
     <value>Установити прапорці</value>
@@ -8402,6 +8435,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Обліковий запис перестає надсилати раніше, ніж отримувати: власник бачить відмову у своєму клієнті з причиною, а пошта йому й далі надходить до ліміту та запасу понад нього. Кожен домен може задати свій. Діє одразу.</value>
+  </data>
+  <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
+    <value>Адреса показується замаскованою тут і всюди, і жоден інтерфейс не видає її повністю: це поштова скринька цієї людини, і ніщо з того, що робить адміністратор, не потребує її читати.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Адреса має бути іменем, за яким іде @</value>
@@ -10095,6 +10131,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Clear" xml:space="preserve">
     <value>_Очистити</value>
   </data>
+  <data name="_Clear the recovery address" xml:space="preserve">
+    <value>_Видалити адресу відновлення</value>
+  </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Стискати файли призначення (zip)</value>
   </data>
@@ -11528,6 +11567,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} шифрування недоступне, тому паролі, використані на {1} мережею відкритим текстом.</value>
+  </data>
+  <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
+    <value>Не використано одноразових кодів відновлення: {0}.</value>
   </data>
   <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} з {1} діапазонів IP відхиляють автентифікацію, доки сеанс не зашифровано.</value>

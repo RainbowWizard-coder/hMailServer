@@ -1227,6 +1227,18 @@ namespace DBUpdater
          // envelope report or the message itself.
          new SchemaProbe(6075, "hm_journalrules.jrmode",
                          "update hm_journalrules set jrmode = jrmode where 1 = 0"),
+
+         // Upgrade6071to6076* - the recovery address, the one-shot links that
+         // prove it and reset a password, and the recovery codes. One probe per
+         // table: SQL Server Compact commits each statement as it runs, so a step
+         // that stopped after the first CREATE TABLE would otherwise stamp a
+         // version onto a database holding one table of three.
+         new SchemaProbe(6076, "hm_accountrecovery.acrverified",
+                         "update hm_accountrecovery set acrverified = acrverified where 1 = 0"),
+         new SchemaProbe(6076, "hm_recoverytokens.rttoken",
+                         "update hm_recoverytokens set rttoken = rttoken where 1 = 0"),
+         new SchemaProbe(6076, "hm_recoverycodes.rkhash",
+                         "update hm_recoverycodes set rkhash = rkhash where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

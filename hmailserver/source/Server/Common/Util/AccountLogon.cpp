@@ -42,14 +42,14 @@ namespace HM
 
    std::shared_ptr<const Account>
    AccountLogon::Logon(const IPAddress &ipaddress, const String &username, const String &password, bool &disconnect,
-                       bool *matchedAppPassword, String *matchedAppPasswordName)
+                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor)
    {
-      return Logon(ipaddress, _T(""), username, password, disconnect, matchedAppPassword, matchedAppPasswordName);
+      return Logon(ipaddress, _T(""), username, password, disconnect, matchedAppPassword, matchedAppPasswordName, secondFactor);
    }
 
    std::shared_ptr<const Account>
    AccountLogon::Logon(const IPAddress &ipaddress, const String &masqname, const String &username, const String &password, bool &disconnect,
-                       bool *matchedAppPassword, String *matchedAppPasswordName)
+                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor)
    {
       disconnect = false;
       if (matchedAppPassword)
@@ -109,7 +109,7 @@ namespace HM
          return empty;
       }
 
-      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, matchedAppPassword, matchedAppPasswordName);
+      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, matchedAppPassword, matchedAppPasswordName, secondFactor);
       if (account)
       {
          PersistentAccount::UpdateLastLogonTime(account);

@@ -114,6 +114,15 @@ namespace HM
       // in watch mode what would have been. Seeded by schema 6071, on, no digest.
       static const wchar_t *ConditionAccountCompromised;
 
+      // A mailbox password reset by its own recovery address
+      // (Util/AccountRecovery.h): raised as an occurrence, with the address and
+      // what the reset did. Seeded by schema 6076, on, no cool-down and no
+      // digest - two in an hour are two people, or one person twice, and both
+      // are worth hearing at once. It is not a refusal and not a failure: it is
+      // the one change that turns a mailbox somebody could read into a mailbox
+      // somebody else can, made without an administrator.
+      static const wchar_t *ConditionPasswordReset;
+
       struct Rule
       {
          Rule() : id(0), enabled(false), threshold(0), actions(ActionMail), cooldown(60), digest(true) {}

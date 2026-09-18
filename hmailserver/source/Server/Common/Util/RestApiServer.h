@@ -386,6 +386,11 @@ namespace HM
          RouteMeMaskedAddressCreate,
          RouteMeMaskedAddressUpdate,
          RouteMeMaskedAddressDelete,
+         RouteMeRecovery,
+         RouteMeRecoveryPut,
+         RouteMeRecoveryDelete,
+         RouteMeRecoveryResend,
+         RouteMeRecoveryCodes,
          RouteMeRecoverable,
          RouteMeRecoverableRestore,
          RouteMeRecoverableDelete,
@@ -670,6 +675,12 @@ namespace HM
          // endpoint or a key.
          RouteAccountPushGet,
          RouteAccountPushRemove,
+         // An account's recovery address, cleared by an administrator
+         // (RestApiAccountRecovery.cpp). There is no route that reads it in
+         // full and no interface that can: GET /api/v1/accounts/{address}
+         // carries the masked form and whether it has been confirmed.
+         RouteAccountRecoveryClear,
+         RouteAccountRecoveryCodesClear,
          // The message trace (RestApiRoles.cpp): Application.GlobalObjects.
          // MessageTrace over COM. The recent events and one queued message's
          // story are server-wide; one address's events are scoped to its domain,
@@ -914,6 +925,14 @@ namespace HM
          // client in the account's device list, so a person can see which of
          // their credentials a client they do not recognise is using.
          String credential_name;
+
+         // How many of the account's one-time recovery codes are left, when THIS
+         // request spent one in place of a second factor (AccountRecovery.h).
+         // -1 when none was spent, which is every request but the sign-in of
+         // somebody whose authenticator is gone. The webmail says the number
+         // once it is in, because a person who has just spent one of ten needs
+         // to know that.
+         int recovery_codes_left = -1;
          // Set when the session was opened by an administrator for support:
          // who, for the log line every request of it writes.
          AnsiString support_by;
@@ -990,7 +1009,10 @@ namespace HM
       static bool IsMutatingRoute_(RouteKind kind);
       static bool IsApiKeyRoute_(RouteKind kind);
       static bool IsSelfServiceRoute_(RouteKind kind);
-      static bool AuthenticateAccount_(const String &username, const String &password, const IPAddress &peer_address, Caller &caller);
+      // request is here for one header: a recovery code in place of the second
+      // factor, for an account whose authenticator is gone (AccountRecovery.h).
+      static bool AuthenticateAccount_(const String &username, const String &password, const IPAddress &peer_address,
+                                       const AnsiString &request, Caller &caller);
       static HttpResponse HandleMe_(const Caller &caller);
       static HttpResponse HandleMePassword_(const Caller &caller, const AnsiString &request);
       static HttpResponse HandleMeVacation_(const Caller &caller, const AnsiString &requestBody);
@@ -1167,7 +1189,20 @@ namespace HM
       // refusal in failure. RefuseAppPasswordCaller_ is the first of its
       // checks on its own, for the routes that ask no password but must not
       // be reached on one that was issued to a program.
-      static bool ConfirmAccountPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure);
+      // The account's own password in the body, and its second factor, for a
+      // route that has to know the person is the account holder rather than a
+      // program they once gave a password to. what names the act in the log and
+      // in the refusal - "making an app password", "setting a recovery address".
+      //
+      // recoveryCodeId, when given, is the recovery code that stood in for the
+      // second factor: MATCHED and not spent, because the act this proves can
+      // still be refused afterwards - a password the policy will not have, an
+      // address that is not one - and a refusal must not cost the account one
+      // of its ten. The handler calls SpendSecondFactor_ on the path that
+      // succeeded, and nowhere else.
+      static bool ConfirmAccountPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure,
+                                          const char *what = "making an app password",
+                                          __int64 *recoveryCodeId = nullptr);
       static bool RefuseAppPasswordCaller_(const Caller &caller, const char *what, HttpResponse &failure);
       static HttpResponse HandleMeAppPasswordDelete_(const Caller &caller, __int64 id);
       static AnsiString AppPasswordJson_(std::shared_ptr<AppPassword> password, const String &clearText);
@@ -1226,6 +1261,32 @@ namespace HM
       // Masked addresses, the reader's own (RestApiMaskedAddresses.cpp).
       static HttpResponse HandleMeMaskedAddresses_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &requestBody);
       static AnsiString OpenApiMaskedAddressesPaths_();
+      // The recovery address and the one-time recovery codes
+      // (RestApiAccountRecovery.cpp). The three unauthenticated pages are not
+      // static, because a refusal on one of them counts against the source
+      // address the way a failed logon does.
+      static HttpResponse HandleMeRecovery_(const Caller &caller, RouteKind kind, const AnsiString &request);
+      static HttpResponse HandleAccountRecoveryClear_(const Caller &caller, const String &address);
+      static HttpResponse HandleAccountRecoveryCodesClear_(const Caller &caller, const String &address);
+      static HttpResponse HandleRecoveryVerifyPage_(const AnsiString &method, const AnsiString &query);
+      static HttpResponse HandlePasswordResetRequest_(const AnsiString &requestBody, const IPAddress &peer_address);
+      static HttpResponse HandlePasswordResetComplete_(const AnsiString &requestBody, const IPAddress &peer_address);
+      static HttpResponse HandlePasswordResetPage_(const AnsiString &method, const AnsiString &query,
+                                                   const AnsiString &requestBody, const IPAddress &peer_address);
+      static AnsiString OpenApiRecoveryPaths_();
+      static AnsiString RecoveryCodesLeftJson_(const Caller &caller);
+      // 429 for a route that would have made the server post a recovery message
+      // to an address that has had one too recently, in the shape the
+      // sender-address proof answers the same refusal in.
+      static HttpResponse TooManyRecoveryMessages_(const String &problem, int retryAfter);
+      // The second factor a route asks for, or a recovery code in its place.
+      // recoveryCodeId comes back as the row of the code that MATCHED - nothing
+      // is spent here, so that a refusal further on in the handler leaves the
+      // code where it was. SpendSecondFactor_ is the other half, called once the
+      // act has actually happened.
+      static bool SecondFactorProved_(std::shared_ptr<const Account> account, const AnsiString &request,
+                                      __int64 *recoveryCodeId = nullptr);
+      static void SpendSecondFactor_(std::shared_ptr<const Account> account, __int64 recoveryCodeId);
       // Deleted items still within the recovery window (RestApiRecoverable.cpp).
       static HttpResponse HandleMeRecoverable_(const Caller &caller, RouteKind kind, __int64 id);
       static AnsiString OpenApiRecoverablePaths_();

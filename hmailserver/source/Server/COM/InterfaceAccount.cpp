@@ -21,6 +21,7 @@
 #include "../Common/Util/PasswordHistory.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Totp.h"
+#include "../Common/Util/AccountRecovery.h"
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/Unicode.h"
@@ -2313,6 +2314,144 @@ STDMETHODIMP InterfaceAccount::get_PushSubscriptionCount(long *pVal)
    subscription is the capability to send that device a notification, and the
    person cannot remove it from a device they no longer have.
 */
+STDMETHODIMP InterfaceAccount::get_RecoveryAddress(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::AccountRecovery::Address recovery;
+      HM::AccountRecovery::Get(object_->GetID(), recovery);
+
+      // Masked here, as it is masked over REST and on both pages: there is no
+      // interface that answers the address, so there is no interface to take it
+      // from. See Util/AccountRecovery.h.
+      *pVal = HM::AccountRecovery::Mask(recovery.address).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RecoveryAddressVerified(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::AccountRecovery::Address recovery;
+      HM::AccountRecovery::Get(object_->GetID(), recovery);
+
+      *pVal = recovery.verified ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RecoveryCodesUnused(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::AccountRecovery::CodeState codes;
+      HM::AccountRecovery::GetCodes(object_->GetID(), codes);
+
+      *pVal = (long) codes.unused;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::ClearRecoveryAddress()
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::AccountRecovery::Address recovery;
+      HM::AccountRecovery::Get(object_->GetID(), recovery);
+
+      if (!recovery.exists)
+         return S_OK;
+
+      HM::AccountRecovery::Clear(object_->GetID());
+
+      // hm_accountrecovery is not an audited table - the account writes it
+      // itself, and the unauthenticated page that confirms an address writes it
+      // with no actor at all - so the administrator's act is recorded here as an
+      // event, under the actor the scope above installed.
+      HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("recovery-address-cleared"),
+         _T("An administrator removed the account's recovery address; every reset link in flight for it stopped working."));
+
+      // This unit sits outside namespace HM, where the logging macro does not resolve.
+      using namespace HM;
+      LOG_APPLICATION("COM: the recovery address of " + object_->GetAddress() + " was cleared.");
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::ClearRecoveryCodes()
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::AccountRecovery::CodeState codes;
+      HM::AccountRecovery::GetCodes(object_->GetID(), codes);
+
+      if (codes.total == 0)
+         return S_OK;
+
+      HM::AccountRecovery::ClearCodes(object_->GetID());
+
+      // As above: hm_recoverycodes is not an audited table, so the
+      // administrator's act is recorded here as an event under the actor the
+      // scope installed. The count is in the sentence because it is the whole of
+      // what was taken away, and none of it can be read back.
+      HM::String went;
+      went.Format(_T("%d"), codes.unused);
+      HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("recovery-codes-cleared"),
+         _T("An administrator removed the account's one-time recovery codes; ") + went +
+         _T(" of them were still unused. The account holder makes a fresh set from the webmail."));
+
+      // This unit sits outside namespace HM, where the logging macro does not resolve.
+      using namespace HM;
+      LOG_APPLICATION("COM: the recovery codes of " + object_->GetAddress() + " were cleared.");
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAccount::RemovePushSubscriptions(long *RemovedCount)
 {
    try

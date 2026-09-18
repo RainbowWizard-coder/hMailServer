@@ -770,6 +770,58 @@ function answerRecoverable(method, path) {
    if (!m[2] && method === 'DELETE') { recoverable.items.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
+// The recovery address and the one-time recovery codes (AccountRecovery.h).
+// The server never answers the address in full once it is set, so the stub
+// answers the masked form exactly as the server does - which is what makes the
+// page's "never hold the whole of it" a property a check can see.
+let recovery = { enabled: true, available: true, address: '', address_set: false, address_verified: false, updated: 0,
+                 codes: { total: 0, unused: 0, created: 0 } };
+let resetRequests = [];
+// An account with a second factor enrolled, as the server sees one: the route
+// answers 401 with X-hMailServer-OTP: required until the request carries the
+// one-time code OR one of the recovery codes, which is the whole of what the
+// server accepts at every route that asks for a second factor. The page used
+// to offer only the first of those anywhere but the sign-in card.
+let recoveryDemandsSecondFactor = false;
+let recoverySecondFactorSeen = { otp: '', code: '' };
+let currentSecondFactor = { otp: '', code: '' };
+function maskAddress(address) {
+   const at = address.indexOf('@');
+   if (at <= 0) { return ''; }
+   const labels = address.slice(at + 1).split('.');
+   const domain = labels.map((label, i) => (i + 1 === labels.length || !label ? label : label[0] + '.'.repeat(label.length - 1))).join('.');
+   return address[0] + '.'.repeat(at - 1) + '@' + domain;
+}
+function answerRecovery(method, path, body) {
+   if (!path.startsWith('/api/v1/me/recovery')) { return null; }
+   if (path === '/api/v1/me/recovery' && method === 'GET') { return json(200, JSON.parse(JSON.stringify(recovery))); }
+   if (path === '/api/v1/me/recovery' && method === 'PUT') {
+      const sent = JSON.parse(body || '{}');
+      if (!sent.password) { return json(403, { error: 'the password is not correct' }); }
+      if (recoveryDemandsSecondFactor && !currentSecondFactor.otp && !currentSecondFactor.code) {
+         return json(401, { error: 'a one-time code is required' }, { 'X-hMailServer-OTP': 'required' });
+      }
+      recoverySecondFactorSeen = { otp: currentSecondFactor.otp, code: currentSecondFactor.code };
+      recovery.address = maskAddress(String(sent.address || '').toLowerCase());
+      recovery.address_set = true;
+      recovery.address_verified = false;
+      return json(200, { address_set: true, address_verified: false });
+   }
+   if (path === '/api/v1/me/recovery' && method === 'DELETE') {
+      recovery.address = ''; recovery.address_set = false; recovery.address_verified = false;
+      return json(200, { address_set: false });
+   }
+   if (path === '/api/v1/me/recovery/resend' && method === 'POST') { return json(200, { sent: true }); }
+   if (path === '/api/v1/me/recovery/codes' && method === 'POST') {
+      const sent = JSON.parse(body || '{}');
+      if (!sent.password) { return json(403, { error: 'the password is not correct' }); }
+      const codes = [];
+      for (let i = 0; i < 10; i++) { codes.push('A2C4E-' + String(i) + 'H8JKM'); }
+      recovery.codes = { total: 10, unused: 10, created: 1789600000 };
+      return json(201, { codes: codes });
+   }
+   return json(404, { error: 'not found' });
+}
 // The address book the contacts routes answer from. Every row carries kind
 // person, as the server's listing does, so that the page's telling of a group
 // from a contact is tested against the real shape and not an absence.
@@ -1032,6 +1084,12 @@ function answer(method, path, body) {
       const second = answerSecond(method, path, body);
       if (second) { return second; }
    }
+   // No credentials at all, which is the whole point of it: the page can ask
+   // for a reset link from the gate, where there is no session to carry.
+   if (method === 'POST' && path === '/api/v1/password-reset') {
+      resetRequests.push(JSON.parse(body || '{}').address || '');
+      return json(202, { requested: true, detail: 'If that address belongs to a mailbox here and it has a confirmed recovery address, a link to choose a new password is on its way there.' });
+   }
    if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
@@ -1041,6 +1099,7 @@ function answer(method, path, body) {
    { const senders = answerSenderAddresses(method, path, body); if (senders) { return senders; } }
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
+   { const recover = answerRecovery(method, path, body); if (recover) { return recover; } }
    { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
    { const groups = answerContactGroups(method, path, body); if (groups) { return groups; } }
    { const window = answerOffline(method, path, body); if (window) { return window; } }
@@ -1327,6 +1386,7 @@ function fetchStub(path, options) {
    requests.push({ method, path, headers, body: options && options.body, keepalive: !!(options && options.keepalive) });
    if (networkDown) { return Promise.reject(new TypeError('Failed to fetch')); }
    currentAuth = String(headers.Authorization || '');
+   currentSecondFactor = { otp: String(headers['X-hMailServer-OTP'] || ''), code: String(headers['X-hMailServer-Recovery-Code'] || '') };
    const reply = answer(method, path, options && options.body);
    if (networkDownAfter && networkDownAfter === method + ' ' + path) { networkDownAfter = ''; networkDown = true; }
    return Promise.resolve({
@@ -5900,6 +5960,119 @@ async function main() {
       check('L50: added once more, for the sign-out at the end', accountNav().hidden === false && secondToken === SECOND_TOKEN, 'hidden=' + accountNav().hidden);
       location.hash = '#/f/1';
       await flush();
+   }
+
+   // ---- The recovery address and the one-time codes on the Security page
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const state = () => document.getElementById('recovery-state').textContent;
+      const codesState = () => document.getElementById('recovery-codes-state').textContent;
+
+      const beforeLoad = requests.length;
+      location.hash = '#/security';
+      await flush();
+      check('the Security page reads the recovery address and says there is none yet',
+         called(beforeLoad, 'GET', '/api/v1/me/recovery') && document.getElementById('recovery-card').hidden === false &&
+         state() === words('No recovery address yet.') && codesState() === words('No codes yet.') &&
+         document.getElementById('recovery-resend').hidden === true && document.getElementById('recovery-clear').hidden === true,
+         state() + ' | ' + codesState());
+
+      const beforeSave = requests.length;
+      document.getElementById('recovery-address').value = 'Other@Elsewhere.example';
+      document.getElementById('recovery-password').value = 'a-real-password';
+      document.getElementById('recovery-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const saved = since(beforeSave).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/recovery')[0];
+      check('saving an address sends it with the account\'s own password, and the page then shows only the masked form, waiting to be confirmed',
+         saved && JSON.parse(saved.body).address === 'Other@Elsewhere.example' && JSON.parse(saved.body).password === 'a-real-password' &&
+         state().indexOf('o....@e.........example') >= 0 && state().indexOf('Other@Elsewhere.example') < 0 &&
+         document.getElementById('recovery-address').value === '' && document.getElementById('recovery-password').value === '' &&
+         document.getElementById('recovery-resend').hidden === false && document.getElementById('recovery-clear').hidden === false,
+         state());
+
+      const beforeResend = requests.length;
+      document.getElementById('recovery-resend').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Send the confirmation again asks the server for another link',
+         called(beforeResend, 'POST', '/api/v1/me/recovery/resend') &&
+         String(document.getElementById('recovery-status').className).indexOf('ok') >= 0);
+
+      const beforeCodes = requests.length;
+      document.getElementById('recovery-codes-password').value = 'a-real-password';
+      document.getElementById('recovery-codes-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('making codes shows all ten, once, and the count then says how many are unused',
+         called(beforeCodes, 'POST', '/api/v1/me/recovery/codes') &&
+         document.getElementById('recovery-codes-new').hidden === false &&
+         document.getElementById('recovery-codes-list').textContent.split(/\s+/).filter((c) => c).length === 10 &&
+         document.getElementById('recovery-codes-password').value === '' &&
+         codesState().indexOf('10') >= 0,
+         document.getElementById('recovery-codes-list').textContent + ' | ' + codesState());
+
+      // A lost authenticator, which is the whole reason the codes exist. The
+      // route asks for a second factor; the page has to offer BOTH the
+      // authenticator's code and a recovery code, because the server takes
+      // either - and until this check existed it offered the second of those
+      // on the sign-in card alone, so the way back in ended here at a box no
+      // lost authenticator could fill.
+      recoveryDemandsSecondFactor = true;
+      document.getElementById('recovery-address').value = 'Other@Elsewhere.example';
+      document.getElementById('recovery-password').value = 'a-real-password';
+      document.getElementById('recovery-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('a route that asks for the second factor reveals both the authenticator field and the recovery-code field, and says so',
+         document.getElementById('recovery-otp').hidden === false && document.getElementById('recovery-code').hidden === false &&
+         document.getElementById('recovery-status').textContent ===
+            words('Enter the code from your authenticator app, or one of your recovery codes.'),
+         document.getElementById('recovery-status').textContent);
+
+      const beforeCode = requests.length;
+      document.getElementById('recovery-code').value = ' a2c4e-0h8jkm ';
+      document.getElementById('recovery-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const withCode = since(beforeCode).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/recovery')[0];
+      check('and a recovery code typed there travels in X-hMailServer-Recovery-Code, trimmed, with no one-time code beside it',
+         withCode && withCode.headers['X-hMailServer-Recovery-Code'] === 'a2c4e-0h8jkm' &&
+         !withCode.headers['X-hMailServer-OTP'] && recoverySecondFactorSeen.code === 'a2c4e-0h8jkm' &&
+         document.getElementById('recovery-code').value === '',
+         withCode ? JSON.stringify(withCode.headers) : 'no request');
+      recoveryDemandsSecondFactor = false;
+
+      confirmAnswer = true;
+      const beforeClear = requests.length;
+      document.getElementById('recovery-clear').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('removing the address asks first, saying what it costs, and the page goes back to having none',
+         confirms[confirms.length - 1].indexOf(words('Remove the recovery address? A forgotten password would then need an administrator.')) >= 0 &&
+         called(beforeClear, 'DELETE', '/api/v1/me/recovery') && state() === words('No recovery address yet.'),
+         state());
+
+      // The gate's half: the link that asks for a reset, and the field for a
+      // recovery code. Neither needs a session, and neither is shown until the
+      // reader asks for it.
+      check('the sign-in card offers a recovery code only when it is asked for',
+         document.getElementById('signin-code-row').hidden === true);
+      document.getElementById('signin-code-toggle').dispatchEvent(makeEvent('click'));
+      check('and shows the field when it is', document.getElementById('signin-code-row').hidden === false);
+
+      document.getElementById('signin-forgot').dispatchEvent(makeEvent('click'));
+      check('Forgotten your password? puts the reset form in the gate in place of the sign-in form',
+         document.getElementById('reset-form').hidden === false && document.getElementById('signin-form').hidden === true);
+
+      const beforeReset = requests.length;
+      document.getElementById('reset-address').value = 'somebody@example.com';
+      document.getElementById('reset-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const asked = since(beforeReset).filter((r) => r.path === '/api/v1/password-reset');
+      check('and asking for a link carries no credential and says the one thing the route says, whatever the address was',
+         asked.length === 1 && !asked[0].headers.Authorization && resetRequests[resetRequests.length - 1] === 'somebody@example.com' &&
+         String(document.getElementById('reset-status').className).indexOf('ok') >= 0 &&
+         document.getElementById('reset-status').textContent.length > 20,
+         JSON.stringify(asked.map((r) => r.headers)) + ' | ' + document.getElementById('reset-status').textContent);
+
+      document.getElementById('reset-cancel').dispatchEvent(makeEvent('click'));
+      check('and Back to signing in puts the sign-in form back',
+         document.getElementById('reset-form').hidden === true && document.getElementById('signin-form').hidden === false);
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

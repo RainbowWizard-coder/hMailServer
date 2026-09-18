@@ -23,6 +23,7 @@
 #include "../Util/Hashing/HashCreator.h"
 #include "../Scripting/Result.h"
 #include "../Scripting/Events.h"
+#include "AccountRecovery.h"
 #include "PasswordHistory.h"
 
 #include <set>
@@ -74,7 +75,7 @@ namespace HM
 
    std::shared_ptr<const Account>
    PasswordValidator::ValidatePassword(const String &sMasqname, const String &sUsername, const String &sPassword,
-                                       bool *matchedAppPassword, String *matchedAppPasswordName)
+                                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor)
    {
       std::shared_ptr<Account> pEmpty;
       if (matchedAppPassword)
@@ -108,7 +109,7 @@ namespace HM
       if (!pDomain->GetIsActive())
          return pEmpty;
 
-      if (!ValidatePassword(pAccount, sPassword, false, matchedAppPassword, matchedAppPasswordName))
+      if (!ValidatePassword(pAccount, sPassword, secondFactor, matchedAppPassword, matchedAppPasswordName))
          return pEmpty;
 
       if (sMasqname.GetLength() == 0)
@@ -147,13 +148,15 @@ namespace HM
    }
 
    bool 
-   PasswordValidator::ValidatePassword(std::shared_ptr<const Account> pAccount, const String &sPassword, bool secondFactorSatisfied,
+   PasswordValidator::ValidatePassword(std::shared_ptr<const Account> pAccount, const String &sPassword, SecondFactorOffer *secondFactor,
                                        bool *matchedAppPassword, String *matchedAppPasswordName)
    {
       if (matchedAppPassword)
          *matchedAppPassword = false;
       if (matchedAppPasswordName)
          *matchedAppPasswordName = String();
+      if (secondFactor)
+         secondFactor->matched_recovery_code = 0;
 
       // Let a script override the password validation
       auto eventResult = Events::FireOnClientValidatePassword(pAccount, sPassword);
@@ -190,16 +193,54 @@ namespace HM
       // account password stops being a mailbox credential and an app password
       // becomes the only one.
       //
-      // secondFactorSatisfied is passed by the callers that CAN present a code - the
-      // COM authentication path, which the Control Panel uses - and by nothing else.
-      // The default is false, so a new call site is safe by omission rather than
-      // dangerous by it.
+      // secondFactor is passed by the callers that CAN present a code - the COM
+      // authentication path, which the Control Panel uses, and the REST sign-in,
+      // which can carry a recovery code - and by nothing else. The default is
+      // nullptr, so a new call site is safe by omission rather than dangerous by
+      // it.
       //
       // Skipped rather than compared-and-refused: there is no reason to spend an
       // Argon2id verification on a password that cannot be accepted whatever it says.
       const bool requiresSecondFactor = !pAccount->GetTotpSecret().IsEmpty();
+      const bool secondFactorSatisfied = secondFactor != nullptr && secondFactor->satisfied;
 
-      if (!requiresSecondFactor || secondFactorSatisfied)
+      // A recovery code offered in place of the one-time code, checked HERE
+      // rather than by the caller. Everything in front of this function - the
+      // per-name lockout and the domain country policy AccountLogon::Logon puts
+      // first - therefore applies to it, and the account's own password is
+      // compared exactly once whether a code is offered or not.
+      //
+      // The password is compared FIRST and the code only if it matched: a code
+      // is compared against every unused code the account has, each comparison a
+      // deliberately expensive hash, so looking at the code first would let
+      // anybody who can name a mailbox spend ten of them a request. Nothing is
+      // spent here either - the row is reported and the caller spends it once
+      // the whole attempt has been accepted, so a guess at the password burns
+      // nothing.
+      const bool offersRecoveryCode = requiresSecondFactor && !secondFactorSatisfied &&
+                                      secondFactor != nullptr && !secondFactor->recovery_code.IsEmpty();
+
+      if (offersRecoveryCode)
+      {
+         if (ValidateAccountPassword_(pAccount, sPassword))
+         {
+            const __int64 matched = AccountRecovery::CheckCode(pAccount->GetID(), secondFactor->recovery_code);
+            if (matched != 0)
+            {
+               // Reported only on the way out through a success, so that an
+               // expired password - which refuses the attempt below - leaves the
+               // code unspent for the reset that has to come first.
+               if (!PasswordHistory::HasExpired(pAccount))
+               {
+                  secondFactor->matched_recovery_code = matched;
+                  return true;
+               }
+
+               PasswordHistory::ReportExpired(pAccount);
+            }
+         }
+      }
+      else if (!requiresSecondFactor || secondFactorSatisfied)
       {
          if (ValidateAccountPassword_(pAccount, sPassword))
          {

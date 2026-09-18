@@ -1257,6 +1257,9 @@ Control Panel может читать файлы сообщений только
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Анонимное чтение каталога принято. </value>
   </data>
+  <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
+    <value>Другой почтовый ящик владельца учётной записи, на который можно отправить ссылку для сброса пароля, и десять одноразовых кодов, заменяющих код из приложения-аутентификатора. И то и другое задаёт сам владелец, в веб-почте, своим паролем: администратор, который мог бы задать адрес, мог бы сбросить пароль, направив его на себя. Здесь можно адрес убрать.</value>
+  </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
     <value>Отвечать 451 на temperror SPF вместо приёма</value>
   </data>
@@ -1995,6 +1998,15 @@ Control Panel может читать файлы сообщений только
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Очистить список неудачных входов</value>
   </data>
+  <data name="Clear the recovery address" xml:space="preserve">
+    <value>Удалить адрес восстановления</value>
+  </data>
+  <data name="Clear the recovery co_des" xml:space="preserve">
+    <value>Удалить _коды восстановления</value>
+  </data>
+  <data name="Clear the recovery codes" xml:space="preserve">
+    <value>Удалить коды восстановления</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Очищено</value>
   </data>
@@ -2072,6 +2084,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>Подтвердить и _включить</value>
+  </data>
+  <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
+    <value>Подтверждён: {0}. Ссылку для сброса пароля можно отправить туда.</value>
   </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Подключиться к серверу</value>
@@ -3283,6 +3298,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольная фраза _шифрования</value>
+  </data>
+  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Завершить одноразовые коды восстановления этой учётной записи? Код заменяет второй фактор, поэтому набор, который увидел кто-то ещё, — постоянный обход его. Владелец создаст новый набор в веб-почте. Адрес восстановления остаётся нетронутым.</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL движка (пусто — внешнего движка нет)</value>
@@ -5308,6 +5326,9 @@ Control Panel может читать файлы сообщений только
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>В параметрах SMTP не задано публичное имя узла.</value>
   </data>
+  <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
+    <value>Адрес восстановления не задан. Пока владелец учётной записи не задаст его в веб-почте, забытый пароль можно сбросить только здесь.</value>
+  </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ротация не запланирована. Запустите её кнопкой «Выполнить ротацию сейчас».</value>
   </data>
@@ -6487,6 +6508,9 @@ Control Panel может читать файлы сообщений только
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Записывает вердикты, к которым сам этот сервер пришёл по каждому входящему сообщению — SPF, DKIM и DMARC, — в виде трассировочных заголовков доставленного сообщения, для фильтров дальше по цепочке и для диагностики (RFC 8601, RFC 7208).</value>
   </data>
+  <data name="Recovery" xml:space="preserve">
+    <value>Восстановление</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>Перенаправлять /.well-known/caldav на (пусто — отвечать 404)</value>
   </data>
@@ -6639,6 +6663,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>При сохранении удалить сохранённый пароль учётной _записи службы</value>
+  </data>
+  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Удалить адрес восстановления этой учётной записи? Каждая ссылка для сброса пароля, уже отправленная туда, перестаёт действовать, и владелец задаёт новый адрес в веб-почте. Одноразовые коды остаются нетронутыми.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Удалить {0} из списка?
@@ -7135,6 +7162,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
     <value>Сохранить параметры LDAP в hMailServer.INI</value>
+  </data>
+  <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
+    <value>Сохраните учётную запись и откройте её снова - адрес восстановления принадлежит учётной записи, которая существует.</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>Сохраните учётную запись и откройте её снова: второй фактор принадлежит учётной записи, которая уже существует.</value>
@@ -7684,6 +7714,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
     <value>Задайте учётную запись на странице «Ограничения сервера и экспертные параметры» — учётной записи NT SERVICE\hMailServer пароль не нужен, — затем в командной строке, запущенной с повышенными правами, выполните hMailServer.exe /Register и перезапустите службу. Предоставьте этой учётной записи право «Вход в качестве службы» (secpol.msc &gt; «Локальные политики» &gt; «Назначение прав пользователя»), доступ на чтение к папке программы и полный доступ к папкам данных, журналов и базы данных. Для внешней базы данных ей понадобится ещё и вход в саму базу.</value>
+  </data>
+  <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
+    <value>Задан, но не подтверждён: {0}. Пока владелец не перейдёт по отправленной туда ссылке, адрес ни для чего не используется.</value>
   </data>
   <data name="Set flags" xml:space="preserve">
     <value>Установить флаги</value>
@@ -8402,6 +8435,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Учётная запись перестаёт отправлять раньше, чем получать: владелец видит отказ в своём клиенте с причиной, а почта ему по-прежнему приходит до лимита и запаса сверх него. Каждый домен может задать свой. Действует сразу.</value>
+  </data>
+  <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
+    <value>Адрес показывается замаскированным здесь и везде, и ни один интерфейс не выдаёт его целиком: это почтовый ящик этого человека, и ничто из того, что делает администратор, не требует его читать.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Адрес должен быть именем, за которым следует @</value>
@@ -10095,6 +10131,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Clear" xml:space="preserve">
     <value>_Очистить</value>
   </data>
+  <data name="_Clear the recovery address" xml:space="preserve">
+    <value>_Удалить адрес восстановления</value>
+  </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Сжимать _файлы назначения (zip)</value>
   </data>
@@ -11528,6 +11567,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} шифрование недоступно, поэтому пароли, используемые на {1}, передаются по сети в открытом виде.</value>
+  </data>
+  <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
+    <value>Не использовано одноразовых кодов восстановления: {0}.</value>
   </data>
   <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} из {1} диапазонов IP отклоняют аутентификацию, пока сеанс не зашифрован.</value>

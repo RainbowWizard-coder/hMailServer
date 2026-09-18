@@ -267,6 +267,13 @@ namespace HM
       // keeps a copy of everything a person deletes for as long as it says.
       property_set_->EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
 
+      // The recovery address and the recovery codes: offered, but inert until a
+      // person sets an address and proves it, and until the server has a public
+      // address for the links to point at.
+      property_set_->EnsureLong(PROPERTY_ACCOUNT_RECOVERY_ENABLED, 1);
+      property_set_->EnsureLong(PROPERTY_RECOVERY_RESET_LINK_MINUTES, 30);
+      property_set_->EnsureLong(PROPERTY_RECOVERY_VERIFY_LINK_HOURS, 24);
+
       // Offline in the webmail: the last thirty days, as the roadmap row says;
       // the reader chooses under it, and chooses nothing until they do.
       property_set_->EnsureLong(PROPERTY_READER_OFFLINE_DAYS_MAX, 30);
@@ -581,6 +588,42 @@ namespace HM
    Configuration::SetRecoverDeletedDays(int days)
    {
       GetSettings()->SetLong(PROPERTY_RECOVER_DELETED_DAYS, days);
+   }
+
+   bool
+   Configuration::GetAccountRecoveryEnabled() const
+   {
+      return GetSettings()->GetLong(PROPERTY_ACCOUNT_RECOVERY_ENABLED) == 1;
+   }
+
+   void
+   Configuration::SetAccountRecoveryEnabled(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_ACCOUNT_RECOVERY_ENABLED, enabled ? 1 : 0);
+   }
+
+   int
+   Configuration::GetRecoveryResetLinkMinutes() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_RECOVERY_RESET_LINK_MINUTES);
+   }
+
+   void
+   Configuration::SetRecoveryResetLinkMinutes(int minutes)
+   {
+      GetSettings()->SetLong(PROPERTY_RECOVERY_RESET_LINK_MINUTES, minutes);
+   }
+
+   int
+   Configuration::GetRecoveryVerifyLinkHours() const
+   {
+      return (int) GetSettings()->GetLong(PROPERTY_RECOVERY_VERIFY_LINK_HOURS);
+   }
+
+   void
+   Configuration::SetRecoveryVerifyLinkHours(int hours)
+   {
+      GetSettings()->SetLong(PROPERTY_RECOVERY_VERIFY_LINK_HOURS, hours);
    }
 
    int

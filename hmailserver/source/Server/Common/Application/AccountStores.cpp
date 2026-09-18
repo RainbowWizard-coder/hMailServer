@@ -84,6 +84,19 @@ namespace HM
       // with arrives through them; a restore that dropped them would bounce it.
       { _T("hm_maskedaddresses"), 0 },
 
+      // The recovery address (schema 6076) and the one-time recovery codes
+      // beside it. Both are the account's own, and both are the way back in
+      // when the password is forgotten or the authenticator is gone: a restore
+      // that dropped them would take that away without saying so, and the
+      // person would find out at the one moment they needed it. The codes are
+      // hashes, like the password history's, and the address is stored with
+      // whether it has been confirmed, so a restore brings back a confirmation
+      // this installation really saw rather than one it must ask for again.
+      // The one-shot links are NOT carried; see hm_recoverytokens in
+      // elsewhere_.
+      { _T("hm_accountrecovery"), 0 },
+      { _T("hm_recoverycodes"), 0 },
+
       // The calendar (schema 6041), and its objects under it. The objects are a
       // child store because their row points at the calendar rather than at the
       // account, and the calendar's identity is reassigned by the restore.
@@ -209,6 +222,18 @@ namespace HM
       { _T("hm_maskedaddresses"), _T("maactive"),    AccountStores::RoleNumber },
       { _T("hm_maskedaddresses"), _T("mareceived"),  AccountStores::RoleNumber },
       { _T("hm_maskedaddresses"), _T("macreated"),   AccountStores::RoleTimestamp },
+      { _T("hm_accountrecovery"), _T("acrid"),        AccountStores::RoleIdentity },
+      { _T("hm_accountrecovery"), _T("acraccountid"), AccountStores::RoleAccount },
+      { _T("hm_accountrecovery"), _T("acraddress"),   AccountStores::RoleText },
+      { _T("hm_accountrecovery"), _T("acrverified"),  AccountStores::RoleNumber },
+      { _T("hm_accountrecovery"), _T("acrcreated"),   AccountStores::RoleNumber },
+      { _T("hm_accountrecovery"), _T("acrupdated"),   AccountStores::RoleNumber },
+      { _T("hm_recoverycodes"),   _T("rkid"),         AccountStores::RoleIdentity },
+      { _T("hm_recoverycodes"),   _T("rkaccountid"),  AccountStores::RoleAccount },
+      { _T("hm_recoverycodes"),   _T("rkhash"),       AccountStores::RoleText },
+      { _T("hm_recoverycodes"),   _T("rkencryption"), AccountStores::RoleNumber },
+      { _T("hm_recoverycodes"),   _T("rkused"),       AccountStores::RoleNumber },
+      { _T("hm_recoverycodes"),   _T("rkcreated"),    AccountStores::RoleNumber },
       { _T("hm_senderaddresses"), _T("said"),        AccountStores::RoleIdentity },
       { _T("hm_senderaddresses"), _T("saaccountid"), AccountStores::RoleAccount },
       { _T("hm_senderaddresses"), _T("saaddress"),   AccountStores::RoleText },
@@ -357,6 +382,11 @@ namespace HM
         _T("The journal of a mailbox rename or move (schema 6050): which account went from which address to which, how far it got, and whether the old address was kept as an alias. ")
         _T("It is a record of what this installation did to its own store, not part of the mailbox, and a restore is not a moment in a move: the account it names comes back at the address the archive holds, ")
         _T("so a carried row would describe a move that this store has no trace of and, at a stage short of complete, would name a half-move that is not there to finish. The audit trail keeps the record a person reads.") },
+
+      { _T("hm_recoverytokens"),
+        _T("The one-shot links account recovery sends out - confirm this address, reset this password - each 32 random bytes stored as a digest, good once, and dead within the hour or the day the setting gives them. ")
+        _T("Not carried, for the reason hm_digesttokens is not: a restored capability is one nobody issued, and the two it would revive are exactly the two that change who can read a mailbox. ")
+        _T("The address they were issued against IS carried, in hm_accountrecovery, so nothing a person proved has to be proved again.") },
 
       { _T("hm_digesttokens"),
         _T("The one-shot capabilities a quarantine digest's links carry - release this entry, release everything listed, stop the digest - each good once and dead within QuarantineDigestLinkHours (72 by default, 720 at most). ")

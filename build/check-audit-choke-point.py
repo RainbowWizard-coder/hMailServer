@@ -142,6 +142,7 @@ ALLOWED = {
       "COM/InterfaceUtilities.cpp",                 # Utilities.ClearSpamTrapHits
       "Common/Util/RestApiAccountReview.cpp",       # a held message released or discarded, an account's review choices, the compromise lock cleared
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
+      "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -219,6 +220,12 @@ REQUIRED = [
    ("Common/Util/RestApiAccountReview.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("compromise-lock-cleared"),',
     "the compromise lock cleared alone over REST is no longer recorded - the lock is a row written with no actor and a hold in memory, so no chokepoint sees it"),
+   ("Common/Util/RestApiAccountRecovery.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("recovery-address-set"),',
+    "a recovery address set over REST is no longer recorded - hm_accountrecovery is written by the account itself and is not an audited table, and the address it names is the one a forgotten password can be reset from, which is the change an administrator most needs to be able to find afterwards"),
+   ("Common/Util/RestApiAccountRecovery.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("recovery-codes-generated"),',
+    "a new set of recovery codes made over REST is no longer recorded - the codes stand in for the account's second factor, and making a set ends the one before it"),
    ("Common/Util/SignInStore.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("device"), record.device, _T("revoked"), detail);',
     "a device revoked is no longer recorded - hm_signins is not an audited table (a sign-in would be recorded on every authentication) and the sessions and connections a revoke ends leave no row at all, so the strongest thing anybody can do about a client they do not recognise would be the one thing the trail did not hold"),
@@ -379,6 +386,13 @@ NOT_AUDITED = {
    "hm_calendarshares": "who else an account shares a calendar with, written by the account itself over the portal and CalDAV.",
    "hm_contacts": "an account's own address book, written by it over CardDAV and the portal.",
    "hm_recoverable": "copies of the messages an account deleted, written as the delete happens and ended by the retention sweep or the account itself; traffic.",
+   "hm_accountrecovery": "the recovery address an account set for itself, written by the account over /api/v1/me/recovery and cleared by the account or by an administrator. "
+                         "Not listed, because the row is also written with no actor at all - the unauthenticated page a confirmation link opens marks it confirmed - and a listed table would record that as a change nobody made. "
+                         "The three acts an administrator needs to find ARE on the trail, through AuditTrail::RecordEvent: the address set, the address cleared, and a new set of codes made.",
+   "hm_recoverytokens": "the one-shot links account recovery sends - confirm this address, reset this password - each issued, spent and swept with no actor on the thread; a listing would record every link and every sweep as a change nobody made. "
+                        "What the links DO is recorded: the address set is an event, and a password reset is an hm_accounts write the statement chokepoint already sees, an application-log line, and the account.password-reset alert.",
+   "hm_recoverycodes": "the hashes of an account's one-time recovery codes, written by the account when it makes a set and marked used by the sign-in thread; "
+                       "traffic once the set exists, and the making of a set is recorded as an event of its own.",
    "hm_confidential": "the messages that expire an account sent, written as it sends them, opened by their readers, withdrawn by the account and ended by the sweep; traffic.",
    "hm_accountactivity": "the compromised-account detection's baseline, one row per authenticated submission, written by the submission thread and pruned by the sweep; traffic.",
    "hm_accountrecipients": "whom an account has written to, learned by the submission thread from its messages and forgotten by the sweep; traffic.",

@@ -1257,6 +1257,9 @@
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>匿名でのディレクトリ読み取りが受け入れられました。 </value>
   </data>
+  <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
+    <value>アカウント所有者の別のメールボックスで、パスワード リセットのリンクを送れる先です。あわせて、認証アプリのコードの代わりになる使い捨てコードが十個あります。どちらも所有者自身がウェブメールで自分のパスワードを使って設定します。アドレスを設定できる管理者がいれば、それを自分に向けてパスワードをリセットできてしまうからです。ここでできるのはアドレスを取り除くことだけです。</value>
+  </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
     <value>SPF の temperror を受け入れず 451 で応答する</value>
   </data>
@@ -1995,6 +1998,15 @@
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>ログオン失敗リストをクリア</value>
   </data>
+  <data name="Clear the recovery address" xml:space="preserve">
+    <value>回復用アドレスを消去</value>
+  </data>
+  <data name="Clear the recovery co_des" xml:space="preserve">
+    <value>回復コードを消去(_D)</value>
+  </data>
+  <data name="Clear the recovery codes" xml:space="preserve">
+    <value>回復コードを消去</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>消去</value>
   </data>
@@ -2072,6 +2084,9 @@
   </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>確認して有効にする(_E)</value>
+  </data>
+  <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
+    <value>確認済み: {0}。パスワード リセットのリンクをそこへ送れます。</value>
   </data>
   <data name="Connect to server" xml:space="preserve">
     <value>サーバーに接続</value>
@@ -3283,6 +3298,9 @@
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>暗号化のパスフレーズ(_P)</value>
+  </data>
+  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>このアカウントの使い捨て回復コードを終了しますか。コードはアカウントの二要素の代わりになるため、他人が見た組はそれを回避する常設の手段になります。所有者はウェブメールで新しい組を作ります。回復用アドレスはそのままです。</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>エンジン URL (空 = 外部エンジンなし)</value>
@@ -5308,6 +5326,9 @@
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP 設定に公開ホスト名が設定されていません。</value>
   </data>
+  <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
+    <value>回復用アドレスは設定されていません。アカウント所有者がウェブメールで設定するまで、パスワードを忘れた場合はここでしかリセットできません。</value>
+  </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>ローテーションは予定されていません。「今すぐローテーション」で開始します。</value>
   </data>
@@ -6487,6 +6508,9 @@
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>このサーバー自身が受信メッセージごとに下した判定 (SPF、DKIM、DMARC) を、配信されるメッセージのトレース ヘッダーとして記録します。下流のフィルターや診断のためのものです (RFC 8601、RFC 7208)。</value>
   </data>
+  <data name="Recovery" xml:space="preserve">
+    <value>回復</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>/.well-known/caldav のリダイレクト先 (空 = 404 を返す)</value>
   </data>
@@ -6639,6 +6663,9 @@
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>保存時に、保存済みのサービス アカウント パスワードを削除する(_W)</value>
+  </data>
+  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>このアカウントの回復用アドレスを削除しますか。すでに送信されたパスワード リセットのリンクはすべて無効になり、所有者はウェブメールで新しいアドレスを設定します。使い捨てコードはそのままです。</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} をリストから削除しますか?
@@ -7135,6 +7162,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
     <value>LDAP 設定を hMailServer.INI に保存</value>
+  </data>
+  <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
+    <value>アカウントを保存して開き直してください。回復用アドレスは存在するアカウントに属します。</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>アカウントを保存してから開き直してください。第 2 要素は、存在するアカウントに属します。</value>
@@ -7684,6 +7714,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
     <value>サーバーの制限と上級者向け設定ページでアカウントを設定し (NT SERVICE\hMailServer にはパスワードが不要です)、次に管理者権限のコマンド プロンプトから hMailServer.exe /Register を実行してサービスを再起動してください。そのアカウントに「サービスとしてログオン」(secpol.msc &gt; ローカル ポリシー &gt; ユーザー権利の割り当て)、プログラム フォルダーの読み取りアクセス、データ・ログ・データベース フォルダーのフル コントロールを付与してください。外部データベースの場合はそれ用のログインも必要です。</value>
+  </data>
+  <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
+    <value>設定済みですが未確認: {0}。所有者がそこへ送られたリンクを開くまで、このアドレスは何にも使われません。</value>
   </data>
   <data name="Set flags" xml:space="preserve">
     <value>フラグを設定</value>
@@ -8402,6 +8435,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>受信が止まる前に送信が止まります。所有者は自分のクライアントで理由付きの拒否を目にし、その人宛のメールは上限とその猶予までは届き続けます。ドメインごとに設定できます。すぐに適用されます。</value>
+  </data>
+  <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
+    <value>アドレスはここでも他のどこでもマスクして表示され、どのインターフェイスも完全な形では返しません。本人のメールボックスであり、管理者が行う作業にそれを読む必要はありません。</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>アドレスは名前の後に @ を付けたものでなければなりません</value>
@@ -10095,6 +10131,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Clear" xml:space="preserve">
     <value>クリア(_C)</value>
   </data>
+  <data name="_Clear the recovery address" xml:space="preserve">
+    <value>回復用アドレスを消去(_C)</value>
+  </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>保存先のファイルを圧縮する (zip)(_C)</value>
   </data>
@@ -11528,6 +11567,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0}暗号化が利用できないため、{1}使われるパスワードは平文でネットワークを流れます。</value>
+  </data>
+  <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
+    <value>このアカウントの使い捨て回復コードのうち {0} 個が未使用です。</value>
   </data>
   <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{1} 件の IP 範囲のうち {0} 件は、セッションが暗号化されるまで認証を拒否します。</value>

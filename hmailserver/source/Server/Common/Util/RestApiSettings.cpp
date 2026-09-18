@@ -846,6 +846,29 @@ namespace
         "Whether a reader's other account may be on a host that resolves to a private, loopback or link-local address. Off by default: the server makes the connection from inside its own network, on the reader's word. Turn it on to let people collect from an old mail server inside the network.",
         ROW_FLAG(Config()->GetReaderFetchAccountsPrivateAddresses()), ROW_SET(Config()->SetReaderFetchAccountsPrivateAddresses(v.flag)), ROW_NO_CHECK },
 
+      // The recovery address and the recovery codes (Util/AccountRecovery.h).
+      { "account_recovery_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a person may set a recovery address and one-time recovery codes in the webmail, and reset a forgotten password with them. On by default, and inert until somebody uses it: nothing happens for an account that has set no address, and a link can only be sent when the server has a public address of its own (confidential_base_url, or the quarantine digest's, or the import sign-in's). Off refuses the Security page's recovery section, the forgotten-password route and the reset link; an address already proved stays in the database and is used for nothing.",
+        ROW_FLAG(Config()->GetAccountRecoveryEnabled()), ROW_SET(Config()->SetAccountRecoveryEnabled(v.flag)), ROW_NO_CHECK },
+      { "recovery_reset_link_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many minutes a password-reset link sent to a recovery address works for. 30 by default; between 5 and 1440. The link is good once: a password the policy, the reuse history or the breach check refuses leaves it alive so the person can choose again, and it is spent the moment a password is accepted.",
+        ROW_NUMBER(Config()->GetRecoveryResetLinkMinutes()), ROW_SET(Config()->SetRecoveryResetLinkMinutes((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 5 || v.number > 1440)
+              return String(_T("recovery_reset_link_minutes is between 5 and 1440."));
+           return String();
+        } },
+      { "recovery_verify_link_hours", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many hours the link that proves a recovery address works for. 24 by default; between 1 and 168. A recovery address counts for nothing until that link has been followed, and changing the address asks for it again.",
+        ROW_NUMBER(Config()->GetRecoveryVerifyLinkHours()), ROW_SET(Config()->SetRecoveryVerifyLinkHours((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           if (v.number < 1 || v.number > 168)
+              return String(_T("recovery_verify_link_hours is between 1 and 168."));
+           return String();
+        } },
+
       // Deleted items kept for recovery (Util/RecoverableStore.h).
       { "recover_deleted_days", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many days a message a person deletes - by IMAP EXPUNGE or CLOSE, a POP3 DELE, the webmail's delete or emptying of a folder, or their own retention choices - is kept aside, listed on the webmail's Recover deleted items page and put back from there. 0, the default, keeps nothing. At most 365. The copies are under the data directory's Recoverable folder and count against no quota; the retention task ends them when the window passes.",

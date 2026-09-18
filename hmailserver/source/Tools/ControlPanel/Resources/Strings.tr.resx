@@ -1257,6 +1257,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Anonim dizin okuma kabul edildi. </value>
   </data>
+  <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
+    <value>Hesap sahibinin, parola sıfırlama bağlantısının gönderilebileceği başka bir posta kutusu ve kimlik doğrulama uygulamasından gelen kodun yerine geçen on tek kullanımlık kod. İkisini de hesap sahibi kendi parolasıyla, web postasından ayarlar: adresi ayarlayabilecek bir yönetici, adresi kendine yönlendirerek parolayı sıfırlayabilirdi. Burada yapılabilecek şey bir adresi kaldırmaktır.</value>
+  </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
     <value>Bir SPF temperror’a kabul etmek yerine 451 ile yanıt ver</value>
   </data>
@@ -1995,6 +1998,15 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Oturum açma hatası listesini temizle</value>
   </data>
+  <data name="Clear the recovery address" xml:space="preserve">
+    <value>Kurtarma adresini sil</value>
+  </data>
+  <data name="Clear the recovery co_des" xml:space="preserve">
+    <value>Kurtarma kodlarını _sil</value>
+  </data>
+  <data name="Clear the recovery codes" xml:space="preserve">
+    <value>Kurtarma kodlarını sil</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Temizlendi</value>
   </data>
@@ -2072,6 +2084,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>Onayla ve _etkinleştir</value>
+  </data>
+  <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
+    <value>Doğrulandı: {0}. Oraya bir parola sıfırlama bağlantısı gönderilebilir.</value>
   </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Sunucuya bağlan</value>
@@ -3283,6 +3298,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Şifreleme parola tümce_si</value>
+  </data>
+  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Bu hesabın tek kullanımlık kurtarma kodları sonlandırılsın mı? Bir kod hesabın ikinci etkeninin yerini tutar, bu yüzden başkasının gördüğü bir takım onu aşmanın kalıcı bir yoludur. Hesap sahibi web postasında yeni bir takım oluşturur. Kurtarma adresine dokunulmaz.</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motor URL'si (boş = dış motor yok)</value>
@@ -5308,6 +5326,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP ayarlarında genel bir ana bilgisayar adı yapılandırılmamış.</value>
   </data>
+  <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
+    <value>Kurtarma adresi ayarlanmamış. Hesap sahibi web postasından bir tane ayarlayana kadar, unutulan bir parola yalnızca burada sıfırlanabilir.</value>
+  </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Planlanmış bir döndürme yok. Başlatmak için “Şimdi döndür”ü kullanın.</value>
   </data>
@@ -6487,6 +6508,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Bu sunucunun her gelen ileti hakkında kendisinin vardığı kararları - SPF, DKIM ve DMARC - aşağı akıştaki filtreler ve tanılama için teslim edilen iletiye izleme başlıkları olarak kaydeder (RFC 8601, RFC 7208).</value>
   </data>
+  <data name="Recovery" xml:space="preserve">
+    <value>Kurtarma</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>/.well-known/caldav yönlendirmesi (boş = 404 yanıtla)</value>
   </data>
@@ -6639,6 +6663,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Kaydederken saklanan hiz_met hesabı parolasını kaldır</value>
+  </data>
+  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Bu hesabın kurtarma adresi kaldırılsın mı? Oraya çoktan yola çıkmış her sıfırlama bağlantısı çalışmayı bırakır ve hesap sahibi web postasından yeni bir adres ayarlar. Tek kullanımlık kodlara dokunulmaz.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} listeden kaldırılsın mı?
@@ -7135,6 +7162,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
     <value>LDAP ayarlarını hMailServer.INI'ye kaydet</value>
+  </data>
+  <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
+    <value>Hesabı kaydedip yeniden açın - kurtarma adresi var olan bir hesaba aittir.</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>Hesabı kaydedip yeniden açın - ikinci etken, var olan bir hesaba aittir.</value>
@@ -7684,6 +7714,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
     <value>Sunucu sınırları ve uzman ayarları sayfasında bir hesap ayarlayın - NT SERVICE\hMailServer parola gerektirmez - ardından yükseltilmiş bir Komut İstemi'nden hMailServer.exe /Register çalıştırın ve hizmeti yeniden başlatın. O hesaba "Hizmet olarak oturum aç" (secpol.msc &gt; Yerel İlkeler &gt; Kullanıcı Hakları Ataması), program klasörüne okuma erişimi ve veri, günlük ve veritabanı klasörlerine tam denetim verin. Dış bir veritabanı ayrıca onun için bir oturum açma adı gerektirir.</value>
+  </data>
+  <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
+    <value>Ayarlandı ama doğrulanmadı: {0}. Hesap sahibi oraya gönderilen bağlantıyı açana kadar hiçbir işe yaramaz.</value>
   </data>
   <data name="Set flags" xml:space="preserve">
     <value>Bayrakları ayarla</value>
@@ -8402,6 +8435,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Hesap almayı bırakmadan önce göndermeyi bırakır: sahibi reddi kendi istemcisinde nedeniyle görür, ona gelen posta ise sınıra ve onu aşan paya kadar gelmeye devam eder. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
+  </data>
+  <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
+    <value>Adres burada olduğu gibi başka her yerde de maskelenmiş gösterilir ve hiçbir arayüz onu bütün olarak vermez: o kişiye ait bir posta kutusudur ve yöneticinin yaptığı hiçbir şey onu okumayı gerektirmez.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adres, ardından @ gelen bir ad olmalıdır</value>
@@ -10095,6 +10131,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Clear" xml:space="preserve">
     <value>_Temizle</value>
   </data>
+  <data name="_Clear the recovery address" xml:space="preserve">
+    <value>_Kurtarma adresini sil</value>
+  </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Hedef dosyaları _sıkıştır (zip)</value>
   </data>
@@ -11528,6 +11567,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} hiçbir şifreleme yok; bu yüzden {1} kullanılan parolalar ağdan düz metin olarak geçer.</value>
+  </data>
+  <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
+    <value>Hesabın tek kullanımlık kurtarma kodlarından {0} tanesi kullanılmamış.</value>
   </data>
   <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{1} IP aralığından {0} tanesi oturum şifrelenene kadar kimlik doğrulamayı reddediyor.</value>

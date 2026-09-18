@@ -734,8 +734,18 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <p>Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.</p>
 <label for="address">E-mail address</label><input id="address" type="text" autocomplete="username" required>
 <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+<div id="signin-code-row" hidden><label for="signin-code">Recovery code</label><input id="signin-code" type="text" autocomplete="one-time-code" maxlength="32" aria-label="One of the codes you saved"></div>
 <button class="btn wide" type="submit">Sign in</button>
 <div id="signin-status" class="status" aria-live="polite"></div>
+<div class="row"><button class="btn ghost sm" type="button" id="signin-code-toggle">Use a recovery code</button><button class="btn ghost sm" type="button" id="signin-forgot">Forgotten your password?</button></div>
+</form>
+<form class="login" id="reset-form" hidden>
+<h1>Forgotten your password?</h1>
+<p>Type your address. If it belongs to a mailbox here and that mailbox has a confirmed recovery address, a link to choose a new password is sent there. The answer is the same either way.</p>
+<label for="reset-address">E-mail address</label><input id="reset-address" type="text" autocomplete="username" required>
+<button class="btn wide" type="submit">Send the link</button>
+<div id="reset-status" class="status" aria-live="polite"></div>
+<div class="row"><button class="btn ghost sm" type="button" id="reset-cancel">Back to signing in</button></div>
 </form>
 </div>
 
@@ -1438,12 +1448,39 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <input id="apppassword-name" type="text" maxlength="255" placeholder="What it is for, e.g. Phone" aria-label="What the password is for" required>
 <input id="apppassword-password" type="password" autocomplete="current-password" placeholder="Your password" aria-label="Your own password, to prove it is you" required>
 <input id="apppassword-otp" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code" aria-label="Code from your authenticator app" hidden>
+<input id="apppassword-code" type="text" autocomplete="one-time-code" maxlength="32" placeholder="Recovery code" aria-label="One of the codes you saved" hidden>
 <button class="btn sm" type="submit">Create</button>
 </form>
 <div id="apppassword-new" class="note" hidden>This is the only time it is shown. Copy it into the program now: <code id="apppassword-secret" class="secret"></code></div>
 <div id="apppassword-status" class="status" aria-live="polite"></div>
 <table class="list" id="apppassword-table"><thead><tr><th>For</th><th>Created</th><th>Last used</th><th></th></tr></thead><tbody id="apppassword-rows"></tbody></table>
 <div id="apppassword-empty" class="hint" hidden>No app passwords.</div>
+</div>
+<div class="card" id="recovery-card">
+<h2>If you forget your password</h2>
+<p class="note">An address at another mailbox of yours, and ten one-time codes. Either of them gets you back in without asking an administrator.</p>
+<p class="note">A recovery address is only as safe as the mailbox that receives it: anybody who can read that mailbox can reset this password. Nobody, an administrator included, is ever shown the whole of it once it is set.</p>
+<div id="recovery-state" class="note"></div>
+<form id="recovery-form" class="row">
+<input id="recovery-address" type="email" maxlength="254" placeholder="Another address of yours" aria-label="The address a reset link would be sent to" required>
+<input id="recovery-password" type="password" autocomplete="current-password" placeholder="Your password" aria-label="Your own password, to prove it is you" required>
+<input id="recovery-otp" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code" aria-label="Code from your authenticator app" hidden>
+<input id="recovery-code" type="text" autocomplete="one-time-code" maxlength="32" placeholder="Recovery code" aria-label="One of the codes you saved" hidden>
+<button class="btn sm" type="submit">Save this address</button>
+</form>
+<div class="row"><button class="btn ghost sm" type="button" id="recovery-resend" hidden>Send the confirmation again</button><button class="btn ghost sm" type="button" id="recovery-clear" hidden>Remove it</button></div>
+<div id="recovery-status" class="status" aria-live="polite"></div>
+<h3>One-time codes</h3>
+<p class="note">Ten codes, each good once. Type one wherever a code from your authenticator app is asked for: when you sign in, when you change your password, and when you make an app password. Keep them somewhere that is not this mailbox.</p>
+<div id="recovery-codes-state" class="note"></div>
+<form id="recovery-codes-form" class="row">
+<input id="recovery-codes-password" type="password" autocomplete="current-password" placeholder="Your password" aria-label="Your own password, to prove it is you" required>
+<input id="recovery-codes-otp" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code" aria-label="Code from your authenticator app" hidden>
+<input id="recovery-codes-code" type="text" autocomplete="one-time-code" maxlength="32" placeholder="Recovery code" aria-label="One of the codes you saved" hidden>
+<button class="btn sm" type="submit">Make ten new codes</button>
+</form>
+<div id="recovery-codes-new" class="note" hidden>This is the only time they are shown. Write them down now: <code id="recovery-codes-list" class="secret"></code></div>
+<div id="recovery-codes-status" class="status" aria-live="polite"></div>
 </div>
 <div class="card">
 <h2>Support access</h2>
@@ -1497,7 +1534,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label for="current">Current password</label><input id="current" type="password" autocomplete="current-password" required>
 <label for="new">New password</label><input id="new" type="password" autocomplete="new-password" required>
 <label for="confirm">New password again</label><input id="confirm" type="password" autocomplete="new-password" required>
-<div id="otp-row" hidden><label for="otp">Code from your authenticator app</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code"></div>
+<div id="otp-row" hidden><label for="otp">Code from your authenticator app</label><input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code">
+<label for="password-code">Recovery code</label><input id="password-code" type="text" autocomplete="one-time-code" maxlength="32" aria-label="One of the codes you saved"></div>
 <div><button class="btn" type="submit">Change password</button></div>
 <div id="password-status" class="status" aria-live="polite"></div>
 </form>

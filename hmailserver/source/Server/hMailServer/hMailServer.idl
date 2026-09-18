@@ -1402,6 +1402,20 @@ interface IInterfaceAccount : IDispatch
    [propget, id(57), helpstring("Publish this account's OpenPGP public keys in the Web Key Directory. Off by default; the server setting and the domain's switch have to be on as well. Saved by Save().")] HRESULT OpenPGPPublish([out, retval] VARIANT_BOOL *pVal);
    [propput, id(57), helpstring("Publish this account's OpenPGP public keys in the Web Key Directory. Off by default; the server setting and the domain's switch have to be on as well. Saved by Save().")] HRESULT OpenPGPPublish([in] VARIANT_BOOL newVal);
    [propget, id(58), helpstring("The OpenPGP public keys this account holds, as a JSON document: publish, published (whether anything is actually served, all three switches together), address, hashed_local_part, advanced_url, direct_url, limit, and keys of {id, fingerprint, version, algorithm, bits, user_id, created, expires, bytes, uploaded, uploaded_by}. Read-only; Utilities.ImportOpenPGPKey and RemoveOpenPGPKey change it. No secret key is ever held, so none is ever reported.")] HRESULT OpenPGPKeys([out, retval] BSTR *pVal);
+
+   // The account's recovery address and its one-time recovery codes
+   // (Util/AccountRecovery.h). Read-only, and the address MASKED: the address
+   // itself is another mailbox belonging to the person, nothing an
+   // administrator does needs to read it, and no interface answers it once it
+   // has been set. What an administrator can do about it is take it away, which
+   // is what somebody ringing up to say "that address is not mine any more"
+   // needs; setting one and making codes are the account holder's own, proved
+   // with the account's own password in the webmail.
+   [propget, id(68), helpstring("The account's recovery address, masked - the first letter of the local part, the first letter of each domain label, and the top-level label whole. Empty when none is set. The address itself is answered by no interface: it is enough to recognise an address the account holder chose and not enough to write to one they did not.")] HRESULT RecoveryAddress([out, retval] BSTR *pVal);
+   [propget, id(69), helpstring("Whether the recovery address has been confirmed by following the link the server posted to it. An address that has not been confirmed is used for nothing: no password-reset link is ever sent to it.")] HRESULT RecoveryAddressVerified([out, retval] VARIANT_BOOL *pVal);
+   [propget, id(70), helpstring("How many of the account's ten one-time recovery codes have not been used. 0 when it has never made a set.")] HRESULT RecoveryCodesUnused([out, retval] long *pVal);
+   [id(71), helpstring("Removes the account's recovery address, and with it every confirmation and password-reset link in flight for it. The recovery codes are not touched - ClearRecoveryCodes() is the act for those. Recorded in the audit trail. Takes effect at once; there is no Save() for it.")] HRESULT ClearRecoveryAddress();
+   [id(72), helpstring("Removes every one-time recovery code the account holds. The remedy for a code card somebody else has seen: a code stands in for the account's second factor, so a leaked set is a standing way past it. The recovery address is not touched - ClearRecoveryAddress() is the act for that. The account holder makes a fresh set from the webmail. Recorded in the audit trail. Takes effect at once; there is no Save() for it.")] HRESULT ClearRecoveryCodes();
 };
 
 

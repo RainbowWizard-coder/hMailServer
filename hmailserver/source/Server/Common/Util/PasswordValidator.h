@@ -8,6 +8,34 @@ namespace HM
 {
    class Account;
 
+   // What an attempt offers in place of the one-time code an account with a
+   // second factor needs, and what came of it.
+   //
+   // It exists so that the recovery code is checked INSIDE
+   // PasswordValidator::ValidatePassword rather than by the caller ahead of it.
+   // That is not tidiness: AccountLogon::Logon deliberately puts the per-name
+   // lockout and the domain country policy in front of every password
+   // verification, and a caller that verified the password itself in order to
+   // decide whether to look at a code would be in front of both - a locked name
+   // would still cost an Argon2id verification a request, and the ten
+   // comparisons a matching password then costs would be a timing oracle for
+   // precisely the accounts a second factor is there to protect.
+   struct SecondFactorOffer
+   {
+      // The caller has already verified a one-time code for this account. Only
+      // the COM authentication path can: a mail client has nowhere to type one.
+      bool satisfied = false;
+
+      // One of the account's recovery codes, offered instead (AccountRecovery.h).
+      // Empty for every attempt that offers none.
+      String recovery_code;
+
+      // Out: the row of the recovery code that matched, for the caller to spend
+      // once the WHOLE attempt has been accepted. Nothing is spent in here, so a
+      // refusal anywhere after this burns nothing.
+      __int64 matched_recovery_code = 0;
+   };
+
    class PasswordValidator
    {
    public:
@@ -23,9 +51,13 @@ namespace HM
       // COM path needs the TOTP secret in order to check the code that decides whether
       // the password may be tried at all.
       static std::shared_ptr<const Account> LookupAccount(const String &sUsername);
+      // secondFactor is passed straight to the overload below, which is where it
+      // decides anything: the account's own password is refused for an account
+      // with a second factor enrolled unless one has been proved.
       static std::shared_ptr<const Account> ValidatePassword(const String &sMasqname, const String &sUsername, const String &sPassword,
                                                              bool *matchedAppPassword = nullptr,
-                                                             String *matchedAppPasswordName = nullptr);
+                                                             String *matchedAppPasswordName = nullptr,
+                                                             SecondFactorOffer *secondFactor = nullptr);
 
       // The account's own password and nothing else: never an app password,
       // whatever credential the request that carries it came in on. For a
@@ -38,11 +70,21 @@ namespace HM
 
       // Validates the user password. Return the account if validation is OK. 
 
-      // secondFactorSatisfied says the CALLER has already verified a TOTP code for
-      // this account. Only the COM authentication path can - a mail client has
-      // nowhere to type one - so it defaults to false and every protocol leaves it
-      // alone: an account with a second factor enrolled authenticates in a mail
-      // client through an app password and not through its own password.
+      // secondFactor, when given, says what this attempt offers in place of the
+      // one-time code an enrolled account needs: a code the CALLER has already
+      // verified (only the COM authentication path can - a mail client has
+      // nowhere to type one), or one of the account's recovery codes, which is
+      // checked here. It defaults to nullptr and every protocol leaves it alone:
+      // an account with a second factor enrolled authenticates in a mail client
+      // through an app password and not through its own password.
+      //
+      // A recovery code is compared only AFTER the account's own password has
+      // matched, because each comparison is a deliberately expensive hash and a
+      // code is compared against every unused code the account has - checking
+      // the code first would let anybody who can name a mailbox spend ten of
+      // them a request. Nothing is spent here; the row that matched is reported
+      // in secondFactor->matched_recovery_code for the caller to spend once the
+      // whole attempt has been accepted.
       //
       // matchedAppPassword, when given, is set to whether it was one of the
       // account's app passwords that matched rather than the account's own -
@@ -56,7 +98,7 @@ namespace HM
       // which is the question somebody looking at a client they do not
       // recognise actually has.
       static bool ValidatePassword(std::shared_ptr<const Account> pAccount, const String &sPassword,
-                                   bool secondFactorSatisfied = false, bool *matchedAppPassword = nullptr,
+                                   SecondFactorOffer *secondFactor = nullptr, bool *matchedAppPassword = nullptr,
                                    String *matchedAppPasswordName = nullptr);
 
       // Validates the user password. Return true if the password is correct.

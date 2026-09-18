@@ -23,6 +23,7 @@
 #include "../Util/MessageUtilities.h"
 #include "../Util/RecoverableStore.h"
 #include "../Util/ConfidentialMessages.h"
+#include "../Util/AccountRecovery.h"
 #include "../Util/DomainReports.h"
 #include "../Util/CompromiseDetector.h"
 #include "../../IMAP/IMAPFolderContainer.h"
@@ -397,6 +398,10 @@ namespace HM
       // removes the directories of accounts that no longer exist).
       RecoverableStore::Sweep();
       ConfidentialMessages::Sweep(true);
+
+      // And the recovery links that have been used or have run out: a
+      // capability nobody can present any more is a row, not a capability.
+      AccountRecovery::Sweep();
 
       // And the DMARC aggregate and TLS-RPT reports read more than
       // DomainReportRetentionDays ago.

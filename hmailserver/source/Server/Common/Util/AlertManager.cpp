@@ -68,6 +68,7 @@ namespace HM
    const wchar_t *AlertManager::ConditionDkimRotationStalled = L"dkim.rotation.stalled";
    const wchar_t *AlertManager::ConditionComplaintsRateHigh = L"complaints.rate.high";
    const wchar_t *AlertManager::ConditionAccountCompromised = L"account.compromised";
+   const wchar_t *AlertManager::ConditionPasswordReset = L"account.password-reset";
 
    namespace
    {

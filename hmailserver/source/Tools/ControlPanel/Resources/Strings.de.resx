@@ -1257,6 +1257,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Anonymes Lesen des Verzeichnisses akzeptiert.</value>
   </data>
+  <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
+    <value>Ein anderes Postfach des Kontoinhabers, an das ein Link zum Zurücksetzen des Kennworts gesendet werden kann, und zehn Einmalcodes, die einen Code aus einer Authenticator-App ersetzen. Beides setzt der Kontoinhaber selbst, im Webmail, mit dem eigenen Kennwort: Wer als Administrator die Adresse setzen könnte, könnte das Kennwort zurücksetzen, indem er sie auf sich selbst richtet. Was hier geht, ist eine Adresse zu entfernen.</value>
+  </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
     <value>Auf einen SPF-Temperror mit 451 antworten statt ihn anzunehmen</value>
   </data>
@@ -1995,6 +1998,15 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Clear logon-failure list" xml:space="preserve">
     <value>Liste der Anmeldefehler löschen</value>
   </data>
+  <data name="Clear the recovery address" xml:space="preserve">
+    <value>Wiederherstellungsadresse löschen</value>
+  </data>
+  <data name="Clear the recovery co_des" xml:space="preserve">
+    <value>Wiederherstellungs_codes löschen</value>
+  </data>
+  <data name="Clear the recovery codes" xml:space="preserve">
+    <value>Wiederherstellungscodes löschen</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Geleert</value>
   </data>
@@ -2072,6 +2084,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>Bestätigen und _einschalten</value>
+  </data>
+  <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
+    <value>Bestätigt: {0}. Ein Link zum Zurücksetzen des Kennworts kann dorthin gesendet werden.</value>
   </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Mit Server verbinden</value>
@@ -3283,6 +3298,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passphrase zur Verschlüsselun_g</value>
+  </data>
+  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Die Einmal-Wiederherstellungscodes dieses Kontos beenden? Ein Code tritt an die Stelle des zweiten Faktors des Kontos, ein Satz, den jemand anderes gelesen hat, ist also ein dauerhafter Weg daran vorbei. Der Kontoinhaber legt im Webmail einen neuen Satz an. Die Wiederherstellungsadresse bleibt unberührt.</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Engine-URL (leer = keine externe Engine)</value>
@@ -5308,6 +5326,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>In den SMTP-Einstellungen ist kein öffentlicher Hostname konfiguriert.</value>
   </data>
+  <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
+    <value>Es ist keine Wiederherstellungsadresse gesetzt. Solange der Kontoinhaber im Webmail keine setzt, kann ein vergessenes Kennwort nur hier zurückgesetzt werden.</value>
+  </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Es ist keine Rotation geplant. Mit „Jetzt rotieren“ starten Sie eine.</value>
   </data>
@@ -6487,6 +6508,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Hält die Urteile, zu denen dieser Server selbst über jede eingehende Nachricht gekommen ist - SPF, DKIM und DMARC -, als Trace-Header auf der zugestellten Nachricht fest, für nachgelagerte Filter und die Diagnose (RFC 8601, RFC 7208).</value>
   </data>
+  <data name="Recovery" xml:space="preserve">
+    <value>Wiederherstellung</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>/.well-known/caldav umleiten auf (leer = mit 404 antworten)</value>
   </data>
@@ -6639,6 +6663,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Das _gespeicherte Passwort des Dienstkontos beim Speichern entfernen</value>
+  </data>
+  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Die Wiederherstellungsadresse dieses Kontos entfernen? Jeder Link zum Zurücksetzen des Kennworts, der schon unterwegs dorthin ist, hört auf zu wirken, und der Kontoinhaber setzt im Webmail eine neue Adresse. Die Einmalcodes bleiben unberührt.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} aus der Liste entfernen?
@@ -7135,6 +7162,9 @@ Fortfahren?</value>
   </data>
   <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
     <value>Die LDAP-Einstellungen in hMailServer.INI speichern</value>
+  </data>
+  <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
+    <value>Speichern Sie das Konto und öffnen Sie es erneut - eine Wiederherstellungsadresse gehört zu einem Konto, das es gibt.</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>Speichern Sie das Konto und öffnen Sie es erneut - ein zweiter Faktor gehört zu einem Konto, das existiert.</value>
@@ -7684,6 +7714,9 @@ Fortfahren?</value>
   </data>
   <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
     <value>Setzen Sie auf der Seite Servergrenzen und Experteneinstellungen ein Konto - NT SERVICE\hMailServer braucht kein Passwort - führen Sie dann aus einer Eingabeaufforderung mit erhöhten Rechten hMailServer.exe /Register aus und starten Sie den Dienst neu. Gewähren Sie diesem Konto „Anmelden als Dienst" (secpol.msc &gt; Lokale Richtlinien &gt; Zuweisen von Benutzerrechten), Lesezugriff auf den Programmordner und Vollzugriff auf die Daten-, Protokoll- und Datenbankordner. Eine externe Datenbank braucht ebenfalls eine Anmeldung für dieses Konto.</value>
+  </data>
+  <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
+    <value>Gesetzt, aber nicht bestätigt: {0}. Bis der Kontoinhaber dem dorthin gesendeten Link folgt, wird sie für nichts verwendet.</value>
   </data>
   <data name="Set flags" xml:space="preserve">
     <value>Flags setzen</value>
@@ -8402,6 +8435,9 @@ Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Das Konto hört auf zu senden, bevor es aufhört zu empfangen: der Inhaber sieht die Ablehnung im eigenen Programm, mit dem Grund, während Post an ihn bis zum Limit und der Kulanz darüber hinaus weiter ankommt. Jede Domäne kann einen eigenen Wert setzen. Gilt sofort.</value>
+  </data>
+  <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
+    <value>Die Adresse wird hier wie überall sonst maskiert gezeigt, und keine Schnittstelle gibt sie vollständig zurück: Sie ist ein Postfach dieser Person, und für nichts, was ein Administrator tut, muss sie gelesen werden.</value>
   </data>
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Die Adresse muss ein Name gefolgt von @ sein</value>
@@ -10095,6 +10131,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="_Clear" xml:space="preserve">
     <value>_Leeren</value>
   </data>
+  <data name="_Clear the recovery address" xml:space="preserve">
+    <value>_Wiederherstellungsadresse löschen</value>
+  </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Zieldateien _komprimieren (ZIP)</value>
   </data>
@@ -11528,6 +11567,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} keine Verschlüsselung verfügbar, sodass Passwörter, die auf {1} verwendet werden, das Netz im Klartext überqueren.</value>
+  </data>
+  <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
+    <value>{0} der Einmal-Wiederherstellungscodes des Kontos sind unbenutzt.</value>
   </data>
   <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} von {1} IP-Bereich(en) verweigern die Authentifizierung, bis die Sitzung verschlüsselt ist.</value>

@@ -7,6 +7,7 @@
 namespace HM
 {
    class Account;
+   struct SecondFactorOffer;
 
    class AccountLogon
    {
@@ -16,10 +17,21 @@ namespace HM
 
       // matchedAppPassword, when given, says whether the password that logged
       // the account on was one of its app passwords (see PasswordValidator).
+      //
+      // secondFactor, when given, is what this attempt offers in place of the
+      // one-time code an enrolled account needs - a code the caller has already
+      // proved, or one of the account's recovery codes
+      // (Util/AccountRecovery.h). It is nullptr by default and every protocol
+      // leaves it alone: only the REST sign-in has anywhere to present one. It
+      // is carried THROUGH this function rather than decided in front of it, so
+      // that the per-name lockout and the country policy below run first; see
+      // PasswordValidator::ValidatePassword, which is where it decides anything.
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sUsername, const String &sPassword, bool &disconnect,
-                                           bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr);
+                                           bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
+                                           SecondFactorOffer *secondFactor = nullptr);
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sMasqname, const String &sUsername, const String &sPassword, bool &disconnect,
-                                           bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr);
+                                           bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
+                                           SecondFactorOffer *secondFactor = nullptr);
 
       // Record a failed authentication attempt for auto-ban accounting. Sets
       // 'disconnect' to true when the connection should be dropped (and possibly the

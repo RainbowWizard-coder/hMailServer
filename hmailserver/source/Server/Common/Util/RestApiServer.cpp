@@ -73,6 +73,8 @@
 #include "GUIDCreator.h"
 #include "InlineImageParts.h"
 #include "RecoverableStore.h"
+#include "AccountRecovery.h"
+#include "PasswordValidator.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
 #include "ContactGroups.h"
@@ -1068,7 +1070,7 @@ namespace HM
                String basicUser = String(decoded.Mid(0, separatorPosition));
                if (basicUser.CompareNoCase(_T("administrator")) != 0)
                {
-                  if (!AuthenticateAccount_(basicUser, String(decoded.Mid(separatorPosition + 1)), peer_address, caller))
+                  if (!AuthenticateAccount_(basicUser, String(decoded.Mid(separatorPosition + 1)), peer_address, request, caller))
                      RegisterAuthenticationFailure_(peer_address);
                   return caller;
                }
@@ -1591,6 +1593,24 @@ namespace HM
       if (method == "GET" && path == "/portal/oauth/callback")
          return HandlePortalOAuthCallback_(request, query);
 
+      // Recovery: the page a confirmation link opens, the "I have forgotten my
+      // password" route, the page the reset link opens, and the route the
+      // webmail posts the new password to. No credentials at any of them - the
+      // person using them has none they can present - and the token in the
+      // query string is the whole capability, one account, once, expiring.
+      // See RestApiAccountRecovery.cpp.
+      if ((method == "GET" || method == "POST") && path == "/recovery/verify")
+         return HandleRecoveryVerifyPage_(method, query);
+
+      if (method == "POST" && path == "/api/v1/password-reset")
+         return HandlePasswordResetRequest_(GetRequestBody_(request), peer_address);
+
+      if (method == "POST" && path == "/api/v1/password-reset/complete")
+         return HandlePasswordResetComplete_(GetRequestBody_(request), peer_address);
+
+      if ((method == "GET" || method == "POST") && path == "/portal/reset")
+         return HandlePasswordResetPage_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString(), peer_address);
+
       if ((method == "GET" || method == "POST") && path == "/held/release")
          return HandleDigestRelease_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
 
@@ -1770,6 +1790,12 @@ namespace HM
 
          case RouteAccountPushRemove:
             return HandleAccountPushRemove_(caller, route.identifier);
+
+         case RouteAccountRecoveryClear:
+            return HandleAccountRecoveryClear_(caller, String(route.identifier));
+
+         case RouteAccountRecoveryCodesClear:
+            return HandleAccountRecoveryCodesClear_(caller, String(route.identifier));
 
          case RouteMailboxMoveGet:
             return HandleMailboxMoveGet_(route.identifier);
@@ -2489,6 +2515,13 @@ namespace HM
          case RouteMeMaskedAddressDelete:
             return HandleMeMaskedAddresses_(caller, route.kind, route.record_id, GetRequestBody_(request));
 
+         case RouteMeRecovery:
+         case RouteMeRecoveryPut:
+         case RouteMeRecoveryDelete:
+         case RouteMeRecoveryResend:
+         case RouteMeRecoveryCodes:
+            return HandleMeRecovery_(caller, route.kind, request);
+
          case RouteMeRecoverable:
          case RouteMeRecoverableRestore:
          case RouteMeRecoverableDelete:
@@ -3186,6 +3219,31 @@ namespace HM
          return;
       }
 
+      // The recovery address, and the one-time recovery codes.
+      if (path == "/api/v1/me/recovery")
+      {
+         if (method == "GET")
+            route.kind = RouteMeRecovery;
+         else if (method == "PUT")
+            route.kind = RouteMeRecoveryPut;
+         else if (method == "DELETE")
+            route.kind = RouteMeRecoveryDelete;
+
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/me/recovery/resend")
+      {
+         route.kind = RouteMeRecoveryResend;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/me/recovery/codes")
+      {
+         route.kind = RouteMeRecoveryCodes;
+         return;
+      }
+
       // Deleted items still within the recovery window.
       if (path == "/api/v1/me/recoverable")
       {
@@ -3820,6 +3878,36 @@ namespace HM
                route.kind = RouteAccountReviewPut;
             else
                return;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      // An account's one-time recovery codes, ended by an administrator. A
+      // separate act from clearing the address because the two answer separate
+      // reports: "that address is not mine any more" and "somebody else has my
+      // code card". A code stands in for the account's second factor, so a
+      // leaked set is a standing way past it and somebody has to be able to end
+      // one.
+      if (method == "DELETE" && path.StartsWith(accountsPrefix) && path.EndsWith("/recovery/codes"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/recovery/codes").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteAccountRecoveryCodesClear;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      // An account's recovery address, cleared by an administrator: the person
+      // sets one again from the webmail. There is no route that reads it whole.
+      if (method == "DELETE" && path.StartsWith(accountsPrefix) && path.EndsWith("/recovery"))
+      {
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - AnsiString("/recovery").GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteAccountRecoveryClear;
             route.identifier = address;
             return;
          }
@@ -5520,6 +5608,12 @@ namespace HM
       case RouteMeMaskedAddressDelete:
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
+      // Setting the address a forgotten password can be reset from, removing
+      // it, sending its confirmation again, and replacing the recovery codes.
+      case RouteMeRecoveryPut:
+      case RouteMeRecoveryDelete:
+      case RouteMeRecoveryResend:
+      case RouteMeRecoveryCodes:
       case RouteMeConfidentialRevoke:
       case RouteMeOfflinePut:
       case RouteMeFileCreate:
@@ -5774,6 +5868,11 @@ namespace HM
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
       case RouteAccountPushRemove:
+      // Clearing an account's recovery address is changing that account, as
+      // stopping its Web Push devices is, and ending its recovery codes is
+      // ending a credential.
+      case RouteAccountRecoveryClear:
+      case RouteAccountRecoveryCodesClear:
       // Releasing held mail sends it; discarding it deletes it; the account's
       // review choices and the compromise lock are its state.
       case RouteReviewRelease:
@@ -6238,8 +6337,12 @@ namespace HM
       // reaches further.
       case RouteDomainUpdate:
       // Stopping Web Push on every device of an account - a lost phone - is
-      // changing that account, as revoking its app passwords is.
+      // changing that account, as revoking its app passwords is. Clearing its
+      // recovery address is the same kind of act: it takes away the way back in
+      // that the person set for themselves.
       case RouteAccountPushRemove:
+      case RouteAccountRecoveryClear:
+      case RouteAccountRecoveryCodesClear:
       case RouteAccountCreate:
       case RouteAccountDelete:
       case RouteAccountUpdate:
@@ -6589,6 +6692,8 @@ namespace HM
       // credential confined to one domain could then switch another domain's key.
       case RouteAccountPushGet:
       case RouteAccountPushRemove:
+      case RouteAccountRecoveryClear:
+      case RouteAccountRecoveryCodesClear:
       case RouteDkimRotationGet:
       case RouteDkimRotationStart:
       case RouteDkimRotationCheck:
@@ -9571,8 +9676,27 @@ namespace HM
    }
 
    bool
-   RestApiServer::AuthenticateAccount_(const String &username, const String &password, const IPAddress &peer_address, Caller &caller)
+   RestApiServer::AuthenticateAccount_(const String &username, const String &password, const IPAddress &peer_address,
+                                       const AnsiString &request, Caller &caller)
    {
+      // A recovery code in place of the second factor, for somebody whose
+      // authenticator is gone. It is handed to Logon rather than decided here,
+      // and that is the whole of what keeps it honest: everything Logon puts in
+      // front of a password verification - the per-name lockout, the domain's
+      // country policy - is therefore in front of the code too, and the
+      // account's own password is compared exactly once instead of once here
+      // and once again inside. See PasswordValidator::SecondFactorOffer, which
+      // is where the ordering and the cost model are written down.
+      //
+      // Only an account that HAS a second factor can use one: for any other the
+      // header does nothing and nothing is spent. Matched in there and SPENT
+      // below, once Logon has accepted the whole attempt, so that a failure
+      // after this point burns nothing; a wrong code leaves the account password
+      // refused exactly as it is refused with no code at all, and that refusal
+      // is counted by Logon like any other.
+      SecondFactorOffer secondFactor;
+      Unicode::MultiByteToWide(GetHeader_(request, "x-hmailserver-recovery-code"), secondFactor.recovery_code);
+
       // The same path IMAP and POP3 take, and for the same reason those two
       // share it: every password scheme the server stores, directory-linked
       // accounts, app passwords, the per-name lockout, the logon failure count
@@ -9582,7 +9706,8 @@ namespace HM
       bool disconnect = false;
       bool viaAppPassword = false;
       String appPasswordName;
-      std::shared_ptr<const Account> account = AccountLogon().Logon(peer_address, username, password, disconnect, &viaAppPassword, &appPasswordName);
+      std::shared_ptr<const Account> account = AccountLogon().Logon(peer_address, username, password, disconnect,
+                                                                   &viaAppPassword, &appPasswordName, &secondFactor);
 
       if (!account)
       {
@@ -9603,6 +9728,18 @@ namespace HM
       caller.via_app_password = viaAppPassword;
       caller.credential_name = appPasswordName;
       ApplyAccountGrant_(caller);
+
+      if (secondFactor.matched_recovery_code != 0 && AccountRecovery::SpendCode(secondFactor.matched_recovery_code))
+      {
+         AccountRecovery::CodeState codes;
+         AccountRecovery::GetCodes(account->GetID(), codes);
+         caller.recovery_codes_left = codes.unused;
+
+         String left;
+         left.Format(_T("%d"), codes.unused);
+         LOG_APPLICATION("REST API: " + account->GetAddress() + " signed in with a recovery code in place of its one-time code from " +
+            String(peer_address.ToString()) + "; " + left + " of its recovery codes are left.");
+      }
 
       return true;
    }
@@ -9646,6 +9783,11 @@ namespace HM
       case RouteMeMaskedAddressCreate:
       case RouteMeMaskedAddressUpdate:
       case RouteMeMaskedAddressDelete:
+      case RouteMeRecovery:
+      case RouteMeRecoveryPut:
+      case RouteMeRecoveryDelete:
+      case RouteMeRecoveryResend:
+      case RouteMeRecoveryCodes:
       case RouteMeRecoverable:
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
@@ -9827,14 +9969,16 @@ namespace HM
 
       // An account with a second factor proves it here the way the
       // administrator does on every request: the code travels in
-      // X-hMailServer-OTP, and the 401 that asks for it names the header.
-      const String secret = account->GetTotpSecret();
-      if (!secret.IsEmpty())
-      {
-         const AnsiString code = GetHeader_(request, "x-hmailserver-otp");
-         if (code.IsEmpty() || !Totp::VerifyCode(AnsiString(secret), code))
-            return BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
-      }
+      // X-hMailServer-OTP, and the 401 that asks for it names the header. A
+      // recovery code in X-hMailServer-Recovery-Code stands in for it for
+      // somebody whose authenticator is gone (AccountRecovery.h). It is matched
+      // here and spent at the bottom, once the password has actually changed:
+      // the policy, the reuse history and the breach corpus below can all still
+      // refuse the new password, and ten refused choices must not leave an
+      // account with no authenticator and no codes.
+      __int64 recoveryCodeId = 0;
+      if (!SecondFactorProved_(account, request, &recoveryCodeId))
+         return BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
 
       // The same rules the Control Panel and COM apply when an administrator
       // sets a password, from the same two places, so a user cannot choose
@@ -9888,6 +10032,8 @@ namespace HM
       // password is changed most urgently when somebody else may have it,
       // and a session they already hold would outlive the change.
       RevokeSessionsForAccount_(account->GetID(), caller.via_session ? caller.session_hash : AnsiString());
+
+      SpendSecondFactor_(account, recoveryCodeId);
 
       LOG_APPLICATION("REST API: " + account->GetAddress() + " changed its own password from " + String(caller.peer.ToString()) + ".");
 
@@ -10339,13 +10485,14 @@ namespace HM
          // the page holds is a credential a script can read, so the answer
          // says how long it lasts and the page says where it lives.
          AnsiString bearerBody;
-         bearerBody.Format("{\"address\":\"%hs\",\"device\":\"%hs\",\"bearer\":true,\"token\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs}",
+         bearerBody.Format("{\"address\":\"%hs\",\"device\":\"%hs\",\"bearer\":true,\"token\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs%hs}",
             JsonEscape_(Utf8_(account->GetAddress())).c_str(),
             JsonEscape_(Utf8_(device)).c_str(),
             token.c_str(),
             policy.idle_seconds, policy.lifetime_seconds,
             policy.one_per_device ? "true" : "false",
-            policy.bind_to_address ? "true" : "false");
+            policy.bind_to_address ? "true" : "false",
+            RecoveryCodesLeftJson_(caller).c_str());
 
          return BuildResponse_(201, bearerBody);
       }
@@ -10369,12 +10516,13 @@ namespace HM
       }
       else
       {
-         body.Format("{\"address\":\"%hs\",\"device\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs}",
+         body.Format("{\"address\":\"%hs\",\"device\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs%hs}",
             JsonEscape_(Utf8_(account->GetAddress())).c_str(),
             JsonEscape_(Utf8_(device)).c_str(),
             policy.idle_seconds, policy.lifetime_seconds,
             policy.one_per_device ? "true" : "false",
-            policy.bind_to_address ? "true" : "false");
+            policy.bind_to_address ? "true" : "false",
+            RecoveryCodesLeftJson_(caller).c_str());
       }
 
       return BuildResponse_(201, body, cookie);
@@ -15110,6 +15258,7 @@ namespace HM
       openApiJson += OpenApiSenderAddressesPaths_();
       openApiJson += OpenApiMaskedAddressesPaths_();
       openApiJson += OpenApiRecoverablePaths_();
+      openApiJson += OpenApiRecoveryPaths_();
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiOfflinePaths_();

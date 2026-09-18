@@ -100,8 +100,12 @@ namespace HM
    }
 
    bool
-   RestApiServer::ConfirmAccountPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure)
+   RestApiServer::ConfirmAccountPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure,
+                                          const char *what, __int64 *recoveryCodeId)
    {
+      if (recoveryCodeId)
+         *recoveryCodeId = 0;
+
       std::shared_ptr<const Account> account = caller.account;
       if (!account)
       {
@@ -109,7 +113,7 @@ namespace HM
          return false;
       }
 
-      if (RefuseAppPasswordCaller_(caller, "making an app password", failure))
+      if (RefuseAppPasswordCaller_(caller, what, failure))
          return false;
 
       const String password = JsonUtf8Value_(GetRequestBody_(request), "password");
@@ -124,7 +128,7 @@ namespace HM
       // only that a program has one. Never an app password here.
       if (!PasswordValidator::ValidateAccountPasswordOnly(account, password))
       {
-         LOG_APPLICATION("REST API: making an app password for " + account->GetAddress() + " was refused from " +
+         LOG_APPLICATION("REST API: " + String(what) + " for " + account->GetAddress() + " was refused from " +
             String(caller.peer.ToString()) + " - the password did not match.");
          RegisterAuthenticationFailure_(caller.peer);
          failure = BuildResponse_(403, "{\"error\":\"the password is not correct\"}");
@@ -132,16 +136,15 @@ namespace HM
       }
 
       // An account with a second factor proves it as HandleMePassword_ asks:
-      // the code travels in X-hMailServer-OTP, and the 401 names the header.
-      const String secret = account->GetTotpSecret();
-      if (!secret.IsEmpty())
+      // the code travels in X-hMailServer-OTP, and the 401 names the header. A
+      // recovery code in X-hMailServer-Recovery-Code stands in for it, so that
+      // somebody whose authenticator is gone can still make an app password for
+      // the client that needs one. It is matched here and spent by the handler
+      // once the act has happened, never on the way to a refusal.
+      if (!SecondFactorProved_(account, request, recoveryCodeId))
       {
-         const AnsiString code = GetHeader_(request, "x-hmailserver-otp");
-         if (code.IsEmpty() || !Totp::VerifyCode(AnsiString(secret), code))
-         {
-            failure = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
-            return false;
-         }
+         failure = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
+         return false;
       }
 
       return true;
@@ -155,7 +158,8 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
       HttpResponse refusal;
-      if (!ConfirmAccountPassword_(caller, request, refusal))
+      __int64 recoveryCodeId = 0;
+      if (!ConfirmAccountPassword_(caller, request, refusal, "making an app password", &recoveryCodeId))
          return refusal;
 
       const AnsiString requestBody = GetRequestBody_(request);
@@ -190,6 +194,8 @@ namespace HM
          return BuildResponse_(500, body);
       }
       PersistentAppPassword::InvalidateExistenceCache();
+
+      SpendSecondFactor_(account, recoveryCodeId);
 
       LOG_APPLICATION("REST API: app password \"" + name + "\" made for " + account->GetAddress() + " from " +
          String(caller.peer.ToString()) + ".");

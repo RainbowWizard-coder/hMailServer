@@ -731,6 +731,7 @@
     <Compile Include="API\RestApiImportSignIn.cs" />
     <Compile Include="API\RestApiSenderAddresses.cs" />
     <Compile Include="API\RestApiMaskedAddresses.cs" />
+    <Compile Include="API\RestApiAccountRecovery.cs" />
     <Compile Include="API\RestApiRecoverDeleted.cs" />
     <Compile Include="API\RestApiConfidential.cs" />
     <Compile Include="API\RestApiOffline.cs" />

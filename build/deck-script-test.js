@@ -553,7 +553,11 @@ function accountRecord(address, active) {
       vacation_expires: false, vacation_expires_date: '', message_retention_days: 0, admin_level: 'user', antispam_enabled: true,
       spam_mark_threshold: -1, spam_delete_threshold: -1, forward_abort_spam_flagged: false, vacation_begin_date: '', vacation_abort_spam_flagged: false,
       vacation_days: 0, vacation_internal_subject: '', vacation_internal_message: '', vacation_internal_only: false,
-      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false };
+      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false,
+      // Read-only, and the address masked as every surface masks it: the four the
+      // account GET carries since AccountRecovery.h arrived.
+      recovery_address_set: true, recovery_address_verified: true, recovery_address: 'o....@e.........example',
+      recovery_codes_unused: 7 };
 }
 
 // The distribution list's schemas and descriptions as RestApiServer.cpp emits
@@ -2473,6 +2477,8 @@ function answer(method, path, headers, raw) {
    }
    if (path === '/api/v1/addresses/erase' && method === 'POST') { state.erasures = (state.erasures || 0) + 1; return json(200, { removed: 7, include_archive: true, include_logs: true }); }
    if (/^\/api\/v1\/accounts\/[^/]+\/push$/.test(path) && method === 'DELETE') { return json(200, { removed: 2 }); }
+   if (/^\/api\/v1\/accounts\/[^/]+\/recovery\/codes$/.test(path) && method === 'DELETE') { return json(200, { codes_cleared: 10 }); }
+   if (/^\/api\/v1\/accounts\/[^/]+\/recovery$/.test(path) && method === 'DELETE') { return json(200, { address_set: false }); }
    if (path.indexOf('/api/v1/role-assignments/') === 0) {
       const address = decodeURIComponent(path.slice('/api/v1/role-assignments/'.length));
       if (method === 'PUT') {
@@ -3187,6 +3193,25 @@ async function main() {
    click(act('accounts', { domain: 'example.com' }));
    await flush();
    check('the way back re-reads the accounts of the domain', called(before, 'GET', '/api/v1/domains/example.com/accounts').length === 1 && rows().length === 2 && act('accountedit', { address: 'carla@example.com' }) !== null);
+
+   // ---- the recovery card: what an administrator may know about an account's
+   // way back in, and the two things they may do about it. Two acts and not
+   // one, because they answer two reports - "that address is not mine any more"
+   // and "somebody else has seen my code card".
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   check('the account editor shows the recovery address masked, that it is confirmed, and how many codes are unused',
+      content().textContent.indexOf('o....@e.........example') >= 0 &&
+      content().textContent.indexOf('7 unused recovery codes.') >= 0,
+      content().textContent.slice(0, 300));
+   before = requests.length;
+   click(act('recoverycodesclear'));
+   await flush();
+   check('and Clear the recovery codes ends the set through its own route, leaving the address alone',
+      called(before, 'DELETE', '/api/v1/accounts/anna%40example.com/recovery/codes').length === 1 &&
+      called(before, 'DELETE', '/api/v1/accounts/anna%40example.com/recovery').length === 0, paths(before));
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
 
    // ---- renaming a mailbox, and moving one to another domain
    moveBlockedReason = 'A POP3 session is holding the mailbox of anna@example.com.';
@@ -6589,6 +6614,15 @@ async function main() {
    check('and neither a delete nor a new-account form, which it may not use',
       content().querySelectorAll('button[data-act="del"]').length === 0 && !document.getElementById('newAddr'));
    check('nor Stop notifications, which is manage_accounts', content().querySelectorAll('button[data-act="stoppush"]').length === 0);
+
+   click(act('accountedit', { address: helpAddresses[0] }));
+   await flush();
+   check('and the account editor shows no recovery card, whose two buttons are manage_accounts and would only answer 403',
+      content().querySelectorAll('button[data-act="recoveryclear"]').length === 0 &&
+      content().querySelectorAll('button[data-act="recoverycodesclear"]').length === 0 &&
+      content().textContent.indexOf('o....@e.........example') < 0, content().textContent.slice(0, 300));
+   click(act('accounts', { domain: helpDomain }));
+   await flush();
 
    click(act('resetpick', { address: helpAddresses[0] }));
    await flush();

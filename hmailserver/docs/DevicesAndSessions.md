@@ -192,6 +192,13 @@ Sharp edges
   signs in again and clears the mark. Use the app password option, or change
   the account's password (which ends every session and drops every connection
   of the account).
+* **A password reset ends every browser session too.** The self-service reset
+  a recovery address makes possible does exactly what a password change from
+  the webmail does - every session of the account ends, and both the mailbox
+  and the recovery address are told it happened. See
+  [AccountRecovery.md](AccountRecovery.md), whose one-time codes also stand in
+  for the second factor at sign-in, and are then named in the account's device
+  list as the ordinary password sign-in they are.
 * **The IMAP `ID` command is ignored** for the reason above, so an IMAP entry
   names the protocol and the address alone. Two mail programs on one machine
   fetching over IMAP are one entry.

@@ -228,6 +228,15 @@ namespace HM
       int GetRecoverDeletedDays() const;
       void SetRecoverDeletedDays(int days);
 
+      // The recovery address and the one-time recovery codes (AccountRecovery.h):
+      // whether they are offered, and how long each of the two links lives.
+      bool GetAccountRecoveryEnabled() const;
+      void SetAccountRecoveryEnabled(bool enabled);
+      int GetRecoveryResetLinkMinutes() const;
+      void SetRecoveryResetLinkMinutes(int minutes);
+      int GetRecoveryVerifyLinkHours() const;
+      void SetRecoveryVerifyLinkHours(int hours);
+
       // The most days of mail a reader may keep in their browser for reading
       // without a connection (RestApiOffline.cpp); 0 offers none.
       int GetReaderOfflineDaysMax() const;

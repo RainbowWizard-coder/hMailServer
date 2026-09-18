@@ -158,6 +158,7 @@ LOCALISED = {
    "Views/TotpSetupDialog.cs",
    "Views/AdministratorTwoFactorDialog.cs",
    "Views/CollectionEditorView.cs",
+   "Views/AccountRecoveryPanel.cs",
    "Views/AccountTwoFactorPanel.cs",
    "Views/MessageViewerDialog.cs",
    "Views/TotpPromptDialog.cs",

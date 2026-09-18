@@ -90,11 +90,12 @@ namespace HM
          return account_;
       }
 
-      const bool secondFactorSatisfied =
+      HM::SecondFactorOffer secondFactor;
+      secondFactor.satisfied =
          !pAccount->GetTotpSecret().IsEmpty() &&
          HM::Totp::VerifyCode(AnsiString(pAccount->GetTotpSecret()), AnsiString(sCode));
 
-      if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, secondFactorSatisfied))
+      if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, &secondFactor))
          account_ = pAccount;
 
       ResolveGrant_();

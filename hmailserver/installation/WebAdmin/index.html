@@ -1057,6 +1057,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="accountedit")openAccount(d.address,d.domain);
   else if(d.act==="accountsave")saveAccount();
   else if(d.act==="accountmove")moveAccount();
+  else if(d.act==="recoveryclear")clearRecovery();
+  else if(d.act==="recoverycodesclear")clearRecoveryCodes();
   else if(d.act==="aliases")showAliases(d.domain);
   else if(d.act==="aliasnew")createAlias(d.domain);
   else if(d.act==="aliasdel")deleteAlias(d.name,d.domain);
@@ -2196,6 +2198,7 @@ function renderAccountEditor(){
     <div class="sect"><h2>${tf("Account {0}",escHtml(editing.address))}</h2>
       <div class="card flat"><p class="note">${escHtml(operation("/api/v1/accounts/{address}","put").description||"")}</p></div></div>
     ${cards}
+    ${may("manage_accounts")?recoveryCardHtml():""}
     ${may("manage_accounts")?moveCardHtml():""}
     <div class="sect"><div class="row">
       <button class="btn" data-act="accountsave">${t("Save account")}</button>
@@ -2204,6 +2207,56 @@ function renderAccountEditor(){
       <div class="err" id="err_accountedit"></div>
     </div></div>
   </div>`;
+}
+/* What an administrator may know about an account's recovery address, which is
+   less than the account knows and deliberately so: whether one is set, whether
+   the person has confirmed it, the masked spelling of it, and how many one-time
+   codes are unused. The address itself is answered to nobody - not here, not
+   over COM, not in an export - because it is another mailbox belonging to the
+   person and nothing an administrator does needs to read it. What an
+   administrator CAN do is take it away, which is what a person ringing up to
+   say "that address is not mine any more" needs. */
+function recoveryCardHtml(){
+  const v=editing.values||{};
+  if(v.recovery_address_set===undefined)return "";
+  const masked=v.recovery_address||"";
+  const state=!v.recovery_address_set?t("No recovery address is set.")
+    :v.recovery_address_verified?tf("Recovery address confirmed: {0}",masked)
+    :tf("Recovery address set but not confirmed: {0}",masked);
+  return `<div class="sect"><h2>${t("Recovery")}</h2>
+    <div class="card">
+      <p class="note">${t("The address a password-reset link would be sent to, and the one-time recovery codes beside it. Only the masked form is ever shown, here or anywhere else: the address is another mailbox of the person's, and nothing an administrator does needs to read it. Clearing it ends every reset link in flight, and the person sets one again from the webmail.")}</p>
+      <p class="note">${escHtml(state)}</p>
+      <p class="note">${escHtml(tf("{0} unused recovery codes.",String(v.recovery_codes_unused||0)))}</p>
+      <div class="row"><button class="btn danger" data-act="recoveryclear"${v.recovery_address_set?"":" disabled"}>${t("Clear the recovery address")}</button>
+      <button class="btn danger" data-act="recoverycodesclear"${v.recovery_codes_unused?"":" disabled"}>${t("Clear the recovery codes")}</button></div>
+      <div class="err" id="err_recovery"></div>
+    </div></div>`;
+}
+/* And the other half of the remedy: ending the code set. A code stands in for
+   the account's second factor, so a card somebody else has read is a standing
+   way past it - and the account holder's own replacement from the webmail is
+   exactly what somebody locked out of the webmail cannot reach. Separate from
+   clearing the address because the two answer separate reports. */
+async function clearRecoveryCodes(){
+  setErr("err_recovery","");
+  const address=editing.address;
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/recovery/codes",{method:"DELETE"});
+    toast(t("The recovery codes were cleared."));
+    editing.values=await api("/api/v1/accounts/"+encodeURIComponent(address));
+    renderAccountEditor();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_recovery",refusalText(e));}
+}
+async function clearRecovery(){
+  setErr("err_recovery","");
+  const address=editing.address;
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(address)+"/recovery",{method:"DELETE"});
+    toast(t("The recovery address was cleared."));
+    editing.values=await api("/api/v1/accounts/"+encodeURIComponent(address));
+    renderAccountEditor();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_recovery",refusalText(e));}
 }
 /* Renaming a mailbox, and moving it to another domain on this server, are one
    operation and one route: POST /api/v1/accounts/{address}/move. It is here
