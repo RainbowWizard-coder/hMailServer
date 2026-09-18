@@ -252,6 +252,13 @@ jobs:
         run: node build/check-portal-smime.js
       - name: The S/MIME module embedded in the server is current
         run: python3 build/generate-portal-smime.py --check
+      # The fixtures under build/fixtures/openpgp are GnuPG's half and are
+      # committed, so this runs with no GnuPG at all; the runner has one, so
+      # the other half - what the module made, handed back to GnuPG - runs too.
+      - name: The webmail's OpenPGP module, against GnuPG both ways
+        run: node build/check-portal-openpgp.js
+      - name: The OpenPGP module embedded in the server is current
+        run: python3 build/generate-portal-openpgp.py --check
       - name: The webmail's page embedded in the server is current
         run: python3 build/generate-portal-page.py --check
 

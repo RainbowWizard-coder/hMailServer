@@ -78,6 +78,8 @@ drop table if exists hm_files;
 
 drop table if exists hm_smimekeys;
 
+drop table if exists hm_pgpring;
+
 drop table if exists hm_accounts;
 
 drop table if exists hm_aliases;
@@ -2162,6 +2164,35 @@ ALTER TABLE hm_pgpkeys ENGINE=InnoDB;
 
 ALTER TABLE hm_pgpkeys ADD CONSTRAINT fk_hm_pgpkeys_account FOREIGN KEY (pgpkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+create table hm_pgpring
+(
+	pgrid int auto_increment not null, primary key(`pgrid`), unique(`pgrid`),
+	pgraccountid int not null,
+	pgrkind tinyint not null,
+	pgraddress varchar(255) not null,
+	pgrname varchar(255) not null,
+	pgrfingerprint varchar(64) not null,
+	pgrkeyid varchar(16) not null,
+	pgralgorithm varchar(32) not null,
+	pgrpublic mediumtext not null,
+	pgrsecret mediumtext not null,
+	pgrcreated bigint not null,
+	pgrexpires bigint not null,
+	pgrrevoked int not null,
+	pgrsource varchar(16) not null,
+	pgrprefer int not null,
+	pgrfirstseen bigint not null,
+	pgrlastseen bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_pgpring_account ON hm_pgpring (pgraccountid);
+
+CREATE UNIQUE INDEX idx_hm_pgpring_entry ON hm_pgpring (pgraccountid, pgrkind, pgrfingerprint);
+
+ALTER TABLE hm_pgpring ENGINE=InnoDB;
+
+ALTER TABLE hm_pgpring ADD CONSTRAINT fk_hm_pgpring_account FOREIGN KEY (pgraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536);
@@ -2401,4 +2432,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6079);
+insert into hm_dbversion values (6080);

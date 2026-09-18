@@ -47,6 +47,7 @@ if exists (select * from sysobjects where id = object_id('hm_accountprefs') and 
 if exists (select * from sysobjects where id = object_id('hm_scheduled') and objectproperty(id, 'isusertable') = 1) drop table hm_scheduled
 if exists (select * from sysobjects where id = object_id('hm_files') and objectproperty(id, 'isusertable') = 1) drop table hm_files
 if exists (select * from sysobjects where id = object_id('hm_pgpkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_pgpkeys
+if exists (select * from sysobjects where id = object_id('hm_pgpring') and objectproperty(id, 'isusertable') = 1) drop table hm_pgpring
 if exists (select * from sysobjects where id = object_id('hm_smimekeys') and objectproperty(id, 'isusertable') = 1) drop table hm_smimekeys
 if exists (select * from sysobjects where id = object_id('hm_accounts') and objectproperty(id, 'isusertable') = 1) drop table hm_accounts 
 
@@ -2302,6 +2303,35 @@ CREATE UNIQUE INDEX idx_hm_pgpkeys_entry ON hm_pgpkeys (pgpkaccountid, pgpkfinge
 
 ALTER TABLE hm_pgpkeys ADD CONSTRAINT fk_hm_pgpkeys_account FOREIGN KEY (pgpkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+create table hm_pgpring
+(
+	pgrid int identity(1,1) not null,
+	pgraccountid int not null,
+	pgrkind tinyint not null,
+	pgraddress nvarchar(255) not null,
+	pgrname nvarchar(255) not null,
+	pgrfingerprint nvarchar(64) not null,
+	pgrkeyid nvarchar(16) not null,
+	pgralgorithm nvarchar(32) not null,
+	pgrpublic ntext not null,
+	pgrsecret ntext not null,
+	pgrcreated bigint not null,
+	pgrexpires bigint not null,
+	pgrrevoked int not null,
+	pgrsource nvarchar(16) not null,
+	pgrprefer int not null,
+	pgrfirstseen bigint not null,
+	pgrlastseen bigint not null
+)
+
+ALTER TABLE hm_pgpring ADD CONSTRAINT hm_pgpring_pk PRIMARY KEY NONCLUSTERED (pgrid)
+
+CREATE CLUSTERED INDEX idx_hm_pgpring_account ON hm_pgpring (pgraccountid)
+
+CREATE UNIQUE INDEX idx_hm_pgpring_entry ON hm_pgpring (pgraccountid, pgrkind, pgrfingerprint)
+
+ALTER TABLE hm_pgpring ADD CONSTRAINT fk_hm_pgpring_account FOREIGN KEY (pgraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536)
@@ -2549,4 +2579,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6079)
+insert into hm_dbversion values (6080)

@@ -1261,6 +1261,11 @@ namespace DBUpdater
                          "update hm_addressbookshares set sharewrite = sharewrite where 1 = 0"),
          new SchemaProbe(6079, "hm_contacts.contactbookid",
                          "update hm_contacts set contactbookid = contactbookid where 1 = 0"),
+         // Upgrade6079to6080* - OpenPGP in the page: the account's own keys, with
+         // the secret key encrypted the OpenPGP way under a passphrase this server
+         // never sees, and the public keys of its correspondents.
+         new SchemaProbe(6080, "hm_pgpring.pgrsecret",
+                         "update hm_pgpring set pgrsecret = pgrsecret where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

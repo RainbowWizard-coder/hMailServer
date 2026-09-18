@@ -513,6 +513,20 @@ namespace HM
       bool GetOpenPGPRequireAddressInUserId();
       void SetOpenPGPRequireAddressInUserId(bool required);
 
+      // OpenPGP in the webmail (Common/Util/OpenPgpRing.h, docs/OpenPGP.md):
+      // whether the page offers it, how a correspondent's key is looked up, and
+      // the deadline on the fetch the server makes for it.
+      bool GetOpenPGPPortalEnabled();
+      void SetOpenPGPPortalEnabled(bool enabled);
+      bool GetOpenPGPLookupWkd();
+      void SetOpenPGPLookupWkd(bool enabled);
+      bool GetOpenPGPLookupKeyserver();
+      void SetOpenPGPLookupKeyserver(bool enabled);
+      String GetOpenPGPKeyserverUrl();
+      void SetOpenPGPKeyserverUrl(const String &url);
+      int GetOpenPGPLookupTimeout();               // 2 to 30 seconds
+      void SetOpenPGPLookupTimeout(int seconds);
+
       // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
       // getters clamp, so a hand-edited row cannot make a time to live of a year
       // or an attempt count of none.

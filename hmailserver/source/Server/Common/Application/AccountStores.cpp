@@ -91,6 +91,16 @@ namespace HM
       // hm_accounts and hm_domains, which the archive already carries.
       { _T("hm_pgpkeys"), 0 },
 
+      // The webmail's OpenPGP key ring (schema 6080). The account's OWN keys
+      // are in here, secret half and all - encrypted the OpenPGP way under a
+      // passphrase this server has never had, so it carries them and cannot
+      // read them. An archive that dropped these would be the worst loss in
+      // this file: every message ever encrypted to that key becomes unreadable
+      // by anybody, for ever, and nothing would fail at the moment it happened.
+      // The correspondents' public keys are in the same table and are only
+      // inconvenient to lose.
+      { _T("hm_pgpring"), 0 },
+
       // The password reuse history (schema 6019). Hashes, like the account
       // password beside them. A restore that dropped these would silently let
       // every account go back to a password it had been made to change.
@@ -252,6 +262,24 @@ namespace HM
       { _T("hm_pgpkeys"), _T("pgpkkey"),             AccountStores::RoleText },
       { _T("hm_pgpkeys"), _T("pgpkuploaded"),        AccountStores::RoleNumber },
       { _T("hm_pgpkeys"), _T("pgpkuploadedby"),      AccountStores::RoleText },
+
+      { _T("hm_pgpring"), _T("pgrid"),               AccountStores::RoleIdentity },
+      { _T("hm_pgpring"), _T("pgraccountid"),        AccountStores::RoleAccount },
+      { _T("hm_pgpring"), _T("pgrkind"),             AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgraddress"),          AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrname"),             AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrfingerprint"),      AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrkeyid"),            AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgralgorithm"),        AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrpublic"),           AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrsecret"),           AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrcreated"),          AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrexpires"),          AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrrevoked"),          AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrsource"),           AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrprefer"),           AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrfirstseen"),        AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrlastseen"),         AccountStores::RoleNumber },
 
       { _T("hm_maskedaddresses"), _T("maid"),        AccountStores::RoleIdentity },
       { _T("hm_maskedaddresses"), _T("maaccountid"), AccountStores::RoleAccount },

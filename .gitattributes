@@ -34,6 +34,17 @@ build/*.sh text eol=lf
 # nowhere else.
 hmailserver/source/Tools/Cli/hmctl text eol=lf
 
+###############################################################################
+# The OpenPGP fixtures, byte for byte.
+#
+# These are keys, signatures and messages GnuPG 2.4 made, and two whole
+# PGP/MIME messages whose signed part is signed over its exact octets. A
+# signature does not survive a line ending being rewritten under it, and the
+# rule at the top of this file would rewrite every one of them on checkout, so
+# they are marked binary: no normalisation, no diff, the bytes GnuPG wrote.
+###############################################################################
+build/fixtures/openpgp/** binary
+
 # Explicitly binary
 *.exe binary
 *.dll binary

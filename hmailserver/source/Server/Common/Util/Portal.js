@@ -1263,6 +1263,7 @@
     renderConversation(m);
     renderActions();
     smimeInspect(m);
+    pgpInspect(m);
     el('message-html-toggle').hidden = !m.html || m.truncated;
     renderHtml();
     renderInvitation(m);
@@ -1364,6 +1365,7 @@
     el('compose-receipt').checked = false;
     el('compose-expires').value = '0'; el('compose-passcode').value = ''; syncExpiry();
     el('compose-sign').checked = false; el('compose-encrypt').checked = false; smimeComposeHints();
+    el('compose-pgp-sign').checked = false; el('compose-pgp-encrypt').checked = false; pgpComposeHints();
     selectIdentity('');
     el('compose-files').value = ''; el('compose-files-note').textContent = '';
     resetLinked();
@@ -1457,6 +1459,8 @@
     }
     if (el('compose-sign').checked) { body.sign = true; }
     if (el('compose-encrypt').checked) { body.encrypt = true; }
+    if (el('compose-pgp-sign').checked) { body.pgp_sign = true; }
+    if (el('compose-pgp-encrypt').checked) { body.pgp_encrypt = true; }
     if (richOn) { body.html = cleanHtml(el('compose-editor')); body.text = plainOf(el('compose-editor')).replace(/\n+$/, ''); }
     if (replyTo) { body.in_reply_to = replyTo.message_id; body.references = replyTo.references; body.answered_id = replyTo.id; }
     return body;
@@ -2060,6 +2064,7 @@
     hideCompose();
     forgetSecret();
     smimeForget();
+    pgpForget();
     var frame = el('message-html');
     if (frame) { frame.hidden = true; frame.removeAttribute('src'); }
     htmlBlobRevoke();
@@ -2188,6 +2193,7 @@
         // The directory's switch and this person's own entry, once per sign-in:
         // the side nav offers the page only where the server answers one.
         loadDirectoryCard();
+        loadPgpKeys();
         return loadFolders().then(function () {
           if (pending) { var wanted = pending; pending = ''; replaceWith(wanted); }
           else { route(); }
@@ -3500,7 +3506,7 @@
   var submitMessage = function (queued) {
     // A signed or an encrypted message is built here first (smimePrepare);
     // a plain one goes as it is.
-    return smimePrepare(queued.body).then(function (prepared) {
+    return smimePrepare(queued.body).then(pgpPrepare).then(pgpStamp).then(function (prepared) {
       queued.body = prepared;
       return call('POST', '/api/v1/me/messages', prepared);
     }, function (why) {
@@ -3592,7 +3598,7 @@
   window.addEventListener('beforeunload', function (event) {
     if (!pendingSend) { return; }
     var body = JSON.stringify(pendingSend.body);
-    if (body.length < 60000 && !pendingSend.body.sign && !pendingSend.body.encrypt) {
+    if (body.length < 60000 && !pendingSend.body.sign && !pendingSend.body.encrypt && !pendingSend.body.pgp_sign && !pendingSend.body.pgp_encrypt) {
       cancelUndo();
       apiFetch('/api/v1/me/messages', { method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'hMailServer' }, body: body });
       return;
@@ -3607,7 +3613,7 @@
   // send, which is a draft with an hour, would otherwise go in the clear at
   // that hour. True when the body was refused, having said why.
   var smimeSealedDraft = function (body) {
-    if (!body.sign && !body.encrypt) { return false; }
+    if (!body.sign && !body.encrypt && !body.pgp_sign && !body.pgp_encrypt) { return false; }
     say('compose-status', t('A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.'), false);
     return true;
   };
@@ -4416,7 +4422,7 @@
     });
   });
 
-  var loadSecurity = function () { loadPasskeys(); loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); };
+  var loadSecurity = function () { loadPasskeys(); loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); loadPgpPage(); };
 
   // Focus follows a change of view to its title, unless the view put the
   // focus somewhere itself, so that a screen reader announces where it is.
@@ -5019,6 +5025,616 @@
       say('smime-status', tf('Could not import: {0}', e && e.message ? e.message : String(e)), false);
     });
   });
+  // ---- OpenPGP ---------------------------------------------------------------
+  // The cryptography is /portal-openpgp.js (window.hmOpenPgp): RFC 4880 version
+  // 4 keys, signatures and messages, PGP/MIME and Autocrypt, on the Web Crypto
+  // API. Unlike the S/MIME module, which the shell always carries, this one is
+  // FETCHED ONLY WHEN SOMETHING NEEDS IT - a message that carries OpenPGP, the
+  // Security page, a send that is to be sealed, or an account that has a key
+  // and therefore wants an Autocrypt header on what it sends. It is the largest
+  // script this page has, and most sessions never meet an OpenPGP message.
+  //
+  // This block keeps the key ring in step with the server (GET/PUT/DELETE
+  // /api/v1/me/openpgp/keys...), opens the secret key with a passphrase that
+  // never leaves the browser, and puts what the module finds on the page.
+  var pgpModule = null;
+  var pgpLoading = null;
+  var pgpLoad = function () {
+    if (window.hmOpenPgp) { pgpModule = window.hmOpenPgp; return Promise.resolve(pgpModule); }
+    if (!pgpLoading) {
+      pgpLoading = new Promise(function (resolve, reject) {
+        var tag = document.createElement('script');
+        tag.src = '/portal-openpgp.js';
+        tag.addEventListener('load', function () {
+          pgpModule = window.hmOpenPgp || null;
+          if (pgpModule) { resolve(pgpModule); return; }
+          pgpLoading = null;
+          reject(new Error(t('The OpenPGP module did not load.')));
+        });
+        tag.addEventListener('error', function () { pgpLoading = null; reject(new Error(t('The OpenPGP module did not load.'))); });
+        (document.head || document.body).appendChild(tag);
+      });
+    }
+    return pgpLoading;
+  };
+  // Whether the page can do any of this: the module loaded, and the browser
+  // gave it its cryptography. A page opened over plain HTTP is not a secure
+  // context and the browser withholds crypto.subtle from it.
+  var pgpUsable = function () { return !!(pgpModule && pgpModule.available !== false && window.isSecureContext !== false); };
+  // parsed: fingerprint -> the public key the module read, so a key is read
+  // once. unlocked: fingerprint -> the SECRET key, open, for as long as this
+  // session lasts. autocrypt: address -> the header value for a message sent
+  // from it. All three go at sign-out, with everything else.
+  var pgpState = { own: [], peers: [], loaded: false, offered: false, limits: {}, lookup: {}, parsed: {}, unlocked: {}, autocrypt: {} };
+  var pgpForget = function () {
+    pgpSettle(false, '');
+    pgpState = { own: [], peers: [], loaded: false, offered: false, limits: {}, lookup: {}, parsed: {}, unlocked: {}, autocrypt: {} };
+    clear(el('pgp-own-rows'));
+    clear(el('pgp-peer-rows'));
+    el('pgp-own-table').hidden = true;
+    el('pgp-peer-table').hidden = true;
+    el('pgp-own-empty').hidden = false;
+    el('pgp-peer-empty').hidden = false;
+    el('pgp-unlock-passphrase').value = '';
+    el('pgp-import-passphrase').value = '';
+    el('pgp-import-file').value = '';
+    el('pgp-make-passphrase').value = '';
+    el('pgp-make-passphrase2').value = '';
+    say('pgp-status', '', true);
+    el('compose-pgp-sign-label').hidden = true;
+    el('compose-pgp-encrypt-label').hidden = true;
+    el('compose-pgp-note').hidden = true;
+    el('message-pgp').hidden = true;
+    el('message-pgp-unlock').hidden = true;
+    el('message-pgp-keep').hidden = true;
+    el('message-pgp-text').textContent = '';
+  };
+  var pgpGroups = function (fingerprint) { return String(fingerprint || '').toUpperCase().replace(/(.{4})/g, '$1 ').trim(); };
+  var pgpWhen = function (seconds) { return seconds ? new Date(seconds * 1000).toLocaleDateString() : t('Never'); };
+  var pgpOwnFor = function (address) { return pgpState.own.filter(function (o) { return o.address === address && !o.revoked; })[0] || null; };
+  var pgpPeersFor = function (address) { return pgpState.peers.filter(function (p) { return p.address === address && !p.revoked; }); };
+  var pgpAllUnlocked = function () { return pgpState.own.length > 0 && pgpState.own.every(function (o) { return !!pgpState.unlocked[o.fingerprint]; }); };
+  var pgpSave = function (text, name) {
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([text], { type: 'application/pgp-keys' }));
+    link.setAttribute('download', name);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 10000);
+  };
+  // The unlock dialogue: in 'unlock' mode it opens every locked key of the
+  // account with what is typed and resolves; in 'passphrase' mode it just hands
+  // the text back, which is how an import asks what to store the key under.
+  var pgpWaiters = [];
+  var pgpAsk = function (title, note, mode) {
+    el('pgp-unlock-title').textContent = title;
+    el('pgp-unlock-note').textContent = note;
+    el('pgp-unlock-form').setAttribute('data-ask', mode);
+    say('pgp-unlock-status', '', true);
+    el('pgp-unlock-passphrase').value = '';
+    el('pgp-unlock').hidden = false;
+    el('pgp-unlock-passphrase').focus();
+    return new Promise(function (resolve, reject) { pgpWaiters.push({ resolve: resolve, reject: reject }); });
+  };
+  var pgpSettle = function (ok, value) {
+    el('pgp-unlock').hidden = true;
+    el('pgp-unlock-passphrase').value = '';
+    pgpWaiters.splice(0).forEach(function (w) { if (ok) { w.resolve(value); } else { w.reject(value); } });
+  };
+  // Opens every own key that is still locked. Rejects with the reason when one
+  // would not open; bound to the account's state at the start, since the
+  // derivation takes long enough that a sign-out can happen under it.
+  var pgpUnlockWith = function (passphrase) {
+    var state = pgpState;
+    var chain = Promise.resolve();
+    var failed = '';
+    state.own.forEach(function (row) {
+      chain = chain.then(function () {
+        if (state !== pgpState || state.unlocked[row.fingerprint] || !row.secret_key) { return null; }
+        return pgpModule.readKey(row.secret_key, passphrase).then(function (key) {
+          if (state !== pgpState) { return; }
+          state.unlocked[row.fingerprint] = key;
+        }, function (e) { failed = e && e.message ? e.message : String(e); });
+      });
+    });
+    return chain.then(function () { if (failed) { throw new Error(failed); } });
+  };
+  var pgpUnlock = function () {
+    if (pgpAllUnlocked()) { return Promise.resolve(''); }
+    return pgpLoad().then(function () {
+      return pgpAsk(t('Unlock your OpenPGP key'), t('The passphrase opens the key in this browser; nothing is sent to the server.'), 'unlock');
+    });
+  };
+  el('pgp-unlock-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var passphrase = el('pgp-unlock-passphrase').value;
+    if (!passphrase) { say('pgp-unlock-status', t('Enter the passphrase.'), false); return; }
+    if (el('pgp-unlock-form').getAttribute('data-ask') === 'passphrase') { pgpSettle(true, passphrase); return; }
+    pgpUnlockWith(passphrase).then(function () { pgpSettle(true, passphrase); }, function (e) {
+      say('pgp-unlock-status', (e && e.message === 'wrong passphrase') ? t('Wrong passphrase. Nobody here can recover it: the key is encrypted where this server cannot see it.') : String(e && e.message || e), false);
+    });
+  });
+  el('pgp-unlock-cancel').addEventListener('click', function () { pgpSettle(false, t('Not sent. The message is still here.')); });
+  // One public key read once. A row whose key will not parse is left out of
+  // what is handed to the module rather than breaking the whole read.
+  var pgpParse = function (row) {
+    if (pgpState.parsed[row.fingerprint]) { return Promise.resolve(pgpState.parsed[row.fingerprint]); }
+    return pgpModule.readKey(pgpModule.b64decode(row.public_key)).then(function (key) {
+      pgpState.parsed[row.fingerprint] = key;
+      return key;
+    }, function () { return null; });
+  };
+  // Every key this account has, the opened secret ones FIRST: a message
+  // encrypted to a key is opened by whichever copy of that key the module
+  // meets first, and only the opened one can open it.
+  var pgpKeysInHand = function () {
+    var chain = Promise.resolve();
+    var out = [];
+    pgpState.own.concat(pgpState.peers).forEach(function (row) {
+      chain = chain.then(function () { return pgpParse(row); }).then(function (key) { if (key) { out.push(key); } });
+    });
+    return chain.then(function () {
+      return Object.keys(pgpState.unlocked).map(function (k) { return pgpState.unlocked[k]; }).concat(out);
+    });
+  };
+  // The Autocrypt header for each address the account has a key for, built once
+  // the module is in hand. A message sent from an address with no key carries
+  // no header, which is what Autocrypt means by having nothing to say.
+  var pgpBuildAutocrypt = function () {
+    var state = pgpState;
+    var chain = Promise.resolve();
+    state.own.forEach(function (row) {
+      if (row.revoked) { return; }
+      chain = chain.then(function () { return pgpParse(row); }).then(function (key) {
+        if (!key || state !== pgpState) { return; }
+        try { state.autocrypt[row.address] = pgpModule.autocryptHeader(row.address, key, true); } catch (e) { /* a key that will not describe itself carries no header */ }
+      });
+    });
+    return chain;
+  };
+  var pgpAutocryptFor = function (address) { return pgpState.autocrypt[String(address || '').toLowerCase()] || ''; };
+  var pgpRows = function (tbody, list, own) {
+    clear(tbody);
+    list.forEach(function (row) {
+      var tr = document.createElement('tr');
+      tr.appendChild(node('td', row.address + (row.name ? ' - ' + row.name : '')));
+      tr.appendChild(node('td', pgpGroups(row.fingerprint)));
+      tr.appendChild(node('td', own ? (row.revoked ? t('Revoked') : pgpWhen(row.expires)) : (row.revoked ? t('Revoked') : row.source)));
+      var td = document.createElement('td');
+      var add = function (label, run) {
+        var button = node('button', label, 'btn ghost sm');
+        button.type = 'button';
+        button.addEventListener('click', run);
+        td.appendChild(button);
+      };
+      add(t('Copy the public key'), function () {
+        pgpLoad().then(function () { return pgpParse(row); }).then(function (key) {
+          if (!key) { say('pgp-status', t('That key could not be read.'), false); return; }
+          return navigator.clipboard.writeText(pgpModule.exportPublic(key)).then(function () { say('pgp-status', t('The public key is on the clipboard.'), true); });
+        }).catch(function (e) { say('pgp-status', String(e && e.message || e), false); });
+      });
+      if (own) {
+        add(t('Save the secret key'), function () {
+          pgpSave(row.secret_key, row.address + '-secret.asc');
+          say('pgp-status', t('The secret key was saved. It is still encrypted under its passphrase; keep the file and the passphrase apart.'), true);
+        });
+        add(t('Publish'), function () {
+          call('PUT', '/api/v1/me/openpgp', { key: row.public_key, publish: true }).then(function (result) {
+            say('pgp-status', (result.status === 200 || result.status === 201) ? t('The public key is published in this server\'s Web Key Directory.') : describe(result, t('Could not publish the key')), result.status === 200 || result.status === 201);
+          });
+        });
+        if (!row.revoked) {
+          add(t('Revoke'), function () {
+            if (!window.confirm(t('Revoke this key? A revoked key signs and encrypts nothing, and every correspondent who fetches it is told so. It cannot be undone.'))) { return; }
+            pgpRevoke(row);
+          });
+        }
+      }
+      add(t('Remove'), function () {
+        if (own && !window.confirm(t('Remove this key from this server? If you have no copy of the secret key elsewhere, every message encrypted to it becomes unreadable for ever.'))) { return; }
+        call('DELETE', '/api/v1/me/openpgp/keys/' + (own ? 'own' : 'correspondents') + '/' + row.fingerprint).then(function (result) {
+          if (result.status === 200) { delete pgpState.unlocked[row.fingerprint]; delete pgpState.parsed[row.fingerprint]; loadPgpKeys(); return; }
+          say('pgp-status', describe(result, t('Could not remove')), false);
+        });
+      });
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+  };
+  var pgpRenderPage = function () {
+    el('pgp-off').hidden = pgpState.offered;
+    el('pgp-body').hidden = !pgpState.offered;
+    el('pgp-unavailable').hidden = window.isSecureContext !== false;
+    pgpRows(el('pgp-own-rows'), pgpState.own, true);
+    el('pgp-own-table').hidden = !pgpState.own.length;
+    el('pgp-own-empty').hidden = !!pgpState.own.length;
+    pgpRows(el('pgp-peer-rows'), pgpState.peers, false);
+    el('pgp-peer-table').hidden = !pgpState.peers.length;
+    el('pgp-peer-empty').hidden = !!pgpState.peers.length;
+  };
+  // The key ring, which is a plain JSON listing and costs nothing: asked for at
+  // sign-in so the compose form knows what it may offer. The module itself is
+  // fetched only when the account HAS a key, because only then is there
+  // anything for it to do before a message arrives.
+  var loadPgpKeys = function () {
+    var state = pgpState;
+    return call('GET', '/api/v1/me/openpgp/keys').then(function (result) {
+      if (state !== pgpState) { return; }
+      state.loaded = true;
+      if (result.status === 403) { state.offered = false; pgpRenderPage(); return; }
+      if (result.status !== 200 || !result.data) { return; }
+      state.offered = true;
+      state.own = result.data.own || [];
+      state.peers = result.data.correspondents || [];
+      state.limits = result.data.limits || {};
+      state.lookup = result.data.lookup || {};
+      pgpRenderPage();
+      pgpComposeHints();
+      if (!state.own.length) { return; }
+      return pgpLoad().then(function () {
+        if (state !== pgpState) { return; }
+        el('pgp-curve-note').hidden = true;
+        pgpModule.curve25519Available().then(function (have) { if (state === pgpState) { el('pgp-curve-note').hidden = !!have; } });
+        return pgpBuildAutocrypt();
+      }, function () { /* the page still works without it; a message that needs it says so */ });
+    });
+  };
+  // The Security page asks for the module as well, since making or importing a
+  // key is what that page is for.
+  var loadPgpPage = function () {
+    return loadPgpKeys().then(function () {
+      if (!pgpState.offered) { return null; }
+      return pgpLoad().then(function () {
+        pgpModule.curve25519Available().then(function (have) { el('pgp-curve-note').hidden = !!have; });
+      }, function (e) { say('pgp-status', String(e && e.message || e), false); });
+    });
+  };
+  // Storing one key. own carries its secret half; a correspondent's does not.
+  var pgpStore = function (key, secretArmored, source) {
+    var body = {
+      public_key: pgpModule.b64encode(pgpModule.publicBytes(key)),
+      address: key.address || me,
+      name: key.name || '',
+      source: source,
+      revoked: !!key.revoked
+    };
+    if (secretArmored) { body.secret_key = secretArmored; }
+    return call('PUT', '/api/v1/me/openpgp/keys/' + (secretArmored ? 'own' : 'correspondents'), body);
+  };
+  el('pgp-make-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var passphrase = el('pgp-make-passphrase').value;
+    if (passphrase.length < 8) { say('pgp-status', t('The passphrase is at least eight characters.'), false); return; }
+    if (passphrase !== el('pgp-make-passphrase2').value) { say('pgp-status', t('The two passphrases are not the same.'), false); return; }
+    var address = String(el('pgp-make-address').value || me).trim().toLowerCase();
+    var kind = el('pgp-make-kind').value;
+    var spec = {
+      type: kind === 'curve25519' ? 'curve25519' : 'rsa',
+      bits: kind === 'rsa4096' ? 4096 : 3072,
+      name: String(el('pgp-make-name').value || '').trim(),
+      email: address,
+      expiresIn: Number(el('pgp-make-expiry').value) || 0,
+      passphrase: passphrase
+    };
+    say('pgp-status', t('Making the key in this browser. An RSA key takes a moment.'), true);
+    pgpLoad().then(function () { return pgpModule.generateKey(spec); }).then(function (made) {
+      return pgpStore(made.key, made.secretArmored, 'generated').then(function (result) {
+        if (result.status !== 200 && result.status !== 201) { throw new Error(describe(result, t('Could not store the key'))); }
+        pgpState.unlocked[made.fingerprint] = made.key;
+        pgpSave(made.revocation, address + '-revocation.asc');
+        el('pgp-make-passphrase').value = '';
+        el('pgp-make-passphrase2').value = '';
+        say('pgp-status', tf('The key {0} was made. Its revocation certificate has been saved to this device: keep it, because it is the only way to withdraw the key if the passphrase is ever lost.', pgpGroups(made.fingerprint)), true);
+        return loadPgpKeys();
+      });
+    }).catch(function (e) { say('pgp-status', tf('The key could not be made: {0}', String(e && e.message || e)), false); });
+  });
+  el('pgp-import-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var file = (el('pgp-import-file').files || [])[0];
+    if (!file) { say('pgp-status', t('Choose a file first.'), false); return; }
+    var filePassphrase = el('pgp-import-passphrase').value;
+    say('pgp-status', t('Importing...'), true);
+    pgpLoad().then(function () { return file.text(); }).then(function (text) {
+      if (/-----BEGIN PGP PUBLIC KEY BLOCK-----[\s\S]*-----BEGIN PGP SIGNATURE-----/.test(text) || /^\s*-----BEGIN PGP SIGNATURE-----/.test(text)) {
+        return pgpImportRevocation(text);
+      }
+      return pgpModule.readKeys(text, filePassphrase).then(function (keys) {
+        var secret = keys.filter(function (k) { return k.isSecret; });
+        var pub = keys.filter(function (k) { return !k.isSecret; });
+        var ask = secret.length
+          ? pgpAsk(t('A passphrase for the key here'), t('The secret key is stored again under this passphrase, which never leaves the browser. Use the one your other keys here already use.'), 'passphrase')
+          : Promise.resolve('');
+        return ask.then(function (passphrase) {
+          var chain = Promise.resolve();
+          var done = [];
+          secret.forEach(function (key) {
+            chain = chain.then(function () {
+              return pgpModule.exportSecret(key, passphrase).then(function (armoured) {
+                return pgpStore(key, armoured, 'imported').then(function (result) {
+                  if (result.status !== 200 && result.status !== 201) { throw new Error(describe(result, t('Could not store the key'))); }
+                  pgpState.unlocked[key.fingerprint] = key;
+                  done.push(key.address);
+                });
+              });
+            });
+          });
+          pub.forEach(function (key) {
+            chain = chain.then(function () {
+              return pgpStore(key, '', 'imported').then(function (result) {
+                if (result.status === 200 || result.status === 201) { done.push(key.address); }
+              });
+            });
+          });
+          return chain.then(function () { return done; });
+        });
+      });
+    }).then(function (done) {
+      el('pgp-import-file').value = '';
+      el('pgp-import-passphrase').value = '';
+      if (done) { say('pgp-status', tf('Imported {0}.', done.join(', ')), true); }
+      return loadPgpKeys();
+    }).catch(function (e) { say('pgp-status', tf('Could not import: {0}', String(e && e.message || e)), false); });
+  });
+  // A revocation certificate, applied to the key it revokes and stored again,
+  // so that every correspondent who fetches the key is told.
+  var pgpImportRevocation = function (text) {
+    var chain = Promise.resolve();
+    var done = [];
+    pgpState.own.concat(pgpState.peers).forEach(function (row) {
+      if (row.revoked) { return; }
+      chain = chain.then(function () { return pgpParse(row); }).then(function (key) {
+        if (!key) { return null; }
+        return pgpModule.applyRevocation(key, text).then(function () {
+          return pgpStore(key, row.secret_key || '', row.source).then(function () { done.push(row.address); });
+        }, function () { /* not this key's revocation */ });
+      });
+    });
+    return chain.then(function () {
+      if (!done.length) { throw new Error(t('That revocation certificate does not belong to any key here.')); }
+      return done;
+    });
+  };
+  // Revoking: the certificate is made by the key itself, applied to it, and the
+  // key stored again with the revocation on it, so that every correspondent who
+  // fetches it afterwards is told. The certificate is saved to the device as
+  // well, because whoever already has the key has to be given it.
+  var pgpRevoke = function (row) {
+    pgpLoad().then(pgpUnlock).then(function (passphrase) {
+      var key = pgpState.unlocked[row.fingerprint];
+      if (!key) { throw new Error(t('The key could not be opened.')); }
+      return pgpModule.revocationCertificate(key, 1, 'Revoked in the webmail.').then(function (certificate) {
+        return pgpModule.applyRevocation(key, certificate).then(function () {
+          // The secret half carries the revocation too when the passphrase was
+          // just typed; when the key was already open in this session there is
+          // no passphrase to write it under, and the public half - which is
+          // what anybody else ever fetches - carries it either way.
+          return (passphrase ? pgpModule.exportSecret(key, passphrase) : Promise.resolve(row.secret_key)).then(function (secret) {
+            return pgpStore(key, secret, row.source).then(function (result) {
+              if (result.status !== 200 && result.status !== 201) { throw new Error(describe(result, t('Could not store the key'))); }
+              pgpSave(certificate, row.address + '-revocation.asc');
+              say('pgp-status', t('The key is revoked. Send the revocation certificate to anyone who has the key, and publish it if the key was published.'), true);
+              delete pgpState.parsed[row.fingerprint];
+              delete pgpState.unlocked[row.fingerprint];
+              return loadPgpKeys();
+            });
+          });
+        });
+      });
+    }).catch(function (e) { say('pgp-status', String(e && e.message || e), false); });
+  };
+  el('pgp-lookup-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var address = String(el('pgp-lookup-address').value || '').trim().toLowerCase();
+    if (address.indexOf('@') < 1) { say('pgp-status', t('Type an e-mail address to look a key up for.'), false); return; }
+    say('pgp-status', t('Looking...'), true);
+    call('GET', '/api/v1/me/openpgp/lookup?address=' + encodeURIComponent(address)).then(function (result) {
+      var d = result.data || {};
+      if (result.status !== 200) { say('pgp-status', describe(result, t('Could not look the key up')), false); return; }
+      if (!d.found) { say('pgp-status', tf('No key was found for {0}: {1}', address, d.error || ''), false); return; }
+      if (!window.confirm(tf('A key for {0} was found at {1}. Its fingerprint is {2}. Read it back to its owner before you rely on it. Keep it?', address, d.source, pgpGroups(d.key.fingerprint)))) { say('pgp-status', '', true); return; }
+      call('PUT', '/api/v1/me/openpgp/keys/correspondents', { public_key: d.key.public_key, address: address, name: d.key.name || '', source: d.source.indexOf('wkd') === 0 ? 'wkd' : 'keyserver' }).then(function (stored) {
+        if (stored.status !== 200 && stored.status !== 201) { say('pgp-status', describe(stored, t('Could not store the key')), false); return; }
+        el('pgp-lookup-address').value = '';
+        say('pgp-status', tf('The key of {0} was kept.', address), true);
+        loadPgpKeys();
+      });
+    });
+  });
+  // ---- reading a message ----
+  // Whether this message has anything for the module to do, asked without the
+  // module: the content type, an Autocrypt header, or an inline block.
+  var pgpNeeded = function (m) {
+    var headers = String(m.headers || '');
+    if (/application\/pgp-(encrypted|signature|keys)/i.test(headers)) { return true; }
+    if (/^autocrypt:/im.test(headers)) { return true; }
+    return /-----BEGIN PGP (MESSAGE|SIGNED MESSAGE|PUBLIC KEY BLOCK)-----/.test(String(m.text || ''));
+  };
+  var pgpBadge = function (text, cls) { el('message-badges').appendChild(node('span', text, 'badge ' + cls)); };
+  var pgpRun = 0;
+  var pgpInspect = function (m) {
+    el('message-pgp').hidden = true;
+    el('message-pgp-unlock').hidden = true;
+    el('message-pgp-keep').hidden = true;
+    if (!pgpNeeded(m)) { return; }
+    if (window.isSecureContext === false) {
+      el('message-pgp-text').textContent = t('OpenPGP is unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.');
+      el('message-pgp').hidden = false;
+      return;
+    }
+    var run = ++pgpRun;
+    el('message-pgp-text').textContent = t('Reading the OpenPGP message...');
+    el('message-pgp').hidden = false;
+    var ready = pgpState.loaded ? Promise.resolve() : loadPgpKeys();
+    ready.then(pgpLoad).then(pgpKeysInHand).then(function (keys) {
+      return apiFetch('/api/v1/me/messages/' + m.id + '/source', { cache: 'no-store', credentials: 'same-origin' }).then(function (r) {
+        return r.ok ? r.arrayBuffer() : Promise.reject(new Error('HTTP ' + r.status));
+      }).then(function (buffer) { return pgpModule.readMessage(new Uint8Array(buffer), keys); });
+    }).then(function (result) {
+      if (run !== pgpRun || !current || current.id !== m.id) { return; }
+      pgpShow(m, result);
+    }, function (e) {
+      if (run !== pgpRun) { return; }
+      el('message-pgp-text').textContent = tf('Could not read it: {0}', String(e && e.message || e));
+    });
+  };
+  // An Autocrypt header on a message from an address this account has no key
+  // for is kept at once, which is what Autocrypt is: the key arrives with the
+  // mail and nobody is asked anything. A header that would REPLACE a different
+  // key already held for that address is not kept silently - a change of key is
+  // the one thing a man in the middle needs to go unnoticed - so it waits
+  // behind a button and says what it would do.
+  var pgpAutocryptKeep = null;
+  var pgpLearn = function (m, autocrypt) {
+    pgpAutocryptKeep = null;
+    if (!autocrypt || autocrypt.address !== smimeAddress(m.from)) { return ''; }
+    return pgpModule.readKey(autocrypt.keydata).then(function (key) {
+      var held = pgpPeersFor(autocrypt.address).concat(pgpState.own.filter(function (o) { return o.address === autocrypt.address; }));
+      if (held.some(function (row) { return row.fingerprint === key.fingerprint; })) { return ''; }
+      if (held.length) {
+        pgpAutocryptKeep = { key: key, address: autocrypt.address };
+        el('message-pgp-keep').hidden = false;
+        return tf('This message carries a DIFFERENT OpenPGP key for {0}, fingerprint {1}. A key that changes without being asked about is what a man in the middle needs; check it with its owner before keeping it.', autocrypt.address, pgpGroups(key.fingerprint));
+      }
+      return pgpStore(key, '', 'autocrypt').then(function (result) {
+        if (result.status !== 200 && result.status !== 201) { return ''; }
+        loadPgpKeys();
+        return tf('The OpenPGP key of {0} was learned from this message.', autocrypt.address);
+      });
+    }, function () { return ''; });
+  };
+  el('message-pgp-keep').addEventListener('click', function () {
+    if (!pgpAutocryptKeep) { return; }
+    var keep = pgpAutocryptKeep;
+    pgpAutocryptKeep = null;
+    el('message-pgp-keep').hidden = true;
+    pgpStore(keep.key, '', 'autocrypt').then(function (result) {
+      say('mail-status', (result.status === 200 || result.status === 201) ? tf('The key of {0} was kept.', keep.address) : describe(result, t('Could not store the key')), result.status === 200 || result.status === 201);
+      loadPgpKeys();
+    });
+  });
+  el('message-pgp-unlock').addEventListener('click', function () {
+    pgpUnlock().then(function () { if (current) { pgpInspect(current); } }, function () {});
+  });
+  var pgpShow = function (m, result) {
+    var lines = [];
+    if (result.encrypted) {
+      if (result.encrypted.ok) {
+        lines.push(t('Encrypted with OpenPGP; opened in this browser. It can be searched by its headers only.'));
+        pgpBadge(t('Encrypted'), 'good');
+        if (result.integrityProtected === false) { lines.push(t('It carries no integrity check, which an OpenPGP message written since 2002 does: treat what it says with care.')); }
+      }
+      else if (pgpState.own.length && !pgpAllUnlocked()) {
+        lines.push(t('Encrypted with OpenPGP. Unlock your key to read it.'));
+        el('message-pgp-unlock').hidden = false;
+        pgpBadge(t('Encrypted'), 'muted');
+      }
+      else {
+        lines.push(tf('Encrypted with OpenPGP, and cannot be read here: {0}', result.encrypted.error));
+        pgpBadge(t('Encrypted'), 'muted');
+      }
+    }
+    if (result.signed) {
+      var s = result.signed;
+      var who = (s.key && s.key.address) || s.signerUserId || (s.keyId ? s.keyId.toUpperCase() : '');
+      var from = smimeAddress(m.from);
+      var carries = ((s.key && s.key.addresses) || []).indexOf(from) >= 0 || who === from;
+      if (!s.valid) { pgpBadge(tf('OpenPGP signature not verified: {0}', s.error), s.error && s.error.indexOf('no key here is') === 0 ? 'warn' : 'bad'); }
+      else if (!carries) { pgpBadge(tf('Signed by {0}, not the sender', who), 'warn'); }
+      else if (s.problem) { pgpBadge(tf('Signed by {0}, but {1}', who, s.problem), 'warn'); }
+      else { pgpBadge(tf('Signed by {0}', who), 'good'); }
+      if (s.valid && s.fingerprint) { lines.push(tf('The signing key is {0}.', pgpGroups(s.fingerprint))); }
+    }
+    if (result.content && ((result.encrypted && result.encrypted.ok) || result.inline)) {
+      var c = result.content;
+      var text = c.text || (c.html ? (new DOMParser().parseFromString(c.html, 'text/html').body.textContent || '') : '');
+      el('message-text').textContent = text || '(no text)';
+      var attachments = el('message-attachments');
+      clear(attachments);
+      if (c.attachments.length) {
+        attachments.appendChild(node('span', t('Attachments: ')));
+        c.attachments.forEach(function (a, i) {
+          var link = node('a', a.name + ' (' + a.type + ', ' + format(a.bytes.length) + ')');
+          link.href = URL.createObjectURL(new Blob([a.bytes], { type: a.type }));
+          link.setAttribute('download', a.name);
+          if (i > 0) { attachments.appendChild(node('span', ', ')); }
+          attachments.appendChild(link);
+        });
+      }
+    }
+    el('message-pgp-text').textContent = lines.join(' ');
+    el('message-pgp').hidden = !lines.length;
+    Promise.resolve(pgpLearn(m, result.autocrypt)).then(function (learned) {
+      if (!learned || !current || current.id !== m.id) { return; }
+      el('message-pgp-text').textContent = (el('message-pgp-text').textContent + ' ' + learned).trim();
+      el('message-pgp').hidden = false;
+    });
+  };
+  // ---- writing a message ----
+  var pgpComposeHints = function () {
+    if (!pgpState.loaded || !pgpState.offered) { return; }
+    var own = pgpOwnFor(smimeFromAddress());
+    el('compose-pgp-sign-label').hidden = !own;
+    el('compose-pgp-encrypt-label').hidden = !own && !pgpState.peers.length;
+    var missing = [];
+    smimeAddresses(el('compose-to').value + ',' + el('compose-cc').value + ',' + el('compose-bcc').value).forEach(function (a) {
+      if (!pgpPeersFor(a).length && !pgpOwnFor(a) && missing.indexOf(a) < 0) { missing.push(a); }
+    });
+    var hints = [];
+    if (el('compose-pgp-encrypt').checked && missing.length) { hints.push(tf('Encrypt: no OpenPGP key for {0}.', missing.join(', '))); }
+    if (el('compose-pgp-sign').checked && !own) { hints.push(t('Sign: no OpenPGP key of yours for this From address.')); }
+    el('compose-pgp-note').textContent = hints.join(' ');
+    el('compose-pgp-note').hidden = !hints.length;
+  };
+  ['compose-to', 'compose-cc', 'compose-bcc'].forEach(function (id) { el(id).addEventListener('input', pgpComposeHints); });
+  ['compose-from', 'compose-pgp-sign', 'compose-pgp-encrypt'].forEach(function (id) { el(id).addEventListener('change', pgpComposeHints); });
+  // The body the form made, turned into the PGP/MIME entity the server sends as
+  // it is: signed with the From address's key, encrypted to every recipient's
+  // key and to the sender's own so the copy in Sent can still be read.
+  var pgpPrepare = function (body) {
+    if (!body.pgp_sign && !body.pgp_encrypt) { return Promise.resolve(body); }
+    if (window.isSecureContext === false) { return Promise.reject(new Error(t('OpenPGP is unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.'))); }
+    var from = body.from ? smimeAddress(body.from) : me;
+    var own = pgpOwnFor(from);
+    if (body.pgp_sign && !own) { return Promise.reject(new Error(t('Sign: no OpenPGP key of yours for this From address.'))); }
+    return pgpLoad().then(function () {
+      var recipients = [];
+      var chain = Promise.resolve();
+      if (body.pgp_encrypt) {
+        var missing = [];
+        smimeAddresses(body.to + ',' + body.cc + ',' + body.bcc).concat(own ? [from] : []).forEach(function (a) {
+          var rows = pgpPeersFor(a).concat(pgpState.own.filter(function (o) { return o.address === a && !o.revoked; }));
+          if (!rows.length) { if (missing.indexOf(a) < 0 && a !== from) { missing.push(a); } return; }
+          rows.forEach(function (row) {
+            chain = chain.then(function () { return pgpParse(row); }).then(function (key) { if (key && recipients.indexOf(key) < 0) { recipients.push(key); } });
+          });
+        });
+        if (missing.length) { return Promise.reject(new Error(tf('Encrypt: no OpenPGP key for {0}.', missing.join(', ')))); }
+      }
+      return chain.then(function () { return body.pgp_sign ? pgpUnlock() : null; }).then(function () {
+        var signer = body.pgp_sign ? pgpState.unlocked[own.fingerprint] : null;
+        if (body.pgp_sign && !signer) { throw new Error(t('Sign: the key could not be opened.')); }
+        return pgpModule.composeMessage({ headers: {}, text: body.text || '', html: body.html || '', attachments: body.attachments || [], sign: signer, encrypt: body.pgp_encrypt ? recipients : null });
+      });
+    }).then(function (message) {
+      var out = {};
+      ['to', 'cc', 'bcc', 'from', 'subject', 'receipt', 'in_reply_to', 'references', 'answered_id'].forEach(function (k) { if (body[k] !== undefined && body[k] !== '') { out[k] = body[k]; } });
+      // The module writes only MIME-Version above the entity; the server puts its own on.
+      out.mime = message.replace(/^MIME-Version: 1\.0\r\n/, '');
+      return out;
+    });
+  };
+  // The last thing before a send: the Autocrypt header, on every message from
+  // an address that has a key, sealed or not. The two flags this page used to
+  // decide with are not the server's business and go here.
+  var pgpStamp = function (body) {
+    delete body.pgp_sign;
+    delete body.pgp_encrypt;
+    var value = pgpAutocryptFor(body.from ? smimeAddress(body.from) : me);
+    if (value) { body.autocrypt = value; }
+    return body;
+  };
   el('message-unsubscribe').addEventListener('click', function () {
     if (!current) { return; }
     say('mail-status', t('Asking the list...'), true);

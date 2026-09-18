@@ -280,7 +280,13 @@ namespace HM
 
          response.status_code = atoi(statusLine.c_str() + space + 1);
          response.headers = raw.substr(0, headerEnd).c_str();
-         response.body = raw.substr(headerEnd + 4).c_str();
+         // The body by its length rather than through c_str(): every caller
+         // until the Web Key Directory lookup fetched JSON or a token, and a
+         // conversion that stops at the first zero octet was invisible. A key
+         // served by a directory is binary and has zero octets all through it,
+         // and one taken that way would arrive a few bytes long.
+         const std::string body = raw.substr(headerEnd + 4);
+         response.body.assign(body.data(), body.size());
 
          return true;
       }

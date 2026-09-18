@@ -730,6 +730,7 @@ namespace HM
          if (path.StartsWith("/deck-lang/"))
             return true;
          if (path == "/portal" || path == "/portal.js" || path == "/portal-smime.js" ||
+             path == "/portal-openpgp.js" ||
              path == "/portal.webmanifest" || path == "/portal-sw.js")
             return true;
          if (path.StartsWith("/portal-lang/"))
@@ -1652,6 +1653,12 @@ namespace HM
 
       if (method == "GET" && path == "/portal-smime.js")
          return HandlePortalSmimeScript_();
+
+      // The OpenPGP module, which the page fetches only when a message or a
+      // setting needs it: it is the largest script this server serves and most
+      // sessions never open an OpenPGP message at all.
+      if (method == "GET" && path == "/portal-openpgp.js")
+         return HandlePortalOpenPgpScript_();
 
       // The two files that make the page installable and reachable without a
       // connection: the manifest, and the service worker that keeps the shell.
@@ -2606,6 +2613,24 @@ namespace HM
          case RouteMeOpenPgpPublish:
             return HandleMeOpenPgpPublish_(caller, GetRequestBody_(request));
 
+         case RouteMeOpenPgpKeys:
+            return HandleMeOpenPgpKeys_(caller);
+
+         case RouteMeOpenPgpKeyOwnPut:
+            return HandleMeOpenPgpKeyPut_(caller, true, GetRequestBody_(request));
+
+         case RouteMeOpenPgpKeyPeerPut:
+            return HandleMeOpenPgpKeyPut_(caller, false, GetRequestBody_(request));
+
+         case RouteMeOpenPgpKeyOwnDelete:
+            return HandleMeOpenPgpKeyDelete_(caller, true, route.identifier);
+
+         case RouteMeOpenPgpKeyPeerDelete:
+            return HandleMeOpenPgpKeyDelete_(caller, false, route.identifier);
+
+         case RouteMeOpenPgpLookup:
+            return HandleMeOpenPgpLookup_(caller, route.query);
+
          case RouteMeStorage:
             return HandleMeStorage_(caller);
 
@@ -3227,6 +3252,29 @@ namespace HM
          AnsiString rest = path.Mid(meOpenPgpPath.GetLength() + 1);
          if (rest == "publish" && method == "PUT")
             route.kind = RouteMeOpenPgpPublish;
+         // The webmail's key ring (RestApiOpenPgpKeys.cpp): the account's own
+         // keys, secret half and all, and its correspondents' public ones. The
+         // paths below all hold a slash, and the one-segment DELETE at the end
+         // of this block - the published key, by fingerprint - does not, so
+         // neither can be read as the other.
+         else if (rest == "keys" && method == "GET")
+            route.kind = RouteMeOpenPgpKeys;
+         else if (rest == "keys/own" && method == "PUT")
+            route.kind = RouteMeOpenPgpKeyOwnPut;
+         else if (rest == "keys/correspondents" && method == "PUT")
+            route.kind = RouteMeOpenPgpKeyPeerPut;
+         else if (rest == "lookup" && method == "GET")
+            route.kind = RouteMeOpenPgpLookup;
+         else if (rest.StartsWith("keys/own/") && method == "DELETE" && rest.Mid(9).Find("/") < 0 && rest.GetLength() > 9)
+         {
+            route.identifier = rest.Mid(9);
+            route.kind = RouteMeOpenPgpKeyOwnDelete;
+         }
+         else if (rest.StartsWith("keys/correspondents/") && method == "DELETE" && rest.Mid(20).Find("/") < 0 && rest.GetLength() > 20)
+         {
+            route.identifier = rest.Mid(20);
+            route.kind = RouteMeOpenPgpKeyPeerDelete;
+         }
          else if (method == "DELETE" && rest.Find("/") < 0 && !rest.IsEmpty())
          {
             route.identifier = rest;
@@ -6107,6 +6155,11 @@ namespace HM
       case RouteMeOpenPgpPut:
       case RouteMeOpenPgpDelete:
       case RouteMeOpenPgpPublish:
+      // And the webmail's own key ring, which holds the account's secret key.
+      case RouteMeOpenPgpKeyOwnPut:
+      case RouteMeOpenPgpKeyOwnDelete:
+      case RouteMeOpenPgpKeyPeerPut:
+      case RouteMeOpenPgpKeyPeerDelete:
       case RouteSettingsOpenPgpPut:
       case RouteAccountOpenPgpPut:
       case RouteAccountOpenPgpDelete:
@@ -10152,6 +10205,12 @@ namespace HM
       case RouteMeOpenPgpPut:
       case RouteMeOpenPgpDelete:
       case RouteMeOpenPgpPublish:
+      case RouteMeOpenPgpKeys:
+      case RouteMeOpenPgpKeyOwnPut:
+      case RouteMeOpenPgpKeyOwnDelete:
+      case RouteMeOpenPgpKeyPeerPut:
+      case RouteMeOpenPgpKeyPeerDelete:
+      case RouteMeOpenPgpLookup:
       case RouteMeFolderEmpty:
       case RouteMeMessageSource:
       case RouteMeMessageHtml:
@@ -14058,6 +14117,18 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"too many recipients for a message that expires\"}");
       }
 
+      // Autocrypt (RestApiOpenPgpKeys.cpp): the header the page builds from the
+      // sender's own OpenPGP key, so that a correspondent's client learns the
+      // key from the message rather than being sent to look it up. Checked
+      // here, before anything is written, because a header value a client chose
+      // is the shape header injection takes.
+      String autocryptHeader;
+      {
+         AnsiString problem;
+         if (AutocryptHeaderValue_(requestBody, autocryptHeader, problem) < 0)
+            return BuildResponse_(400, problem);
+      }
+
       std::shared_ptr<SMTPConfiguration> smtpConfiguration = Configuration::Instance()->GetSMTPConfiguration();
 
       int maxRecipients = smtpConfiguration->GetMaxSMTPRecipientsInBatch();
@@ -14144,7 +14215,7 @@ namespace HM
       if (!mimeEntity.IsEmpty())
       {
          AnsiString problem;
-         int refused = WriteMimeEntity_(account, fromHeader, JoinEntries(toEntries), ccEntries.empty() ? String() : JoinEntries(ccEntries), requestBody, mimeEntity, fileName, problem);
+         int refused = WriteMimeEntity_(account, fromHeader, JoinEntries(toEntries), ccEntries.empty() ? String() : JoinEntries(ccEntries), requestBody, mimeEntity, autocryptHeader, fileName, problem);
          if (refused != 0)
             return BuildResponse_(refused, problem);
       }
@@ -14181,6 +14252,12 @@ namespace HM
          // receipt: true asks the recipient's client to say when it was read.
          if (GetJsonBoolValue_(requestBody, "receipt", false))
             messageData.SetFieldValue(_T("Disposition-Notification-To"), fromHeader);
+
+         // The sender's OpenPGP key, carried on a message that is not itself
+         // encrypted or signed: that is how Autocrypt gets a key to somebody
+         // who has none yet, and it is the ordinary case.
+         if (!autocryptHeader.IsEmpty())
+            messageData.SetFieldValue(_T("Autocrypt"), autocryptHeader);
 
          AnsiString attachmentError;
          int attachmentStatus = AddAttachmentsFromJson_(messageData, requestBody, attachmentError);
@@ -15611,6 +15688,7 @@ namespace HM
       openApiJson += OpenApiOidcPaths_();
       openApiJson += OpenApiDirectoryPaths_();
       openApiJson += OpenApiConfidentialPaths_();
+      openApiJson += OpenApiOpenPgpKeysPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiAddressBookPaths_();
       openApiJson += OpenApiOfflinePaths_();

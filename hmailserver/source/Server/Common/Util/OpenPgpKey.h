@@ -147,6 +147,35 @@ namespace HM
       // checksum. False with a sentence in error when the block is not one.
       static bool Dearmour(const AnsiString &text, std::vector<unsigned char> &out, AnsiString &error);
 
+      // What ReadSecretKey made of an armoured PRIVATE KEY BLOCK. ok is the
+      // only thing a caller may act on; when it is false, error is a whole
+      // sentence and everything else is undefined.
+      struct SecretKeyFacts
+      {
+         SecretKeyFacts() : ok(false), version(0), algorithm(0), secret_packets(0), unprotected_packets(0) {}
+
+         bool ok;
+         AnsiString error;
+         AnsiString fingerprint;      // of the primary key, lower-case hex
+         AnsiString key_id;
+         AnsiString primary_user_id;
+         int version;
+         int algorithm;
+         int secret_packets;          // the primary and its subkeys
+         int unprotected_packets;     // of those, the ones in the clear
+      };
+
+      // A SECRET key, read for one question: is every secret packet in it
+      // encrypted under a passphrase? The webmail's key store holds a person's
+      // secret key in the OpenPGP format so that the same bytes open in GnuPG,
+      // and the encryption is done in the browser where this server cannot see
+      // it - so this is the one place that can refuse a key that arrived
+      // without it. Nothing here decrypts anything and no passphrase is
+      // involved. The Web Key Directory's own door (Dearmour, ParseText) still
+      // refuses a secret key outright; this is a different door, for the one
+      // caller that is meant to hold one.
+      static SecretKeyFacts ReadSecretKey(const AnsiString &text, size_t maximum);
+
       // draft-koch-openpgp-webkey-service section 3.1. localPart is the part
       // before the @, in UTF-8; the answer is 32 characters of z-base-32.
       static AnsiString HashedLocalPart(const AnsiString &localPart);
@@ -176,6 +205,7 @@ namespace HM
          size_t next;
       };
 
+      static bool ReadArmour_(const std::string &source, const std::string &label, std::vector<unsigned char> &out, AnsiString &error);
       static bool ReadPacket_(const unsigned char *data, size_t length, size_t offset, Packet &packet, AnsiString &error);
       static bool ReadKeyPacket_(const unsigned char *data, const Packet &packet, Parsed &parsed, AnsiString &error);
       static bool ReadSubkeyPacket_(const unsigned char *data, const Packet &packet, AnsiString &error);

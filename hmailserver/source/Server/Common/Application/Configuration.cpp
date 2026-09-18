@@ -233,6 +233,16 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT, 8);
       property_set_->EnsureLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, 1);
 
+      // OpenPGP in the webmail. The page offers it; a Web Key Directory lookup
+      // is made when a correspondent's key is wanted and a keyserver one is not,
+      // because the directory asks the correspondent's own domain and the
+      // keyserver asks a third party who is nobody's mail server.
+      property_set_->EnsureLong(PROPERTY_OPENPGP_PORTAL_ENABLED, 1);
+      property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_WKD, 1);
+      property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_KEYSERVER, 0);
+      property_set_->EnsureString(PROPERTY_OPENPGP_KEYSERVER_URL, _T("https://keys.openpgp.org"));
+      property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
+
       // The quota policy's two server-wide shares. Both 0, which is the server
       // as it has always been: no grace past a mailbox's limit, and no point at
       // which an account stops being able to send. A domain that sets its own
@@ -2129,6 +2139,66 @@ namespace HM
    Configuration::SetOpenPGPRequireAddressInUserId(bool required)
    {
       GetSettings()->SetLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, required ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetOpenPGPPortalEnabled()
+   {
+      return GetSettings()->GetLong(PROPERTY_OPENPGP_PORTAL_ENABLED) == 1;
+   }
+
+   void
+   Configuration::SetOpenPGPPortalEnabled(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_PORTAL_ENABLED, enabled ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetOpenPGPLookupWkd()
+   {
+      return GetSettings()->GetLong(PROPERTY_OPENPGP_LOOKUP_WKD) == 1;
+   }
+
+   void
+   Configuration::SetOpenPGPLookupWkd(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_LOOKUP_WKD, enabled ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetOpenPGPLookupKeyserver()
+   {
+      return GetSettings()->GetLong(PROPERTY_OPENPGP_LOOKUP_KEYSERVER) == 1;
+   }
+
+   void
+   Configuration::SetOpenPGPLookupKeyserver(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_LOOKUP_KEYSERVER, enabled ? 1 : 0);
+   }
+
+   String
+   Configuration::GetOpenPGPKeyserverUrl()
+   {
+      return GetSettings()->GetString(PROPERTY_OPENPGP_KEYSERVER_URL);
+   }
+
+   void
+   Configuration::SetOpenPGPKeyserverUrl(const String &url)
+   {
+      GetSettings()->SetString(PROPERTY_OPENPGP_KEYSERVER_URL, url);
+   }
+
+   int
+   Configuration::GetOpenPGPLookupTimeout()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT), 2, 30);
+   }
+
+   void
+   Configuration::SetOpenPGPLookupTimeout(int seconds)
+   {
+      GetSettings()->SetLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, ClampSetting(seconds, 2, 30));
    }
 
    bool

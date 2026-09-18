@@ -400,6 +400,15 @@ const SEALED = {
    text: '', html: '', html_remote: false, flags: { seen: true, flagged: false, draft: false }, attachments: []
 };
 
+// One message carrying an Autocrypt header, which is what makes the page
+// fetch its OpenPGP module and learn the sender's key.
+const WITH_AUTOCRYPT = {
+   id: 602, folder_id: 1, uid: 22, subject: 'With a key', from: 'b@example.net', to: 'user@example.com', cc: '',
+   date: '2026-09-10 09:00', size: 1200, message_id: '<autocrypt@example.net>', references: '', in_reply_to: '',
+   headers: 'From: b@example.net\r\nAutocrypt: addr=b@example.net; prefer-encrypt=mutual; keydata=QUFB\r\nContent-Type: text/plain\r\n',
+   text: 'Hello.', html: '', html_remote: false, flags: { seen: true, flagged: false, draft: false }, attachments: []
+};
+
 const INBOX = { id: 1, account_id: 7, name: 'INBOX', path: 'INBOX', parent_id: 0, special_use: '', subscribed: true, writable: true, messages: 3, unseen: 2, uidvalidity: 1, subfolders: [] };
 const SENT = { id: 2, account_id: 7, name: 'Sent', path: 'Sent', parent_id: 0, special_use: '\\Sent', subscribed: true, writable: true, messages: 1, unseen: 0, uidvalidity: 1, subfolders: [] };
 const WORK = { id: 3, account_id: 7, name: 'Work', path: 'INBOX.Work', parent_id: 1, special_use: '', subscribed: true, writable: true, messages: 0, unseen: 0, uidvalidity: 1, subfolders: [] };
@@ -1510,6 +1519,38 @@ function answer(method, path, body) {
       return json(201, row);
    }
    if (path === '/api/v1/me/messages/601' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(SEALED)))); }
+   if (path === '/api/v1/me/messages/602' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(WITH_AUTOCRYPT)))); }
+   if (path === '/api/v1/me/messages/602/source' && method === 'GET') {
+      return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: WITH_AUTOCRYPT.headers + '\r\nHello.\r\n' };
+   }
+   if (path === '/api/v1/me/openpgp/keys' && method === 'GET') {
+      const store = pgpStoreOf(account);
+      return json(200, { own: store.own, correspondents: store.correspondents, limits: { own: 20, correspondents: 500 }, lookup: { wkd: true, keyserver: false } });
+   }
+   if ((path === '/api/v1/me/openpgp/keys/own' || path === '/api/v1/me/openpgp/keys/correspondents') && method === 'PUT') {
+      const store = pgpStoreOf(account);
+      const list = path.endsWith('/own') ? store.own : store.correspondents;
+      const wanted = JSON.parse(body || '{}');
+      // The fingerprint is the key's, never the client's - as the server does.
+      const fingerprint = Buffer.from(String(wanted.public_key), 'base64').toString('utf8').split(':')[2] || '';
+      const row = pgpRowOf(wanted.address, { fingerprint, key_id: fingerprint.slice(-16), public_key: wanted.public_key, source: wanted.source, revoked: !!wanted.revoked });
+      if (wanted.secret_key) { row.secret_key = wanted.secret_key; }
+      const at = list.findIndex((o) => o.fingerprint === fingerprint);
+      if (at >= 0) { list[at] = row; return json(200, row); }
+      list.push(row);
+      return json(201, row);
+   }
+   if (/^\/api\/v1\/me\/openpgp\/keys\/(own|correspondents)\/[0-9a-f]+$/.test(path) && method === 'DELETE') {
+      const store = pgpStoreOf(account);
+      const list = path.indexOf('/own/') > 0 ? store.own : store.correspondents;
+      const at = list.findIndex((o) => o.fingerprint === path.split('/').pop());
+      if (at < 0) { return json(404, { error: 'no such key' }); }
+      list.splice(at, 1);
+      return json(200, { removed: true });
+   }
+   if (path.indexOf('/api/v1/me/openpgp/lookup') === 0 && method === 'GET') {
+      return json(200, pgpLookupAnswer || { found: false, address: '', error: 'no key was found for that address', status: 404 });
+   }
    if (path === '/api/v1/me/messages/601/source' && method === 'GET') {
       return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: 'Content-Type: application/pkcs7-mime\r\n\r\nAAECAwQ=\r\n' };
    }
@@ -1623,6 +1664,101 @@ const smimeStub = {
       return { layers: ['encrypted'], encrypted: { ok: false, error: 'not encrypted for a key this page holds' }, signed: null, content: null };
    }
 };
+
+/* -------------------------------------------- the page's OpenPGP module */
+
+// window.hmOpenPgp, as far as the page uses it. The real module is held to
+// GnuPG in both directions by build/check-portal-openpgp.js; what matters here
+// is which keys the page hands it and what it does with what comes back, so
+// this one records them. A key is its own text: "KEY:<address>:<fingerprint>"
+// for a public one and "SEC:<address>:<fingerprint>:<passphrase>" for a secret
+// one, so an export and an import round-trip through the page as they do in the
+// real module and a wrong passphrase throws 'wrong passphrase', which is the
+// message the real module throws and the page reads.
+const pgpReadWith = [];
+const pgpComposed = [];
+// A fingerprint is forty hex digits and nothing else - the page files a key
+// under one and names one in a URL - so this makes one from the address, and
+// from a variant when a check needs two keys for the same address.
+const pgpFingerprint = (address, variant) => {
+   const text = String(address) + (variant || '');
+   let hash = 0;
+   for (let i = 0; i < text.length; i += 1) { hash = (hash * 31 + text.charCodeAt(i)) >>> 0; }
+   return hash.toString(16).padStart(8, '0').repeat(5);
+};
+const pgpPublicOf = (address) => Buffer.from('KEY:' + address + ':' + pgpFingerprint(address)).toString('base64');
+const pgpRowOf = (address, extra) => Object.assign({
+   id: 1, address, name: 'Key of ' + address, fingerprint: pgpFingerprint(address), key_id: pgpFingerprint(address).slice(-16),
+   algorithm: 'Ed25519', public_key: pgpPublicOf(address), created: 1700000000, expires: 0, revoked: false,
+   source: 'imported', prefer_encrypt: 'mutual', first_seen: 1700000000, last_seen: 1700000000
+}, extra || {});
+const pgpOwnRowOf = (address, passphrase) => pgpRowOf(address, {
+   source: 'generated', secret_key: 'SEC:' + address + ':' + pgpFingerprint(address) + ':' + passphrase
+});
+// What the next readMessage answers. The checks set it before opening a message.
+let pgpMessageResult = { layers: [], encrypted: null, signed: null, content: null, autocrypt: null, inline: false };
+const pgpKeyObject = (address, fingerprint, secret) => ({
+   address, name: 'Key of ' + address, fingerprint, keyId: fingerprint.slice(-16), userId: address,
+   isSecret: !!secret, unlocked: !!secret, revoked: false, expires: 0, algorithm: 'Ed25519'
+});
+const pgpStub = {
+   available: true,
+   curve25519Available: async () => true,
+   b64decode: (value) => Uint8Array.from(Buffer.from(String(value), 'base64')),
+   b64encode: (bytes) => Buffer.from(bytes).toString('base64'),
+   publicBytes: (key) => Uint8Array.from(Buffer.from('KEY:' + key.address + ':' + key.fingerprint)),
+   exportPublic: (key) => '-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n' + key.fingerprint + '\r\n-----END PGP PUBLIC KEY BLOCK-----\r\n',
+   exportSecret: async (key, passphrase) => 'SEC:' + key.address + ':' + key.fingerprint + ':' + String(passphrase),
+   readKey: async (input, passphrase) => {
+      const text = typeof input === 'string' ? input : Buffer.from(input).toString('utf8');
+      const parts = text.split(':');
+      if (parts[0] === 'SEC') {
+         if (passphrase !== undefined && String(passphrase) !== parts[3]) { throw new Error('wrong passphrase'); }
+         return pgpKeyObject(parts[1], parts[2], true);
+      }
+      if (parts[0] === 'KEY') { return pgpKeyObject(parts[1], parts[2], false); }
+      throw new Error('this is not a key');
+   },
+   readKeys: async (text, passphrase) => {
+      const lines = String(text).split(/\r?\n/).filter((l) => /^(KEY|SEC):/.test(l));
+      if (!lines.length) { throw new Error('there is no key in this block'); }
+      return Promise.all(lines.map((line) => pgpStub.readKey(line, /^SEC:/.test(line) ? passphrase : undefined)));
+   },
+   generateKey: async (spec) => {
+      const fingerprint = pgpFingerprint(spec.email);
+      return {
+         key: pgpKeyObject(spec.email, fingerprint, true),
+         publicArmored: '-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n' + fingerprint + '\r\n-----END PGP PUBLIC KEY BLOCK-----\r\n',
+         secretArmored: 'SEC:' + spec.email + ':' + fingerprint + ':' + spec.passphrase,
+         revocation: 'REV:' + fingerprint,
+         fingerprint
+      };
+   },
+   revocationCertificate: async (key) => 'REV:' + key.fingerprint,
+   applyRevocation: async (key, certificate) => {
+      if (String(certificate).trim() !== 'REV:' + key.fingerprint) { throw new Error('this revocation revokes another key'); }
+      key.revoked = true;
+      return key;
+   },
+   autocryptHeader: (address, key) => 'addr=' + address + '; prefer-encrypt=mutual; keydata=' + Buffer.from('KEY:' + address + ':' + key.fingerprint).toString('base64'),
+   parseAutocrypt: (value) => null,
+   readMessage: async (bytes, keys) => {
+      pgpReadWith.push(keys.map((k) => k.address + (k.isSecret ? '!' : '')).sort());
+      return JSON.parse(JSON.stringify(pgpMessageResult));
+   },
+   composeMessage: async (spec) => {
+      pgpComposed.push({
+         sign: spec.sign ? spec.sign.address : '',
+         encrypt: (spec.encrypt || []).map((k) => k.address).sort(),
+         text: spec.text || ''
+      });
+      return 'MIME-Version: 1.0\r\nContent-Type: multipart/encrypted; protocol="application/pgp-encrypted"; boundary="b"\r\n\r\nsealed\r\n';
+   }
+};
+// The OpenPGP key ring the recorded server answers with, per account.
+const pgpStores = {};
+const pgpStoreOf = (address) => pgpStores[address] || (pgpStores[address] = { own: [], correspondents: [] });
+let pgpLookupAnswer = null;
 
 /* ------------------------------------------------------------ the assertions */
 
@@ -6641,6 +6777,9 @@ async function main() {
    // change anything (AddressBookStore.h, docs/SharedAddressBooks.md).
    await addressBookChecks();
 
+   // ---- OpenPGP: the key ring, a sealed send, Autocrypt and a revocation
+   await pgpChecks();
+
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();
 
@@ -6712,6 +6851,9 @@ async function main() {
    // in a field, and the field survives a sign-out unless it is emptied.
    document.getElementById('smime-unlock-password').value = 'typed-and-not-sent';
    document.getElementById('smime-passphrase').value = 'the-file-passphrase';
+   document.getElementById('pgp-unlock-passphrase').value = 'typed-and-not-sent';
+   document.getElementById('pgp-import-passphrase').value = 'the-file-passphrase';
+   document.getElementById('pgp-make-passphrase').value = 'a-new-passphrase';
    document.getElementById('signout').dispatchEvent(makeEvent('click'));
    await flush();
    check('sign-out empties the certificate store on the page',
@@ -6720,6 +6862,14 @@ async function main() {
    check('and keeps no password in either box',
       document.getElementById('smime-unlock-password').value === '' && document.getElementById('smime-passphrase').value === '',
       JSON.stringify([document.getElementById('smime-unlock-password').value, document.getElementById('smime-passphrase').value]));
+   check('OpenPGP: sign-out empties the key ring on the page as well',
+      document.getElementById('pgp-own-rows').children.length === 0 && document.getElementById('pgp-own-table').hidden === true &&
+      document.getElementById('pgp-peer-rows').children.length === 0,
+      document.getElementById('pgp-own-rows').children.length + ' own, ' + document.getElementById('pgp-peer-rows').children.length + ' correspondents');
+   check('OpenPGP: and keeps no passphrase in any of its three boxes',
+      document.getElementById('pgp-unlock-passphrase').value === '' && document.getElementById('pgp-import-passphrase').value === '' &&
+      document.getElementById('pgp-make-passphrase').value === '',
+      JSON.stringify([document.getElementById('pgp-unlock-passphrase').value, document.getElementById('pgp-import-passphrase').value]));
    await signInAs('second@example.com', 'a-different-password');
    await openSealed();
    check('and the next account to sign in is handed none of the first account\'s keys',
@@ -7034,6 +7184,203 @@ async function addressBookChecks() {
       document.getElementById('group-rows').textContent);
    sharedGroupListed = false;
 
+   location.hash = '#/f/1';
+   await flush();
+}
+
+// ---- OpenPGP: the key ring, a message sealed in the browser, and Autocrypt.
+// Every assertion here is on something a translation cannot move - a request,
+// a fingerprint, an address, a hidden flag - because the run reaches this point
+// with the page in whatever language an earlier check left it in.
+async function pgpChecks() {
+   // The module the page fetches on demand, already in this world: nothing here
+   // loads a script, and what the real module does is build/check-portal-openpgp.js's
+   // business rather than this file's.
+   window.hmOpenPgp = pgpStub;
+   const groups = (fingerprint) => String(fingerprint).toUpperCase().replace(/(.{4})/g, '$1 ').trim();
+   const ownRows = () => document.getElementById('pgp-own-rows').children;
+   const peerRows = () => document.getElementById('pgp-peer-rows').children;
+   const buttonsOf = (row) => Array.prototype.slice.call(row.children[3].children);
+   const PASSPHRASE = 'the-key-passphrase';
+
+   pgpStores[account] = { own: [pgpOwnRowOf(account, PASSPHRASE)], correspondents: [pgpRowOf('a@example.net')] };
+   const beforeRing = requests.length;
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   check('OpenPGP: the Security page asks for the key ring', called(beforeRing, 'GET', '/api/v1/me/openpgp/keys'),
+      JSON.stringify(since(beforeRing).map((r) => r.method + ' ' + r.path).filter((p) => p.indexOf('openpgp') >= 0)));
+   check('OpenPGP: the account\'s own key is listed, its fingerprint in fours',
+      ownRows().length === 1 && ownRows()[0].textContent.indexOf(groups(pgpFingerprint(account))) >= 0,
+      ownRows().length + ' rows: ' + (ownRows()[0] ? ownRows()[0].textContent : ''));
+   check('OpenPGP: and the correspondent\'s key, with where it came from',
+      peerRows().length === 1 && peerRows()[0].textContent.indexOf('a@example.net') >= 0 && peerRows()[0].textContent.indexOf('imported') >= 0,
+      peerRows().length + ' rows: ' + (peerRows()[0] ? peerRows()[0].textContent : ''));
+
+   // ---- the compose form offers what the keys allow, and names what is missing
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   check('OpenPGP: the compose form offers Sign and Encrypt once there is a key',
+      document.getElementById('compose-pgp-sign-label').hidden === false && document.getElementById('compose-pgp-encrypt-label').hidden === false,
+      'sign hidden=' + document.getElementById('compose-pgp-sign-label').hidden);
+   document.getElementById('compose-to').value = 'nobody@example.org';
+   document.getElementById('compose-pgp-encrypt').checked = true;
+   document.getElementById('compose-pgp-encrypt').dispatchEvent(makeEvent('change'));
+   await flush();
+   check('OpenPGP: and names the recipient there is no key for',
+      document.getElementById('compose-pgp-note').hidden === false && document.getElementById('compose-pgp-note').textContent.indexOf('nobody@example.org') >= 0,
+      document.getElementById('compose-pgp-note').textContent);
+
+   // ---- a draft that was to be sealed is refused rather than stored in the clear
+   const beforeDraft = requests.length;
+   document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('OpenPGP: a draft of a message that was to be sealed is refused, not stored in the clear',
+      !called(beforeDraft, 'POST', '/api/v1/me/drafts') && document.getElementById('compose-status').textContent.length > 0,
+      document.getElementById('compose-status').textContent);
+
+   // ---- a message signed and encrypted in the browser
+   const composedBefore = pgpComposed.length;
+   document.getElementById('compose-to').value = 'a@example.net';
+   document.getElementById('compose-subject').value = 'Sealed with OpenPGP';
+   document.getElementById('compose-text').value = 'Only for you.';
+   document.getElementById('compose-pgp-sign').checked = true;
+   document.getElementById('compose-pgp-sign').dispatchEvent(makeEvent('change'));
+   const beforeSeal = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('OpenPGP: a send that is to be signed stops for the passphrase and sends nothing until it has one',
+      document.getElementById('pgp-unlock').hidden === false && !called(beforeSeal, 'POST', '/api/v1/me/messages'),
+      'dialogue hidden=' + document.getElementById('pgp-unlock').hidden);
+   document.getElementById('pgp-unlock-passphrase').value = 'not-the-passphrase';
+   document.getElementById('pgp-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('OpenPGP: a wrong passphrase is refused and still sends nothing',
+      document.getElementById('pgp-unlock').hidden === false && document.getElementById('pgp-unlock-status').textContent.length > 0 &&
+      !called(beforeSeal, 'POST', '/api/v1/me/messages'),
+      document.getElementById('pgp-unlock-status').textContent);
+   document.getElementById('pgp-unlock-passphrase').value = PASSPHRASE;
+   document.getElementById('pgp-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   const sealed = since(beforeSeal).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/messages');
+   const sealedBody = sealed.length ? JSON.parse(sealed[0].body || '{}') : {};
+   check('OpenPGP: the message goes as the entity the page built and carries no plaintext',
+      sealed.length === 1 && typeof sealedBody.mime === 'string' && sealedBody.mime.indexOf('multipart/encrypted') > 0 &&
+      sealedBody.text === undefined && sealedBody.pgp_sign === undefined && sealedBody.pgp_encrypt === undefined,
+      JSON.stringify(Object.keys(sealedBody)) + ' ' + String(sealedBody.mime).slice(0, 60));
+   check('OpenPGP: sealed to the recipient\'s key and to the sender\'s own, signed with the sender\'s',
+      pgpComposed.length === composedBefore + 1 &&
+      pgpComposed[composedBefore].encrypt.join(',') === ['a@example.net', account].sort().join(',') &&
+      pgpComposed[composedBefore].sign === account,
+      JSON.stringify(pgpComposed[composedBefore]));
+   check('OpenPGP: and it carries the sender\'s Autocrypt header',
+      String(sealedBody.autocrypt || '').indexOf('addr=' + account + '; prefer-encrypt=mutual; keydata=') === 0,
+      String(sealedBody.autocrypt).slice(0, 60));
+
+   // ---- a message that is not sealed carries the header too, which is the
+   // ordinary way a correspondent learns the key
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'a@example.net';
+   document.getElementById('compose-subject').value = 'In the clear';
+   document.getElementById('compose-text').value = 'Nothing secret here.';
+   const beforePlain = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   const plain = since(beforePlain).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/messages');
+   const plainBody = plain.length ? JSON.parse(plain[0].body || '{}') : {};
+   check('OpenPGP: a plain message carries the Autocrypt header and its own text',
+      plain.length === 1 && plainBody.text === 'Nothing secret here.' && String(plainBody.autocrypt || '').indexOf('addr=' + account) === 0,
+      JSON.stringify(Object.keys(plainBody)));
+
+   // ---- Autocrypt read: a key arriving on a message from somebody with none here
+   pgpMessageResult = {
+      layers: [], encrypted: null, signed: null, inline: false, content: null,
+      autocrypt: { address: 'b@example.net', preferEncrypt: true, keydata: 'KEY:b@example.net:' + pgpFingerprint('b@example.net') }
+   };
+   const beforeLearn = requests.length;
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   const learned = since(beforeLearn).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/openpgp/keys/correspondents');
+   check('OpenPGP: a key on an Autocrypt header from somebody with none here is kept, marked autocrypt',
+      learned.length === 1 && JSON.parse(learned[0].body || '{}').source === 'autocrypt' && JSON.parse(learned[0].body || '{}').address === 'b@example.net',
+      JSON.stringify(learned.map((r) => r.body)));
+   check('OpenPGP: and the reader is told, rather than it happening silently',
+      document.getElementById('message-pgp').hidden === false && document.getElementById('message-pgp-text').textContent.indexOf('b@example.net') >= 0,
+      document.getElementById('message-pgp-text').textContent);
+
+   // ---- and a DIFFERENT key for an address already held is not kept silently:
+   // a key that changes without anybody being asked is what a man in the middle
+   // needs, so it waits behind a button
+   location.hash = '#/f/1';
+   await flush();
+   pgpMessageResult = {
+      layers: [], encrypted: null, signed: null, inline: false, content: null,
+      autocrypt: { address: 'b@example.net', preferEncrypt: true, keydata: 'KEY:b@example.net:' + pgpFingerprint('b@example.net', 'second') }
+   };
+   const beforeChange = requests.length;
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   check('OpenPGP: a key that would REPLACE the one already held is not kept silently',
+      !called(beforeChange, 'PUT', '/api/v1/me/openpgp/keys/correspondents') &&
+      document.getElementById('message-pgp-keep').hidden === false &&
+      document.getElementById('message-pgp-text').textContent.indexOf(groups(pgpFingerprint('b@example.net', 'second'))) >= 0,
+      document.getElementById('message-pgp-text').textContent);
+   document.getElementById('message-pgp-keep').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('OpenPGP: and is kept when the reader presses Keep',
+      called(beforeChange, 'PUT', '/api/v1/me/openpgp/keys/correspondents'),
+      JSON.stringify(since(beforeChange).filter((r) => r.method === 'PUT').map((r) => r.path)));
+   pgpMessageResult = { layers: [], encrypted: null, signed: null, content: null, autocrypt: null, inline: false };
+   location.hash = '#/f/1';
+   await flush();
+
+   // ---- looking a correspondent's key up in their own domain
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   pgpLookupAnswer = {
+      found: true, address: 'c@example.net', source: 'wkd-advanced', url: 'https://openpgpkey.example.net/.well-known/openpgpkey/example.net/hu/abc',
+      key: pgpRowOf('c@example.net', { source: 'wkd' })
+   };
+   const beforeLookup = requests.length;
+   document.getElementById('pgp-lookup-address').value = 'c@example.net';
+   document.getElementById('pgp-lookup-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   const kept = since(beforeLookup).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/openpgp/keys/correspondents');
+   check('OpenPGP: a key found in the correspondent\'s own directory shows its fingerprint before it is kept',
+      confirms.length > 0 && confirms[confirms.length - 1].indexOf(groups(pgpFingerprint('c@example.net'))) >= 0,
+      confirms[confirms.length - 1] || '');
+   check('OpenPGP: and is kept with wkd as its source',
+      kept.length === 1 && JSON.parse(kept[0].body || '{}').source === 'wkd',
+      JSON.stringify(kept.map((r) => r.body)));
+
+   // ---- revoking a key: the certificate is made by the key, applied to it,
+   // and the key stored again so that everyone who fetches it is told
+   const beforeRevoke = requests.length;
+   check('OpenPGP: an own key offers five things to do with it, Revoke among them',
+      ownRows().length === 1 && buttonsOf(ownRows()[0]).length === 5, buttonsOf(ownRows()[0]).length + ' buttons');
+   buttonsOf(ownRows()[0])[3].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   const revoked = since(beforeRevoke).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/openpgp/keys/own');
+   check('OpenPGP: revoking stores the key revoked, so everyone who fetches it afterwards is told',
+      revoked.length === 1 && JSON.parse(revoked[0].body || '{}').revoked === true,
+      JSON.stringify(revoked.map((r) => String(r.body).slice(0, 90))));
+   check('OpenPGP: and a revoked key is offered nothing to revoke twice',
+      ownRows().length === 1 && buttonsOf(ownRows()[0]).length === 4, buttonsOf(ownRows()[0]).length + ' buttons');
    location.hash = '#/f/1';
    await flush();
 }

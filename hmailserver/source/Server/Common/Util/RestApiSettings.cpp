@@ -45,6 +45,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "HttpsClient.h"
 #include "CountryBlocking.h"
 #include "ContentPolicy.h"
 #include <boost/regex.hpp>
@@ -1822,6 +1823,29 @@ namespace
       { "require_address_in_user_id", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Refuse a key whose user ids do not carry the account's own address. On by default: a key published under an address it does not name is a key every correspondent will encrypt to and its owner cannot read. A server administrator can waive it for one upload.",
         ROW_FLAG(Config()->GetOpenPGPRequireAddressInUserId()), ROW_SET(Config()->SetOpenPGPRequireAddressInUserId(v.flag)), ROW_NO_CHECK },
+      { "portal_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Offer OpenPGP in the webmail: making and importing a key, signing, encrypting, decrypting and verifying, all in the browser. On by default; with it off the page does not load its OpenPGP module, does not offer the key page and does not open a key store route, and an account that already has keys keeps them in the database untouched.",
+        ROW_FLAG(Config()->GetOpenPGPPortalEnabled()), ROW_SET(Config()->SetOpenPGPPortalEnabled(v.flag)), ROW_NO_CHECK },
+      { "lookup_wkd", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Look a correspondent's key up in their own domain's Web Key Directory when the webmail asks for one - openpgpkey.<domain> first, then the domain itself, over HTTPS only and never to an address inside this network. On by default: the request goes to the correspondent's own mail domain, which is about to learn of the message anyway.",
+        ROW_FLAG(Config()->GetOpenPGPLookupWkd()), ROW_SET(Config()->SetOpenPGPLookupWkd(v.flag)), ROW_NO_CHECK },
+      { "lookup_keyserver", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Ask the keyserver when the Web Key Directory has no key. OFF by default, and deliberately: a keyserver is a third party who is nobody's mail server, and asking it tells it which of this server's people are about to write to which address.",
+        ROW_FLAG(Config()->GetOpenPGPLookupKeyserver()), ROW_SET(Config()->SetOpenPGPLookupKeyserver(v.flag)), ROW_NO_CHECK },
+      { "keyserver_url", KindString, ReadWrite, EffectNow, nullptr,
+        "The keyserver asked when lookup_keyserver is on: its base address, with the HKP path /vks/v1/by-email/<address> appended. https://keys.openpgp.org by default, which serves only addresses whose owner confirmed them. https, or http to a keyserver on this machine - a lookup of somebody else's domain is never made in the clear, but a keyserver on loopback has nothing between it and this server to protect the request from.",
+        ROW_TEXT(Config()->GetOpenPGPKeyserverUrl()), ROW_SET(Config()->SetOpenPGPKeyserverUrl(v.text)),
+        [] (const Value &v) { String url = v.text; url.Trim(); url.MakeLower();
+                              if (url.IsEmpty() || url.StartsWith(_T("https://")))
+                                 return String();
+                              bool https = false; AnsiString host, port, path;
+                              if (HttpsClient::ParseUrl(AnsiString(url), https, host, port, path) && !https && HttpsClient::IsLoopbackHost(host))
+                                 return String();
+                              return String(_T("keyserver_url is an https address, an http address on this machine, or empty.")); } },
+      { "lookup_timeout", KindInteger, ReadWrite, EffectNow, nullptr,
+        "Seconds a key lookup may take before it is given up on. 2 to 30; 10 by default. A webmail request waits on it, so it is short.",
+        ROW_NUMBER(Config()->GetOpenPGPLookupTimeout()), ROW_SET(Config()->SetOpenPGPLookupTimeout((int) v.number)),
+        [] (const Value &v) { return (v.number < 2 || v.number > 30) ? String(_T("lookup_timeout must be between 2 and 30.")) : String(); } },
    };
 
    // Web Push (Common/Util/WebPush.h). Seven rows in hm_settings, read at the

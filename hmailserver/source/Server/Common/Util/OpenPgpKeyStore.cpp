@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "OpenPgpKeyStore.h"
+#include "HttpsClient.h"
 #include "OpenPgpKey.h"
 
 #include "Unicode.h"
@@ -406,8 +407,10 @@ namespace HM
 
       // The ?l= the draft allows. It is not what finds the key - the hash is -
       // but it is what makes a directory answer readable in a log and a URL an
-      // administrator can check by eye.
-      return url + "?l=" + localPart;
+      // administrator can check by eye. Percent-encoded, as the keyserver path
+      // is: the local part came from a query string, and a request line is
+      // the one place a control character in it would mean something.
+      return url + "?l=" + HttpsClient::FormEncode(localPart);
    }
 
    AnsiString

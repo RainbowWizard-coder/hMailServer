@@ -322,6 +322,21 @@
 #define PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES      _T("OpenPGPKeyMaximumBytes")
 #define PROPERTY_OPENPGP_KEYS_PER_ACCOUNT       _T("OpenPGPKeysPerAccount")
 #define PROPERTY_OPENPGP_REQUIRE_ADDRESS        _T("OpenPGPRequireAddressInUserId")
+// OpenPGP in the webmail (docs/OpenPGP.md). OpenPGPPortalEnabled decides whether
+// the page offers any of it at all - it is ON, because a key nobody made costs
+// nothing and an installation that wants none turns it off in one place.
+// The two lookups are how a correspondent's key is FOUND, and they are separate
+// because they leak differently: a Web Key Directory lookup tells the
+// correspondent's own domain that somebody is about to write to them, which
+// their mail server would learn a second later anyway, so it is ON; a keyserver
+// lookup tells keys.openpgp.org, which is nobody's mail server, so it is OFF
+// until an administrator decides otherwise. The timeout bounds the fetch a REST
+// worker makes while a page waits on it.
+#define PROPERTY_OPENPGP_PORTAL_ENABLED         _T("OpenPGPPortalEnabled")
+#define PROPERTY_OPENPGP_LOOKUP_WKD             _T("OpenPGPLookupWkd")
+#define PROPERTY_OPENPGP_LOOKUP_KEYSERVER       _T("OpenPGPLookupKeyserver")
+#define PROPERTY_OPENPGP_KEYSERVER_URL          _T("OpenPGPKeyserverUrl")
+#define PROPERTY_OPENPGP_LOOKUP_TIMEOUT         _T("OpenPGPLookupTimeout")
 // WebhookMaxPerMinute is the ceiling a subscription that names no ceiling of
 // its own is held to. Past it events are DROPPED rather than queued, and the
 // count of what was dropped is reported: a queue that grows without bound is
@@ -591,4 +606,10 @@
 //      "the account's default book" - and is stamped with that book's id the
 //      first time anything asks the account for its books, so the upgrade needs
 //      no data migration and an untouched installation behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6079
+// 6080 adds hm_pgpring (Util/OpenPgpRing.h): one row per OpenPGP key an account
+//      keeps in the webmail - its own secret key, encrypted under a passphrase
+//      this server never sees, and the public keys of the people it writes to -
+//      with a ceiling of eight megabytes per account. Nothing is there until
+//      somebody makes or imports a key, so an upgraded database signs and
+//      encrypts exactly as it did: not at all, until asked.
+#define REQUIRED_DB_VERSION            6080

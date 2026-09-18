@@ -944,6 +944,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 <div id="message-receipt" class="infobar" hidden>The sender asked to be told when this is read. <button id="receipt-send" class="btn ghost sm" type="button">Send a receipt</button> <button id="receipt-never" class="btn quiet sm" type="button">Never ask</button></div>
 <div id="message-smime" class="infobar" hidden><span id="message-smime-text"></span> <button id="message-smime-unlock" class="btn ghost sm" type="button" hidden>Unlock keys to read</button></div>
+<div id="message-pgp" class="infobar" hidden><span id="message-pgp-text"></span> <button id="message-pgp-unlock" class="btn ghost sm" type="button" hidden>Unlock your OpenPGP key</button> <button id="message-pgp-keep" class="btn ghost sm" type="button" hidden>Keep this key</button></div>
 <div id="snooze-menu" class="row" hidden><span class="muted">Bring it back</span><button class="btn ghost sm" id="snooze-3h" type="button">in 3 hours</button><button class="btn ghost sm" id="snooze-tomorrow" type="button">tomorrow at 9</button><button class="btn ghost sm" id="snooze-week" type="button">next week</button><input id="snooze-at" type="datetime-local" aria-label="Until" style="width:auto"><button class="btn sm" id="snooze-go" type="button">Snooze</button></div>
 <div id="followup-menu" class="row" hidden><span class="muted">Follow up by</span><button class="btn ghost sm" id="followup-today" type="button">today</button><button class="btn ghost sm" id="followup-tomorrow" type="button">tomorrow</button><button class="btn ghost sm" id="followup-week" type="button">next week</button><input id="followup-at" type="date" aria-label="A day" style="width:auto"><button class="btn sm" id="followup-go" type="button">Set</button><button class="btn quiet sm" id="followup-clear" type="button" hidden>Clear the flag</button></div>
 <div id="label-menu" class="row" hidden></div>
@@ -1593,6 +1594,42 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </div>
 <div class="card">
+<h2>OpenPGP</h2>
+<p id="pgp-unavailable" class="note" hidden>OpenPGP is unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.</p>
+<p id="pgp-off" class="note" hidden>OpenPGP is switched off in the webmail on this server.</p>
+<div id="pgp-body" hidden>
+<p class="note">End-to-end encryption in the format every other client speaks - Thunderbird, GnuPG, Mailvelope, Proton. The key is made in this browser and stored encrypted under a passphrase this server never sees, so nobody here can recover it, or the mail encrypted to it, if you forget it.</p>
+<p id="pgp-curve-note" class="note" hidden>This browser has no Ed25519 or X25519, so a Curve25519 key cannot be made or read here; RSA works. Chrome 137, Firefox 130, Safari 17 and later have both.</p>
+<table class="list" id="pgp-own-table" hidden><thead><tr><th>Address</th><th>Fingerprint</th><th>Expires</th><th></th></tr></thead><tbody id="pgp-own-rows"></tbody></table>
+<div id="pgp-own-empty" class="hint">No key of your own yet.</div>
+<div id="pgp-status" class="status" aria-live="polite"></div>
+<h3>Make a key</h3>
+<form id="pgp-make-form">
+<div class="field"><label for="pgp-make-name">Name</label><input id="pgp-make-name" type="text" maxlength="120" autocomplete="off"></div>
+<div class="field"><label for="pgp-make-address">Address</label><input id="pgp-make-address" type="email" maxlength="255" autocomplete="off"></div>
+<div class="row"><label for="pgp-make-kind" class="inline">Kind</label><select id="pgp-make-kind" style="width:auto"><option value="curve25519" selected>Curve25519</option><option value="rsa3072">RSA 3072</option><option value="rsa4096">RSA 4096</option></select><label for="pgp-make-expiry" class="inline">Expires</label><select id="pgp-make-expiry" style="width:auto"><option value="0">Never</option><option value="31536000">In a year</option><option value="63072000" selected>In two years</option><option value="157680000">In five years</option></select></div>
+<div class="field"><label for="pgp-make-passphrase">Passphrase</label><input id="pgp-make-passphrase" type="password" autocomplete="new-password"></div>
+<div class="field"><label for="pgp-make-passphrase2">Passphrase again</label><input id="pgp-make-passphrase2" type="password" autocomplete="new-password"></div>
+<p class="row"><button class="btn sm" type="submit">Make a key</button></p>
+</form>
+<h3>Import a key</h3>
+<form id="pgp-import-form" class="row">
+<input id="pgp-import-file" type="file" accept=".asc,.gpg,.pgp,.key,.txt" aria-label="Key file" style="width:auto;flex:1">
+<input id="pgp-import-passphrase" type="password" autocomplete="off" placeholder="The key file's passphrase" aria-label="The key file's passphrase">
+<button class="btn sm" type="submit">Import</button>
+</form>
+<p class="hint">A secret key is opened with its own passphrase and stored again under the one you unlock with here. A public key is kept as a correspondent's.</p>
+<h3>Correspondents' keys</h3>
+<p class="note">Learned from the Autocrypt header of a message, looked up in the correspondent's own domain, or imported. Nothing is trusted because it arrived: read a fingerprint back to its owner before you rely on it.</p>
+<form id="pgp-lookup-form" class="row">
+<input id="pgp-lookup-address" type="email" maxlength="255" autocomplete="off" placeholder="somebody@example.org" aria-label="The address to look a key up for" style="width:auto;flex:1">
+<button class="btn sm" type="submit">Look up a key</button>
+</form>
+<table class="list" id="pgp-peer-table" hidden><thead><tr><th>Address</th><th>Fingerprint</th><th>Where from</th><th></th></tr></thead><tbody id="pgp-peer-rows"></tbody></table>
+<div id="pgp-peer-empty" class="hint">None yet.</div>
+</div>
+</div>
+<div class="card">
 <h2>Sessions</h2>
 <p class="note">Every browser signed in as you. End one you do not recognise, or all the others at once.</p>
 <table class="list" id="session-table"><thead><tr><th>Started</th><th>Last seen</th><th></th><th></th></tr></thead><tbody id="session-rows"></tbody></table>
@@ -1661,6 +1698,9 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label class="inline" id="compose-sign-label" hidden><input id="compose-sign" type="checkbox"> Sign with my certificate</label>
 <label class="inline" id="compose-encrypt-label" hidden><input id="compose-encrypt" type="checkbox"> Encrypt for the recipients</label>
 <div id="compose-smime-note" class="hint" hidden></div>
+<label class="inline" id="compose-pgp-sign-label" hidden><input id="compose-pgp-sign" type="checkbox"> Sign with my OpenPGP key</label>
+<label class="inline" id="compose-pgp-encrypt-label" hidden><input id="compose-pgp-encrypt" type="checkbox"> Encrypt with OpenPGP</label>
+<div id="compose-pgp-note" class="hint" hidden></div>
 <label for="compose-files" class="sr">Attach files</label><input id="compose-files" type="file" multiple class="sr"><div id="compose-files-note" class="note"></div>
 <div id="compose-links" class="note" hidden></div>
 <div class="compose-foot"><button class="btn" id="compose-send" type="submit"><svg class="i"><use href="#i-send"/></svg>Send</button><button id="compose-save" type="button" class="btn ghost">Save draft</button><button id="compose-attach" type="button" class="iconbtn sm" title="Attach files" aria-label="Attach files"><svg class="i"><use href="#i-clip"/></svg></button><div class="sp"></div><button id="compose-discard" type="button" class="iconbtn sm" title="Discard" aria-label="Discard"><svg class="i"><use href="#i-trash"/></svg></button></div>
@@ -1764,6 +1804,17 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="sheet">
 <input id="palette-input" type="text" autocomplete="off" placeholder="Type an action, a folder or a contact" aria-label="Command">
 <ul id="palette-list" role="listbox"></ul>
+</div>
+</div>
+<div id="pgp-unlock" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="pgp-unlock-title">
+<div class="sheet">
+<h2 id="pgp-unlock-title">Unlock your OpenPGP key</h2>
+<p class="note" id="pgp-unlock-note">The passphrase opens the key in this browser; nothing is sent to the server.</p>
+<form id="pgp-unlock-form">
+<label for="pgp-unlock-passphrase">Passphrase</label><input id="pgp-unlock-passphrase" type="password" autocomplete="current-password">
+<div id="pgp-unlock-status" class="status" aria-live="polite"></div>
+<p class="row"><button class="btn" type="submit">Unlock</button> <button id="pgp-unlock-cancel" class="btn ghost sm" type="button">Cancel</button></p>
+</form>
 </div>
 </div>
 <div id="smime-unlock" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="smime-unlock-title">

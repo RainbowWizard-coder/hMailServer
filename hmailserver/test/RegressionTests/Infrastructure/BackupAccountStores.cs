@@ -24,7 +24,8 @@ namespace RegressionTests.Infrastructure
    ///    address book (hm_contacts), the webmail's remembered choices
    ///    (hm_accountprefs), the messages it has put off (hm_scheduled), the large
    ///    files it has sent as links (hm_files), its S/MIME certificates and keys
-   ///    (hm_smimekeys), the history that stops it reusing a password
+   ///    (hm_smimekeys), its OpenPGP keys and its correspondents' (hm_pgpring), the
+   ///    history that stops it reusing a password
    ///    (hm_passwordhistory), its calendar (hm_calendars, hm_calendarobjects), the
    ///    memory of who has written to it before (hm_knownsenders), whether it asked
    ///    for the quarantine digest to stop (hm_digeststate), its own safe and
@@ -496,6 +497,40 @@ namespace RegressionTests.Infrastructure
          // And the account's own decision to be published, which is a column of
          // hm_accounts rather than of the store, and would be just as quiet to lose.
          StringAssert.Contains("\"publish\":true", listed.Body);
+      }
+
+      // ------------------------------------------------------------ hm_pgpring
+
+      [Test]
+      [Description("hm_pgpring: the account's own OpenPGP key, secret half and all, and a correspondent's public key, survive a backup and a restore")]
+      public void TheOpenPgpRingComesBack()
+      {
+         string secret = OpenPgpTestSupport.RingOwnSecretArmoured
+            .Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+
+         Response mine = Rest("PUT", "/api/v1/me/openpgp/keys/own", User(),
+            "{\"public_key\":\"" + OpenPgpTestSupport.RingOwnPublicBase64 + "\","
+            + "\"secret_key\":\"" + secret + "\",\"source\":\"generated\"}");
+         Assert.AreEqual(201, mine.Status, "Body: " + mine.Body);
+
+         Response theirs = Rest("PUT", "/api/v1/me/openpgp/keys/correspondents", User(),
+            "{\"public_key\":\"" + OpenPgpTestSupport.RingPeerPublicBase64 + "\",\"source\":\"autocrypt\"}");
+         Assert.AreEqual(201, theirs.Status, "Body: " + theirs.Body);
+
+         BackupDeleteAndRestore();
+
+         Response listed = Rest("GET", "/api/v1/me/openpgp/keys", User());
+         Assert.AreEqual(200, listed.Status, "Body: " + listed.Body);
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.RingOwnFingerprint + "\"", listed.Body);
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.RingPeerFingerprint + "\"", listed.Body);
+         StringAssert.Contains("\"source\":\"autocrypt\"", listed.Body);
+
+         // The secret half above all. It is encrypted under a passphrase this
+         // server has never had, so if a restore dropped or changed it nothing
+         // here would fail - and the account would never read its own encrypted
+         // mail again, nor anybody else's answer to it, for ever.
+         StringAssert.Contains("\"secret_key\":\"" + secret + "\"", listed.Body,
+            "The secret key comes back byte for byte, which is the only way it is any use.");
       }
 
       // ---------------------------------------------- hm_calendars/-objects

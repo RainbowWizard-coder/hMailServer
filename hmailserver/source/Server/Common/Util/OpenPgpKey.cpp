@@ -889,24 +889,36 @@ namespace HM
 
       std::string source(text.c_str(), (size_t) text.GetLength());
 
-      const std::string publicHeader = "-----BEGIN PGP PUBLIC KEY BLOCK-----";
-      const std::string privateHeader = "-----BEGIN PGP PRIVATE KEY BLOCK-----";
-      const std::string secretHeader = "-----BEGIN PGP SECRET KEY BLOCK-----";
-
-      if (source.find(privateHeader) != std::string::npos || source.find(secretHeader) != std::string::npos)
+      if (source.find("-----BEGIN PGP PRIVATE KEY BLOCK-----") != std::string::npos ||
+          source.find("-----BEGIN PGP SECRET KEY BLOCK-----") != std::string::npos)
       {
          error = "This is a SECRET key, and this server never holds one. Export the public half of it - gpg --armor --export, not gpg --armor --export-secret-keys - and upload that.";
          return false;
       }
 
-      size_t begin = source.find(publicHeader);
+      return ReadArmour_(source, "PUBLIC KEY BLOCK", out, error);
+   }
+
+   // The radix-64 block of RFC 9580 section 6, for whichever label the caller
+   // wants. Dearmour is the public key's door and refuses a secret key before
+   // it reaches here; ReadSecretKey is the other caller, and the one thing it
+   // asks of a secret key is that it be encrypted.
+   bool
+   OpenPgpKey::ReadArmour_(const std::string &source, const std::string &label, std::vector<unsigned char> &out, AnsiString &error)
+   {
+      out.clear();
+
+      const std::string beginLine = "-----BEGIN PGP " + label + "-----";
+      const std::string endLine = "-----END PGP " + label + "-----";
+
+      size_t begin = source.find(beginLine);
       if (begin == std::string::npos)
       {
-         error = "This armoured block is not a PGP PUBLIC KEY BLOCK.";
+         error.Format("This armoured block is not a PGP %s.", label.c_str());
          return false;
       }
 
-      size_t end = source.find("-----END PGP PUBLIC KEY BLOCK-----", begin);
+      size_t end = source.find(endLine, begin);
       if (end == std::string::npos)
       {
          error = "This armoured block has no end line.";
@@ -1001,6 +1013,151 @@ namespace HM
       }
 
       return true;
+   }
+
+   // A SECRET key, read for one question and one question only: is every
+   // secret packet in it encrypted under a passphrase?
+   //
+   // This server holds the account's secret OpenPGP key for the webmail, and
+   // holds it in the OpenPGP format so that the same bytes open in GnuPG. That
+   // is only safe while the key inside is passphrase-encrypted, and the
+   // encryption happens in the browser where this server cannot see it - so
+   // this is the one place that can refuse a key that arrived without it. A
+   // secret-key packet whose string-to-key usage octet is 0 is a private key in
+   // the clear, and it is refused by name rather than stored.
+   //
+   // Nothing here decrypts anything, and no passphrase is involved: the usage
+   // octet sits immediately after the public key material, which
+   // PublicMaterialEnd_ already knows how to find.
+   OpenPgpKey::SecretKeyFacts
+   OpenPgpKey::ReadSecretKey(const AnsiString &text, size_t maximum)
+   {
+      SecretKeyFacts facts;
+
+      if (maximum == 0)
+         maximum = DefaultMaximumBytes;
+
+      AnsiString trimmed = text;
+      trimmed.Trim();
+      std::string source(trimmed.c_str(), (size_t) trimmed.GetLength());
+
+      std::vector<unsigned char> bytes;
+      AnsiString error;
+      if (!ReadArmour_(source, "PRIVATE KEY BLOCK", bytes, error) &&
+          !ReadArmour_(source, "SECRET KEY BLOCK", bytes, error))
+      {
+         facts.error = "This is not an armoured PGP PRIVATE KEY BLOCK.";
+         return facts;
+      }
+
+      if (bytes.size() > maximum)
+      {
+         facts.error.Format("This secret key is %d bytes, and this server holds one of at most %d.",
+                            (int) bytes.size(), (int) maximum);
+         return facts;
+      }
+
+      const unsigned char *data = &bytes[0];
+      const size_t length = bytes.size();
+
+      size_t at = 0;
+      bool sawPrimary = false;
+      int userIds = 0;
+      while (at < length)
+      {
+         Packet packet;
+         if (!ReadPacket_(data, length, at, packet, facts.error))
+            return facts;
+
+         if (packet.tag == TagSecretKey || packet.tag == TagSecretSubkey)
+         {
+            const unsigned char *body = data + packet.body_start;
+            const size_t bodyLength = packet.body_length;
+            if (bodyLength < 7)
+            {
+               facts.error = "A secret-key packet in this key is too short to be one.";
+               return facts;
+            }
+
+            const int version = body[0];
+            if (version != 4)
+            {
+               facts.error.Format("This secret key is version %d, and the webmail holds version 4 keys - the ones GnuPG 2.4 makes by default.", version);
+               return facts;
+            }
+
+            size_t material_at = 6;
+            size_t material_end = 0;
+            if (!PublicMaterialEnd_(body, bodyLength, version, body[5], material_at, material_end, facts.error))
+               return facts;
+
+            if (material_end >= bodyLength)
+            {
+               facts.error = "A secret-key packet in this key carries no secret material.";
+               return facts;
+            }
+
+            facts.secret_packets++;
+            const int usage = body[material_end];
+            if (usage == 0)
+               facts.unprotected_packets++;
+
+            if (packet.tag == TagSecretKey)
+            {
+               if (sawPrimary)
+               {
+                  facts.error = "This block holds more than one key. One upload is one key.";
+                  return facts;
+               }
+               sawPrimary = true;
+               facts.version = version;
+               facts.algorithm = body[5];
+
+               std::vector<unsigned char> preimage;
+               preimage.push_back(0x99);
+               preimage.push_back((unsigned char) ((material_end >> 8) & 0xFF));
+               preimage.push_back((unsigned char) (material_end & 0xFF));
+               preimage.insert(preimage.end(), body, body + material_end);
+
+               unsigned char digest[SHA_DIGEST_LENGTH] = {};
+               SHA1(&preimage[0], preimage.size(), digest);
+               facts.fingerprint = HexOf_(digest, sizeof(digest));
+               facts.key_id = HexOf_(digest + sizeof(digest) - 8, 8);
+            }
+         }
+         else if (packet.tag == TagUserId)
+         {
+            userIds++;
+            if (facts.primary_user_id.IsEmpty())
+               facts.primary_user_id = AnsiString((const char *) (data + packet.body_start), (int) packet.body_length);
+         }
+         else if (packet.tag == TagPublicKey)
+         {
+            facts.error = "This block holds a PUBLIC key packet; a secret key is what belongs here.";
+            return facts;
+         }
+
+         at = packet.next;
+      }
+
+      if (!sawPrimary)
+      {
+         facts.error = "This block holds no secret key.";
+         return facts;
+      }
+      if (!userIds)
+      {
+         facts.error = "This secret key carries no user id.";
+         return facts;
+      }
+      if (facts.unprotected_packets > 0)
+      {
+         facts.error = "This secret key is NOT encrypted: its private numbers are in the clear. A key stored here is encrypted in the browser under a passphrase this server never sees, and one that arrived without that encryption is refused rather than kept.";
+         return facts;
+      }
+
+      facts.ok = true;
+      return facts;
    }
 
    OpenPgpKey::Parsed

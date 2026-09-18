@@ -1,0 +1,28 @@
+From: Alice Fixture <alice@fixtures.test>
+To: Bob Fixture <bob@fixtures.test>
+Subject: A signed fixture
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature"; boundary="=_fixture_signed_0001"
+
+This is an OpenPGP/MIME signed message (RFC 3156).
+
+--=_fixture_signed_0001
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+A message GnuPG made for the page to read.
+Second line, with café and a tab:	there.
+
+--=_fixture_signed_0001
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iIoEABYKADIWIQQ8b/XjRYFz3V2z9KShQmPJfeaFfQUCaq0hsxQcYWxpY2VAZml4
+dHVyZXMudGVzdAAKCRChQmPJfeaFfRQSAQDSUiRVzBdzcqCJ/3xIHBSC/2Cux+CJ
+IgMliLeDt+IVvQEA8nSpGMyoRFgQoK+wvx5yWEh4Td6ZCfXE+qyDDFUhtgc=
+=tnNa
+-----END PGP SIGNATURE-----
+--=_fixture_signed_0001--

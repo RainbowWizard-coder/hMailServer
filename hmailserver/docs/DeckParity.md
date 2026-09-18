@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 65 |
-| REST routes (path and method) | 471, 208 of them writes |
+| REST routes (path and method) | 477, 210 of them writes |
 | Deck views | 37 |
 
 ## Missing over REST, by interface
@@ -911,6 +911,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/messages/{id}/unsubscribe` | ? | - | - |
 | `PUT /api/v1/me/offline` | ? | `account`, `days`, `days_max`, `first`, `keys`, `last`, `offline_days`, `to` | - |
 | `PUT /api/v1/me/openpgp` | Settings | `account`, `address`, `answered`, `fingerprint`, `key`, `keys`, `signature` | - |
+| `PUT /api/v1/me/openpgp/keys/correspondents` | ? | `address`, `autocrypt`, `current`, `first_seen`, `from`, `header`, `key`, `last_seen`, `message`, `name`, `prefer_encrypt`, `public_key`, `revoked`, `secret`, `source`, `to` | - |
+| `PUT /api/v1/me/openpgp/keys/own` | ? | `address`, `fingerprint`, `key`, `name`, `new`, `passphrase`, `prefer_encrypt`, `public_key`, `revoked`, `secret`, `secret_key`, `source` | - |
 | `PUT /api/v1/me/openpgp/publish` | ? | `account`, `domain`, `key`, `publish`, `to` | - |
 | `POST /api/v1/me/password` | ? | `account`, `breach_check_unavailable`, `code`, `current`, `new`, `password`, `reason`, `to` | - |
 | `PUT /api/v1/me/preferences` | ? | `account`, `keys` | - |
@@ -981,7 +983,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/settings/logging` | Logging | `device`, `enabled`, `keep_files_open`, `log_application`, `log_awstats`, `log_debug`, `log_format`, `log_imap`, `log_pop3`, `log_smtp`, `log_tcpip`, `syslog_enabled`, `syslog_facility`, `syslog_host`, `syslog_log_application`, `syslog_log_debug`, `syslog_log_imap`, `syslog_log_pop3`, `syslog_log_smtp`, `syslog_log_tcpip`, `syslog_minimum_severity`, `syslog_port`, `syslog_transport` | yes |
 | `POST /api/v1/settings/logon-failures/clear` | - | - | - |
 | `PUT /api/v1/settings/messages/{name}` | ServerMessage | `domain`, `keys`, `read`, `text` | yes |
-| `PUT /api/v1/settings/openpgp` | Settings | `key_maximum_bytes`, `keys_per_account`, `require_address_in_user_id`, `web_key_directory_enabled` | yes |
+| `PUT /api/v1/settings/openpgp` | Settings | `key_maximum_bytes`, `keys_per_account`, `keyserver_url`, `lookup_keyserver`, `lookup_timeout`, `lookup_wkd`, `portal_enabled`, `require_address_in_user_id`, `web_key_directory_enabled` | yes |
 | `PUT /api/v1/settings/push` | ? | `enabled`, `max_attempts`, `max_devices_per_account`, `subject`, `time_to_live_seconds`, `vapid_private_key` | yes |
 | `POST /api/v1/settings/push/vapid` | ? | `vapid_public_key` | yes |
 | `PUT /api/v1/settings/scripting` | Scripting | `enabled`, `language` | yes |

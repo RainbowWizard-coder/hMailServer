@@ -1,0 +1,557 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+#include "StdAfx.h"
+
+#include "OpenPgpRing.h"
+#include "OpenPgpKey.h"
+#include "OpenPgpKeyStore.h"
+#include "HttpsClient.h"
+
+#include "Unicode.h"
+#include "Encoding/Base64.h"
+#include "../Application/Application.h"
+#include "../Application/Configuration.h"
+#include "../Application/ErrorManager.h"
+#include "../SQL/SQLCommand.h"
+#include "../SQL/SQLStatement.h"
+#include "../SQL/DALRecordset.h"
+
+#include <ctime>
+#include <string>
+#include <vector>
+
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+
+namespace HM
+{
+   namespace
+   {
+      const char *RingColumns = "pgrid, pgraccountid, pgrkind, pgraddress, pgrname, pgrfingerprint, pgrkeyid, "
+                                "pgralgorithm, pgrpublic, pgrsecret, pgrcreated, pgrexpires, pgrrevoked, "
+                                "pgrsource, pgrprefer, pgrfirstseen, pgrlastseen";
+
+      __int64 Now()
+      {
+         return (__int64) time(nullptr);
+      }
+
+      AnsiString Utf8(const String &value)
+      {
+         AnsiString out;
+         Unicode::WideToMultiByte(value, out);
+         return out;
+      }
+
+      String Wide(const AnsiString &value)
+      {
+         String out;
+         Unicode::MultiByteToWide(value, out);
+         return out;
+      }
+
+      AnsiString Escape(const AnsiString &value)
+      {
+         AnsiString out;
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            unsigned char c = (unsigned char) value[i];
+            if (c == '"') out += "\\\"";
+            else if (c == '\\') out += "\\\\";
+            else if (c == '\n') out += "\\n";
+            else if (c == '\r') out += "\\r";
+            else if (c == '\t') out += "\\t";
+            else if (c < 0x20) { char buffer[8]; sprintf_s(buffer, sizeof(buffer), "\\u%04x", c); out += buffer; }
+            else out += (char) c;
+         }
+         return out;
+      }
+
+      AnsiString Int64Text(__int64 value)
+      {
+         AnsiString text;
+         text.Format("%I64d", value);
+         return text;
+      }
+
+      void ReadRow(std::shared_ptr<DALRecordset> recordset, OpenPgpRing::Row &row)
+      {
+         row.id = recordset->GetInt64Value("pgrid");
+         row.kind = (int) recordset->GetLongValue("pgrkind");
+         row.address = recordset->GetStringValue("pgraddress");
+         row.name = recordset->GetStringValue("pgrname");
+         row.fingerprint = AnsiString(recordset->GetStringValue("pgrfingerprint"));
+         row.key_id = AnsiString(recordset->GetStringValue("pgrkeyid"));
+         row.algorithm = recordset->GetStringValue("pgralgorithm");
+         row.public_key = AnsiString(recordset->GetStringValue("pgrpublic"));
+         row.secret_key = AnsiString(recordset->GetStringValue("pgrsecret"));
+         row.created = recordset->GetInt64Value("pgrcreated");
+         row.expires = recordset->GetInt64Value("pgrexpires");
+         row.revoked = recordset->GetLongValue("pgrrevoked") != 0;
+         row.source = recordset->GetStringValue("pgrsource");
+         row.prefer = (int) recordset->GetLongValue("pgrprefer");
+         row.first_seen = recordset->GetInt64Value("pgrfirstseen");
+         row.last_seen = recordset->GetInt64Value("pgrlastseen");
+      }
+
+      String LocalPartOf(const String &address)
+      {
+         int at = address.Find(_T("@"));
+         return at > 0 ? address.Mid(0, at) : String();
+      }
+
+      String DomainOf(const String &address)
+      {
+         int at = address.Find(_T("@"));
+         return at >= 0 ? address.Mid(at + 1) : String();
+      }
+
+      // What a directory or a keyserver answered, read as a key. Both forms are
+      // accepted: a Web Key Directory serves the binary, a keyserver serves the
+      // armour, and nothing is answered to the page that did not parse here.
+      bool KeyFromAnswer(const AnsiString &body, AnsiString &base64, String &error)
+      {
+         if (body.IsEmpty())
+         {
+            error = _T("the answer was empty");
+            return false;
+         }
+
+         const size_t maximum = (size_t) Configuration::Instance()->GetOpenPGPKeyMaximumBytes();
+         OpenPgpKey::Parsed parsed;
+         if (body.Find("-----BEGIN PGP") >= 0)
+            parsed = OpenPgpKey::ParseText(body, maximum);
+         else
+            parsed = OpenPgpKey::Parse((const unsigned char *) body.c_str(), (size_t) body.GetLength(), maximum);
+
+         if (!parsed.ok)
+         {
+            error = Wide(parsed.error);
+            return false;
+         }
+
+         if (parsed.bytes.empty())
+         {
+            error = _T("the answer held no key material");
+            return false;
+         }
+
+         base64 = Base64::Encode((const char *) &parsed.bytes[0], (int) parsed.bytes.size());
+         return true;
+      }
+
+      // One GET, capped and deadlined. A status that is not 200 is not an error
+      // worth a sentence of its own - a directory that has no key answers 404 by
+      // design - so it is reported as a status and the caller moves on.
+      //
+      // publicOnly is the difference between the two legs, and it is the whole
+      // of the difference. A Web Key Directory host comes from an address a
+      // person typed, so it goes through RequestPublic, which resolves the name
+      // and refuses every address inside this network before a connection is
+      // made: otherwise anyone with a mailbox here could aim this server at
+      // whatever only this server can reach. The keyserver is a URL an
+      // ADMINISTRATOR set in hm_settings, so it goes through Request, which
+      // verifies https against the machine's roots and accepts plain http only
+      // to a loopback address - which is what lets a keyserver on this machine,
+      // and the regression fixture's own listener, be reached at all.
+      // timeout is what is LEFT of the lookup's one deadline, not a fresh
+      // allowance per leg: three legs at the full setting each would hold a
+      // REST worker three times longer than the listener gives a request.
+      bool Fetch(const AnsiString &url, bool publicOnly, int timeout, AnsiString &body, int &status, String &error)
+      {
+         HttpsClient::Response response;
+         std::vector<AnsiString> headers;
+         headers.push_back("Accept: application/octet-stream, application/pgp-keys, */*");
+         const size_t cap = (size_t) Configuration::Instance()->GetOpenPGPKeyMaximumBytes() + 4096;
+         const bool answered = publicOnly
+            ? HttpsClient::RequestPublic("GET", url, headers, "", "", response, error, timeout, cap)
+            : HttpsClient::Request("GET", url, headers, "", "", response, error, timeout, cap);
+         if (!answered)
+         {
+            status = 0;
+            return false;
+         }
+
+         status = response.status_code;
+         body = response.body;
+         return response.status_code == 200;
+      }
+   }
+
+   bool
+   OpenPgpRing::IsFingerprint(const AnsiString &text)
+   {
+      if (text.GetLength() != 40 && text.GetLength() != 64)
+         return false;
+
+      for (int i = 0; i < text.GetLength(); i++)
+      {
+         const char c = text[i];
+         if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+            return false;
+      }
+
+      return true;
+   }
+
+   bool
+   OpenPgpRing::IsSource(const String &text)
+   {
+      return text == _T("generated") || text == _T("imported") || text == _T("autocrypt") ||
+             text == _T("wkd") || text == _T("keyserver");
+   }
+
+   bool
+   OpenPgpRing::List(__int64 accountId, int kind, std::vector<Row> &rows)
+   {
+      rows.clear();
+
+      SQLCommand command(String(_T("select ")) + String(RingColumns) + _T(" from hm_pgpring where pgraccountid = @ACCOUNTID and pgrkind = @KIND order by pgrid asc"));
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@KIND", (int) kind);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+      {
+         // Said out loud, because the alternative is a webmail whose key page
+         // is empty and an account that concludes its keys are gone.
+         String text;
+         text.Format(_T("The OpenPGP keys of account %I64d could not be read."), accountId);
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7041, "OpenPgpRing::List", text);
+         return false;
+      }
+
+      while (!recordset->IsEOF())
+      {
+         Row row;
+         ReadRow(recordset, row);
+         rows.push_back(row);
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
+   OpenPgpRing::Find(__int64 accountId, int kind, const AnsiString &fingerprint, Row &row)
+   {
+      if (!IsFingerprint(fingerprint))
+         return false;
+
+      SQLCommand command(String(_T("select ")) + String(RingColumns) + _T(" from hm_pgpring where pgraccountid = @ACCOUNTID and pgrkind = @KIND and pgrfingerprint = @FINGERPRINT"));
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@KIND", (int) kind);
+      command.AddParameter("@FINGERPRINT", String(fingerprint));
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadRow(recordset, row);
+      return true;
+   }
+
+   int
+   OpenPgpRing::Count(__int64 accountId, int kind)
+   {
+      SQLCommand command("select count(*) as c from hm_pgpring where pgraccountid = @ACCOUNTID and pgrkind = @KIND");
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@KIND", (int) kind);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return -1;
+
+      return (int) recordset->GetLongValue("c");
+   }
+
+   bool
+   OpenPgpRing::Save(__int64 accountId, Row &row, bool &replaced)
+   {
+      Row existing;
+      replaced = Find(accountId, row.kind, row.fingerprint, existing);
+
+      SQLStatement statement;
+      statement.SetTable("hm_pgpring");
+      if (replaced)
+      {
+         statement.SetStatementType(SQLStatement::STUpdate);
+         statement.SetWhereClause(String(_T("pgrid = ")) + String(Int64Text(existing.id)));
+         // First seen is when it was first seen, whatever brought it back.
+         row.first_seen = existing.first_seen;
+      }
+      else
+      {
+         statement.SetStatementType(SQLStatement::STInsert);
+         statement.SetIdentityColumn("pgrid");
+         statement.AddColumnInt64("pgraccountid", accountId);
+         statement.AddColumn("pgrkind", (long) row.kind);
+         if (row.first_seen == 0)
+            row.first_seen = Now();
+         statement.AddColumnInt64("pgrfirstseen", row.first_seen);
+         statement.AddColumn("pgrfingerprint", String(row.fingerprint));
+      }
+
+      row.last_seen = Now();
+      statement.AddColumn("pgraddress", row.address);
+      statement.AddColumn("pgrname", row.name);
+      statement.AddColumn("pgrkeyid", String(row.key_id));
+      statement.AddColumn("pgralgorithm", row.algorithm);
+      statement.AddColumn("pgrpublic", String(row.public_key));
+      statement.AddColumn("pgrsecret", String(row.secret_key));
+      statement.AddColumnInt64("pgrcreated", row.created);
+      statement.AddColumnInt64("pgrexpires", row.expires);
+      statement.AddColumn("pgrrevoked", (long) (row.revoked ? 1 : 0));
+      statement.AddColumn("pgrsource", row.source);
+      statement.AddColumn("pgrprefer", (long) row.prefer);
+      statement.AddColumnInt64("pgrlastseen", row.last_seen);
+
+      __int64 id = existing.id;
+      const bool written = replaced
+         ? Application::Instance()->GetDBManager()->Execute(statement)
+         : (Application::Instance()->GetDBManager()->Execute(statement, &id) && id != 0);
+      if (!written)
+      {
+         // An own key that is not stored is a key the account has in one
+         // browser tab and nowhere else, so this is worth a line in the log
+         // rather than only a 500 that whoever pressed the button sees.
+         String text;
+         text.Format(_T("The OpenPGP key %s of account %I64d could not be stored."), Wide(row.fingerprint).c_str(), accountId);
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7040, "OpenPgpRing::Save", text);
+         return false;
+      }
+
+      row.id = id;
+      return true;
+   }
+
+   bool
+   OpenPgpRing::Remove(__int64 accountId, int kind, const AnsiString &fingerprint)
+   {
+      Row row;
+      if (!Find(accountId, kind, fingerprint, row))
+         return false;
+
+      SQLCommand command("delete from hm_pgpring where pgrid = @ID");
+      command.AddParameter("@ID", row.id);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   AnsiString
+   OpenPgpRing::RowJson(const Row &row)
+   {
+      AnsiString json;
+      json.Format("{\"id\":%I64d,\"address\":\"%hs\",\"name\":\"%hs\",\"fingerprint\":\"%hs\",\"key_id\":\"%hs\","
+                  "\"algorithm\":\"%hs\",\"public_key\":\"%hs\",\"created\":%I64d,\"expires\":%I64d,\"revoked\":%hs,"
+                  "\"source\":\"%hs\",\"prefer_encrypt\":\"%hs\",\"first_seen\":%I64d,\"last_seen\":%I64d",
+                  row.id,
+                  Escape(Utf8(row.address)).c_str(),
+                  Escape(Utf8(row.name)).c_str(),
+                  row.fingerprint.c_str(),
+                  row.key_id.c_str(),
+                  Escape(Utf8(row.algorithm)).c_str(),
+                  row.public_key.c_str(),
+                  row.created,
+                  row.expires,
+                  row.revoked ? "true" : "false",
+                  Escape(Utf8(row.source)).c_str(),
+                  row.prefer == 1 ? "mutual" : "nopreference",
+                  row.first_seen,
+                  row.last_seen);
+
+      // The secret key goes back to the page that stored it and nowhere else.
+      // It is encrypted under a passphrase this server has never had, so what
+      // travels here is what the database holds: opaque to both ends of the
+      // wire, and readable only in the browser that knows the passphrase.
+      if (row.kind == KindOwn)
+         json += ",\"secret_key\":\"" + Escape(row.secret_key) + "\"";
+
+      json += "}";
+      return json;
+   }
+
+   bool
+   OpenPgpRing::DescribeFrom(const AnsiString &publicKeyBase64, Row &row, AnsiString &problem)
+   {
+      AnsiString decoded = Base64::Decode(publicKeyBase64.c_str(), publicKeyBase64.GetLength());
+      if (decoded.IsEmpty())
+      {
+         problem = "the public key is not base64 of an OpenPGP key";
+         return false;
+      }
+
+      OpenPgpKey::Parsed parsed = OpenPgpKey::Parse((const unsigned char *) decoded.c_str(), (size_t) decoded.GetLength(),
+                                                    (size_t) Configuration::Instance()->GetOpenPGPKeyMaximumBytes());
+      if (!parsed.ok)
+      {
+         problem = parsed.error;
+         return false;
+      }
+
+      row.fingerprint = parsed.fingerprint;
+      row.key_id = parsed.key_id;
+      row.created = parsed.created;
+      row.expires = parsed.expires;
+      row.algorithm = Wide(parsed.algorithm_name);
+      if (parsed.bits > 0)
+      {
+         AnsiString bits;
+         bits.Format(" %d", parsed.bits);
+         row.algorithm += Wide(bits);
+      }
+
+      // The address and the name the key itself carries, when the caller gave
+      // none: a listing that named an address the key does not is a listing
+      // that would have a person encrypt to the wrong key.
+      const AnsiString keyAddress = OpenPgpKey::AddressOfUserId(parsed.primary_user_id);
+      if (row.address.IsEmpty() && !keyAddress.IsEmpty())
+         row.address = Wide(keyAddress);
+      if (row.name.IsEmpty() && !parsed.primary_user_id.IsEmpty())
+      {
+         AnsiString userId = parsed.primary_user_id;
+         const int bracket = userId.Find("<");
+         AnsiString name = bracket > 0 ? userId.Mid(0, bracket) : userId;
+         name.Trim();
+         row.name = Wide(name);
+      }
+
+      return true;
+   }
+
+   OpenPgpRing::Found
+   OpenPgpRing::Lookup(const String &address)
+   {
+      Found found;
+
+      // The whole route - both directory legs and the keyserver - shares ONE
+      // deadline, the setting's seconds from now. Each leg is given what is
+      // left, and a leg that finds nothing left is not attempted: the caller
+      // names the host these fetches go to, and four requests from one mailbox
+      // at three full timeouts each would stall every REST worker at once.
+      const time_t deadline = time(nullptr) + Configuration::Instance()->GetOpenPGPLookupTimeout();
+      auto remaining = [&]() -> int { const time_t left = deadline - time(nullptr); return left > 0 ? (int) left : 0; };
+
+      String localPart = LocalPartOf(address);
+      String domain = DomainOf(address);
+      if (localPart.IsEmpty() || domain.IsEmpty())
+      {
+         found.error = _T("that is not an e-mail address");
+         return found;
+      }
+
+      if (Configuration::Instance()->GetOpenPGPLookupWkd())
+      {
+         const AnsiString urls[2] =
+         {
+            OpenPgpKeyStore::DirectoryUrl(address, true),
+            OpenPgpKeyStore::DirectoryUrl(address, false)
+         };
+         const wchar_t *names[2] = { L"wkd-advanced", L"wkd-direct" };
+
+         for (int i = 0; i < 2; i++)
+         {
+            if (urls[i].IsEmpty())
+               continue;
+
+            if (remaining() <= 0)
+            {
+               found.error = _T("the lookup ran out of time");
+               return found;
+            }
+            AnsiString body;
+            int status = 0;
+            String error;
+            if (!Fetch(urls[i], true, remaining(), body, status, error))
+            {
+               found.status = status;
+               // A directory that has no key answers 404, and a domain that has
+               // no directory answers whatever its web server answers. Neither
+               // is worth reporting as a failure; the LAST thing that went
+               // wrong is kept, so that a lookup which found nothing can still
+               // say what it met.
+               if (!error.IsEmpty())
+                  found.error = error;
+               else if (status > 0)
+                  found.error.Format(_T("%s answered %d"), names[i], status);
+               continue;
+            }
+
+            String problem;
+            AnsiString base64;
+            if (!KeyFromAnswer(body, base64, problem))
+            {
+               found.error.Format(_T("%s answered something that is not a key: %s"), names[i], problem.c_str());
+               continue;
+            }
+
+            found.key_base64 = base64;
+            found.source = names[i];
+            found.url = Wide(urls[i]);
+            found.status = status;
+            return found;
+         }
+      }
+
+      if (Configuration::Instance()->GetOpenPGPLookupKeyserver())
+      {
+         String base = Configuration::Instance()->GetOpenPGPKeyserverUrl();
+         base.Trim();
+         while (base.EndsWith(_T("/")))
+            base = base.Mid(0, base.GetLength() - 1);
+
+         String lowered = base;
+         lowered.MakeLower();
+         if (base.IsEmpty() || (!lowered.StartsWith(_T("https://")) && !lowered.StartsWith(_T("http://"))))
+         {
+            found.error = _T("the keyserver address is not set, or is not an http address");
+            return found;
+         }
+
+         const AnsiString url = Utf8(base) + "/vks/v1/by-email/" + HttpsClient::FormEncode(Utf8(address));
+         if (remaining() <= 0)
+         {
+            found.error = _T("the lookup ran out of time");
+            return found;
+         }
+         AnsiString body;
+         int status = 0;
+         String error;
+         if (!Fetch(url, false, remaining(), body, status, error))
+         {
+            found.status = status;
+            if (!error.IsEmpty())
+               found.error = error;
+            else
+               found.error.Format(_T("the keyserver answered %d"), status);
+            return found;
+         }
+
+         String problem;
+         AnsiString base64;
+         if (!KeyFromAnswer(body, base64, problem))
+         {
+            found.error = String(_T("the keyserver answered something that is not a key: ")) + problem;
+            return found;
+         }
+
+         found.key_base64 = base64;
+         found.source = _T("keyserver");
+         found.url = Wide(url);
+         found.status = status;
+         return found;
+      }
+
+      if (found.error.IsEmpty())
+      {
+         found.error = Configuration::Instance()->GetOpenPGPLookupWkd()
+            ? _T("no key was found for that address")
+            : _T("looking a key up is switched off on this server");
+      }
+
+      return found;
+   }
+}

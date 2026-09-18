@@ -755,7 +755,7 @@ namespace HM
    // bytes are what was signed. 0 when written; else an HTTP status with
    // problem holding the body.
    int
-   RestApiServer::WriteMimeEntity_(std::shared_ptr<const Account> account, const String &fromHeader, const String &toHeader, const String &ccHeader, const AnsiString &requestBody, const String &entityText, const String &fileName, AnsiString &problem)
+   RestApiServer::WriteMimeEntity_(std::shared_ptr<const Account> account, const String &fromHeader, const String &toHeader, const String &ccHeader, const AnsiString &requestBody, const String &entityText, const String &autocrypt, const String &fileName, AnsiString &problem)
    {
       if (entityText.GetLength() > EntityMaximum)
       {
@@ -797,6 +797,12 @@ namespace HM
          header.SetUnicodeFieldValue("References", references, "");
       if (GetJsonBoolValue_(requestBody, "receipt", false))
          header.SetUnicodeFieldValue("Disposition-Notification-To", fromHeader, "utf-8");
+      // Autocrypt (RestApiOpenPgpKeys.cpp), above the entity rather than inside
+      // it: it is an RFC 5322 header of the message, and a header written into
+      // the signed part would be one more thing the signature covers that the
+      // sender did not write.
+      if (!autocrypt.IsEmpty())
+         header.SetRawFieldValue("Autocrypt", Utf8_(autocrypt), "");
       header.SetRawFieldValue("MIME-Version", "1.0", "");
 
       AnsiString block;

@@ -404,6 +404,12 @@ namespace HM
          RouteMeOpenPgpPut,
          RouteMeOpenPgpDelete,
          RouteMeOpenPgpPublish,
+         RouteMeOpenPgpKeys,
+         RouteMeOpenPgpKeyOwnPut,
+         RouteMeOpenPgpKeyOwnDelete,
+         RouteMeOpenPgpKeyPeerPut,
+         RouteMeOpenPgpKeyPeerDelete,
+         RouteMeOpenPgpLookup,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
          RouteMeSubscriptions,
@@ -1326,7 +1332,20 @@ namespace HM
       static HttpResponse HandleMeSmimeRecipientDelete_(const Caller &caller, const AnsiString &fingerprint);
       static HttpResponse HandleMeSmimeChain_(const AnsiString &requestBody);
       static HttpResponse HandlePortalSmimeScript_();
-      static int WriteMimeEntity_(std::shared_ptr<const Account> account, const String &fromHeader, const String &toHeader, const String &ccHeader, const AnsiString &requestBody, const String &entityText, const String &fileName, AnsiString &problem);
+
+      // OpenPGP in the webmail (RestApiOpenPgpKeys.cpp): the account's key
+      // ring, the lookup a browser cannot make for itself, and the module the
+      // page does the cryptography in.
+      static HttpResponse HandleMeOpenPgpKeys_(const Caller &caller);
+      static HttpResponse HandleMeOpenPgpKeyPut_(const Caller &caller, bool own, const AnsiString &requestBody);
+      static HttpResponse HandleMeOpenPgpKeyDelete_(const Caller &caller, bool own, const AnsiString &fingerprint);
+      static HttpResponse HandleMeOpenPgpLookup_(const Caller &caller, const AnsiString &query);
+      static HttpResponse HandlePortalOpenPgpScript_();
+      static AnsiString OpenApiOpenPgpKeysPaths_();
+      // The Autocrypt header value a send may carry, checked before it goes
+      // into a message: 1 good, 0 absent, -1 refused with the reason.
+      static int AutocryptHeaderValue_(const AnsiString &requestBody, String &value, AnsiString &problem);
+      static int WriteMimeEntity_(std::shared_ptr<const Account> account, const String &fromHeader, const String &toHeader, const String &ccHeader, const AnsiString &requestBody, const String &entityText, const String &autocrypt, const String &fileName, AnsiString &problem);
       static HttpResponse HandleMeStorage_(const Caller &caller);
 
       // OpenPGP public keys (RestApiOpenPgp.cpp): the account's own, an
