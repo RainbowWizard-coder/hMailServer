@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Linq;
 using System.Windows.Automation;
 using System.Windows;
 using System.Windows.Controls;
@@ -668,11 +669,8 @@ namespace hMailServer.ControlPanel.Views
          rotState_.Children.Add(DialogFields.Separator());
          rotState_.Children.Add(DialogFields.Body(F("{0}: {1}", title, slot.Selector)));
 
-         foreach (string fact in facts)
-         {
-            if (!string.IsNullOrEmpty(fact))
-               rotState_.Children.Add(DialogFields.Note(fact));
-         }
+         foreach (string fact in (facts ?? Array.Empty<string>()).Where(f => !string.IsNullOrEmpty(f)))
+            rotState_.Children.Add(DialogFields.Note(fact));
 
          if (slot.Check != null)
          {

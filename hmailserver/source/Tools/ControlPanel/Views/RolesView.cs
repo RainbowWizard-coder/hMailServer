@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -168,9 +169,8 @@ namespace hMailServer.ControlPanel.Views
             // Lines rather than a collection: a new COM interface needs an
             // elevated registration on every machine, and a listing does not
             // earn that. name, built-in, description, permissions.
-            foreach (string line in Lines_((string)ServerSession.Current.Application.Roles))
+            foreach (string[] parts in Lines_((string)ServerSession.Current.Application.Roles).Select(line => line.Split('\t')))
             {
-               string[] parts = line.Split('\t');
                if (parts.Length < 4)
                   continue;
 
@@ -183,9 +183,8 @@ namespace hMailServer.ControlPanel.Views
                });
             }
 
-            foreach (string line in Lines_((string)ServerSession.Current.Application.RoleAssignments))
+            foreach (string[] parts in Lines_((string)ServerSession.Current.Application.RoleAssignments).Select(line => line.Split('\t')))
             {
-               string[] parts = line.Split('\t');
                if (parts.Length < 3)
                   continue;
 

@@ -873,9 +873,10 @@ namespace hMailServer.ControlPanel
          // name; the administrator's name on the menu button is the fact.
          ShowLinkState_(LinkState.Connected);
 
+         ServerSession session = ServerSession.Current;
          try
          {
-            VersionText.Text = "hMailServer " + (string)ServerSession.Current.Application.Version;
+            VersionText.Text = session == null ? "" : "hMailServer " + (string)session.Application.Version;
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -908,7 +909,7 @@ namespace hMailServer.ControlPanel
             // on Welcome, which every credential may open, rather than on a
             // connect screen left standing beside an enabled sidebar.
             NavNode dashboard = NavigationMap.Find("dashboard");
-            bool mayUseDashboard = ServerSession.Current == null || dashboard == null || ServerSession.Current.May(dashboard.Needs);
+            bool mayUseDashboard = session == null || dashboard == null || session.May(dashboard.Needs);
             NavigateTo(mayUseDashboard ? "dashboard" : "welcome");
          }
          finally

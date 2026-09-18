@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -186,11 +187,8 @@ namespace hMailServer.ControlPanel.Services
          if (!root.TryGetProperty("items", out JsonElement items) || items.ValueKind != JsonValueKind.Array)
             yield break;
 
-         foreach (JsonElement item in items.EnumerateArray())
-         {
-            if (item.ValueKind == JsonValueKind.Object)
-               yield return item;
-         }
+         foreach (JsonElement item in items.EnumerateArray().Where(i => i.ValueKind == JsonValueKind.Object))
+            yield return item;
       }
 
       private static string Text_(JsonElement element, string name)

@@ -44,7 +44,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice notice_ = DialogFields.Notice();
       private readonly Wpf.Ui.Controls.Button move_;
 
-      private FieldRow newAddressRow_;
+      private readonly FieldRow newAddressRow_;
 
       /// <summary>The address the mailbox now has, once it has been moved.</summary>
       public string MovedTo { get; private set; }

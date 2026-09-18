@@ -165,16 +165,7 @@ namespace hMailServer.ControlPanel.Services
          if (mayUse == null)
             return roots_;
 
-         var visible = new List<NavNode>();
-
-         foreach (NavNode root in roots_)
-         {
-            NavNode kept = Filter_(root, mayUse);
-            if (kept != null)
-               visible.Add(kept);
-         }
-
-         return visible;
+         return roots_.Select(root => Filter_(root, mayUse)).Where(kept => kept != null).ToList();
       }
 
       /// <summary>Every page this credential may open, in display order.</summary>
@@ -186,14 +177,7 @@ namespace hMailServer.ControlPanel.Services
          if (node.IsPage)
             return mayUse(node.Needs) ? node : null;
 
-         var children = new List<NavNode>();
-
-         foreach (NavNode child in node.Children)
-         {
-            NavNode kept = Filter_(child, mayUse);
-            if (kept != null)
-               children.Add(kept);
-         }
+         List<NavNode> children = node.Children.Select(child => Filter_(child, mayUse)).Where(kept => kept != null).ToList();
 
          if (children.Count == 0)
             return null;
