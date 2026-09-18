@@ -85,6 +85,16 @@ namespace RegressionTests.SMTP
                Admin("DELETE", "/api/v1/journal-rules/" + id, null);
 
             _rules.Clear();
+
+            // And the journal domain this test made. The suite's baseline
+            // removes it before the next test, but nothing removed the LAST
+            // test's, and a bench with two domains fails the pre-flight of the
+            // gate after it.
+            if (_journalDomain != null)
+            {
+               _journalDomain.Delete();
+               _journalDomain = null;
+            }
          }
          finally
          {
