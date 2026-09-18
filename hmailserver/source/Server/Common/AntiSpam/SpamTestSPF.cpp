@@ -127,6 +127,15 @@ namespace HM
       else if (result == SPF::Result::Pass)
       {
          std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Pass, 0, ""));
+
+         // Whose pass it is: the identity check_host() was given, which is the
+         // envelope sender's domain, or the HELO host when there is no envelope
+         // sender (RFC 7208 section 2.4). GetCheckedDomain is the function the
+         // evaluation above used, so the identity recorded here and the one
+         // authenticated cannot disagree. A reader that acts on a pass - the
+         // greylisting bypass list does - needs the name, not just the verdict.
+         pResult->AddIdentityDomain(SPF::GetCheckedDomain(pTestData->GetEnvelopeFrom(), pTestData->GetHeloHost()));
+
          setSpamTestResults.insert(pResult);
       }
 

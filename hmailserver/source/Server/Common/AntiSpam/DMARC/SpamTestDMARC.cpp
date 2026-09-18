@@ -229,6 +229,14 @@ namespace HM
       case DMARC::Pass:
          {
             std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Pass, 0, ""));
+
+            // The identity this verdict is about: the RFC5322.From domain,
+            // which is the only thing DMARC evaluates and need not be the
+            // envelope sender's domain at all. A reader that acts on the pass -
+            // the greylisting bypass list does - must not take a pass for
+            // attacker.test as one for the domain it was asked about.
+            pResult->AddIdentityDomain(fromDomain);
+
             setSpamTestResults.insert(pResult);
             break;
          }

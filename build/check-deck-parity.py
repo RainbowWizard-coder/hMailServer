@@ -109,6 +109,8 @@ PATH_SCOPE = {
     'incoming-relays': ['IncomingRelay'],
     'blocked-attachments': ['BlockedAttachment'],
     'greylisting-white-addresses': ['GreyListingWhiteAddress'],
+    # The per-domain greylisting bypass list, in the white list's shape.
+    'greylisting-bypass': ['GreyListingBypassEntry'],
     'fetch-accounts': ['FetchAccount'],
     'settings': ['Settings'],
     # POST /api/v1/settings/breach-check/test: Settings.TestBreachCheckEndpoint.

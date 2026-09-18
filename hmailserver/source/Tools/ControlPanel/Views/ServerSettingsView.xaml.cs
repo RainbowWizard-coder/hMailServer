@@ -1512,6 +1512,30 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new ComText { Path = "AntiSpam.GreyListingFinalDelete", Label = L("Delete confirmed after (days)"), Numeric = true, Divisor = 24 });
          grey.Settings.Add(new ComBool { Path = "AntiSpam.BypassGreylistingOnMailFromMX", Label = L("Bypass when sender matches MX") });
          grey.Settings.Add(new ComBool { Path = "AntiSpam.BypassGreylistingOnSPFSuccess", Label = L("Bypass on SPF success") });
+         // The hardened greylisting of 18 September 2026 (discussion #282): each
+         // off or inert by default, so a server that never touches them runs
+         // classic greylisting. A server older than these has no such properties
+         // and the rows say so as every other COM row does.
+         grey.Settings.Add(new ComBool
+         {
+            Path = "AntiSpam.GreyListingSlideOnEarlyRetry",
+            Label = L("Move the window on a retry that comes too soon"),
+            Blurb = L("Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on.")
+         });
+         grey.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.GreyListingAbuseThreshold",
+            Label = L("Refuse with 550 after this many retries before the window opens (0 never refuses)"),
+            Numeric = true,
+            Blurb = L("A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20.")
+         });
+         grey.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.GreyListingAbuseLockMinutes",
+            Label = L("How long that refusal lasts (minutes)"),
+            Numeric = true,
+            Blurb = L("60 by default; means nothing while the threshold above is 0.")
+         });
          // The last two greylisting settings are stored in hMailServer.INI rather
          // than in the settings database, and they used to be on the catch-all INI
          // page because of it - so half of greylisting was configured here and half

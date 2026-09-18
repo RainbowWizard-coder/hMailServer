@@ -26,4 +26,13 @@ namespace HM
 
    }
 
+   void
+   SpamTestResult::AddIdentityDomain(const String &domain)
+   {
+      if (domain.IsEmpty())
+         return;
+
+      identity_domains_.push_back(domain);
+   }
+
 }

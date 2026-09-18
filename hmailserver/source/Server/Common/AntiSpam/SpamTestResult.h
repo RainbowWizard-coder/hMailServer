@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 namespace HM
 {
    class SpamTestResult
@@ -25,12 +27,24 @@ namespace HM
       String GetMessage() {return message_; }
       String GetTestName() {return testName_; }
 
+      // Whose result this is: the domains the test actually authenticated. SPF
+      // records the identity it was evaluated for (RFC 7208 section 2.4), DKIM
+      // every d= whose signature verified, DMARC the RFC5322.From domain. A
+      // test that authenticates no particular name records none, and a caller
+      // that asks whether a result belongs to a domain must read an empty list
+      // as "not that domain's": a pass with no identity behind it says
+      // something verified but not whose, which is the difference between
+      // "this message is from the partner" and "this message is signed".
+      void AddIdentityDomain(const String &domain);
+      const std::vector<String> &GetIdentityDomains() const { return identity_domains_; }
+
    private:
 
       int spam_score_;
       String message_;
       String testName_;
       Result result_;
+      std::vector<String> identity_domains_;
 
    };
 

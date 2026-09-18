@@ -371,6 +371,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 er den registrerede port for UDP og for almindelig TCP; 6514 er den registrerede port for syslog over TLS.</value>
   </data>
+  <data name="60 by default; means nothing while the threshold above is 0." xml:space="preserve">
+    <value>60 som standard; betyder intet, mens tærsklen ovenfor er 0.</value>
+  </data>
   <data name="7 days" xml:space="preserve">
     <value>7 dage</value>
   </data>
@@ -589,6 +592,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>En vellykket pålogning nulstiller navnets tællere, og forsøg foretaget, mens det er låst, tælles ikke med – så en angriber kan ikke holde en postkasse låst i det uendelige med en jævn strøm af gæt.</value>
+  </data>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
+    <value>En triplet, der prøver igen for tidligt så mange gange, besvares med 550 i stedet for 451 i låsen nedenfor, hvilket er det, der stopper en afsender, der hamrer med den samme besked med få sekunders mellemrum. En fejlkonfigureret genforsøgsløkke strander, indtil låsen udløber, hvorefter tripletten begynder forfra som et første forsøg. Operatøren, der bad om det, bruger 20.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>En triplet, der er set før, men endnu ikke er bekræftet, ligger i et vindue, før dens post udløber. Slås dette fra, slippes post igennem i det vindue i stedet for at blive greylistet igen, hvilket er mildere over for afsendere, der genforsøger langsomt, og svagere over for en afsender, der kun genforsøger én gang.</value>
@@ -3014,6 +3020,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Domæne, hvis DNS-poster vises</value>
   </data>
+  <data name="Domain, or .suffix" xml:space="preserve">
+    <value>Domæne eller .suffiks</value>
+  </data>
   <data name="Domain:" xml:space="preserve">
     <value>Domæne:</value>
   </data>
@@ -3022,6 +3031,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Domains &amp; accounts" xml:space="preserve">
     <value>Domæner og konti</value>
+  </data>
+  <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
+    <value>Domæner og HELO-suffikser, der slipper forbi greylisting, kun når beskeden består SPF, DKIM eller DMARC, som posten kræver.</value>
   </data>
   <data name="Domains it may act on (optional)" xml:space="preserve">
     <value>Domæner, den må handle på (valgfrit)</value>
@@ -3077,6 +3089,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Hver meddelelse scannes to gange: én gang som hele filen på disken og derefter én gang pr. vedhæftet fil, som hver især skrives ud til den midlertidige mappe og gives til scanneren for sig. Det andet gennemløb er det, der fanger en vedhæftet fil inde i en struktur, som scanneren ikke selv afkoder. Hvis meddelelsen ikke kan parses som MIME, springes gennemløbet pr. vedhæftet fil over, og der logges en fejl.</value>
   </data>
+  <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
+    <value>Hvert genforsøg, før den indledende forsinkelse er gået, starter forsinkelsen forfra fra det øjeblik, så en afsender, der prøver igen efter en timer frem for fra en kø, aldrig når vinduet. Slået fra som standard: en velopdragen server, der én gang prøver igen for hurtigt, forsinkes lidt længere, når det er slået til.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Red_igér handling…</value>
   </data>
@@ -3109,6 +3124,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Redigerer {0} - gemte ændringer er aktive inden for to sekunder; ingen genstart af tjenesten.</value>
+  </data>
+  <data name="Either of them" xml:space="preserve">
+    <value>En af dem</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Tømmer indekset og beder indekseringen om at genopbygge det. Ingen post røres – indekset er afledte data – men indtil genopbygningen har indhentet det, finder IMAP SEARCH mindre, end den burde. Værd at gøre, når indekset har flere poster, end serveren har meddelelser, hvilket betyder poster for post, der ikke længere findes.</value>
@@ -3247,6 +3265,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Indtast tjenestekontoens adgangskode</value>
+  </data>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
+    <value>Kuvertdomæner og HELO-suffikser, der slipper forbi greylisting, når beskeden bærer de godkendelsesresultater, posten kræver - SPF, DKIM, DMARC, i enhver kombination. Et domæne matchet nøjagtigt, eller et suffiks med et indledende punktum som .mail.example.com, der dækker det navn og alle navne under det. SPF kendes ved RCPT TO, så en post, der kun kræver SPF, afgøres der; DKIM og DMARC findes først, når beskeden er modtaget, så en post, der kræver en af dem, lader modtageren passere indtil videre, og beskeden greylistes efter DATA, hvis resultatet ikke er bestået - og kun mens DKIM-verifikation eller DMARC er slået til, da posten ellers aldrig kan opfyldes. I modsætning til Spring over ved SPF-succes er dette et privilegium, du giver et navngivet domæne, ikke en egenskab ved enhver SPF-succes i verden.</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Konvolutafsendere, der afvises uden videre eller scores - én adresse eller et helt domæne med dets underdomæner.</value>
@@ -3680,6 +3701,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
   </data>
+  <data name="Greylisting bypass list" xml:space="preserve">
+    <value>Greylisting-undtagelser</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Udløb af greylisting-poster og SpamAssassin flyt-kontra-kopiér</value>
   </data>
@@ -3856,6 +3880,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Hvor længe hver worker må være optaget før mætningsrapporten. 0 = rapportering fra.</value>
+  </data>
+  <data name="How long that refusal lasts (minutes)" xml:space="preserve">
+    <value>Hvor længe den afvisning varer (minutter)</value>
   </data>
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Hvor længe det vindue varer. Fire timer som standard.</value>
@@ -4552,6 +4579,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Match ET HVILKET SOM HELST kriterium (OR)</value>
   </data>
+  <data name="Matched against" xml:space="preserve">
+    <value>Matches mod</value>
+  </data>
   <data name="Matches" xml:space="preserve">
     <value>Stemmer</value>
   </data>
@@ -4842,6 +4872,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Flyt meddelelsesfilen til SpamAssassin i stedet for at kopiere den (genstart kræves)</value>
+  </data>
+  <data name="Move the window on a retry that comes too soon" xml:space="preserve">
+    <value>Flyt vinduet ved et genforsøg, der kommer for tidligt</value>
   </data>
   <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
     <value>Flyt denne postkasse til et andet domæne, eller omdøb den og behold den gamle adresse</value>
@@ -5286,6 +5319,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Not yet - " xml:space="preserve">
     <value>Ikke endnu - </value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Note</value>
   </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Bemærk: certifikatverifikation er slået fra, så den krypterede forbindelse beviser ikke, hvilket katalog den når. Serveren logger dette én gang pr. start.</value>
@@ -6364,6 +6400,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Afvis, når den er dukket op mindst så mange gange</value>
   </data>
+  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
+    <value>Afvis med 550 efter så mange genforsøg, før vinduet åbner (0 afviser aldrig)</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Afvist, før meddelelsen blev sat i kø, så der er ingen meddelelse at følge.</value>
   </data>
@@ -6607,6 +6646,15 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed. TLS-porte og br
   </data>
   <data name="Requires (or requests) a TLS client certificate from anyone connecting to a port, so only holders of a certificate from your chosen CA get in." xml:space="preserve">
     <value>Kræver (eller anmoder om) et TLS-klientcertifikat fra alle, der forbinder til en port, så kun indehavere af et certifikat fra din valgte CA kommer ind.</value>
+  </data>
+  <data name="Requires a DMARC pass (decided after DATA)" xml:space="preserve">
+    <value>Kræver bestået DMARC (afgøres efter DATA)</value>
+  </data>
+  <data name="Requires a verified DKIM signature (decided after DATA)" xml:space="preserve">
+    <value>Kræver en verificeret DKIM-signatur (afgøres efter DATA)</value>
+  </data>
+  <data name="Requires an SPF pass" xml:space="preserve">
+    <value>Kræver bestået SPF</value>
   </data>
   <data name="Requiring TLS for authentication on the IP ranges closes the credential half of this." xml:space="preserve">
     <value>At kræve TLS til godkendelse på IP-intervallerne lukker legitimationshalvdelen af dette.</value>
@@ -8146,6 +8194,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>DNS-opslaget for {0} mislykkedes i sig selv: {1} Dette siger intet om posten - denne maskine kunne ikke få svar fra sin DNS-server. Kontrollér netværket, og prøv igen.</value>
   </data>
+  <data name="The HELO/EHLO host" xml:space="preserve">
+    <value>HELO/EHLO-værten</value>
+  </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Værtsnavnet under Levering af e-mail er TOMT, så serveren falder tilbage til sit Windows-computernavn{0}. Et nøgent computernavn er ikke et offentligt DNS-navn: modtagere, der sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme overens med det. Sæt et rigtigt værtsnavn først.</value>
   </data>
@@ -8366,6 +8417,9 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Motorens dom ankommer som en score, så den lander ved siden af SPF, DKIM og DMARC, og dine eksisterende tærskler afgør, hvad der sker - i stedet for et andet, parallelt begreb om spam, der skal forenes med det første. Så meget er dens stærkeste dom værd.</value>
+  </data>
+  <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
+    <value>Kuvertafsenderens domæne (MAIL FROM)</value>
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>De præcise SPF-, DKIM-, DMARC-, MTA-STS- og TLS-RPT-poster, hvert domæne bør publicere, med en kontrol af, om hver enkelt er aktiv.</value>
@@ -10294,6 +10348,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="blocked-attachment patterns are" xml:space="preserve">
     <value>mønstre for blokerede vedhæftede filer er</value>
   </data>
+  <data name="bypass entry" xml:space="preserve">
+    <value>undtagelse</value>
+  </data>
   <data name="certificate {0}" xml:space="preserve">
     <value>certifikatet {0}</value>
   </data>
@@ -10914,6 +10971,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>afsenderens SPF-kontrol blev bestået</value>
+  </data>
+  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>afsenderens domæne eller HELO-vært er en af de {0} poster på greylisting-undtagelserne, og beskeden bærer det SPF-, DKIM- eller DMARC-resultat, posten kræver</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>serveren kan ikke nå sin database. Kontrollér databaseforbindelsen og hMailServers fejllog, og tryk derefter på Genindlæs. ({0})</value>

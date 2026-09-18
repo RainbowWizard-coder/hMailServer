@@ -115,6 +115,7 @@
     <Compile Include="..\RegressionTests\API\RestApiOperator.cs" Link="API\RestApiOperator.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAuditRevert.cs" Link="API\RestApiAuditRevert.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSpamTraps.cs" Link="API\RestApiSpamTraps.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiGreylistBypass.cs" Link="API\RestApiGreylistBypass.cs" />
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOffline.cs" Link="API\RestApiOffline.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="..\RegressionTests\AntiSpam\DmarcNonExistentSubdomainPolicy.cs" Link="AntiSpam\DmarcNonExistentSubdomainPolicy.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\FilterHook.cs" Link="AntiSpam\FilterHook.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\GreyListing.cs" Link="AntiSpam\GreyListing.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\GreyListingHardened.cs" Link="AntiSpam\GreyListingHardened.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\PerAccountSpamSettings.cs" Link="AntiSpam\PerAccountSpamSettings.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SenderBlacklist.cs" Link="AntiSpam\SenderBlacklist.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpfEvaluation.cs" Link="AntiSpam\SpfEvaluation.cs" />

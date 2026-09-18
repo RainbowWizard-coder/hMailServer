@@ -416,6 +416,12 @@ namespace
    const char *SpamTrapRetentionRefusal =
       "SpamTrapHitRetentionDays is between 1 and 3650: the record of spam trap hits is kept for that long.";
 
+   // InterfaceAntiSpam's sentences for the hardened greylisting, verbatim.
+   const char *GreyListingAbuseThresholdRefusal =
+      "GreyListingAbuseThreshold is between 0 and 100000. 0 never refuses: a triplet retried too soon is deferred again, as it always was.";
+   const char *GreyListingAbuseLockRefusal =
+      "GreyListingAbuseLockMinutes is between 1 and 10080 (a week): how long the 550 of GreyListingAbuseThreshold lasts.";
+
    // PasswordBreachCheck::UnreachableAction, as the Control Panel lists it.
    const Word BreachCheckUnreachableWords[] =
    {
@@ -1242,6 +1248,25 @@ namespace
       { "bypass_greylisting_on_mail_from_mx", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether a message from one of the sender domain's MX hosts is not greylisted.",
         ROW_FLAG(AntiSpam().GetBypassGreyListingOnMailFromMX()), ROW_SET(AntiSpam().SetBypassGreyListingOnMailFromMX(v.flag)), ROW_NO_CHECK },
+      // Greylisting, hardened (SMTP/GreyListing.h). Off, 0 and inert by default:
+      // with these at their defaults greylisting is classic Evans, as it was.
+      { "greylisting_slide_on_early_retry", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a retry before the greylisting window opens moves the window: each such retry sets the block end to now plus greylisting_initial_delay again, so a sender that retries too soon never reaches it. Off by default, which is classic greylisting; a well-behaved server that retries once too quickly is delayed a little longer with it on.",
+        ROW_FLAG(AntiSpam().GetGreyListingSlideOnEarlyRetry()), ROW_SET(AntiSpam().SetGreyListingSlideOnEarlyRetry(v.flag)), ROW_NO_CHECK },
+      { "greylisting_abuse_threshold", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The number of delivery attempts before the window opens at which a pending triplet is refused with 550 instead of deferred with 451, for greylisting_abuse_lock_minutes. Attempts and not retries: every RCPT TO for the triplet counts, so a sender with twenty queued messages for one recipient reaches a threshold of twenty down a single connection without having retried anything. 0, the default, never refuses. What it stops is a sender that retries on a timer rather than from a queue; a misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. Between 0 and 100000.",
+        ROW_NUMBER(AntiSpam().GetGreyListingAbuseThreshold()), ROW_SET(AntiSpam().SetGreyListingAbuseThreshold((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           return (v.number < 0 || v.number > 100000) ? String(GreyListingAbuseThresholdRefusal) : String();
+        } },
+      { "greylisting_abuse_lock_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long the 550 of greylisting_abuse_threshold lasts, in minutes; 60 by default, between 1 and 10080 (a week). Means nothing while the threshold is 0.",
+        ROW_NUMBER(AntiSpam().GetGreyListingAbuseLockMinutes()), ROW_SET(AntiSpam().SetGreyListingAbuseLockMinutes((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           return (v.number < 1 || v.number > 10080) ? String(GreyListingAbuseLockRefusal) : String();
+        } },
       { "maximum_message_size_kb", KindInteger, ReadWrite, EffectNow, nullptr,
         "Messages larger than this, in KB, are not scanned; 0 is no limit.",
         ROW_NUMBER(AntiSpam().GetAntiSpamMaxSizeKB()), ROW_SET(AntiSpam().SetAntiSpamMaxSizeKB((int) v.number)), ROW_NO_CHECK },

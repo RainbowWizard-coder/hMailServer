@@ -79,6 +79,8 @@ interface IInterfaceServerMessage;
 interface IInterfaceServerMessages;
 interface IInterfaceGreyListingWhiteAddress;
 interface IInterfaceGreyListingWhiteAddresses;
+interface IInterfaceGreyListingBypassEntry;
+interface IInterfaceGreyListingBypassEntries;
 interface IInterfaceTCPIPPort;
 interface IInterfaceTCPIPPorts;
 interface IInterfaceWhiteListAddress;
@@ -3182,6 +3184,16 @@ interface IInterfaceAntiSpam : IDispatch
    [propget, id(44), helpstring("Global list of blocked sender addresses and domains.")] HRESULT BlockedSenders([out, retval] IInterfaceBlockedSenders **pVal);
    [propget, id(45), helpstring("The server's allow and block list: addresses and domains wanted, or not wanted, by every account. Consulted at delivery, after the account's own list and its domain's.")] HRESULT SenderList([out, retval] IInterfaceSenderListEntries **pVal);
    [id(46), helpstring("Sends the quarantine digest now to every account of every domain that has the digest switched on and something newly held for it, ignoring the digest hour and the once-a-day rule. Not the opt-out, a missing QuarantineDigestBaseUrl or an empty digest: those still send nothing. Returns how many digests were sent.")] HRESULT SendQuarantineDigests([out, retval] long *pVal);
+
+   // Greylisting, hardened (SMTP/GreyListing.h; discussions #281, #282, #284).
+   // Every one of these leaves greylisting exactly as it was at its default.
+   [propget, id(47), helpstring("The per-domain greylisting bypass list: envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires (SPF, DKIM, DMARC, any combination). A privilege granted to a named domain, beside BypassGreylistingOnSPFSuccess, which every SPF pass enjoys. Empty by default, and then nothing changes.")] HRESULT GreyListingBypassEntries([out, retval] IInterfaceGreyListingBypassEntries** pVal);
+   [propget, id(48), helpstring("Whether a retry before the greylisting window opens moves the window: each such retry sets the block end to now plus GreyListingInitialDelay again, so a sender that retries too soon never reaches it. Off by default, which is classic greylisting; a well-behaved server that retries once too quickly is delayed a little longer with it on.")] HRESULT GreyListingSlideOnEarlyRetry([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(48), helpstring("Whether a retry before the greylisting window opens moves the window: each such retry sets the block end to now plus GreyListingInitialDelay again, so a sender that retries too soon never reaches it. Off by default, which is classic greylisting; a well-behaved server that retries once too quickly is delayed a little longer with it on.")] HRESULT GreyListingSlideOnEarlyRetry([in] VARIANT_BOOL newVal);
+   [propget, id(49), helpstring("The number of delivery ATTEMPTS before the window opens at which a pending triplet is refused with 550 instead of deferred with 451, for GreyListingAbuseLockMinutes. Attempts and not retries: the server counts every RCPT TO for the triplet, so a sender with twenty queued messages for one recipient reaches a threshold of twenty down one connection without having retried anything. 0, the default, never refuses; the operator who asked for it uses 20. What it stops is a sender that retries on a timer rather than from a queue; a misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. Between 0 and 100000.")] HRESULT GreyListingAbuseThreshold([out, retval] long *pVal);
+   [propput, id(49), helpstring("The number of delivery ATTEMPTS before the window opens at which a pending triplet is refused with 550 instead of deferred with 451, for GreyListingAbuseLockMinutes. Attempts and not retries: the server counts every RCPT TO for the triplet, so a sender with twenty queued messages for one recipient reaches a threshold of twenty down one connection without having retried anything. 0, the default, never refuses; the operator who asked for it uses 20. What it stops is a sender that retries on a timer rather than from a queue; a misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. Between 0 and 100000.")] HRESULT GreyListingAbuseThreshold([in] long newVal);
+   [propget, id(50), helpstring("How long the 550 of GreyListingAbuseThreshold lasts, in minutes; 60 by default, between 1 and 10080 (a week). Means nothing while the threshold is 0.")] HRESULT GreyListingAbuseLockMinutes([out, retval] long *pVal);
+   [propput, id(50), helpstring("How long the 550 of GreyListingAbuseThreshold lasts, in minutes; 60 by default, between 1 and 10080 (a week). Means nothing while the threshold is 0.")] HRESULT GreyListingAbuseLockMinutes([in] long newVal);
 };
 
 
@@ -3296,6 +3308,51 @@ interface IInterfaceGreyListingWhiteAddress : IDispatch
    [id(4), helpstring("Saves changes of the object in the database.")] HRESULT Save();
    [id(5), helpstring("Deletes the object from the database.")] HRESULT Delete();
 
+};
+[
+   object,
+   uuid(A23EE36A-C508-400D-B4F8-C7DC0752D165),
+   dual,
+   nonextensible,
+   helpstring("The GreyListingBypassEntries object is the per-domain greylisting bypass list: the envelope domains and HELO suffixes let past greylisting when a message carries the authentication results each entry requires."),
+   pointer_default(unique)
+]
+interface IInterfaceGreyListingBypassEntries : IDispatch
+{
+   [propget, id(0), defaultbind, helpstring("Returns an object by its given index.")] HRESULT Item([in] long Index, [out, retval] IInterfaceGreyListingBypassEntry **pVal);
+   [propget, id(1), helpstring("The number of objects in the collection.")] HRESULT Count([out, retval] long *pVal);
+   [id(2), helpstring("Deletes an object in the database by its given database identifier.")] HRESULT DeleteByDBID([in] long DBID);
+   [id(3), helpstring("Adds a new object to the collection. Nothing is written until Save is called on it.")] HRESULT Add([out, retval] IInterfaceGreyListingBypassEntry **pVal);
+   [propget, id(5), helpstring("Returns a object by its database identifier")] HRESULT ItemByDBID([in] long DBID, [out, retval] IInterfaceGreyListingBypassEntry* *pVal);
+   [id(6), helpstring("Refreshes the collection.")] HRESULT Refresh();
+   [propget, id(7), helpstring("Returns an object by its pattern.")] HRESULT ItemByName([in] BSTR sName, [out, retval] IInterfaceGreyListingBypassEntry **pVal);
+};
+
+[
+   object,
+   uuid(0EFF2E44-4758-4751-97BA-0BC5C1AFD989),
+   dual,
+   nonextensible,
+   helpstring("The GreyListingBypassEntry object is one entry of the greylisting bypass list: a pattern, what it is matched against, and the authentication results a message must carry before greylisting is skipped for it."),
+   pointer_default(unique)
+]
+interface IInterfaceGreyListingBypassEntry : IDispatch
+{
+   [propget, id(1), helpstring("The unique database identifier for the object.")] HRESULT ID([out, retval] long *pVal);
+   [propget, id(2), helpstring("A domain, such as example.com, matched exactly; or a suffix with a leading dot, such as .mail.example.com, which covers that name and every name under it. Stored lower-cased.")] HRESULT Pattern([out, retval] BSTR *pVal);
+   [propput, id(2), helpstring("A domain, such as example.com, matched exactly; or a suffix with a leading dot, such as .mail.example.com, which covers that name and every name under it. Stored lower-cased.")] HRESULT Pattern([in] BSTR newVal);
+   [propget, id(3), helpstring("What the pattern is compared with: 1 the domain of the envelope sender (MAIL FROM), 2 the HELO/EHLO host, 3 either.")] HRESULT MatchOn([out, retval] long *pVal);
+   [propput, id(3), helpstring("What the pattern is compared with: 1 the domain of the envelope sender (MAIL FROM), 2 the HELO/EHLO host, 3 either.")] HRESULT MatchOn([in] long newVal);
+   [propget, id(4), helpstring("Whether the message must pass SPF for this entry to skip greylisting, for an identity this entry covers: the envelope sender's domain, or - for an entry matched on the HELO - the HELO name itself, checked as RFC 7208 section 2.3 asks. SPF is known at RCPT TO, so an entry requiring SPF alone decides there.")] HRESULT RequireSPF([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(4), helpstring("Whether the message must pass SPF for this entry to skip greylisting, for an identity this entry covers: the envelope sender's domain, or - for an entry matched on the HELO - the HELO name itself, checked as RFC 7208 section 2.3 asks. SPF is known at RCPT TO, so an entry requiring SPF alone decides there.")] HRESULT RequireSPF([in] VARIANT_BOOL newVal);
+   [propget, id(5), helpstring("Whether the message must carry a DKIM signature that verifies FOR A DOMAIN THIS ENTRY COVERS - anybody may sign a message with a key they publish themselves, so whose signature it is decides. Known only after DATA, so the message is received first and greylisted after if it does not; needs DKIM verification switched on, or the entry can never be satisfied.")] HRESULT RequireDKIM([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(5), helpstring("Whether the message must carry a DKIM signature that verifies FOR A DOMAIN THIS ENTRY COVERS - anybody may sign a message with a key they publish themselves, so whose signature it is decides. Known only after DATA, so the message is received first and greylisted after if it does not; needs DKIM verification switched on, or the entry can never be satisfied.")] HRESULT RequireDKIM([in] VARIANT_BOOL newVal);
+   [propget, id(6), helpstring("Whether the message must pass DMARC for a From domain this entry covers - DMARC judges the RFC5322.From, which the envelope need not agree with. Known only after DATA, as DKIM is; needs DMARC switched on, or the entry can never be satisfied.")] HRESULT RequireDMARC([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(6), helpstring("Whether the message must pass DMARC for a From domain this entry covers - DMARC judges the RFC5322.From, which the envelope need not agree with. Known only after DATA, as DKIM is; needs DMARC switched on, or the entry can never be satisfied.")] HRESULT RequireDMARC([in] VARIANT_BOOL newVal);
+   [propget, id(7), helpstring("A note: why the entry is there.")] HRESULT Note([out, retval] BSTR *pVal);
+   [propput, id(7), helpstring("A note: why the entry is there.")] HRESULT Note([in] BSTR newVal);
+   [id(8), helpstring("Saves changes of the object in the database. Refused, with the reason, for an empty pattern, a pattern that is not a domain name or a dotted suffix, a MatchOn outside 1 to 3, a Note longer than 255 characters, and an entry that requires none of the three results.")] HRESULT Save();
+   [id(9), helpstring("Deletes the object from the database.")] HRESULT Delete();
 };
 [
    object,
@@ -4487,6 +4544,24 @@ library hMailServer
    coclass GreyListingWhiteAddresses
    {
       [default] interface IInterfaceGreyListingWhiteAddresses;
+   };
+
+   [
+      uuid(F036C989-39E8-45FB-A557-2BA816B7DA3F),
+      helpstring("GreyListingBypassEntry Class")
+   ]
+   coclass GreyListingBypassEntry
+   {
+      [default] interface IInterfaceGreyListingBypassEntry;
+   };
+
+   [
+      uuid(B2E4FAEC-D3CF-4330-B911-D1C7445E6820),
+      helpstring("GreyListingBypassEntries Class")
+   ]
+   coclass GreyListingBypassEntries
+   {
+      [default] interface IInterfaceGreyListingBypassEntries;
    };
 
    [

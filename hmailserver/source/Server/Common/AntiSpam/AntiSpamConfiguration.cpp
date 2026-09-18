@@ -8,6 +8,7 @@
 #include "../BO/SURBLServers.h"
 #include "../BO/DNSBlackLists.h"
 #include "../BO/GreyListingWhiteAddresses.h"
+#include "../BO/GreyListingBypassEntries.h"
 #include "../BO/WhiteListAddresses.h"
 #include "../BO/BlockedSenders.h"
 #include "../BO/SenderListEntries.h"
@@ -151,6 +152,42 @@ namespace HM
       GetSettings_()->SetLong(PROPERTY_GL_FINALDELETE, lNewValue);
    }
 
+   bool
+   AntiSpamConfiguration::GetGreyListingSlideOnEarlyRetry()
+   {
+      return GetSettings_()->GetBool(PROPERTY_GL_SLIDE_ON_EARLY_RETRY);
+   }
+
+   void
+   AntiSpamConfiguration::SetGreyListingSlideOnEarlyRetry(bool bNewVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_GL_SLIDE_ON_EARLY_RETRY, bNewVal);
+   }
+
+   int
+   AntiSpamConfiguration::GetGreyListingAbuseThreshold()
+   {
+      return GetSettings_()->GetLong(PROPERTY_GL_ABUSE_THRESHOLD);
+   }
+
+   void
+   AntiSpamConfiguration::SetGreyListingAbuseThreshold(int iNewVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_GL_ABUSE_THRESHOLD, iNewVal);
+   }
+
+   int
+   AntiSpamConfiguration::GetGreyListingAbuseLockMinutes()
+   {
+      return GetSettings_()->GetLong(PROPERTY_GL_ABUSE_LOCK_MINUTES);
+   }
+
+   void
+   AntiSpamConfiguration::SetGreyListingAbuseLockMinutes(int iNewVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_GL_ABUSE_LOCK_MINUTES, iNewVal);
+   }
+
    void
    AntiSpamConfiguration::SetAddHeaderSpam(bool newVal)
    {
@@ -210,6 +247,10 @@ namespace HM
       // GREYLISTING WHITEADDRESSES
       if (!GetGreyListingWhiteAddresses()->XMLStore(pBackupNode, iOptions))
          return false;
+
+      // THE GREYLISTING BYPASS LIST (hm_greylisting_bypass, schema 6072)
+      if (!GetGreyListingBypassEntries()->XMLStore(pBackupNode, iOptions))
+         return false;
    
       // WHITELIST
       if (!GetWhiteListAddresses()->XMLStore(pBackupNode, iOptions))
@@ -245,6 +286,10 @@ namespace HM
 
       // GREYLISTING WHITEADDRESSES
       if (!GetGreyListingWhiteAddresses()->XMLLoad(pBackupNode, iRestoreOptions))
+         return false;
+
+      // THE GREYLISTING BYPASS LIST
+      if (!GetGreyListingBypassEntries()->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       // WHITELIST
@@ -563,6 +608,18 @@ namespace HM
       greyListingWhiteAddresses->Refresh();
 
       return greyListingWhiteAddresses;
+   }
+
+   std::shared_ptr<GreyListingBypassEntries>
+   AntiSpamConfiguration::GetGreyListingBypassEntries()
+   {
+      // A fresh collection each time, as the white list is. The SMTP session
+      // reads GreyListingBypass's cached copy, which every save and delete
+      // through the persister marks stale, so nothing here is held.
+      std::shared_ptr<GreyListingBypassEntries> entries = std::shared_ptr<GreyListingBypassEntries>(new GreyListingBypassEntries);
+      entries->Refresh();
+
+      return entries;
    }
 
 

@@ -168,6 +168,8 @@ IDR_INTERFACEREMOTEDOMAINPOLICY REGISTRY           "..\\COM\\InterfaceRemoteDoma
 IDR_INTERFACEREMOTEDOMAINPOLICIES REGISTRY         "..\\COM\\InterfaceRemoteDomainPolicies.rgs"
 IDR_INTERFACESENDERLISTENTRY REGISTRY              "..\\COM\\InterfaceSenderListEntry.rgs"
 IDR_INTERFACESENDERLISTENTRIES REGISTRY            "..\\COM\\InterfaceSenderListEntries.rgs"
+IDR_INTERFACEGREYLISTINGBYPASSENTRY REGISTRY       "..\\COM\\InterfaceGreyListingBypassEntry.rgs"
+IDR_INTERFACEGREYLISTINGBYPASSENTRIES REGISTRY     "..\\COM\\InterfaceGreyListingBypassEntries.rgs"
 IDR_INTERFACESCRIPTING  REGISTRY                "..\\COM\\InterfaceScripting.rgs"
 IDR_INTERFACEDOMAINALIASES REGISTRY                "..\\COM\\InterfaceDomainAliases.rgs"
 IDR_INTERFACEDOMAINALIAS REGISTRY                "..\\COM\\InterfaceDomainAlias.rgs"

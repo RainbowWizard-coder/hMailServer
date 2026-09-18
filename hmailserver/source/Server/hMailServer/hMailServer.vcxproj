@@ -233,6 +233,13 @@ EXIT 0
     <ClCompile Include="..\COM\InterfaceBlockedSenders.cpp" />
     <ClCompile Include="..\COM\InterfaceSenderListEntry.cpp" />
     <ClCompile Include="..\COM\InterfaceSenderListEntries.cpp" />
+    <ClCompile Include="..\COM\InterfaceGreyListingBypassEntry.cpp" />
+    <ClCompile Include="..\COM\InterfaceGreyListingBypassEntries.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentGreyListingBypassEntry.cpp" />
+    <ClCompile Include="..\Common\BO\GreyListingBypassEntry.cpp" />
+    <ClCompile Include="..\Common\BO\GreyListingBypassEntries.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\GreyListingBypass.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiGreylistBypass.cpp" />
     <ClCompile Include="..\Common\AntiSpam\BlockedSenderCache.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SpamTestSenderBlacklist.cpp" />
     <ClCompile Include="..\Common\Application\WindowsEventLog.cpp" />
@@ -1079,6 +1086,12 @@ EXIT 0
     <ClInclude Include="..\COM\InterfaceBlockedSenders.h" />
     <ClInclude Include="..\COM\InterfaceSenderListEntry.h" />
     <ClInclude Include="..\COM\InterfaceSenderListEntries.h" />
+    <ClInclude Include="..\COM\InterfaceGreyListingBypassEntry.h" />
+    <ClInclude Include="..\COM\InterfaceGreyListingBypassEntries.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentGreyListingBypassEntry.h" />
+    <ClInclude Include="..\Common\BO\GreyListingBypassEntry.h" />
+    <ClInclude Include="..\Common\BO\GreyListingBypassEntries.h" />
+    <ClInclude Include="..\Common\AntiSpam\GreyListingBypass.h" />
     <ClInclude Include="..\Common\AntiSpam\BlockedSenderCache.h" />
     <ClInclude Include="..\Common\AntiSpam\SpamTestSenderBlacklist.h" />
     <ClInclude Include="..\Common\Application\WindowsEventLog.h" />
@@ -1952,6 +1965,8 @@ EXIT 0
     <None Include="..\COM\InterfaceGreyListingWhiteAddresses.rgs" />
     <None Include="..\COM\InterfaceSenderListEntry.rgs" />
     <None Include="..\COM\InterfaceSenderListEntries.rgs" />
+    <None Include="..\COM\InterfaceGreyListingBypassEntry.rgs" />
+    <None Include="..\COM\InterfaceGreyListingBypassEntries.rgs" />
     <None Include="..\COM\InterfaceIMAPFolder.rgs" />
     <None Include="..\COM\InterfaceIMAPFolders.rgs" />
     <None Include="..\COM\InterfaceIncomingRelay.rgs" />

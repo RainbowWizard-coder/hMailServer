@@ -131,6 +131,13 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_SPAM_TRAP_BLOCK_DAYS, 30);
       property_set_->EnsureLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS, 90);
       property_set_->EnsureLong(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN, 0);
+
+      // Greylisting, hardened (SMTP/GreyListing.h): no slide, no abuse threshold,
+      // and an hour's lock that means nothing while the threshold is 0. Schema 6072
+      // seeds the same three rows; these are here for the same reason as the rest.
+      property_set_->EnsureLong(PROPERTY_GL_SLIDE_ON_EARLY_RETRY, 0);
+      property_set_->EnsureLong(PROPERTY_GL_ABUSE_THRESHOLD, 0);
+      property_set_->EnsureLong(PROPERTY_GL_ABUSE_LOCK_MINUTES, 60);
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
 
       // The reputation watch: on, the four lists that answer an ordinary resolver

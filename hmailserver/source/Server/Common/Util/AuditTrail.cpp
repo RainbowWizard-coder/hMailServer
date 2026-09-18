@@ -92,6 +92,7 @@ namespace HM
          { L"hm_surblservers",                L"surbl server" },
          { L"hm_whitelist",                   L"white list address" },
          { L"hm_greylisting_whiteaddresses",  L"greylisting white address" },
+         { L"hm_greylisting_bypass",          L"greylisting bypass entry" },
          { L"hm_blocked_attachments",         L"blocked attachment" },
          { L"hm_blocked_senders",             L"blocked sender" },
          { L"hm_senderlist",                  L"sender list entry" },

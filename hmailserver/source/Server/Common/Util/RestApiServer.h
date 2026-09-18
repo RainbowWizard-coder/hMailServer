@@ -519,6 +519,12 @@ namespace HM
          RouteGreyListingWhiteAddressCreate,
          RouteGreyListingWhiteAddressUpdate,
          RouteGreyListingWhiteAddressDelete,
+         // The per-domain greylisting bypass list (RestApiGreylistBypass.cpp):
+         // the same four verbs; server-wide.
+         RouteGreylistBypassList,
+         RouteGreylistBypassCreate,
+         RouteGreylistBypassUpdate,
+         RouteGreylistBypassDelete,
          // The sender list (RestApiSenderLists.cpp): the same four verbs at
          // each of its three scopes. The server's is server-wide; the domain's
          // is scoped to the domain in its path, as the distribution lists are;
@@ -1561,6 +1567,10 @@ namespace HM
       // collection and which verb.
       HttpResponse HandleAntiSpamLists_(RouteKind kind, __int64 id, const AnsiString &requestBody);
       static AnsiString OpenApiAntiSpamListsPaths_();
+      // The per-domain greylisting bypass list as a resource
+      // (RestApiGreylistBypass.cpp), in the same shape.
+      HttpResponse HandleGreylistBypass_(RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiGreylistBypassPaths_();
       // The blocked attachments as a resource (RestApiBlockedAttachments.cpp),
       // in the same shape: one entry point for the four routes.
       HttpResponse HandleBlockedAttachments_(RouteKind kind, __int64 id, const AnsiString &requestBody);

@@ -178,6 +178,13 @@ namespace hMailServer.ControlPanel.Services
       public bool BypassGreylistingOnSenderMx { get; set; }
       public int GreylistWhiteListEntries { get; set; }
 
+      /// <summary>
+      /// Greylisting bypass entries: domains let past greylisting on the
+      /// authentication results their mail carries. 0 on a server older than
+      /// the list.
+      /// </summary>
+      public int GreylistBypassEntries { get; set; }
+
       /// <summary>Anti-spam white list entries: senders that skip every check above.</summary>
       public int WhiteListEntries { get; set; }
 
@@ -238,7 +245,7 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static IReadOnlyList<string> LinkedPages { get; } = new[]
       {
-         "antispam", "blockedsenders", "dnsbl", "quarantine", "surbl", "spamwhitelist", "greylistwhitelist", "senderlist"
+         "antispam", "blockedsenders", "dnsbl", "quarantine", "surbl", "spamwhitelist", "greylistwhitelist", "greylistbypass", "senderlist"
       };
 
       /// <summary>
@@ -407,6 +414,8 @@ namespace hMailServer.ControlPanel.Services
             bypasses.Add(L("the connecting address is one of the sender domain's A or MX records"));
          if (config.GreylistWhiteListEntries > 0)
             bypasses.Add(F("the address is one of the {0} on the greylisting white list", config.GreylistWhiteListEntries));
+         if (config.GreylistBypassEntries > 0)
+            bypasses.Add(F("the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires", config.GreylistBypassEntries));
 
          string text = L("On. A sender/recipient/address triplet that has not been seen before is answered 451 \"Please try again later.\" at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score.");
 

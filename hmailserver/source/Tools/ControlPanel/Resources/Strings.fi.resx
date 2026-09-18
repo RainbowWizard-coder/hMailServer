@@ -371,6 +371,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 on rekisteröity portti UDP:lle ja tavalliselle TCP:lle; 6514 on rekisteröity portti syslogille TLS:n yli.</value>
   </data>
+  <data name="60 by default; means nothing while the threshold above is 0." xml:space="preserve">
+    <value>Oletus 60; ei merkitse mitään, kun yllä oleva kynnys on 0.</value>
+  </data>
   <data name="7 days" xml:space="preserve">
     <value>7 päivää</value>
   </data>
@@ -589,6 +592,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Onnistunut kirjautuminen nollaa nimen laskurit, eikä lukituksen aikana tehtyjä yrityksiä lasketa – joten hyökkääjä ei voi pitää postilaatikkoa lukittuna loputtomiin harvakseltaan arvailemalla.</value>
+  </data>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
+    <value>Tripletti, joka yrittää uudelleen liian aikaisin näin monta kertaa, saa vastauksen 550 eikä 451 alla olevan lukituksen ajaksi, mikä pysäyttää lähettäjän, joka takoo samaa viestiä muutaman sekunnin välein. Väärin määritetty uudelleenyrityssilmukka jää jumiin, kunnes lukitus päättyy, minkä jälkeen tripletti alkaa alusta ensimmäisenä yrityksenä. Sitä pyytänyt ylläpitäjä käyttää arvoa 20.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Aiemmin nähty mutta vielä vahvistamaton kolmikko on aikaikkunassa ennen kuin sen merkintä vanhenee. Tämän poistaminen käytöstä päästää postin läpi tuon ikkunan aikana sen sijaan että se harmaalistattaisiin uudelleen, mikä on lempeämpää hitaasti uudelleen yrittäviä lähettäjiä kohtaan ja heikompaa vain kerran uudelleen yrittävää lähettäjää vastaan.</value>
@@ -3014,6 +3020,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Verkkotunnus, jonka DNS-tietueet näytetään</value>
   </data>
+  <data name="Domain, or .suffix" xml:space="preserve">
+    <value>Verkkotunnus tai .pääte</value>
+  </data>
   <data name="Domain:" xml:space="preserve">
     <value>Verkkotunnus:</value>
   </data>
@@ -3022,6 +3031,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Domains &amp; accounts" xml:space="preserve">
     <value>Verkkotunnukset ja tilit</value>
+  </data>
+  <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
+    <value>Verkkotunnukset ja HELO-päätteet, jotka päästetään harmaalistauksen ohi vain, kun viesti läpäisee SPF:n, DKIM:n tai DMARC:n merkinnän vaatimalla tavalla.</value>
   </data>
   <data name="Domains it may act on (optional)" xml:space="preserve">
     <value>Verkkotunnukset, joihin se saa vaikuttaa (valinnainen)</value>
@@ -3077,6 +3089,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Jokainen viesti skannataan kahdesti: kerran kokonaisena tiedostona levyllä ja sitten kerran liitettä kohden, kukin kirjoitettuna väliaikaiskansioon ja annettuna tarkistimelle erikseen. Toinen kierros on se, joka nappaa liitteen sellaisen rakenteen sisältä, jota tarkistin ei itse pura. Jos viestiä ei voi jäsentää MIME-muotoon, liitekohtainen kierros ohitetaan ja virhe kirjataan lokiin.</value>
   </data>
+  <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
+    <value>Jokainen uudelleenyritys ennen alkuviiveen kulumista aloittaa viiveen uudelleen siitä hetkestä, joten ajastimella eikä jonosta uudelleen yrittävä lähettäjä ei koskaan saavuta ikkunaa. Oletuksena pois: hyvin käyttäytyvä palvelin, joka kerran yrittää uudelleen liian nopeasti, viivästyy tämän ollessa päällä hieman pidempään.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Muokkaa to_imintoa…</value>
   </data>
@@ -3109,6 +3124,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Muokataan: {0} - tallennetut muutokset ovat voimassa kahden sekunnin kuluessa; ei palvelun uudelleenkäynnistystä.</value>
+  </data>
+  <data name="Either of them" xml:space="preserve">
+    <value>Kumpi tahansa</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Tyhjentää indeksin ja pyytää indeksoijaa rakentamaan sen uudelleen. Postiin ei kosketa - indeksi on johdettua dataa - mutta kunnes uudelleenrakennus saavuttaa tilanteen, IMAP SEARCH löytää vähemmän kuin sen pitäisi. Kannattaa tehdä, kun indeksissä on enemmän merkintöjä kuin palvelimella viestejä, mikä tarkoittaa merkintöjä postille, jota ei enää ole.</value>
@@ -3247,6 +3265,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Anna palvelutilin salasana</value>
+  </data>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
+    <value>Kirjekuoren verkkotunnukset ja HELO-päätteet, jotka päästetään harmaalistauksen ohi, kun viesti kantaa merkinnän vaatimat todennustulokset - SPF, DKIM, DMARC, missä tahansa yhdistelmässä. Täsmälleen verrattava verkkotunnus tai pisteellä alkava pääte kuten .mail.example.com, joka kattaa sen nimen ja kaikki sen alla olevat nimet. SPF tiedetään RCPT TO -vaiheessa, joten pelkkää SPF:ää vaativa merkintä ratkaisee siinä; DKIM ja DMARC ovat olemassa vasta viestin saavuttua, joten jompaakumpaa vaativa merkintä päästää vastaanottajan toistaiseksi läpi ja viesti harmaalistataan DATA:n jälkeen, jos tulos ei ole läpäisy - ja vain kun DKIM-todennus tai DMARC on päällä, koska muuten merkintää ei voi koskaan täyttää. Toisin kuin Ohita, kun SPF läpäisee, tämä on etuoikeus, jonka myönnät nimetylle verkkotunnukselle, ei jokaisen maailman SPF-läpäisyn ominaisuus.</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Kuoren lähettäjät, jotka hylätään suoraan tai pisteytetään - yksi osoite tai kokonainen verkkotunnus aliverkkotunnuksineen.</value>
@@ -3680,6 +3701,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Greylisting" xml:space="preserve">
     <value>Harmaalistaus</value>
   </data>
+  <data name="Greylisting bypass list" xml:space="preserve">
+    <value>Harmaalistauksen ohituslista</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Harmaalistaustietueiden vanheneminen ja SpamAssassinin siirto vai kopiointi</value>
   </data>
@@ -3856,6 +3880,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Kuinka kauan jokainen työsäie saa olla varattuna ennen kyllästymisraporttia. 0 = raportointi pois.</value>
+  </data>
+  <data name="How long that refusal lasts (minutes)" xml:space="preserve">
+    <value>Kuinka kauan hylkäys kestää (minuuttia)</value>
   </data>
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Kuinka kauan tuo ikkuna kestää. Oletuksena neljä tuntia.</value>
@@ -4552,6 +4579,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Täsmää MIHIN TAHANSA ehtoon (TAI)</value>
   </data>
+  <data name="Matched against" xml:space="preserve">
+    <value>Verrataan</value>
+  </data>
   <data name="Matches" xml:space="preserve">
     <value>Täsmää</value>
   </data>
@@ -4842,6 +4872,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Siirrä viestitiedosto SpamAssassinille kopioimisen sijaan (vaatii uudelleenkäynnistyksen)</value>
+  </data>
+  <data name="Move the window on a retry that comes too soon" xml:space="preserve">
+    <value>Siirrä ikkunaa, kun uudelleenyritys tulee liian aikaisin</value>
   </data>
   <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
     <value>Siirrä tämä postilaatikko toiseen verkkotunnukseen tai nimeä se uudelleen ja säilytä vanha osoite</value>
@@ -5286,6 +5319,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Not yet - " xml:space="preserve">
     <value>Ei vielä -</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Huomautus</value>
   </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Huomaa: varmenteen tarkistus on pois päältä, joten salattu yhteys ei todista, minkä hakemiston se tavoittaa. Palvelin kirjaa tämän lokiin kerran käynnistystä kohden.</value>
@@ -6364,6 +6400,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Hylkää, kun se on esiintynyt vähintään näin monta kertaa</value>
   </data>
+  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
+    <value>Hylkää koodilla 550 näin monen ennen ikkunan avautumista tehdyn yrityksen jälkeen (0 ei koskaan hylkää)</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Hylätty ennen viestin jonottamista, joten seurattavaa viestiä ei ole.</value>
   </data>
@@ -6607,6 +6646,15 @@ SMTP 25 ja 587, POP3 110, IMAP 143 - ilman yhteyden suojausta. TLS-portit ja muk
   </data>
   <data name="Requires (or requests) a TLS client certificate from anyone connecting to a port, so only holders of a certificate from your chosen CA get in." xml:space="preserve">
     <value>Vaatii (tai pyytää) TLS-asiakasvarmenteen jokaiselta porttiin yhdistävältä, joten vain valitsemasi CA:n varmenteen haltijat pääsevät sisään.</value>
+  </data>
+  <data name="Requires a DMARC pass (decided after DATA)" xml:space="preserve">
+    <value>Vaatii DMARC-läpäisyn (ratkaistaan DATA:n jälkeen)</value>
+  </data>
+  <data name="Requires a verified DKIM signature (decided after DATA)" xml:space="preserve">
+    <value>Vaatii todennetun DKIM-allekirjoituksen (ratkaistaan DATA:n jälkeen)</value>
+  </data>
+  <data name="Requires an SPF pass" xml:space="preserve">
+    <value>Vaatii SPF-läpäisyn</value>
   </data>
   <data name="Requiring TLS for authentication on the IP ranges closes the credential half of this." xml:space="preserve">
     <value>TLS:n vaatiminen todennukseen IP-alueilla sulkee tämän tunnistetietopuoliskon.</value>
@@ -8146,6 +8194,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>Itse DNS-haku kohteelle {0} epäonnistui: {1} Tämä ei kerro tietueesta mitään - tämä kone ei saanut vastausta DNS-palvelimeltaan. Tarkista verkko ja yritä uudelleen.</value>
   </data>
+  <data name="The HELO/EHLO host" xml:space="preserve">
+    <value>HELO/EHLO-isäntä</value>
+  </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Sähköpostin toimitus -sivun Konenimi on TYHJÄ, joten palvelin turvautuu Windows-tietokoneen nimeensä{0}. Paljas tietokoneen nimi ei ole julkinen DNS-nimi: vastaanottajat, jotka vertaavat HELO:a DNS:ään, rankaisevat siitä, eikä mikään PTR voi täsmätä siihen. Aseta ensin oikea konenimi.</value>
   </data>
@@ -8366,6 +8417,9 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Moottorin tuomio saapuu pistemääränä, jotta se asettuu SPF:n, DKIM:n ja DMARC:n rinnalle ja nykyiset kynnysarvosi ratkaisevat, mitä tapahtuu - toisen, rinnakkaisen roskapostikäsitteen sijaan, joka pitäisi sovittaa yhteen ensimmäisen kanssa. Tämän arvoinen sen vahvin tuomio on.</value>
+  </data>
+  <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
+    <value>Kirjekuoren lähettäjän verkkotunnus (MAIL FROM)</value>
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>Tarkat SPF-, DKIM-, DMARC-, MTA-STS- ja TLS-RPT-tietueet, jotka kunkin verkkotunnuksen pitäisi julkaista, ja tarkistus siitä, onko kukin niistä julkaistu.</value>
@@ -10294,6 +10348,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="blocked-attachment patterns are" xml:space="preserve">
     <value>estetyn liitteen kuviota on</value>
   </data>
+  <data name="bypass entry" xml:space="preserve">
+    <value>ohitusmerkintä</value>
+  </data>
   <data name="certificate {0}" xml:space="preserve">
     <value>varmenne {0}</value>
   </data>
@@ -10914,6 +10971,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>lähettäjän SPF-tarkistus läpäistiin</value>
+  </data>
+  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>lähettäjän verkkotunnus tai HELO-isäntä on yksi harmaalistauksen ohituslistan {0} merkinnästä ja viesti kantaa merkinnän vaatiman SPF-, DKIM- tai DMARC-läpäisyn</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja paina sitten Lataa uudelleen. ({0})</value>

@@ -371,6 +371,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 je registrovaný port pro UDP a pro prosté TCP; 6514 je registrovaný port pro syslog přes TLS.</value>
   </data>
+  <data name="60 by default; means nothing while the threshold above is 0." xml:space="preserve">
+    <value>Výchozí 60; nic neznamená, dokud je práh výše 0.</value>
+  </data>
   <data name="7 days" xml:space="preserve">
     <value>7 dní</value>
   </data>
@@ -589,6 +592,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Úspěšné přihlášení vynuluje čítače daného jména a pokusy provedené během jeho uzamčení se nezapočítávají – útočník tak nemůže držet poštovní schránku uzamčenou donekonečna slabým proudem pokusů.</value>
+  </data>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
+    <value>Triplet, který zkusil znovu příliš brzy tolikrát, dostane odpověď 550 místo 451 po dobu zámku níže, což zastaví odesílatele bušícího stejnou zprávou každých pár sekund. Špatně nastavená smyčka opakování uvázne, dokud zámek nevyprší, poté triplet začíná znovu jako první pokus. Operátor, který o to požádal, používá 20.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Trojice, která už byla viděna, ale zatím nebyla potvrzena, se nachází v okně před vypršením svého záznamu. Vypnutí této volby poštu v tomto okně propustí, místo aby ji znovu greylistovalo, což je šetrnější k odesílatelům, kteří opakují pomalu, a slabší proti odesílateli, který to zkusí jen jednou.</value>
@@ -3014,6 +3020,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Doména, jejíž záznamy DNS se zobrazují</value>
   </data>
+  <data name="Domain, or .suffix" xml:space="preserve">
+    <value>Doména nebo .přípona</value>
+  </data>
   <data name="Domain:" xml:space="preserve">
     <value>Doména:</value>
   </data>
@@ -3022,6 +3031,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Domains &amp; accounts" xml:space="preserve">
     <value>Domény a účty</value>
+  </data>
+  <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
+    <value>Domény a přípony HELO propuštěné přes greylisting jen tehdy, když zpráva projde SPF, DKIM nebo DMARC podle požadavku položky.</value>
   </data>
   <data name="Domains it may act on (optional)" xml:space="preserve">
     <value>Domény, na které smí působit (nepovinné)</value>
@@ -3077,6 +3089,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Každá zpráva se skenuje dvakrát: jednou jako celý soubor na disku a pak jednou na každou přílohu, každá se zapíše do dočasné složky a předá skeneru samostatně. Druhý průchod je to, co zachytí přílohu uvnitř struktury, kterou skener sám nedekóduje. Pokud zprávu nelze zpracovat jako MIME, průchod po přílohách se přeskočí a zaloguje se chyba.</value>
   </data>
+  <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
+    <value>Každý pokus před uplynutím počátečního zpoždění spustí zpoždění znovu od toho okamžiku, takže odesílatel, který opakuje podle časovače místo z fronty, okno nikdy nedosáhne. Výchozí vypnuto: slušný server, který jednou zkusí znovu příliš rychle, je se zapnutím zdržen o něco déle.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Uprav_it akci…</value>
   </data>
@@ -3109,6 +3124,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Úprava {0} - uložené změny jsou živé do dvou sekund; bez restartu služby.</value>
+  </data>
+  <data name="Either of them" xml:space="preserve">
+    <value>Kterýkoli z nich</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Vyprázdní index a požádá indexer, aby ho znovu sestavil. Pošty se to nedotkne - index jsou odvozená data - ale dokud přestavba nedožene, IMAP SEARCH nachází méně, než by měl. Vyplatí se to, když má index víc položek, než má server zpráv, což znamená položky pro poštu, která už neexistuje.</value>
@@ -3247,6 +3265,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Zadejte heslo servisního účtu</value>
+  </data>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
+    <value>Domény obálky a přípony HELO propuštěné přes greylisting, když zpráva nese výsledky ověření, které položka vyžaduje - SPF, DKIM, DMARC, v libovolné kombinaci. Doména porovnávaná přesně, nebo přípona s úvodní tečkou jako .mail.example.com pokrývající toto jméno a každé jméno pod ním. SPF je známo při RCPT TO, takže položka vyžadující jen SPF rozhoduje tam; DKIM a DMARC existují až po přijetí zprávy, takže položka vyžadující kterékoli z nich zatím příjemce propustí a zpráva je greylistována po DATA, pokud výsledek není úspěch - a jen dokud je zapnuto ověřování DKIM nebo DMARC, jinak položku nelze nikdy splnit. Na rozdíl od volby Přeskočit při úspěšném SPF je to výsada, kterou udělíte jmenované doméně, nikoli vlastnost každého úspěšného SPF na světě.</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Odesílatelé obálky odmítaní rovnou, nebo skórovaní - jedna adresa, nebo celá doména s jejími subdoménami.</value>
@@ -3680,6 +3701,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
   </data>
+  <data name="Greylisting bypass list" xml:space="preserve">
+    <value>Seznam výjimek z greylistingu</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Vypršení záznamů greylistingu a přesun vs. kopie pro SpamAssassin</value>
   </data>
@@ -3856,6 +3880,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Jak dlouho smí být každý worker zaneprázdněn, než přijde hlášení o saturaci. 0 = hlášení vypnuto.</value>
+  </data>
+  <data name="How long that refusal lasts (minutes)" xml:space="preserve">
+    <value>Jak dlouho to odmítnutí trvá (minuty)</value>
   </data>
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Jak dlouho to okno trvá. Ve výchozím stavu čtyři hodiny.</value>
@@ -4552,6 +4579,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Splnit LIBOVOLNÉ kritérium (OR)</value>
   </data>
+  <data name="Matched against" xml:space="preserve">
+    <value>Porovnáváno s</value>
+  </data>
   <data name="Matches" xml:space="preserve">
     <value>Shoduje se</value>
   </data>
@@ -4842,6 +4872,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Přesunout soubor zprávy do SpamAssassinu místo jeho kopírování (vyžaduje restart služby)</value>
+  </data>
+  <data name="Move the window on a retry that comes too soon" xml:space="preserve">
+    <value>Posunout okno při pokusu, který přijde příliš brzy</value>
   </data>
   <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
     <value>Přesunout tuto schránku do jiné domény nebo ji přejmenovat a ponechat starou adresu</value>
@@ -5286,6 +5319,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Not yet - " xml:space="preserve">
     <value>Zatím ne –</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Poznámka</value>
   </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Poznámka: ověřování certifikátu je vypnuté, takže šifrované připojení nedokazuje, ke kterému adresáři vede. Server to jednou při každém startu zapíše do logu.</value>
@@ -6364,6 +6400,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Odmítnout, pokud se objevilo alespoň tolikrát</value>
   </data>
+  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
+    <value>Odmítnout s 550 po tolika pokusech před otevřením okna (0 nikdy neodmítá)</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Odmítnuto dřív, než byla zpráva zařazena do fronty, takže není žádná zpráva ke sledování.</value>
   </data>
@@ -6607,6 +6646,15 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   </data>
   <data name="Requires (or requests) a TLS client certificate from anyone connecting to a port, so only holders of a certificate from your chosen CA get in." xml:space="preserve">
     <value>Vyžaduje (nebo vyžádá) klientský certifikát TLS od každého, kdo se připojuje k portu, takže se dostanou dovnitř jen držitelé certifikátu od vámi zvolené CA.</value>
+  </data>
+  <data name="Requires a DMARC pass (decided after DATA)" xml:space="preserve">
+    <value>Vyžaduje úspěšný DMARC (rozhodnuto po DATA)</value>
+  </data>
+  <data name="Requires a verified DKIM signature (decided after DATA)" xml:space="preserve">
+    <value>Vyžaduje ověřený podpis DKIM (rozhodnuto po DATA)</value>
+  </data>
+  <data name="Requires an SPF pass" xml:space="preserve">
+    <value>Vyžaduje úspěšné SPF</value>
   </data>
   <data name="Requiring TLS for authentication on the IP ranges closes the credential half of this." xml:space="preserve">
     <value>Vyžadování TLS pro ověřování v rozsazích IP uzavírá tu polovinu tohoto problému, která se týká přihlašovacích údajů.</value>
@@ -8146,6 +8194,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>Selhalo samotné vyhledání {0} v DNS: {1} O záznamu to nevypovídá nic – tento počítač nedostal od svého DNS serveru odpověď. Zkontrolujte síť a zkuste to znovu.</value>
   </data>
+  <data name="The HELO/EHLO host" xml:space="preserve">
+    <value>Hostitel HELO/EHLO</value>
+  </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Název hostitele v části Doručování e-mailů je PRÁZDNÝ, takže server použije svůj název počítače ve Windows{0}. Holý název počítače není veřejný název v DNS: příjemci, kteří porovnávají HELO s DNS, jej penalizují a žádný PTR s ním nemůže souhlasit. Nejprve nastavte skutečný název hostitele.</value>
   </data>
@@ -8366,6 +8417,9 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Verdikt engine přichází jako skóre, aby se zařadil vedle SPF, DKIM a DMARC a o výsledku rozhodly vaše stávající prahy - místo druhého, paralelního pojetí spamu, které by se muselo srovnávat s tím prvním. Tolik stojí jeho nejsilnější verdikt.</value>
+  </data>
+  <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
+    <value>Doména odesílatele obálky (MAIL FROM)</value>
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>Přesné záznamy SPF, DKIM, DMARC, MTA-STS a TLS-RPT, které by každá doména měla publikovat, s kontrolou, zda je každý z nich živý.</value>
@@ -10294,6 +10348,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="blocked-attachment patterns are" xml:space="preserve">
     <value>vzory blokovaných příloh jsou</value>
   </data>
+  <data name="bypass entry" xml:space="preserve">
+    <value>výjimka</value>
+  </data>
   <data name="certificate {0}" xml:space="preserve">
     <value>certifikát {0}</value>
   </data>
@@ -10914,6 +10971,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>kontrola SPF odesílatele prošla</value>
+  </data>
+  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>doména nebo hostitel HELO odesílatele je jednou z {0} položek seznamu výjimek z greylistingu a zpráva nese úspěšné SPF, DKIM nebo DMARC, které tato položka vyžaduje</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>server nedosáhne na svou databázi. Zkontrolujte připojení k databázi a chybový log hMailServeru a poté stiskněte Znovu načíst. ({0})</value>

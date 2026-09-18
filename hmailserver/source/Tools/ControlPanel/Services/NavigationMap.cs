@@ -272,6 +272,7 @@ namespace hMailServer.ControlPanel.Services
             ["Settings > Anti-spam > DNS blacklists"] = "dnsbl",
             ["Settings > Anti-spam > White list"] = "spamwhitelist",
             ["Settings > Anti-spam > Greylisting white list"] = "greylistwhitelist",
+            ["Settings > Anti-spam > Greylisting bypass list"] = "greylistbypass",
             ["Settings > Anti-virus"] = "antivirus",
             ["Settings > Anti-virus > Blocked attachments"] = "blockedattachments",
 
@@ -673,7 +674,15 @@ namespace hMailServer.ControlPanel.Services
                Page("greylistwhitelist", N("Greylisting white list"),
                   N("IP addresses exempt from the greylisting delay, for senders that will not retry."),
                   aliases: "Greylist exemption|Greylisting delay|Slow mail|First message delayed|Retry delay",
-                  seeAlso: "spamoverview|antispam|spamwhitelist"),
+                  seeAlso: "spamoverview|antispam|spamwhitelist|greylistbypass"),
+
+               // Beside the white list on purpose: that list exempts an ADDRESS from
+               // greylisting on no evidence, this one exempts a DOMAIN on the evidence
+               // its mail carries, and the difference is the whole point of it.
+               Page("greylistbypass", N("Greylisting bypass list"),
+                  N("Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires."),
+                  aliases: "Greylisting bypass|Skip greylisting for a domain|Bypass greylisting on DKIM|Bypass greylisting on DMARC|Partner domain greylisting|Greylist exemption by domain",
+                  seeAlso: "greylistwhitelist|antispam|spamoverview"),
 
                // The same argument as the spam overview above, and the anti-virus
                // case is sharper: the settings page can show that a scanner is

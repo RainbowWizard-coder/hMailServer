@@ -8,6 +8,7 @@ namespace HM
 {
    class SURBLServers;
    class GreyListingWhiteAddresses;
+   class GreyListingBypassEntries;
    class WhiteListAddresses;
    class BlockedSenders;
    class DNSBlackLists;
@@ -49,6 +50,17 @@ namespace HM
 
       int GetGreyListingFinalDelete();
       void SetGreyListingFinalDelete(int iNewVal);
+
+      // Greylisting, hardened (SMTP/GreyListing.h). All three are hm_settings rows
+      // seeded by schema 6072 and EnsureSettingDefaults_, off or inert by default.
+      bool GetGreyListingSlideOnEarlyRetry();
+      void SetGreyListingSlideOnEarlyRetry(bool bNewVal);
+
+      int GetGreyListingAbuseThreshold();
+      void SetGreyListingAbuseThreshold(int iNewVal);
+
+      int GetGreyListingAbuseLockMinutes();
+      void SetGreyListingAbuseLockMinutes(int iNewVal);
 
       bool GetAddHeaderSpam();
       void SetAddHeaderSpam(bool bNewVal);
@@ -129,6 +141,7 @@ namespace HM
       bool XMLLoad(XNode *pBackupNode, int iRestoreOptions);
 
       std::shared_ptr<GreyListingWhiteAddresses> GetGreyListingWhiteAddresses();
+      std::shared_ptr<GreyListingBypassEntries> GetGreyListingBypassEntries();
       std::shared_ptr<WhiteListAddresses> GetWhiteListAddresses();
       std::shared_ptr<BlockedSenders> GetBlockedSenders();
       std::shared_ptr<DNSBlackLists> GetDNSBlackLists() {return dnsBlackLists_;}

@@ -119,6 +119,7 @@ namespace HM
       boost::asio::ssl::context& context) :  
       TCPConnection(connection_security, io_context, context, std::shared_ptr<Event>(), ""),
       rejected_by_delayed_grey_listing_(false),
+      delayed_grey_listing_rejects_(false),
       current_state_(INITIAL),
       trace_headers_written_(true),
       message_submission_(false),
@@ -1619,7 +1620,17 @@ namespace HM
          std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
          const String sToAddress = pDA->ApplyAliasesOnAddress(sRecipientAddress);
 
-         if (!SpamProtection::Instance()->PerformGreyListing(current_message_, spam_test_results_, sToAddress, GetRemoteEndpointAddress()))
+         const SpamProtection::GreyListingVerdict greyListingVerdict =
+            SpamProtection::Instance()->PerformGreyListing(current_message_, spam_test_results_, sToAddress, GetRemoteEndpointAddress(), helo_host_, false);
+
+         if (greyListingVerdict == SpamProtection::GreyListPending)
+         {
+            // A bypass row covers this sender and wants a result that exists
+            // only after DATA. Nothing is decided and nothing is written; the
+            // recipient is remembered and judged in ResolvePendingGreyListing_.
+            grey_listing_pending_recipients_.push_back(sToAddress);
+         }
+         else if (greyListingVerdict != SpamProtection::GreyListAllow)
          {
             if (current_message_->GetFromAddress().IsEmpty())
             {
@@ -1628,8 +1639,21 @@ namespace HM
                // until after the DATA command. The reason for this is
                // that this may be a SMTP callback from another server
                // that is veriying that the recipient exists, using the
-               // RCPT TO command. And we don't want to delay that.
+               // RCPT TO command. And we don't want to delay that. The
+               // abuse refusal is held over the same way, since a 550 here
+               // would tell a callback the recipient does not exist.
                rejected_by_delayed_grey_listing_ = true;
+               if (greyListingVerdict == SpamProtection::GreyListReject)
+                  delayed_grey_listing_rejects_ = true;
+            }
+            else if (greyListingVerdict == SpamProtection::GreyListReject)
+            {
+               // Retried too soon too many times: the abuse refusal, which is
+               // permanent for as long as the lock lasts and so is logged as a
+               // refusal where the 451 below is not.
+               AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
+               SendResponse_(550, _T("5.7.1"), GreyListingRejectText_());
+               return;
             }
             else
             {
@@ -3015,6 +3039,8 @@ namespace HM
       }
 
       rejected_by_delayed_grey_listing_ = false;
+      delayed_grey_listing_rejects_ = false;
+      grey_listing_pending_recipients_.clear();
 
       // A trap addressed in the transaction that is ending teaches nothing about
       // the next one. The session's own record of which traps it has addressed
@@ -5489,12 +5515,75 @@ namespace HM
       return true;
    }
 
+   const TCHAR *
+   SMTPConnection::GreyListingRejectText_()
+   {
+      return _T("Too many delivery attempts before the greylisting delay had passed. This sender, recipient and address are refused for a while; a mail server that retries from its queue never sees this.");
+   }
+
+   bool
+   SMTPConnection::ResolvePendingGreyListing_()
+   {
+      if (grey_listing_pending_recipients_.empty())
+         return true;
+
+      // Every recipient is judged, and the message gets the worst answer: one
+      // refusal refuses the message, one deferral defers it. The triplet check
+      // runs here for the first time for these recipients, so a sender whose
+      // bypass row was not satisfied is greylisted exactly as it would have
+      // been at RCPT TO, only after the body - which is the price of requiring
+      // a result that lives in the body.
+      //
+      // THE WHOLE MESSAGE, including recipients greylisting never applied to: a
+      // recipient at a domain with greylisting off was answered GreyListAllow
+      // at RCPT TO and is not in this list at all, and the 451 or 550 below
+      // still ends the transaction for it. That is not what happens at RCPT TO,
+      // where a 451 refuses that one recipient and the session goes on; after
+      // DATA there is one reply for the whole message and no way to say "these
+      // recipients, not those". The alternative - drop the deferred recipients
+      // and answer 250 - is worse, because 250 tells the sender every recipient
+      // was delivered and the greylisted ones would simply lose the message; a
+      // deferral costs a retry, on which the triplet has aged and everybody is
+      // served, once. docs/Greylisting.md says so in as many words.
+      SpamProtection::GreyListingVerdict worst = SpamProtection::GreyListAllow;
+
+      for (const String &recipient : grey_listing_pending_recipients_)
+      {
+         const SpamProtection::GreyListingVerdict verdict =
+            SpamProtection::Instance()->PerformGreyListing(current_message_, spam_test_results_, recipient, GetRemoteEndpointAddress(), helo_host_, true);
+
+         if (verdict == SpamProtection::GreyListReject)
+            worst = SpamProtection::GreyListReject;
+         else if (verdict == SpamProtection::GreyListDefer && worst != SpamProtection::GreyListReject)
+            worst = SpamProtection::GreyListDefer;
+      }
+
+      grey_listing_pending_recipients_.clear();
+
+      if (worst == SpamProtection::GreyListReject)
+      {
+         SendResponse_(550, _T("5.7.1"), GreyListingRejectText_());
+         return false;
+      }
+
+      if (worst == SpamProtection::GreyListDefer)
+      {
+         SendErrorResponse_(451, "Please try again later.");
+         return false;
+      }
+
+      return true;
+   }
+
    bool
    SMTPConnection::DoPreAcceptSpamProtection_()
    {
       if (rejected_by_delayed_grey_listing_)
       {
-         SendErrorResponse_(450, "Please try again later.");
+         if (delayed_grey_listing_rejects_)
+            SendResponse_(550, _T("5.7.1"), GreyListingRejectText_());
+         else
+            SendErrorResponse_(450, "Please try again later.");
          // Don't log to awstats here, since we tell the client to try again later.
          return false;
       }
@@ -5534,6 +5623,11 @@ namespace HM
             return false;
          }
       }
+
+      // The greylisting a bypass row held over until the DKIM and DMARC results
+      // were in, which they are now.
+      if (!ResolvePendingGreyListing_())
+         return false;
 
       // The message should be delivered.
       return true;

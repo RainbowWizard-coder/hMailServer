@@ -371,6 +371,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 - зарегистрированный порт для UDP и для обычного TCP; 6514 - зарегистрированный порт для syslog поверх TLS.</value>
   </data>
+  <data name="60 by default; means nothing while the threshold above is 0." xml:space="preserve">
+    <value>По умолчанию 60; ничего не значит, пока порог выше равен 0.</value>
+  </data>
   <data name="7 days" xml:space="preserve">
     <value>7 дней</value>
   </data>
@@ -589,6 +592,9 @@
   </data>
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Успешный вход сбрасывает счётчики для этого имени, а попытки, сделанные во время блокировки, не учитываются, — поэтому злоумышленник не сможет держать почтовый ящик заблокированным бесконечно, подбирая пароли по капле.</value>
+  </data>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
+    <value>Триплет, повторивший попытку слишком рано столько раз, получает 550 вместо 451 на время блокировки ниже - именно это останавливает отправителя, долбящего одним и тем же сообщением каждые несколько секунд. Неверно настроенный цикл повторов застревает, пока блокировка не истечёт, после чего триплет начинает заново как первая попытка. Оператор, попросивший об этом, использует 20.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Тройка, которая уже встречалась, но ещё не подтверждена, находится в окне до истечения срока её записи. Отключение этого параметра пропускает почту в течение этого окна вместо повторной задержки серым списком: мягче к отправителям, повторяющим попытку медленно, и слабее против отправителя, повторяющего её один раз.</value>
@@ -3014,6 +3020,9 @@ Control Panel может читать файлы сообщений только
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Домен, записи DNS которого показаны</value>
   </data>
+  <data name="Domain, or .suffix" xml:space="preserve">
+    <value>Домен или .суффикс</value>
+  </data>
   <data name="Domain:" xml:space="preserve">
     <value>Домен:</value>
   </data>
@@ -3022,6 +3031,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Domains &amp; accounts" xml:space="preserve">
     <value>Домены и учётные записи</value>
+  </data>
+  <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
+    <value>Домены и суффиксы HELO, пропускаемые мимо серых списков только тогда, когда сообщение проходит SPF, DKIM или DMARC, как требует запись.</value>
   </data>
   <data name="Domains it may act on (optional)" xml:space="preserve">
     <value>Домены, в которых он может действовать (необязательно)</value>
@@ -3077,6 +3089,9 @@ Control Panel может читать файлы сообщений только
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Каждое сообщение проверяется дважды: один раз целиком как файл на диске, а затем по одному разу на каждое вложение — каждое из них записывается во временную папку и передаётся сканеру отдельно. Именно второй проход ловит вложение внутри структуры, которую сканер сам не разбирает. Если сообщение не удаётся разобрать как MIME, проход по вложениям пропускается, а в журнал записывается ошибка.</value>
   </data>
+  <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
+    <value>Каждая повторная попытка до истечения начальной задержки запускает задержку заново с этого момента, поэтому отправитель, повторяющий по таймеру, а не из очереди, никогда не достигает окна. По умолчанию выключено: добропорядочный сервер, один раз повторивший слишком быстро, с этим параметром задерживается чуть дольше.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>И_зменить действие…</value>
   </data>
@@ -3109,6 +3124,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд; перезапуск службы не нужен.</value>
+  </data>
+  <data name="Either of them" xml:space="preserve">
+    <value>Любой из них</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Очищает индекс и просит индексатор перестроить его. Почта не затрагивается — индекс является производными данными, — но пока перестроение не нагонит, IMAP SEARCH находит меньше, чем должен. Это стоит сделать, когда записей в индексе больше, чем сообщений на сервере: значит, есть записи для писем, которых уже нет.</value>
@@ -3247,6 +3265,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введите пароль учётной записи службы</value>
+  </data>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
+    <value>Домены конверта и суффиксы HELO, пропускаемые мимо серых списков, когда сообщение несёт результаты аутентификации, которых требует запись - SPF, DKIM, DMARC, в любом сочетании. Домен, сравниваемый точно, или суффикс с точкой в начале, как .mail.example.com, покрывающий это имя и все имена под ним. SPF известен на RCPT TO, поэтому запись, требующая только SPF, решает там; DKIM и DMARC существуют лишь после получения сообщения, поэтому запись, требующая любого из них, пока пропускает получателя, а сообщение попадает в серый список после DATA, если результат не является успешным - и только пока включена проверка DKIM или DMARC, иначе запись никогда не может быть выполнена. В отличие от параметра Пропускать при успешной проверке SPF это привилегия, которую вы даёте названному домену, а не свойство каждой успешной проверки SPF в мире.</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Отправители конверта, которым отказывают сразу или которым начисляется оценка, — один адрес либо целый домен вместе с его поддоменами.</value>
@@ -3680,6 +3701,9 @@ Control Panel может читать файлы сообщений только
   <data name="Greylisting" xml:space="preserve">
     <value>Серые списки</value>
   </data>
+  <data name="Greylisting bypass list" xml:space="preserve">
+    <value>Список исключений серых списков</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Срок действия записей серых списков и выбор между перемещением и копированием для SpamAssassin</value>
   </data>
@@ -3856,6 +3880,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Сколько времени все рабочие потоки могут быть заняты до появления сообщения о насыщении. 0 — сообщения отключены.</value>
+  </data>
+  <data name="How long that refusal lasts (minutes)" xml:space="preserve">
+    <value>Как долго длится этот отказ (минуты)</value>
   </data>
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Сколько длится это окно. По умолчанию четыре часа.</value>
@@ -4552,6 +4579,9 @@ Control Panel может читать файлы сообщений только
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Соответствие ЛЮБОМУ критерию (ИЛИ)</value>
   </data>
+  <data name="Matched against" xml:space="preserve">
+    <value>Сравнивается с</value>
+  </data>
   <data name="Matches" xml:space="preserve">
     <value>Совпадает</value>
   </data>
@@ -4842,6 +4872,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Перемещать файл сообщения в SpamAssassin вместо копирования (требуется перезапуск)</value>
+  </data>
+  <data name="Move the window on a retry that comes too soon" xml:space="preserve">
+    <value>Сдвигать окно при слишком ранней повторной попытке</value>
   </data>
   <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
     <value>Перенести этот ящик в другой домен или переименовать его, сохранив старый адрес</value>
@@ -5286,6 +5319,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Not yet - " xml:space="preserve">
     <value>Ещё нет — </value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Примечание</value>
   </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Примечание: проверка сертификата выключена, поэтому зашифрованное соединение не доказывает, до какого каталога оно доходит. Сервер записывает это в журнал один раз при каждом запуске.</value>
@@ -6364,6 +6400,9 @@ Control Panel может читать файлы сообщений только
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Отклонять, если он встретился не меньше стольких раз</value>
   </data>
+  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
+    <value>Отказывать кодом 550 после стольких попыток до открытия окна (0 никогда не отказывает)</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Отклонено до постановки сообщения в очередь, поэтому следить не за чем.</value>
   </data>
@@ -6607,6 +6646,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Requires (or requests) a TLS client certificate from anyone connecting to a port, so only holders of a certificate from your chosen CA get in." xml:space="preserve">
     <value>Требует (или запрашивает) клиентский сертификат TLS у каждого, кто подключается к порту, так что внутрь попадают только обладатели сертификата от выбранного вами ЦС.</value>
+  </data>
+  <data name="Requires a DMARC pass (decided after DATA)" xml:space="preserve">
+    <value>Требуется успешная проверка DMARC (решается после DATA)</value>
+  </data>
+  <data name="Requires a verified DKIM signature (decided after DATA)" xml:space="preserve">
+    <value>Требуется проверенная подпись DKIM (решается после DATA)</value>
+  </data>
+  <data name="Requires an SPF pass" xml:space="preserve">
+    <value>Требуется успешная проверка SPF</value>
   </data>
   <data name="Requiring TLS for authentication on the IP ranges closes the credential half of this." xml:space="preserve">
     <value>Требование TLS при аутентификации в диапазонах IP закрывает ту половину этой проблемы, которая касается учётных данных.</value>
@@ -8146,6 +8194,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>Сам поиск в DNS для {0} завершился неудачей: {1} Это ничего не говорит о записи — данный компьютер не смог получить ответ от своего DNS-сервера. Проверьте сеть и повторите попытку.</value>
   </data>
+  <data name="The HELO/EHLO host" xml:space="preserve">
+    <value>Хост HELO/EHLO</value>
+  </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Поле «Имя узла» в разделе «Доставка почты» ПУСТО, поэтому сервер использует вместо него имя своего компьютера Windows{0}. Голое имя компьютера не является публичным именем DNS: получатели, сверяющие HELO с DNS, начислят за него штраф, и никакая запись PTR с ним согласоваться не может. Сначала задайте настоящее имя узла.</value>
   </data>
@@ -8366,6 +8417,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Вердикт движка приходит в виде оценки, чтобы он лёг рядом с SPF, DKIM и DMARC, а что делать - решали ваши существующие пороги; а не как второе, параллельное понятие спама, которое пришлось бы сводить с первым. Вот сколько стоит его самый сильный вердикт.</value>
+  </data>
+  <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
+    <value>Домен отправителя конверта (MAIL FROM)</value>
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>Точные записи SPF, DKIM, DMARC, MTA-STS и TLS-RPT, которые должен опубликовать каждый домен, с проверкой, действительно ли каждая опубликована.</value>
@@ -10294,6 +10348,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="blocked-attachment patterns are" xml:space="preserve">
     <value>шаблонов блокируемых вложений</value>
   </data>
+  <data name="bypass entry" xml:space="preserve">
+    <value>исключение</value>
+  </data>
   <data name="certificate {0}" xml:space="preserve">
     <value>сертификат {0}</value>
   </data>
@@ -10914,6 +10971,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>проверка SPF отправителя пройдена</value>
+  </data>
+  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>домен или хост HELO отправителя является одной из {0} записей списка исключений серых списков, и сообщение несёт успешную проверку SPF, DKIM или DMARC, которой требует эта запись</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>сервер не может обратиться к своей базе данных. Проверьте подключение к базе данных и журнал ошибок hMailServer, затем нажмите «Перезагрузить». ({0})</value>

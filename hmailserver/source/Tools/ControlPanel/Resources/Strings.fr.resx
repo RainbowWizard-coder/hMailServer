@@ -371,6 +371,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 est le port enregistré pour UDP et pour TCP en clair ; 6514 est le port enregistré pour syslog sur TLS.</value>
   </data>
+  <data name="60 by default; means nothing while the threshold above is 0." xml:space="preserve">
+    <value>60 par défaut ; ne signifie rien tant que le seuil ci-dessus est à 0.</value>
+  </data>
   <data name="7 days" xml:space="preserve">
     <value>7 jours</value>
   </data>
@@ -589,6 +592,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Une connexion réussie remet à zéro les compteurs du nom, et les tentatives faites pendant qu'il est verrouillé ne sont pas comptées - un attaquant ne peut donc pas garder une boîte verrouillée indéfiniment avec un filet de tentatives.</value>
+  </data>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
+    <value>Un triplet qui réessaie trop tôt autant de fois reçoit 550 au lieu de 451 pendant le verrou ci-dessous, ce qui arrête un expéditeur martelant le même message toutes les quelques secondes. Une boucle de réessai mal configurée reste bloquée jusqu'à la fin du verrou, après quoi le triplet repart comme une première tentative. L'opérateur qui l'a demandé utilise 20.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Un triplet déjà vu mais pas encore confirmé se trouve dans une fenêtre avant l'expiration de son enregistrement. Désactiver ceci laisse passer le courrier pendant cette fenêtre au lieu de le greylister à nouveau, ce qui est plus doux pour les expéditeurs qui réessaient lentement et plus faible contre un expéditeur qui réessaie une seule fois.</value>
@@ -3014,6 +3020,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Domaine dont les enregistrements DNS sont affichés</value>
   </data>
+  <data name="Domain, or .suffix" xml:space="preserve">
+    <value>Domaine, ou .suffixe</value>
+  </data>
   <data name="Domain:" xml:space="preserve">
     <value>Domaine :</value>
   </data>
@@ -3022,6 +3031,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Domains &amp; accounts" xml:space="preserve">
     <value>Domaines et comptes</value>
+  </data>
+  <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
+    <value>Domaines et suffixes HELO qui passent la liste grise seulement quand le message réussit SPF, DKIM ou DMARC comme l'entrée l'exige.</value>
   </data>
   <data name="Domains it may act on (optional)" xml:space="preserve">
     <value>Domaines sur lesquels elle peut agir (facultatif)</value>
@@ -3077,6 +3089,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Chaque message est analysé deux fois : une fois comme fichier entier sur le disque, puis une fois par pièce jointe, chacune écrite dans le dossier temporaire et remise à l'analyseur seule. La seconde passe est ce qui attrape une pièce jointe dans une structure que l'analyseur ne décode pas lui-même. Si le message ne peut pas être analysé comme MIME, la passe par pièce jointe est sautée et une erreur est journalisée.</value>
   </data>
+  <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
+    <value>Chaque réessai avant la fin du délai initial relance le délai à partir de ce moment, de sorte qu'un expéditeur qui réessaie sur minuterie plutôt que depuis une file n'atteint jamais la fenêtre. Désactivé par défaut : un serveur bien élevé qui réessaie une fois trop vite est retardé un peu plus longtemps quand c'est activé.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Mod_ifier l'action…</value>
   </data>
@@ -3109,6 +3124,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Modification de {0} - les changements enregistrés sont actifs sous deux secondes ; pas de redémarrage du service.</value>
+  </data>
+  <data name="Either of them" xml:space="preserve">
+    <value>L'un ou l'autre</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Vide l'index et demande à l'indexeur de le reconstruire. Aucun courrier n'est touché - l'index est une donnée dérivée - mais jusqu'à ce que la reconstruction rattrape, IMAP SEARCH trouve moins qu'il ne devrait. À faire quand l'index a plus d'entrées que le serveur n'a de messages, ce qui signifie des entrées pour du courrier qui n'existe plus.</value>
@@ -3247,6 +3265,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Saisissez le mot de passe du compte de service</value>
+  </data>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
+    <value>Domaines d'enveloppe et suffixes HELO qui passent la liste grise quand le message porte les résultats d'authentification que l'entrée exige - SPF, DKIM, DMARC, en toute combinaison. Un domaine comparé exactement, ou un suffixe avec un point initial comme .mail.example.com couvrant ce nom et tout nom en dessous. SPF est connu au RCPT TO, donc une entrée n'exigeant que SPF décide là ; DKIM et DMARC n'existent qu'une fois le message reçu, donc une entrée exigeant l'un d'eux laisse passer le destinataire pour l'instant et le message est mis en liste grise après DATA si le résultat n'est pas une réussite - et seulement tant que la vérification DKIM ou DMARC est activée, faute de quoi l'entrée ne peut jamais être satisfaite. Contrairement à Contourner en cas de succès SPF, c'est un privilège que vous accordez à un domaine nommé, pas une propriété de tout succès SPF au monde.</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Expéditeurs d'enveloppe refusés d'emblée ou notés - une adresse, ou tout un domaine avec ses sous-domaines.</value>
@@ -3680,6 +3701,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
   </data>
+  <data name="Greylisting bypass list" xml:space="preserve">
+    <value>Liste de contournement de la liste grise</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Expiration des enregistrements de greylisting, et déplacement ou copie pour SpamAssassin</value>
   </data>
@@ -3856,6 +3880,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Combien de temps chaque worker peut être occupé avant le rapport de saturation. 0 = rapport désactivé.</value>
+  </data>
+  <data name="How long that refusal lasts (minutes)" xml:space="preserve">
+    <value>Durée de ce refus (minutes)</value>
   </data>
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Combien de temps dure cette fenêtre. Quatre heures par défaut.</value>
@@ -4552,6 +4579,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Match ANY criterion (OR)" xml:space="preserve">
     <value>Correspondre à N'IMPORTE QUEL critère (OU)</value>
   </data>
+  <data name="Matched against" xml:space="preserve">
+    <value>Comparé à</value>
+  </data>
   <data name="Matches" xml:space="preserve">
     <value>Correspond</value>
   </data>
@@ -4842,6 +4872,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
     <value>Déplacer le fichier de message vers SpamAssassin au lieu de le copier (redémarrage requis)</value>
+  </data>
+  <data name="Move the window on a retry that comes too soon" xml:space="preserve">
+    <value>Décaler la fenêtre à un réessai qui arrive trop tôt</value>
   </data>
   <data name="Move this mailbox to another domain, or rename it and keep the old address" xml:space="preserve">
     <value>Déplacer cette boîte aux lettres vers un autre domaine, ou la renommer en gardant l'ancienne adresse</value>
@@ -5286,6 +5319,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Not yet - " xml:space="preserve">
     <value>Pas encore - </value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Note</value>
   </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Remarque : la vérification du certificat est désactivée, la connexion chiffrée ne prouve donc pas quel annuaire elle atteint. Le serveur le consigne une fois par démarrage.</value>
@@ -6364,6 +6400,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Refuser dès qu'il est apparu au moins ce nombre de fois</value>
   </data>
+  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
+    <value>Refuser par 550 après ce nombre de réessais avant l'ouverture de la fenêtre (0 ne refuse jamais)</value>
+  </data>
   <data name="Refused before the message was queued, so there is no message to follow." xml:space="preserve">
     <value>Refusé avant que le message ne soit mis en file, il n'y a donc aucun message à suivre.</value>
   </data>
@@ -6607,6 +6646,15 @@ SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion. Les ports TLS
   </data>
   <data name="Requires (or requests) a TLS client certificate from anyone connecting to a port, so only holders of a certificate from your chosen CA get in." xml:space="preserve">
     <value>Exige (ou demande) un certificat client TLS de quiconque se connecte à un port, pour que seuls les détenteurs d'un certificat de l'AC que vous avez choisie puissent entrer.</value>
+  </data>
+  <data name="Requires a DMARC pass (decided after DATA)" xml:space="preserve">
+    <value>Exige une réussite DMARC (décidé après DATA)</value>
+  </data>
+  <data name="Requires a verified DKIM signature (decided after DATA)" xml:space="preserve">
+    <value>Exige une signature DKIM vérifiée (décidé après DATA)</value>
+  </data>
+  <data name="Requires an SPF pass" xml:space="preserve">
+    <value>Exige une réussite SPF</value>
   </data>
   <data name="Requiring TLS for authentication on the IP ranges closes the credential half of this." xml:space="preserve">
     <value>Exiger TLS pour l'authentification sur les plages IP ferme la moitié « identifiants » de ce problème.</value>
@@ -8146,6 +8194,9 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>La recherche DNS de {0} a elle-même échoué : {1} Cela ne dit rien sur l'enregistrement - cette machine n'a pas pu obtenir de réponse de son serveur DNS. Vérifiez le réseau et réessayez.</value>
   </data>
+  <data name="The HELO/EHLO host" xml:space="preserve">
+    <value>L'hôte HELO/EHLO</value>
+  </data>
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Le nom d'hôte sur Livraison du courrier est VIDE, le serveur se replie donc sur son nom d'ordinateur Windows{0}. Un simple nom d'ordinateur n'est pas un nom DNS public : les destinataires qui comparent HELO au DNS le pénaliseront, et aucun PTR ne peut concorder avec lui. Définissez d'abord un vrai nom d'hôte.</value>
   </data>
@@ -8366,6 +8417,9 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Le verdict du moteur arrive sous forme de score, pour qu'il se place à côté de SPF, DKIM et DMARC et que vos seuils existants décident de ce qui se passe - plutôt que comme une seconde notion parallèle du spam qu'il faudrait réconcilier avec la première. Voici ce que vaut son verdict le plus fort.</value>
+  </data>
+  <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
+    <value>Le domaine de l'expéditeur de l'enveloppe (MAIL FROM)</value>
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>Les enregistrements SPF, DKIM, DMARC, MTA-STS et TLS-RPT exacts que chaque domaine devrait publier, avec une vérification indiquant si chacun est bien en ligne.</value>
@@ -10294,6 +10348,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="blocked-attachment patterns are" xml:space="preserve">
     <value>motifs de pièces jointes bloquées sont</value>
   </data>
+  <data name="bypass entry" xml:space="preserve">
+    <value>entrée de contournement</value>
+  </data>
   <data name="certificate {0}" xml:space="preserve">
     <value>certificat {0}</value>
   </data>
@@ -10914,6 +10971,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>la vérification SPF de l'expéditeur a réussi</value>
+  </data>
+  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>le domaine ou l'hôte HELO de l'expéditeur est l'une des {0} entrées de la liste de contournement de la liste grise et le message porte la réussite SPF, DKIM ou DMARC que cette entrée exige</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>le serveur ne peut pas atteindre sa base de données. Vérifiez la connexion à la base de données et le journal d'erreurs hMailServer, puis appuyez sur Recharger. ({0})</value>

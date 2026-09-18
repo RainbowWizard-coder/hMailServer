@@ -89,6 +89,16 @@ namespace HM
       else if (result == DKIM::Pass)
       {
          std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Pass, 0, ""));
+
+         // The signing domains travel with the verdict, for the same reason
+         // the header carries header.d: a bare pass says a signature verified
+         // and not whose. The greylisting bypass list reads them - an entry for
+         // partner.example that requires DKIM must not be satisfied by a
+         // message signed d=attacker.test with the attacker's own published
+         // key, which is exactly what a bare pass made of it.
+         for (const AnsiString &domain : passingDomains)
+            pResult->AddIdentityDomain(String(domain));
+
          setSpamTestResults.insert(pResult);
       }
 

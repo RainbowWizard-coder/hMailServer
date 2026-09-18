@@ -114,6 +114,8 @@ drop table if exists hm_servermessages;
 
 drop table if exists hm_greylisting_whiteaddresses;
 
+drop table if exists hm_greylisting_bypass;
+
 drop table if exists hm_tcpipports;
 
 drop table if exists hm_whitelist;
@@ -909,19 +911,30 @@ create table hm_greylisting_triplets
 	gldeletetime datetime not null,
 	glipaddress1 bigint not null,
    glipaddress2 bigint null,
-	glsenderaddress varchar(255) not null,
-	glrecipientaddress varchar(255) not null,
+	glsenderaddress varchar(320) not null,
+	glrecipientaddress varchar(320) not null,
 	glblockedcount int not null,
-	glpassedcount int not null
+	glpassedcount int not null,
+	glsenderhash varchar(32) null,
+	glrecipienthash varchar(32) null
 ) DEFAULT CHARSET=utf8;
 
-CREATE INDEX idx_greylisting_triplets ON hm_greylisting_triplets (glipaddress1, glipaddress2, glsenderaddress(40), glrecipientaddress(40));
+CREATE INDEX idx_hm_greylisting_triplets_key ON hm_greylisting_triplets (glipaddress1, glipaddress2, glsenderhash, glrecipienthash);
 
 create table hm_greylisting_whiteaddresses
 (
 	whiteid bigint auto_increment not null, primary key(whiteid), unique(whiteid),
 	whiteipaddress varchar(255) not null,
 	whiteipdescription varchar(255) not null
+) DEFAULT CHARSET=utf8;
+
+create table hm_greylisting_bypass
+(
+	glbid bigint auto_increment not null, primary key(`glbid`), unique(`glbid`),
+	glbpattern varchar(255) not null,
+	glbmatch int not null,
+	glbrequire int not null,
+	glbnote varchar(255) not null
 ) DEFAULT CHARSET=utf8;
 
 create table hm_blocked_attachments
@@ -1304,6 +1317,12 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Sp
 insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapHitRetentionDays', '', 90);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapTeachSpamAssassin', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GreyListingSlideOnEarlyRetry', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GreyListingAbuseThreshold', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GreyListingAbuseLockMinutes', '', 60);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0);
 
@@ -2202,4 +2221,4 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6071);
+insert into hm_dbversion values (6072);

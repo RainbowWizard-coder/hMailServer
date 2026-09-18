@@ -140,6 +140,41 @@ namespace hMailServer.ControlPanel.Views
          }
       });
 
+      /// <summary>
+      /// GreyListingBypassEntry.MatchOn, in the order the enum declares it, worded
+      /// as what is compared rather than what the value is called.
+      /// </summary>
+      private static readonly (int Value, string Label)[] GreyListBypassMatchOptions =
+      {
+         (1, L("The envelope sender's domain (MAIL FROM)")),
+         (2, L("The HELO/EHLO host")),
+         (3, L("Either of them"))
+      };
+
+      /// <summary>
+      /// The per-domain greylisting bypass list (discussion #284): a privilege
+      /// granted to a named domain on the authentication results its mail
+      /// carries, beside the global "Bypass on SPF success", which every SPF
+      /// pass in the world enjoys - a hijacked mailbox at a well-configured
+      /// provider included. Empty by default, and then greylisting is unchanged.
+      /// </summary>
+      public static CollectionEditorView GreyListBypass() => new(new CollectionSpec
+      {
+         Title = L("Greylisting bypass list"),
+         Subtitle = L("Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world."),
+         ItemNoun = L("bypass entry"),
+         GetCollection = () => AntiSpam.GreyListingBypassEntries,
+         Fields =
+         {
+            new FieldSpec { Prop = "Pattern", Label = L("Domain, or .suffix"), GridWidth = 220, Default = "" },
+            new FieldSpec { Prop = "MatchOn", Label = L("Matched against"), Kind = FieldKind.Combo, Options = GreyListBypassMatchOptions, GridWidth = 200, Default = 1 },
+            new FieldSpec { Prop = "RequireSPF", Label = L("Requires an SPF pass"), Kind = FieldKind.Bool, GridWidth = 80, Default = true },
+            new FieldSpec { Prop = "RequireDKIM", Label = L("Requires a verified DKIM signature (decided after DATA)"), Kind = FieldKind.Bool, GridWidth = 80, Default = false },
+            new FieldSpec { Prop = "RequireDMARC", Label = L("Requires a DMARC pass (decided after DATA)"), Kind = FieldKind.Bool, GridWidth = 80, Default = false },
+            new FieldSpec { Prop = "Note", Label = L("Note"), Default = "" }
+         }
+      });
+
       public static CollectionEditorView BlockedAttachments() => new(new CollectionSpec
       {
          Title = L("Blocked attachments"),

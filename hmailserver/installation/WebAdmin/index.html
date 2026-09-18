@@ -4397,12 +4397,13 @@ async function fetchNow(id){
 }
 
 /* ---------- Lists ----------
-   The seven small collections the desktop edits in its collection editors,
+   The nine small collections the desktop edits in its collection editors,
    each a resource of the same shape - a listing and a create at its path, an
    update and a delete at /{id} - drawn from one description: the DNS
    blacklists, the SURBL servers, the anti-spam white list, the blocked
-   senders, the blocked attachments, the greylisting white list and the
-   incoming relays. Each is a table of the entry's own keys, with Edit and
+   senders, the blocked attachments, the sender list, the greylisting white
+   list, the incoming relays and the greylisting bypass list. Each is a table
+   of the entry's own keys, with Edit and
    Delete on the row and Add below, and the editor is built from the schema
    of that collection's create, which types every key; a new entry starts at
    the defaults the create's description states, and at the desktop editor's
@@ -4437,7 +4438,11 @@ const COLLECTIONS=[
     defaults:{},hints:{ip_address:K("An address, or a pattern such as 192.168.* or 2001:db8:*."),description:K("A note.")}},
   {id:"relays",path:"/api/v1/incoming-relays",title:K("Incoming relays"),columns:["name","lower_ip","upper_ip"],
     add:K("Add an incoming relay"),fresh:K("New incoming relay"),edit:K("Edit incoming relay {0}"),save:K("Save incoming relay"),ask:K("Delete the incoming relay {0}?"),saved:K("Incoming relay saved"),deleted:K("Incoming relay deleted"),
-    defaults:{},hints:{name:K("A name for the relay."),lower_ip:K("The lowest address of the range."),upper_ip:K("The highest address of the range.")}}
+    defaults:{},hints:{name:K("A name for the relay."),lower_ip:K("The lowest address of the range."),upper_ip:K("The highest address of the range.")}},
+  /* Last, after the relays, so the eight tables before it keep their places. */
+  {id:"greybypass",path:"/api/v1/greylisting-bypass",title:K("Greylisting bypass list"),columns:["pattern","match","require_spf","require_dkim","require_dmarc","note"],
+    add:K("Add a greylisting bypass entry"),fresh:K("New greylisting bypass entry"),edit:K("Edit greylisting bypass entry {0}"),save:K("Save greylisting bypass entry"),ask:K("Delete the greylisting bypass entry {0}?"),saved:K("Greylisting bypass entry saved"),deleted:K("Greylisting bypass entry deleted"),
+    defaults:{match:"envelope",require_spf:true,require_dkim:false,require_dmarc:false},hints:{pattern:K("A domain such as example.com, matched exactly; or a suffix such as .mail.example.com, which covers that name and every name under it."),match:K("Whether the pattern is matched against the envelope sender's domain, the HELO host, or either."),require_spf:K("The message must pass SPF. Known at RCPT TO, so an entry requiring SPF alone decides there."),require_dkim:K("The message must carry a DKIM signature that verifies. Known only after DATA, so the message is received first; needs DKIM verification switched on."),require_dmarc:K("The message must pass DMARC. Known only after DATA; needs DMARC switched on."),note:K("Why the entry is there.")}}
 ];
 function collectionById(id){return COLLECTIONS.filter(c=>c.id===id)[0];}
 function collectionProps(c){

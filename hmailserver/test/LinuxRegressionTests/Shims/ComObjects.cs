@@ -1926,6 +1926,27 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.AntiSpam, "bypass_greylisting_on_mail_from_mx", value); }
       }
 
+      // Greylisting, hardened (18 September 2026): the three settings of the sliding
+      // wait and the abuse refusal, in the same group. The bypass list itself is a
+      // REST resource (/api/v1/greylisting-bypass), which the fixtures use directly.
+      public bool GreyListingSlideOnEarlyRetry
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "greylisting_slide_on_early_retry"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "greylisting_slide_on_early_retry", value); }
+      }
+
+      public int GreyListingAbuseThreshold
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "greylisting_abuse_threshold"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "greylisting_abuse_threshold", value); }
+      }
+
+      public int GreyListingAbuseLockMinutes
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "greylisting_abuse_lock_minutes"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "greylisting_abuse_lock_minutes", value); }
+      }
+
       public int MaximumMessageSize
       {
          get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "maximum_message_size_kb"); }

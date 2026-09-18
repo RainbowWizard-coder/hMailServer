@@ -102,6 +102,7 @@ if exists (select * from sysobjects where id = object_id('hm_blocked_attachments
 if exists (select * from sysobjects where id = object_id('hm_servermessages') and objectproperty(id, 'isusertable') = 1) drop table hm_servermessages 
 
 if exists (select * from sysobjects where id = object_id('hm_greylisting_whiteaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_greylisting_whiteaddresses 
+if exists (select * from sysobjects where id = object_id('hm_greylisting_bypass') and objectproperty(id, 'isusertable') = 1) drop table hm_greylisting_bypass
 
 if exists (select * from sysobjects where id = object_id('hm_tcpipports') and objectproperty(id, 'isusertable') = 1) drop table hm_tcpipports 
 
@@ -1089,15 +1090,17 @@ create table hm_greylisting_triplets
 	gldeletetime datetime not null,
 	glipaddress1 bigint not null,
    glipaddress2 bigint null,
-	glsenderaddress nvarchar(200) not null,
-	glrecipientaddress nvarchar(200) not null,
+	glsenderaddress nvarchar(320) not null,
+	glrecipientaddress nvarchar(320) not null,
 	glblockedcount int not null,
-	glpassedcount int not null
+	glpassedcount int not null,
+	glsenderhash nvarchar(32) null,
+	glrecipienthash nvarchar(32) null
 ) 
 
 ALTER TABLE hm_greylisting_triplets ADD CONSTRAINT hm_glid_pk PRIMARY KEY NONCLUSTERED (glid) 
 
-ALTER TABLE hm_greylisting_triplets ADD CONSTRAINT u_gltriplet UNIQUE NONCLUSTERED (glipaddress1, glipaddress2, glsenderaddress, glrecipientaddress) 
+CREATE INDEX idx_hm_greylisting_triplets_key ON hm_greylisting_triplets (glipaddress1, glipaddress2, glsenderhash, glrecipienthash)
 
 create table hm_greylisting_whiteaddresses
 (
@@ -1109,6 +1112,17 @@ create table hm_greylisting_whiteaddresses
 ALTER TABLE hm_greylisting_whiteaddresses ADD CONSTRAINT hm_glwhite_pk PRIMARY KEY NONCLUSTERED (whiteid) 
 
 ALTER TABLE hm_greylisting_whiteaddresses ADD CONSTRAINT u_glwhite UNIQUE NONCLUSTERED (whiteipaddress) 
+
+create table hm_greylisting_bypass
+(
+	glbid bigint identity(1,1) not null,
+	glbpattern nvarchar(255) not null,
+	glbmatch int not null,
+	glbrequire int not null,
+	glbnote nvarchar(255) not null
+)
+
+ALTER TABLE hm_greylisting_bypass ADD CONSTRAINT hm_greylisting_bypass_pk PRIMARY KEY (glbid)
 
 create table hm_blocked_attachments
 (
@@ -1514,6 +1528,12 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Sp
 insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapHitRetentionDays', '', 90)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('SpamTrapTeachSpamAssassin', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GreyListingSlideOnEarlyRetry', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GreyListingAbuseThreshold', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('GreyListingAbuseLockMinutes', '', 60)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ASArcTrustedSealers', '', 0)
 
@@ -2351,4 +2371,4 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6071)
+insert into hm_dbversion values (6072)

@@ -33,13 +33,28 @@ namespace HM
       std::set<std::shared_ptr<SpamTestResult> > RunPostTransmissionTests(const String &sFromAddress, const IPAddress & iOriginatingIP, const IPAddress &iConnectingIP, std::shared_ptr<Message> pMessage, std::shared_ptr<AuthenticationResults> authenticationResults = nullptr);
 
       static std::shared_ptr<MessageData> AddSpamScoreHeaders(std::shared_ptr<Message> pMessage, std::set<std::shared_ptr<SpamTestResult> > setResult, bool classifiedAsSpam);
-      static bool GreyListingAllowSend(const String &sSenderAddress, const String &sRecipientAddress, const IPAddress & iRemoteIP);
+
+      // What greylisting decided for one recipient. Allow, Defer (451) and Reject
+      // (550) are GreyListing::Verdict's; Pending is the fourth answer, given only
+      // before DATA: a bypass row covers the sender but requires DKIM or DMARC,
+      // which are known only once the message is in, so nothing has been decided
+      // and nothing written - SMTPConnection asks again after DATA with afterData
+      // true, when the answer is one of the other three.
+      enum GreyListingVerdict
+      {
+         GreyListAllow = 1,
+         GreyListDefer = 2,
+         GreyListReject = 3,
+         GreyListPending = 4
+      };
+
+      static GreyListingVerdict GreyListingVerdictFor(const String &sSenderAddress, const String &sRecipientAddress, const IPAddress & iRemoteIP);
 
       static int CalculateTotalSpamScore(std::set<std::shared_ptr<SpamTestResult> > result);
 
       static bool IsWhiteListed(const String &sFromAddress, const IPAddress & iIPAddress);
 
-      bool PerformGreyListing(std::shared_ptr<Message> message, const std::set<std::shared_ptr<SpamTestResult> > &spamTestResults, const String &toAddress, const IPAddress &ipaddress);
+      GreyListingVerdict PerformGreyListing(std::shared_ptr<Message> message, const std::set<std::shared_ptr<SpamTestResult> > &spamTestResults, const String &toAddress, const IPAddress &ipaddress, const String &heloHost, bool afterData);
    private:
       
       

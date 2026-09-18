@@ -1204,6 +1204,15 @@ namespace DBUpdater
          // table the step creates.
          new SchemaProbe(6071, "hm_heldmessages.hmheld",
                          "update hm_heldmessages set hmheld = hmheld where 1 = 0"),
+         // Upgrade6071to6072* - greylisting hardened: the two hash columns of the
+         // triplet key (one probe each, since the step can half-apply on SQL CE)
+         // and the bypass list, of which glbnote is the last column created.
+         new SchemaProbe(6072, "hm_greylisting_triplets.glsenderhash",
+                         "update hm_greylisting_triplets set glsenderhash = glsenderhash where 1 = 0"),
+         new SchemaProbe(6072, "hm_greylisting_triplets.glrecipienthash",
+                         "update hm_greylisting_triplets set glrecipienthash = glrecipienthash where 1 = 0"),
+         new SchemaProbe(6072, "hm_greylisting_bypass.glbnote",
+                         "update hm_greylisting_bypass set glbnote = glbnote where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

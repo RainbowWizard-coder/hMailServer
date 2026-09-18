@@ -142,6 +142,14 @@
 #define PROPERTY_BYPASS_GREYLISTING_ON_SPFSUCCESS  _T("BypassGreylistingOnSPFSuccess")
 #define PROPERTY_BYPASS_GREYLISTING_ON_MAILFROMMX  _T("BypassGreylistingOnMailFromMX")
 
+// Greylisting, hardened (SMTP/GreyListing.h): the sliding wait on an early retry,
+// the number of early retries at which a pending triplet is refused with 550,
+// and how long that refusal lasts. Every one of them off or inert by default: 0,
+// 0 and 60 minutes, and the minutes mean nothing while the threshold is 0.
+#define PROPERTY_GL_SLIDE_ON_EARLY_RETRY        _T("GreyListingSlideOnEarlyRetry")
+#define PROPERTY_GL_ABUSE_THRESHOLD             _T("GreyListingAbuseThreshold")
+#define PROPERTY_GL_ABUSE_LOCK_MINUTES          _T("GreyListingAbuseLockMinutes")
+
 #define PROPERTY_MAX_NUMBER_OF_MXHOSTS          _T("MaxNumberOfMXHosts")
 #define PROPERTY_SMTPCONNECTIONSECURITY         _T("SmtpDeliveryConnectionSecurity")
 #define PROPERTY_VERIFYREMOTESSLCERTIFICATE     _T("VerifyRemoteSslCertificate")
@@ -476,4 +484,14 @@
 //      the last takeover shape seen) and the messages kept out of the delivery
 //      queue for review, which are hm_messages rows of messagetype 4; and seeds
 //      the account.compromised alert rule, on.
-#define REQUIRED_DB_VERSION            6071
+// 6072 hardens greylisting (SMTP/GreyListing.h). hm_greylisting_triplets gains
+//      glsenderhash and glrecipienthash, the fixed-width key of the triplet (the
+//      MD5 of the normalised address, as hex), with the address columns widened
+//      to 320 and the index moved from the addresses to the hashes; rows from
+//      before this step have a NULL hash and are matched by their addresses once
+//      and rewritten. hm_greylisting_bypass is the per-domain bypass list: a
+//      pattern, what it is matched against and the authentication results it
+//      must carry. Seeds GreyListingSlideOnEarlyRetry (0), GreyListingAbuseThreshold
+//      (0) and GreyListingAbuseLockMinutes (60); with the first two 0 and the list
+//      empty, greylisting is what it was.
+#define REQUIRED_DB_VERSION            6072

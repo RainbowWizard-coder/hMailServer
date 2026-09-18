@@ -28,6 +28,7 @@
 #include "../Util/FileUtilities.h"
 
 #include "../../SMTP/GreyListing.h"
+#include "GreyListingBypass.h"
 
 #include "DKIM/DKIM.h"
 
@@ -138,14 +139,14 @@ namespace HM
       return setResult;
    }
 
-   bool
-   SpamProtection::PerformGreyListing(std::shared_ptr<Message> message, const std::set<std::shared_ptr<SpamTestResult> > &spamTestResults, const String &toAddress, const IPAddress &ipaddress)
+   SpamProtection::GreyListingVerdict
+   SpamProtection::PerformGreyListing(std::shared_ptr<Message> message, const std::set<std::shared_ptr<SpamTestResult> > &spamTestResults, const String &toAddress, const IPAddress &ipaddress, const String &heloHost, bool afterData)
    {
       if (!Configuration::Instance()->GetAntiSpamConfiguration().GetUseGreyListing())
       {
          // The sender is either local, or grey listing is not enabled. We should
          // not do grey list checks in these cases.
-         return true;
+         return GreyListAllow;
       }
 
       // Check if we should use grey listing for the recipient domain.
@@ -155,7 +156,7 @@ namespace HM
       if (pDomain && !pDomain->GetASUseGreyListing())
       {
          // Grey listing not enabled in domain. Skip it.
-         return true;
+         return GreyListAllow;
       }
 
 
@@ -170,7 +171,7 @@ namespace HM
                {
                   // We should not run grey listing since the SPF test has passed
                   LOG_DEBUG("SPF passed, skipping greylisting.");
-                  return true;
+                  return GreyListAllow;
                }
             }
          }
@@ -201,17 +202,35 @@ namespace HM
                {
                   // The message is coming from either an A record or a MX record. Skip greylisting.
                   LOG_DEBUG("Mail coming from A or MX record. Skipping grey listing.");
-                  return true;
+                  return GreyListAllow;
                }
             }
          }
       }
 
-      // Grey listing is enabled, and there's no reason to skip it. Go ahead!
-      if (!GreyListingAllowSend(message->GetFromAddress(), toAddress, ipaddress))
-         return false;
+      // The bypass list (discussion #284): a privilege granted to a named domain
+      // or HELO suffix, on the authentication results the message carries. A row
+      // that wants DKIM or DMARC cannot be judged before DATA; the recipient is
+      // let through for now and this is asked again after DATA.
+      {
+         String matchedPattern;
+         GreyListingBypass::Outcome bypass = GreyListingBypass::Evaluate(message->GetFromAddress(), heloHost, ipaddress, spamTestResults, afterData, matchedPattern);
 
-      return true; 
+         if (bypass == GreyListingBypass::Satisfied)
+         {
+            LOG_DEBUG("Greylisting bypass " + matchedPattern + " satisfied by the authentication results; skipping greylisting for " + toAddress + ".");
+            return GreyListAllow;
+         }
+
+         if (bypass == GreyListingBypass::NeedsData)
+         {
+            LOG_DEBUG("Greylisting bypass " + matchedPattern + " needs the DKIM or DMARC result of the message; greylisting of " + toAddress + " is decided after DATA.");
+            return GreyListPending;
+         }
+      }
+
+      // Grey listing is enabled, and there's no reason to skip it. Go ahead!
+      return GreyListingVerdictFor(message->GetFromAddress(), toAddress, ipaddress);
    }
 
    std::shared_ptr<MessageData>
@@ -290,17 +309,22 @@ namespace HM
 
 
 
-   bool 
-   SpamProtection::GreyListingAllowSend(const String &sSenderAddress, const String &sRecipientAddress, const IPAddress & iRemoteIP)
+   SpamProtection::GreyListingVerdict
+   SpamProtection::GreyListingVerdictFor(const String &sSenderAddress, const String &sRecipientAddress, const IPAddress & iRemoteIP)
    {
       if (IsWhiteListed(sSenderAddress, iRemoteIP))
-         return true;
+         return GreyListAllow;
 
       GreyListing oGreyList;
-      if (!oGreyList.GetAllowSend(sSenderAddress, sRecipientAddress, iRemoteIP))
-         return false;
-
-      return true;
+      switch (oGreyList.GetVerdict(sSenderAddress, sRecipientAddress, iRemoteIP))
+      {
+      case GreyListing::Defer:
+         return GreyListDefer;
+      case GreyListing::Reject:
+         return GreyListReject;
+      default:
+         return GreyListAllow;
+      }
    }
 
    bool 

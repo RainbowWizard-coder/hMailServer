@@ -160,6 +160,15 @@ namespace HM
       bool OnPreAcceptTransfer_();
       bool DoPreAcceptSpamProtection_();
 
+      // The greylisting verdicts held over to after DATA: the recipients a
+      // bypass row left undecided (GreyListPending), judged now that the DKIM
+      // and DMARC results are in. Answers false, having sent the 451 or the
+      // 550, when the message is not to be accepted.
+      bool ResolvePendingGreyListing_();
+
+      // The one sentence a greylisting 550 says, at RCPT TO and after DATA.
+      static const TCHAR *GreyListingRejectText_();
+
       void ProtocolEHLO_(const String &sRequest);
       void ProtocolHELO_(const String &sRequest);
       void ProtocolAUTH_(const String &sRequest);
@@ -396,6 +405,16 @@ namespace HM
 
       // Spam detection 
       bool rejected_by_delayed_grey_listing_;
+
+      // With rejected_by_delayed_grey_listing_: whether the verdict held over
+      // for the empty sender is the abuse refusal (550) rather than the 451.
+      bool delayed_grey_listing_rejects_;
+
+      // The recipients whose greylisting a bypass row left to be decided after
+      // DATA (SpamProtection::GreyListPending), as the addresses greylisting
+      // keys on - after the domain aliases. Empty for every message that has
+      // no such row, which is every message on a server with no bypass list.
+      std::vector<String> grey_listing_pending_recipients_;
       int cur_no_of_rcptto_;
       int cur_no_of_invalid_commands_;
 

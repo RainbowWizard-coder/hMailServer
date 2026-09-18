@@ -425,6 +425,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          config.GreylistingEnabled = true;
          config.BypassGreylistingOnSpfPass = true;
          config.GreylistWhiteListEntries = 4;
+         config.GreylistBypassEntries = 2;
 
          string summary = SpamPipeline.GreylistingSummary(config);
 
@@ -433,6 +434,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("adds no score", summary, StringComparison.OrdinalIgnoreCase);
          Assert.Contains("SPF check passed", summary, StringComparison.Ordinal);
          Assert.Contains("4", summary, StringComparison.Ordinal);
+         Assert.Contains("2 entries on the greylisting bypass list", summary, StringComparison.Ordinal);
          Assert.Contains("recipient domain", summary, StringComparison.OrdinalIgnoreCase);
       }
 

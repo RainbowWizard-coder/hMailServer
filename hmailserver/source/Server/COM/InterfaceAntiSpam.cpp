@@ -19,6 +19,7 @@
 
 #include "InterfaceAntiSpam.h"
 #include "InterfaceGreyListingWhiteAddresses.h"
+#include "InterfaceGreyListingBypassEntries.h"
 #include "InterfaceWhiteListAddresses.h"
 #include "InterfaceBlockedSenders.h"
 #include "InterfaceSenderListEntries.h"
@@ -1513,4 +1514,134 @@ STDMETHODIMP InterfaceAntiSpam::put_BypassGreylistingOnMailFromMX(VARIANT_BOOL n
    }
 }
 
+STDMETHODIMP InterfaceAntiSpam::get_GreyListingBypassEntries(IInterfaceGreyListingBypassEntries **pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
 
+      CComObject<InterfaceGreyListingBypassEntries>* pEntries = new CComObject<InterfaceGreyListingBypassEntries>();
+      pEntries->SetAuthentication(authentication_);
+      pEntries->Attach(HM::Configuration::Instance()->GetAntiSpamConfiguration().GetGreyListingBypassEntries());
+      pEntries->AddRef();
+
+      *pVal = pEntries;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_GreyListingSlideOnEarlyRetry(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetGreyListingSlideOnEarlyRetry() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_GreyListingSlideOnEarlyRetry(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetGreyListingSlideOnEarlyRetry(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_GreyListingAbuseThreshold(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetGreyListingAbuseThreshold();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_GreyListingAbuseThreshold(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      // The same sentence RestApiSettings refuses with, so the two surfaces
+      // say one thing.
+      if (newVal < 0 || newVal > 100000)
+         return COMError::GenerateError("GreyListingAbuseThreshold is between 0 and 100000. 0 never refuses: a triplet retried too soon is deferred again, as it always was.");
+
+      config_->GetAntiSpamConfiguration().SetGreyListingAbuseThreshold((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_GreyListingAbuseLockMinutes(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetGreyListingAbuseLockMinutes();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_GreyListingAbuseLockMinutes(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      if (newVal < 1 || newVal > 10080)
+         return COMError::GenerateError("GreyListingAbuseLockMinutes is between 1 and 10080 (a week): how long the 550 of GreyListingAbuseThreshold lasts.");
+
+      config_->GetAntiSpamConfiguration().SetGreyListingAbuseLockMinutes((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

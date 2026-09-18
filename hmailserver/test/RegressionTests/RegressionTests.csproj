@@ -616,6 +616,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AntiSpam\GreyListing.cs" />
+    <Compile Include="AntiSpam\GreyListingHardened.cs" />
     <Compile Include="AntiSpam\Whitelisting.cs" />
     <Compile Include="IMAP\MessageIndexing.cs" />
     <Compile Include="IMAP\MessageUids.cs" />
@@ -710,6 +711,7 @@
     <Compile Include="API\RestApiReputationWatch.cs" />
     <Compile Include="API\ReputationWatchCom.cs" />
     <Compile Include="API\RestApiSpamTraps.cs" />
+    <Compile Include="API\RestApiGreylistBypass.cs" />
     <Compile Include="API\RestApiFetchAccounts.cs" />
     <Compile Include="API\RestApiSettings.cs" />
     <Compile Include="API\RestApiRules.cs" />

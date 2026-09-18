@@ -194,6 +194,7 @@ namespace RegressionTests.Shared
          RemoveAllSharedFolders();
          RemoveAllGroups();
          ClearGreyListingWhiteAddresses();
+         ClearGreyListingBypassEntries();
          EnableLogging(true);
 
          _settings.SSLCertificates.Clear();
@@ -554,6 +555,30 @@ namespace RegressionTests.Shared
          var addresses = _settings.AntiSpam.GreyListingWhiteAddresses;
          while (addresses.Count > 0)
             addresses.DeleteByDBID(addresses[0].ID);
+      }
+
+      /// <summary>
+      ///    The greylisting bypass list, emptied before every test as the white
+      ///    list beside it is. An entry left behind by a fixture that failed
+      ///    half way through switches greylisting off for a domain in every
+      ///    fixture that runs after it, silently: the next fixture's sender is
+      ///    let straight through and its 451 never comes.
+      ///
+      ///    Late-bound, which the collection beside it is not. The type library
+      ///    the suite's interop is generated from must describe
+      ///    GreyListingBypassEntries for an early-bound call to compile, and a
+      ///    new interface needs an elevated registration before it can be
+      ///    marshalled at all; through IDispatch the collection is reached as a
+      ///    plain automation object and neither is needed, so a bench that has
+      ///    not been re-registered still runs the whole suite.
+      /// </summary>
+      private void ClearGreyListingBypassEntries()
+      {
+         dynamic antiSpam = _settings.AntiSpam;
+         dynamic entries = antiSpam.GreyListingBypassEntries;
+
+         while (entries.Count > 0)
+            entries.DeleteByDBID(entries.Item[0].ID);
       }
 
 

@@ -1881,6 +1881,11 @@ namespace HM
          case RouteGreyListingWhiteAddressUpdate:
          case RouteGreyListingWhiteAddressDelete:
             return HandleAntiSpamLists_(route.kind, route.record_id, GetRequestBody_(request));
+         case RouteGreylistBypassList:
+         case RouteGreylistBypassCreate:
+         case RouteGreylistBypassUpdate:
+         case RouteGreylistBypassDelete:
+            return HandleGreylistBypass_(route.kind, route.record_id, GetRequestBody_(request));
          case RouteBlockedAttachmentList:
          case RouteBlockedAttachmentCreate:
          case RouteBlockedAttachmentUpdate:
@@ -4386,6 +4391,7 @@ namespace HM
             { "/api/v1/incoming-relays", RouteIncomingRelayList, RouteIncomingRelayCreate, RouteIncomingRelayUpdate, RouteIncomingRelayDelete },
             { "/api/v1/blocked-attachments", RouteBlockedAttachmentList, RouteBlockedAttachmentCreate, RouteBlockedAttachmentUpdate, RouteBlockedAttachmentDelete },
             { "/api/v1/greylisting-white-addresses", RouteGreyListingWhiteAddressList, RouteGreyListingWhiteAddressCreate, RouteGreyListingWhiteAddressUpdate, RouteGreyListingWhiteAddressDelete },
+            { "/api/v1/greylisting-bypass", RouteGreylistBypassList, RouteGreylistBypassCreate, RouteGreylistBypassUpdate, RouteGreylistBypassDelete },
             { "/api/v1/sender-list", RouteSenderListList, RouteSenderListCreate, RouteSenderListUpdate, RouteSenderListDelete },
          };
 
@@ -5565,6 +5571,9 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteGreylistBypassCreate:
+      case RouteGreylistBypassUpdate:
+      case RouteGreylistBypassDelete:
       case RouteSenderListCreate:
       case RouteSenderListUpdate:
       case RouteSenderListDelete:
@@ -5933,6 +5942,7 @@ namespace HM
       case RouteIncomingRelayList:
       case RouteBlockedAttachmentList:
       case RouteGreyListingWhiteAddressList:
+      case RouteGreylistBypassList:
       case RoutePortalFilesPolicy:
       case RouteDomainAliasList:
       case RouteRuleMatch:
@@ -6313,6 +6323,9 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteGreylistBypassCreate:
+      case RouteGreylistBypassUpdate:
+      case RouteGreylistBypassDelete:
       // A remote domain policy, and the verification cache whose clearing
       // changes what the next RCPT TO decides.
       case RouteRemoteDomainCreate:
@@ -6878,6 +6891,10 @@ namespace HM
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
+      case RouteGreylistBypassList:
+      case RouteGreylistBypassCreate:
+      case RouteGreylistBypassUpdate:
+      case RouteGreylistBypassDelete:
       case RouteSenderListList:
       case RouteSenderListCreate:
       case RouteSenderListUpdate:
@@ -14984,6 +15001,7 @@ namespace HM
       openApiJson += OpenApiOfflinePaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();
+      openApiJson += OpenApiGreylistBypassPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();
       openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiSpamTrapPaths_();

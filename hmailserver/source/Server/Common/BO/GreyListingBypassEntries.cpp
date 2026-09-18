@@ -1,0 +1,30 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+#include "StdAfx.h"
+
+#include "GreyListingBypassEntries.h"
+
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+
+namespace HM
+{
+   GreyListingBypassEntries::GreyListingBypassEntries()
+   {
+   }
+
+   GreyListingBypassEntries::~GreyListingBypassEntries(void)
+   {
+   }
+
+   bool
+   GreyListingBypassEntries::Refresh()
+   {
+      String sSQL = "select * from hm_greylisting_bypass order by glbpattern asc, glbid asc";
+      return DBLoad_(sSQL);
+   }
+}

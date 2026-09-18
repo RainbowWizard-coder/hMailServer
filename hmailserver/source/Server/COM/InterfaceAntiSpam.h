@@ -168,6 +168,16 @@ public:
    STDMETHOD(get_DMARCFailureScore)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_DMARCFailureScore)(/*[in]*/ long newVal);
 
+   // Greylisting, hardened (SMTP/GreyListing.h): the bypass list and the three
+   // settings of the sliding wait and the abuse refusal.
+   STDMETHOD(get_GreyListingBypassEntries)(/*[out, retval]*/ IInterfaceGreyListingBypassEntries **pVal);
+   STDMETHOD(get_GreyListingSlideOnEarlyRetry)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_GreyListingSlideOnEarlyRetry)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_GreyListingAbuseThreshold)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_GreyListingAbuseThreshold)(/*[in]*/ long newVal);
+   STDMETHOD(get_GreyListingAbuseLockMinutes)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_GreyListingAbuseLockMinutes)(/*[in]*/ long newVal);
+
 private:
 
    HM::Configuration* config_;
