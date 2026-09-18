@@ -555,12 +555,29 @@
 //      BanMultiRcptNullSenderHours) are created at start by
 //      EnsureSettingDefaults_, every one at the value that leaves the server as
 //      it was.
+// 6074 adds hm_distributionlists.distributionlistmembership
+//      (BO/DistributionList.h): the text that makes a list define its own
+//      members instead of keeping a table of them - empty, which is a static
+//      list; domain; domain:<name>; pattern:<glob>; everyone. Empty by default,
+//      so every list an upgraded database holds keeps exactly the members it
+//      had.
 // 6075 adds hm_journalrules (Util/Journaling.h): one row per journaling or
 //      dual-delivery rule - whose mail (a domain, or one account in it), which
 //      way it is going, where the copy goes, and whether the copy is an
 //      envelope report with the original attached or the original itself.
 //      Nothing is journaled until a row exists, so an upgraded database
 //      behaves exactly as it did.
+// 6076 adds hm_accountrecovery, hm_recoverytokens and hm_recoverycodes
+//      (Util/AccountRecovery.h): an account's recovery address and whether it
+//      has been proved, the one-shot tokens a proving or a reset link carries,
+//      and the ten recovery codes that stand in for a lost authenticator. No
+//      row exists until the person sets an address or makes codes, so an
+//      upgraded database can recover exactly what it could before: nothing.
+// 6077 adds hm_passkeys (Util/PasskeyStore.h): one row per WebAuthn credential
+//      an account or the administrator registered - the credential id and its
+//      public key, the signature counter, what the device is called and when it
+//      last signed anybody in. Nothing is registered until somebody registers
+//      it, so an upgraded database signs in exactly as it did.
 // 6078 adds hm_directory (Util/DirectoryStore.h): one row per account that has a
 //      directory entry - a title, a department, three telephone numbers, a photo
 //      as base64 with its media type, the administrator's note, and the opt-out
