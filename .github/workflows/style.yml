@@ -119,6 +119,14 @@ jobs:
       - name: No file is listed twice in a project, and every source listed is there
         run: python3 build/check-project-items.py
 
+      # The same shape one interface up: two branches that each add members to a
+      # COM interface both start at its next free id, neither is wrong alone, and
+      # only the tree that folds them has the collision. MIDL refuses it, so it
+      # is caught by a build - twenty minutes into a bench build rather than in a
+      # second here. IInterfaceAntiSpam, 18 September 2026.
+      - name: No two members of one COM interface share a dispatch id
+        run: python3 build/check-com-dispids.py
+
       # The providers substitute parameters by position: a placeholder written
       # twice and bound once leaves the second without a value, and values added
       # out of order land in the wrong columns. Compact refuses both, MySQL
