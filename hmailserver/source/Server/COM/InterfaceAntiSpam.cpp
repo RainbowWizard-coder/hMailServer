@@ -1522,22 +1522,11 @@ STDMETHODIMP InterfaceAntiSpam::get_GreyListingBypassEntries(IInterfaceGreyListi
    {
       if (!config_)
          return GetAccessDenied();
-// ---------------------------------------------------------------------------
-// SMTP policy the score cannot express (discussions #283, #285, #286). The
-// seven scalars are hm_settings rows through AntiSpamConfiguration, as the
-// SPF score above is; the list is Common/AntiSpam/DomainPolicyList.h.
-// ---------------------------------------------------------------------------
 
       CComObject<InterfaceGreyListingBypassEntries>* pEntries = new CComObject<InterfaceGreyListingBypassEntries>();
       pEntries->SetAuthentication(authentication_);
       pEntries->Attach(HM::Configuration::Instance()->GetAntiSpamConfiguration().GetGreyListingBypassEntries());
       pEntries->AddRef();
-STDMETHODIMP InterfaceAntiSpam::get_UseSPFSoftFailScore(long *pVal)
-{
-   try
-   {
-      if (!config_)
-         return GetAccessDenied();
 
       *pVal = pEntries;
 
@@ -1658,6 +1647,20 @@ STDMETHODIMP InterfaceAntiSpam::put_GreyListingAbuseLockMinutes(long newVal)
       return COMError::GenerateGenericMessage();
    }
 }
+
+
+// ---------------------------------------------------------------------------
+// SMTP policy the score cannot express (discussions #283, #285, #286). The
+// seven scalars are hm_settings rows through AntiSpamConfiguration, as the
+// SPF score above is; the list is Common/AntiSpam/DomainPolicyList.h.
+// ---------------------------------------------------------------------------
+
+STDMETHODIMP InterfaceAntiSpam::get_UseSPFSoftFailScore(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
 
       *pVal = config_->GetAntiSpamConfiguration().GetUseSPFSoftFailScore();
 
