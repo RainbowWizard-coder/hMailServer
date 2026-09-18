@@ -45,6 +45,7 @@ using System.Text;
 using hMailServer;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
 namespace RegressionTests.AntiSpam
@@ -492,6 +493,84 @@ namespace RegressionTests.AntiSpam
          List<Dictionary<string, object>> hits = Hits();
          ClassicAssert.AreEqual(1, hits.Count);
          ClassicAssert.IsTrue(Flag(hits[0], "banned"), Text(hits[0], "note"));
+      }
+
+      // ------------------------------------------------------------------ the lesson
+
+      [Test]
+      [Description("A session that addressed a trap and then sent a message to a real mailbox teaches SpamAssassin that message as spam: one TELL with Message-class: spam, to the spamd the anti-spam settings name. Against the suite's own spamd, which accepts TELL, so the bench's spamd needs no --allow-tell for this to be proven.")]
+      public void TheMessageASessionSentAfterAddressingATrapTeachesSpamAssassin()
+      {
+         Account victim = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "victim@" + _domain.Name, Password);
+         AddTrap(TrapAddress());
+
+         dynamic settings = _settings;
+         settings.SpamTrapTeachSpamAssassin = true;
+
+         hMailServer.AntiSpam antiSpam = _settings.AntiSpam;
+         bool enabledBefore = antiSpam.SpamAssassinEnabled;
+         string hostBefore = antiSpam.SpamAssassinHost;
+         int portBefore = antiSpam.SpamAssassinPort;
+
+         using (var spamd = new SpamdSimulator())
+         {
+            antiSpam.SpamAssassinEnabled = true;
+            antiSpam.SpamAssassinHost = "127.0.0.1";
+            antiSpam.SpamAssassinPort = spamd.Port;
+
+            try
+            {
+               // One session: the trap first (refused), then a real mailbox, then
+               // the message. The lesson is given when the message is accepted.
+               var socket = new TcpConnection();
+               ClassicAssert.IsTrue(socket.Connect(25), "Could not connect to SMTP.");
+               try
+               {
+                  socket.ReadUntil("220");
+                  socket.Send("EHLO test\r\n");
+                  socket.ReadUntil("250 ");
+                  socket.Send("MAIL FROM:<harvester@spammer.example>\r\n");
+                  socket.ReadUntil("250");
+                  socket.Send("RCPT TO:<" + TrapAddress() + ">\r\n");
+                  string refused = socket.Receive();
+                  StringAssert.Contains("550", refused, refused);
+                  socket.Send("RCPT TO:<" + victim.Address + ">\r\n");
+                  string accepted = socket.Receive();
+                  StringAssert.Contains("250", accepted, accepted);
+                  socket.Send("DATA\r\n");
+                  socket.ReadUntil("354");
+                  socket.Send("From: harvester@spammer.example\r\nTo: " + victim.Address + "\r\nSubject: From a harvested list\r\n\r\nThe body of the lesson.\r\n.\r\n");
+                  string queued = socket.ReadUntil("250");
+                  StringAssert.Contains("250", queued, queued);
+                  socket.Send("QUIT\r\n");
+               }
+               finally
+               {
+                  socket.Disconnect();
+               }
+
+               // The scan of the message (PROCESS) and the lesson (TELL) reach the
+               // fake spamd in whichever order the work queue runs them.
+               Dictionary<string, string> tell = null;
+               for (int i = 0; i < 4 && tell == null; i++)
+               {
+                  Dictionary<string, string> request = spamd.WaitForRequest(i);
+                  if (request["Request"].StartsWith("TELL", StringComparison.OrdinalIgnoreCase))
+                     tell = request;
+               }
+
+               ClassicAssert.IsNotNull(tell, "SpamAssassin was never told about the message a trap-addressing session sent.");
+               ClassicAssert.AreEqual("spam", tell["Message-class"], "The lesson's Message-class");
+               ClassicAssert.AreEqual("local", tell["Set"], "Into spamd's local Bayes store, as the move-to-Junk lesson goes.");
+            }
+            finally
+            {
+               LiftEverySpamTrapBan();
+               antiSpam.SpamAssassinEnabled = enabledBefore;
+               antiSpam.SpamAssassinHost = hostBefore;
+               antiSpam.SpamAssassinPort = portBefore;
+            }
+         }
       }
 
       // ---------------------------------------------------------------------- helpers
