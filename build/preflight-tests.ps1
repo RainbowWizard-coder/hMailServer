@@ -176,7 +176,13 @@ Report ($reserved.Count -eq 0) 'The SSL fixtures'' twelve ports are bindable' `
 #     outlives the process that made it (RegressionEnvironment.md).
 $wslRunning = @()
 try {
-    $wslRunning = @((& wsl.exe -l --running --quiet 2>$null) | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
+    # A distribution's name has no spaces in it. On a machine with no WSL the
+    # Store's wsl.exe stub answers this command with the installer's prompt -
+    # "Press any key to install Windows Subsystem for Linux." - on standard
+    # output, and until 18 September 2026 those sentences were read as three
+    # running distributions and the pre-flight refused a bench that has never
+    # had WSL at all (the second bench, run under a password logon).
+    $wslRunning = @((& wsl.exe -l --running --quiet 2>$null) | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ -match '^[\w.-]+$' })
 } catch {
     $wslRunning = @()
 }
