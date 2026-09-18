@@ -51,6 +51,7 @@ namespace HM
       static const Setting Settings[] =
       {
          { _T("accountcachettl"), _T(""), 60, KindNumber },
+         { _T("AccountRecoveryEnabled"), _T(""), 1, KindNumber },
          { _T("adddeliveredtoheader"), _T(""), 0, KindNumber },
          { _T("AlertDigestEnabled"), _T(""), 1, KindNumber },
          { _T("AlertDigestHour"), _T(""), 7, KindNumber },
@@ -204,6 +205,8 @@ namespace HM
          { _T("ReaderOfflineDaysMax"), _T(""), 30, KindNumber },
          { _T("ReaderSenderAddressesMax"), _T(""), 5, KindNumber },
          { _T("RecoverDeletedDays"), _T(""), 0, KindNumber },
+         { _T("RecoveryResetLinkMinutes"), _T(""), 30, KindNumber },
+         { _T("RecoveryVerifyLinkHours"), _T(""), 24, KindNumber },
          { _T("RejectMultiRcptNullSender"), _T(""), 0, KindNumber },
          { _T("relaymode"), _T(""), 2, KindEither },
          { _T("ReputationWatchAddresses"), _T(""), 0, KindString },
@@ -289,6 +292,7 @@ namespace HM
       static const TCHAR *const PropertyNames[] =
       {
          _T("accountcachettl"),
+         _T("accountrecoveryenabled"),
          _T("adddeliveredtoheader"),
          _T("alertdigestenabled"),
          _T("alertdigesthour"),
@@ -442,6 +446,8 @@ namespace HM
          _T("readerofflinedaysmax"),
          _T("readersenderaddressesmax"),
          _T("recoverdeleteddays"),
+         _T("recoveryresetlinkminutes"),
+         _T("recoveryverifylinkhours"),
          _T("rejectmultircptnullsender"),
          _T("reputationwatchaddresses"),
          _T("reputationwatchenabled"),

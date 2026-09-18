@@ -283,7 +283,7 @@ namespace DBUpdater
          _upgradeScripts.Add(new UpgradeScript(6072, 6073));
          _upgradeScripts.Add(new UpgradeScript(6073, 6074));
          _upgradeScripts.Add(new UpgradeScript(6074, 6075));
-         _upgradeScripts.Add(new UpgradeScript(6071, 6076));
+         _upgradeScripts.Add(new UpgradeScript(6075, 6076));
       }
 
       private void buttonClose_Click(object sender, EventArgs e)

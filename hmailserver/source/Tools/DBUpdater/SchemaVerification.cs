@@ -1228,7 +1228,7 @@ namespace DBUpdater
          new SchemaProbe(6075, "hm_journalrules.jrmode",
                          "update hm_journalrules set jrmode = jrmode where 1 = 0"),
 
-         // Upgrade6071to6076* - the recovery address, the one-shot links that
+         // Upgrade6075to6076* - the recovery address, the one-shot links that
          // prove it and reset a password, and the recovery codes. One probe per
          // table: SQL Server Compact commits each statement as it runs, so a step
          // that stopped after the first CREATE TABLE would otherwise stamp a
