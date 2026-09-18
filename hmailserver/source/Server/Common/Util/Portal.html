@@ -876,6 +876,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button id="folder-empty" class="danger" type="button">Empty this folder</button>
 <button id="folder-recover" type="button">Recover deleted items</button>
 <button id="folder-confidential" type="button">Messages that expire</button>
+<button id="folder-protected" type="button">Password-protected messages</button>
 <div class="sep"></div>
 <button id="pane-right" type="button">Reading pane on the right</button>
 <button id="pane-bottom" type="button">Reading pane below</button>
@@ -956,6 +957,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="message-receipt" class="infobar" hidden>The sender asked to be told when this is read. <button id="receipt-send" class="btn ghost sm" type="button">Send a receipt</button> <button id="receipt-never" class="btn quiet sm" type="button">Never ask</button></div>
 <div id="message-smime" class="infobar" hidden><span id="message-smime-text"></span> <button id="message-smime-unlock" class="btn ghost sm" type="button" hidden>Unlock keys to read</button></div>
 <div id="message-pgp" class="infobar" hidden><span id="message-pgp-text"></span> <button id="message-pgp-unlock" class="btn ghost sm" type="button" hidden>Unlock your OpenPGP key</button> <button id="message-pgp-keep" class="btn ghost sm" type="button" hidden>Keep this key</button> <button id="message-pgp-accept" class="btn ghost sm" type="button" hidden>Accept the new key</button></div>
+<div id="message-protected" class="infobar" hidden><span id="message-protected-text"></span> <button id="message-protected-open" class="btn ghost sm" type="button" hidden>Open it</button> <button id="message-protected-revoke" class="btn ghost sm" type="button" hidden>Withdraw</button></div>
 <div id="snooze-menu" class="row" hidden><span class="muted">Bring it back</span><button class="btn ghost sm" id="snooze-3h" type="button">in 3 hours</button><button class="btn ghost sm" id="snooze-tomorrow" type="button">tomorrow at 9</button><button class="btn ghost sm" id="snooze-week" type="button">next week</button><input id="snooze-at" type="datetime-local" aria-label="Until" style="width:auto"><button class="btn sm" id="snooze-go" type="button">Snooze</button></div>
 <div id="followup-menu" class="row" hidden><span class="muted">Follow up by</span><button class="btn ghost sm" id="followup-today" type="button">today</button><button class="btn ghost sm" id="followup-tomorrow" type="button">tomorrow</button><button class="btn ghost sm" id="followup-week" type="button">next week</button><input id="followup-at" type="date" aria-label="A day" style="width:auto"><button class="btn sm" id="followup-go" type="button">Set</button><button class="btn quiet sm" id="followup-clear" type="button" hidden>Clear the flag</button></div>
 <div id="label-menu" class="row" hidden></div>
@@ -1105,6 +1107,15 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <table class="list" id="confidential-table" hidden><thead><tr><th>Subject</th><th>To</th><th>Expires</th><th>Opened</th><th></th></tr></thead><tbody id="confidential-rows"></tbody></table>
 <div id="confidential-empty" class="hint" hidden>You have not sent a message that expires.</div>
 <div id="confidential-status" class="status" aria-live="polite"></div>
+</div>
+</section>
+<section id="protected-section" class="view page" hidden>
+<div class="page-head"><h1>Password-protected messages</h1></div>
+<div class="card">
+<p class="note" id="protected-note"></p>
+<table class="list" id="protected-table" hidden><thead><tr><th>To</th><th>Sent</th><th>Expires</th><th>Opened</th><th></th></tr></thead><tbody id="protected-rows"></tbody></table>
+<div id="protected-empty" class="hint" hidden>You have not sent a password-protected message.</div>
+<div id="protected-status" class="status" aria-live="polite"></div>
 </div>
 </section>
 <section id="scheduled-section" class="view page" hidden>
@@ -1713,6 +1724,14 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label class="inline" id="compose-pgp-sign-label" hidden><input id="compose-pgp-sign" type="checkbox"> Sign with my OpenPGP key</label>
 <label class="inline" id="compose-pgp-encrypt-label" hidden><input id="compose-pgp-encrypt" type="checkbox"> Encrypt with OpenPGP</label>
 <div id="compose-pgp-note" class="hint" hidden></div>
+<label class="inline" id="compose-protect-label" hidden><input id="compose-protect" type="checkbox"> Protect with a password</label>
+<div id="compose-protect-panel" hidden>
+<p class="hint">The text and the attachments are encrypted in this browser to the password before anything is sent. The recipient gets a short message with a link to a page on this server, types the password there, and their browser decrypts it; a reply written there comes back the same way. The password never leaves this browser and the server never sees the text, so tell them the password some other way than this message. It does not stop the recipient copying or forwarding what they read.</p>
+<p class="hint">Your Sent folder keeps only the notice: your own text is readable only through the link, with the password, until it expires.</p>
+<div class="row"><label for="compose-protect-password" class="inline">Password</label><input id="compose-protect-password" type="password" autocomplete="new-password" aria-label="Password" style="width:auto"><label for="compose-protect-password2" class="inline">Again</label><input id="compose-protect-password2" type="password" autocomplete="new-password" aria-label="Password, again" style="width:auto"></div>
+<div id="compose-protect-strength" class="hint" aria-live="polite"></div>
+<div class="row"><label for="compose-protect-hint" class="inline">Hint</label><input id="compose-protect-hint" type="text" maxlength="255" placeholder="Something only they would understand (optional)" aria-label="Hint"></div>
+</div>
 <label for="compose-files" class="sr">Attach files</label><input id="compose-files" type="file" multiple class="sr"><div id="compose-files-note" class="note"></div>
 <div id="compose-links" class="note" hidden></div>
 <div class="compose-foot"><button class="btn" id="compose-send" type="submit"><svg class="i"><use href="#i-send"/></svg>Send</button><button id="compose-save" type="button" class="btn ghost">Save draft</button><button id="compose-attach" type="button" class="iconbtn sm" title="Attach files" aria-label="Attach files"><svg class="i"><use href="#i-clip"/></svg></button><div class="sp"></div><button id="compose-discard" type="button" class="iconbtn sm" title="Discard" aria-label="Discard"><svg class="i"><use href="#i-trash"/></svg></button></div>

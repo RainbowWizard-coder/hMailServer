@@ -28,12 +28,16 @@ UTIL = os.path.join(ROOT, "hmailserver", "source", "Server", "Common", "Util")
 OUT = os.path.join(UTIL, "PortalPageData.cpp")
 PIECE = 4000
 
-# The array each file becomes, and the file.
+# The array each file becomes, and the file. The last two are the reading
+# page of a password-protected message and its script (RestApiProtectedMessages.cpp),
+# served at /portal/protected/<token> and /portal-protected.js.
 PARTS = [
     ("PortalHtmlPieces", "Portal.html"),
     ("PortalScriptPieces", "Portal.js"),
     ("PortalManifestPieces", "Portal.webmanifest"),
     ("PortalServiceWorkerPieces", "PortalServiceWorker.js"),
+    ("PortalProtectedHtmlPieces", "PortalProtected.html"),
+    ("PortalProtectedScriptPieces", "PortalProtected.js"),
 ]
 
 

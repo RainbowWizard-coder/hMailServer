@@ -24,6 +24,7 @@
 #include "../Util/OutgoingFooters.h"
 #include "../Util/RestApiServer.h"
 #include "../Util/ConfidentialMessages.h"
+#include "../Util/ProtectedMessages.h"
 #include "../Util/CompromiseDetector.h"
 #include "../BO/MessageRecipient.h"
 #include "../Util/ContactGroups.h"
@@ -175,6 +176,7 @@ namespace HM
       // the kept copies of messages that expire (ConfidentialMessages.h).
       RestApiServer::SweepExpiredFiles();
       ConfidentialMessages::Sweep(false);
+      ProtectedMessages::Sweep(false);
    }
 
    int

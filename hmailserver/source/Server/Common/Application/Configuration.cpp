@@ -242,6 +242,7 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_KEYSERVER, 0);
       property_set_->EnsureString(PROPERTY_OPENPGP_KEYSERVER_URL, _T("https://keys.openpgp.org"));
       property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
+      property_set_->EnsureLong(PROPERTY_PROTECTED_MESSAGE_DAYS, 30);
 
       // The quota policy's two server-wide shares. Both 0, which is the server
       // as it has always been: no grace past a mailbox's limit, and no point at
@@ -2199,6 +2200,18 @@ namespace HM
    Configuration::SetOpenPGPLookupTimeout(int seconds)
    {
       GetSettings()->SetLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, ClampSetting(seconds, 2, 30));
+   }
+
+   int
+   Configuration::GetProtectedMessageDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_PROTECTED_MESSAGE_DAYS), 1, 365);
+   }
+
+   void
+   Configuration::SetProtectedMessageDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_PROTECTED_MESSAGE_DAYS, ClampSetting(days, 1, 365));
    }
 
    bool

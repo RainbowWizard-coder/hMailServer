@@ -1846,6 +1846,10 @@ namespace
         "Seconds a key lookup may take before it is given up on. 2 to 30; 10 by default. A webmail request waits on it, so it is short.",
         ROW_NUMBER(Config()->GetOpenPGPLookupTimeout()), ROW_SET(Config()->SetOpenPGPLookupTimeout((int) v.number)),
         [] (const Value &v) { return (v.number < 2 || v.number > 30) ? String(_T("lookup_timeout must be between 2 and 30.")) : String(); } },
+      { "protected_message_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days a password-protected message - one the webmail encrypted to a password for a correspondent with no key - is kept for its reading page before the ciphertext goes. The default a sender gets and the most a sender may ask for. 1 to 365; 30 by default.",
+        ROW_NUMBER(Config()->GetProtectedMessageDays()), ROW_SET(Config()->SetProtectedMessageDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 365) ? String(_T("protected_message_days must be between 1 and 365.")) : String(); } },
    };
 
    // Web Push (Common/Util/WebPush.h). Seven rows in hm_settings, read at the

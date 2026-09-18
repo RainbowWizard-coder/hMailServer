@@ -80,6 +80,7 @@
 #include "DirectoryStore.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
+#include "ProtectedMessages.h"
 #include "ContactGroups.h"
 #include <iterator>
 #include <list>
@@ -730,8 +731,12 @@ namespace HM
          if (path.StartsWith("/deck-lang/"))
             return true;
          if (path == "/portal" || path == "/portal.js" || path == "/portal-smime.js" ||
-             path == "/portal-openpgp.js" ||
+             path == "/portal-openpgp.js" || path == "/portal-protected.js" ||
              path == "/portal.webmanifest" || path == "/portal-sw.js")
+            return true;
+         // The reading page of a password-protected message: one document for
+         // every token, since its script reads the token from the address bar.
+         if (path.StartsWith("/portal/protected/"))
             return true;
          if (path.StartsWith("/portal-lang/"))
             return true;
@@ -951,6 +956,10 @@ namespace HM
       // until its wait ends; woken here, so the stop below never waits on a
       // follower's timer.
       SessionFollow::Instance()->CancelWaits();
+
+      // The per-address budgets of the password-protected message's public
+      // routes: the listener stopping is the end of what they were counting.
+      ProtectedMessages::ForgetBudgets();
 
       if (server_)
       {
@@ -1683,6 +1692,22 @@ namespace HM
       // page itself, or is already signed in to the webmail as one.
       if ((method == "GET" || method == "POST") && path.StartsWith("/confidential/"))
          return HandleConfidentialPage_(method, path.Mid(14), request, peer_address);
+
+      // A password-protected message (ProtectedMessages.h): the reading page,
+      // its script, the ciphertext the page fetches and the reply it posts.
+      // No credentials at any of them - the reader has none - and the token
+      // in the link is the whole capability. See RestApiProtectedMessages.cpp.
+      if (method == "GET" && path.StartsWith("/portal/protected/"))
+         return HandleProtectedPage_();
+
+      if (method == "GET" && path == "/portal-protected.js")
+         return HandlePortalProtectedScript_();
+
+      if (method == "GET" && path.StartsWith("/api/v1/protected/") && path.Find("/", 18) < 0)
+         return HandleProtectedFetch_(path.Mid(18), peer_address);
+
+      if (method == "POST" && path.StartsWith("/api/v1/protected/") && path.EndsWith("/reply") && path.GetLength() > 24)
+         return HandleProtectedReply_(path.Mid(18, path.GetLength() - 24), GetRequestBody_(request), peer_address);
 
       // The two links a quarantine digest carries. No credentials: the token in
       // the query string is the whole capability, it names one account and one
@@ -2711,6 +2736,18 @@ namespace HM
          case RouteMeConfidentialRevoke:
             return HandleMeConfidential_(caller, route.kind, route.record_id);
 
+         case RouteMeProtected:
+            return HandleMeProtected_(caller);
+
+         case RouteMeProtectedCreate:
+            return HandleMeProtectedCreate_(caller, GetRequestBody_(request));
+
+         case RouteMeProtectedContent:
+            return HandleMeProtectedContent_(caller, route.record_id, route.query, GetRequestBody_(request));
+
+         case RouteMeProtectedDelete:
+            return HandleMeProtectedDelete_(caller, route.record_id);
+
          case RouteMeOffline:
          case RouteMeOfflinePut:
          case RouteMeOfflineMessages:
@@ -3595,6 +3632,37 @@ namespace HM
       {
          if (method == "GET")
             route.kind = RouteMeOfflineMessages;
+
+         return;
+      }
+
+      // Password-protected messages: the ones this account sent, the record
+      // of a new one, its ciphertext in chunks, and withdrawing one.
+      const AnsiString meProtectedPath = "/api/v1/me/protected";
+      if (path == meProtectedPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeProtected;
+         else if (method == "POST")
+            route.kind = RouteMeProtectedCreate;
+
+         return;
+      }
+
+      if (path.StartsWith(meProtectedPath + "/"))
+      {
+         AnsiString rest = path.Mid(meProtectedPath.GetLength() + 1);
+         const AnsiString contentSuffix = "/content";
+         if (rest.EndsWith(contentSuffix))
+         {
+            if (method == "PUT" && ParseQueueId(rest.Mid(0, rest.GetLength() - contentSuffix.GetLength()), route.record_id))
+               route.kind = RouteMeProtectedContent;
+
+            return;
+         }
+
+         if (method == "DELETE" && ParseQueueId(rest, route.record_id))
+            route.kind = RouteMeProtectedDelete;
 
          return;
       }
@@ -5955,6 +6023,9 @@ namespace HM
       case RouteMeDirectoryOwnPut:
       case RouteAccountDirectoryPut:
       case RouteMeConfidentialRevoke:
+      case RouteMeProtectedCreate:
+      case RouteMeProtectedContent:
+      case RouteMeProtectedDelete:
       case RouteMeOfflinePut:
       case RouteMeFileCreate:
       case RouteMeFileContent:
@@ -10200,6 +10271,10 @@ namespace HM
       case RouteMeDirectoryPhoto:
       case RouteMeConfidential:
       case RouteMeConfidentialRevoke:
+      case RouteMeProtected:
+      case RouteMeProtectedCreate:
+      case RouteMeProtectedContent:
+      case RouteMeProtectedDelete:
       case RouteMeOffline:
       case RouteMeOfflinePut:
       case RouteMeOfflineMessages:
@@ -15423,6 +15498,11 @@ namespace HM
          if ((path.StartsWith("/api/v1/me/files/") && path.EndsWith("/content")) || path == "/api/v1/me/settings")
             return true;
 
+         // A chunk of a password-protected message's ciphertext, raw, up to
+         // the large cap (RestApiProtectedMessages.cpp).
+         if (path.StartsWith("/api/v1/me/protected/") && path.EndsWith("/content"))
+            return true;
+
          // A directory entry with its photo: up to 100 KB of image, which is
          // 137 KB of base64 inside the JSON (DirectoryStore::MaximumPhotoBytes,
          // judged by RestApiDirectory.cpp with a sentence) - the person's own
@@ -15440,6 +15520,11 @@ namespace HM
 
       if (method != "POST")
          return false;
+
+      // A reply to a password-protected message, written on the reading page
+      // and encrypted there: at most 1 MB of armour, judged by the route.
+      if (path.StartsWith("/api/v1/protected/") && path.EndsWith("/reply"))
+         return true;
 
       if (path.StartsWith("/api/v1/me/folders/") && path.EndsWith("/messages"))
          return true;
@@ -15725,6 +15810,7 @@ namespace HM
       openApiJson += OpenApiDirectoryPaths_();
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiOpenPgpKeysPaths_();
+      openApiJson += OpenApiProtectedPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiAddressBookPaths_();
       openApiJson += OpenApiOfflinePaths_();

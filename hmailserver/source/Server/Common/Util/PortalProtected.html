@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, noarchive">
+<title>A password-protected message</title>
+<style>
+:root{--bg:#0f1419;--card:#161b22;--line:#30363d;--text:#e6edf3;--muted:#9aa4ae;--accent:#36c2ff;--on:#04121c;--err:#ff7b72;--ok:#7ee787}
+@media (prefers-color-scheme: light){:root{--bg:#f6f8fa;--card:#ffffff;--line:#d0d7de;--text:#1f2328;--muted:#57606a;--accent:#0969da;--on:#ffffff;--err:#cf222e;--ok:#1a7f37}}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:24px 12px;margin:0}
+main{max-width:760px;width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+h1{font-size:20px;margin:0 0 12px;overflow-wrap:anywhere}
+h2{font-size:16px;margin:20px 0 8px}
+p{margin:8px 0;color:var(--muted);font-size:14px;overflow-wrap:anywhere;line-height:1.5}
+label{display:block;font-size:14px;color:var(--muted);margin-top:12px}
+input,textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px;margin:6px 0;font-family:inherit}
+textarea{min-height:120px;resize:vertical}
+button{padding:10px 16px;border-radius:8px;border:0;background:var(--accent);color:var(--on);font-weight:600;font-size:15px;cursor:pointer;margin-top:6px}
+button.quiet{background:transparent;color:var(--accent);border:1px solid var(--line)}
+button:disabled{opacity:.6;cursor:default}
+.err{color:var(--err)}.ok{color:var(--ok)}
+.meta{font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px;overflow-wrap:anywhere}
+.body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5;color:var(--text)}
+ul{padding-left:20px;font-size:14px}
+li{margin:4px 0}
+.hint{font-size:14px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0}
+.status{min-height:1.2em;font-size:14px;margin-top:8px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1 id="title">A password-protected message</h1>
+<div id="loading"><p>Fetching the message...</p></div>
+
+<div id="gone" hidden><p id="gone-text" class="err"></p></div>
+
+<div id="unlock" hidden>
+<p id="intro">This message was encrypted in its sender's browser and can be read only with the password they gave you. Nothing but the password decrypts it: not this page's server, and not anybody on the way.</p>
+<div id="hint-box" class="hint" hidden><span>About the password: </span><span id="hint"></span></div>
+<form id="password-form">
+<label for="password">Password</label>
+<input id="password" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required autofocus>
+<button id="open" type="submit">Open the message</button>
+<div id="password-status" class="status" aria-live="polite"></div>
+</form>
+<p id="until"></p>
+</div>
+
+<div id="message" hidden>
+<div class="meta" id="meta"></div>
+<div class="body" id="text"></div>
+<div id="attachments-box" hidden><h2>Attachments</h2><ul id="attachments"></ul></div>
+<p>The text above was decrypted in this browser and has not been sent anywhere. The sender's server never had it and cannot read it; what you do with it now is yours to decide, and this page does not pretend it could stop you copying it.</p>
+<div id="reply-box" hidden>
+<h2>Reply</h2>
+<p>A reply is encrypted here under the same password and goes back to the sender the same way. The sender is told a reply is waiting; nobody else can read it.</p>
+<form id="reply-form">
+<label for="reply-text">Your reply</label>
+<textarea id="reply-text" dir="auto"></textarea>
+<button id="reply-send" type="submit">Send the reply</button>
+<div id="reply-status" class="status" aria-live="polite"></div>
+</form>
+</div>
+</div>
+</main>
+<script src="/portal-smime.js"></script>
+<script src="/portal-openpgp.js"></script>
+<script src="/portal-protected.js"></script>
+</body>
+</html>

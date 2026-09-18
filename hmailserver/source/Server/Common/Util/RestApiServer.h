@@ -460,6 +460,14 @@ namespace HM
          RouteAccountDirectoryPhoto,
          RouteMeConfidential,
          RouteMeConfidentialRevoke,
+         // A password-protected message to anyone (RestApiProtectedMessages.cpp):
+         // the sender's list, the record, the ciphertext in chunks and the
+         // withdrawal. Self-service; the reader's routes take no credential
+         // and are dispatched before Authenticate_.
+         RouteMeProtected,
+         RouteMeProtectedCreate,
+         RouteMeProtectedContent,
+         RouteMeProtectedDelete,
          RouteMeOffline,
          RouteMeOfflinePut,
          RouteMeOfflineMessages,
@@ -1455,6 +1463,19 @@ namespace HM
       static HttpResponse HandleMeConfidential_(const Caller &caller, RouteKind kind, __int64 id);
       HttpResponse HandleConfidentialPage_(const AnsiString &method, const AnsiString &token, const AnsiString &request, const IPAddress &peer_address);
       static AnsiString OpenApiConfidentialPaths_();
+      // A password-protected message to anyone (RestApiProtectedMessages.cpp,
+      // ProtectedMessages.h): the sender's four routes, the reader's fetch and
+      // reply - no credential, the token is the capability - and the reading
+      // page with its script, static as the portal's scripts are.
+      static HttpResponse HandleMeProtected_(const Caller &caller);
+      static HttpResponse HandleMeProtectedCreate_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeProtectedContent_(const Caller &caller, __int64 id, const AnsiString &query, const AnsiString &body);
+      static HttpResponse HandleMeProtectedDelete_(const Caller &caller, __int64 id);
+      static HttpResponse HandleProtectedFetch_(const AnsiString &token, const IPAddress &peer_address);
+      static HttpResponse HandleProtectedReply_(const AnsiString &token, const AnsiString &requestBody, const IPAddress &peer_address);
+      static HttpResponse HandleProtectedPage_();
+      static HttpResponse HandlePortalProtectedScript_();
+      static AnsiString OpenApiProtectedPaths_();
       HttpResponse HandlePortalOAuthCallback_(const AnsiString &request, const AnsiString &query);
       static AnsiString OpenApiReaderFetchAccountsPaths_();
       static AnsiString OpenApiReaderFetchImportPaths_();

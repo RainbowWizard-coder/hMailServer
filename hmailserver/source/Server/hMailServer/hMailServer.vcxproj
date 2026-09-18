@@ -723,6 +723,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\OpenPgpKeyStore.cpp" />
     <ClCompile Include="..\Common\Util\OpenPgpKey.cpp" />
     <ClCompile Include="..\Common\Util\OpenPgpRing.cpp" />
+    <ClCompile Include="..\Common\Util\ProtectedMessages.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiProtectedMessages.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgpKeys.cpp" />
     <ClCompile Include="..\Common\Util\PortalOpenPgpData.cpp" />
     <ClCompile Include="..\Common\AntiSpam\QuarantineStore.cpp" />
@@ -1537,6 +1539,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\CalDavServer.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKeyStore.h" />
     <ClInclude Include="..\Common\Util\OpenPgpRing.h" />
+    <ClInclude Include="..\Common\Util\ProtectedMessages.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKey.h" />
     <ClInclude Include="..\Common\AntiSpam\QuarantineStore.h" />
     <ClInclude Include="..\Common\AntiSpam\QuarantineDigest.h" />

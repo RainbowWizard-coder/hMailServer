@@ -337,6 +337,10 @@
 #define PROPERTY_OPENPGP_LOOKUP_KEYSERVER       _T("OpenPGPLookupKeyserver")
 #define PROPERTY_OPENPGP_KEYSERVER_URL          _T("OpenPGPKeyserverUrl")
 #define PROPERTY_OPENPGP_LOOKUP_TIMEOUT         _T("OpenPGPLookupTimeout")
+// How many days a password-protected message (Util/ProtectedMessages.h) is
+// kept for its reading page before the ciphertext goes: the default a sender
+// gets, and the most a sender may ask for. 1 to 365, 30 by default.
+#define PROPERTY_PROTECTED_MESSAGE_DAYS         _T("ProtectedMessageDays")
 // WebhookMaxPerMinute is the ceiling a subscription that names no ceiling of
 // its own is held to. Past it events are DROPPED rather than queued, and the
 // count of what was dropped is reported: a queue that grows without bound is
@@ -621,4 +625,15 @@
 //      whether the person accepted that change. Every row an upgrade finds is
 //      unverified, replaced nothing and needs no accepting, so an upgraded ring
 //      encrypts to exactly the keys it did and shows no mark it did not earn.
-#define REQUIRED_DB_VERSION            6081
+// 6082 adds hm_protectedmessages (Util/ProtectedMessages.h): one row per
+//      password-protected message an account sent - the token its link names,
+//      the recipient, the hint, the file the ciphertext is in, its size and
+//      how much of it has arrived, when it expires, when it was first fetched,
+//      whether it was withdrawn, and the original's token when the row is a
+//      reply. The plaintext is never in a row or a file: the page encrypts it
+//      to a passphrase before this server sees it. The step also seeds
+//      ProtectedMessageDays (30). Nothing is there until somebody sends one,
+//      so an upgraded database behaves exactly as it did. The step is written
+//      6080 to 6082 in this tree, whose terminus is 6080; the integrator
+//      renumbers it 6081 to 6082 when the row holding 6081 lands first.
+#define REQUIRED_DB_VERSION            6082

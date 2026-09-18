@@ -424,6 +424,9 @@ namespace HM
         _T("Nothing is lost that enrolling the device again does not put back, and the password and the one-time code are the fallback in the meantime.") },
       { _T("hm_recoverable"),
         _T("Deleted mail waiting out its recovery window, its copies outside the message store. A backup carries what is in the mailboxes, and a restore brings that back; what was deleted before the backup stays deleted.") },
+      { _T("hm_protectedmessages"),
+        _T("Password-protected messages: ciphertext this server cannot open, kept outside the message store behind links that name this server and end on a timer. ")
+        _T("A restore elsewhere could not serve the links, and the sender's own copy of the notice is in the Sent folder the backup carries; what the recipient read is theirs, in their own browser.") },
       { _T("hm_confidential"),
         _T("Messages that expire, kept outside the message store behind links that name this server and end on a timer. The sender's own copy is in the mailbox the backup carries; a copy made to be deleted at a time is not one to carry into an archive that outlives it, and a restore elsewhere could not serve its links.") },
       { _T("hm_accountactivity"),

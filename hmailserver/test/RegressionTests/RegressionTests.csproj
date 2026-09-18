@@ -740,6 +740,7 @@
     <Compile Include="API\RestApiSharedAddressBooks.cs" />
     <Compile Include="API\RestApiConfidential.cs" />
     <Compile Include="API\RestApiOpenPgpKeys.cs" />
+    <Compile Include="API\RestApiProtectedMessages.cs" />
     <Compile Include="API\RestApiOffline.cs" />
     <Compile Include="API\RestApiDomainReports.cs" />
     <Compile Include="API\RestApiCompromisedAccount.cs" />

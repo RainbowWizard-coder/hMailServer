@@ -1277,6 +1277,11 @@ namespace DBUpdater
                          "update hm_pgpring set pgrverified = pgrverified where 1 = 0"),
          new SchemaProbe(6081, "hm_pgpring.pgraccepted",
                          "update hm_pgpring set pgraccepted = pgraccepted where 1 = 0"),
+         // Upgrade6081to6082* - a password-protected message to anyone: the
+         // ciphertext the page made, filed under a link, with the original's
+         // token on a reply.
+         new SchemaProbe(6082, "hm_protectedmessages.pmreplyto",
+                         "update hm_protectedmessages set pmreplyto = pmreplyto where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

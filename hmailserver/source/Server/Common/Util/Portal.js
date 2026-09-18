@@ -286,7 +286,7 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'directory-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section', 'confidential-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'directory-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section', 'confidential-section', 'protected-section'];
   var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
@@ -1264,6 +1264,7 @@
     renderActions();
     smimeInspect(m);
     pgpInspect(m);
+    protectedInspect(m);
     el('message-html-toggle').hidden = !m.html || m.truncated;
     renderHtml();
     renderInvitation(m);
@@ -1366,6 +1367,7 @@
     el('compose-expires').value = '0'; el('compose-passcode').value = ''; syncExpiry();
     el('compose-sign').checked = false; el('compose-encrypt').checked = false; smimeComposeHints();
     el('compose-pgp-sign').checked = false; el('compose-pgp-encrypt').checked = false; pgpComposeHints();
+    el('compose-protect').checked = false; ['compose-protect-password', 'compose-protect-password2', 'compose-protect-hint'].forEach(function (id) { el(id).value = ''; }); syncProtectOffer();
     selectIdentity('');
     el('compose-files').value = ''; el('compose-files-note').textContent = '';
     resetLinked();
@@ -1461,6 +1463,7 @@
     if (el('compose-encrypt').checked) { body.encrypt = true; }
     if (el('compose-pgp-sign').checked) { body.pgp_sign = true; }
     if (el('compose-pgp-encrypt').checked) { body.pgp_encrypt = true; }
+    if (protectUsable() && el('compose-protect').checked) { body.protect = true; }
     if (richOn) { body.html = cleanHtml(el('compose-editor')); body.text = plainOf(el('compose-editor')).replace(/\n+$/, ''); }
     if (replyTo) { body.in_reply_to = replyTo.message_id; body.references = replyTo.references; body.answered_id = replyTo.id; }
     return body;
@@ -1543,7 +1546,11 @@
   var readFiles = function () {
     var files = Array.prototype.slice.call(el('compose-files').files || []).concat(dropped);
     var threshold = Number(filesPolicy.link_above_kb) * 1024;
-    var asLink = function (f) { return threshold > 0 && f.size > threshold; };
+    // A message to a password takes every file into the ciphertext: a file
+    // sent as a link would rest on the server in the clear behind a public
+    // link, which is the opposite of what the compose panel promises.
+    var protectOn = protectUsable() && el('compose-protect').checked;
+    var asLink = function (f) { return !protectOn && threshold > 0 && f.size > threshold; };
     var small = files.filter(function (f) { return !asLink(f); });
     var large = files.filter(asLink).filter(function (f) { return !linkedByKey[fileKey(f)]; });
     var total = small.reduce(function (n, f) { return n + f.size; }, 0);
@@ -1974,6 +1981,7 @@
     if (head === 'important') { cameFromList = true; showSearch({ q: IMPORTANT_QUERY }); el('view-title').textContent = t('Important'); markNav('/important'); return; }
     if (head === 'recover') { showPanel('recover-section', t('Recover deleted items')); markNav('/recover'); loadRecoverable(); return; }
     if (head === 'confidential') { showPanel('confidential-section', t('Messages that expire')); markNav('/confidential'); loadConfidential(); return; }
+    if (head === 'protected') { showPanel('protected-section', t('Password-protected messages')); markNav('/protected'); loadProtected(); return; }
     if (head === 'scheduled') { showPanel('scheduled-section', t('Scheduled')); markNav('/scheduled'); loadScheduled(); return; }
     if (head === 'compose') {
       // The window opens over whatever page is shown; on a reload, over the list.
@@ -2065,6 +2073,7 @@
     forgetSecret();
     smimeForget();
     pgpForget();
+    protectedForget();
     var frame = el('message-html');
     if (frame) { frame.hidden = true; frame.removeAttribute('src'); }
     htmlBlobRevoke();
@@ -3504,6 +3513,9 @@
   // message that was sent: during the delay the reader may have gone on to
   // write another.
   var submitMessage = function (queued) {
+    // A message to a password goes its own way: encrypted here, filed on
+    // the server as ciphertext, and only a notice sent (protectedSubmit).
+    if (queued.body && queued.body.protect) { return protectedSubmit(queued); }
     // A signed or an encrypted message is built here first (smimePrepare);
     // a plain one goes as it is.
     return smimePrepare(queued.body).then(pgpPrepare).then(pgpStamp).then(function (prepared) {
@@ -3564,6 +3576,9 @@
       if (files.length) { body.attachments = files; }
       appendLinks(body);
       var queued = { body: body, key: composeKey, draft: draftId, answered: replyTo ? replyTo.from : '' };
+      // The password and its twin as they were when Send was pressed: the
+      // undo countdown may end after the form has been written to again.
+      if (body.protect) { queued.protect = { password: el('compose-protect-password').value, again: el('compose-protect-password2').value, hint: el('compose-protect-hint').value.trim() }; }
       var delay = undoSeconds();
       if (!delay) { return submitMessage(queued); }
       var left = delay;
@@ -3598,7 +3613,7 @@
   window.addEventListener('beforeunload', function (event) {
     if (!pendingSend) { return; }
     var body = JSON.stringify(pendingSend.body);
-    if (body.length < 60000 && !pendingSend.body.sign && !pendingSend.body.encrypt && !pendingSend.body.pgp_sign && !pendingSend.body.pgp_encrypt) {
+    if (body.length < 60000 && !pendingSend.body.sign && !pendingSend.body.encrypt && !pendingSend.body.pgp_sign && !pendingSend.body.pgp_encrypt && !pendingSend.body.protect) {
       cancelUndo();
       apiFetch('/api/v1/me/messages', { method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'hMailServer' }, body: body });
       return;
@@ -3613,6 +3628,10 @@
   // send, which is a draft with an hour, would otherwise go in the clear at
   // that hour. True when the body was refused, having said why.
   var smimeSealedDraft = function (body) {
+    if (body.protect) {
+      say('compose-status', t('A password-protected message cannot be saved as a draft or scheduled: the draft would hold the text in the clear. Untick it, or send it now.'), false);
+      return true;
+    }
     if (!body.sign && !body.encrypt && !body.pgp_sign && !body.pgp_encrypt) { return false; }
     say('compose-status', t('A signed or encrypted message cannot yet be saved as a draft or scheduled: untick Sign and Encrypt, or send it now.'), false);
     return true;
@@ -7417,6 +7436,7 @@
   var confidentialAsked = false;
   var renderListTools = function () {
     learnConfidential();
+    learnProtected();
     if (!recoverAsked) {
       recoverAsked = true;
       call('GET', '/api/v1/me/recoverable').then(function (result) {
@@ -7429,6 +7449,7 @@
     el('folder-empty').hidden = !emptyable;
     el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && recoverDays > 0);
     el('folder-confidential').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && confidentialOffered);
+    el('folder-protected').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && protectedOffered);
     el('folder-empty').textContent = t('Empty this folder');
     ['right', 'bottom', 'off'].forEach(function (mode) { el('pane-' + mode).classList.toggle('on', paneMode() === mode); });
     el('mail-search-clear').hidden = !state.query;
@@ -8146,6 +8167,7 @@
     add('Storage', 'page', function () { go('/storage'); });
     add('Recover deleted items', 'page', function () { go('/recover'); });
     add('Messages that expire', 'page', function () { go('/confidential'); });
+    add('Password-protected messages', 'page', function () { go('/protected'); });
     add('Safe senders', 'page', function () { go('/senders'); });
     add('Subscriptions', 'page', function () { go('/subscriptions'); });
     add('Other accounts', 'page', function () { go('/accounts'); });
@@ -10715,6 +10737,259 @@
     return call('GET', '/api/v1/me/confidential').then(function (result) {
       if (result.status !== 200 || !result.data) { say('confidential-status', describe(result, t('Could not read your messages that expire')), false); return; }
       renderConfidential(result.data);
+    });
+  };
+  // ---- A password-protected message to anyone (ProtectedMessages.h) ---------
+  // For the correspondent with no key: the sender sets a password, this page
+  // encrypts the text and the attachments into ONE OpenPGP message to that
+  // password (the module's protectedMessage), sends the server the ciphertext
+  // in chunks, and the server sends a short notice with a link to a reading
+  // page where the recipient types the password and their browser decrypts.
+  // The password goes into no request, ever; the server never sees the text.
+  // What it promises is exactly that, and the compose form says the rest in
+  // one sentence: it does not stop the recipient copying what they read.
+  var protectedOffered = false;
+  var protectedAsked = false;
+  var protectedItems = null;
+  var PROTECT_CHUNK = 4 * 1024 * 1024;
+  // Offered only where the browser gave the page its cryptography: a page
+  // opened over plain HTTP is not a secure context and crypto.subtle is
+  // withheld from it, exactly as for Sign and Encrypt.
+  var protectUsable = function () { return protectedOffered && window.isSecureContext !== false; };
+  var syncProtectOffer = function () {
+    el('compose-protect-label').hidden = !protectUsable();
+    if (!protectUsable()) { el('compose-protect').checked = false; }
+    syncProtect();
+  };
+  // Sign-out forgets what was learned, so the next account - or the same
+  // one on a page that has lost its cryptography - is asked afresh.
+  var protectedForget = function () {
+    protectedOffered = false;
+    protectedAsked = false;
+    protectedItems = null;
+    protectedCurrent = null;
+    el('compose-protect').checked = false;
+    ['compose-protect-password', 'compose-protect-password2', 'compose-protect-hint'].forEach(function (id) { el(id).value = ''; });
+    el('compose-protect-label').hidden = true;
+    el('compose-protect-panel').hidden = true;
+    el('message-protected').hidden = true;
+  };
+  var learnProtected = function () {
+    if (protectedAsked) { return; }
+    protectedAsked = true;
+    call('GET', '/api/v1/me/protected').then(function (result) {
+      protectedOffered = !!(result.status === 200 && result.data && result.data.available);
+      protectedItems = result.status === 200 && result.data ? (result.data.items || []) : null;
+      syncProtectOffer();
+      el('folder-protected').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && protectedOffered);
+    });
+  };
+  // A sentence about the password, as it is typed: never a score, never a
+  // bar, and never sent anywhere.
+  var protectStrength = function (p) {
+    if (!p) { return ''; }
+    if (p.length < 8) { return t('Too short: a password here is at least eight characters.'); }
+    var kinds = 0;
+    [/[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].forEach(function (re) { if (re.test(p)) { kinds++; } });
+    if (p.length < 12 && kinds < 3) { return t('Weak: a longer password, or a few unrelated words, is much harder to guess.'); }
+    // Strong is twenty characters, or sixteen of at least two kinds: sixteen
+    // of one letter are not.
+    if (p.length >= 20 || (p.length >= 16 && kinds >= 2)) { return t('Strong.'); }
+    return t('Fair. A few more characters, or another word, would make it strong.');
+  };
+  var syncProtect = function () {
+    var on = protectUsable() && el('compose-protect').checked;
+    el('compose-protect-panel').hidden = !on;
+    // One seal at a time: a message to a password is not also signed with a
+    // key, encrypted to one, or kept to expire - and it goes now, since a
+    // draft would hold the text in the clear.
+    ['compose-sign', 'compose-encrypt', 'compose-pgp-sign', 'compose-pgp-encrypt'].forEach(function (id) {
+      el(id).disabled = on;
+      if (on) { el(id).checked = false; }
+    });
+    if (on) {
+      el('compose-expires').value = '0';
+      el('expires-row').hidden = true;
+      el('later-row').hidden = true;
+    }
+    else {
+      el('expires-row').hidden = !confidentialOffered;
+      el('later-row').hidden = expiryChosen();
+    }
+    el('compose-protect-strength').textContent = on ? protectStrength(el('compose-protect-password').value) : '';
+  };
+  el('compose-protect').addEventListener('change', syncProtect);
+  el('compose-protect-password').addEventListener('input', function () { el('compose-protect-strength').textContent = protectStrength(el('compose-protect-password').value); });
+  el('folder-protected').addEventListener('click', function () { el('list-more').hidden = true; go('/protected'); });
+  // The ciphertext to the server, in chunks, the way a file sent as a link
+  // goes: the record first, then the bytes at the offset the record has
+  // reached, so a chunk lost on the way is sent again rather than the whole.
+  var protectedUpload = function (recipient, hint, bytes) {
+    var record = null;
+    var offset = 0;
+    var next = function () {
+      if (offset >= bytes.length) { return record; }
+      el('compose-status').textContent = tf('Sending the protected message to {0}: {1}%', recipient, Math.round(100 * offset / bytes.length));
+      var slice = bytes.subarray(offset, Math.min(bytes.length, offset + PROTECT_CHUNK));
+      return apiFetch('/api/v1/me/protected/' + record.id + '/content?offset=' + offset, { method: 'PUT', body: slice, headers: { 'X-Requested-With': 'hMailServer', 'Content-Type': 'application/octet-stream' }, cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+        return response.text().then(function (text) {
+          var data = null;
+          try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+          if (response.status === 409 && data && typeof data.stored === 'number' && data.stored !== offset) { offset = data.stored; return next(); }
+          if (response.status !== 200 || !data) { throw (data && data.error) || (t('Could not send the protected message') + ' (' + response.status + ')'); }
+          offset = data.stored;
+          record = data;
+          return next();
+        });
+      });
+    };
+    return call('POST', '/api/v1/me/protected', { recipient: recipient, hint: hint, size: bytes.length }).then(function (result) {
+      if (result.status !== 201 || !result.data) { throw describe(result, t('Could not send the protected message')); }
+      record = result.data;
+      return next();
+    });
+  };
+  // The send itself: the password checked here and never sent, the message
+  // encrypted once, and one record and one notice per recipient, so that each
+  // link is one person's and each can be withdrawn on its own.
+  var protectedSubmit = function (queued) {
+    var body = queued.body;
+    var typed = queued.protect || {};
+    var password = String(typed.password || '');
+    var again = String(typed.again || '');
+    var hint = String(typed.hint || '');
+    var fail = function (why) { say('compose-status', why, false); el('compose-send').disabled = false; return Promise.resolve(); };
+    if (window.isSecureContext === false) { return fail(t('OpenPGP is unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.')); }
+    if (!password || password.length < 8) { return fail(t('Too short: a password here is at least eight characters.')); }
+    if (password !== again) { return fail(t('The two passwords are not the same.')); }
+    // A file sent as a link earlier in this compose - before Protect was
+    // ticked, or from a draft - is on the server in the clear already, and
+    // the message would link to it: refused, rather than sealed around a hole.
+    if (linked.length) { return fail(t('A file in this message was already sent as a link, which is not encrypted. Remove it and attach it again with Protect ticked, or untick Protect.')); }
+    var recipients = [];
+    smimeAddresses(body.to + ',' + body.cc + ',' + body.bcc).forEach(function (a) { if (recipients.indexOf(a) < 0) { recipients.push(a); } });
+    if (!recipients.length) { return fail(t('A password-protected message needs a recipient address.')); }
+    say('compose-status', t('Encrypting...'), true);
+    return pgpLoad().then(function () {
+      var headers = { subject: body.subject || '', from: body.from ? body.from : me, to: body.to || '', cc: body.cc || '', date: new Date().toUTCString() };
+      return pgpModule.protectedMessage({ headers: headers, text: body.text || '', html: body.html || '', attachments: body.attachments || [], password: password });
+    }).then(function (armored) {
+      var bytes = new TextEncoder().encode(armored);
+      var chain = Promise.resolve();
+      recipients.forEach(function (recipient) { chain = chain.then(function () { return protectedUpload(recipient, hint, bytes); }); });
+      return chain;
+    }).then(function () {
+      if (composeKey === queued.key) {
+        blankCompose();
+        composeKey = newComposeKey();
+        closeCompose();
+      }
+      toast(t('Sent, protected with the password.'));
+      learnSent(queued);
+      protectedAsked = false;
+      learnProtected();
+      if (queued.draft) { call('DELETE', '/api/v1/me/messages/' + queued.draft + '?permanent=1').then(function () { loadFolders(); }); return; }
+      loadFolders();
+    }, function (why) { fail(String(why && why.message ? why.message : why)); });
+  };
+  // The page: what was sent, whether the link was opened, and Withdraw.
+  var renderProtected = function (data) {
+    var rows = el('protected-rows');
+    clear(rows);
+    var items = data.items || [];
+    protectedOffered = !!data.available;
+    protectedItems = items;
+    // What the server offers may have changed since sign-in; the page is the
+    // place a person looks, so the compose form learns it here too.
+    syncProtectOffer();
+    el('protected-note').textContent = protectedOffered
+      ? tf('A message protected with a password is encrypted in this browser and stays here as ciphertext for {0} days; its recipient reads it through a link with the password you gave them, and a reply comes back the same way. Opened is when the link was first fetched, which is all the server can know. Withdrawing one ends it now.', data.days)
+      : t('Your server does not offer this: OpenPGP is off in the webmail, or it has no public address for the links. Ask whoever runs it.');
+    items.forEach(function (item) {
+      var tr = document.createElement('tr');
+      var to = document.createElement('td');
+      to.appendChild(node('span', item.recipient || ''));
+      if (item.reply_to) { to.appendChild(node('span', ' ')); to.appendChild(node('span', t('Reply'), 'badge info')); }
+      if (item.hint) { to.appendChild(node('span', ' ')); to.appendChild(node('span', t('Hint: ') + item.hint, 'badge')); }
+      if (item.revoked) { to.appendChild(node('span', ' ')); to.appendChild(node('span', t('Withdrawn'), 'badge warn')); }
+      else if (item.expired) { to.appendChild(node('span', ' ')); to.appendChild(node('span', t('Expired'), 'badge')); }
+      else if (!item.complete) { to.appendChild(node('span', ' ')); to.appendChild(node('span', t('Not finished'), 'badge warn')); }
+      tr.appendChild(to);
+      tr.appendChild(node('td', new Date(Number(item.created) * 1000).toLocaleString()));
+      tr.appendChild(node('td', new Date(Number(item.expires) * 1000).toLocaleString()));
+      tr.appendChild(node('td', Number(item.opened) > 0 ? new Date(Number(item.opened) * 1000).toLocaleString() : t('Not yet')));
+      var actions = document.createElement('td');
+      if (item.reply_to && !item.revoked && !item.expired) {
+        var open = button(t('Open'), 'btn ghost sm');
+        open.addEventListener('click', function () { window.open(item.link, '_blank', 'noopener'); });
+        actions.appendChild(open);
+      }
+      if (!item.revoked && !item.expired) {
+        var revoke = button(t('Withdraw'), 'btn ghost sm danger');
+        revoke.addEventListener('click', function () {
+          if (!window.confirm(tf('Withdraw the message to {0}? Nobody can read it after this, and the ciphertext kept here is deleted.', item.recipient))) { return; }
+          call('DELETE', '/api/v1/me/protected/' + item.id).then(function (result) {
+            if (result.status !== 200) { say('protected-status', describe(result, t('Could not withdraw it')), false); return; }
+            say('protected-status', t('Withdrawn; the link no longer works.'), true);
+            loadProtected();
+          });
+        });
+        actions.appendChild(revoke);
+      }
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('protected-table').hidden = !items.length;
+    el('protected-empty').hidden = items.length > 0 || !protectedOffered;
+  };
+  var loadProtected = function () {
+    return call('GET', '/api/v1/me/protected').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('protected-status', describe(result, t('Could not read your password-protected messages')), false); return; }
+      renderProtected(result.data);
+    });
+  };
+  // The mark in the reader: the notice's Sent copy, and the note of a reply,
+  // both carry the token in a header, so the message they stand for is found
+  // in the list and its state shown beside them.
+  var protectedCurrent = null;
+  el('message-protected-open').addEventListener('click', function () { if (protectedCurrent) { window.open(protectedCurrent.link, '_blank', 'noopener'); } });
+  el('message-protected-revoke').addEventListener('click', function () {
+    var item = protectedCurrent;
+    if (!item || !window.confirm(tf('Withdraw the message to {0}? Nobody can read it after this, and the ciphertext kept here is deleted.', item.recipient))) { return; }
+    call('DELETE', '/api/v1/me/protected/' + item.id).then(function (result) {
+      if (result.status !== 200) { say('mail-status', describe(result, t('Could not withdraw it')), false); return; }
+      protectedAsked = false;
+      learnProtected();
+      if (current) { protectedInspect(current); }
+    });
+  });
+  var protectedInspect = function (m) {
+    el('message-protected').hidden = true;
+    el('message-protected-open').hidden = true;
+    el('message-protected-revoke').hidden = true;
+    var found = String(m.headers || '').match(/^X-hMailServer-Protected:\s*([A-Za-z0-9_-]{22})\s*$/im);
+    if (!found) { return; }
+    var token = found[1];
+    var showIt = function (items) {
+      var item = (items || []).filter(function (i) { return i.token === token; })[0];
+      if (!item || !current || current.id !== m.id) { return; }
+      var text;
+      if (item.revoked) { text = t('This password-protected message was withdrawn.'); }
+      else if (item.expired) { text = t('This password-protected message has expired.'); }
+      else if (item.reply_to) { text = tf('A reply to your password-protected message, from {0}: it opens with the password you set, until {1}.', item.recipient, new Date(Number(item.expires) * 1000).toLocaleString()); }
+      else if (Number(item.opened) > 0) { text = tf('The password-protected message to {0} was opened on {1}; readable until {2}.', item.recipient, new Date(Number(item.opened) * 1000).toLocaleString(), new Date(Number(item.expires) * 1000).toLocaleString()); }
+      else { text = tf('The password-protected message to {0} has not been opened yet; readable until {1}.', item.recipient, new Date(Number(item.expires) * 1000).toLocaleString()); }
+      el('message-protected-text').textContent = text;
+      protectedCurrent = item;
+      el('message-protected-open').hidden = !(item.reply_to && !item.revoked && !item.expired);
+      el('message-protected-revoke').hidden = !!(item.revoked || item.expired);
+      el('message-protected').hidden = false;
+    };
+    if (protectedItems) { showIt(protectedItems); }
+    call('GET', '/api/v1/me/protected').then(function (result) {
+      if (result.status !== 200 || !result.data) { return; }
+      protectedItems = result.data.items || [];
+      showIt(protectedItems);
     });
   };
   // ---- Masked addresses -------------------------------------------------------

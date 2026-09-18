@@ -289,6 +289,7 @@ namespace DBUpdater
          _upgradeScripts.Add(new UpgradeScript(6078, 6079));
          _upgradeScripts.Add(new UpgradeScript(6079, 6080));
          _upgradeScripts.Add(new UpgradeScript(6080, 6081));
+         _upgradeScripts.Add(new UpgradeScript(6081, 6082));
       }
 
       private void buttonClose_Click(object sender, EventArgs e)
@@ -566,6 +567,8 @@ namespace DBUpdater
                return "hMailServer 6.3 (6080)";
             case 6081:
                return "hMailServer 6.3 (6081)";
+            case 6082:
+               return "hMailServer 6.3 (6082)";
             default:
                return "hMailServer (database version " + version + ")";
          }

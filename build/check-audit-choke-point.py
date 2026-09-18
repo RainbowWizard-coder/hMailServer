@@ -413,6 +413,7 @@ NOT_AUDITED = {
                         "What the links DO is recorded: the address set is an event, and a password reset is an hm_accounts write the statement chokepoint already sees, an application-log line, and the account.password-reset alert.",
    "hm_recoverycodes": "the hashes of an account's one-time recovery codes, written by the account when it makes a set and marked used by the sign-in thread; "
                        "traffic once the set exists, and the making of a set is recorded as an event of its own.",
+   "hm_protectedmessages": "password-protected messages an account sent, written as it sends them, fetched by their readers, withdrawn by the account and ended by the sweep; traffic, and ciphertext this server cannot open.",
    "hm_confidential": "the messages that expire an account sent, written as it sends them, opened by their readers, withdrawn by the account and ended by the sweep; traffic.",
    "hm_accountactivity": "the compromised-account detection's baseline, one row per authenticated submission, written by the submission thread and pruned by the sweep; traffic.",
    "hm_accountrecipients": "whom an account has written to, learned by the submission thread from its messages and forgotten by the sweep; traffic.",

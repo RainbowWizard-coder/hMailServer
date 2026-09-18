@@ -526,6 +526,10 @@ namespace HM
       void SetOpenPGPKeyserverUrl(const String &url);
       int GetOpenPGPLookupTimeout();               // 2 to 30 seconds
       void SetOpenPGPLookupTimeout(int seconds);
+      // A password-protected message (Common/Util/ProtectedMessages.h): how
+      // many days its ciphertext is kept for the reading page, 1 to 365.
+      int GetProtectedMessageDays();
+      void SetProtectedMessageDays(int days);
 
       // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
       // getters clamp, so a hand-edited row cannot make a time to live of a year

@@ -1582,6 +1582,32 @@ function answer(method, path, body) {
       list.splice(at, 1);
       return json(200, { removed: true });
    }
+   // A password-protected message (ProtectedMessages.h): the sender's four
+   // routes. The record is answered as the server answers it, and the
+   // chunks are counted; what the page sends is what the checks read.
+   if (path === '/api/v1/me/protected' && method === 'GET') {
+      return json(200, { available: protectedState.available, days: 30, limits: { message_bytes: 26214400, account_bytes: 262144000, live: 1000, reply_bytes: 1048576 }, used_bytes: 0, items: protectedState.items });
+   }
+   if (path === '/api/v1/me/protected' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      const row = { id: 900 + protectedRecords.length, token: 'tok' + String(protectedRecords.length).padStart(19, '0'), recipient: wanted.recipient, hint: wanted.hint || '', size: wanted.size, stored: 0, complete: false, created: 1700000000, expires: 1702592000, expired: false, opened: 0, revoked: false, reply_to: '', link: 'http://portal.test/portal/protected/tok' + String(protectedRecords.length).padStart(19, '0') };
+      protectedRecords.push({ row, chunks: [] });
+      return json(201, row);
+   }
+   if (/^\/api\/v1\/me\/protected\/\d+\/content(\?.*)?$/.test(path) && method === 'PUT') {
+      const found = protectedRecords.filter((r) => r.row.id === Number(path.split('/')[5]))[0];
+      if (!found) { return json(404, { error: 'no such password-protected message of this account' }); }
+      found.chunks.push(body);
+      found.row.stored += body.length;
+      found.row.complete = found.row.stored >= found.row.size;
+      return json(200, Object.assign({}, found.row, { sent_copy: found.row.complete, held: false }));
+   }
+   if (/^\/api\/v1\/me\/protected\/\d+$/.test(path) && method === 'DELETE') {
+      const item = protectedState.items.filter((i) => i.id === Number(path.split('/').pop()))[0];
+      if (!item) { return json(404, { error: 'not one of your password-protected messages' }); }
+      item.revoked = true;
+      return json(200, { revoked: true });
+   }
    if (path.indexOf('/api/v1/me/openpgp/lookup') === 0 && method === 'GET') {
       return json(200, pgpLookupAnswer || { found: false, address: '', error: 'no key was found for that address', status: 404 });
    }
@@ -1711,6 +1737,11 @@ const smimeStub = {
 // message the real module throws and the page reads.
 const pgpReadWith = [];
 const pgpComposed = [];
+const pgpProtected = [];
+// What the recorded server says about password-protected messages, and
+// the records the page made.
+const protectedState = { available: false, items: [] };
+const protectedRecords = [];
 // A fingerprint is forty hex digits and nothing else - the page files a key
 // under one and names one in a URL - so this makes one from the address, and
 // from a variant when a check needs two keys for the same address.
@@ -1796,6 +1827,13 @@ const pgpStub = {
       pgpReadWith.push(keys.map((k) => k.address + (k.isSecret ? '!' : '')).sort());
       return JSON.parse(JSON.stringify(pgpMessageResult));
    },
+   // Row 152's message to a password: what the page hands it is recorded
+   // (the password apart, which the checks read from the requests instead)
+   // and the armour it answers carries nothing of the text.
+   protectedMessage: async (spec) => {
+      pgpProtected.push({ subject: (spec.headers || {}).subject || '', text: spec.text || '', attachments: (spec.attachments || []).length, hadPassword: !!spec.password });
+      return '-----BEGIN PGP MESSAGE-----\r\n\r\njA0ECQMI' + 'A'.repeat(60) + '\r\n=abcd\r\n-----END PGP MESSAGE-----\r\n';
+   },
    composeMessage: async (spec) => {
       pgpComposed.push({
          sign: spec.sign ? spec.sign.address : '',
@@ -1824,6 +1862,10 @@ function called(from, method, pattern) {
    return since(from).some((r) => r.method === method && (typeof pattern === 'string' ? r.path === pattern : pattern.test(r.path)));
 }
 const flush = async () => { for (let i = 0; i < 60; i += 1) { await new Promise((r) => setImmediate(r)); } };
+// Node's own timer, taken before main() puts the hand-fired queue in its
+// place: the reading page's checks wait on real cryptography, which a
+// queue nobody fires would leave the process to exit quietly on.
+const realSetTimeout = setTimeout;
 
 /* ------------------------------------------------------------------ the run */
 
@@ -6836,6 +6878,10 @@ async function main() {
    // in person shows the mark on every good signature; the rest is plain
    await pgpTrustChecks();
 
+   // ---- A password-protected message to anyone: the compose control, the
+   // send that carries no password and no text, and the reading page
+   await protectedChecks();
+
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();
 
@@ -7035,6 +7081,8 @@ async function main() {
    await flush();
    check('and the compose form offers neither Sign nor Encrypt',
       document.getElementById('compose-sign-label').hidden === true && document.getElementById('compose-encrypt-label').hidden === true);
+   check('and not Protect with a password either, which needs the same cryptography',
+      document.getElementById('compose-protect-label').hidden === true, 'hidden=' + document.getElementById('compose-protect-label').hidden);
    window.hmSmime = smimeStub;
    delete window.isSecureContext;
 
@@ -7731,6 +7779,312 @@ async function pgpTrustChecks() {
    dismissAllToasts();
    location.hash = '#/f/1';
    await flush();
+}
+
+// ---- A password-protected message to anyone (ProtectedMessages.h,
+// RestApiProtectedMessages.cpp): the compose control appears only where the
+// page has its cryptography and the server offers the feature; a send goes
+// to the record and content routes and NEVER carries the password, nor the
+// text; and the reading page - a document of its own, run here with the REAL
+// OpenPGP and MIME modules - decrypts a message the real module made, says
+// one sentence for a wrong password, and seals a reply under the same
+// password.
+async function protectedChecks() {
+   window.hmOpenPgp = pgpStub;
+   const everyRequestText = (from) => since(from).map((r) => {
+      const body = r.body instanceof Uint8Array ? Buffer.from(r.body).toString('latin1') : String(r.body || '');
+      return r.method + ' ' + r.path + ' ' + JSON.stringify(r.headers || {}) + ' ' + body;
+   }).join('\n');
+   const PASSWORD = 'correct-horse-battery-staple';
+   // The page has been switched to German by the checks above, so every
+   // text a reader sees here is the catalogue's; asserting the English
+   // would prove the page was NOT translated.
+   const said = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   const dismissAllToastsHere = () => {
+      const buttons = [];
+      (function walk(n) { for (let i = 0; i < n.childNodes.length; i += 1) { const c = n.childNodes[i]; if (c.tagName === 'BUTTON' && c.getAttribute('aria-label') === 'Dismiss') { buttons.push(c); } if (c.childNodes) { walk(c); } } })(document.getElementById('toasts'));
+      buttons.forEach((b) => b.dispatchEvent(makeEvent('click')));
+   };
+
+   // ---- not offered: the server says so, and the control stays away
+   protectedState.available = false;
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   check('Protected: the compose form does not offer Protect with a password while the server does not offer it',
+      document.getElementById('compose-protect-label').hidden === true);
+
+   // ---- offered: the control appears, and its panel says what it promises
+   protectedState.available = true;
+   // The page learns what the server offers once at sign-in and again on
+   // its own page: visiting the page is how the form finds out.
+   location.hash = '#/protected';
+   await flush();
+   await flush();
+   location.hash = '#/f/1';
+   await flush();
+   await flush();
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   await flush();
+   check('Protected: the compose form offers Protect with a password once the server offers it and the page has its cryptography',
+      document.getElementById('compose-protect-label').hidden === false, 'hidden=' + document.getElementById('compose-protect-label').hidden);
+   document.getElementById('compose-protect').checked = true;
+   document.getElementById('compose-protect').dispatchEvent(makeEvent('change'));
+   await flush();
+   check('Protected: ticking it opens the panel and disables the other seals',
+      document.getElementById('compose-protect-panel').hidden === false && document.getElementById('compose-pgp-encrypt').disabled === true && document.getElementById('compose-sign').disabled === true);
+   check('Protected: the panel says in one sentence what it does not promise',
+      document.getElementById('compose-protect-panel').textContent.indexOf(said('The text and the attachments are encrypted in this browser to the password before anything is sent. The recipient gets a short message with a link to a page on this server, types the password there, and their browser decrypts it; a reply written there comes back the same way. The password never leaves this browser and the server never sees the text, so tell them the password some other way than this message. It does not stop the recipient copying or forwarding what they read.')) >= 0,
+      document.getElementById('compose-protect-panel').textContent.slice(0, 80));
+   document.getElementById('compose-protect-password').value = 'short';
+   document.getElementById('compose-protect-password').dispatchEvent(makeEvent('input'));
+   check('Protected: a short password gets a sentence, not a bar',
+      document.getElementById('compose-protect-strength').textContent === said('Too short: a password here is at least eight characters.'), document.getElementById('compose-protect-strength').textContent);
+   document.getElementById('compose-protect-password').value = PASSWORD;
+   document.getElementById('compose-protect-password').dispatchEvent(makeEvent('input'));
+   check('Protected: a long one is called strong', document.getElementById('compose-protect-strength').textContent === said('Strong.'), document.getElementById('compose-protect-strength').textContent);
+   document.getElementById('compose-protect-password').value = 'aaaaaaaaaaaaaaaa';
+   document.getElementById('compose-protect-password').dispatchEvent(makeEvent('input'));
+   check('Protected: sixteen of one letter are not called strong',
+      document.getElementById('compose-protect-strength').textContent === said('Fair. A few more characters, or another word, would make it strong.'), document.getElementById('compose-protect-strength').textContent);
+   document.getElementById('compose-protect-password').value = PASSWORD;
+   document.getElementById('compose-protect-password').dispatchEvent(makeEvent('input'));
+
+   // ---- a draft of one is refused rather than stored in the clear
+   document.getElementById('compose-to').value = 'nobody@example.org';
+   document.getElementById('compose-subject').value = 'The board pack';
+   document.getElementById('compose-text').value = 'The figures are 42.';
+   const beforeDraft = requests.length;
+   document.getElementById('compose-save').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('Protected: a draft of a message that is to be protected is refused, not stored in the clear',
+      !called(beforeDraft, 'POST', '/api/v1/me/drafts') && document.getElementById('compose-status').textContent === said('A password-protected message cannot be saved as a draft or scheduled: the draft would hold the text in the clear. Untick it, or send it now.'),
+      document.getElementById('compose-status').textContent);
+
+   // ---- the two passwords have to agree, and nothing is sent until they do
+   document.getElementById('compose-protect-password2').value = 'something else';
+   const beforeMismatch = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('Protected: two passwords that differ send nothing and say so',
+      !called(beforeMismatch, 'POST', '/api/v1/me/protected') && !called(beforeMismatch, 'POST', '/api/v1/me/messages') && document.getElementById('compose-status').textContent === said('The two passwords are not the same.'),
+      document.getElementById('compose-status').textContent);
+
+   // ---- the send: the record, the chunk, and no password and no text anywhere
+   document.getElementById('compose-protect-password2').value = PASSWORD;
+   document.getElementById('compose-protect-hint').value = 'the usual';
+   const beforeSend = requests.length;
+   const protectedBefore = pgpProtected.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   // The undo countdown is running: the form's password box is written to
+   // again before it ends, and the send must go with what was there when
+   // Send was pressed, not with what is there now.
+   document.getElementById('compose-protect-password').value = 'changed while the countdown ran';
+   fireTimers();
+   await flush();
+   await flush();
+   await flush();
+   const record = since(beforeSend).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/protected');
+   const recordBody = record.length ? JSON.parse(record[0].body || '{}') : {};
+   check('Protected: the send makes a record with the recipient, the hint and the size, and never an ordinary message',
+      record.length === 1 && recordBody.recipient === 'nobody@example.org' && recordBody.hint === 'the usual' && recordBody.size > 0 &&
+      !called(beforeSend, 'POST', '/api/v1/me/messages'),
+      JSON.stringify(recordBody) + ' ' + JSON.stringify(since(beforeSend).map((r) => r.method + ' ' + r.path)));
+   const chunk = since(beforeSend).filter((r) => r.method === 'PUT' && /^\/api\/v1\/me\/protected\/\d+\/content/.test(r.path));
+   check('Protected: the ciphertext goes to the content route, and it is the armour the module made',
+      chunk.length === 1 && chunk[0].body instanceof Uint8Array && Buffer.from(chunk[0].body).toString('latin1').indexOf('-----BEGIN PGP MESSAGE-----') === 0,
+      chunk.length + ' chunks');
+   check('Protected: the module was handed the text, the subject and the password, once',
+      pgpProtected.length === protectedBefore + 1 && pgpProtected[protectedBefore].text === 'The figures are 42.' && pgpProtected[protectedBefore].subject === 'The board pack' && pgpProtected[protectedBefore].hadPassword === true,
+      JSON.stringify(pgpProtected[protectedBefore] || null));
+   const everything = everyRequestText(beforeSend);
+   check('Protected: the password appears in no request the page made', everything.indexOf(PASSWORD) < 0);
+   check('Protected: and neither does the text', everything.indexOf('The figures are 42.') < 0);
+   check('Protected: the form is emptied and the reader told', document.getElementById('compose-protect').checked === false && document.getElementById('compose-protect-password').value === '');
+
+   // ---- a file above the domain's link threshold: never a link while the
+   // message is protected - a link would rest on the server in the clear -
+   // and a link when it is not, which is what proves the threshold is live
+   const bigFile = { name: 'deck.pdf', type: 'application/pdf', size: 9 * 1024 * 1024, base64: 'AA==' };
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'nobody@example.org';
+   document.getElementById('compose-subject').value = 'With a big file';
+   document.getElementById('compose-text').value = 'The deck is attached.';
+   document.getElementById('compose-protect').checked = true;
+   document.getElementById('compose-protect').dispatchEvent(makeEvent('change'));
+   document.getElementById('compose-protect-password').value = PASSWORD;
+   document.getElementById('compose-protect-password2').value = PASSWORD;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('drop', { dataTransfer: { files: [bigFile] } }));
+   await flush();
+   const beforeBig = requests.length;
+   const protectedBeforeBig = pgpProtected.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   await flush();
+   check('Protected: a file above the link threshold is not sent as a link while the message is protected',
+      !called(beforeBig, 'POST', '/api/v1/me/files') && called(beforeBig, 'POST', '/api/v1/me/protected'),
+      JSON.stringify(since(beforeBig).map((r) => r.method + ' ' + r.path)));
+   check('Protected: it goes into the ciphertext instead, and the text handed to the module names no link',
+      pgpProtected.length === protectedBeforeBig + 1 && pgpProtected[protectedBeforeBig].attachments === 1 && pgpProtected[protectedBeforeBig].text.indexOf('/files/') < 0,
+      JSON.stringify(pgpProtected[protectedBeforeBig] || null));
+   check('Protected: and nothing of the file went to the files store', everyRequestText(beforeBig).indexOf('/api/v1/me/files') < 0);
+   // The same file without Protect goes to the files store, as it always
+   // did: the threshold is live, and it is Protect that turns it off.
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'nobody@example.org';
+   document.getElementById('compose-subject').value = 'With a big file, in the clear';
+   document.getElementById('compose-text').value = 'The deck is linked.';
+   document.getElementById('compose-form').dispatchEvent(makeEvent('drop', { dataTransfer: { files: [bigFile] } }));
+   await flush();
+   const beforeLink = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('Protected: the same file without Protect is offered to the files store as a link (negative control)',
+      called(beforeLink, 'POST', '/api/v1/me/files'), JSON.stringify(since(beforeLink).map((r) => r.method + ' ' + r.path)));
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   dismissAllToastsHere();
+
+   // ---- the page that lists them, and Withdraw
+   protectedState.items = [{ id: 901, token: 'tok0000000000000000001', recipient: 'nobody@example.org', hint: 'the usual', size: 100, stored: 100, complete: true, created: 1700000000, expires: 1702592000, expired: false, opened: 1700003600, revoked: false, reply_to: '', link: 'http://portal.test/portal/protected/tok0000000000000000001' }];
+   location.hash = '#/protected';
+   await flush();
+   await flush();
+   const rows = document.getElementById('protected-rows').children;
+   check('Protected: the page lists what was sent, with when it was opened',
+      rows.length === 1 && rows[0].textContent.indexOf('nobody@example.org') >= 0 && document.getElementById('protected-table').hidden === false,
+      rows.length + ' rows');
+   const beforeRevoke = requests.length;
+   const buttons = Array.prototype.slice.call(rows[0].children[4].children);
+   check('Protected: a live message offers one thing to do with it, Withdraw', buttons.length === 1, buttons.map((b) => b.textContent).join(','));
+   buttons[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('Protected: Withdraw asks first and then deletes the message',
+      called(beforeRevoke, 'DELETE', '/api/v1/me/protected/901') && confirms[confirms.length - 1].indexOf('nobody@example.org') >= 0,
+      JSON.stringify(since(beforeRevoke).map((r) => r.method + ' ' + r.path)));
+   location.hash = '#/f/1';
+   await flush();
+   protectedState.available = false;
+   protectedState.items = [];
+
+   await readingPageChecks();
+}
+
+// The reading page, PortalProtected.html with PortalProtected.js, in a world of
+// its own with the REAL modules: what a recipient with no account meets.
+async function readingPageChecks() {
+   const utilDir = pagePath.slice(0, Math.max(pagePath.lastIndexOf('/'), pagePath.lastIndexOf('\\')) + 1);
+   const realMime = require(require('path').resolve(utilDir + 'PortalSmime.js'));
+   const realPgp = require(require('path').resolve(utilDir + 'PortalOpenPgp.js'));
+   if (!realPgp.available) { check('Protected page: this Node has Web Crypto, so the reading page can be run', false); return; }
+   const PASSWORD = 'correct-horse-battery-staple';
+   const TOKEN = 'AbCdEfGhIjKlMnOpQrStUv';
+   const sealed = await realPgp.protectedMessage({
+      headers: { subject: 'The board pack', from: 'sender@example.com', to: 'reader@example.org' },
+      text: 'The figures are 42.\r\n', html: '',
+      attachments: [{ name: 'figures.csv', type: 'text/csv', bytes: realPgp.utf8('column,value\r\nfigures,42\r\n') }],
+      password: PASSWORD
+   });
+
+   const tree = parseHtml(fs.readFileSync(utilDir + 'PortalProtected.html', 'utf8'));
+   const doc = new Element('#document');
+   doc.getElementById = function (id) {
+      const found = tree.byId[id];
+      if (!found) { throw new Error('the reading page asked for an element it does not have: #' + id); }
+      return found;
+   };
+   doc.createElement = (tag) => new Element(tag);
+   doc.createTextNode = (text) => new TextNode(String(text));
+   doc.body = (function find(node) {
+      if (node instanceof Element && node.tagName === 'BODY') { return node; }
+      for (const child of node.childNodes) { const hit = find(child); if (hit) { return hit; } }
+      return null;
+   })(tree.root);
+   const pageRequests = [];
+   let fetchAnswer = { status: 200, body: JSON.stringify({ hint: 'the usual', created: 1700000000, expires: 1702592000, reply: false, can_reply: true, message: sealed }) };
+   let replyAnswer = { status: 201, body: JSON.stringify({ token: 'ReplyTokenReplyTokenAB', link: 'http://portal.test/portal/protected/ReplyTokenReplyTokenAB', expires: 1702592000, notified: true }) };
+   const pageFetch = (path, options) => {
+      const method = (options && options.method) || 'GET';
+      pageRequests.push({ method, path, headers: (options && options.headers) || {}, body: options && options.body });
+      const reply = method === 'POST' ? replyAnswer : fetchAnswer;
+      return Promise.resolve({ status: reply.status, ok: reply.status >= 200 && reply.status < 300, text: () => Promise.resolve(reply.body) });
+   };
+   const pageWindow = new Element('#window');
+   pageWindow.hmOpenPgp = realPgp;
+   pageWindow.hmSmime = realMime;
+   const context = vm.createContext({
+      document: doc, window: pageWindow, location: { pathname: '/portal/protected/' + TOKEN, origin: 'http://portal.test' },
+      fetch: pageFetch, URL: { createObjectURL: () => 'blob:portal.test/one', revokeObjectURL: () => {} }, Blob,
+      setTimeout: (fn) => { fn(); return 1; }, console, Promise, JSON, Object, String, Number, Date, Math, RegExp, Error, Uint8Array
+   });
+   vm.runInContext(fs.readFileSync(utilDir + 'PortalProtected.js', 'utf8'), context, { filename: 'portal-protected.js' });
+   const settle = async (until) => {
+      for (let i = 0; i < 200; i += 1) {
+         await new Promise((r) => setImmediate(r));
+         await new Promise((r) => realSetTimeout(r, 5));
+         if (until()) { return true; }
+      }
+      return until();
+   };
+   const q = (id) => doc.getElementById(id);
+
+   await settle(() => q('unlock').hidden === false);
+   check('Protected page: the page fetches the ciphertext by the token in its address and asks for the password',
+      pageRequests.length === 1 && pageRequests[0].method === 'GET' && pageRequests[0].path === '/api/v1/protected/' + TOKEN && q('unlock').hidden === false && q('loading').hidden === true,
+      JSON.stringify(pageRequests.map((r) => r.method + ' ' + r.path)) + ' unlock hidden=' + q('unlock').hidden);
+   check('Protected page: it shows the hint and nothing of the text',
+      q('hint-box').hidden === false && q('hint').textContent === 'the usual' && q('message').hidden === true);
+
+   q('password').value = 'not the password';
+   q('password-form').dispatchEvent(makeEvent('submit'));
+   await settle(() => q('password-status').textContent.length > 0 && q('password-status').textContent !== 'Decrypting...');
+   check('Protected page: a wrong password says so and nothing else',
+      q('password-status').textContent === 'That password is not right.' && q('message').hidden === true, q('password-status').textContent);
+
+   q('password').value = PASSWORD;
+   q('password-form').dispatchEvent(makeEvent('submit'));
+   await settle(() => q('message').hidden === false);
+   check('Protected page: the right password decrypts in the browser and shows the text',
+      q('message').hidden === false && q('text').textContent.indexOf('The figures are 42.') === 0 && q('title').textContent === 'The board pack',
+      'hidden=' + q('message').hidden + ' text=' + q('text').textContent.slice(0, 40) + ' status=' + q('password-status').textContent);
+   check('Protected page: and offers the attachment to save',
+      q('attachments-box').hidden === false && q('attachments').children.length === 1 && q('attachments').children[0].textContent.indexOf('figures.csv') >= 0);
+   check('Protected page: the password box is emptied once it has done its work', q('password').value === '');
+   check('Protected page: the page says what it does not promise',
+      q('message').textContent.indexOf('does not pretend it could stop you copying') >= 0);
+
+   // ---- a reply, sealed under the same password, and neither it nor the
+   // password in what the page sends
+   check('Protected page: a reply is offered', q('reply-box').hidden === false);
+   q('reply-text').value = 'Thank you, received.';
+   const beforeReply = pageRequests.length;
+   q('reply-form').dispatchEvent(makeEvent('submit'));
+   await settle(() => pageRequests.length > beforeReply && q('reply-status').textContent.indexOf('on its way') >= 0);
+   const posted = pageRequests.slice(beforeReply).filter((r) => r.method === 'POST');
+   const postedBody = posted.length ? JSON.parse(posted[0].body) : {};
+   check('Protected page: the reply goes to the reply route as an armoured OpenPGP message',
+      posted.length === 1 && posted[0].path === '/api/v1/protected/' + TOKEN + '/reply' && String(postedBody.message).indexOf('-----BEGIN PGP MESSAGE-----') === 0,
+      JSON.stringify(posted.map((r) => r.path)) + ' ' + q('reply-status').textContent);
+   const everything = pageRequests.map((r) => r.method + ' ' + r.path + ' ' + String(r.body || '')).join('\n');
+   check('Protected page: the password is in no request the page made', everything.indexOf(PASSWORD) < 0);
+   check('Protected page: and the reply\'s text is in none either', everything.indexOf('Thank you, received.') < 0);
+   const reopened = await realPgp.openProtected(postedBody.message, PASSWORD);
+   check('Protected page: the sender opens the reply with the password they set',
+      reopened.content.text.indexOf('Thank you, received.') === 0 && reopened.subject === 'Re: The board pack', reopened.subject + ' / ' + reopened.content.text.slice(0, 30));
+   check('Protected page: and the reader is told it is on its way', q('reply-status').textContent.indexOf('on its way') >= 0, q('reply-status').textContent);
 }
 
 async function pushChecks() {

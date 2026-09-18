@@ -1707,6 +1707,11 @@
     if (s2k.next >= body.length) { return { symAlgorithm: symAlgorithm, sessionKey: derived }; }
     const opened = cfbDecrypt(derived, new Uint8Array(16), body.subarray(s2k.next));
     const inner = opened[0];
+    // A wrong passphrase decrypts to noise, and the first octet of noise is
+    // an algorithm number only one time in eighty-five: the rest of the time
+    // it is a number this page has no cipher for, and the right thing to say
+    // about that is not "the cipher is IDEA".
+    if (inner !== SYM.AES128 && inner !== SYM.AES192 && inner !== SYM.AES256) { throw new Error('wrong passphrase'); }
     const length = symKeyLength(inner);
     if (opened.length !== 1 + length) { throw new Error('wrong passphrase'); }
     return { symAlgorithm: inner, sessionKey: opened.subarray(1) };
@@ -2274,6 +2279,55 @@
     return m.messageHeaders(spec.headers || {}) + binaryString(entity);
   }
 
+  // ---- a message to a password (Roadmap2 row 152) --------------------------
+  //
+  // For the correspondent who has no key: the text and the attachments are
+  // built into one MIME message - headers, then the entity the S/MIME module
+  // builds, exactly as a message this page sends - and that message is the
+  // literal packet of ONE OpenPGP message encrypted to a passphrase (a
+  // symmetric-key encrypted session key and an integrity-protected body:
+  // RFC 4880 sections 5.3 and 5.13, which GnuPG's "gpg -c" writes and reads).
+  // The armour is what the server files and what the reading page fetches;
+  // the password never leaves the browser it was typed in.
+
+  // spec: { headers, text, html, attachments, password }. Answers the armour.
+  async function protectedMessage(spec) {
+    const password = String(spec && spec.password || '');
+    if (!password) { throw new Error('a password is needed'); }
+    const m = mime();
+    const entity = m.buildMime({ text: spec.text || '', html: spec.html || '', attachments: spec.attachments || [] });
+    const message = concat([utf8(m.messageHeaders(spec.headers || {})), canonical(entity)]);
+    const sealed = await encryptBytes({ data: message, filename: 'message.eml', recipients: [], passwords: [password] });
+    return armor('MESSAGE', sealed);
+  }
+
+  // The armour and the password in; the message's headers that matter and
+  // its content - text, html and attachments as bytes - out. Whatever went
+  // wrong is thrown, and the page that shows a reader the result says "that
+  // password is not right" for all of it: a wrong password and a damaged
+  // message are not the reader's to tell apart.
+  async function openProtected(input, password) {
+    const opened = await decryptBytes(input, [], [String(password || '')]);
+    // decryptBytes reads a bare literal - no encryption at all - and the old
+    // unprotected data packet, and says so in two flags a reader could
+    // ignore. A message that was never encrypted, or was encrypted without
+    // integrity protection, is not one this page shows as opened with a
+    // password: it is refused in the one sentence the page says for a
+    // wrong one, because the reader is not the one to tell them apart.
+    if (!opened.encrypted || !opened.integrityProtected) { throw new Error('wrong passphrase'); }
+    const m = mime();
+    const entity = m.parseMime(opened.data);
+    const content = m.extractContent(entity);
+    return {
+      subject: m.decodeHeaderValue(entity.header('Subject') || ''),
+      from: m.decodeHeaderValue(entity.header('From') || ''),
+      to: m.decodeHeaderValue(entity.header('To') || ''),
+      date: entity.header('Date') || '',
+      content: content,
+      integrityProtected: opened.integrityProtected
+    };
+  }
+
   // ---- what the page uses --------------------------------------------------
 
   return {
@@ -2299,9 +2353,10 @@
     revocationCertificate: revocationCertificate, applyRevocation: applyRevocation, revocationReasonOf: revocationReasonOf,
     addressOfUserId: addressOfUserId,
 
-    // the pieces, which row 152's password-protected message reuses
+    // the pieces, and the password-protected message built on them
     encryptBytes: encryptBytes, decryptBytes: decryptBytes, signDetached: signDetached, verifyDetached: verifyDetached,
     writeSkesk: writeSkesk, readSkesk: readSkesk, s2kDerive: s2kDerive,
+    protectedMessage: protectedMessage, openProtected: openProtected,
 
     // messages
     readMessage: readMessage, composeMessage: composeMessage, looksLikeOpenPgp: looksLikeOpenPgp,

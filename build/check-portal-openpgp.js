@@ -239,6 +239,57 @@ function gpgStatus(home, args, input, passphrase) {
   const refusedRevoked = await pgp.encryptBytes({ data: mine, recipients: [revokedMine] }).then(function () { return ''; }, function (e) { return e.message; });
   check(refusedRevoked.indexOf('the key is revoked') === 0, 'and a revoked key encrypts nothing: ' + refusedRevoked);
 
+  console.log('== a message to a password (the password-protected message)');
+  // The shape the compose form makes for a correspondent with no key: the
+  // text and the attachments as one MIME message, encrypted to a passphrase
+  // and nothing else, and opened by the reading page with the same passphrase.
+  const attachmentBytes = pgp.utf8('column,value\r\nfigures,42\r\n');
+  const protectedArmor = await pgp.protectedMessage({
+    headers: { subject: 'The board pack', from: 'sender@fixtures.test', to: 'reader@fixtures.test' },
+    text: 'The figures are 42.\r\n', html: '',
+    attachments: [{ name: 'figures.csv', type: 'text/csv', bytes: attachmentBytes }],
+    password: 'correct-horse-battery'
+  });
+  check(protectedArmor.indexOf('-----BEGIN PGP MESSAGE-----') === 0 && protectedArmor.indexOf('The figures are 42.') < 0, 'the page makes an armoured message that carries none of the text');
+  const protectedPackets = pgp.readPackets(pgp.dearmor(protectedArmor).bytes);
+  check(protectedPackets.length === 2 && protectedPackets[0].tag === pgp.TAG.SKESK && protectedPackets[1].tag === pgp.TAG.SEIPD,
+    'it is a symmetric-key encrypted session key followed by an integrity-protected body, and nothing else: ' + protectedPackets.map(function (p) { return p.tag; }).join(','));
+  const openedProtected = await pgp.openProtected(protectedArmor, 'correct-horse-battery');
+  check(openedProtected.subject === 'The board pack' && openedProtected.content.text === 'The figures are 42.\r\n', 'the reading page opens it with the password and gets the subject and the text back');
+  check(openedProtected.content.attachments.length === 1 && openedProtected.content.attachments[0].name === 'figures.csv' && text(openedProtected.content.attachments[0].bytes) === text(attachmentBytes),
+    'and the attachment, byte for byte');
+  const wrongPassword = await pgp.openProtected(protectedArmor, 'not the password').then(function () { return ''; }, function (e) { return e.message; });
+  check(wrongPassword === 'wrong passphrase', 'a wrong password is refused as "wrong passphrase", so the page can say so and nothing else: ' + wrongPassword);
+  const noPassword = await pgp.protectedMessage({ headers: {}, text: 'x', password: '' }).then(function () { return ''; }, function (e) { return e.message; });
+  check(noPassword === 'a password is needed', 'and nothing is made without a password');
+  // The reading page fails closed: a message that was never encrypted - a
+  // bare literal packet under the armour - and one encrypted without
+  // integrity protection (the old tag-9 packet) are both refused in the one
+  // sentence, since decryptBytes reads both and a page that showed either as
+  // "opened with the password" would be lying.
+  const literalBody = pgp.concat([new Uint8Array([0x62, 0]), new Uint8Array([0, 0, 0, 0]), pgp.utf8('Subject: Not sealed\r\n\r\nIn the clear.\r\n')]);
+  const bareLiteral = pgp.armor('MESSAGE', pgp.writePacket(pgp.TAG.LITERAL, literalBody));
+  const bareRefused = await pgp.openProtected(bareLiteral, 'any password').then(function () { return ''; }, function (e) { return e.message; });
+  check(bareRefused === 'wrong passphrase', 'a message that was never encrypted is refused by the reading page in the one sentence: ' + bareRefused);
+  const nodeCrypto = require('crypto');
+  const sessionKey = new Uint8Array(nodeCrypto.randomBytes(32));
+  const skesk = await pgp.writeSkesk('the-password', pgp.SYM.AES256, sessionKey);
+  // RFC 4880 section 5.7: the prefix under a zero IV, then the data under
+  // the resynchronised IV that is the prefix's last sixteen ciphertext bytes.
+  const prefix = new Uint8Array(18);
+  prefix.set(nodeCrypto.randomBytes(16), 0);
+  prefix[16] = prefix[14];
+  prefix[17] = prefix[15];
+  const first = nodeCrypto.createCipheriv('aes-256-cfb', Buffer.from(sessionKey), Buffer.alloc(16));
+  const head = new Uint8Array(Buffer.concat([first.update(Buffer.from(prefix)), first.final()]));
+  const second = nodeCrypto.createCipheriv('aes-256-cfb', Buffer.from(sessionKey), Buffer.from(head.subarray(2, 18)));
+  const rest = new Uint8Array(Buffer.concat([second.update(Buffer.from(pgp.writePacket(pgp.TAG.LITERAL, literalBody))), second.final()]));
+  const unprotected = pgp.armor('MESSAGE', pgp.concat([skesk, pgp.writePacket(pgp.TAG.SED, pgp.concat([head, rest]))]));
+  const sedOpens = await pgp.decryptBytes(unprotected, [], ['the-password']);
+  check(sedOpens.integrityProtected === false && text(sedOpens.data).indexOf('Subject: Not sealed') === 0, 'the module reads a message without integrity protection and says so');
+  const sedRefused = await pgp.openProtected(unprotected, 'the-password').then(function () { return ''; }, function (e) { return e.message; });
+  check(sedRefused === 'wrong passphrase', 'and the reading page refuses it in the one sentence rather than showing it: ' + sedRefused);
+
   console.log('== what GnuPG makes of what the page made');
   // A gpg that cannot start its agent cannot touch a secret key, and on this
   // project's Windows benches the one on the PATH is exactly that. So gpg is
@@ -303,6 +354,47 @@ function gpgStatus(home, args, input, passphrase) {
       check(symmetricThere.ok && symmetricThere.text.indexOf('What the page wrote.') >= 0, 'GnuPG opens the page\'s passphrase-encrypted message');
     }
     finally { fs.rmSync(home, { recursive: true, force: true }); }
+  }
+
+  console.log('== the password-protected message, against gpg -c');
+  // A passphrase needs no secret key and no agent that can hold one, so this
+  // half runs wherever gpg decrypts the committed symmetric fixture - which
+  // includes a bench whose gpg cannot touch a secret key at all.
+  const symHome = haveGpg() ? fs.mkdtempSync(path.join(os.tmpdir(), 'hm-openpgp-sym-')) : '';
+  let symWhy = haveGpg() ? '' : 'gpg is not on the PATH';
+  if (symHome) {
+    fs.chmodSync(symHome, 0o700);
+    const probe = gpg(symHome, ['--decrypt'], Buffer.from(readText('symmetric.asc'), 'utf8'), SYMPASS);
+    if (!probe.ok || probe.text.indexOf('A message GnuPG made') < 0) {
+      symWhy = 'gpg is on the PATH but cannot decrypt to a passphrase here (' + (probe.err.split('\n').filter(function (l) { return l.indexOf('gpg:') === 0; }).pop() || 'no reason given').trim() + ')';
+    }
+  }
+  if (symWhy) {
+    fs.rmSync(symHome || os.tmpdir() + '/does-not-exist', { recursive: true, force: true });
+    console.log('  --   ' + symWhy + ': the module\'s own round trip above is what proves this half here.');
+  }
+  else {
+    try {
+      // Both ways: GnuPG opens what the compose form made and gets the MIME
+      // message with the text in it, and the reading page opens what "gpg -c"
+      // made of such a message.
+      const protectedThere = gpg(symHome, ['--decrypt'], Buffer.from(protectedArmor, 'utf8'), 'correct-horse-battery');
+      check(protectedThere.ok && protectedThere.text.indexOf('Subject: The board pack') >= 0 && protectedThere.text.indexOf('The figures are 42.') >= 0,
+        'GnuPG opens the password-protected message with the password and gets the MIME message the page built');
+      const protectedWrong = gpg(symHome, ['--decrypt'], Buffer.from(protectedArmor, 'utf8'), 'not the password');
+      check(!protectedWrong.ok, 'and not with another password');
+      const mimeForGpg = Buffer.from('From: sender@fixtures.test\r\nTo: reader@fixtures.test\r\nSubject: From gpg -c\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nSealed by GnuPG for the page.\r\n', 'utf8');
+      const gpgSymmetric = gpg(symHome, ['--symmetric', '--armor', '--cipher-algo', 'AES256', '--s2k-digest-algo', 'SHA256'], mimeForGpg, 'gpg-chose-this');
+      // Judged by what it wrote, not by its exit code: a gpg whose agent
+      // cannot start writes the armour and then exits 2 complaining about
+      // the cache it could not reach, and the page's opening of that armour
+      // below is the proof that matters.
+      check(gpgSymmetric.text.indexOf('-----BEGIN PGP MESSAGE-----') === 0, 'GnuPG makes a message to a passphrase with gpg -c');
+      const openedFromGpg = await pgp.openProtected(gpgSymmetric.text, 'gpg-chose-this').then(function (r) { return r; }, function (e) { return { error: e.message }; });
+      check(!openedFromGpg.error && openedFromGpg.subject === 'From gpg -c' && String(openedFromGpg.content.text).indexOf('Sealed by GnuPG for the page.') === 0,
+        'and the reading page opens it with that passphrase and reads the message inside: ' + (openedFromGpg.error || 'opened'));
+    }
+    finally { fs.rmSync(symHome, { recursive: true, force: true }); }
   }
 
   console.log('');

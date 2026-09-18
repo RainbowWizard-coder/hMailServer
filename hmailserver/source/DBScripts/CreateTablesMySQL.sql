@@ -80,6 +80,8 @@ drop table if exists hm_smimekeys;
 
 drop table if exists hm_pgpring;
 
+drop table if exists hm_protectedmessages;
+
 drop table if exists hm_accounts;
 
 drop table if exists hm_aliases;
@@ -2198,6 +2200,34 @@ ALTER TABLE hm_pgpring ENGINE=InnoDB;
 
 ALTER TABLE hm_pgpring ADD CONSTRAINT fk_hm_pgpring_account FOREIGN KEY (pgraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+create table hm_protectedmessages
+(
+	pmid int auto_increment not null, primary key(`pmid`), unique(`pmid`),
+	pmaccountid int not null,
+	pmtoken varchar(32) not null,
+	pmrecipient varchar(255) not null,
+	pmhint varchar(255) not null,
+	pmfile varchar(255) not null,
+	pmsize bigint not null,
+	pmstored bigint not null,
+	pmcomplete int not null,
+	pmcreated bigint not null,
+	pmexpires bigint not null,
+	pmopened bigint not null,
+	pmrevoked int not null,
+	pmreplyto varchar(32) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_protectedmessages_token ON hm_protectedmessages (pmtoken);
+
+CREATE INDEX idx_hm_protectedmessages_account ON hm_protectedmessages (pmaccountid);
+
+ALTER TABLE hm_protectedmessages ENGINE=InnoDB;
+
+ALTER TABLE hm_protectedmessages ADD CONSTRAINT fk_hm_protectedmessages_account FOREIGN KEY (pmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('ProtectedMessageDays', '', 30);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536);
@@ -2437,4 +2467,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6081);
+insert into hm_dbversion values (6082);

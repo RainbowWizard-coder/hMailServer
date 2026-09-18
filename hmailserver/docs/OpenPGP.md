@@ -32,6 +32,7 @@ write. Both directions are proved against GnuPG 2.4 on every pull request
 - [The key page](#the-key-page)
 - [Autocrypt](#autocrypt)
 - [Finding a correspondent's key](#finding-a-correspondents-key)
+- [A password-protected message to anyone](#a-password-protected-message-to-anyone)
 - [What the page implements, and what it does not](#what-the-page-implements-and-what-it-does-not)
 - [Which browsers](#which-browsers)
 - [What a Web Key Directory is](#what-a-web-key-directory-is)
@@ -369,7 +370,7 @@ done once in this page, in `PortalSmime.js`, and the OpenPGP module calls them.
 The key page
 ------------
 
-Under **Settings \u2192 Security**, beside the S/MIME store.
+Under **Settings → Security**, beside the S/MIME store.
 
 **Making a key.** A name, an address, a kind — Curve25519 (the default:
 Ed25519 to sign, X25519 to encrypt to) or RSA 3072 or 4096 — an expiry, and a
@@ -544,6 +545,141 @@ ring noticed, and answers it in every key's JSON: `verified` and `verified_at`
 on every row, and `changed_from`, `changed_at` and `accepted` on a row that
 replaced another (absent means "replaced nothing"). The page decides what to
 encrypt to and what to call good, as it always has.
+A password-protected message to anyone
+--------------------------------------
+
+For the correspondent who has no key. The sender ticks **Protect with a
+password** on the compose form, types a password twice - the form says in a
+sentence how strong it is, and never sends it anywhere - and, if they like, a
+hint. On Send the page builds the text and the attachments into one MIME
+message and encrypts that message to the password as **one OpenPGP message**:
+a symmetric-key encrypted session key and an integrity-protected body, RFC
+4880 sections 5.3 and 5.13, the shape `gpg -c` writes and reads. The armour
+goes to this server in chunks (`POST /api/v1/me/protected`, then `PUT
+/api/v1/me/protected/{id}/content?offset=`, as a file sent as a link goes),
+and this server files it under `<DataDirectory>/Protected/<account id>/<token>.asc`
+with a row in `hm_protectedmessages` (schema 6082).
+
+What goes out by SMTP is a **short notice** from the sender - a sentence saying
+a password-protected message is waiting, the hint if one was given, and the
+link `https://<this server>/portal/protected/<token>` - written by this
+server, which is how it can say what crossed the internet. A copy of the
+notice goes to the sender's Sent folder, with the token in an
+`X-hMailServer-Protected` header, and the reader shows beside it whether the
+link has been opened.
+
+**The reading page** (`/portal/protected/<token>`) takes no session and no
+account: it fetches the ciphertext, the hint and the dates from
+`GET /api/v1/protected/<token>`, asks for the password, decrypts in the
+browser with the page's own OpenPGP module, shows the text and offers each
+attachment to save. A wrong password says "That password is not right" and
+nothing else, because a wrong password and a damaged message are not the
+reader's to tell apart. The page is plain, works on a phone, and is served
+with the same headers as the webmail - nothing runs but this server's scripts
+and nothing is fetched from anywhere else.
+
+**A reply goes back the same way.** The reader writes text on that page, the
+page encrypts it under the same password and posts it to
+`POST /api/v1/protected/<token>/reply`; this server files it under the
+original's sender, with the original's token on the row, and sends the sender
+a short internal message from the domain's postmaster with a link to
+`/portal/protected/<reply token>`. The password the sender set opens it. A
+reply cannot be replied to, and an original may collect at most twenty.
+
+**The link is the whole access control.** The token is 128 bits from the
+system's random source, written as 22 characters of base64url, and the fetch
+takes no credential: whoever holds the link fetches the ciphertext, and
+whoever holds the password reads it. That is what a capability link is. The
+fetch and the reply are rate-limited per address (a hundred and twenty an
+hour; loopback exempt), a token that names nothing is answered 404 without
+saying whether one ever existed, and a withdrawn or expired link answers a
+plain sentence. A stale token counts for nothing else, deliberately: a page
+fetches its link on load, with no human action, and a link older than its
+row is exactly such a token - counting it as a failed logon would ban the
+reader of an old link from the whole server.
+
+**What it promises, and all it promises.** The plaintext is never in the
+message that crosses the internet and never rests on this server. Three
+things make that true. The page encrypts before it sends. No attachment is
+sent as a link while a message is protected, whatever the domain's link
+threshold says - a file sent as a link rests on this server in the clear
+behind a public link, so under Protect every file goes into the ciphertext,
+and a message that already carries a link from earlier in the same compose
+is refused rather than sealed around a hole. And this server files only what
+has the **shape** of an OpenPGP message to a passphrase:
+`ProtectedMessages::IsSymmetricMessage` reads the armour, checks its CRC and
+walks the packets, which have to be one or more symmetric-key encrypted
+session keys (each a few dozen bytes) and then exactly one integrity-protected
+data packet running to the end - a public-key session key, a literal packet
+slipped in between, an unprotected data packet or anything after the body is
+refused by name, and the record discarded with the reason. What this server
+cannot tell is ciphertext from noise, and it does not claim to; what it can
+tell is either of those from a plaintext, and that is the promise. It does
+**not** promise that the recipient cannot copy or forward what they read: a
+page that has shown somebody a text has shown it to them. The compose form
+and the reading page both say so in one sentence. And the sender's own Sent
+folder holds the notice alone: their text is readable only through the link,
+with the password, until it expires - the compose form says that too. This is
+the honest version of "confidential mode": it promises only what it keeps.
+
+**Opened** is when the ciphertext was first fetched, which is all this server
+can know; whether the password was ever typed happens in the reader's browser.
+
+The ceilings, each refused with a sentence: 25 MB a message (text and
+attachments together, as ciphertext), 250 MB and a thousand live messages an
+account - counted from the declared size, so a thousand declared uploads
+cannot outrun them - and 1 MB for a reply. A chunk for an offset the file has
+already passed is refused with where the file really is, judged under the
+lock the append takes. A record never finished goes after
+a day; the ciphertext goes when the message expires or is withdrawn, and the
+row thirty days after that, so the sender's list still says what became of it.
+The sweep is the scheduled-mail task's, every minute, and the retention task's
+on demand.
+
+A message lives `protected_message_days` (30 by default, 1 to 365, under
+`/api/v1/settings/openpgp`): the default a sender gets and the most a sender
+may ask for (`expires_in`). The feature needs OpenPGP on in the webmail
+(`portal_enabled`) and a public address for the links - the same
+`confidential_base_url` chain the messages that expire use - and is offered
+only on a page opened over HTTPS, as Sign and Encrypt are. A request
+authenticated with an app password can neither make one, upload one,
+withdraw one nor list them: the list carries every live link and hint, which
+is more than a program that reads mail needs. A message to a password
+cannot be a draft or a scheduled send, since the draft route is given the
+plaintext; nor is it also signed or encrypted to a key.
+
+| Route | What it does |
+|---|---|
+| `GET /api/v1/me/protected` | Every one sent, newest first, with the limits and what is used |
+| `POST /api/v1/me/protected` | The record: recipient, hint, size, expires_in |
+| `PUT /api/v1/me/protected/{id}/content?offset=` | The ciphertext, in chunks; the notice goes when the last one lands |
+| `DELETE /api/v1/me/protected/{id}` | Withdraw one |
+| `GET /api/v1/protected/{token}` | The ciphertext, to anyone with the link (no credential) |
+| `POST /api/v1/protected/{token}/reply` | A reply, encrypted under the same password (no credential) |
+| `GET /portal/protected/{token}` | The reading page; `/portal-protected.js` its script |
+
+`hm_protectedmessages` is not in the backup: the ciphertext is behind links
+that name this server and end on a timer, a restore elsewhere could not serve
+them, the sender's copy of the notice is in the Sent folder the backup does
+carry, and what the recipient read is theirs. It is not on the audit trail:
+it is traffic, and ciphertext this server cannot open.
+
+`API/RestApiProtectedMessages` proves the server's half - the bytes stored are
+the ciphertext, what does not have the shape is discarded (a plaintext, a
+message to a key, a literal packet between the session key and the body, a
+packet after it), the link's shape, the fetch with no credential, a stale
+token fetched four times leaving the address able to sign in, the notice with
+the link and the hint and nothing of the text, the withdrawal, the expiry, the
+never-finished record and the orphaned directory swept, the ceilings, the
+second chunk for one offset, the reply filed under the sender, the reply
+ceilings, the app password refused on every route - and
+`build/check-portal-openpgp.js` proves the page's: the module's message opens
+with the password and not without, a message that was never encrypted or was
+encrypted without integrity protection is refused as a wrong password would
+be, GnuPG opens the page's message with `gpg --decrypt` and the page opens what
+`gpg -c` made. The page harness runs the reading page itself, with the real
+modules, against a message the real module sealed, and holds the compose form
+to sending no file as a link while Protect is ticked.
 
 What the page implements, and what it does not
 ----------------------------------------------
@@ -668,6 +804,7 @@ The page's own settings, all under `/api/v1/settings/openpgp`:
 | `lookup_keyserver` | **off** | Ask the keyserver when the directory has none |
 | `keyserver_url` | `https://keys.openpgp.org` | Which keyserver. https, or http on this machine. |
 | `lookup_timeout` | 10 | Seconds a lookup may take. 2 to 30. |
+| `protected_message_days` | 30 | How many days a password-protected message is kept for its reading page. 1 to 365. |
 
 How it is proved
 ----------------
@@ -708,6 +845,7 @@ stops, Accept and the mark from the list and from the reader, a key never filed
 under the account's own address in silence, the auto-learned change said with
 both fingerprints, and the newer-key-waiting hint - is twenty-three checks in
 `build/portal-script-test.js`.
+from an archive with its secret key byte for byte.
 
 Who may
 -------
@@ -722,6 +860,10 @@ Who may
 | Reading the webmail's key ring, and the lookup | The account's own credential; the roles do not reach it |
 | Storing or removing a key in the ring, marking one verified in person, or accepting a change of key | The account's own session - never an app password, which is a program's |
 | The webmail's five OpenPGP settings | `manage_settings`, and not a credential confined to domains |
+| The webmail's key ring, and the lookup | The account's own credential; the roles do not reach it |
+| The webmail's six OpenPGP settings | `manage_settings`, and not a credential confined to domains |
+| A password-protected message: sending one, listing them, seeing whether one was opened, withdrawing it | The account's own credential, and never an app password |
+| Reading one, and replying on its page | Whoever holds the link, and the password; no credential at all |
 
 The auditor role reads all of it and changes none of it. See [Roles.md](Roles.md).
 

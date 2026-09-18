@@ -48,6 +48,7 @@ if exists (select * from sysobjects where id = object_id('hm_scheduled') and obj
 if exists (select * from sysobjects where id = object_id('hm_files') and objectproperty(id, 'isusertable') = 1) drop table hm_files
 if exists (select * from sysobjects where id = object_id('hm_pgpkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_pgpkeys
 if exists (select * from sysobjects where id = object_id('hm_pgpring') and objectproperty(id, 'isusertable') = 1) drop table hm_pgpring
+if exists (select * from sysobjects where id = object_id('hm_protectedmessages') and objectproperty(id, 'isusertable') = 1) drop table hm_protectedmessages
 if exists (select * from sysobjects where id = object_id('hm_smimekeys') and objectproperty(id, 'isusertable') = 1) drop table hm_smimekeys
 if exists (select * from sysobjects where id = object_id('hm_accounts') and objectproperty(id, 'isusertable') = 1) drop table hm_accounts 
 
@@ -2337,6 +2338,34 @@ CREATE UNIQUE INDEX idx_hm_pgpring_entry ON hm_pgpring (pgraccountid, pgrkind, p
 
 ALTER TABLE hm_pgpring ADD CONSTRAINT fk_hm_pgpring_account FOREIGN KEY (pgraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+create table hm_protectedmessages
+(
+	pmid int identity(1,1) not null,
+	pmaccountid int not null,
+	pmtoken nvarchar(32) not null,
+	pmrecipient nvarchar(255) not null,
+	pmhint nvarchar(255) not null,
+	pmfile nvarchar(255) not null,
+	pmsize bigint not null,
+	pmstored bigint not null,
+	pmcomplete int not null,
+	pmcreated bigint not null,
+	pmexpires bigint not null,
+	pmopened bigint not null,
+	pmrevoked int not null,
+	pmreplyto nvarchar(32) not null
+)
+
+ALTER TABLE hm_protectedmessages ADD CONSTRAINT hm_protectedmessages_pk PRIMARY KEY NONCLUSTERED (pmid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_protectedmessages_token ON hm_protectedmessages (pmtoken)
+
+CREATE INDEX idx_hm_protectedmessages_account ON hm_protectedmessages (pmaccountid)
+
+ALTER TABLE hm_protectedmessages ADD CONSTRAINT fk_hm_protectedmessages_account FOREIGN KEY (pmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('ProtectedMessageDays', '', 30)
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536)
@@ -2584,4 +2613,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6081)
+insert into hm_dbversion values (6082)
