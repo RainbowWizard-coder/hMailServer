@@ -244,7 +244,10 @@ namespace RegressionTests.API
          string messageFrame = Between(page.Body, "<iframe id=\"message-html\"", ">");
          StringAssert.Contains("sandbox=\"allow-popups allow-popups-to-escape-sandbox\"", messageFrame);
          StringAssert.Contains("referrerpolicy=\"no-referrer\"", messageFrame);
-         StringAssert.Contains("img-src data:", page.Header("Content-Security-Policy"), "The srcdoc frame inherits this policy, and the message's own data-URI images need it.");
+         // The directive, not a literal: the directory row put 'self' before
+         // data: for the photos the server answers, and the frame needs data:
+         // wherever it stands in the list.
+         StringAssert.IsMatch("img-src [^;]*data:", page.Header("Content-Security-Policy"), "The srcdoc frame inherits this policy, and the message's own data-URI images need it.");
          StringAssert.Contains("<input id=\"compose-bcc\"", page.Body);
          StringAssert.Contains("<button id=\"message-reply-all\"", page.Body);
          StringAssert.Contains("<div id=\"bulk-bar\" hidden>", page.Body);

@@ -267,8 +267,12 @@ namespace HM
    AnsiString
    RestApiServer::OpenApiAddressBookPaths_()
    {
+      // The comma is this block's, as it is every block's: the document is
+      // the blocks joined in RestApiServer.cpp, and without it this one
+      // followed the contact groups' closing brace as `}"/api/`, which is not
+      // JSON - the full gate of 18 September 2026 found it in six fixtures.
       return
-         "\"/api/v1/me/address-books\":{"
+         ",\"/api/v1/me/address-books\":{"
          "\"get\":{\"summary\":\"The address books the signed-in account can see\",\"description\":\"Its own, the default first, then the ones other accounts share with it or with its whole domain. Each: id, name, owner, mine, writable, is_default, created, contacts (how many), and for its own books shares - each target (an address or a domain name), kind (account or domain) and write.\",\"responses\":{\"200\":{\"description\":\"books\"}}},"
          "\"post\":{\"summary\":\"Make an address book\",\"description\":\"Body: name. At most 50 books per account, and two of one account cannot share a name.\",\"responses\":{\"201\":{\"description\":\"The book\"},\"400\":{\"description\":\"The name is missing, too long or unusable\"},\"409\":{\"description\":\"A book of that name exists\"},\"507\":{\"description\":\"The account already has the 50 books it may\"}}}},"
          "\"/api/v1/me/address-books/{id}\":{"
