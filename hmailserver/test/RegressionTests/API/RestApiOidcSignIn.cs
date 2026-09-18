@@ -106,6 +106,10 @@ namespace RegressionTests.API
             string ticket = Complete(started, "/portal");
             DateTime lastLogonBefore = Convert.ToDateTime(_domain.Accounts.get_ItemByAddress(account.Address).LastLogonTime);
 
+            // The stamp is kept to the second: a sign-in in the same second as
+            // the reading above would compare equal to it and prove nothing.
+            Thread.Sleep(1100);
+
             // A ticket posted without the header this server's own pages send.
             // That is the cross-site form: no Authorization header to set, no
             // cookie of ours to send, a body a text/plain form can write. It is

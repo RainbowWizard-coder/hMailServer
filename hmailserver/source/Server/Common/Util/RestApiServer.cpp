@@ -15400,7 +15400,24 @@ namespace HM
       // escaped, is more than the ordinary cap - the route answers the exact
       // limit itself, as a sentence (HandleMeSettingsPut_).
       if (method == "PUT")
-         return (path.StartsWith("/api/v1/me/files/") && path.EndsWith("/content")) || path == "/api/v1/me/settings";
+      {
+         if ((path.StartsWith("/api/v1/me/files/") && path.EndsWith("/content")) || path == "/api/v1/me/settings")
+            return true;
+
+         // A directory entry with its photo: up to 100 KB of image, which is
+         // 137 KB of base64 inside the JSON (DirectoryStore::MaximumPhotoBytes,
+         // judged by RestApiDirectory.cpp with a sentence) - the person's own
+         // and, by the administrator, any account's. Without this the
+         // listener's 64 KB cap answered 413 and reset the connection under a
+         // photo the route would have taken, or refused with the reason.
+         if (path == "/api/v1/me/directory/me" || (path.StartsWith("/api/v1/accounts/") && path.EndsWith("/directory")))
+            return true;
+
+         // An OpenPGP key: 256 KB of base64 for a public key and 512 KB of
+         // armour for a secret one (RestApiOpenPgpKeys.cpp), a person's own or
+         // a correspondent's, each ceiling answered by the route itself.
+         return path == "/api/v1/me/openpgp/keys/own" || path == "/api/v1/me/openpgp/keys/correspondents";
+      }
 
       if (method != "POST")
          return false;
