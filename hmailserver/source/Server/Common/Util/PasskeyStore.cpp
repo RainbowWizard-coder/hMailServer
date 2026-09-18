@@ -361,10 +361,14 @@ namespace HM
       const String read = String(administrator
          ? "select pkid from hm_passkeys where pkaccountid is null and pkid = @ID"
          : "select pkid from hm_passkeys where pkaccountid = @ACCOUNTID and pkid = @ID");
+      // The parameters in the order the statement names them: SQL Server
+      // Compact binds them by position, not by name, and with @ID added first
+      // the account's id was compared with pkid and the passkey's with
+      // pkaccountid - no row, and a 404 for a passkey the account holds.
       SQLCommand command(read);
-      command.AddParameter("@ID", id);
       if (!administrator)
          command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@ID", id);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
       if (!recordset || recordset->IsEOF())
@@ -374,9 +378,9 @@ namespace HM
          ? "delete from hm_passkeys where pkaccountid is null and pkid = @ID"
          : "delete from hm_passkeys where pkaccountid = @ACCOUNTID and pkid = @ID");
       SQLCommand remove(deletion);
-      remove.AddParameter("@ID", id);
       if (!administrator)
          remove.AddParameter("@ACCOUNTID", accountId);
+      remove.AddParameter("@ID", id);
 
       return Application::Instance()->GetDBManager()->Execute(remove);
    }

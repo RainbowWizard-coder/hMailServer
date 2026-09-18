@@ -94,7 +94,9 @@ namespace RegressionTests.API
             StringAssert.Contains("code_challenge_method=S256", started.location);
             StringAssert.Contains("client_id=" + ClientId, started.location);
             StringAssert.Contains("scope=openid%20email", started.location);
-            StringAssert.Contains("/portal/oidc/callback", started.location);
+            // The redirect_uri is one query parameter of the authorization request,
+            // so its slashes travel percent-encoded (RFC 6749 section 4.1.1).
+            StringAssert.Contains("redirect_uri=http%3A%2F%2F127.0.0.1%3A" + RestPort + "%2Fportal%2Foidc%2Fcallback", started.location);
 
             issuer.SetResponse("/token", 200,
                Encoding.UTF8.GetBytes("{\"access_token\":\"a\",\"token_type\":\"Bearer\",\"id_token\":\"" +

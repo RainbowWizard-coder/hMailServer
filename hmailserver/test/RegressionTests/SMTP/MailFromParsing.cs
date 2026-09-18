@@ -155,11 +155,12 @@ namespace RegressionTests.SMTP
                    "Server Compact refused a value longer than the column it was compared with and logged every attempt.")]
       public void MailFromADomainLongerThanTheDomainColumnIsAStrangerAndLogsNothing()
       {
-         // Three labels of 63, 63 and 40 and a top-level label: 172 characters, over
-         // the column's 80 and under the 255 an address may run to. The fixture's
-         // teardown fails this test if the server reported an error while it ran.
+         // Three labels of 63, 63 and 40, three dots and a top-level label of four:
+         // 173 characters, over the column's 80 and under the 255 an address may
+         // run to. The fixture's teardown fails this test if the server reported
+         // an error while it ran.
          string domain = new string('b', 63) + "." + new string('c', 63) + "." + new string('d', 40) + ".test";
-         Assert.AreEqual(172, domain.Length);
+         Assert.AreEqual(173, domain.Length);
 
          AssertValidMailFromCommand("MAIL FROM: stranger@" + domain);
       }

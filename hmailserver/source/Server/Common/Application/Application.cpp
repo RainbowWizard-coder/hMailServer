@@ -33,6 +33,7 @@
 #include "../Util/Languages.h"
 #include "../Util/Utilities.h"
 #include "../Util/MetricsServer.h"
+#include "../Util/JwksKeySet.h"
 #include "../Util/OtelTracer.h"
 #include "../Util/OtelMetricsExporter.h"
 #include "../Util/OtelLogExporter.h"
@@ -1168,6 +1169,13 @@ namespace HM
       // longer connected to - which matters most in the one case Reinitialize
       // exists for, restoring a backup, where the rows are about to change.
       IniFileSettings::Instance()->ForgetDatabaseSettings();
+
+      // The identity providers' signing keys, cached for an hour by JwksKeySet,
+      // are forgotten with the rest: a restart is when an administrator has
+      // pointed the server at a different issuer, or the fixtures at a fresh
+      // key under the kid the last one used, and a key remembered across it
+      // would refuse every token the new issuer signs for the hour.
+      JwksKeySet::Instance()->Clear();
 
       String sErrorMessage;
       if (!InitInstance(sErrorMessage))

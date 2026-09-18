@@ -22,9 +22,16 @@ this tree:
 This reads every SQLCommand built with a literal statement and the AddParameter
 calls that follow it, and fails when a placeholder is written more often than a
 value is added for it, or when the order of the values does not follow the order
-of the placeholders. A statement built from pieces at run time, or whose
-parameters are added in a loop or behind a condition, is beyond what reading can
-decide: those are listed as unread so the number is honest.
+of the placeholders. A statement chosen at run time between two literals is
+read as two statements, each against the values added for the names it writes,
+so a value added behind the same condition is judged in its place; and a
+statement handed over as a String variable is read from the variable's
+initialiser. Both shapes were "beyond reading" until 18 September 2026, when
+PasskeyStore::Remove - a choice of two statements, one value behind a
+condition - added @ID before @ACCOUNTID and a bench on Compact answered 404 for
+a passkey the account held. A statement built from pieces, or whose parameters
+are added in a loop, is still beyond what reading can decide: those are listed
+as unread so the number is honest.
 
 Usage:  python build/check-sql-parameters.py
 """
@@ -36,7 +43,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-SERVER = os.path.join(ROOT, "hmailserver", "source", "Server")
+# The tree to walk; the environment names another for the checker's own
+# negative control (RELEASE.md step 3).
+SERVER = os.environ.get("HM_SQL_PARAMETERS_DIR") or os.path.join(ROOT, "hmailserver", "source", "Server")
 
 PLACEHOLDER = re.compile(r"@[A-Z][A-Z_0-9]*")
 STRING = re.compile(r'"((?:[^"\\]|\\.)*)"')
@@ -96,22 +105,40 @@ def main():
                     continue
 
                 # The statement, as the provider will see it: every literal in
-                # the constructor, joined. A conditional statement (a ternary of
-                # two literals) gives both, and a placeholder that appears in
-                # each is then counted twice - so those are read separately.
+                # the constructor, joined.
                 literals = STRING.findall(body)
                 if not literals:
-                    continue
-                branches = [ "".join(literals) ]
-                if "?" in body and ":" in body and len(literals) > 1:
-                    unread.append("%s:%d (%s: a statement chosen at run time)" % (relative, line, variable))
-                    continue
-                if "+" in body and len(literals) > 1:
-                    unread.append("%s:%d (%s: a statement built from pieces)" % (relative, line, variable))
+                    # `SQLCommand command(read)`: the statement is a String
+                    # variable, initialised from literals a few lines above -
+                    # PasskeyStore::Remove's shape, whose values were added out
+                    # of order and never read until a bench answered 404 for a
+                    # passkey the account held (18 September 2026).
+                    inner = body[1:-1].strip()
+                    initialiser = None
+                    if re.match(r"^\w+$", inner):
+                        before = text[max(0, m.start() - 2500):m.start()]
+                        for found in re.finditer(r"\b(?:const\s+)?String\s+%s\s*=\s*(.*?);" % re.escape(inner), before, re.S):
+                            initialiser = found.group(1)
+                    if initialiser:
+                        body = initialiser
+                        literals = STRING.findall(body)
+                if not literals:
                     continue
 
-                written = PLACEHOLDER.findall(branches[0])
-                if not written:
+                # A statement chosen at run time - a ternary between two whole
+                # literals - is read as two statements: a value added behind
+                # the condition belongs to one of them, and each is checked
+                # against the values added for the names it writes. A statement
+                # built from pieces is still beyond reading.
+                if len(literals) == 2 and "?" in body and ":" in body and "+" not in body:
+                    branches = list(literals)
+                elif len(literals) > 1 and ("+" in body or "?" in body):
+                    unread.append("%s:%d (%s: a statement built from pieces)" % (relative, line, variable))
+                    continue
+                else:
+                    branches = ["".join(literals)]
+
+                if not any(PLACEHOLDER.findall(branch) for branch in branches):
                     continue
                 read += 1
 
@@ -120,22 +147,30 @@ def main():
                 rest = text[m.end():]
                 nxt = COMMAND.search(rest)
                 region = rest[:nxt.start()] if nxt else rest
-                added = [p for v, p in ADD.findall(region) if v == variable]
+                added_all = [p for v, p in ADD.findall(region) if v == variable]
 
                 if "for (" in region.split("AddParameter")[0][-400:] or "while (" in region.split("AddParameter")[0][-400:]:
                     unread.append("%s:%d (%s: parameters added in a loop)" % (relative, line, variable))
                     continue
 
-                counts_written = collections.Counter(written)
-                counts_added = collections.Counter(added)
-                for placeholder, n in sorted(counts_written.items()):
-                    if counts_added.get(placeholder, 0) < n:
-                        problems.append("%s:%d %s writes %s %d time(s) and adds %d value(s) for it - the provider substitutes by position, so the last one gets nothing"
-                                        % (relative, line, variable, placeholder, n, counts_added.get(placeholder, 0)))
+                for branch in branches:
+                    written = PLACEHOLDER.findall(branch)
+                    if not written:
+                        continue
+                    # A name this statement does not write is the other
+                    # branch's, added behind its condition.
+                    added = [p for p in added_all if p in written]
 
-                if sorted(counts_added.items()) == sorted(counts_written.items()) and added != written:
-                    problems.append("%s:%d %s adds its values in the order %s but writes them in the order %s - by position, each value lands in the wrong place"
-                                    % (relative, line, variable, " ".join(added), " ".join(written)))
+                    counts_written = collections.Counter(written)
+                    counts_added = collections.Counter(added)
+                    for placeholder, n in sorted(counts_written.items()):
+                        if counts_added.get(placeholder, 0) < n:
+                            problems.append("%s:%d %s writes %s %d time(s) and adds %d value(s) for it - the provider substitutes by position, so the last one gets nothing"
+                                            % (relative, line, variable, placeholder, n, counts_added.get(placeholder, 0)))
+
+                    if sorted(counts_added.items()) == sorted(counts_written.items()) and added != written:
+                        problems.append("%s:%d %s adds its values in the order %s but writes them in the order %s - by position, each value lands in the wrong place"
+                                        % (relative, line, variable, " ".join(added), " ".join(written)))
 
     if problems:
         for p in problems:

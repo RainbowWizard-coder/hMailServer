@@ -422,6 +422,11 @@ namespace RegressionTests.AntiSpam
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "legacy@example.test", "test");
 
+         // The address as a string, because the COM object it came from belongs
+         // to the server process this test restarts below: read through it after
+         // the restart, and the answer is "the RPC server is unavailable".
+         string address = account.Address;
+
          // 60 + 1 + 63 + 1 + 63 + 1 + 55 + 1 + 4 = 249 characters - the last label
          // is 49 e's and "legacy" - under RFC 5321's 254 and longer than the 200
          // the old columns held: the legacy row keeps a prefix of it, the key is
@@ -431,7 +436,7 @@ namespace RegressionTests.AntiSpam
 
          Assert.AreEqual(249, sender.Length);
 
-         Assert.AreEqual("451", Attempt(sender, account.Address), "the first attempt makes the triplet and defers it");
+         Assert.AreEqual("451", Attempt(sender, address), "the first attempt makes the triplet and defers it");
 
          // Written back as the upgrade leaves a row from before schema 6072, with
          // its window in the past so that finding it shows as an acceptance.
@@ -448,17 +453,17 @@ namespace RegressionTests.AntiSpam
          _antiSpam = _settings.AntiSpam;
          _hardened = _antiSpam;
 
-         Assert.AreEqual("250", Attempt(sender, account.Address),
+         Assert.AreEqual("250", Attempt(sender, address),
             "the row from before the step is found by its first 200 characters, and its window has passed");
 
          // If the rewrite did not happen, this deletes the triplet and the next
          // attempt is a newcomer's 451.
          _application.Database.ExecuteSQL("delete from hm_greylisting_triplets where glsenderhash is null");
 
-         Assert.AreEqual("250", Attempt(sender, account.Address),
+         Assert.AreEqual("250", Attempt(sender, address),
             "the row carries its key now, and nothing else is left to find it by");
 
-         Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Pop3ClientSimulator.AssertGetFirstMessageText(address, "test");
       }
 
       // ------------------------------------------------------------------- helpers
