@@ -169,11 +169,8 @@ namespace hMailServer.ControlPanel.Views
             // Lines rather than a collection: a new COM interface needs an
             // elevated registration on every machine, and a listing does not
             // earn that. name, built-in, description, permissions.
-            foreach (string[] parts in Lines_((string)ServerSession.Current.Application.Roles).Select(line => line.Split('\t')))
+            foreach (string[] parts in Lines_((string)ServerSession.Current.Application.Roles).Select(line => line.Split('\t')).Where(parts => parts.Length >= 4))
             {
-               if (parts.Length < 4)
-                  continue;
-
                roles.Add(new RoleRow
                {
                   Name = parts[0],
@@ -183,11 +180,8 @@ namespace hMailServer.ControlPanel.Views
                });
             }
 
-            foreach (string[] parts in Lines_((string)ServerSession.Current.Application.RoleAssignments).Select(line => line.Split('\t')))
+            foreach (string[] parts in Lines_((string)ServerSession.Current.Application.RoleAssignments).Select(line => line.Split('\t')).Where(parts => parts.Length >= 3))
             {
-               if (parts.Length < 3)
-                  continue;
-
                // What an empty list reaches is the server's to say (the fourth
                // field): every domain for serveradmin and auditor, the account's
                // own for every other role.
