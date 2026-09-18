@@ -793,6 +793,13 @@ namespace HM
          RouteAccountOpenPgpPut,
          RouteAccountOpenPgpDelete,
          RouteDomainOpenPgpList,
+
+         // Who a distribution list delivers to now: its rows and what its
+         // membership query answers at the moment of the call
+         // (RestApiDistributionLists.cpp). A read of accounts, scoped to the
+         // domain in the list's address exactly as the update and the delete
+         // are.
+         RouteListMembers,
          RouteOpenApi
       };
 
@@ -1416,7 +1423,7 @@ namespace HM
       HttpResponse HandleCreateIpRange_(const AnsiString &requestBody);
       HttpResponse HandleDeleteIpRange_(__int64 rangeId);
       HttpResponse HandleListLists_(const String &domainName);
-      HttpResponse HandleCreateList_(const String &domainName, const AnsiString &requestBody);
+      HttpResponse HandleCreateList_(const String &domainName, const std::vector<String> &callerDomains, const AnsiString &requestBody);
       HttpResponse HandleDeleteList_(const String &address);
       HttpResponse HandleListCertificates_();
       HttpResponse HandleDkim_(const String &domainName);
@@ -1578,9 +1585,15 @@ namespace HM
       // The distribution list's create and update, and the entry every list
       // route answers with (RestApiAdministration.cpp); the listing and the
       // delete stay in RestApiServer.cpp.
-      HttpResponse HandleUpdateList_(const String &address, const AnsiString &requestBody);
+      HttpResponse HandleUpdateList_(const String &address, const std::vector<String> &callerDomains, const AnsiString &requestBody);
       static AnsiString ListEntryJson_(const std::shared_ptr<DistributionList> &list);
       static AnsiString OpenApiAdministrationPaths_();
+
+      // Who a distribution list delivers to now - its rows and what its
+      // membership query answers at the moment of the call
+      // (RestApiDistributionLists.cpp).
+      HttpResponse HandleListMembers_(const String &address, const std::vector<String> &callerDomains);
+      static AnsiString OpenApiDistributionListMembersPath_();
       // The six small collections - DNS black lists, SURBL servers,
       // white-list addresses, blocked senders, incoming relays and the
       // greylisting white list - as resources (RestApiAntiSpamLists.cpp): one

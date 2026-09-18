@@ -55,6 +55,7 @@
 #include "../BO/SecurityRanges.h"
 #include "../BO/SecurityRange.h"
 #include "../Cache/CacheContainer.h"
+#include "../Util/DistributionListMembership.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/PersistentDomainAlias.h"
 #include "../Persistence/PersistentDistributionList.h"
@@ -1050,6 +1051,29 @@ namespace HM
 
       const char *ListModeRefusal = "{\"error\":\"mode must be public, membership, announcement or domain_members\"}";
 
+      // A membership query that reaches past the domains a confined key
+      // administers is the server administrator's to set: a key issued for one
+      // tenant could otherwise make a list of its own that delivers to every
+      // account of another. The parse itself is not judged here - the save
+      // judges it, in the one sentence COM and REST share - so an unreadable
+      // query falls through to that rather than being called a permission
+      // problem. Empty callerDomains is a key that reaches every domain.
+      bool MembershipReachesPastCaller(const String &membership, const String &ownDomain, const std::vector<String> &callerDomains)
+      {
+         if (callerDomains.empty() || membership.IsEmpty())
+            return false;
+
+         DistributionListMembership::Query query;
+         String reason;
+
+         if (!DistributionListMembership::Parse(membership, query, reason))
+            return false;
+
+         return !DistributionListMembership::WithinDomains(query, ownDomain, callerDomains);
+      }
+
+      const char *MembershipRefusal = "{\"error\":\"membership names accounts outside the domains this key administers; domain, a pattern in one of them, or nothing\"}";
+
       // The list an address names, through its domain, or null.
       std::shared_ptr<DistributionList> ListByAddress(const String &address)
       {
@@ -1069,14 +1093,15 @@ namespace HM
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
       AnsiString entry;
-      entry.Format("{\"address\":\"%hs\",\"active\":%hs,\"require_auth\":%hs,\"mode\":\"%hs\",\"require_sender_address\":\"%hs\",\"moderator_address\":\"%hs\",\"bounce_address\":\"%hs\",\"members\":[",
+      entry.Format("{\"address\":\"%hs\",\"active\":%hs,\"require_auth\":%hs,\"mode\":\"%hs\",\"require_sender_address\":\"%hs\",\"moderator_address\":\"%hs\",\"bounce_address\":\"%hs\",\"membership\":\"%hs\",\"members\":[",
          quote(list->GetAddress()).c_str(),
          list->GetActive() ? "true" : "false",
          list->GetRequireAuth() ? "true" : "false",
          ListModeWord(list->GetListMode()),
          quote(list->GetRequireAddress()).c_str(),
          quote(list->GetModeratorAddress()).c_str(),
-         quote(list->GetBounceAddress()).c_str());
+         quote(list->GetBounceAddress()).c_str(),
+         quote(list->GetMembership()).c_str());
 
       // GetMembers reads the recipients again each time, so a create that has
       // just saved them answers with them.
@@ -1100,7 +1125,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleCreateList_(const String &domainName, const AnsiString &requestBody)
+   RestApiServer::HandleCreateList_(const String &domainName, const std::vector<String> &callerDomains, const AnsiString &requestBody)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -1110,18 +1135,19 @@ namespace HM
 
       static const char *const keys[] =
       {
-         "address", "members", "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address"
+         "address", "members", "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address", "membership"
       };
       AnsiString error;
       if (UnknownKey(body, keys, sizeof(keys) / sizeof(keys[0]), error))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
 
-      String address, modeWord, requireAddress, moderatorAddress, bounceAddress;
+      String address, modeWord, requireAddress, moderatorAddress, bounceAddress, membership;
       if (!ReadString(body, "address", address, error) ||
           !ReadString(body, "mode", modeWord, error) ||
           !ReadString(body, "require_sender_address", requireAddress, error) ||
           !ReadString(body, "moderator_address", moderatorAddress, error) ||
-          !ReadString(body, "bounce_address", bounceAddress, error))
+          !ReadString(body, "bounce_address", bounceAddress, error) ||
+          !ReadString(body, "membership", membership, error))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
 
       address.Trim();
@@ -1168,6 +1194,9 @@ namespace HM
       if (!domain)
          return BuildResponse_(404, "{\"error\":\"domain not found\"}");
 
+      if (MembershipReachesPastCaller(membership, domain->GetName(), callerDomains))
+         return BuildResponse_(403, MembershipRefusal);
+
       DistributionLists lists(domain->GetID());
       lists.Refresh();
       if (lists.GetItemByAddress(address))
@@ -1182,6 +1211,7 @@ namespace HM
       list->SetRequireAddress(requireAddress);
       list->SetModeratorAddress(moderatorAddress);
       list->SetBounceAddress(bounceAddress);
+      list->SetMembership(membership);
 
       String saveError;
       if (!PersistentDistributionList::SaveObject(list, saveError, PersistenceModeNormal))
@@ -1207,7 +1237,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleUpdateList_(const String &address, const AnsiString &requestBody)
+   RestApiServer::HandleUpdateList_(const String &address, const std::vector<String> &callerDomains, const AnsiString &requestBody)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -1217,7 +1247,7 @@ namespace HM
 
       static const char *const keys[] =
       {
-         "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address"
+         "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address", "membership"
       };
       AnsiString error;
       if (UnknownKey(body, keys, sizeof(keys) / sizeof(keys[0]), error))
@@ -1231,17 +1261,33 @@ namespace HM
       String modeWord, requireAddress = list->GetRequireAddress();
       String moderatorAddress = list->GetModeratorAddress(), bounceAddress = list->GetBounceAddress();
 
+      // Read from the list, so a body that leaves it out keeps the query the
+      // list has - and an empty string in the body is a real change, the one
+      // that turns a query list back into a static one.
+      String membership = list->GetMembership();
+
       if (!ReadBool(body, "active", active, error) ||
           !ReadBool(body, "require_auth", requireAuth, error) ||
           !ReadString(body, "mode", modeWord, error) ||
           !ReadString(body, "require_sender_address", requireAddress, error) ||
           !ReadString(body, "moderator_address", moderatorAddress, error) ||
-          !ReadString(body, "bounce_address", bounceAddress, error))
+          !ReadString(body, "bounce_address", bounceAddress, error) ||
+          !ReadString(body, "membership", membership, error))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
 
       DistributionList::ListMode mode = list->GetListMode();
       if (!modeWord.IsEmpty() && !ParseListModeWord(modeWord, mode))
          return BuildResponse_(400, ListModeRefusal);
+
+      // Judged only when the body names it. Seeded from the list above, the
+      // value is otherwise the query the list already has - and a key confined
+      // to this domain would then be refused every change to a list whose query
+      // the server administrator set, including switching it off.
+      const JsonValue *membershipGiven = body.Get("membership");
+
+      if (membershipGiven && !membershipGiven->IsNull() &&
+          MembershipReachesPastCaller(membership, StringParser::ExtractDomain(list->GetAddress()), callerDomains))
+         return BuildResponse_(403, MembershipRefusal);
 
       list->SetActive(active);
       list->SetRequireAuth(requireAuth);
@@ -1249,6 +1295,7 @@ namespace HM
       list->SetRequireAddress(requireAddress);
       list->SetModeratorAddress(moderatorAddress);
       list->SetBounceAddress(bounceAddress);
+      list->SetMembership(membership);
 
       // SaveObject drops the list from its cache, so the next message to it
       // reads the row just written.

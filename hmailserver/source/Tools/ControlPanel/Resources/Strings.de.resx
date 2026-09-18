@@ -3602,6 +3602,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Der Verzeichniseintrag des Benutzers wird gesucht</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Findet die übrigen Mitglieder unter den Konten des Servers, jedes Mal wenn eine Nachricht an die Liste gesendet wird, sodass niemand die Liste von Hand pflegen muss. Leer lassen für eine Liste, deren Mitglieder nur ihre Empfänger sind; domain für jedes aktive Konto dieser Domäne; domain:other.example für eine andere von diesem Server gehostete Domäne; pattern:sales-*@example.com für die Adressen, die auf ein Muster passen, wobei * für beliebig viele Zeichen und ? für eines steht; everyone für jedes aktive Konto auf dem Server. Abgeschaltete Konten werden nie einbezogen.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Fertig</value>
   </data>
@@ -4758,6 +4761,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Mitglieder - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>M_itgliederabfrage (leer = nur die Empfänger)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Mitgliedschaft — nur Listenmitglieder dürfen senden</value>

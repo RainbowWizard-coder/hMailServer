@@ -44,6 +44,7 @@ namespace HM
       pNode->AppendAttr(_T("ListMode"), sListMode);
       pNode->AppendAttr(_T("ModeratorAddress"), moderator_address_);
       pNode->AppendAttr(_T("BounceAddress"), bounce_address_);
+      pNode->AppendAttr(_T("Membership"), membership_);
 
       return GetMembers()->XMLStore(pNode, iOptions);
    }
@@ -61,6 +62,10 @@ namespace HM
       // an empty string then, and empty is exactly the off state both fields need.
       moderator_address_ = pNode->GetAttrValue(_T("ModeratorAddress"));
       bounce_address_ = pNode->GetAttrValue(_T("BounceAddress"));
+
+      // Absent in backups taken before the membership query existed, and empty
+      // is the static list every one of those was.
+      membership_ = pNode->GetAttrValue(_T("Membership"));
 
       return true;
    }

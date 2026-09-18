@@ -3602,6 +3602,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Finder brugerens katalogpost</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Finder resten af medlemmerne blandt serverens konti, hver gang en besked sendes til listen, så ingen behøver at holde listen opdateret i hånden. Lad den være tom for en liste, hvis medlemmer kun er dens modtagere; domain for hver aktiv konto i dette domæne; domain:other.example for et andet domæne, som denne server er vært for; pattern:sales-*@example.com for de adresser, der matcher et jokertegn, hvor * er et vilkårligt antal tegn og ? ét tegn; everyone for hver aktiv konto på serveren. Konti, der er slået fra, medtages aldrig.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Afslut</value>
   </data>
@@ -4758,6 +4761,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Medlemmer - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>M_edlemsforespørgsel (tom = kun modtagerne)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Medlemskab — kun listemedlemmer kan sende</value>

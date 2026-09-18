@@ -31,6 +31,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox requireSender_ = new();
       private readonly TextBox moderator_ = new();
       private readonly TextBox bounce_ = new();
+      private readonly TextBox membership_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
       public DistributionListDialog(Window owner, string domainName, string address)
@@ -78,6 +79,12 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(Label(L("_Bounce address (empty = bounces go to the poster)"), bounce_)
             .WithHint(L("Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last.")));
 
+         // The query, beside the members rather than instead of them: a list
+         // whose query is set still delivers to the addresses under Recipients,
+         // and an address that is both is delivered to once.
+         body.Children.Add(Label(L("Membership _query (empty = the recipients alone)"), membership_)
+            .WithHint(L("Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included.")));
+
          // Enter saves, Escape cancels.
          var save = new Wpf.Ui.Controls.Button { Content = L("_Save"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          save.Click += (s, e) => Save();
@@ -111,6 +118,7 @@ namespace hMailServer.ControlPanel.Views
             requireSender_.Text = (string)l.RequireSenderAddress ?? "";
             moderator_.Text = (string)l.ModeratorAddress ?? "";
             bounce_.Text = (string)l.BounceAddress ?? "";
+            membership_.Text = (string)l.Membership ?? "";
             ServerSession.Release(l);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -140,6 +148,7 @@ namespace hMailServer.ControlPanel.Views
             l.RequireSenderAddress = requireSender_.Text.Trim();
             l.ModeratorAddress = moderator_.Text.Trim();
             l.BounceAddress = bounce_.Text.Trim();
+            l.Membership = membership_.Text.Trim();
             l.Save();
             ServerSession.Release(l);
             Close();

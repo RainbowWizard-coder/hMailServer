@@ -11,7 +11,11 @@
 
 #include "../Common/BO/DistributionLists.h"
 #include "../Common/BO/DistributionListRecipients.h"
+#include "../Common/BO/Domain.h"
+#include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/DistributionListMembership.h"
 
+#include "COMAuthentication.h"
 #include "COMError.h"
 #include "../Common/Util/AuditTrail.h"
 
@@ -376,6 +380,85 @@ STDMETHODIMP InterfaceDistributionList::put_BounceAddress(BSTR newVal)
 
       HM::String sAddress = newVal;
       object_->SetBounceAddress(sAddress);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionList::get_Membership(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      HM::String sMembership = object_->GetMembership();
+
+      *pVal = sMembership.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionList::put_Membership(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // Judged here as PreSaveLimitationsCheck will judge it at Save, so that a
+      // script learns of a text that is none of the forms at the assignment
+      // rather than at the save, in the same sentence; Save judges it again,
+      // since a domain the query names can go between the two.
+      HM::String sMembership = newVal;
+      HM::String normalised, reason;
+
+      if (!HM::DistributionListMembership::Validate(sMembership, normalised, reason))
+         return COMError::GenerateError(reason);
+
+      // A query that reaches beyond the domains this credential administers -
+      // another tenant's accounts, a pattern across every domain, everyone - is
+      // the server administrator's to set: a domain administrator would
+      // otherwise make a list in their domain that delivers to every account of
+      // another tenant's.
+      //
+      // The domains are the grant's, which is what the REST handler passes
+      // (RestApiAdministration.cpp, MembershipReachesPastCaller), so an
+      // administrator whose grant names two domains may set domain:<the other
+      // one> here exactly as they may over REST. Passing the list's own domain
+      // alone would confine the Control Panel more tightly than the API for the
+      // same person, which is a difference nobody would find written down.
+      // A grant with no domains that does not reach every domain is not an
+      // administrator at all; it is confined to the list's own domain, which is
+      // the narrowest honest reading and never wider than before.
+      HM::DistributionListMembership::Query query;
+      HM::String parseReason;
+      HM::DistributionListMembership::Parse(normalised, query, parseReason);
+
+      std::shared_ptr<const HM::Domain> domain = HM::CacheContainer::Instance()->GetDomain(object_->GetDomainID());
+      const HM::String ownDomain = domain ? domain->GetName() : HM::StringParser::ExtractDomain(object_->GetAddress());
+
+      if (!authentication_->ReachesEveryDomain())
+      {
+         std::vector<HM::String> callerDomains = authentication_->GetGrant().domains;
+
+         if (callerDomains.empty())
+            callerDomains.push_back(ownDomain);
+
+         if (!HM::DistributionListMembership::WithinDomains(query, ownDomain, callerDomains))
+            return COMError::GenerateError("Membership names accounts outside the domains this administrator holds; a domain administrator may set domain, a pattern in a domain they hold, or nothing. The other forms are the server administrator's.");
+      }
+
+      object_->SetMembership(normalised);
 
       return S_OK;
    }

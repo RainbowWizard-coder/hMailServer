@@ -3602,6 +3602,9 @@
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Пошук запису користувача в каталозі</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Щоразу під час надсилання повідомлення до списку знаходить решту учасників серед облікових записів сервера, тож вести список вручну не потрібно. Залиште порожнім для списку, учасниками якого є лише його отримувачі; domain — кожен активний обліковий запис цього домену; domain:other.example — інший домен на цьому сервері; pattern:sales-*@example.com — адреси, що відповідають шаблону, де * замінює будь-яку послідовність символів, а ? — один; everyone — кожен активний обліковий запис сервера. Вимкнені облікові записи не включаються ніколи.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Готово</value>
   </data>
@@ -4758,6 +4761,9 @@
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Учасники — </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>Запит учасників (порожньо = лише отримувачі) (_Q)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Членство — надсилати можуть лише учасники списку</value>

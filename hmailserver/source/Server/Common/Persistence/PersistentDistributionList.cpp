@@ -120,6 +120,7 @@ namespace HM
       pDistList->SetListMode((HM::DistributionList::ListMode) pRS->GetLongValue("distributionlistmode"));
       pDistList->SetModeratorAddress(pRS->GetStringValue("distributionlistmoderatoraddress"));
       pDistList->SetBounceAddress(pRS->GetStringValue("distributionlistbounceaddress"));
+      pDistList->SetMembership(pRS->GetStringValue("distributionlistmembership"));
 
       return true;
    }
@@ -148,6 +149,7 @@ namespace HM
       oStatement.AddColumn("distributionlistmode", pDistList->GetListMode());
       oStatement.AddColumn("distributionlistmoderatoraddress", pDistList->GetModeratorAddress());
       oStatement.AddColumn("distributionlistbounceaddress", pDistList->GetBounceAddress());
+      oStatement.AddColumn("distributionlistmembership", pDistList->GetMembership());
 
       if (pDistList->GetID() == 0)
       {

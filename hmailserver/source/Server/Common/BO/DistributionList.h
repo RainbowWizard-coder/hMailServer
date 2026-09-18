@@ -60,6 +60,16 @@ namespace HM
       String GetBounceAddress() const {return bounce_address_;}
       void SetBounceAddress(const String & sNewVal) {bounce_address_ = sNewVal;}
 
+      // The membership query (DistributionListMembership.h): empty for a
+      // static list, whose members are its rows and nothing else; domain,
+      // domain:<name>, pattern:<wildcard address> or everyone for a list whose
+      // members are found among the server's accounts when a message is sent
+      // to it, in union with its rows. Judged at save time by
+      // PreSaveLimitationsCheck, so a text that is none of those never reaches
+      // the column.
+      String GetMembership() const {return membership_;}
+      void SetMembership(const String & sNewVal) {membership_ = sNewVal;}
+
       ListMode GetListMode() const {return list_mode_; }
       void SetListMode(ListMode m) {list_mode_ = m; }
 
@@ -94,6 +104,7 @@ namespace HM
 
       String moderator_address_;
       String bounce_address_;
+      String membership_;
 
       ListMode list_mode_;
    };

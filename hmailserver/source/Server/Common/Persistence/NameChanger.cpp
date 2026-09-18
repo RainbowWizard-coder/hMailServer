@@ -14,6 +14,7 @@
 #include "../BO/DistributionListRecipient.h"
 
 #include "PersistentDistributionListRecipient.h"
+#include "../Util/DistributionListMembership.h"
 #include "../Sieve/SieveStorage.h"
 
 #ifdef _DEBUG
@@ -129,6 +130,15 @@ namespace HM
          if (!PersistentDistributionList::SaveObject(pList, errorMessage, PersistenceMode::PersistenceModeRename))
             return false;
       }
+
+      // A membership query that names this domain - domain:<old name>, or a
+      // pattern whose domain part is it - on a list of this domain or of any
+      // other, follows the rename; left alone it would go on naming a domain
+      // that no longer exists and answer nobody without saying so. Read from
+      // the rows after the loop above has saved this domain's own lists, so
+      // that nothing it rewrites is overwritten by an object held from before.
+      if (!DistributionListMembership::RenameDomain(oldDomainName, newDomainName, errorMessage))
+         return false;
 
       return true;
 

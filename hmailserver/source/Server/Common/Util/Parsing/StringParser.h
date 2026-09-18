@@ -24,6 +24,12 @@ namespace HM
       static bool ContainsNonAscii(const String &sValue);
       static bool WildcardMatch(const String &pattern, const String &value);
       static bool WildcardMatchNoCase(const String &sWildcard, const String &sString);
+      // The regular expression WildcardMatch tests with: * for any run of
+      // characters, ? for one, and every other character of the pattern taken
+      // literally. Public so that a caller matching ONE pattern against many
+      // values can compile it once instead of once per value, and still be
+      // asking exactly what WildcardMatch asks.
+      static String WildcardToRegularExpression(const String &pattern);
 
       static char* Search(const char *haystack, size_t haystackSize, const char *needle);
 

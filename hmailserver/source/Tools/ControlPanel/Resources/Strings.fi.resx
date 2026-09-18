@@ -3602,6 +3602,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Käyttäjän hakemistomerkinnän etsiminen</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Etsii loput jäsenet palvelimen tileistä aina kun listalle lähetetään viesti, joten kenenkään ei tarvitse ylläpitää listaa käsin. Jätä tyhjäksi, jos listan jäseniä ovat vain sen vastaanottajat; domain tarkoittaa jokaista tämän toimialueen aktiivista tiliä; domain:other.example toista tämän palvelimen toimialuetta; pattern:sales-*@example.com jokerimerkkiin täsmääviä osoitteita, joissa * on mikä tahansa merkkijono ja ? yksi merkki; everyone jokaista palvelimen aktiivista tiliä. Pois käytöstä otettuja tilejä ei koskaan oteta mukaan.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Valmis</value>
   </data>
@@ -4758,6 +4761,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Jäsenet -</value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>_Jäsenkysely (tyhjä = vain vastaanottajat)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Jäsenyys — vain listan jäsenet voivat lähettää</value>

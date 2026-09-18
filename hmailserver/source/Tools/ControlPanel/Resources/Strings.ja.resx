@@ -3602,6 +3602,9 @@
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>ユーザーのディレクトリ エントリの検索</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>リストにメッセージが送られるたびに、サーバーのアカウントの中から残りのメンバーを見つけます。誰も手作業でリストを保守する必要はありません。メンバーが宛先だけのリストでは空欄のままにします。domain はこのドメインのすべての有効なアカウント、domain:other.example はこのサーバーが持つ別のドメイン、pattern:sales-*@example.com はワイルドカードに一致する宛先（* は任意の長さの文字列、? は 1 文字）、everyone はサーバー上のすべての有効なアカウントです。無効なアカウントが含まれることはありません。</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>完了</value>
   </data>
@@ -4758,6 +4761,9 @@
   </data>
   <data name="Members - " xml:space="preserve">
     <value>メンバー -</value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>メンバークエリ（空欄 = 宛先のみ） (_Q)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>メンバーシップ — リストのメンバーのみ送信できる</value>

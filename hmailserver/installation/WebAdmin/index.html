@@ -2334,6 +2334,7 @@ async function deleteAlias(name,domain){
 const LIST_HINTS={
   address:K("The list's address, in this domain."),
   members:K("The members, one address per line. Set when the list is made; the update does not change them."),
+  membership:K("A query that finds the rest of the members among the server's accounts each time a message is sent to the list, in union with the addresses above: empty for a list whose members are its addresses alone, domain for every account of this domain, domain:other.example for another domain this server hosts, pattern:sales-*@example.com for the addresses matching a wildcard, everyone for every account on the server."),
   active:K("List is active."),require_auth:K("Require SMTP authentication to send to the list."),
   mode:K("Who may send to this list: public is anyone, membership the members, announcement the one sender named below, domain_members the accounts of the domain."),
   require_sender_address:K("Require sender address (empty = any)."),moderator_address:K("Moderator (empty = no moderation)."),
@@ -2354,6 +2355,7 @@ async function showLists(domain){
         <td>${x.active?'<span class="badge good">'+t("Active")+'</span>':'<span class="badge warn">'+t("Disabled")+'</span>'}</td>
         <td>${escHtml(humanise(x.mode||""))}</td>
         <td>${escHtml((x.members||[]).length)}${(x.members||[]).length?'<div class="hint muted">'+escHtml((x.members||[]).slice(0,3).join(", ")+((x.members||[]).length>3?", …":""))+'</div>':""}</td>
+        <td>${x.membership?'<code>'+escHtml(x.membership)+'</code>':'<span class="muted">'+t("Its addresses alone")+'</span>'}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn ghost sm" data-act="listedit" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Edit")}</button>
           <button class="btn danger sm" data-act="listdel" data-address="${escHtml(x.address)}" data-domain="${escHtml(domain)}">${t("Delete")}</button>
@@ -2364,8 +2366,8 @@ async function showLists(domain){
     <div class="sect"><h2>${tf("{0} — distribution lists",escHtml(domain))}</h2>
       <div class="card flat">
         <p class="note">${escHtml(operation("/api/v1/domains/{domain}/lists","get").description||"")}</p>
-        <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Status")}</th><th>${t("Who may send")}</th><th>${t("Members")}</th><th></th></tr></thead>
-        <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("No distribution lists in this domain.")+'</td></tr>'}</tbody></table></div>
+        <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Status")}</th><th>${t("Who may send")}</th><th>${t("Members")}</th><th>${t("Membership query")}</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No distribution lists in this domain.")+'</td></tr>'}</tbody></table></div>
       </div></div>
     <div class="sect"><h2>${t("New list")}</h2>
       <div class="card flat">
@@ -2393,12 +2395,23 @@ async function openList(address,domain){
   cache.lists=asList(await api("/api/v1/domains/"+encodeURIComponent(domain)+"/lists"),"lists");
   const existing=cache.lists.filter(l=>l.address===address)[0];
   if(!existing){await showLists(domain);return;}
-  editing={kind:"list",address:address,domain:domain,values:JSON.parse(JSON.stringify(existing))};
+  // Who the list delivers to now: its own rows and what its membership query
+  // answers at this moment, which is the only place that answer exists - a
+  // query list has no membership table to read. A failure here is not a
+  // failure of the editor, so the editor opens without it.
+  let resolved=null;
+  try{resolved=await api("/api/v1/lists/"+encodeURIComponent(address)+"/members");}catch(e){resolved=null;}
+  editing={kind:"list",address:address,domain:domain,values:JSON.parse(JSON.stringify(existing)),resolved:resolved};
   renderListEditor();
 }
 function renderListEditor(){
   const props=listProps("put");
   const members=(editing.values.members||[]).map(m=>'<div class="row erow"><code>'+escHtml(m)+'</code></div>').join("")||'<div class="note">'+t("No members.")+'</div>';
+  const now=editing.resolved&&Array.isArray(editing.resolved.members)?editing.resolved.members:null;
+  const nowRows=now?(now.map(m=>'<div class="row erow"><code>'+escHtml(m.address)+'</code> <span class="badge '+(m.source==="query"?"good":"")+'">'+(m.source==="query"?t("From the query"):t("Kept by hand"))+'</span></div>').join("")||'<div class="note">'+t("Nobody: this list would deliver to no one.")+'</div>'):"";
+  const nowProblem=editing.resolved&&editing.resolved.problem?'<div class="note warn">'+escHtml(editing.resolved.problem)+'</div>':"";
+  const nowSection=now?`<div class="sect"><h2>${t("Delivers to now")}</h2>
+      <div class="card flat"><p class="note">${t("The addresses a message sent to this list would reach, worked out at this moment. Nothing is stored: the query is run again for every message.")}</p>${nowProblem}${nowRows}</div></div>`:"";
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="lists" data-domain="${escHtml(editing.domain)}">${tf("‹ Lists of {0}",escHtml(editing.domain))}</button>
     <div class="sect"><h2>${tf("List {0}",escHtml(editing.address))}</h2>
@@ -2406,6 +2419,7 @@ function renderListEditor(){
         <div class="form">${formHtml("list",props,editing.values,{})}</div></div></div>
     <div class="sect"><h2>${t("Members")}</h2>
       <div class="card flat"><p class="note">${escHtml(t(LIST_HINTS.members))}</p>${members}</div></div>
+    ${nowSection}
     <div class="sect"><div class="row">
       <button class="btn" data-act="listsave">${t("Save list")}</button>
       <button class="btn ghost" data-act="lists" data-domain="${escHtml(editing.domain)}">${t("Cancel")}</button>

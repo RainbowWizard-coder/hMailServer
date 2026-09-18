@@ -3602,6 +3602,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Buscando la entrada de directorio del usuario</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Encuentra al resto de los miembros entre las cuentas del servidor cada vez que se envía un mensaje a la lista, de modo que nadie tenga que mantenerla a mano. Déjelo vacío para una lista cuyos miembros son solo sus destinatarios; domain para todas las cuentas activas de este dominio; domain:other.example para otro dominio alojado en este servidor; pattern:sales-*@example.com para las direcciones que coinciden con un comodín, donde * es cualquier serie de caracteres y ? uno solo; everyone para todas las cuentas activas del servidor. Las cuentas desactivadas nunca se incluyen.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Finalizar</value>
   </data>
@@ -4758,6 +4761,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Miembros - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>_Consulta de miembros (vacío = solo los destinatarios)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Pertenencia — solo los miembros de la lista pueden enviar</value>

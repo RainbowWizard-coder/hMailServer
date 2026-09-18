@@ -728,6 +728,155 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The membership query is a field of the list document and of both writes, refused when it is none of the five forms or names a domain this server does not host; GET /api/v1/lists/<address>/members answers the rows and the query's answers, each said which.")]
+      public void DistributionListMembershipQueryRoundTrips()
+      {
+         Account kept = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "kept@example.test", "secret");
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "found@example.test", "secret");
+
+         Account dormant = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dormant@example.test", "secret");
+         dormant.Active = false;
+         dormant.Save();
+
+         (int status, string body) created = Http("POST", "/api/v1/domains/example.test/lists",
+            "{\"address\":\"staff@example.test\",\"members\":[\"" + kept.Address + "\"],\"membership\":\"domain\"}");
+         Assert.AreEqual(201, created.status, created.body);
+         StringAssert.Contains("\"membership\":\"domain\"", created.body);
+
+         StringAssert.Contains("\"membership\":\"domain\"", Http("GET", "/api/v1/domains/example.test/lists").body,
+            "The listing carries the query beside the members.");
+
+         // Who it delivers to now: the row it keeps by hand and the accounts the
+         // query answers, deduplicated, with the disabled account in neither.
+         (int membersStatus, string members) = Http("GET", "/api/v1/lists/staff@example.test/members");
+         Assert.AreEqual(200, membersStatus, members);
+         StringAssert.Contains("\"membership_kind\":\"domain\"", members);
+         StringAssert.Contains("{\"address\":\"kept@example.test\",\"source\":\"row\"}", members);
+         StringAssert.Contains("{\"address\":\"found@example.test\",\"source\":\"query\"}", members);
+         StringAssert.DoesNotContain("dormant@example.test", members, "A disabled account is never a member.");
+         StringAssert.DoesNotContain("\"address\":\"kept@example.test\",\"source\":\"query\"", members,
+            "A row the query also answers is listed once, as a row.");
+
+         // Stored in its one spelling, whatever case and spacing it arrived in.
+         (int tidyStatus, string tidy) = Http("PUT", "/api/v1/lists/staff@example.test", "{\"membership\":\"  Domain:Example.TEST \"}");
+         Assert.AreEqual(200, tidyStatus, tidy);
+         StringAssert.Contains("\"membership\":\"domain:example.test\"", tidy);
+
+         // Refused, and nothing applied: a text that is none of the forms, and a
+         // domain this server does not host.
+         (int nonsenseStatus, string nonsense) = Http("PUT", "/api/v1/lists/staff@example.test", "{\"membership\":\"everybody\"}");
+         Assert.AreEqual(400, nonsenseStatus, nonsense);
+         StringAssert.Contains("The membership is empty", nonsense);
+
+         (int strangerStatus, string stranger) = Http("PUT", "/api/v1/lists/staff@example.test", "{\"membership\":\"domain:nowhere.invalid\"}");
+         Assert.AreEqual(400, strangerStatus, stranger);
+         StringAssert.Contains("which this server does not host", stranger);
+
+         Assert.AreEqual(400, Http("POST", "/api/v1/domains/example.test/lists",
+            "{\"address\":\"bad@example.test\",\"membership\":\"pattern:sales\"}").status,
+            "the create refuses the same text");
+
+         StringAssert.Contains("\"membership\":\"domain:example.test\"", Http("GET", "/api/v1/domains/example.test/lists").body,
+            "A refused write applies nothing.");
+
+         // An empty string is the off switch, and the row it keeps by hand stays.
+         (int offStatus, string off) = Http("PUT", "/api/v1/lists/staff@example.test", "{\"membership\":\"\"}");
+         Assert.AreEqual(200, offStatus, off);
+         StringAssert.Contains("\"membership\":\"\"", off);
+         StringAssert.Contains("\"members\":[\"kept@example.test\"]", off);
+
+         (int staticStatus, string onlyRows) = Http("GET", "/api/v1/lists/staff@example.test/members");
+         Assert.AreEqual(200, staticStatus, onlyRows);
+         StringAssert.Contains("\"membership_kind\":\"static\"", onlyRows);
+         StringAssert.Contains("\"count\":1", onlyRows);
+         StringAssert.DoesNotContain("found@example.test", onlyRows);
+
+         // A membership this build cannot parse. The column is written without
+         // being judged by a restore - a backup carries what was valid when it
+         // was taken, and a newer server's spelling arrives exactly this way -
+         // so the state is reachable, and calling it a static list would have
+         // the answer contradict the membership and the problem beside it.
+         _application.Database.ExecuteSQL(
+            "update hm_distributionlists set distributionlistmembership = 'department:sales' where distributionlistaddress = 'staff@example.test'");
+
+         (int unreadableStatus, string unreadable) = Http("GET", "/api/v1/lists/staff@example.test/members");
+         Assert.AreEqual(200, unreadableStatus, unreadable);
+         StringAssert.Contains("\"membership\":\"department:sales\"", unreadable);
+         StringAssert.Contains("\"membership_kind\":\"unreadable\"", unreadable, unreadable);
+         StringAssert.Contains("\"problem\":", unreadable, "and it says what it could not read: " + unreadable);
+
+         Assert.AreEqual(404, Http("GET", "/api/v1/lists/nobody@example.test/members").status);
+
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/lists/staff@example.test").status);
+      }
+
+      [Test]
+      [Description("A key confined to one domain may set a membership that stays inside it and is refused one that reaches past it - and is refused reading who a list delivers to when the query reaches past it either, because a form it may not set is a form it may not read the answer to.")]
+      public void ADomainRestrictedKeyIsHeldToItsDomainsByTheMembershipQuery()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "inside@example.test", "secret");
+
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain("other.test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(other, "outsider@other.test", "secret");
+
+         string confined = CreateKey("rest coverage - membership confined", "full", "example.test");
+
+         // Inside the domain the key administers: allowed, both forms.
+         (int status, string body) mine = Http("POST", "/api/v1/domains/example.test/lists", "Bearer " + confined,
+            "{\"address\":\"confined@example.test\",\"membership\":\"domain\"}");
+         Assert.AreEqual(201, mine.status, mine.body);
+         StringAssert.Contains("\"membership\":\"domain\"", mine.body);
+
+         (int status, string body) narrowed = Http("PUT", "/api/v1/lists/confined@example.test", "Bearer " + confined,
+            "{\"membership\":\"pattern:in-*@example.test\"}");
+         Assert.AreEqual(200, narrowed.status, narrowed.body);
+
+         // Past it. Every one of these answers accounts in a domain the key does
+         // not administer: every domain on the server, another tenant's by name,
+         // and a pattern whose domain part is itself a wildcard.
+         foreach (string reaching in new[] { "everyone", "domain:other.test", "pattern:*@*.test" })
+         {
+            (int status, string body) create = Http("POST", "/api/v1/domains/example.test/lists", "Bearer " + confined,
+               "{\"address\":\"reaching@example.test\",\"membership\":\"" + reaching + "\"}");
+            Assert.AreEqual(403, create.status, reaching + " must be refused on the create. Body: " + create.body);
+            StringAssert.Contains("outside the domains this key administers", create.body, create.body);
+
+            (int status, string body) update = Http("PUT", "/api/v1/lists/confined@example.test", "Bearer " + confined,
+               "{\"membership\":\"" + reaching + "\"}");
+            Assert.AreEqual(403, update.status, reaching + " must be refused on the update. Body: " + update.body);
+         }
+
+         // And not one of them was applied: the list still carries the pattern
+         // the key was allowed to set, and no list was created.
+         (int listStatus, string lists) = Http("GET", "/api/v1/domains/example.test/lists", "Bearer " + confined, null);
+         Assert.AreEqual(200, listStatus, lists);
+         StringAssert.Contains("\"membership\":\"pattern:in-*@example.test\"", lists);
+         StringAssert.DoesNotContain("reaching@example.test", lists, "A refused create makes nothing.");
+
+         // Reading who it delivers to, while the query is one the key may set.
+         (int ownStatus, string own) = Http("GET", "/api/v1/lists/confined@example.test/members", "Bearer " + confined, null);
+         Assert.AreEqual(200, ownStatus, own);
+         StringAssert.DoesNotContain("outsider@other.test", own);
+
+         // The server administrator now sets a query that reaches every domain,
+         // which is his to set. The confined key may still administer the list -
+         // it is in its own domain - but reading the answer would hand it every
+         // active address on the server, including the other tenant's.
+         Assert.AreEqual(200, Http("PUT", "/api/v1/lists/confined@example.test", "{\"membership\":\"everyone\"}").status);
+
+         (int reachingStatus, string reachingBody) = Http("GET", "/api/v1/lists/confined@example.test/members", "Bearer " + confined, null);
+         Assert.AreEqual(403, reachingStatus, reachingBody);
+         StringAssert.DoesNotContain("outsider@other.test", reachingBody, "Not one address of the other domain may reach a key that does not administer it.");
+
+         // The administrator, who reaches every domain, does read it.
+         (int adminStatus, string adminBody) = Http("GET", "/api/v1/lists/confined@example.test/members");
+         Assert.AreEqual(200, adminStatus, adminBody);
+         StringAssert.Contains("outsider@other.test", adminBody);
+
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/lists/confined@example.test").status);
+      }
+
+      [Test]
       [Description("Certificates are listed by name and file, and the private key password never appears.")]
       public void CertificatesAreListedWithoutTheirPassword()
       {

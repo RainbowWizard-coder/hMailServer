@@ -523,4 +523,4 @@
 //      BanMultiRcptNullSenderHours) are created at start by
 //      EnsureSettingDefaults_, every one at the value that leaves the server as
 //      it was.
-#define REQUIRED_DB_VERSION            6073
+#define REQUIRED_DB_VERSION            6074

@@ -94,6 +94,10 @@ public:
    STDMETHOD(get_BounceAddress)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_BounceAddress)(/*[in]*/ BSTR newVal);
 
+   // The membership query (DistributionListMembership.h), dispid 13.
+   STDMETHOD(get_Membership)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_Membership)(/*[in]*/ BSTR newVal);
+
 private:
 
 #ifdef _DEBUG

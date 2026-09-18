@@ -3602,6 +3602,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Ricerca della voce di directory dell'utente</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Trova il resto dei membri tra gli account del server ogni volta che un messaggio viene inviato alla lista, cosicché nessuno debba tenerla aggiornata a mano. Lasciare vuoto per una lista i cui membri sono soltanto i suoi destinatari; domain per ogni account attivo di questo dominio; domain:other.example per un altro dominio ospitato da questo server; pattern:sales-*@example.com per gli indirizzi che corrispondono a un carattere jolly, dove * è una qualsiasi sequenza di caratteri e ? uno solo; everyone per ogni account attivo del server. Gli account disattivati non sono mai inclusi.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Fine</value>
   </data>
@@ -4758,6 +4761,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Membri - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>_Query dei membri (vuoto = solo i destinatari)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Appartenenza — solo i membri della lista possono inviare</value>

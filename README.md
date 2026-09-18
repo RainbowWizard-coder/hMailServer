@@ -92,6 +92,7 @@ Mail filtering and routing
 * The original rules engine, with global and per-account rules, regular-expression criteria and scripted actions.
 * Server-side **event scripts** (VBScript/JScript) on connection, HELO, DATA, accept and delivery events, with `ScriptAllowedObjects` bounding which COM classes a script may create.
 * Routes, aliases, distribution lists, catch-all addresses and plus-addressing.
+* **A distribution list that defines itself** — a list whose members are a query rather than a table somebody maintains: every active account of a domain, of a named domain, of an address pattern, or of the whole server, evaluated at the moment a message is sent to it and joined with the addresses the list keeps by hand. Moderation, the sender rules and the bounce address are unchanged by it ([DistributionLists.md](hmailserver/docs/DistributionLists.md)).
 * Multiple smart hosts with automatic failover: separate several hosts with `|` in the relayer field and delivery moves to the next when one cannot be reached.
 
 Operations and observability

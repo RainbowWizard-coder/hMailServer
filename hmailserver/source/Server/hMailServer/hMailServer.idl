@@ -1853,6 +1853,8 @@ interface IInterfaceDistributionList : IDispatch
    [propput, id(11), helpstring("The moderator of the list.")] HRESULT ModeratorAddress([in] BSTR newVal);
    [propget, id(12), helpstring("The envelope sender given to every copy the list sends, so delivery failures go to the list owner instead of the original poster. Empty keeps the poster's envelope sender.")] HRESULT BounceAddress([out, retval] BSTR *pVal);
    [propput, id(12), helpstring("The bounce address of the list.")] HRESULT BounceAddress([in] BSTR newVal);
+   [propget, id(13), helpstring("The membership query: empty for a list whose members are its recipients alone; domain for every account of the list's domain; domain:<name> for every account of that domain; pattern:<wildcard address> for the accounts matching it; everyone for every account on the server. Evaluated when a message is sent to the list, in union with the recipients.")] HRESULT Membership([out, retval] BSTR *pVal);
+   [propput, id(13), helpstring("The membership query of the list.")] HRESULT Membership([in] BSTR newVal);
 };
 
 [

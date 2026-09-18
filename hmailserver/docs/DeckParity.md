@@ -10,15 +10,15 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 419 |
-| of them writable over REST | 419 |
-| of them reachable from a Deck view | 419 |
+| COM properties the desktop program writes | 420 |
+| of them writable over REST | 420 |
+| of them reachable from a Deck view | 420 |
 | missing over REST | 0 |
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 63 |
-| REST routes (path and method) | 434, 193 of them writes |
+| REST routes (path and method) | 435, 193 of them writes |
 | Deck views | 35 |
 
 ## Missing over REST, by interface
@@ -289,6 +289,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `Active` | DistributionListDialog, DomainsView | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | domains, webhooks |
 | `Address` | DistributionListDialog, DomainsView | `PUT /api/v1/accounts/{address}/review` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/review/unlock` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (words, scope unknown)<br>`POST /api/v1/accounts/{address}/export` (path, scope unknown)<br>`POST /api/v1/addresses/erase` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (path, scope unknown)<br>`POST /api/v1/accounts/{address}/unlock` (path, scope unknown)<br>`POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, review, roles, webhooks |
 | `BounceAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
+| `Membership` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `Mode` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `ModeratorAddress` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
 | `RequireSMTPAuth` | DistributionListDialog | `POST /api/v1/domains/{domain}/lists` (setter)<br>`PUT /api/v1/lists/{address}` (setter) | domains |
@@ -832,7 +833,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/domains/{domain}/dkim/rotation/start` | Domain | `selector` | - |
 | `POST /api/v1/domains/{domain}/dkim/rotation/switch` | Domain | `force` | - |
 | `POST /api/v1/domains/{domain}/domain-aliases` | DomainAlias | `name` | yes |
-| `POST /api/v1/domains/{domain}/lists` | DistributionList | `active`, `address`, `addresses`, `bounce_address`, `domain_members`, `members`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `sender`, `to` | yes |
+| `POST /api/v1/domains/{domain}/lists` | DistributionList | `account`, `active`, `address`, `addresses`, `administer`, `bounce_address`, `domain_members`, `domains`, `key`, `members`, `membership`, `message`, `mode`, `moderator_address`, `name`, `pattern`, `require_auth`, `require_sender_address`, `sender`, `to`, `wildcard` | yes |
 | `POST /api/v1/domains/{domain}/sender-list` | SenderListEntry, SenderListEntries | - | yes |
 | `PUT /api/v1/domains/{domain}/sender-list/{id}` | SenderListEntry, SenderListEntries | - | - |
 | `POST /api/v1/domains/{domain}/spam-traps` | Domain | `account`, `address`, `to` | yes |
@@ -850,7 +851,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `domain`, `field`, `force`, `keys`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
 | `POST /api/v1/ipranges` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `keys`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `virus_protection` | yes |
 | `PUT /api/v1/ipranges/{id}` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `body`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `field`, `keys`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `value`, `virus_protection` | yes |
-| `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `domain`, `domain_members`, `field`, `members`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |
+| `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `create`, `domain`, `domain_members`, `field`, `members`, `membership`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |
 | `POST /api/v1/me/app-passwords` | AppPassword | `account`, `address`, `code`, `name`, `password`, `text`, `to` | - |
 | `POST /api/v1/me/calendar/events` | ? | `address`, `addresses`, `alarm_minutes`, `all_day`, `attendees`, `calendar`, `card`, `description`, `end`, `event`, `first`, `invite`, `location`, `rrule`, `start`, `summary`, `text`, `to`, `tz` | - |
 | `PUT /api/v1/me/calendar/events/{id}` | ? | `address`, `addresses`, `alarm_minutes`, `all_day`, `attendees`, `calendar`, `card`, `description`, `end`, `event`, `first`, `invite`, `location`, `recurrence_id`, `rrule`, `start`, `summary`, `text`, `to`, `tz` | - |
@@ -976,7 +977,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 |---|---|
 | `dash` | `GET /api/v1/status` |
 | `checklist` | `GET /api/v1/setup/checklist`, `DELETE /api/v1/setup/sample-domain`, `GET /api/v1/setup/sample-domain`, `POST /api/v1/setup/sample-domain` |
-| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `POST /api/v1/addresses/erase`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/dmarc-reports/{}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
+| `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `POST /api/v1/addresses/erase`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/dmarc-reports/{}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/lists/{}/members`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |
 | `fetch` | `GET /api/v1/accounts/{}/fetch-accounts`, `POST /api/v1/accounts/{}/fetch-accounts`, `DELETE /api/v1/accounts/{}/fetch-accounts/{}`, `PUT /api/v1/accounts/{}/fetch-accounts/{}`, `POST /api/v1/accounts/{}/fetch-accounts/{}/download`, `GET /api/v1/domains`, `GET /api/v1/domains/{}/accounts`, `GET /api/v1/openapi.json` |

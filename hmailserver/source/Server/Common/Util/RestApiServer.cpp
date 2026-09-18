@@ -1851,11 +1851,13 @@ namespace HM
          case RouteListList:
             return HandleListLists_(String(route.identifier));
          case RouteListCreate:
-            return HandleCreateList_(String(route.identifier), GetRequestBody_(request));
+            return HandleCreateList_(String(route.identifier), caller.domains, GetRequestBody_(request));
          case RouteListDelete:
             return HandleDeleteList_(String(route.identifier));
          case RouteListUpdate:
-            return HandleUpdateList_(String(route.identifier), GetRequestBody_(request));
+            return HandleUpdateList_(String(route.identifier), caller.domains, GetRequestBody_(request));
+         case RouteListMembers:
+            return HandleListMembers_(String(route.identifier), caller.domains);
          case RouteDnsBlackListList:
          case RouteDnsBlackListCreate:
          case RouteDnsBlackListUpdate:
@@ -4657,6 +4659,21 @@ namespace HM
             return;
          }
       }
+      // Who the list delivers to now: its rows and what its membership query
+      // answers. "members" is a verb of the list rather than an address, and
+      // an address holds no slash, so the two cannot be confused.
+      if (method == "GET" && path.StartsWith(listsPrefix) && path.EndsWith("/members"))
+      {
+         const AnsiString membersSuffix = "/members";
+         AnsiString address = path.Mid(listsPrefix.GetLength(),
+            path.GetLength() - listsPrefix.GetLength() - membersSuffix.GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteListMembers;
+            route.identifier = address;
+            return;
+         }
+      }
       // /api/v1/domains/<name>/dkim/rotation[/start|/check|/switch|/retire|/next]
       // - the domain's key rotation. Matched before the plain /dkim route below,
       // whose EndsWith these paths do not satisfy anyway, and only with a domain
@@ -6084,6 +6101,9 @@ namespace HM
       case RouteDomainRuleList:
       case RouteAliasList:
       case RouteListList:
+      // Who a list delivers to now: the addresses of accounts, which is what
+      // the listing of accounts already carries, read rather than changed.
+      case RouteListMembers:
       case RouteFetchAccountList:
       case RouteFetchAccountGet:
       case RouteAccountAppPasswordList:
@@ -6597,6 +6617,9 @@ namespace HM
 
       case RouteListDelete:
       case RouteListUpdate:
+      // The members route names the list at its own address, as the update
+      // and the delete do, so the domain it is scoped to is the one in it.
+      case RouteListMembers:
       case RouteAliasDelete:
       // A spam trap is removed at its own address, as an alias is, so the
       // domain it belongs to is the domain in that address. Without this a
@@ -15016,10 +15039,10 @@ namespace HM
          "\"/api/v1/ipranges/{id}\":{\"put\":{\"summary\":\"Change an IP range\",\"description\":\"Body: any subset of the fields POST takes - name, lower, upper, priority, the permission flags, expires and expires_time; a field left out keeps its value, and a body that turns expiry on must carry expires_time in it. The same check as saving the range in the Control Panel; nothing changes when it is refused. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The range as saved, as the listing shows it\"},\"400\":{\"description\":\"A field refused (error names it); nothing changed\"},\"404\":{\"description\":\"Unknown id\"}}},"
          "\"delete\":{\"summary\":\"Delete an IP range\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/domains/{domain}/lists\":{"
-         "\"get\":{\"summary\":\"List the distribution lists in a domain, with their members\",\"description\":\"Each entry: address, active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address and members. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of lists\"},\"404\":{\"description\":\"Unknown domain\"}}},"
-         "\"post\":{\"summary\":\"Create a distribution list\",\"description\":\"Body: address (required, in this domain), members (an array of addresses), active (default true), require_auth (default false), mode (public, membership, announcement or domain_members; default public, and any other word is refused as put_Mode refuses it), require_sender_address (the one sender an announcement list accepts), moderator_address and bounce_address. Saved as the Control Panel saves a list, with the same limitation check. Scoped to the domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\"],\"properties\":{\"address\":{\"type\":\"string\"},\"members\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the list as the listing shows it\"},\"400\":{\"description\":\"Missing address, one outside the domain, a mode that is not one of the four words, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"A list with that address exists\"}}}},"
+         "\"get\":{\"summary\":\"List the distribution lists in a domain, with their members\",\"description\":\"Each entry: address, active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address, membership and members. members is the addresses kept by hand; membership is the query that finds the rest among the server's accounts when a message is sent to the list, and is empty for a list whose members are its rows alone. GET /api/v1/lists/{address}/members answers what the two come to now. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of lists\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"post\":{\"summary\":\"Create a distribution list\",\"description\":\"Body: address (required, in this domain), members (an array of addresses), active (default true), require_auth (default false), mode (public, membership, announcement or domain_members; default public, and any other word is refused as put_Mode refuses it), require_sender_address (the one sender an announcement list accepts), moderator_address, bounce_address and membership. membership is the list's query, evaluated when a message is sent to it and never stored: empty (the members are the rows in members, which is every list made before this existed), domain (every active account of this domain), domain:NAME (every active account of that domain, which this server has to host), pattern:WILDCARD (active accounts whose address matches it, with * for any run of characters and ? for one; the part after the @ has to name a domain this server hosts unless it is itself a wildcard) or everyone (every active account of every active domain). What it answers is in union with members and deduplicated by address, and a query list still honours require_auth, require_sender_address, mode and moderator_address. A key confined to named domains may set empty, domain, or a pattern in a domain it holds; the other forms reach accounts it does not administer and are refused. Saved as the Control Panel saves a list, with the same limitation check. Scoped to the domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\"],\"properties\":{\"address\":{\"type\":\"string\"},\"members\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"},\"membership\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the list as the listing shows it\"},\"400\":{\"description\":\"Missing address, one outside the domain, a mode that is not one of the four words, a membership that is none of the five forms or that names a domain this server does not host, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A membership reaching past the domains this key administers\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"A list with that address exists\"}}}},"
          "\"/api/v1/lists/{address}\":{"
-         "\"put\":{\"summary\":\"Change a distribution list\",\"description\":\"Body: any subset of active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address and bounce_address; a field left out keeps its value, and the members are not changed here. Everything is checked before anything is applied. Scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The list as saved, as the listing shows it\"},\"400\":{\"description\":\"A mode that is not one of the four words, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"404\":{\"description\":\"Unknown list\"}}},"
+         "\"put\":{\"summary\":\"Change a distribution list\",\"description\":\"Body: any subset of active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address and membership; a field left out keeps its value, and the members are not changed here. membership takes the five forms the create documents, and an empty string turns a query list back into a static one - either way its rows are untouched. Everything is checked before anything is applied. Scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"},\"membership\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The list as saved, as the listing shows it\"},\"400\":{\"description\":\"A mode that is not one of the four words, a membership that is none of the five forms or that names a domain this server does not host, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A membership reaching past the domains this key administers\"},\"404\":{\"description\":\"Unknown list\"}}},"
          "\"delete\":{\"summary\":\"Delete a distribution list\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown list\"}}}},"
          "\"/api/v1/domains/{domain}/dkim\":{\"get\":{\"summary\":\"The DKIM signing configuration of a domain\",\"responses\":{\"200\":{\"description\":\"enabled, selector, sign_aliases and the private key file\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/logs\":{\"get\":{\"summary\":\"List the log files\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of files with size and creation time\"}}}},"
@@ -15070,6 +15093,7 @@ namespace HM
       openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiSpamTrapPaths_();
       openApiJson += OpenApiDomainPolicyListPaths_();
+      openApiJson += OpenApiDistributionListMembersPath_();
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiCalendarPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();

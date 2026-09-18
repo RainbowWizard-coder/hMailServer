@@ -125,9 +125,22 @@ RESOURCES = {
         "parent": "domain",
         "key": "lists",
         "id": "address",
-        "columns": ["address", "active", "mode", "member_count"],
+        "columns": ["address", "active", "mode", "member_count", "membership"],
         "verbs": ["list", "create", "update", "delete"],
         "help": "distribution lists",
+    },
+    "listmember": {
+        # Who a list delivers to now: its own addresses and whatever its
+        # membership query answers at the moment of the call, each row saying
+        # which of the two it came from. Read-only, because there is nothing
+        # here to write - the rows are the list's and the rest is the query's.
+        "collection": "/api/v1/lists/{parent}/members",
+        "parent": "address",
+        "key": "members",
+        "id": "address",
+        "columns": ["address", "source"],
+        "verbs": ["list"],
+        "help": "who a distribution list delivers to now, rows and query together",
     },
     "suppression": {
         "collection": "/api/v1/domains/{parent}/suppressions",

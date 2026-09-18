@@ -3602,6 +3602,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Finding the user's directory entry</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Finish</value>
   </data>
@@ -4758,6 +4761,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Members - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>Membership _query (empty = the recipients alone)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Membership — only list members can send</value>

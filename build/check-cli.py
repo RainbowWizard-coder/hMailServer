@@ -387,7 +387,14 @@ ANSWERS = {
     ("GET", "/api/v1/ports"): {"ports": [{"protocol": "SMTP", "address": "0.0.0.0", "port": 25,
                                           "connection_security": 0}]},
     ("GET", "/api/v1/domains/example.com/lists"): {"lists": [{"address": "all@example.com", "active": True,
-                                                              "mode": 0}]},
+                                                              "mode": 0, "membership": "domain"}]},
+    # The one list of example.com finds its members by query rather than by
+    # hand, so its members are one row kept by hand and the accounts the query
+    # answers - which is what this route exists to say.
+    ("GET", "/api/v1/lists/all@example.com/members"): {
+        "address": "all@example.com", "membership": "domain", "membership_kind": "domain", "count": 2,
+        "members": [{"address": "ann@example.com", "source": "row"},
+                    {"address": "bob@example.com", "source": "query"}]},
     ("GET", "/api/v1/domains/example.net/accounts"): [],
     ("GET", "/api/v1/domains/example.net/aliases"): {"aliases": []},
     ("GET", "/api/v1/domains/example.net/lists"): {"lists": []},
@@ -734,6 +741,11 @@ CASES = [
      {"new_address": "ann@example.net", "keep_alias": False}, ["moved to ann@example.net"]),
     ("alias list under its domain", ["alias", "list", "--domain", "example.com"],
      "GET", "/api/v1/domains/example.com/aliases", None, ["sales@example.com"]),
+    ("list list shows the membership query beside the list", ["list", "list", "--domain", "example.com"],
+     "GET", "/api/v1/domains/example.com/lists", None, ["all@example.com", "domain"]),
+    ("listmember list is the rows and the query's answers, each said which",
+     ["listmember", "list", "--address", "all@example.com"],
+     "GET", "/api/v1/lists/all@example.com/members", None, ["ann@example.com", "row", "bob@example.com", "query"]),
     ("group list", ["group", "list"], "GET", "/api/v1/groups", None, ["support"]),
     ("group members", ["member", "1", "list"], "GET", "/api/v1/groups/1/members", None, ["ann@example.com"]),
     ("group member add by address", ["member", "1", "add", "bob@example.com"],

@@ -3602,6 +3602,9 @@
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>查找用户的目录条目</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>每当有邮件发往该列表时，在服务器的账户中找出其余成员，无需任何人手工维护列表。成员只有收件人的列表请留空；domain 表示本域的每个启用账户；domain:other.example 表示本服务器托管的另一个域；pattern:sales-*@example.com 表示与通配符匹配的地址，其中 * 代表任意长度的字符，? 代表一个字符；everyone 表示服务器上的每个启用账户。已停用的账户永远不会包含在内。</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>完成</value>
   </data>
@@ -4758,6 +4761,9 @@
   </data>
   <data name="Members - " xml:space="preserve">
     <value>成员 - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>成员查询（留空 = 仅收件人） (_Q)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>成员资格 — 只有列表成员可以发信</value>

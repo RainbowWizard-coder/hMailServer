@@ -344,7 +344,8 @@ create table hm_distributionlists
 	distributionlistrequireaddress varchar(255) not null,
 	distributionlistmode tinyint not null,
 	distributionlistmoderatoraddress varchar(255) not null default '',
-	distributionlistbounceaddress varchar(255) not null default ''
+	distributionlistbounceaddress varchar(255) not null default '',
+	distributionlistmembership varchar(200) not null default ''
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_distributionlists ON hm_distributionlists (distributionlistdomainid);
@@ -2237,4 +2238,4 @@ CREATE UNIQUE INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplp
 
 ALTER TABLE hm_domainpolicylist ENGINE=InnoDB;
 
-insert into hm_dbversion values (6073);
+insert into hm_dbversion values (6074);

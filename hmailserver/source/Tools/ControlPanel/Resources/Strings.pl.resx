@@ -3602,6 +3602,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Odnajdywanie wpisu użytkownika w katalogu</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Przy każdej wiadomości wysłanej na listę znajduje pozostałych członków wśród kont serwera, więc nikt nie musi prowadzić listy ręcznie. Zostaw puste dla listy, której członkami są tylko jej odbiorcy; domain oznacza każde aktywne konto tej domeny; domain:other.example inną domenę na tym serwerze; pattern:sales-*@example.com adresy pasujące do wzorca, gdzie * to dowolny ciąg znaków, a ? jeden znak; everyone każde aktywne konto na serwerze. Konta wyłączone nigdy nie są brane pod uwagę.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Zakończ</value>
   </data>
@@ -4758,6 +4761,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Członkowie - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>Zap_ytanie o członków (puste = tylko odbiorcy)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Członkostwo — wysyłać mogą tylko członkowie listy</value>

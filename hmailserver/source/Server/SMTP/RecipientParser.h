@@ -43,6 +43,25 @@ namespace HM
 
       void CreateMessageRecipientList_(const String &recipientAddress, const String &sOriginalAddress, long lRecurse, std::shared_ptr<MessageRecipients> pRecipients, bool &recipientOK);
       void AddRecipient_(std::shared_ptr<MessageRecipients> pRecipients, std::shared_ptr<MessageRecipient> pRecipient);
+
+      // What a list's membership query answers, resolved at most once for the
+      // transaction in hand. DistributionListMembership caches nothing - that
+      // is the whole point of a query list, there is no membership table to
+      // drift - but SMTPConnection calls this parser once per RCPT TO on one
+      // connection, so without this an unauthenticated sender could repeat
+      // RCPT TO:<all@example.com> against a public list and buy a full scan of
+      // hm_accounts with every command, each answered 250. unavailable is
+      // DistributionListMembership::Members's: the query could not be answered
+      // and the caller must refuse the recipient rather than expand what came
+      // back.
+      std::vector<String> MembersOf_(std::shared_ptr<const DistributionList> list, std::shared_ptr<MessageRecipients> pRecipients, bool &unavailable);
+
+      // Drops both memos below when the collection being filled is not the one
+      // they were built for. The MessageRecipients of a transaction is that
+      // transaction's own object, so a new MAIL FROM (or any other caller with
+      // a collection of its own) is exactly a different pointer here.
+      void ForgetIfNewTransaction_(std::shared_ptr<MessageRecipients> pRecipients);
+
       bool IsMailboxFull_(std::shared_ptr<const Account> account, String &sErrMsg);
       DeliveryPossibility UserCanSendToList_(const String &sSender, bool bSenderIsAuthenticated, std::shared_ptr<const DistributionList> pList, String &sErrMsg, int iRecursionLevel);
 
@@ -58,6 +77,27 @@ namespace HM
       // of CreateMessageRecipientList constructs a fresh parser, whose empty set
       // means what it always meant: expand the list to its members.
       std::set<String> moderated_list_addresses_;
+
+      // The collection the two memos below describe, held weakly so that a
+      // collection which has been freed can never be mistaken for the one in
+      // hand by a later allocation at the same address: an expired weak pointer
+      // locks to null, which is not the pointer being asked about.
+      std::weak_ptr<MessageRecipients> memo_recipients_;
+
+      // A list's address, lower-cased, against what its membership query
+      // answered for this transaction.
+      std::map<String, std::vector<String> > membership_memo_;
+
+      // The addresses already in that collection, lower-cased, and how many
+      // entries it had when this was last true of it. AddRecipient_ has
+      // deduplicated by walking the whole vector on every insert since long
+      // before queries existed - fine for a list somebody typed, quadratic for
+      // one that answers a domain of thousands - and this is the same decision
+      // taken in one lookup. Rebuilt whenever the count disagrees, so anything
+      // that changes the collection behind this parser's back is noticed rather
+      // than believed.
+      std::set<String> memo_added_;
+      size_t memo_added_count_;
 
   };
 }

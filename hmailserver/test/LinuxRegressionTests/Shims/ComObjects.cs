@@ -3179,6 +3179,15 @@ namespace hMailServer
          set { NotOnThisServer.Ignore(NotOnThisServer.NoListObject, value); }
       }
 
+      // The membership query (schema 6074). Mirrored here because the shared
+      // tests reach every scalar of a list through this shim; the REST list
+      // routes carry it, but this shim has no list object to carry it on.
+      public string Membership
+      {
+         get { throw NotOnThisServer.Skipped(NotOnThisServer.NoListObject); }
+         set { NotOnThisServer.Ignore(NotOnThisServer.NoListObject, value); }
+      }
+
       public bool RequireSenderAddress
       {
          get

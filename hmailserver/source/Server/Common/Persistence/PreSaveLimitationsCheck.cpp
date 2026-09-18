@@ -13,6 +13,7 @@
 #include "../BO/Aliases.h"
 #include "../BO/DistributionLists.h"
 #include "../BO/DistributionListRecipient.h"
+#include "../Util/DistributionListMembership.h"
 #include "../BO/Groups.h"
 #include "../BO/Route.h"
 #include "../BO/Routes.h"
@@ -437,6 +438,22 @@ namespace HM
       {
          resultDescription = "That address is one of this domain's spam traps. Remove the trap before giving the address to an account, an alias or a distribution list.";
          return false;
+      }
+
+      // The membership query, judged here so that COM's Save and the REST
+      // update refuse the same text in the same sentence, and stored in its
+      // one canonical spelling. A restore and a rename have returned above:
+      // a backup carries what was valid when it was taken, and a domain the
+      // query names may not have been restored yet.
+      {
+         String normalised, reason;
+         if (!DistributionListMembership::Validate(list->GetMembership(), normalised, reason))
+         {
+            resultDescription = reason;
+            return false;
+         }
+
+         list->SetMembership(normalised);
       }
 
       if (list->GetID() == 0)

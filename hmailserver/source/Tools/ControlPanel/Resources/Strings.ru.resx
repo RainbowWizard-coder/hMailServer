@@ -3602,6 +3602,9 @@ Control Panel может читать файлы сообщений только
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Поиск записи пользователя в каталоге</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>При каждой отправке сообщения в список находит остальных участников среди учётных записей сервера, так что вести список вручную не нужно. Оставьте пустым для списка, участниками которого являются только его получатели; domain — каждая активная учётная запись этого домена; domain:other.example — другой домен на этом сервере; pattern:sales-*@example.com — адреса, подходящие под шаблон, где * заменяет любую последовательность символов, а ? — один; everyone — каждая активная учётная запись сервера. Отключённые учётные записи не включаются никогда.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Готово</value>
   </data>
@@ -4758,6 +4761,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Участники — </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>Запрос участников (пусто = только получатели) (_Q)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Членство — отправлять могут только участники списка</value>

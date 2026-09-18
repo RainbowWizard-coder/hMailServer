@@ -3602,6 +3602,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Kullanıcının dizin girdisi bulunuyor</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Listeye her ileti gönderildiğinde geri kalan üyeleri sunucunun hesapları arasında bulur, böylece listeyi kimsenin elle güncel tutması gerekmez. Üyeleri yalnızca alıcıları olan bir liste için boş bırakın; domain bu alan adının her etkin hesabı; domain:other.example bu sunucunun barındırdığı başka bir alan adı; pattern:sales-*@example.com joker karaktere uyan adresler, burada * herhangi bir karakter dizisi, ? ise tek bir karakterdir; everyone sunucudaki her etkin hesap demektir. Kapatılmış hesaplar hiçbir zaman dahil edilmez.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Bitir</value>
   </data>
@@ -4758,6 +4761,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Üyeler -</value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>Ü_yelik sorgusu (boş = yalnızca alıcılar)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Üyelik — yalnızca liste üyeleri gönderebilir</value>

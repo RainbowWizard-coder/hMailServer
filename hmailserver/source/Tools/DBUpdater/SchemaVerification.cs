@@ -1218,6 +1218,10 @@ namespace DBUpdater
          // last column.
          new SchemaProbe(6073, "hm_domainpolicylist.dplcreated",
                          "update hm_domainpolicylist set dplcreated = dplcreated where 1 = 0"),
+         // Upgrade6073to6074* - distribution lists that define themselves: the
+         // membership query on the list.
+         new SchemaProbe(6074, "hm_distributionlists.distributionlistmembership",
+                         "update hm_distributionlists set distributionlistmembership = distributionlistmembership where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

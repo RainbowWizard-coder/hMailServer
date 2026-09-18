@@ -3602,6 +3602,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>De directoryvermelding van de gebruiker vinden</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Zoekt de overige leden tussen de accounts van de server, telkens als er een bericht naar de lijst gaat, zodat niemand de lijst met de hand hoeft bij te houden. Laat leeg voor een lijst waarvan de leden alleen haar ontvangers zijn; domain voor elk actief account van dit domein; domain:other.example voor een ander domein dat deze server host; pattern:sales-*@example.com voor de adressen die op een jokerteken passen, waarbij * voor een willekeurige reeks tekens staat en ? voor één; everyone voor elk actief account op de server. Uitgeschakelde accounts worden nooit meegenomen.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Voltooien</value>
   </data>
@@ -4758,6 +4761,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Leden - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>L_edenquery (leeg = alleen de ontvangers)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Lidmaatschap — alleen leden van de lijst mogen verzenden</value>

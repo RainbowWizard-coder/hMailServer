@@ -3602,6 +3602,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Hledání položky uživatele v adresáři</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Při každém odeslání zprávy do konference najde zbývající členy mezi účty serveru, takže seznam nemusí nikdo udržovat ručně. Ponechte prázdné pro konferenci, jejímiž členy jsou pouze její příjemci; domain pro každý aktivní účet této domény; domain:other.example pro jinou doménu hostovanou tímto serverem; pattern:sales-*@example.com pro adresy odpovídající masce, kde * je libovolný počet znaků a ? jeden znak; everyone pro každý aktivní účet na serveru. Vypnuté účty nejsou zahrnuty nikdy.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Dokončit</value>
   </data>
@@ -4758,6 +4761,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Členové –</value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>D_otaz na členství (prázdné = pouze příjemci)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Členství — odesílat mohou jen členové seznamu</value>

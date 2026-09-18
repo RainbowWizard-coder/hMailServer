@@ -448,7 +448,8 @@ create table hm_distributionlists
 	distributionlistrequireaddress nvarchar(255) not null,
 	distributionlistmode tinyint not null,
 	distributionlistmoderatoraddress nvarchar(255) not null,
-	distributionlistbounceaddress nvarchar(255) not null
+	distributionlistbounceaddress nvarchar(255) not null,
+	distributionlistmembership nvarchar(200) not null default ''
 ) 
 
 ALTER TABLE hm_distributionlists ADD CONSTRAINT hm_distributionlists_pk PRIMARY KEY NONCLUSTERED (distributionlistid) 
@@ -2387,4 +2388,4 @@ ALTER TABLE hm_domainpolicylist ADD CONSTRAINT hm_domainpolicylist_pk PRIMARY KE
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon)
 
-insert into hm_dbversion values (6073)
+insert into hm_dbversion values (6074)

@@ -398,6 +398,14 @@ namespace HM
    bool
    StringParser::WildcardMatch(const String &pattern, const String &value)
    {
+      RegularExpression regexpEvaluator;
+      bool result = regexpEvaluator.TestExactMatch(WildcardToRegularExpression(pattern), value);
+      return result;
+   }
+
+   String
+   StringParser::WildcardToRegularExpression(const String &pattern)
+   {
       // Convert the pattern to a regular expression.
       String regularExpression;
 
@@ -435,9 +443,7 @@ namespace HM
          }
       }
 
-      RegularExpression regexpEvaluator;
-      bool result = regexpEvaluator.TestExactMatch(regularExpression, value);
-      return result;
+      return regularExpression;
    }
 
    String 

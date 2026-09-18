@@ -3602,6 +3602,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Recherche de l'entrée d'annuaire de l'utilisateur</value>
   </data>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
+    <value>Trouve le reste des membres parmi les comptes du serveur chaque fois qu'un message est envoyé à la liste, de sorte que personne n'ait à tenir la liste à jour à la main. Laissez vide pour une liste dont les membres sont ses seuls destinataires ; domain pour tous les comptes actifs de ce domaine ; domain:other.example pour un autre domaine hébergé par ce serveur ; pattern:sales-*@example.com pour les adresses correspondant à un motif, où * remplace toute suite de caractères et ? un seul ; everyone pour tous les comptes actifs du serveur. Les comptes désactivés ne sont jamais inclus.</value>
+  </data>
   <data name="Finish" xml:space="preserve">
     <value>Terminer</value>
   </data>
@@ -4758,6 +4761,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Members - " xml:space="preserve">
     <value>Membres - </value>
+  </data>
+  <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
+    <value>_Requête de membres (vide = les destinataires seuls)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>Appartenance — seuls les membres de la liste peuvent envoyer</value>

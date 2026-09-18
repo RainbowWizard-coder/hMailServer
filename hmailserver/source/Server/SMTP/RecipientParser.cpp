@@ -14,6 +14,8 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/QuotaPolicy.h"
 #include "../Common/Util/MaskedAddresses.h"
+#include "../Common/Util/DistributionListMembership.h"
+#include "../Common/SQL/DatabaseUnavailableMarker.h"
 
 #include "../Common/BO/Domain.h"
 #include "../Common/BO/Alias.h"
@@ -44,7 +46,8 @@ namespace HM
 
    const String CONST_UNKNOWN_USER = "Unknown user";
 
-   RecipientParser::RecipientParser()
+   RecipientParser::RecipientParser() :
+      memo_added_count_(0)
    {
 
    }
@@ -502,16 +505,44 @@ namespace HM
                return;
             }
 
-            std::shared_ptr<const DistributionListRecipients> listRecipients = pListADO->GetMembers();
-            const std::vector<std::shared_ptr<DistributionListRecipient> > vecRecipients = listRecipients->GetConstVector();
-            std::vector<std::shared_ptr<DistributionListRecipient> >::const_iterator iterRecipient = vecRecipients.begin();
+            // The list's rows, and then what its membership query answers now
+            // (DistributionListMembership.h): the accounts of a domain, those
+            // matching a pattern, or everyone, evaluated for this message and
+            // never stored. Each goes through the same expansion a row does, so
+            // an account's plus address, its active flag and its domain's are
+            // judged the one way, and AddRecipient_ keeps an address that is
+            // both a row and an answer to one copy.
+            bool membershipUnavailable = false;
+            const std::vector<String> members = MembersOf_(pListADO, pRecipients, membershipUnavailable);
 
-            while (iterRecipient != vecRecipients.end())
+            if (membershipUnavailable)
             {
-               CreateMessageRecipientList_((*iterRecipient)->GetAddress(), sOriginalAddress,lRecurse, pRecipients, recipientOK);
+               // The database did not answer, so who this list delivers to is
+               // not known. Nothing is expanded and recipientOK is left alone,
+               // which is what makes this a refusal rather than a delivery:
+               // with the thread marked, the scope SMTPConnection opened around
+               // this call answers 451 and the sender retries.
+               //
+               // Marked here rather than left to whichever read failed, because
+               // this is the layer that knows the answer is missing rather than
+               // empty: the pool marks a statement it could not run, but a
+               // membership can also fail to be answered without one (a domain
+               // the cache could not read), and a 550 for any of them would
+               // bounce mail for a list that is perfectly good.
+               //
+               // Expanding the rows here instead is the defect this exists to
+               // stop. One row would set recipientOK, the 451 would never fire,
+               // and a message for a thousand query members would be accepted
+               // with 250 and delivered to the one row - a loss nothing ever
+               // retries, because the sender was told it arrived.
+               // DistributionListMembership::Members has already reported 6982.
+               DatabaseUnavailableMarker::Mark();
 
-               iterRecipient++;
+               return;
             }
+
+            for (const String &member : members)
+               CreateMessageRecipientList_(member, sOriginalAddress, lRecurse, pRecipients, recipientOK);
 
             return;
          }
@@ -740,8 +771,14 @@ namespace HM
          }
 
          // If we reached the end of the list, it means that we
-         // didn't find the recipient.
-         if (iterRecipient == vecRecipients.end())
+         // didn't find the recipient among the rows. A list with a membership
+         // query has members its rows do not name - the accounts the query
+         // answers - and a sender who is one of them is a member. Asked of the
+         // cache by IsMember rather than by resolving the whole query, since
+         // this runs at RCPT TO; the sender's domain alias is applied first so
+         // that the account lookup sees the primary address.
+         if (iterRecipient == vecRecipients.end() &&
+             !DistributionListMembership::IsMember(pList, pDA->ApplyAliasesOnAddress(sSender)))
          {
             // Let's adjust reason to better explain sender is not seen as allowed SENDER
             sErrMsg = "Not authorized sender.";
@@ -755,6 +792,13 @@ namespace HM
       // Check that the user is allowed to send to all recipient
       // of the list. This is a bit CPU intensive, but we need
       // to recursively look up all the recipients.
+      //
+      // The rows only, not the membership query's answers: this walk exists
+      // for a row that is an address elsewhere (may this sender relay to it)
+      // or another list (does that list take this sender), and a query answers
+      // active accounts of this server and nothing else, for which the answer
+      // is yes without asking. Resolving a domain's accounts at every RCPT TO
+      // to ask a question with one answer would be the cost without the check.
       std::shared_ptr<DistributionListRecipients> pListMembers = pList->GetMembers();
 
       std::vector<std::shared_ptr<DistributionListRecipient> > vecRecipients = pListMembers->GetVector();
@@ -785,18 +829,77 @@ namespace HM
 
       if (address.IsEmpty())
          return;
-      
-      std::vector<std::shared_ptr<MessageRecipient> > vecResult = pRecipients->GetVector();
-      auto iterRecip = vecResult.begin();
 
-      while (iterRecip != vecResult.end())
+      ForgetIfNewTransaction_(pRecipients);
+
+      const std::vector<std::shared_ptr<MessageRecipient> > &vecResult = pRecipients->GetVector();
+
+      if (vecResult.size() != memo_added_count_)
       {
-         if ((*iterRecip)->GetAddress().ToLower() == address)
-            return;
+         // The collection is not what this parser last left it as - a caller
+         // that emptied it, a recursion that filled it before this parser saw
+         // it - so the index is built from what is actually in it rather than
+         // trusted. This is the same answer the walk it replaces would give,
+         // asked once instead of once per insert.
+         memo_added_.clear();
 
-         iterRecip++;
+         for (const std::shared_ptr<MessageRecipient> &existing : vecResult)
+         {
+            String lowered = existing->GetAddress();
+            lowered.ToLower();
+            memo_added_.insert(lowered);
+         }
+
+         memo_added_count_ = vecResult.size();
       }
 
+      if (!memo_added_.insert(address).second)
+         return;
+
       pRecipients->Add(pRecipient);
+      memo_added_count_ = pRecipients->GetVector().size();
+   }
+
+   std::vector<String>
+   RecipientParser::MembersOf_(std::shared_ptr<const DistributionList> list, std::shared_ptr<MessageRecipients> pRecipients, bool &unavailable)
+   {
+      unavailable = false;
+
+      ForgetIfNewTransaction_(pRecipients);
+
+      String key = list->GetAddress();
+      key.ToLower();
+
+      std::map<String, std::vector<String> >::const_iterator remembered = membership_memo_.find(key);
+
+      if (remembered != membership_memo_.end())
+         return remembered->second;
+
+      const std::vector<String> members = DistributionListMembership::Members(list, unavailable);
+
+      if (unavailable)
+      {
+         // Not remembered: the next command in this transaction should be free
+         // to ask again, because the database may have come back by then, and
+         // remembering "could not be answered" would turn one locked table into
+         // a refusal for the rest of the transaction.
+         return std::vector<String>();
+      }
+
+      membership_memo_[key] = members;
+
+      return members;
+   }
+
+   void
+   RecipientParser::ForgetIfNewTransaction_(std::shared_ptr<MessageRecipients> pRecipients)
+   {
+      if (memo_recipients_.lock() == pRecipients)
+         return;
+
+      memo_recipients_ = pRecipients;
+      membership_memo_.clear();
+      memo_added_.clear();
+      memo_added_count_ = 0;
    }
 }

@@ -560,11 +560,11 @@ function accountRecord(address, active) {
 // them: the create takes the address and the members, the update neither.
 const LIST_PROPS = {
    active: { type: 'boolean' }, require_auth: { type: 'boolean' }, mode: { type: 'string', enum: ['public', 'membership', 'announcement', 'domain_members'] },
-   require_sender_address: { type: 'string' }, moderator_address: { type: 'string' }, bounce_address: { type: 'string' }
+   require_sender_address: { type: 'string' }, moderator_address: { type: 'string' }, bounce_address: { type: 'string' }, membership: { type: 'string' }
 };
 const LIST_CREATE_PROPS = Object.assign({ address: { type: 'string' }, members: { type: 'array', items: { type: 'string' } } }, LIST_PROPS);
-const LISTS_POST = 'Body: address (required, in this domain), members (an array of addresses), active (default true), require_auth (default false), mode (public, membership, announcement or domain_members; default public, and any other word is refused as put_Mode refuses it), require_sender_address (the one sender an announcement list accepts), moderator_address and bounce_address. Saved as the Control Panel saves a list, with the same limitation check. Scoped to the domain.';
-const LIST_PUT = 'Body: any subset of active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address and bounce_address; a field left out keeps its value, and the members are not changed here. Everything is checked before anything is applied. Scoped to the address\'s domain.';
+const LISTS_POST = 'Body: address (required, in this domain), members (an array of addresses), active (default true), require_auth (default false), mode (public, membership, announcement or domain_members; default public, and any other word is refused as put_Mode refuses it), require_sender_address (the one sender an announcement list accepts), moderator_address, bounce_address and membership. membership is the list\'s query, evaluated when a message is sent to it and never stored: empty (the members are the rows in members, which is every list made before this existed), domain (every active account of this domain), domain:NAME (every active account of that domain, which this server has to host), pattern:WILDCARD (active accounts whose address matches it, with * for any run of characters and ? for one; the part after the @ has to name a domain this server hosts unless it is itself a wildcard) or everyone (every active account of every active domain). What it answers is in union with members and deduplicated by address, and a query list still honours require_auth, require_sender_address, mode and moderator_address. A key confined to named domains may set empty, domain, or a pattern in a domain it holds; the other forms reach accounts it does not administer and are refused. Saved as the Control Panel saves a list, with the same limitation check. Scoped to the domain.';
+const LIST_PUT = 'Body: any subset of active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address and membership; a field left out keeps its value, and the members are not changed here. membership takes the five forms the create documents, and an empty string turns a query list back into a static one - either way its rows are untouched. Everything is checked before anything is applied. Scoped to the address\'s domain.';
 
 // The seven small collections as RestApiAntiSpamLists.cpp and
 // RestApiBlockedAttachments.cpp describe them: the create's schema, its
@@ -979,12 +979,15 @@ const spec = {
       },
       '/api/v1/aliases/{address}': { delete: { summary: 'Delete an alias', description: 'Scoped to the address\'s domain.' } },
       '/api/v1/domains/{domain}/lists': {
-         get: { summary: 'List the distribution lists in a domain, with their members', description: 'Each entry: address, active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address and members. Scoped to the domain.' },
+         get: { summary: 'List the distribution lists in a domain, with their members', description: 'Each entry: address, active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address, membership and members. members is the addresses kept by hand; membership is the query that finds the rest among the server\'s accounts when a message is sent to the list, and is empty for a list whose members are its rows alone. GET /api/v1/lists/{address}/members answers what the two come to now. Scoped to the domain.' },
          post: { summary: 'Create a distribution list', description: LISTS_POST, requestBody: body(LIST_CREATE_PROPS, ['address']) }
       },
       '/api/v1/lists/{address}': {
          put: { summary: 'Change a distribution list', description: LIST_PUT, requestBody: body(LIST_PROPS) },
          delete: { summary: 'Delete a distribution list' }
+      },
+      '/api/v1/lists/{address}/members': {
+         get: { summary: 'Who a distribution list delivers to now', description: 'The list\'s own rows, then the accounts its membership query answers at the moment of the call, deduplicated by address. Each entry: address and source - row for a member kept by hand, query for one the membership found.' }
       },
       '/api/v1/accounts/{address}': {
          get: { summary: 'Read an account', description: 'The account whole, as the update answers it, less the password, the hash and the TOTP secret. Scoped to the address\'s domain.' },
@@ -1221,7 +1224,7 @@ const state = {
       'second.example': []
    },
    lists: {
-      'example.com': [{ address: 'all@example.com', active: true, require_auth: false, mode: 'public', require_sender_address: '', moderator_address: '', bounce_address: '',
+      'example.com': [{ address: 'all@example.com', active: true, require_auth: false, mode: 'public', require_sender_address: '', moderator_address: '', bounce_address: '', membership: '',
          members: ['anna@example.com', 'bob@example.com'] }],
       [HOSTILE]: [],
       'second.example': []
@@ -1948,10 +1951,43 @@ function answer(method, path, headers, raw) {
          if (!String(parsed.address || '').trim()) { return json(400, { error: 'address is required' }); }
          if ('mode' in parsed && LIST_PROPS.mode.enum.indexOf(parsed.mode) < 0) { return json(400, { error: 'mode must be public, membership, announcement or domain_members' }); }
          if (state.lists[domain].some((l) => l.address === parsed.address)) { return json(409, { error: 'a list with that address exists' }); }
-         const list = Object.assign({ active: true, require_auth: false, mode: 'public', require_sender_address: '', moderator_address: '', bounce_address: '', members: [] }, parsed);
+         const list = Object.assign({ active: true, require_auth: false, mode: 'public', require_sender_address: '', moderator_address: '', bounce_address: '', membership: '', members: [] }, parsed);
          state.lists[domain].push(list);
          return json(201, list);
       }
+   }
+   // Who a list delivers to now: its rows, then the active accounts its
+   // membership query answers, deduplicated by address - the server's own
+   // Members(), in the two forms this walk uses.
+   if (/^\/api\/v1\/lists\/[^/]+\/members$/.test(path) && method === 'GET') {
+      const address = segment(path, 4);
+      const domain = Object.keys(state.lists).filter((d) => state.lists[d].some((l) => l.address === address))[0];
+      if (!domain) { return json(404, { error: 'list not found' }); }
+      const list = state.lists[domain].filter((l) => l.address === address)[0];
+      const membership = list.membership || '';
+      // A query that reaches past the domains the caller administers is refused
+      // rather than answered, because a form a credential may not SET is a form
+      // it may not read the answer to - the server does this in
+      // RestApiDistributionLists.cpp, and the page has to open the editor
+      // anyway. everyone is the form that always reaches past a confined one.
+      if (membership === 'everyone') {
+         return json(403, { error: 'this list\'s membership names accounts outside the domains this credential administers; only a credential that reaches them may read who it delivers to' });
+      }
+      const seen = {}, members = [];
+      const take = (a, source) => { if (!seen[a.toLowerCase()]) { seen[a.toLowerCase()] = true; members.push({ address: a, source }); } };
+      (list.members || []).forEach((m) => take(m, 'row'));
+      let problem = '';
+      if (membership === 'domain' || membership.indexOf('domain:') === 0) {
+         const named = membership === 'domain' ? domain : membership.slice('domain:'.length);
+         if (!(named in state.accounts)) { problem = 'The membership names the domain ' + named + ', which this server does not host.'; }
+         else { state.accounts[named].filter((a) => a.active).map((a) => a.address).sort().forEach((a) => take(a, 'query')); }
+      }
+      const kind = membership === '' ? 'static' : membership === 'domain' ? 'domain'
+         : membership.indexOf('domain:') === 0 ? 'named_domain'
+         : membership.indexOf('pattern:') === 0 ? 'pattern' : 'everyone';
+      const answer = { address, membership, membership_kind: kind, count: members.length, members };
+      if (problem) { answer.problem = problem; }
+      return json(200, answer);
    }
    if (/^\/api\/v1\/lists\/[^/]+$/.test(path)) {
       const address = segment(path, 4);
@@ -3212,6 +3248,65 @@ async function main() {
    click(act('listnew', { domain: 'example.com' }));
    await flush();
    check('a refused create is the server\'s sentence beside the form', document.getElementById('err_listnew').textContent === 'The domain has reached its list limit.');
+   // A list that defines itself: the membership query is a field of the create
+   // like any other, and the row says what the query is rather than leaving the
+   // reader to open the list to find out.
+   check('the membership query is a field of the new-list form, with its forms spelled out',
+      document.getElementById('listnew_membership') !== null &&
+      document.getElementById('listnew_membership').closest('.fr').textContent.indexOf('pattern:sales-*@example.com') >= 0,
+      document.getElementById('listnew_membership') ? document.getElementById('listnew_membership').closest('.fr').textContent.slice(0, 200) : 'no control');
+   check('a static list says so in its row rather than showing an empty cell',
+      rows()[0].textContent.indexOf('Its addresses alone') >= 0, rows()[0].textContent);
+   setValue('listnew_address', 'staff@example.com');
+   setValue('listnew_members', '');
+   setValue('listnew_mode', 'public');
+   setChecked('listnew_require_auth', false);
+   setValue('listnew_membership', 'domain');
+   before = requests.length;
+   click(act('listnew', { domain: 'example.com' }));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/lists');
+   check('creating a query list posts the membership with the rest of the form',
+      !!posted && posted.address === 'staff@example.com' && posted.membership === 'domain' && JSON.stringify(posted.members) === '[]', JSON.stringify(posted));
+   check('and the query is what its row shows', rows().length === 3 && rows()[2].textContent.indexOf('domain') >= 0, rows().length ? rows()[2].textContent : 'no row');
+   before = requests.length;
+   click(act('listedit', { address: 'staff@example.com', domain: 'example.com' }));
+   await flush();
+   check('opening a list asks who it delivers to now', called(before, 'GET', '/api/v1/lists/staff%40example.com/members').length === 1, paths(before));
+   check('and the answer is the active accounts the query finds, marked as the query\'s and not as rows',
+      content().textContent.indexOf('Delivers to now') >= 0 && content().textContent.indexOf('anna@example.com') >= 0 &&
+      content().textContent.indexOf('From the query') >= 0 && content().textContent.indexOf('bob@example.com') < 0,
+      content().textContent.slice(content().textContent.indexOf('Delivers to now'), content().textContent.indexOf('Delivers to now') + 200));
+   setValue('list_membership', '');
+   before = requests.length;
+   click(act('listsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/lists/staff%40example.com');
+   check('emptying the membership sends it, which is what turns a query list back into a static one',
+      JSON.stringify(put) === '{"membership":""}', JSON.stringify(put));
+   check('and the list then delivers to nobody, which the page says in as many words',
+      content().textContent.indexOf('Nobody: this list would deliver to no one.') >= 0,
+      content().textContent.slice(0, 400));
+   // A query the caller may not read the answer to: the members route refuses
+   // it (403), and the editor still has to open - the answer is an extra the
+   // page shows when it can get it, never the thing it is for.
+   setValue('list_membership', 'everyone');
+   click(act('listsave'));
+   await flush();
+   click(act('lists', { domain: 'example.com' }));
+   await flush();
+   click(act('listedit', { address: 'staff@example.com', domain: 'example.com' }));
+   await flush();
+   check('a members route that refuses the caller still leaves the list editable',
+      document.getElementById('list_membership') !== null && document.getElementById('list_membership').value === 'everyone',
+      document.getElementById('list_membership') ? document.getElementById('list_membership').value : 'no control');
+   check('and the page shows no answer at all rather than an empty one it would read as the membership',
+      content().textContent.indexOf('Delivers to now') < 0, content().textContent.slice(0, 400));
+   click(act('lists', { domain: 'example.com' }));
+   await flush();
+   confirmAnswer = true;
+   click(act('listdel', { address: 'staff@example.com', domain: 'example.com' }));
+   await flush();
    click(act('listedit', { address: 'all@example.com' }));
    await flush();
    const drawnList = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('list_') === 0).map((id) => id.slice(5)).sort();
