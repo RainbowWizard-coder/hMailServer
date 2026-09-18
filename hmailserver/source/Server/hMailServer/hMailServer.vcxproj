@@ -665,6 +665,11 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRecoverable.cpp" />
     <ClCompile Include="..\Common\Util\DistributionListMembership.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDistributionLists.cpp" />
+    <ClCompile Include="..\Common\Util\WebAuthn.cpp" />
+    <ClCompile Include="..\Common\Util\PasskeyStore.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiPasskeys.cpp" />
+    <ClCompile Include="..\Common\Util\OidcSignIn.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiOidcSignIn.cpp" />
     <ClCompile Include="..\Common\Util\ConfidentialMessages.cpp" />
     <ClCompile Include="..\Common\Util\DomainReports.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDomainReports.cpp" />
@@ -1513,6 +1518,9 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AccountRecovery.h" />
     <ClInclude Include="..\Common\Util\RecoverableStore.h" />
     <ClInclude Include="..\Common\Util\DistributionListMembership.h" />
+    <ClInclude Include="..\Common\Util\WebAuthn.h" />
+    <ClInclude Include="..\Common\Util\PasskeyStore.h" />
+    <ClInclude Include="..\Common\Util\OidcSignIn.h" />
     <ClInclude Include="..\Common\Util\ConfidentialMessages.h" />
     <ClInclude Include="..\Common\Util\ContentPolicy.h" />
     <ClInclude Include="..\Common\Util\DomainReports.h" />

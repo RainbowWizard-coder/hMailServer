@@ -1047,6 +1047,46 @@ namespace
         ROW_TEXT(Config()->GetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL)), ROW_SET(Config()->SetImportOAuthString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL, v.text)),
         [] (const Value &v) -> String { return ImportUrlProblem(v.text, false); } },
 
+      // Passkeys and single sign-on (Util/WebAuthn.h, Util/PasskeyStore.h,
+      // Util/OidcSignIn.h). Passkeys are offered and nothing happens until a
+      // person enrols one; single sign-on is off until an issuer is named. The
+      // client secret is write-only, as the import ones are.
+      { "passkeys_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether people may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. On changes nothing on its own: a person signs in with their password until they add one. Off hides the button and refuses every passkey sign-in, and the passkeys already enrolled stay in the database until they are removed - which their owners may still do while it is off, since taking a way in away must not depend on the feature being on.",
+        ROW_FLAG(Config()->GetPasskeysEnabled()), ROW_SET(Config()->SetPasskeysEnabled(v.flag)), ROW_NO_CHECK },
+      { "passkey_relying_party", KindString, ReadWrite, EffectNow, nullptr,
+        "The WebAuthn relying party id a passkey is bound to, such as example.com. Empty, the default, means the host the page was served on, which is right for a server reached at one name. Set it to a registrable parent domain when the webmail and the Control Deck are reached at several names, so that one passkey works at all of them; a value that is not the page's host or a parent of it is refused by the browser, and the page says so.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_PASSKEY_RELYING_PARTY)), ROW_SET(Config()->SetSignInString(PROPERTY_PASSKEY_RELYING_PARTY, v.text)),
+        [] (const Value &v) -> String
+        {
+           if (v.text.Find(_T("/")) >= 0 || v.text.Find(_T(":")) >= 0)
+              return String(_T("passkey_relying_party is a host name, not a URL."));
+           return String();
+        } },
+      { "oidc_issuer", KindString, ReadWrite, EffectNow, nullptr,
+        "The OpenID Connect issuer this server signs people in at, such as https://login.example.com. Its discovery document is read from <issuer>/.well-known/openid-configuration and cached. Empty, the default, offers no single sign-on at all.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_ISSUER)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_ISSUER, v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, true); } },
+      { "oidc_client_id", KindString, ReadWrite, EffectNow, nullptr,
+        "The client id this server is registered under at the issuer, for an authorization-code client with PKCE. Empty offers no single sign-on.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_CLIENT_ID)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_CLIENT_ID, v.text)), ROW_NO_CHECK },
+      { "oidc_client_secret", KindString, WriteOnly, EffectNow, nullptr,
+        "That client's secret. Stored protected and never emitted; empty for a public client, which PKCE makes safe.",
+        nullptr, ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_CLIENT_SECRET, v.text)), ROW_NO_CHECK },
+      { "oidc_scopes", KindString, ReadWrite, EffectNow, nullptr,
+        "The scopes asked for, space separated. 'openid email' by default, which is what the mapping needs: the id_token's verified email names the local account.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_SCOPES)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_SCOPES, v.text)), ROW_NO_CHECK },
+      { "oidc_redirect_base_url", KindString, ReadWrite, EffectNow, nullptr,
+        "The address the webmail is reached at from outside, such as https://mail.example.com: the issuer sends a person back to it plus /portal/oidc/callback, and that whole address is the redirect URI to register at the issuer. Empty falls back to import_oauth_redirect_base_url.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_REDIRECT_BASE_URL)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_REDIRECT_BASE_URL, v.text)),
+        [] (const Value &v) -> String { return ImportUrlProblem(v.text, true); } },
+      { "oidc_auto_provision", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether an address the issuer verified that has no mailbox here gets one made for it at its first sign-in. Off, the default: an address this server does not know is refused, which keeps a directory of thousands from becoming thousands of mailboxes. The account made when this is on has no password of its own and is at a domain this server already has.",
+        ROW_FLAG(Config()->GetOidcAutoProvision()), ROW_SET(Config()->SetOidcAutoProvision(v.flag)), ROW_NO_CHECK },
+      { "oidc_administrators", KindString, ReadWrite, EffectNow, nullptr,
+        "The addresses that sign in to the Control Deck as the administrator when the issuer verifies them, comma separated. Empty, the default, means single sign-on reaches the webmail only and the Deck still asks for the administrator password.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_ADMINISTRATORS)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_ADMINISTRATORS, v.text)), ROW_NO_CHECK },
+
       // Spam traps (Common/AntiSpam/SpamTrapMonitor.h). In hm_settings, read
       // when a trap is addressed, so a change applies to the next hit. Nothing
       // here does anything until a domain has a trap.

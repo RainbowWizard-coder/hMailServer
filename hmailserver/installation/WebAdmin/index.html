@@ -279,6 +279,8 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
     <input id="pass" type="password" placeholder="Password" autocomplete="current-password" autofocus>
     <input id="otp" placeholder="One-time code" inputmode="numeric" autocomplete="one-time-code" hidden>
     <button class="btn" type="submit">Connect</button>
+    <button class="btn" type="button" id="passkeyBtn" hidden>Sign in with a passkey</button>
+    <button class="btn" type="button" id="ssoBtn" hidden></button>
     <div class="err" id="loginErr"></div>
     <div class="langrow"><select data-lang id="langSelGate" aria-label="Language" title="Language"></select></div>
   </form>
@@ -337,6 +339,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="diagnostics" data-serverwide="1" data-needs="manage_server" title="Diagnostics"><span class="ico">⚕</span><span>Diagnostics</span></button>
         <button data-view="metrics" data-serverwide="1" data-needs="view_configuration" title="Metrics history"><span class="ico">∿</span><span>Metrics history</span></button>
         <button data-view="update" data-serverwide="1" data-needs="view_configuration" title="Update"><span class="ico">⇪</span><span>Update</span></button>
+        <button data-view="passkeys" data-serverwide="1" data-admin="1" title="Passkeys"><span class="ico">⚿</span><span>Passkeys</span></button>
         <button data-view="apikeys" data-serverwide="1" data-admin="1" title="API keys"><span class="ico">⚿</span><span>API keys</span></button>
       </nav>
       <div class="foot">v<span id="ver">—</span></div>
@@ -762,7 +765,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys"),passkeys:K("Passkeys")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -803,6 +806,7 @@ async function render(silent){
     else if(view==="metrics")await renderMetrics();
     else if(view==="update")await renderUpdate();
     else if(view==="apikeys")await renderApiKeys();
+    else if(view==="passkeys")await renderPasskeys();
     $("#connState").textContent=t("Connected");
     connection("good",K("Connected"));
   }catch(err){
@@ -1134,6 +1138,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="repshow")reportShow();
   else if(d.act==="repdays")reportLastDays(d.days);
   else if(d.act==="copy")navigator.clipboard.writeText($("#tlsaPre").textContent).then(()=>toast(t("Copied to clipboard")));
+  else if(d.act==="passkeynew")createPasskey();
+  else if(d.act==="passkeydel")removePasskey(Number(d.id),d.name);
   else if(d.act==="keynew")createApiKey();
   else if(d.act==="keyrevoke")revokeApiKey(d.id,d.label);
   else if(d.act==="keycopy")navigator.clipboard.writeText($("#keyToken").textContent).then(()=>toast(t("Copied to clipboard")));
@@ -3152,6 +3158,170 @@ async function revokeApiKey(id,label){
   try{await api("/api/v1/apikeys/"+encodeURIComponent(id),{method:"DELETE"});toast(t("Key revoked"));await render();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_keys",e.message);}
 }
+
+/* ---------- Passkeys ----------
+   The administrator's own WebAuthn credentials: made here while signed in with
+   the administrator password, and used at the sign-in card instead of it. The
+   browser does the cryptography; this page carries base64url both ways and
+   nothing else. A browser without WebAuthn, or a page not served over HTTPS,
+   says so rather than offering a button that cannot work. */
+function passkeysHere(){
+  try{return !!(window.PublicKeyCredential&&navigator.credentials&&navigator.credentials.create);}catch(_){return false;}
+}
+function fromB64u(text){
+  const padded=String(text||"").replace(/-/g,"+").replace(/_/g,"/")+"===".slice((String(text||"").length+3)%4);
+  const raw=atob(padded),bytes=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+  return bytes;
+}
+function toB64u(buffer){
+  const bytes=new Uint8Array(buffer);let text="";
+  for(let i=0;i<bytes.length;i++)text+=String.fromCharCode(bytes[i]);
+  return btoa(text).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function whenSeconds(seconds){
+  if(!Number(seconds))return "\u2014";
+  try{return new Date(Number(seconds)*1000).toLocaleString();}catch(_){return String(seconds);}
+}
+async function renderPasskeys(){
+  const answer=await api("/api/v1/passkeys");
+  const list=asList(answer,"passkeys");
+  const rows=list.map(p=>`
+    <tr><td>${escHtml(p.name||"")}</td>
+        <td>${escHtml(whenSeconds(p.created))}</td>
+        <td>${escHtml(whenSeconds(p.last_used))}</td>
+        <td>${escHtml(p.transports||"")}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="btn danger sm" data-act="passkeydel" data-id="${escHtml(p.id)}" data-name="${escHtml(p.name||"")}">${t("Remove")}</button></td></tr>`).join("");
+  const warning=!passkeysHere()
+    ?'<div class="note">'+t("This browser cannot make a passkey: it does not offer WebAuthn, or the page was not opened over HTTPS.")+'</div>'
+    :(answer.enabled===false?'<div class="note">'+t("Passkeys are switched off on this server.")+'</div>':"");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat"><h3>${t("Add a passkey")}</h3>
+      <p class="note">${t("A passkey signs the administrator in with this device - its fingerprint reader, its face or its PIN - instead of the administrator password. The key stays on the device and never reaches this server.")}</p>
+      <p class="note">${t("Adding one asks for the administrator password again, so a session somebody else is holding cannot add a way in that outlives it.")}</p>
+      ${warning}
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <input id="pk_name" placeholder="${t("What the device is called")}" maxlength="255" style="flex:1 1 200px">
+        <input id="pk_pass" type="password" placeholder="${t("The administrator password")}" autocomplete="current-password" style="flex:1 1 200px">
+        <input id="pk_otp" placeholder="${t("One-time code")}" inputmode="numeric" autocomplete="one-time-code" style="flex:0 1 140px">
+        <button class="btn" data-act="passkeynew">${t("Add a passkey")}</button>
+      </div>
+      <div class="err" id="err_passkeys" style="margin-top:10px"></div>
+    </div>
+    <div class="card view" style="margin-top:14px">
+      <div class="tablewrap"><table><thead><tr><th>${t("Device")}</th><th>${t("Added")}</th><th>${t("Last used")}</th><th>${t("Reached by")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("No passkeys yet. Add one for this device and sign in with it next time.")+'</td></tr>'}</tbody></table></div>
+    </div></div>`;
+}
+async function createPasskey(){
+  setErr("err_passkeys","");
+  if(!passkeysHere()){setErr("err_passkeys",t("This browser cannot make a passkey: it does not offer WebAuthn, or the page was not opened over HTTPS."));return;}
+  const name=$("#pk_name").value.trim(),password=$("#pk_pass").value,code=$("#pk_otp").value.trim();
+  if(!name){setErr("err_passkeys",t("Give the device a name."));return;}
+  const headers=code?{"X-hMailServer-OTP":code}:{};
+  try{
+    const options=await api("/api/v1/passkeys/options",{method:"POST",body:"{}",headers:headers});
+    const made=await navigator.credentials.create({publicKey:{
+      challenge:fromB64u(options.challenge),
+      rp:options.rp,
+      user:{id:fromB64u(options.user.id),name:options.user.name,displayName:options.user.displayName},
+      pubKeyCredParams:options.pubKeyCredParams,
+      timeout:options.timeout,
+      attestation:options.attestation,
+      authenticatorSelection:options.authenticatorSelection,
+      excludeCredentials:(options.excludeCredentials||[]).map(c=>({type:c.type,id:fromB64u(c.id)}))
+    }});
+    const body={name:name,password:password,credential:{id:made.id,response:{
+      clientDataJSON:toB64u(made.response.clientDataJSON),
+      attestationObject:toB64u(made.response.attestationObject),
+      transports:(made.response.getTransports?made.response.getTransports():[])||[]
+    }}};
+    await api("/api/v1/passkeys",{method:"POST",body:JSON.stringify(body),headers:headers});
+    toast(t("Passkey added"));
+    await render();
+  }catch(e){
+    if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+    setErr("err_passkeys",e.message||t("That did not work. Sign in with the administrator password."));
+  }
+}
+async function removePasskey(id,name){
+  if(!confirm(tf("Remove the passkey {0}? That device will no longer sign you in.",name||id)))return;
+  setErr("err_passkeys","");
+  try{await api("/api/v1/passkeys/"+encodeURIComponent(id),{method:"DELETE"});toast(t("Passkey removed"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_passkeys",e.message);}
+}
+/* The sign-in card's other two ways in. Both are asked for before anybody has
+   signed in, and neither carries a credential: /api/v1/signin-methods says
+   whether to draw the buttons, and the passkey challenge is random bytes. */
+async function passkeySignIn(){
+  $("#loginErr").textContent="";
+  try{
+    const offered=await fetch("/api/v1/passkeys/challenge",{method:"POST",headers:{"X-Requested-With":"hMailServer"},credentials:"same-origin"});
+    if(!offered.ok)throw new Error(t("That did not work. Sign in with the administrator password."));
+    const challenge=JSON.parse(await offered.text());
+    const assertion=await navigator.credentials.get({publicKey:{
+      challenge:fromB64u(challenge.challenge),
+      rpId:challenge.rp_id,
+      timeout:challenge.timeout,
+      /* Required, not preferred: the server refuses an assertion whose
+         authenticator did not verify the person, because a passkey stands in
+         for the one-time code only when it did. Asking here means the device
+         asks for the PIN rather than the person being refused afterwards. */
+      userVerification:"required",
+      allowCredentials:[]
+    }});
+    const body={passkey:{id:assertion.id,response:{
+      clientDataJSON:toB64u(assertion.response.clientDataJSON),
+      authenticatorData:toB64u(assertion.response.authenticatorData),
+      signature:toB64u(assertion.response.signature),
+      userHandle:assertion.response.userHandle?toB64u(assertion.response.userHandle):""
+    }}};
+    const res=await fetch("/api/v1/session",{method:"POST",headers:{"X-Requested-With":"hMailServer","Content-Type":"application/json"},body:JSON.stringify(body),credentials:"same-origin"});
+    if(res.status!==201)throw new Error(t("That did not work. Sign in with the administrator password."));
+    try{sessionStorage.setItem("hmsSession","1");}catch(_){}
+    await startDeck();
+  }catch(e){
+    $("#loginErr").textContent=e.message||t("That did not work. Sign in with the administrator password.");
+  }
+}
+async function loadSignInMethods(){
+  try{
+    const res=await fetch("/api/v1/signin-methods",{credentials:"same-origin"});
+    if(!res.ok)return;
+    const methods=JSON.parse(await res.text());
+    $("#passkeyBtn").hidden=!(methods.passkeys&&passkeysHere());
+    if(methods.oidc){$("#ssoBtn").textContent=tf("Sign in with {0}",methods.oidc_label||"");$("#ssoBtn").hidden=false;}
+  }catch(_){/* the password is always there */}
+}
+/* The identity provider sent the browser back with a one-use ticket in the
+   fragment, or with a sentence saying why it did not. The fragment is taken out
+   of the address first, so a reload cannot try to spend a ticket twice. */
+async function singleSignOnReturn(){
+  const hash=String(location.hash||"");
+  const ticket=/^#sso=([A-Za-z0-9_-]+)$/.exec(hash);
+  const failed=/^#sso_error=(.*)$/.exec(hash);
+  if(!ticket&&!failed)return false;
+  try{history.replaceState(null,"",location.pathname);}catch(_){location.hash="";}
+  /* decodeURIComponent throws on a broken escape, and the fragment is whatever
+     the address bar holds: a crafted link must not be able to reject this
+     promise and leave the resumed session unstarted. */
+  if(failed){
+    let sentence;
+    try{sentence=decodeURIComponent(String(failed[1]).replace(/\+/g," "));}
+    catch(_){sentence=String(failed[1]).replace(/\+/g," ");}
+    $("#loginErr").textContent=sentence;
+    return false;
+  }
+  try{
+    const res=await fetch("/api/v1/session",{method:"POST",headers:{"X-Requested-With":"hMailServer","Content-Type":"application/json"},body:JSON.stringify({sso_ticket:ticket[1]}),credentials:"same-origin"});
+    if(res.status!==201)throw new Error(t("That did not work. Sign in with the administrator password."));
+    try{sessionStorage.setItem("hmsSession","1");}catch(_){}
+    await startDeck();
+    return true;
+  }catch(e){$("#loginErr").textContent=e.message||"";return false;}
+}
+$("#passkeyBtn").onclick=()=>{passkeySignIn();};
+$("#ssoBtn").onclick=()=>{location.href="/portal/oidc/start?deck=1";};
 
 /* ---------- Quarantine ----------
    What the filters held back rather than delivered, newest first: released to
@@ -5715,7 +5885,17 @@ async function sendTestWebhook(){
    of the page's. */
 let resumed=false;
 try{resumed=sessionStorage.getItem("hmsSession")==="1";}catch(_){}
-if(resumed)startDeck().catch(()=>{signedOut(t("The session ended. Sign in again."));});
+// The identity provider's answer is read out of the address first, because it
+// is an answer to a sign-in and not a place in the page.
+singleSignOnReturn().then(landed=>{
+  if(!landed&&resumed)startDeck().catch(()=>{signedOut(t("The session ended. Sign in again."));});
+}).catch(()=>{
+  // Whatever the address held, it was not a sign-in this page could finish.
+  // The session this browser already had is still resumed, which is what the
+  // visit would have done had there been no fragment at all.
+  if(resumed)startDeck().catch(()=>{signedOut(t("The session ended. Sign in again."));});
+});
+loadSignInMethods();
 /* The language: the one this browser remembers, else the browser's own. English
    is the page as it stands and asks the server for nothing. */
 let rememberedLanguage=null;

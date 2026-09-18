@@ -975,6 +975,53 @@ function answerOffline(method, path, body) {
    }
    return json(404, { error: 'not found' });
 }
+// Passkeys, and what the sign-in page may offer. The server verifies the
+// cryptography and this file does not: what is checked here is that the page
+// asks for a challenge, hands what the authenticator answered back in
+// base64url, and draws what it is told.
+let signInMethods = { passkeys: true, oidc: true, oidc_label: 'login.example.com' };
+let passkeys = [
+   { id: 7, name: 'Work laptop', created: 1789600000, last_used: 1789700000, transports: 'internal', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' },
+   { id: 8, name: 'Phone', created: 1789500000, last_used: 0, transports: 'hybrid', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' }
+];
+let passkeyChallenges = 0;
+let passkeysDemandSecondFactor = false;
+let passkeySecondFactorSeen = { otp: '', code: '' };
+function answerPasskeys(method, path, body) {
+   if (path === '/api/v1/signin-methods' && method === 'GET') { return json(200, Object.assign({}, signInMethods)); }
+   if (!path.startsWith('/api/v1/passkeys')) { return null; }
+   if (path === '/api/v1/passkeys/challenge' && method === 'POST') {
+      passkeyChallenges += 1;
+      return json(200, { challenge: 'Y2hhbGxlbmdl', rp_id: 'portal.test', timeout: 300000 });
+   }
+   if (path === '/api/v1/passkeys/options' && method === 'POST') {
+      return json(200, {
+         challenge: 'Y2hhbGxlbmdl', timeout: 300000, attestation: 'none',
+         rp: { id: 'portal.test', name: 'hMailServer' },
+         user: { id: 'YTE', name: account, displayName: account },
+         pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+         authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
+         excludeCredentials: passkeys.map((p) => ({ type: 'public-key', id: 'Y3JlZA' }))
+      });
+   }
+   if (path === '/api/v1/passkeys' && method === 'GET') { return json(200, { enabled: signInMethods.passkeys, rp_id: 'portal.test', passkeys: passkeys.slice() }); }
+   if (path === '/api/v1/passkeys' && method === 'POST') {
+      const wanted = JSON.parse(body || '{}');
+      if (!wanted.password) { return json(403, { error: 'the password is not correct' }); }
+      if (passkeysDemandSecondFactor && !currentSecondFactor.otp && !currentSecondFactor.code) {
+         return json(401, { error: 'a one-time code is required' }, { 'X-hMailServer-OTP': 'required' });
+      }
+      passkeySecondFactorSeen = { otp: currentSecondFactor.otp, code: currentSecondFactor.code };
+      const made = { id: 9, name: wanted.name || '', created: 1789800000, last_used: 0, transports: '', algorithm: -7, aaguid: '' };
+      passkeys.unshift(made);
+      return json(201, made);
+   }
+   const m = /^\/api\/v1\/passkeys\/(\d+)$/.exec(path);
+   const at = m ? passkeys.findIndex((p) => p.id === Number(m[1])) : -1;
+   if (at < 0) { return json(404, { error: 'no such passkey' }); }
+   if (method === 'DELETE') { passkeys.splice(at, 1); return json(200, { deleted: true }); }
+   return json(404, { error: 'not found' });
+}
 let importOffer = { google: true, microsoft: false };
 function answerFetchAccounts(method, path, body) {
    if (!path.startsWith('/api/v1/me/fetch-accounts')) { return null; }
@@ -1092,6 +1139,13 @@ function answer(method, path, body) {
    }
    if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
+   // The two routes a stranger reaches: what the sign-in card may offer, and
+   // the challenge a passkey sign-in answers. The server answers both before
+   // it authenticates anything, so they are answered before the gate here.
+   if (path === '/api/v1/signin-methods' || path === '/api/v1/passkeys/challenge') {
+      const open = answerPasskeys(method, path, body);
+      if (open) { return open; }
+   }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
    { const calendar = answerCalendar(method, path, body); if (calendar) { return calendar; } }
    { const subscriptions = answerSubscriptions(method, path, body); if (subscriptions) { return subscriptions; } }
@@ -1100,6 +1154,7 @@ function answer(method, path, body) {
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
    { const recover = answerRecovery(method, path, body); if (recover) { return recover; } }
+   { const keys = answerPasskeys(method, path, body); if (keys) { return keys; } }
    { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
    { const groups = answerContactGroups(method, path, body); if (groups) { return groups; } }
    { const window = answerOffline(method, path, body); if (window) { return window; } }
@@ -1499,6 +1554,44 @@ const navigatorStub = {
    clearAppBadge: () => { badges.push(0); return Promise.resolve(); },
    registerProtocolHandler: (scheme, url) => { handlers.push({ scheme: String(scheme), url: String(url) }); }
 };
+// WebAuthn, recorded rather than real. A browser asks an authenticator to make
+// or use a key pair and hands back ArrayBuffers; this hands back fixed bytes
+// and records what it was asked for, which is what lets the checks below say
+// that the page passed the server's challenge to the authenticator and the
+// authenticator's answer back to the server.
+const credentialCalls = [];
+let credentialsRefuse = false;
+function buffersOf(text) { return Uint8Array.from(Buffer.from(String(text), 'binary')).buffer; }
+const PublicKeyCredentialStub = function () {};
+const credentialsStub = {
+   create: (options) => {
+      credentialCalls.push({ kind: 'create', options: options });
+      if (credentialsRefuse) { return Promise.reject(new Error('NotAllowedError')); }
+      return Promise.resolve({
+         id: 'Y3JlZGVudGlhbA', type: 'public-key',
+         response: {
+            clientDataJSON: buffersOf('{"type":"webauthn.create"}'),
+            attestationObject: buffersOf('attestation'),
+            getTransports: () => ['internal']
+         }
+      });
+   },
+   get: (options) => {
+      credentialCalls.push({ kind: 'get', options: options });
+      if (credentialsRefuse) { return Promise.reject(new Error('NotAllowedError')); }
+      return Promise.resolve({
+         id: 'Y3JlZGVudGlhbA', type: 'public-key',
+         response: {
+            clientDataJSON: buffersOf('{"type":"webauthn.get"}'),
+            authenticatorData: buffersOf('authdata'),
+            signature: buffersOf('signature'),
+            userHandle: buffersOf('a1')
+         }
+      });
+   }
+};
+navigatorStub.credentials = credentialsStub;
+window.PublicKeyCredential = PublicKeyCredentialStub;
 const cacheStores = new Map();
 const cachesStub = {
    open: async (name) => {
@@ -1610,8 +1703,21 @@ async function main() {
    const app = document.getElementById('account');
    check('a page opened without a session shows the sign-in form', gate.hidden === false && app.hidden === true,
       'signin.hidden=' + gate.hidden + ' account.hidden=' + app.hidden);
-   check('nothing but /api/v1/me was asked for before a session existed',
-      requests.every((r) => r.path === '/api/v1/me'), JSON.stringify(requests.map((r) => r.path)));
+   // Two routes, and both are answered to a stranger by design: /api/v1/me,
+   // which is how the page finds out whether it has a session at all, and
+   // /api/v1/signin-methods, which says whether to draw a passkey button and a
+   // "Sign in with ..." button. The second says nothing about who exists here -
+   // it is two flags and the issuer's host - and the sign-in card cannot be
+   // drawn correctly without it. Anything else asked before a session would be
+   // a credentialed route reached without a credential.
+   check('nothing but /api/v1/me and the sign-in methods was asked for before a session existed',
+      requests.every((r) => r.path === '/api/v1/me' || r.path === '/api/v1/signin-methods'),
+      JSON.stringify(requests.map((r) => r.path)));
+   check('the sign-in card offers a passkey and the organisation\'s identity provider when the server says so',
+      document.getElementById('signin-passkey').hidden === false &&
+      document.getElementById('signin-sso').hidden === false &&
+      document.getElementById('signin-sso').textContent.indexOf('login.example.com') >= 0,
+      document.getElementById('signin-sso').textContent);
 
    // ---- sign in
    const before = requests.length;
@@ -6073,6 +6179,137 @@ async function main() {
       document.getElementById('reset-cancel').dispatchEvent(makeEvent('click'));
       check('and Back to signing in puts the sign-in form back',
          document.getElementById('reset-form').hidden === true && document.getElementById('signin-form').hidden === false);
+   }
+
+   // ---- Passkeys: the Security card, and signing in with one
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const rows = () => walkAll(document.getElementById('passkey-rows'), (n) => n.tagName === 'TR');
+      const rowFor = (name) => rows().filter((r) => r.textContent.indexOf(name) >= 0)[0];
+
+      // The block before this one left the page on the Security view. Setting
+      // the hash to what it already is fires nothing, so leave first: what is
+      // checked below is that ARRIVING at the view asks for the list.
+      location.hash = '#/f/1';
+      await flush();
+      const beforeList = requests.length;
+      location.hash = '#/security';
+      await flush();
+      check('the Security page lists the passkeys, with when each was last used',
+         called(beforeList, 'GET', '/api/v1/passkeys') && rows().length === 2 &&
+         rowFor('Phone').textContent.indexOf(words('never')) >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      const beforeAdd = requests.length;
+      const callsBefore = credentialCalls.length;
+      document.getElementById('passkey-name').value = 'Desk phone';
+      document.getElementById('passkey-password').value = 'a-real-password';
+      document.getElementById('passkey-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      const made = since(beforeAdd).filter((r) => r.method === 'POST' && r.path === '/api/v1/passkeys')[0];
+      const body = made ? JSON.parse(made.body || '{}') : {};
+      check('adding a passkey asks the server for the options, hands them to the authenticator and sends what it made back',
+         called(beforeAdd, 'POST', '/api/v1/passkeys/options') &&
+         credentialCalls.length === callsBefore + 1 && credentialCalls[callsBefore].kind === 'create' &&
+         credentialCalls[callsBefore].options.publicKey.rp.id === 'portal.test' &&
+         body.name === 'Desk phone' && body.password === 'a-real-password' &&
+         typeof body.credential.response.clientDataJSON === 'string' &&
+         typeof body.credential.response.attestationObject === 'string' &&
+         body.credential.response.transports[0] === 'internal',
+         JSON.stringify(body));
+      check('and the new one is in the list, with the name field emptied',
+         !!rowFor('Desk phone') && document.getElementById('passkey-name').value === '' &&
+         document.getElementById('passkey-password').value === '',
+         rows().map((r) => r.textContent).join(' | '));
+
+      // A second factor enrolled and the authenticator lost. The registration
+      // asks for the code as making an app password does, and the form has to
+      // offer both the authenticator's code and a recovery code, because the
+      // server takes either and spends the recovery code only for a passkey
+      // it stored.
+      passkeysDemandSecondFactor = true;
+      document.getElementById('passkey-name').value = 'Tablet';
+      document.getElementById('passkey-password').value = 'a-real-password';
+      document.getElementById('passkey-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      check('a registration that asks for the second factor reveals both the authenticator field and the recovery-code field, and says so',
+         document.getElementById('passkey-otp').hidden === false && document.getElementById('passkey-code').hidden === false &&
+         document.getElementById('passkey-status').textContent ===
+            words('Enter the code from your authenticator app, or one of your recovery codes.') &&
+         !rowFor('Tablet'),
+         document.getElementById('passkey-status').textContent);
+
+      const beforeWithCode = requests.length;
+      document.getElementById('passkey-code').value = ' b3d5f-2j9km ';
+      document.getElementById('passkey-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      const withCode = since(beforeWithCode).filter((r) => r.method === 'POST' && r.path === '/api/v1/passkeys')[0];
+      check('and a recovery code typed there travels in X-hMailServer-Recovery-Code, trimmed, with no one-time code beside it, and the passkey is added',
+         withCode && withCode.headers['X-hMailServer-Recovery-Code'] === 'b3d5f-2j9km' &&
+         !withCode.headers['X-hMailServer-OTP'] && passkeySecondFactorSeen.code === 'b3d5f-2j9km' &&
+         !!rowFor('Tablet') && document.getElementById('passkey-code').value === '',
+         withCode ? JSON.stringify(withCode.headers) + ' | ' + rows().map((r) => r.textContent).join(' | ') : 'no request');
+      passkeysDemandSecondFactor = false;
+
+      const beforeRemove = requests.length;
+      walkAll(rowFor('Work laptop'), (n) => n.tagName === 'BUTTON' && n.textContent === words('Remove'))[0].dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Remove takes the passkey away and the row with it',
+         called(beforeRemove, 'DELETE', '/api/v1/passkeys/7') && !rowFor('Work laptop'),
+         rows().map((r) => r.textContent).join(' | '));
+
+      // Signing in with the passkey. The page is not signed out first: ending
+      // this page's sessions here would take the second account's with it, and
+      // what is being checked is the exchange the button makes, which is the
+      // same exchange whether the gate is on screen or not.
+      const beforeSignIn = requests.length;
+      const getsBefore = credentialCalls.length;
+      const challengesBefore = passkeyChallenges;
+      document.getElementById('signin-passkey').dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      const session = since(beforeSignIn).filter((r) => r.method === 'POST' && r.path === '/api/v1/session')[0];
+      const sent = session ? JSON.parse(session.body || '{}') : {};
+      check('signing in with a passkey asks for a challenge, uses it, and sends the assertion to the session route',
+         passkeyChallenges === challengesBefore + 1 &&
+         credentialCalls.length === getsBefore + 1 && credentialCalls[getsBefore].kind === 'get' &&
+         credentialCalls[getsBefore].options.publicKey.rpId === 'portal.test' &&
+         !!sent.passkey && typeof sent.passkey.response.signature === 'string' &&
+         typeof sent.passkey.response.authenticatorData === 'string' &&
+         sent.passkey.response.userHandle.length > 0,
+         JSON.stringify(sent));
+      // Verified, not merely present: the server refuses an assertion whose
+      // authenticator did not verify the person, because the one-time code is
+      // skipped on the strength of exactly that. Asking for it here is what
+      // makes the device ask for the PIN instead of the person being refused
+      // after they have already touched the key.
+      check('and asks the authenticator to verify the person, not just to see one',
+         credentialCalls[getsBefore].options.publicKey.userVerification === 'required',
+         JSON.stringify(credentialCalls[getsBefore].options.publicKey.userVerification));
+      // The header that says this came from this server's own page. A session
+      // minted from the request BODY is the one a cross-site form could post,
+      // so the server demands it on this route and the page sends it.
+      check('and carries the header that proves the post came from this page',
+         !!session && session.headers['X-Requested-With'] === 'hMailServer',
+         JSON.stringify(session ? session.headers : null));
+
+      // An authenticator that refuses - the person pressed cancel - says so
+      // rather than leaving the button looking as though nothing happened.
+      credentialsRefuse = true;
+      const beforeRefusal = requests.length;
+      document.getElementById('signin-passkey').dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      check('an authenticator that refuses says so, and starts no session',
+         document.getElementById('signin-status').textContent.length > 0 &&
+         !called(beforeRefusal, 'POST', '/api/v1/session'),
+         document.getElementById('signin-status').textContent);
+      credentialsRefuse = false;
+      dismissAllToasts();
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

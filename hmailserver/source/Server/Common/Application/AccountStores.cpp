@@ -347,6 +347,10 @@ namespace HM
         _T("The recipients of a message still in the delivery queue. A queued message is in flight, not in a mailbox; the backup carries mailboxes.") },
       { _T("hm_message_metadata"),
         _T("Per-message annotations (RFC 5257), keyed on a message id the restore reassigns. Not carried: the roadmap row is what would carry them, with the message.") },
+      { _T("hm_passkeys"),
+        _T("The WebAuthn credentials an account has enrolled. Each is bound to the relying party id - the host the webmail is served on - and the private half is held by an authenticator that will sign for that id and no other, ")
+        _T("so a credential carried into an archive restored on a different host could never be used there; and the table holds the administrator's own rows as well (a null account id), which are not an account's to carry. ")
+        _T("Nothing is lost that enrolling the device again does not put back, and the password and the one-time code are the fallback in the meantime.") },
       { _T("hm_recoverable"),
         _T("Deleted mail waiting out its recovery window, its copies outside the message store. A backup carries what is in the mailboxes, and a restore brings that back; what was deleted before the backup stays deleted.") },
       { _T("hm_confidential"),

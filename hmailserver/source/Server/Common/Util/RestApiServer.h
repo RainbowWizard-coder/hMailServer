@@ -394,6 +394,15 @@ namespace HM
          RouteMeRecoverable,
          RouteMeRecoverableRestore,
          RouteMeRecoverableDelete,
+         // Passkeys (RestApiPasskeys.cpp). Not under /me: the same four routes
+         // answer an account's session with that account's passkeys and the
+         // administrator's session with the administrator's, which is why they
+         // are classified in IsSessionRoute_ rather than as self-service or as
+         // administration.
+         RoutePasskeyList,
+         RoutePasskeyOptions,
+         RoutePasskeyCreate,
+         RoutePasskeyDelete,
          RouteMeConfidential,
          RouteMeConfidentialRevoke,
          RouteMeOffline,
@@ -936,6 +945,19 @@ namespace HM
          // Set when the session was opened by an administrator for support:
          // who, for the log line every request of it writes.
          AnsiString support_by;
+
+         // True when this request proved itself with a passkey rather than a
+         // password. The person was verified by their own authenticator - a
+         // PIN or a fingerprint - so the one-time code is not asked for on top
+         // of it, and the account's device list records which credential it was.
+         // The assertion is refused unless it says so: AuthenticatePasskey_
+         // checks the user-verified flag on every sign-in and not only at
+         // enrolment, because this is the claim the missing code rests on.
+         bool via_passkey = false;
+
+         // True when it proved itself with a ticket from the organisation's
+         // identity provider (OidcSignIn.h). Same reason, same record.
+         bool via_single_sign_on = false;
       };
 
       enum AuthorizationResult
@@ -981,10 +1003,12 @@ namespace HM
       // holds both of its permissions to the auditor rule.
       static bool SecondPermissionFor_(RouteKind kind, RolePermission &permission);
 
-      // The three routes that are about the credential rather than about the
-      // server: starting a browser session, ending it, and asking what it is.
-      // Decided before the permissions, because a caller has to be able to ask
-      // what it may do without already being allowed to do it.
+      // The routes that are about the credential rather than about the server:
+      // starting a browser session, ending it, asking what it is, and the
+      // passkeys whoever signed in holds. Decided before the permissions,
+      // because a caller has to be able to ask what it may do without already
+      // being allowed to do it - and because a passkey belongs to a credential
+      // rather than to a resource an administrator administers.
       static bool IsSessionRoute_(RouteKind kind);
 
       // The role an account holds, written into the caller. Called at each of
@@ -1290,6 +1314,26 @@ namespace HM
       // Deleted items still within the recovery window (RestApiRecoverable.cpp).
       static HttpResponse HandleMeRecoverable_(const Caller &caller, RouteKind kind, __int64 id);
       static AnsiString OpenApiRecoverablePaths_();
+
+      // Passkeys (RestApiPasskeys.cpp): the four routes above, the
+      // unauthenticated sign-in challenge, and the assertion Authenticate_
+      // judges in place of a password.
+      static HttpResponse HandlePasskeys_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &request);
+      HttpResponse HandlePasskeyChallenge_(const AnsiString &request);
+      static bool AuthenticatePasskey_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
+      static bool ConfirmAdministratorPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure);
+      static bool PasskeyOwner_(const Caller &caller, __int64 &accountId, bool &administrator, String &owner);
+      static AnsiString PasskeyChallengeKey_(const Caller &caller);
+      static AnsiString OpenApiPasskeyPaths_();
+
+      // Single sign-on (RestApiOidcSignIn.cpp): the two pre-authentication
+      // steps of the flow, what the sign-in pages may offer, and the ticket
+      // Authenticate_ redeems in place of a password.
+      HttpResponse HandleOidcStart_(const AnsiString &query);
+      HttpResponse HandleOidcCallback_(const AnsiString &request, const AnsiString &query);
+      static HttpResponse HandleSignInMethods_();
+      static bool AuthenticateOidcTicket_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
+      static AnsiString OpenApiOidcPaths_();
       // Messages that expire, the sender's side, and the reading page a
       // recipient's notice links to (RestApiConfidential.cpp). The page is not
       // static: the grant cookie it sets is Secure over TLS.
@@ -1367,6 +1411,27 @@ namespace HM
       static bool IsDomainAllowed_(const std::vector<String> &domains, const String &domainName);
 
       static Caller Authenticate_(const AnsiString &request, const IPAddress &peer_address);
+
+      // True for POST /api/v1/session and nothing else, read from the request
+      // line alone. Authenticate_ asks it before it will look at a passkey or a
+      // single sign-on ticket in a body, so that neither is ever a credential
+      // for any other route - the route table has not been consulted yet at
+      // that point, and "the body says so" must not be enough.
+      static bool IsSessionCreateRequest_(const AnsiString &request);
+
+      // The two gates an account has to pass when it has proved who it is
+      // WITHOUT a password - a passkey assertion, a ticket from the
+      // organisation's identity provider - which is the same shape of
+      // credential as a client certificate or a Kerberos ticket and gets the
+      // same treatment those get: the compromised-account hold
+      // (AccountLogon::RefusedByHold) and the domain's country policy. A
+      // password sign-in meets both inside AccountLogon::Logon and never
+      // reaches here; a credential that skipped them would be a way past a
+      // lock every other way in obeys. True when the account may start a
+      // session, and the last-logon stamp and the server's authentication
+      // counter are moved on here, where the success is known. The account is
+      // dropped when it is held, so the caller cannot go on using it.
+      static bool AccountMayStartSession_(std::shared_ptr<const Account> &account, const IPAddress &peer_address);
       static bool AuthenticateBearer_(const AnsiString &token, const IPAddress &peer_address, Caller &caller);
       // The Basic credential is the administrator password, and - once a second
       // factor is enrolled on it - a code in the X-hMailServer-OTP request header

@@ -1239,6 +1239,12 @@ namespace DBUpdater
                          "update hm_recoverytokens set rttoken = rttoken where 1 = 0"),
          new SchemaProbe(6076, "hm_recoverycodes.rkhash",
                          "update hm_recoverycodes set rkhash = rkhash where 1 = 0"),
+         // Upgrade6076to6077* - passkeys: one row per WebAuthn credential, the
+         // account's or (with a null account id) the administrator's own, with
+         // the COSE public key and the signature counter a cloned authenticator
+         // is caught by.
+         new SchemaProbe(6077, "hm_passkeys.pksigncount",
+                         "update hm_passkeys set pksigncount = pksigncount where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

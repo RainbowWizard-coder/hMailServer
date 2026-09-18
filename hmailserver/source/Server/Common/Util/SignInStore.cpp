@@ -629,6 +629,8 @@ namespace HM
          return "certificate";
       case CredentialSingleSignOn:
          return "single_sign_on";
+      case CredentialPasskey:
+         return "passkey";
       default:
          return "password";
       }

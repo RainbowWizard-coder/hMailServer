@@ -104,6 +104,15 @@ namespace HM
          { L"hm_group_members",               L"group member" },
          { L"hm_fetchaccounts",               L"fetch account" },
          { L"hm_apppasswords",                L"application password" },
+         // A passkey: a WebAuthn credential that signs somebody in, the
+         // account's own or the administrator's. Who added a way into a
+         // mailbox, and who took one away, is the question a record of
+         // credentials exists to answer, so it is recorded exactly as an
+         // application password is. Only the public key is ever stored, so a
+         // row holds no secret; the signature counter written at each sign-in
+         // is not recorded, because a sign-in is nobody's administrative
+         // change and carries no actor.
+         { L"hm_passkeys",                    L"passkey" },
          { L"hm_alertrules",                  L"alert rule" },
          { L"hm_acl",                         L"folder permission" },
          { L"hm_remotedomainpolicies",        L"remote domain policy" },

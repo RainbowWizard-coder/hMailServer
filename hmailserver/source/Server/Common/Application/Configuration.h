@@ -288,6 +288,17 @@ namespace HM
       String GetImportOAuthString(const String &propertyName) const;
       void SetImportOAuthString(const String &propertyName, const String &value);
 
+      // PASSKEYS AND SINGLE SIGN-ON. Nine rows in hm_settings; see WebAuthn.h,
+      // PasskeyStore.h and OidcSignIn.h. The two switches have accessors of
+      // their own and the seven strings share one pair, named by the PROPERTY_
+      // constants in Constants.h.
+      bool GetPasskeysEnabled() const;
+      void SetPasskeysEnabled(bool enabled);
+      bool GetOidcAutoProvision() const;
+      void SetOidcAutoProvision(bool enabled);
+      String GetSignInString(const String &propertyName) const;
+      void SetSignInString(const String &propertyName, const String &value);
+
       // COUNTRY BLOCKING. Seven rows in hm_settings; see CountryBlocking.h for
       // what each means and why nothing here is compiled in. The file is the
       // MaxMind database the administrator supplies - empty means no connection

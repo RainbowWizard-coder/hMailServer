@@ -733,6 +733,8 @@
     <Compile Include="API\RestApiMaskedAddresses.cs" />
     <Compile Include="API\RestApiAccountRecovery.cs" />
     <Compile Include="API\RestApiRecoverDeleted.cs" />
+    <Compile Include="API\RestApiPasskeys.cs" />
+    <Compile Include="API\RestApiOidcSignIn.cs" />
     <Compile Include="API\RestApiConfidential.cs" />
     <Compile Include="API\RestApiOffline.cs" />
     <Compile Include="API\RestApiDomainReports.cs" />

@@ -68,6 +68,8 @@ select hm_drop_table('hm_heldmessages');
 
 select hm_drop_table('hm_confidential');
 
+select hm_drop_table('hm_passkeys');
+
 select hm_drop_table('hm_recoverable');
 
 select hm_drop_table('hm_maskedaddresses');
@@ -656,6 +658,25 @@ create table hm_maskedaddresses
 CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
 
 CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid);
+
+create table hm_passkeys
+(
+	pkid serial not null primary key,
+	pkaccountid int null,
+	pkcredential varchar(200) not null,
+	pkpublickey text not null,
+	pkalgorithm int not null,
+	pksigncount bigint not null,
+	pkname varchar(255) not null,
+	pktransports varchar(255) not null,
+	pkaaguid varchar(64) not null,
+	pkcreated bigint not null,
+	pklastused bigint not null
+);
+
+CREATE INDEX idx_hm_passkeys_account ON hm_passkeys (pkaccountid);
+
+CREATE UNIQUE INDEX idx_hm_passkeys_credential ON hm_passkeys (pkcredential);
 
 create table hm_recoverable
 (
@@ -1678,6 +1699,8 @@ ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FORE
 
 ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+ALTER TABLE hm_passkeys ADD CONSTRAINT fk_hm_passkeys_account FOREIGN KEY (pkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_dmarcreports ADD CONSTRAINT fk_hm_dmarcreports_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
@@ -2185,4 +2208,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6076);
+insert into hm_dbversion values (6077);

@@ -28,6 +28,7 @@ if exists (select * from sysobjects where id = object_id('hm_accountrecipients')
 if exists (select * from sysobjects where id = object_id('hm_accountreview') and objectproperty(id, 'isusertable') = 1) drop table hm_accountreview
 if exists (select * from sysobjects where id = object_id('hm_heldmessages') and objectproperty(id, 'isusertable') = 1) drop table hm_heldmessages
 if exists (select * from sysobjects where id = object_id('hm_confidential') and objectproperty(id, 'isusertable') = 1) drop table hm_confidential
+if exists (select * from sysobjects where id = object_id('hm_passkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_passkeys
 if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
 if exists (select * from sysobjects where id = object_id('hm_senderaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_senderaddresses
@@ -801,6 +802,27 @@ ALTER TABLE hm_maskedaddresses ADD CONSTRAINT hm_maskedaddresses_pk PRIMARY KEY 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress)
 
 CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid)
+
+create table hm_passkeys
+(
+	pkid int identity(1,1) not null,
+	pkaccountid int null,
+	pkcredential nvarchar(200) not null,
+	pkpublickey ntext not null,
+	pkalgorithm int not null,
+	pksigncount bigint not null,
+	pkname nvarchar(255) not null,
+	pktransports nvarchar(255) not null,
+	pkaaguid nvarchar(64) not null,
+	pkcreated bigint not null,
+	pklastused bigint not null
+)
+
+ALTER TABLE hm_passkeys ADD CONSTRAINT hm_passkeys_pk PRIMARY KEY NONCLUSTERED (pkid)
+
+CREATE CLUSTERED INDEX idx_hm_passkeys_account ON hm_passkeys (pkaccountid)
+
+CREATE UNIQUE INDEX idx_hm_passkeys_credential ON hm_passkeys (pkcredential)
 
 create table hm_recoverable
 (
@@ -1913,6 +1935,8 @@ ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FORE
 
 ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_passkeys ADD CONSTRAINT fk_hm_passkeys_account FOREIGN KEY (pkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_dmarcreports ADD CONSTRAINT fk_hm_dmarcreports_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
@@ -2464,4 +2488,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6076)
+insert into hm_dbversion values (6077)

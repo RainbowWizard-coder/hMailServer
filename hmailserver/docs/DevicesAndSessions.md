@@ -22,6 +22,12 @@ domain, for every signed-in browser - the webmail, the self-service portal and
 the Control Deck: an idle timeout, an absolute lifetime, one session per device,
 and a session bound to the address it began on.
 
+A browser session is a browser session whatever proved the person: a password, a
+passkey, or the organisation's identity provider. All three are minted by the
+same route and governed by the four policies below, and the list says which it
+was - `passkey`, `single_sign_on`, `app_password` or `password`. See
+[PasskeysAndSingleSignOn.md](PasskeysAndSingleSignOn.md) for the first two.
+
 **Nothing changes on the day you upgrade.** Every one of the eight policy
 values reads 0 after the upgrade, and 0 means *not set* rather than *no limit*:
 the ceilings this server has always enforced - thirty minutes idle, twelve hours

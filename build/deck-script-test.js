@@ -1353,6 +1353,12 @@ const state = {
       { id: 'a1b2c3d4e5f60718', label: 'the monitor', scope: 'readonly', role: '', domains: '', expires: '', allowed_from: '10.0.0.0/8', expired: false },
       { id: '0718f6e5d4c3b2a1', label: 'the old importer', scope: 'full', role: 'helpdesk', domains: 'example.com', expires: '2026-01-01 00:00:00', allowed_from: '', expired: true }
    ],
+   // The administrator's own passkeys. created and last_used are seconds since
+   // 1970, as the route answers them; the second has never been used.
+   passkeys: [
+      { id: 12, name: 'Console laptop', created: 1789600000, last_used: 1789700000, transports: 'internal', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' },
+      { id: 13, name: 'Yubico key', created: 1789500000, last_used: 0, transports: 'usb,nfc', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' }
+   ],
    // What the filters held back. The subject is hostile, as a held message's
    // is: it was written by whoever the server refused to deliver for.
    quarantine: [
@@ -1623,6 +1629,11 @@ function segment(path, at) { return decodeURIComponent(path.split('?')[0].split(
 function answer(method, path, headers, raw) {
    const parsed = raw ? JSON.parse(raw) : null;
    if (method === 'POST' && path === '/api/v1/session') {
+      // A passkey, or a ticket from the identity provider, in place of the
+      // password: the server judges them in Authenticate_ and mints the same
+      // session, so this answers them the same way. A body carrying neither
+      // still needs the password.
+      if (parsed && (parsed.passkey || parsed.sso_ticket)) { signedIn = true; return json(201, { session: true }); }
       if (!headers.Authorization) { return json(401, { error: 'A credential is required.' }, { 'WWW-Authenticate': 'Basic realm="hMailServer"' }); }
       if (headers.Authorization !== 'Basic ' + Buffer.from('Administrator:a-real-password').toString('base64')) {
          return json(401, { error: 'The password is wrong.' }, { 'WWW-Authenticate': 'Basic realm="hMailServer"' });
@@ -1641,6 +1652,12 @@ function answer(method, path, headers, raw) {
       const data = JSON.parse(fs.readFileSync(file, 'utf8'));
       if (droppedKey) { delete data[droppedKey]; }
       return json(200, data);
+   }
+   if (path === '/api/v1/signin-methods' && method === 'GET') {
+      return json(200, { passkeys: true, oidc: true, oidc_label: 'login.example.com' });
+   }
+   if (path === '/api/v1/passkeys/challenge' && method === 'POST') {
+      return json(200, { challenge: 'Y2hhbGxlbmdl', rp_id: 'deck.test', timeout: 300000 });
    }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }, { 'WWW-Authenticate': 'Basic realm="hMailServer"' }); }
    if (method !== 'GET' && headers['X-Requested-With'] !== 'hMailServer') { return json(403, { error: 'A write from a browser session must carry X-Requested-With.' }); }
@@ -2711,6 +2728,33 @@ function answer(method, path, headers, raw) {
    // in an envelope with a count, the quarantine and the archive as bare
    // arrays, the metric history and the update verdict as objects.
 
+   if (path === '/api/v1/passkeys/options' && method === 'POST') {
+      return json(200, {
+         challenge: 'Y2hhbGxlbmdl', timeout: 300000, attestation: 'none',
+         rp: { id: 'deck.test', name: 'hMailServer' },
+         user: { id: 'YWRtaW4', name: 'Administrator', displayName: 'Administrator' },
+         pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+         authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
+         excludeCredentials: []
+      });
+   }
+   if (path === '/api/v1/passkeys' && method === 'GET') {
+      return json(200, { enabled: true, rp_id: 'deck.test', passkeys: state.passkeys });
+   }
+   if (path === '/api/v1/passkeys' && method === 'POST') {
+      const wanted = parsed || {};
+      if (!wanted.password) { return json(403, { error: 'the password is not correct' }); }
+      const made = { id: 14, name: wanted.name || '', created: 1789800000, last_used: 0, transports: 'internal', algorithm: -7, aaguid: '' };
+      state.passkeys.push(made);
+      return json(201, made);
+   }
+   if (/^\/api\/v1\/passkeys\/\d+$/.test(path) && method === 'DELETE') {
+      const id = Number(path.split('/').pop());
+      const at = state.passkeys.findIndex((p) => p.id === id);
+      if (at < 0) { return json(404, { error: 'no such passkey' }); }
+      state.passkeys.splice(at, 1);
+      return json(200, { deleted: true });
+   }
    if (path === '/api/v1/apikeys' && method === 'GET') {
       return json(200, { count: state.apikeys.length, keys: state.apikeys });
    }
@@ -2922,8 +2966,44 @@ const themeStored = () => localStorage.getItem('hmsTheme');
 // fetch, performance), some of them getter-only, so each one is defined over
 // rather than assigned: the script must see this file's world and nothing of
 // node's.
+// The address bar, and the browser's WebAuthn, recorded rather than real. The
+// Deck reads location.hash to pick up what the identity provider sent it back
+// with, and asks navigator.credentials to make and use a passkey; both are
+// stubs here, so what the checks below say is that the page passed the server's
+// challenge to the authenticator and the authenticator's answer back.
+const locationStub = {
+   hash: '', pathname: '/', search: '', href: 'https://deck.test/',
+   get origin() { return 'https://deck.test'; }
+};
+const historyStub = { replaceState: (state, title, url) => { locationStub.hash = ''; locationStub.pathname = String(url || '/'); } };
+const credentialCalls = [];
+let credentialsRefuse = false;
+function buffersOf(text) { return Uint8Array.from(Buffer.from(String(text), 'binary')).buffer; }
+const credentialsStub = {
+   create: (options) => {
+      credentialCalls.push({ kind: 'create', options: options });
+      if (credentialsRefuse) { return Promise.reject(new Error('NotAllowedError')); }
+      return Promise.resolve({ id: 'Y3JlZGVudGlhbA', type: 'public-key', response: {
+         clientDataJSON: buffersOf('{"type":"webauthn.create"}'),
+         attestationObject: buffersOf('attestation'),
+         getTransports: () => ['internal']
+      } });
+   },
+   get: (options) => {
+      credentialCalls.push({ kind: 'get', options: options });
+      if (credentialsRefuse) { return Promise.reject(new Error('NotAllowedError')); }
+      return Promise.resolve({ id: 'Y3JlZGVudGlhbA', type: 'public-key', response: {
+         clientDataJSON: buffersOf('{"type":"webauthn.get"}'),
+         authenticatorData: buffersOf('authdata'),
+         signature: buffersOf('signature'),
+         userHandle: buffersOf('admin')
+      } });
+   }
+};
+const windowStub = { PublicKeyCredential: function () {} };
 const world = {
    document, localStorage, sessionStorage, performance,
+   location: locationStub, history: historyStub, window: windowStub,
    fetch: fetchStub,
    setTimeout: (fn, ms) => { const id = timerId++; timers.push({ id, fn, ms }); return id; },
    clearTimeout: (id) => { const at = timers.findIndex((t) => t.id === id); if (at >= 0) { timers.splice(at, 1); } },
@@ -2932,7 +3012,7 @@ const world = {
    requestAnimationFrame: (fn) => { fn(performance.now() + 5000); return 1; },
    confirm: (question) => { confirmations.push(question); return confirmAnswer; },
    matchMedia,
-   navigator: { clipboard: { writeText: (text) => { clipboard = text; return Promise.resolve(); } } },
+   navigator: { clipboard: { writeText: (text) => { clipboard = text; return Promise.resolve(); } }, credentials: credentialsStub },
    console: { error: (...args) => consoleErrors.push(args), log: () => { }, warn: () => { } }
 };
 Object.keys(world).forEach((name) => {
@@ -2956,7 +3036,103 @@ async function main() {
    // ---- a first visit: the sign-in card, and not one request
    check('a first visit shows the sign-in card', $('#gate').style.display !== 'none' && $('#app').style.display === 'none',
       'gate=' + $('#gate').style.display + ' app=' + $('#app').style.display);
-   check('and asks the server nothing before there is a session', requests.length === 0, paths(0));
+   // One request, and it is answered to a stranger by design: whether to draw a
+   // passkey button and a "Sign in with ..." button. It carries no credential
+   // and says nothing about who exists here - two flags and the issuer's host -
+   // and the card cannot be drawn correctly without it. Anything else asked
+   // before a session would be a request answered 401, and a 401 from this API
+   // carries WWW-Authenticate: Basic, which puts the browser's own password box
+   // on the screen in front of the page's.
+   check('and asks the server nothing before there is a session but what the card may offer',
+      requests.every((r) => r.path === '/api/v1/signin-methods'), paths(0));
+   check('the sign-in card offers a passkey and the organisation\'s identity provider when the server says so',
+      $('#passkeyBtn').hidden === false && $('#ssoBtn').hidden === false &&
+      $('#ssoBtn').textContent.indexOf('login.example.com') >= 0,
+      $('#ssoBtn').textContent);
+
+   // ---- signing in with a passkey rather than the administrator password
+   {
+      const beforePasskey = requests.length;
+      const callsBefore = credentialCalls.length;
+      click($('#passkeyBtn'));
+      await flush();
+      await flush();
+      const sent = lastBody(beforePasskey, 'POST', '/api/v1/session');
+      check('the passkey button asks for a challenge, uses it and sends the assertion to the session route',
+         called(beforePasskey, 'POST', '/api/v1/passkeys/challenge').length === 1 &&
+         credentialCalls.length === callsBefore + 1 && credentialCalls[callsBefore].kind === 'get' &&
+         credentialCalls[callsBefore].options.publicKey.rpId === 'deck.test' &&
+         sent !== null && !!sent.passkey && typeof sent.passkey.response.signature === 'string' &&
+         $('#gate').style.display === 'none',
+         JSON.stringify(sent) + ' ' + paths(beforePasskey));
+      // The authenticator is asked to verify the person, not merely to notice
+      // one: the server will not accept an assertion without it, because the
+      // one-time code is skipped on the strength of that verification.
+      check('and asks the authenticator to verify the person, not just to see one',
+         credentialCalls[callsBefore].options.publicKey.userVerification === 'required',
+         JSON.stringify(credentialCalls[callsBefore].options.publicKey.userVerification));
+      // The header that says this came from this server's own page. A session
+      // minted from the request BODY is the one a cross-site form could post,
+      // so the server demands it on this route and the page sends it.
+      check('and carries the header that proves the post came from this page',
+         called(beforePasskey, 'POST', '/api/v1/session').every((r) => r.headers['X-Requested-With'] === 'hMailServer'),
+         JSON.stringify(called(beforePasskey, 'POST', '/api/v1/session').map((r) => r.headers)));
+      check('and no password was kept anywhere by it',
+         [...sessionStorage.store.values()].every((v) => v.indexOf('a-real-password') < 0),
+         JSON.stringify([...sessionStorage.store.entries()]));
+
+      // ---- the administrator's own passkeys
+      before = requests.length;
+      await goTo('passkeys');
+      check('the Passkeys view reads them once', called(before, 'GET', '/api/v1/passkeys').length === 1, paths(before));
+      check('a row per passkey, with what it is reached by and one never used',
+         rows().length === 2 && rows()[1].textContent.indexOf('usb,nfc') >= 0 &&
+         rows()[1].textContent.indexOf('\u2014') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      setValue('pk_name', '  ');
+      click(act('passkeynew'));
+      await flush();
+      check('a passkey with no name is refused here and never sent',
+         called(before, 'POST', '/api/v1/passkeys').length === 0 && $('#err_passkeys').textContent.length > 0,
+         $('#err_passkeys').textContent + ' ' + paths(before));
+
+      before = requests.length;
+      const createsBefore = credentialCalls.length;
+      setValue('pk_name', 'Desk phone');
+      setValue('pk_pass', 'a-real-password');
+      click(act('passkeynew'));
+      await flush();
+      await flush();
+      await flush();
+      posted = lastBody(before, 'POST', '/api/v1/passkeys');
+      check('adding one asks for the options, hands them to the authenticator and sends back what it made, with the administrator password',
+         called(before, 'POST', '/api/v1/passkeys/options').length === 1 &&
+         credentialCalls.length === createsBefore + 1 && credentialCalls[createsBefore].kind === 'create' &&
+         credentialCalls[createsBefore].options.publicKey.rp.id === 'deck.test' &&
+         posted !== null && posted.name === 'Desk phone' && posted.password === 'a-real-password' &&
+         typeof posted.credential.response.attestationObject === 'string',
+         JSON.stringify(posted));
+      check('and it is in the list', rows().length === 3, rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      click(act('passkeydel', { id: '12', name: 'Console laptop' }));
+      await flush();
+      await flush();
+      check('removing one asks with the name in the question and removes it by id',
+         confirmations[confirmations.length - 1].indexOf('Console laptop') >= 0 &&
+         called(before, 'DELETE', '/api/v1/passkeys/12').length === 1 && rows().length === 2,
+         confirmations[confirmations.length - 1] + ' ' + paths(before));
+
+      // Back to where the rest of the run expects to be: the dashboard chosen,
+      // and signed out at the card. The view outlives a sign-out, so leaving
+      // the Passkeys page selected would draw it again at the next sign-in.
+      await goTo('dash');
+      click($('#logoutBtn'));
+      await flush();
+      await flush();
+   }
 
    // ---- the tokens: one palette, a dark theme beside it, and nothing else
    const css = styleText();

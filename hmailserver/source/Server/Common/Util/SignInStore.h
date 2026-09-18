@@ -111,7 +111,10 @@ namespace HM
          CredentialAppPassword = 1,
          CredentialToken = 2,
          CredentialCertificate = 3,
-         CredentialSingleSignOn = 4
+         CredentialSingleSignOn = 4,
+         // A WebAuthn credential (PasskeyStore.h): the person proved a device
+         // they hold, and the authenticator verified them on it.
+         CredentialPasskey = 5
       };
 
       // The most clients one account's list holds. A cost bound, not a tidiness

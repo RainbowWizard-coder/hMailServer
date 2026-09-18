@@ -237,6 +237,25 @@
 #define PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL    _T("ImportOAuthMsAuthorizeUrl")
 #define PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL        _T("ImportOAuthMsTokenUrl")
 
+// Passkeys and single sign-on (Util/WebAuthn.h, Util/PasskeyStore.h,
+// Util/OidcSignIn.h). Passkeys are offered unless the switch is off; nothing
+// changes for an installation until somebody enrols one. The relying party id
+// is the host the page was served on unless one is named here, which is what a
+// server reached at several names needs so that a passkey made at one of them
+// works at the others. OIDC is off until an issuer is set: the client id and
+// secret this server is registered with at the identity provider, the scopes
+// asked for, whether an unknown but verified address may have an account made
+// for it, and the addresses that sign in as the administrator.
+#define PROPERTY_PASSKEYS_ENABLED               _T("PasskeysEnabled")
+#define PROPERTY_PASSKEY_RELYING_PARTY          _T("PasskeyRelyingParty")
+#define PROPERTY_OIDC_ISSUER                    _T("OidcIssuer")
+#define PROPERTY_OIDC_CLIENT_ID                 _T("OidcClientId")
+#define PROPERTY_OIDC_CLIENT_SECRET             _T("OidcClientSecret")
+#define PROPERTY_OIDC_SCOPES                    _T("OidcScopes")
+#define PROPERTY_OIDC_AUTO_PROVISION            _T("OidcAutoProvision")
+#define PROPERTY_OIDC_ADMINISTRATORS            _T("OidcAdministrators")
+#define PROPERTY_OIDC_REDIRECT_BASE_URL         _T("OidcRedirectBaseUrl")
+
 // Country blocking. Seven rows in hm_settings, which is where a setting belongs:
 // the MaxMind database the administrator supplies (this project ships none and
 // downloads none), how old that file may be before the log says so, the
@@ -536,4 +555,4 @@
 //      envelope report with the original attached or the original itself.
 //      Nothing is journaled until a row exists, so an upgraded database
 //      behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6076
+#define REQUIRED_DB_VERSION            6077

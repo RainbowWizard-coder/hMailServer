@@ -318,6 +318,24 @@ namespace HM
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET, _T(""));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"));
       property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/token"));
+
+      // Passkeys: offered, because offering one changes nothing until somebody
+      // enrols one, and a person who never does signs in with their password
+      // exactly as before. The relying party id is empty, which means the host
+      // the page was served on.
+      property_set_->EnsureLong(PROPERTY_PASSKEYS_ENABLED, 1);
+      property_set_->EnsureString(PROPERTY_PASSKEY_RELYING_PARTY, _T(""));
+
+      // Single sign-on: off, because there is no issuer until an administrator
+      // names one, and no account is created for a stranger who signs in at one
+      // until auto-provisioning is switched on as well.
+      property_set_->EnsureString(PROPERTY_OIDC_ISSUER, _T(""));
+      property_set_->EnsureString(PROPERTY_OIDC_CLIENT_ID, _T(""));
+      property_set_->EnsureString(PROPERTY_OIDC_CLIENT_SECRET, _T(""));
+      property_set_->EnsureString(PROPERTY_OIDC_SCOPES, _T("openid email"));
+      property_set_->EnsureLong(PROPERTY_OIDC_AUTO_PROVISION, 0);
+      property_set_->EnsureString(PROPERTY_OIDC_ADMINISTRATORS, _T(""));
+      property_set_->EnsureString(PROPERTY_OIDC_REDIRECT_BASE_URL, _T(""));
    }
 
    void
@@ -724,6 +742,47 @@ namespace HM
 
    void
    Configuration::SetImportOAuthString(const String &propertyName, const String &value)
+   {
+      GetSettings()->SetString(propertyName, value);
+   }
+
+   // Passkeys and single sign-on. Both groups are read through one pair of
+   // string accessors and one pair of number accessors, as the import sign-in's
+   // settings are: every one of them is a plain hm_settings row, the names are
+   // constants in Constants.h, and a setter of its own per row would be nine
+   // pairs of functions that all say GetString.
+   bool
+   Configuration::GetPasskeysEnabled() const
+   {
+      return GetSettings()->GetBool(PROPERTY_PASSKEYS_ENABLED);
+   }
+
+   void
+   Configuration::SetPasskeysEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_PASSKEYS_ENABLED, enabled);
+   }
+
+   bool
+   Configuration::GetOidcAutoProvision() const
+   {
+      return GetSettings()->GetBool(PROPERTY_OIDC_AUTO_PROVISION);
+   }
+
+   void
+   Configuration::SetOidcAutoProvision(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_OIDC_AUTO_PROVISION, enabled);
+   }
+
+   String
+   Configuration::GetSignInString(const String &propertyName) const
+   {
+      return GetSettings()->GetString(propertyName);
+   }
+
+   void
+   Configuration::SetSignInString(const String &propertyName, const String &value)
    {
       GetSettings()->SetString(propertyName, value);
    }

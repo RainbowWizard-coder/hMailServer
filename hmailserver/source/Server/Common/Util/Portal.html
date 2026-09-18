@@ -736,6 +736,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
 <div id="signin-code-row" hidden><label for="signin-code">Recovery code</label><input id="signin-code" type="text" autocomplete="one-time-code" maxlength="32" aria-label="One of the codes you saved"></div>
 <button class="btn wide" type="submit">Sign in</button>
+<button class="btn wide ghost" type="button" id="signin-passkey" hidden>Sign in with a passkey</button>
+<button class="btn wide ghost" type="button" id="signin-sso" hidden></button>
 <div id="signin-status" class="status" aria-live="polite"></div>
 <div class="row"><button class="btn ghost sm" type="button" id="signin-code-toggle">Use a recovery code</button><button class="btn ghost sm" type="button" id="signin-forgot">Forgotten your password?</button></div>
 </form>
@@ -1440,6 +1442,23 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </section>
 <section id="security-section" class="view page" hidden>
+<div class="card">
+<h2>Passkeys</h2>
+<p class="note">A passkey signs you in with the device in your hand - its fingerprint reader, its face or its PIN - instead of a password. The key stays on the device and never reaches this server, and it stands in for your one-time code as well.</p>
+<p class="note">Adding one asks for your own password again, so a session somebody else is holding cannot add a way in that outlives it.</p>
+<p id="passkey-unavailable" class="note" hidden>This browser cannot make a passkey: it does not offer WebAuthn, or the page was not opened over HTTPS.</p>
+<p id="passkey-off" class="note" hidden>Passkeys are switched off on this server.</p>
+<form id="passkey-form" class="row">
+<input id="passkey-name" type="text" maxlength="255" placeholder="What the device is called, e.g. Work laptop" aria-label="What the device is called" required>
+<input id="passkey-password" type="password" autocomplete="current-password" placeholder="Your password" aria-label="Your own password, to prove it is you" required>
+<input id="passkey-otp" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code" aria-label="Code from your authenticator app" hidden>
+<input id="passkey-code" type="text" autocomplete="one-time-code" maxlength="32" placeholder="Recovery code" aria-label="One of the codes you saved" hidden>
+<button class="btn sm" type="submit">Add a passkey</button>
+</form>
+<div id="passkey-status" class="status" aria-live="polite"></div>
+<table class="list" id="passkey-table"><thead><tr><th>Device</th><th>Added</th><th>Last used</th><th></th></tr></thead><tbody id="passkey-rows"></tbody></table>
+<div id="passkey-empty" class="hint" hidden>No passkeys.</div>
+</div>
 <div class="card">
 <h2>App passwords</h2>
 <p class="note">A password for one program or phone, separate from your own. Revoke it here when the device goes; your own password stays as it is.</p>

@@ -272,6 +272,12 @@ namespace HM
           sPropertyName == PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET)
          return true;
 
+      // The client secret this server signs its own users in with at the
+      // organisation's identity provider. Same reason again: whoever holds it
+      // can ask that provider for tokens as this server.
+      if (sPropertyName == PROPERTY_OIDC_CLIENT_SECRET)
+         return true;
+
       return false;
    }
 

@@ -2260,6 +2260,81 @@
       say('reset-status', describe(result, t('This server does not offer that')), false);
     });
   });
+  // What this server offers besides a password, asked before anybody has
+  // signed in. Nothing here is a credential and nothing here says who exists.
+  var passkeySignIn = function () {
+    say('signin-status', '', true);
+    return call('POST', '/api/v1/passkeys/challenge').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('signin-status', describe(result, t('That did not work. Sign in with your password.')), false); return null; }
+      return navigator.credentials.get({ publicKey: {
+        challenge: fromB64u(result.data.challenge),
+        rpId: result.data.rp_id,
+        timeout: result.data.timeout,
+        // Required, not preferred: the server does not ask for the one-time
+        // code on a passkey sign-in because the authenticator verified the
+        // person, so an assertion made on a touch alone is one factor where
+        // two were promised - and the server refuses it. Asking for it here
+        // means the device asks for the PIN or the fingerprint rather than
+        // the person being refused after they have already touched the key.
+        userVerification: 'required',
+        allowCredentials: []
+      } });
+    }).then(function (assertion) {
+      if (!assertion) { return; }
+      var r = assertion.response;
+      var body = { passkey: { id: assertion.id, response: {
+        clientDataJSON: toB64u(r.clientDataJSON),
+        authenticatorData: toB64u(r.authenticatorData),
+        signature: toB64u(r.signature),
+        userHandle: r.userHandle ? toB64u(r.userHandle) : ''
+      } } };
+      probe.token = ''; probe.off = false; probeIn = probeEvery;
+      return call('POST', '/api/v1/session', body).then(function (made) {
+        if (made.status === 201) { load(false); return; }
+        say('signin-status', t('That did not work. Sign in with your password.'), false);
+      });
+    }).catch(function () { say('signin-status', t('That did not work. Sign in with your password.'), false); });
+  };
+  el('signin-passkey').addEventListener('click', function () { passkeySignIn(); });
+  el('signin-sso').addEventListener('click', function () { location.href = '/portal/oidc/start'; });
+  var loadSignInMethods = function () {
+    return call('GET', '/api/v1/signin-methods').then(function (result) {
+      if (result.status !== 200 || !result.data) { return; }
+      el('signin-passkey').hidden = !(result.data.passkeys && passkeysHere());
+      if (result.data.oidc) {
+        el('signin-sso').textContent = tf('Sign in with {0}', result.data.oidc_label || '');
+        el('signin-sso').hidden = false;
+      }
+    });
+  };
+  // The identity provider sent the browser back with a one-use ticket in the
+  // fragment, or with a sentence saying why it did not. The fragment is taken
+  // out of the address before anything else reads it, so a reload does not
+  // spend a ticket that is already gone.
+  var singleSignOnReturn = function () {
+    var hash = String(location.hash || '');
+    var ticket = /^#sso=([A-Za-z0-9_-]+)$/.exec(hash);
+    var failed = /^#sso_error=(.*)$/.exec(hash);
+    if (!ticket && !failed) { return false; }
+    try { history.replaceState(null, '', '#/'); } catch (e) { location.hash = '#/'; }
+    // The sentence is percent-encoded by this server, but the fragment is
+    // whatever the address bar holds, and a crafted link can put a broken
+    // escape there. decodeURIComponent throws on one, and this runs while the
+    // page is being built, so the throw would leave the reader an inert page
+    // rather than a sign-in form: the raw text is shown instead.
+    if (failed) {
+      var sentence;
+      try { sentence = decodeURIComponent(String(failed[1]).replace(/\+/g, ' ')); }
+      catch (e) { sentence = String(failed[1]).replace(/\+/g, ' '); }
+      say('signin-status', sentence, false);
+      return true;
+    }
+    call('POST', '/api/v1/session', { sso_ticket: ticket[1] }).then(function (made) {
+      if (made.status === 201) { load(false); return; }
+      say('signin-status', describe(made, t('That did not work. Sign in with your password.')), false);
+    });
+    return true;
+  };
   el('signout').addEventListener('click', function () {
     // The second account's session is ended first, with its own token, so
     // that nothing of this page's stays live on the server after the page
@@ -3809,7 +3884,101 @@
       say('recovery-codes-status', describe(result, t('Could not make the codes')), false);
     });
   });
-  var loadSecurity = function () { loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); };
+  // ---- Passkeys -------------------------------------------------------------
+  // The browser does the cryptography; this page only carries base64url both
+  // ways. A browser without WebAuthn, or a page not served over HTTPS, says so
+  // and offers nothing, because navigator.credentials is not there to call.
+  var passkeysHere = function () {
+    try { return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create); }
+    catch (e) { return false; }
+  };
+  var fromB64u = function (text) {
+    var padded = String(text || '').replace(/-/g, '+').replace(/_/g, '/');
+    while (padded.length % 4) { padded += '='; }
+    var raw = atob(padded), bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) { bytes[i] = raw.charCodeAt(i); }
+    return bytes;
+  };
+  var toB64u = function (buffer) {
+    var bytes = new Uint8Array(buffer), text = '';
+    for (var i = 0; i < bytes.length; i++) { text += String.fromCharCode(bytes[i]); }
+    return btoa(text).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  var loadPasskeys = function () {
+    if (!passkeysHere()) { el('passkey-unavailable').hidden = false; el('passkey-form').hidden = true; }
+    return call('GET', '/api/v1/passkeys').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('passkey-status', describe(result, t('Could not read the passkeys')), false); return; }
+      el('passkey-off').hidden = result.data.enabled !== false;
+      if (result.data.enabled === false) { el('passkey-form').hidden = true; }
+      var rows = el('passkey-rows');
+      clear(rows);
+      var list = result.data.passkeys || [];
+      list.forEach(function (p) {
+        var tr = document.createElement('tr');
+        tr.appendChild(node('td', p.name));
+        tr.appendChild(node('td', p.created ? new Date(Number(p.created) * 1000).toLocaleString() : ''));
+        tr.appendChild(node('td', p.last_used ? new Date(Number(p.last_used) * 1000).toLocaleString() : t('never')));
+        var actions = document.createElement('td');
+        var remove = button(t('Remove'));
+        remove.addEventListener('click', function () {
+          call('DELETE', '/api/v1/passkeys/' + p.id).then(function (r) {
+            if (r.status === 200) { say('passkey-status', t('Removed. That device no longer signs you in.'), true); loadPasskeys(); }
+            else { say('passkey-status', describe(r, t('Could not remove it')), false); }
+          });
+        });
+        actions.appendChild(remove);
+        tr.appendChild(actions);
+        rows.appendChild(tr);
+      });
+      el('passkey-empty').hidden = list.length > 0;
+      el('passkey-table').hidden = list.length === 0;
+    });
+  };
+  el('passkey-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (!passkeysHere()) { return; }
+    var name = el('passkey-name').value, password = el('passkey-password').value;
+    say('passkey-status', '', true);
+    call('POST', '/api/v1/passkeys/options', {}).then(function (result) {
+      if (result.status !== 200 || !result.data) { say('passkey-status', describe(result, t('Could not add the passkey')), false); return null; }
+      var options = result.data;
+      return navigator.credentials.create({ publicKey: {
+        challenge: fromB64u(options.challenge),
+        rp: options.rp,
+        user: { id: fromB64u(options.user.id), name: options.user.name, displayName: options.user.displayName },
+        pubKeyCredParams: options.pubKeyCredParams,
+        timeout: options.timeout,
+        attestation: options.attestation,
+        authenticatorSelection: options.authenticatorSelection,
+        excludeCredentials: (options.excludeCredentials || []).map(function (c) { return { type: c.type, id: fromB64u(c.id) }; })
+      } });
+    }).then(function (made) {
+      if (!made) { return; }
+      var response = made.response;
+      var body = { name: name, password: password, credential: { id: made.id, response: {
+        clientDataJSON: toB64u(response.clientDataJSON),
+        attestationObject: toB64u(response.attestationObject),
+        transports: (response.getTransports ? response.getTransports() : []) || []
+      } } };
+      return call('POST', '/api/v1/passkeys', body, secondFactorHeaders('passkey-otp', 'passkey-code')).then(function (r) {
+        if (r.status === 201) {
+          el('passkey-name').value = ''; el('passkey-password').value = ''; el('passkey-otp').value = ''; el('passkey-code').value = '';
+          say('passkey-status', t('Added. You can sign in with this device from now on.'), true);
+          loadPasskeys();
+          return;
+        }
+        if (r.otp === 'required') { askSecondFactor('passkey-otp', 'passkey-code', 'passkey-status'); return; }
+        say('passkey-status', describe(r, t('Could not add the passkey')), false);
+      });
+    }).catch(function () {
+      // The person pressed cancel, or the authenticator refused. Neither is a
+      // failure to report as one; the challenge is spent and a new one is
+      // asked for next time.
+      say('passkey-status', t('Could not add the passkey'), false);
+    });
+  });
+
+  var loadSecurity = function () { loadPasskeys(); loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); };
 
   // Focus follows a change of view to its title, unless the view put the
   // focus somewhere itself, so that a screen reader announces where it is.
@@ -10595,6 +10764,15 @@
   // The theme the last visit chose, for the sign-in page; the account's own
   // choice replaces it once there is an account.
   applyTheme(storedTheme());
+  // Before parseHash: the fragment the identity provider sent the browser back
+  // with is an answer to a sign-in, not a route, and it is taken out of the
+  // address here so that a reload cannot try to spend a ticket twice.
+  // In a try: nothing in an address somebody was sent may stop the page being
+  // built. A fragment this does not understand is not a sign-in, and the page
+  // then loads as it loads on any other visit.
+  var redeeming = false;
+  try { redeeming = singleSignOnReturn(); } catch (e) { redeeming = false; }
   pending = parseHash().hash;
-  load(true);
+  loadSignInMethods();
+  if (!redeeming) { load(true); }
 })();

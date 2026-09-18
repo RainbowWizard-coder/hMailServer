@@ -75,6 +75,8 @@
 #include "RecoverableStore.h"
 #include "AccountRecovery.h"
 #include "PasswordValidator.h"
+#include "PasskeyStore.h"
+#include "OidcSignIn.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
 #include "ContactGroups.h"
@@ -961,6 +963,14 @@ namespace HM
       ClearRequestRates_();
       ClearBrowserSessions_();
 
+      // The challenges a passkey registration or sign-in was waiting on, the
+      // sign-ins waiting to come back from the identity provider and the
+      // tickets they made: all of them name a browser that was talking to a
+      // listener that has stopped, and every one is answerable by pressing the
+      // button again.
+      PasskeyStore::Clear();
+      OidcSignIn::Clear();
+
       // Deliberately no SSL_CTX_free: the boost context owns the SSL_CTX and frees it
       // in its own destructor. Released after the server has stopped, so no session
       // is still using it.
@@ -996,6 +1006,58 @@ namespace HM
       return headerValue;
    }
 
+   bool
+   RestApiServer::IsSessionCreateRequest_(const AnsiString &request)
+   {
+      const int lineEnd = request.Find("\r\n");
+      if (lineEnd <= 0)
+         return false;
+
+      const std::vector<AnsiString> parts = StringParser::SplitString(request.Mid(0, lineEnd), " ");
+      if (parts.size() < 2 || parts[0] != "POST")
+         return false;
+
+      AnsiString path = parts[1];
+      const int query = path.Find("?");
+      if (query >= 0)
+         path = path.Mid(0, query);
+
+      return path == "/api/v1/session";
+   }
+
+   bool
+   RestApiServer::AccountMayStartSession_(std::shared_ptr<const Account> &account, const IPAddress &peer_address)
+   {
+      if (!account || account->GetID() == 0 || !account->GetActive())
+         return false;
+
+      // The compromised-account detection's hold. A password logon meets it at
+      // AccountLockout::IsLockedOut inside AccountLogon::Logon; a credential
+      // that proves identity without one meets it here, exactly as a client
+      // certificate does in ClientCertificateIdentity and a bearer token does
+      // in IMAP, POP3 and SMTP. Without this, a takeover that had enrolled a
+      // passkey while it still had the password would keep a way in after the
+      // detector had locked the name, ended the sessions and held the mail.
+      //
+      // The per-name lockout that counts failed passwords is deliberately NOT
+      // applied, for the reason AccountLogon.h gives for the other passwordless
+      // credentials: it counts guesses, and neither an assertion signed by a
+      // registered key nor a ticket this server minted two minutes ago is one.
+      if (AccountLogon::RefusedByHold(account))
+         return false;
+
+      // The domain's country policy, so that which credential was used does not
+      // decide whether a domain accepts a sign-in from where this one came
+      // from. Logon makes the same call for every protocol; this is the one
+      // path that does not go through Logon.
+      if (!CountryBlocking::Instance()->IsLogonAllowed(account->GetAddress(), peer_address))
+         return false;
+
+      PersistentAccount::UpdateLastLogonTime(account);
+      ServerStatus::Instance()->OnAuthenticationSucceeded();
+      return true;
+   }
+
    RestApiServer::Caller
    RestApiServer::Authenticate_(const AnsiString &request, const IPAddress &peer_address)
    {
@@ -1008,6 +1070,36 @@ namespace HM
       AnsiString headerValue = GetAuthorizationHeader_(request);
       if (headerValue.IsEmpty())
       {
+         // A passkey, or a ticket from the organisation's identity provider,
+         // standing where a password would: both arrive at POST
+         // /api/v1/session with no Authorization header at all, and both are
+         // judged here so that what follows - the rate window, Authorize_,
+         // HandleSessionCreate_ and the policy it applies - is the same code
+         // that runs for a password. Nothing else on this listener accepts
+         // either, because nothing else looks at them.
+         //
+         // X-Requested-With, and it is not decoration. A credential read out of
+         // the REQUEST BODY is the one credential a cross-site form can carry:
+         // a password rides in an Authorization header another origin cannot
+         // set, and a session cookie is SameSite=Strict, but a body is just a
+         // body, and text/plain needs no preflight. Without this, a page on
+         // another site could post an attacker's own single sign-on ticket and
+         // silently replace the reader's session cookie with a session in the
+         // attacker's mailbox - login forgery, whose cost is everything the
+         // person writes or files afterwards. The header a browser will not add
+         // across origins without a preflight this server never grants is the
+         // proof that the post came from this server's own page, which is the
+         // same proof the guard below demands of every session-authenticated
+         // write. Both of this server's pages send it (Portal.js's call, the
+         // Deck's api and its two sign-in fetches).
+         if (IsSessionCreateRequest_(request) && GetHeader_(request, "x-requested-with") == "hMailServer")
+         {
+            if (AuthenticatePasskey_(request, peer_address, caller))
+               return caller;
+            if (AuthenticateOidcTicket_(request, peer_address, caller))
+               return caller;
+         }
+
          // No password and no key: a browser session cookie is the one other
          // credential, and it stands for an account and nothing more.
          AuthenticateSession_(request, peer_address, caller);
@@ -1592,6 +1684,29 @@ namespace HM
       // was given when it started it proves this is the same browser.
       if (method == "GET" && path == "/portal/oauth/callback")
          return HandlePortalOAuthCallback_(request, query);
+
+      // Single sign-on, the same shape for the same reason: the browser is on
+      // its way to the organisation's identity provider, or coming back from
+      // it, and has no session yet. Neither of these mints one - the callback
+      // hands out a one-use ticket and POST /api/v1/session does the minting.
+      // See RestApiOidcSignIn.cpp.
+      if (method == "GET" && path == "/portal/oidc/start")
+         return HandleOidcStart_(query);
+
+      if (method == "GET" && path == "/portal/oidc/callback")
+         return HandleOidcCallback_(request, query);
+
+      // What the two sign-in pages may offer, and the challenge a passkey
+      // sign-in answers. Both before Authenticate_, and necessarily: a person
+      // signing in with a passkey has no credential to present yet, which is
+      // the whole point of a passkey. The challenge answers nothing about who
+      // exists here - it is random bytes and a relying party id the page
+      // already knows.
+      if (method == "GET" && path == "/api/v1/signin-methods")
+         return HandleSignInMethods_();
+
+      if (method == "POST" && path == "/api/v1/passkeys/challenge")
+         return HandlePasskeyChallenge_(request);
 
       // Recovery: the page a confirmation link opens, the "I have forgotten my
       // password" route, the page the reset link opens, and the route the
@@ -2526,6 +2641,12 @@ namespace HM
          case RouteMeRecoverableRestore:
          case RouteMeRecoverableDelete:
             return HandleMeRecoverable_(caller, route.kind, route.record_id);
+
+         case RoutePasskeyList:
+         case RoutePasskeyOptions:
+         case RoutePasskeyCreate:
+         case RoutePasskeyDelete:
+            return HandlePasskeys_(caller, route.kind, route.record_id, request);
 
          case RouteMeConfidential:
          case RouteMeConfidentialRevoke:
@@ -3657,6 +3778,33 @@ namespace HM
       if (path == "/api/v1/session" && method == "POST")
       {
          route.kind = RouteSessionCreate;
+         return;
+      }
+
+      // The passkeys whoever is signed in holds (RestApiPasskeys.cpp). The
+      // sign-in challenge at /api/v1/passkeys/challenge is not here: it carries
+      // no credential and is answered before Authenticate_.
+      if (path == "/api/v1/passkeys")
+      {
+         if (method == "GET")
+            route.kind = RoutePasskeyList;
+         else if (method == "POST")
+            route.kind = RoutePasskeyCreate;
+
+         return;
+      }
+
+      if (path == "/api/v1/passkeys/options" && method == "POST")
+      {
+         route.kind = RoutePasskeyOptions;
+         return;
+      }
+
+      if (method == "DELETE" && path.StartsWith("/api/v1/passkeys/"))
+      {
+         if (ParseQueueId(path.Mid(AnsiString("/api/v1/passkeys/").GetLength()), route.record_id))
+            route.kind = RoutePasskeyDelete;
+
          return;
       }
 
@@ -5614,6 +5762,9 @@ namespace HM
       case RouteMeRecoveryDelete:
       case RouteMeRecoveryResend:
       case RouteMeRecoveryCodes:
+      case RoutePasskeyOptions:
+      case RoutePasskeyCreate:
+      case RoutePasskeyDelete:
       case RouteMeConfidentialRevoke:
       case RouteMeOfflinePut:
       case RouteMeFileCreate:
@@ -5971,6 +6122,17 @@ namespace HM
       case RouteSessionCreate:
       case RouteSessionDelete:
       case RouteSessionGet:
+      // A passkey is a credential, not a resource: the four routes answer the
+      // account that signed in with that account's passkeys and the
+      // administrator with the administrator's, so there is no permission to
+      // ask for and nobody else's to reach. An API key is refused them with
+      // the sessions, and for the same reason - a key is already the
+      // credential a script holds, and minting a second way in from one would
+      // be a credential with none of the key's restrictions written on it.
+      case RoutePasskeyList:
+      case RoutePasskeyOptions:
+      case RoutePasskeyCreate:
+      case RoutePasskeyDelete:
          return true;
 
       default:
@@ -6839,10 +7001,11 @@ namespace HM
 
       // A browser session is started by whoever holds a password - an
       // account's, for the self-service page, or the administrator's, for the
-      // Control Deck - and ended by the session it came with. An API key is
-      // refused: a key is already the credential a script keeps, and a cookie
-      // minted from one would be a second credential with none of the key's
-      // restrictions written on it.
+      // Control Deck - and ended by the session it came with; the passkeys
+      // classified here are that credential's own. An API key is refused all of
+      // them: a key is already the credential a script keeps, and a cookie or a
+      // passkey minted from one would be a second credential with none of the
+      // key's restrictions written on it.
       if (IsSessionRoute_(route.kind))
       {
          if (route.kind == RouteSessionGet)
@@ -6857,7 +7020,7 @@ namespace HM
          if (caller.result == AuthenticatedAsAccount || caller.result == AuthenticatedAsAdministrator)
             return AuthorizationAllowed;
 
-         refusalReason = "a browser session is started with an account's password or with the administrator password, not with an api key";
+         refusalReason = "a browser session, and the passkeys the credential holding it has, answer to an account's password or to the administrator password, not to an api key";
          return AuthorizationForbidden;
       }
 
@@ -10457,9 +10620,13 @@ namespace HM
       // question the list exists to answer.
       if (!administrator)
       {
+         const int credential = caller.via_passkey ? SignInStore::CredentialPasskey
+                              : caller.via_single_sign_on ? SignInStore::CredentialSingleSignOn
+                              : caller.via_app_password ? SignInStore::CredentialAppPassword
+                              : SignInStore::CredentialPassword;
+
          SignInStore::RecordFrom(account, SignInStore::ProtocolWeb, String(peerAddress), wideAgent,
-            caller.via_app_password ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword,
-            caller.credential_name);
+            credential, caller.credential_name);
       }
 
       // Braced: LOG_APPLICATION is a macro that carries its own if, and an
@@ -15259,6 +15426,8 @@ namespace HM
       openApiJson += OpenApiMaskedAddressesPaths_();
       openApiJson += OpenApiRecoverablePaths_();
       openApiJson += OpenApiRecoveryPaths_();
+      openApiJson += OpenApiPasskeyPaths_();
+      openApiJson += OpenApiOidcPaths_();
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiOfflinePaths_();

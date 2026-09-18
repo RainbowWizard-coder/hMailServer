@@ -30,6 +30,8 @@
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
 #include "ReaderOAuth.h"
+#include "WebAuthn.h"
+#include "PasskeyStore.h"
 #include "MaskedAddresses.h"
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DeliveryReportParser.h"
@@ -235,6 +237,19 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ReaderOAuth\n"));
       ReaderOAuthTester readerOAuthTester;
       readerOAuthTester.Test();
+
+      // Passkeys: the CBOR attestation object, the COSE key inside it, the
+      // authenticator data, the two signature algorithms and what each reader
+      // refuses, against vectors a software authenticator produced.
+      OutputDebugString(_T("hMailServer: Testing WebAuthn\n"));
+      WebAuthnTester webAuthnTester;
+      webAuthnTester.Test();
+
+      // And the challenge tables a passkey sign-in stands on: spent once, and
+      // a full one evicts its oldest rather than refusing the next person.
+      OutputDebugString(_T("hMailServer: Testing PasskeyStore\n"));
+      PasskeyStoreTester passkeyStoreTester;
+      passkeyStoreTester.Test();
 
       // Masked addresses: the local part a label gives.
       OutputDebugString(_T("hMailServer: Testing MaskedAddresses\n"));

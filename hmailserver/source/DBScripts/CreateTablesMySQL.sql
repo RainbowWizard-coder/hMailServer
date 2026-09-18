@@ -46,6 +46,8 @@ drop table if exists hm_heldmessages;
 
 drop table if exists hm_confidential;
 
+drop table if exists hm_passkeys;
+
 drop table if exists hm_recoverable;
 
 drop table if exists hm_maskedaddresses;
@@ -651,6 +653,25 @@ create table hm_maskedaddresses
 CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
 
 CREATE INDEX idx_hm_maskedaddresses_account ON hm_maskedaddresses (maaccountid);
+
+create table hm_passkeys
+(
+	pkid int auto_increment not null, primary key(`pkid`), unique(`pkid`),
+	pkaccountid int null,
+	pkcredential varchar(200) not null,
+	pkpublickey text not null,
+	pkalgorithm int not null,
+	pksigncount bigint not null,
+	pkname varchar(255) not null,
+	pktransports varchar(255) not null,
+	pkaaguid varchar(64) not null,
+	pkcreated bigint not null,
+	pklastused bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_passkeys_account ON hm_passkeys (pkaccountid);
+
+CREATE UNIQUE INDEX idx_hm_passkeys_credential ON hm_passkeys (pkcredential);
 
 create table hm_recoverable
 (
@@ -1585,6 +1606,8 @@ ALTER TABLE hm_maskedaddresses ENGINE=InnoDB;
 
 ALTER TABLE hm_recoverable ENGINE=InnoDB;
 
+ALTER TABLE hm_passkeys ENGINE=InnoDB;
+
 ALTER TABLE hm_confidential ENGINE=InnoDB;
 
 ALTER TABLE hm_dmarcreports ENGINE=InnoDB;
@@ -1773,6 +1796,8 @@ ALTER TABLE hm_senderaddresses ADD CONSTRAINT fk_hm_senderaddresses_account FORE
 ALTER TABLE hm_maskedaddresses ADD CONSTRAINT fk_hm_maskedaddresses_account FOREIGN KEY (maaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY (rcaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_passkeys ADD CONSTRAINT fk_hm_passkeys_account FOREIGN KEY (pkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -2315,4 +2340,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6076);
+insert into hm_dbversion values (6077);
