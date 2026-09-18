@@ -573,6 +573,17 @@ table.keys td:first-child{white-space:nowrap;width:40%}
   .dock-head{border-radius:0}
   .dock-head #compose-expand{display:none}
   .toast{min-width:0;width:100%}
+  /* The reader on a phone (Roadmap2 row 123, walked at 390px on 18 September
+     2026): thirteen controls on one 48px line ran past the right edge and gave
+     the whole page a sideways scroll, and the date sat on top of the sender's
+     address. The toolbar wraps, the Move control takes what is left of its
+     line, and the date drops under the sender. */
+  .msg-toolbar{height:auto;min-height:48px;flex-wrap:wrap;row-gap:2px;padding:4px 8px}
+  .msg-toolbar select{max-width:140px}
+  .msg-head{flex-wrap:wrap}
+  .msg-head .date{flex-basis:100%;margin-inline-start:56px;white-space:normal}
+  /* A new window is not a thing a phone has. */
+  #message-popout,#compose-popout{display:none}
 }
 @media (min-width:901px){
   #nav-toggle{display:none}
