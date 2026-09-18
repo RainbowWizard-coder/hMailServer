@@ -397,8 +397,10 @@ namespace RegressionTests.API
 
          // Four POSTs compute an answer and change nothing - the server classifies
          // them as reads, and an auditor is allowed them. The account's own
-         // endpoints and the session are the auditor's own mailbox and its own
-         // credential, not the server's administration.
+         // endpoints, the session and the passkeys are the auditor's own mailbox
+         // and its own credentials, not the server's administration: a passkey
+         // registered at /api/v1/passkeys is the signed-in account's, and the
+         // sign-in challenge beside it is answered before any credential is read.
          var computesOnly = new HashSet<string>
          {
             "/api/v1/sieve/evaluate", "/api/v1/rules/match", "/api/v1/calendar/expand", "/api/v1/settings/scripting/check"
@@ -413,7 +415,8 @@ namespace RegressionTests.API
             foreach (JsonProperty path in document.RootElement.GetProperty("paths").EnumerateObject())
             {
                if (!path.Name.StartsWith("/api/v1/") || path.Name.StartsWith("/api/v1/me") ||
-                   path.Name.StartsWith("/api/v1/session") || computesOnly.Contains(path.Name))
+                   path.Name.StartsWith("/api/v1/session") || path.Name.StartsWith("/api/v1/passkeys") ||
+                   computesOnly.Contains(path.Name))
                   continue;
 
                string concrete = path.Name
