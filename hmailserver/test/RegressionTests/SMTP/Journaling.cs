@@ -276,16 +276,19 @@ namespace RegressionTests.SMTP
             "\r\nSubject: A report coming back\r\n\r\nA journal report relayed back in.\r\n");
 
          // The mailbox still gets its mail: the guard stops the COPY, not the
-         // delivery. Two now - the forged one and the report coming back.
-         Pop3ClientSimulator.AssertMessageCount(reader.Address, Password, 2);
+         // delivery. Reading a message through the POP3 simulator deletes it, so
+         // the forged one is gone and this is the one message in the mailbox.
+         string cameBack = Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password);
+         StringAssert.Contains("Subject: A report coming back", cameBack, "The message carrying this server's mark is delivered like any other.");
 
-         // The queue empty before the count below, so that "still one" is not
-         // merely "the second one has not been delivered yet".
+         // The queue empty before the count below, so that "nothing" is not
+         // merely "the second report has not been delivered yet".
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
 
-         // Still the one report: the message carrying this server's own mark was
-         // not journalled a second time.
-         Pop3ClientSimulator.AssertMessageCount(_journalBox.Address, Password, 1);
+         // No second report: the one report was read - and so deleted - above,
+         // and the message carrying this server's own mark was not journalled
+         // again.
+         Pop3ClientSimulator.AssertMessageCount(_journalBox.Address, Password, 0);
       }
 
       [Test]
@@ -306,15 +309,17 @@ namespace RegressionTests.SMTP
          string delivered = Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password);
          StringAssert.Contains("Subject: Round and round", delivered, "The message itself is delivered as it always was.");
 
-         string report = Pop3ClientSimulator.AssertGetFirstMessageText(insideVault.Address, Password);
-         StringAssert.Contains("Recipient: " + reader.Address, report, "The copy is made, into a mailbox of the journalled domain.");
-
          // Once. The report is delivered to the vault through the queue and never
          // passes the evaluation point, so it does not journal itself; a second
          // message would mean it had. The queue is drained first, so that "one"
-         // is not "the second has not arrived yet".
+         // is not "the second has not arrived yet", and the count comes before
+         // the read, because reading through the POP3 simulator deletes.
+         Pop3ClientSimulator.AssertMessageCount(insideVault.Address, Password, 1);
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          Pop3ClientSimulator.AssertMessageCount(insideVault.Address, Password, 1);
+
+         string report = Pop3ClientSimulator.AssertGetFirstMessageText(insideVault.Address, Password);
+         StringAssert.Contains("Recipient: " + reader.Address, report, "The copy is made, into a mailbox of the journalled domain.");
       }
 
       /// <summary>The value of the first header of that name in a message, or an empty string.</summary>

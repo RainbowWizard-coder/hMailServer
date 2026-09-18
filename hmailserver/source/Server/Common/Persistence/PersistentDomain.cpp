@@ -545,6 +545,17 @@ namespace HM
    bool
    PersistentDomain::ReadObject(std::shared_ptr<Domain> pDomain, const String & sDomainName)
    {
+      // A name the column cannot hold is nobody's domain, and it is not sent
+      // to the table. SQL Server and MySQL answer the comparison with no row;
+      // SQL Server Compact refuses a value longer than the column it is
+      // compared with - "unknown error when executing SQL statement" - and
+      // that is one line in the error log for every MAIL FROM and RCPT TO
+      // whose domain runs past 80 characters, which is the sender's choice to
+      // make. The bench that found it sent a 249-character sender address
+      // through the greylisting fixture, four times.
+      if (sDomainName.GetLength() > DomainNameColumnLength)
+         return false;
+
       SQLStatement statement;
 
       statement.SetStatementType(SQLStatement::STSelect);

@@ -149,6 +149,21 @@ namespace RegressionTests.SMTP
             "550 Invalid syntax. Syntax should be MAIL FROM:<mailbox@domain>[crlf]");
       }
 
+      [Test]
+      [Description("A sender whose domain is longer than hm_domains.domainname holds is accepted as any other stranger is, and " +
+                   "nothing is written to the error log: the name is nobody's domain and is not sent to the table, where SQL " +
+                   "Server Compact refused a value longer than the column it was compared with and logged every attempt.")]
+      public void MailFromADomainLongerThanTheDomainColumnIsAStrangerAndLogsNothing()
+      {
+         // Three labels of 63, 63 and 40 and a top-level label: 172 characters, over
+         // the column's 80 and under the 255 an address may run to. The fixture's
+         // teardown fails this test if the server reported an error while it ran.
+         string domain = new string('b', 63) + "." + new string('c', 63) + "." + new string('d', 40) + ".test";
+         Assert.AreEqual(172, domain.Length);
+
+         AssertValidMailFromCommand("MAIL FROM: stranger@" + domain);
+      }
+
 
       private void AssertInvalidMailFromCommand(string command, string expectedResponse)
       {

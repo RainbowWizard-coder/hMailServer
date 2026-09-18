@@ -16,6 +16,10 @@ namespace HM
       PersistentDomain();
       virtual ~PersistentDomain();
 
+      // hm_domains.domainname is this wide on every backend (CreateTables*.sql),
+      // so a longer name is nobody's domain and is never sent to the table.
+      static const int DomainNameColumnLength = 80;
+
       static bool DeleteObject(std::shared_ptr<Domain> pDomain);
       static bool SaveObject(std::shared_ptr<Domain> pDomain);
       static bool SaveObject(std::shared_ptr<Domain> pDomain, String &sErrorMessage, PersistenceMode mode);

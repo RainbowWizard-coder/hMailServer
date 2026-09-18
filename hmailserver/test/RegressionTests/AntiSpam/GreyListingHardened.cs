@@ -422,13 +422,14 @@ namespace RegressionTests.AntiSpam
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "legacy@example.test", "test");
 
-         // 60 + 1 + 63 + 1 + 63 + 1 + 55 = 244 characters, longer than the 200 the
-         // old columns held: the legacy row keeps a prefix of it, the key is over
-         // the whole of it, and the two have to agree for this to be found.
+         // 60 + 1 + 63 + 1 + 63 + 1 + 55 + 1 + 4 = 249 characters - the last label
+         // is 49 e's and "legacy" - under RFC 5321's 254 and longer than the 200
+         // the old columns held: the legacy row keeps a prefix of it, the key is
+         // over the whole of it, and the two have to agree for this to be found.
          string sender = new string('a', 60) + "@" + new string('b', 63) + "." + new string('c', 63) + "." +
                          new string('e', 49) + "legacy.test";
 
-         Assert.AreEqual(244, sender.Length);
+         Assert.AreEqual(249, sender.Length);
 
          Assert.AreEqual("451", Attempt(sender, account.Address), "the first attempt makes the triplet and defers it");
 

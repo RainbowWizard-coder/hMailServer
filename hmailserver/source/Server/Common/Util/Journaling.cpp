@@ -329,7 +329,16 @@ namespace HM
       // are 32-bit: an id of 4294967297 read row 1, so a PUT or a DELETE with
       // an id nothing answers to edited or destroyed a different rule and
       // answered success. An id no row carries now finds no row.
-      if (id <= 0 || !PersistentJournalRule::ReadObject(rule, id))
+      //
+      // And an id the column cannot hold is not sent to it. jrid is a 32-bit
+      // int on SQL Server, MySQL and Compact (bigserial on PostgreSQL alone),
+      // so nothing above it names a row on any of them; SQL Server and MySQL
+      // answer the comparison with no row, and Compact refuses a 64-bit
+      // parameter against its 32-bit column outright - "one or more errors
+      // occurred during processing of command" in the error log for a request
+      // that was answered 404 anyway. The bench that found this asks for
+      // exactly the wrapping id the paragraph above describes.
+      if (id <= 0 || id > 2147483647LL || !PersistentJournalRule::ReadObject(rule, id))
          return std::shared_ptr<JournalRule>();
 
       return rule;
