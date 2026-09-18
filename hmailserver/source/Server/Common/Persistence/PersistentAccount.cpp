@@ -12,6 +12,8 @@
 #include "../Util/StorePath.h"
 #include "PersistentACLPermission.h"
 #include "PersistentSenderListEntry.h"
+#include "PersistentJournalRule.h"
+#include "../Util/Journaling.h"
 #include "../BO/SenderListEntry.h"
 #include "PersistentFetchAccount.h"
 #include "PersistentRule.h"
@@ -145,6 +147,13 @@ namespace HM
       // stranger's mail skipping the spam filter.
       if (!PersistentSenderListEntry::DeleteByOwner(SenderListEntry::ScopeAccount, iID))
          orphans.push_back(_T("its safe-sender and blocked-sender list"));
+
+      // Any journaling rule that names this account. The row holds the account id
+      // and has no foreign key to hm_accounts, because a domain rule's account id
+      // is 0; nothing would take it away, and a rule left behind would start
+      // copying the mail of whichever account is given the number next.
+      if (!PersistentJournalRule::DeleteByAccount(iID))
+         orphans.push_back(_T("the journaling rules naming it"));
 
       if (!orphans.empty())
       {
@@ -482,6 +491,12 @@ namespace HM
 
             // Remove the old account from the cache.
             Cache<Account>::Instance()->RemoveObject(previousAddress);
+
+            // A journaling rule names this account by id and shows its address,
+            // and the loop guard compares that address with a rule's journal
+            // address. A rename therefore has to reach the evaluation; a flag,
+            // so only a rename costs anything and an ordinary save costs nothing.
+            Journaling::SetNeedRefresh();
          }
       }
 

@@ -14,6 +14,8 @@
 #include "SenderListEntries.h"
 #include "SpamTrap.h"
 #include "SpamTraps.h"
+#include "JournalRule.h"
+#include "JournalRules.h"
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
 
@@ -278,6 +280,18 @@ namespace HM
       if (!spamTraps->XMLStore(pNode, iBackupOptions))
          return false;
 
+      // The domain's journaling rules (hm_journalrules, schema 6075), including
+      // the ones naming its accounts, which are held under the domain because
+      // the foreign key is the domain's. Carried by the name they were written
+      // with rather than by the two ids a restore reissues; see
+      // JournalRule::XMLStore.
+      std::shared_ptr<JournalRules> journalRules =
+         std::shared_ptr<JournalRules>(new JournalRules(id_));
+      if (!journalRules->Refresh())
+         return false;
+      if (!journalRules->XMLStore(pNode, iBackupOptions))
+         return false;
+
       return true;
    }
 
@@ -457,6 +471,15 @@ namespace HM
       if (!spamTraps->Refresh())
          return false;
       if (!spamTraps->XMLLoad(pNode, iRestoreOptions))
+         return false;
+
+      // Last, and after the accounts above, because an account rule finds its
+      // account by the address the archive carries; see JournalRules::PreSaveObject.
+      std::shared_ptr<JournalRules> journalRules =
+         std::shared_ptr<JournalRules>(new JournalRules(id_));
+      if (!journalRules->Refresh())
+         return false;
+      if (!journalRules->XMLLoad(pNode, iRestoreOptions))
          return false;
 
       return true;

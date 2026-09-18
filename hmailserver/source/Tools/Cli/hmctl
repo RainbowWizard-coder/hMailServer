@@ -262,6 +262,19 @@ RESOURCES = {
         "help": "spam traps: addresses of a domain that were never real",
         "create_example": "hmctl spamtrap create --domain example.com --set address=never-used@example.com",
     },
+    "journalrule": {
+        # Journaling and dual delivery. Server-wide, like the webhooks: a rule
+        # names a domain, but the list is every domain's and one of them says
+        # where another's mail goes.
+        "collection": "/api/v1/journal-rules",
+        "item": "/api/v1/journal-rules/{id}",
+        "key": "journal_rules",
+        "id": "id",
+        "columns": ["id", "scope", "target", "direction", "mode", "journal_address", "enabled", "note"],
+        "verbs": ["list", "create", "update", "delete"],
+        "help": "journaling and dual delivery: a copy of a domain's or an account's mail, sent to an address",
+        "create_example": "hmctl journalrule create --set target=example.com --set journal_address=archive@compliance.example --set mode=report",
+    },
     "apikey": {
         "collection": "/api/v1/apikeys",
         "item": "/api/v1/apikeys/{id}",

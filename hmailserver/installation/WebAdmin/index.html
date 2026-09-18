@@ -310,6 +310,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="fetch" data-needs="view_accounts" title="Fetch accounts"><span class="ico">⇓</span><span>Fetch accounts</span></button>
         <button data-view="lists" data-needs="view_accounts" title="Lists"><span class="ico">≣</span><span>Lists</span></button>
         <button data-view="spamtraps" data-serverwide="1" data-needs="view_configuration" title="Spam traps"><span class="ico">◎</span><span>Spam traps</span></button>
+        <button data-view="journal" data-serverwide="1" data-needs="view_configuration" title="Journaling"><span class="ico">✇</span><span>Journaling</span></button>
         <button data-view="queue" data-serverwide="1" data-needs="view_queue" title="Delivery queue"><span class="ico">⇶</span><span>Delivery queue</span></button>
         <button data-view="tlsa" data-needs="view_configuration" title="DANE / TLSA"><span class="ico">⛨</span><span>DANE / TLSA</span></button>
         <button data-view="settings" data-serverwide="1" data-needs="view_configuration" title="Settings"><span class="ico">⚙</span><span>Settings</span></button>
@@ -761,7 +762,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;render();
 });
-const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -775,6 +776,7 @@ async function render(silent){
     else if(view==="reputation")await renderReputation();
     else if(view==="checklist")await renderChecklist();
     else if(view==="spamtraps")await renderSpamTraps();
+    else if(view==="journal")await renderJournal();
     else if(view==="queue")await renderQueue();
     else if(view==="tlsa")await renderTlsa();
     else if(view==="settings")await renderSettings();
@@ -1091,6 +1093,9 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="dtrapadd")addDomainTrap();
   else if(d.act==="dtrapdel")deleteDomainTrap(d.address);
   else if(d.act==="trapclear")clearSpamTrapHits();
+  else if(d.act==="jrnadd")addJournalRule();
+  else if(d.act==="jrndel")deleteJournalRule(Number(d.id),d.value);
+  else if(d.act==="jrntoggle")toggleJournalRule(Number(d.id),d.value==="1");
   else if(d.act==="dkimrotstart")rotationAct("start");
   else if(d.act==="dkimrotcheck")rotationAct("check");
   else if(d.act==="dkimrotswitch")rotationAct("switch");
@@ -4507,6 +4512,70 @@ async function clearSpamTrapHits(){
     toast(tf("{0} hits cleared",String(answer&&answer.removed!==undefined?answer.removed:0)));
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_trapclear",e.message);}
+}
+
+async function renderJournal(){
+  await loadSpec();
+  const rules=asList(await api("/api/v1/journal-rules"),"items");
+  const word=(k,v)=>({domain:t("Domain"),account:t("Account"),inbound:t("Arriving"),outbound:t("Sent"),both:t("Both ways"),
+    report:t("Envelope report"),copy:t("The message itself")}[v]||v);
+  const rows=rules.map(r=>`
+    <tr><td><code>${escHtml(r.target||"")}</code><div class="note">${escHtml(word("scope",r.scope))}</div></td>
+        <td>${escHtml(word("direction",r.direction))}</td>
+        <td>${escHtml(word("mode",r.mode))}</td>
+        <td><code>${escHtml(r.journal_address||"")}</code></td>
+        <td>${r.enabled?'<span class="badge ok">'+t("On")+'</span>':'<span class="badge">'+t("Off")+'</span>'}</td>
+        <td>${escHtml(r.note||"\u2014")}</td>
+        <td class="right"><button class="btn ghost sm" data-act="jrntoggle" data-id="${r.id}" data-value="${r.enabled?"0":"1"}">${r.enabled?t("Switch off"):t("Switch on")}</button>
+          <button class="btn ghost sm" data-act="jrndel" data-id="${r.id}" data-value="${escHtml(r.target||"")}">${t("Remove")}</button></td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat"><p class="note">${escHtml(operation("/api/v1/journal-rules","get").description||"")}</p></div>
+    <div class="sect"><h2>${t("Journaling rules")}</h2>
+      <div class="card flat" id="journalRules">
+        <div class="tablewrap"><table><thead><tr><th>${t("Whose mail")}</th><th>${t("Which way")}</th><th>${t("What is sent")}</th><th>${t("Where it goes")}</th><th>${t("State")}</th><th>${t("Note")}</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("No journaling rules: nothing is copied anywhere and the evaluation costs one comparison per message.")+'</td></tr>'}</tbody></table></div>
+      </div></div>
+    <div class="sect"><h2>${t("Add a rule")}</h2>
+      <div class="card flat">
+        <div class="row" data-enter="jrnadd">
+          <select id="newJournalScope" aria-label="${t("Whose mail")}"><option value="domain">${t("Domain")}</option><option value="account">${t("Account")}</option></select>
+          <input id="newJournalTarget" placeholder="${t("A domain, or an account address")}" aria-label="${t("Whose mail")}" style="flex:1;min-width:200px">
+          <select id="newJournalDirection" aria-label="${t("Which way")}"><option value="both">${t("Both ways")}</option><option value="inbound">${t("Arriving")}</option><option value="outbound">${t("Sent")}</option></select>
+          <select id="newJournalMode" aria-label="${t("What is sent")}"><option value="report">${t("Envelope report")}</option><option value="copy">${t("The message itself")}</option></select>
+          <input id="newJournalAddress" placeholder="${t("Where the copy goes")}" aria-label="${t("Where it goes")}" style="flex:1;min-width:200px">
+          <input id="newJournalNote" placeholder="${t("Why (optional)")}" aria-label="${t("Note")}" style="flex:1;min-width:140px">
+          <button class="btn ghost sm" data-act="jrnadd">${t("Add a rule")}</button>
+        </div>
+        <div class="err" id="err_journal"></div>
+      </div></div>
+    </div>`;
+}
+async function addJournalRule(){
+  setErr("err_journal","");
+  const target=$("#newJournalTarget").value.trim();
+  const address=$("#newJournalAddress").value.trim();
+  if(!target){setErr("err_journal",t("A domain or an account address is required."));return;}
+  if(!address){setErr("err_journal",t("The address the copy goes to is required."));return;}
+  try{
+    await api("/api/v1/journal-rules",{method:"POST",body:JSON.stringify({scope:$("#newJournalScope").value,target:target,
+      journal_address:address,direction:$("#newJournalDirection").value,mode:$("#newJournalMode").value,note:$("#newJournalNote").value.trim()})});
+    toast(tf("Journaling rule added for {0}",target));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_journal",e.message);}
+}
+async function toggleJournalRule(id,enabled){
+  setErr("err_journal","");
+  try{
+    await api("/api/v1/journal-rules/"+id,{method:"PUT",body:JSON.stringify({enabled:enabled})});
+    toast(enabled?t("The rule is on."):t("The rule is off. Nothing it covers is copied until it is on again."));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_journal",e.message);}
+}
+async function deleteJournalRule(id,target){
+  if(!confirm(tf("Remove the journaling rule for {0}? What it has already sent stays where it was sent.",target)))return;
+  setErr("err_journal","");
+  try{
+    await api("/api/v1/journal-rules/"+id,{method:"DELETE"});
+    toast(tf("Journaling rule removed for {0}",target));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_journal",e.message);}
 }
 
 async function renderLists(){

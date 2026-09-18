@@ -413,6 +413,12 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Kod z aplikacji uwierzytelniającej, wymagany obok hasła tego konta. Obowiązuje tam, gdzie kod da się faktycznie wpisać - w aplikacji Control Panel i w API. Klienty pocztowe nie potrafią go przedstawić, więc po włączeniu tej opcji muszą zamiast tego używać hasła aplikacji.</value>
   </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
+    <value>Kopia poczty domeny lub jednego konta, wysyłana na adres – jako raport koperty z załączoną wiadomością albo jako sama wiadomość.</value>
+  </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself. Nothing is copied until a rule exists here, and a rule is not the archive: it sends mail elsewhere rather than keeping files on this machine." xml:space="preserve">
+    <value>Kopia poczty domeny lub jednego konta, wysyłana na adres – jako raport koperty z załączoną wiadomością albo jako sama wiadomość. Nic nie jest kopiowane, dopóki nie ma tu reguły, a reguła to nie archiwum: wysyła pocztę gdzie indziej, zamiast trzymać pliki na tej maszynie.</value>
+  </data>
   <data name="A copy of every log entry, as RFC 5424, to a syslog collector - rsyslog, syslog-ng, a SIEM - beside the log files rather than instead of them. On Linux with no collector named, a server running under systemd writes to the journal, where journalctl can read it." xml:space="preserve">
     <value>Kopia każdego wpisu dziennika, w postaci RFC 5424, do kolektora syslog - rsyslog, syslog-ng, SIEM - obok plików dziennika, a nie zamiast nich. W systemie Linux bez wskazanego kolektora serwer działający pod systemd zapisuje do journala, gdzie odczyta go journalctl.</value>
   </data>
@@ -443,11 +449,17 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
     <value>Na tym serwerze istnieje domena o nazwie {0}, której próbka nie utworzyła, więc nic tutaj jej nie tworzy ani nie usuwa. Jeśli nie jest potrzebna, usuń ją samodzielnie.</value>
   </data>
+  <data name="A domain or an account address is required." xml:space="preserve">
+    <value>Wymagana jest domena lub adres konta.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Domenę o zmieniających się hostach wychodzących rozpoznaje się zwykle po nazwie HELO; domenę, która niczego nie fałszuje, po nadawcy koperty.</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Domena, skrzynka pocztowa, nasłuch oferujący TLS i to, co z tego wynika na Pulpicie. Cztery minuty; można przerwać w dowolnej chwili.</value>
+  </data>
+  <data name="A domain, or an account address" xml:space="preserve">
+    <value>Domena lub adres konta</value>
   </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Margines dla poczty przychodzącej: skrzynka przekraczająca limit o mniej niż to nadal odbiera, więc osoba nieobecna przez tydzień nie traci poczty, bo w poniedziałek przyszedł duży załącznik. Własne zapisy i kopie właściciela zatrzymują się na samym limicie. Każda domena może ustawić własny. Obowiązuje od razu.</value>
@@ -1374,6 +1386,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
     <value>Liczba przebiegów Argon2id dla nowych skrótów (0 = wbudowane 2; od 1 do 20)</value>
   </data>
+  <data name="Arriving" xml:space="preserve">
+    <value>Przychodzące</value>
+  </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
   </data>
@@ -1628,6 +1643,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Oba progi mają wartość 0, więc żadna punktacja niczego nie oznaczy ani nie odrzuci - serwer sprawdza je warunkiem „większe niż 0”, zanim ich użyje. Przerywa też sprawdzanie, gdy tylko bieżąca suma osiągnie wyższy z progów, czyli 0, więc w każdej fazie wykonuje się dokładnie jedna kontrola, a jej wynik jest odrzucany.</value>
+  </data>
+  <data name="Both ways" xml:space="preserve">
+    <value>W obie strony</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Liczniki zwrotów</value>
@@ -1889,6 +1907,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>Wybierz rolę do nadania.</value>
+  </data>
+  <data name="Choose a rule in the list." xml:space="preserve">
+    <value>Wybierz regułę z listy.</value>
   </data>
   <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
     <value>Wybierz przypisanie z listy albo wpisz adres konta.</value>
@@ -3050,6 +3071,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>Domena adresu nadawcy mailer-daemon (puste = nazwa hosta, w innym razie lokalna domena wiadomości, w innym razie nazwa komputera)</value>
   </data>
+  <data name="Domain or account" xml:space="preserve">
+    <value>Domena lub konto</value>
+  </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Domena lub wzorzec</value>
   </data>
@@ -3316,6 +3340,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Domeny koperty i przyrostki HELO przepuszczane przez greylisting, gdy wiadomość niesie wyniki uwierzytelnienia wymagane przez wpis - SPF, DKIM, DMARC, w dowolnym połączeniu. Domena dopasowana dokładnie albo przyrostek z kropką na początku, jak .mail.example.com, obejmujący tę nazwę i każdą nazwę pod nią. SPF jest znane przy RCPT TO, więc wpis wymagający tylko SPF rozstrzyga tam; DKIM i DMARC istnieją dopiero po odebraniu wiadomości, więc wpis wymagający któregoś z nich na razie przepuszcza odbiorcę, a wiadomość jest poddawana greylistingowi po DATA, jeśli wynik nie jest pozytywny - i tylko dopóki weryfikacja DKIM lub DMARC jest włączona, bo inaczej wpisu nigdy nie da się spełnić. W odróżnieniu od Pomijaj przy pozytywnym wyniku SPF jest to przywilej nadawany nazwanej domenie, a nie własność każdego pozytywnego SPF na świecie.</value>
+  </data>
+  <data name="Envelope report" xml:space="preserve">
+    <value>Raport koperty</value>
   </data>
   <data name="Envelope sender's domain" xml:space="preserve">
     <value>Domena nadawcy koperty</value>
@@ -4203,6 +4230,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>Adres URL zestawu JWK (opublikowane klucze podpisujące dostawcy; puste = tylko plik klucza)</value>
+  </data>
+  <data name="Journaling and dual delivery" xml:space="preserve">
+    <value>Dziennikowanie i podwójne doręczanie</value>
   </data>
   <data name="Keep" xml:space="preserve">
     <value>Zachowaj</value>
@@ -5214,6 +5244,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="No incoming relays. Add one only for a gateway in front of this server whose address you trust." xml:space="preserve">
     <value>Brak przekaźników przychodzących. Dodaj tylko bramę przed tym serwerem, której adresowi ufasz.</value>
+  </data>
+  <data name="No journaling rules. Nothing is copied anywhere, and the check costs one comparison for each message the server accepts." xml:space="preserve">
+    <value>Brak reguł dziennikowania. Nic nigdzie nie jest kopiowane, a sprawdzenie kosztuje jedno porównanie na każdą wiadomość przyjętą przez serwer.</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Żaden klucz, niezależnie od zakresu, nie może tworzyć ani unieważniać kluczy - do tego potrzebne jest hasło administratora albo ta strona. Klucz ograniczony do określonych domen ma też wprost odmawiany dostęp do punktów końcowych kolejki dostarczania, ponieważ kolejka obejmuje cały serwer i nie da się jej filtrować według domeny.</value>
@@ -6333,6 +6366,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Re_move action" xml:space="preserve">
     <value>Usu_ń akcję</value>
   </data>
+  <data name="Re_move the rule" xml:space="preserve">
+    <value>Usuń _regułę</value>
+  </data>
   <data name="Re_move the sample domain" xml:space="preserve">
     <value>Usuń przykładową do_menę</value>
   </data>
@@ -6582,6 +6618,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>Usunąć wiadomość {0} z kolejki?</value>
+  </data>
+  <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
+    <value>Usunąć regułę dziennikowania dla {0}? To, co już wysłała, pozostaje tam, dokąd zostało wysłane.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Usunąć odbiorcę {0} z tej listy?</value>
@@ -7076,6 +7115,9 @@ Kontynuować?</value>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>Serwery SURBL są odpytywane o odnośniki znajdujące się w treści wiadomości.</value>
   </data>
+  <data name="S_witch the rule over" xml:space="preserve">
+    <value>_Przełącz regułę</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Zapisz _uprawnienia</value>
   </data>
@@ -7504,6 +7546,9 @@ Kontynuować?</value>
   </data>
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Znaleziono treści wrażliwe (card_number, iban, account_number)</value>
+  </data>
+  <data name="Sent" xml:space="preserve">
+    <value>Wychodzące</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Niezależnie od tego ten serwer SAM WYSYŁA takie raporty do innych domen: TlsRptFromAddress jest ustawione na {0}, więc jego własne raporty są wysyłane.</value>
@@ -8361,6 +8406,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adres musi być nazwą, po której następuje @</value>
   </data>
+  <data name="The address the copy goes to is required." xml:space="preserve">
+    <value>Wymagany jest adres, na który trafia kopia.</value>
+  </data>
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Adresy i porty, na których nasłuchuje każdy protokół, oraz zabezpieczenie połączenia używane na każdym z nich.</value>
   </data>
@@ -8725,6 +8773,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>Wiadomość jest usuwana i nikt nie jest o tym informowany. Usunięcie jest odnotowywane w dzienniku aplikacji.</value>
   </data>
+  <data name="The message itself" xml:space="preserve">
+    <value>Sama wiadomość</value>
+  </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Adres powiązania metryk nie jest zwykłym adresem IPv4 (nazwy hostów ani IPv6 nie są tu przyjmowane), więc nasłuch metryk w ogóle się nie uruchomi.</value>
   </data>
@@ -8956,6 +9007,9 @@ Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SM
   </data>
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Nazwa hosta serwera (Dostarczanie poczty) jest PUSTA, więc w HELO/EHLO ogłasza on nazwę swojego komputera w systemie Windows - a nie publiczną nazwę DNS - i żadnego mechanizmu „a:” nie da się uczciwie zaoferować. Sugestia autoryzuje wyłącznie hosty MX domeny. Najpierw należy ustawić nazwę hosta; potrzebuje jej kilka rekordów na tej stronie.</value>
+  </data>
+  <data name="The server's answer could not be read." xml:space="preserve">
+    <value>Nie udało się odczytać odpowiedzi serwera.</value>
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Nie udało się odczytać odpowiedzi serwera: {0}</value>
@@ -9678,6 +9732,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Co musi istnieć poza tym serwerem</value>
   </data>
+  <data name="What is sent" xml:space="preserve">
+    <value>Co jest wysyłane</value>
+  </data>
   <data name="What it is for" xml:space="preserve">
     <value>Do czego służy</value>
   </data>
@@ -9735,11 +9792,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Gdy punkt końcowy jest nieosiągalny</value>
   </data>
+  <data name="Where it goes" xml:space="preserve">
+    <value>Dokąd trafia</value>
+  </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Którędy wychodzi poczta Z tej domeny. To inne pytanie niż trasa, która decyduje, dokąd wysyłana jest poczta zaadresowana DO domeny - to dla serwera obsługującego kilka niezależnych domen, z których każda ma własnego dostawcę dostarczania.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Kiedy administrator jest informowany, na długo zanim cokolwiek zostanie odrzucone. 1024 MB to mniej więcej pięćdziesiąt kolejnych wiadomości maksymalnego rozmiaru.</value>
+  </data>
+  <data name="Where the copy goes" xml:space="preserve">
+    <value>Dokąd trafia kopia</value>
   </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read." xml:space="preserve">
     <value>Nie udało się ustalić, gdzie zostałby zapisany wystawiony certyfikat, bo nie dało się odczytać ani folderu wyjściowego powyżej, ani [Directories] DataFolder w hMailServer.INI.</value>
@@ -9825,6 +9888,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
     <value>W jakiej pisowni raport zbiorczy DMARC wychodzi do domen, o których ten serwer raportuje. 1 to to, co parsuje każdy wdrożony dziś konsument raportów; 2 to DMARCbis, na dzień, gdy konsumenci nadgonią. Każda inna wartość jest zgłaszana jako błąd i traktowana jako 1, bo literówka nie może decydować o tym, co trafia do sieci. Obowiązuje po restarcie usługi.</value>
   </data>
+  <data name="Which way" xml:space="preserve">
+    <value>W którą stronę</value>
+  </data>
   <data name="White list" xml:space="preserve">
     <value>Biała lista</value>
   </data>
@@ -9852,8 +9918,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kto może się łączyć, kto może się uwierzytelniać i co dzieje się, gdy ktoś wciąż próbuje.</value>
   </data>
+  <data name="Whose mail" xml:space="preserve">
+    <value>Czyja poczta</value>
+  </data>
   <data name="Why" xml:space="preserve">
     <value>Powód</value>
+  </data>
+  <data name="Why (optional)" xml:space="preserve">
+    <value>Dlaczego (opcjonalnie)</value>
   </data>
   <data name="Why it is listed" xml:space="preserve">
     <value>Dlaczego jest na liście</value>
@@ -9977,6 +10049,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Add signature to outgoing messages" xml:space="preserve">
     <value>_Dodawaj podpis do wiadomości wychodzących</value>
+  </data>
+  <data name="_Add the rule" xml:space="preserve">
+    <value>_Dodaj regułę</value>
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>_Adres (zmiana zmienia nazwę skrzynki pocztowej; musi pozostać w tej domenie)</value>

@@ -413,6 +413,12 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Bir kimlik doğrulayıcı uygulamadan gelen ve bu hesabın parolasının yanı sıra istenen kod. Yalnızca bir kodun gerçekten girilebildiği yerlerde geçerlidir - Denetim Masası ve API. Posta istemcileri kod sunamaz; bu nedenle bu açıldığında onların bunun yerine bir uygulama parolası kullanması gerekir.</value>
   </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
+    <value>Bir alan adının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak.</value>
+  </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself. Nothing is copied until a rule exists here, and a rule is not the archive: it sends mail elsewhere rather than keeping files on this machine." xml:space="preserve">
+    <value>Bir alan adının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak. Burada bir kural olmadıkça hiçbir şey kopyalanmaz ve kural arşiv değildir: dosyaları bu makinede tutmak yerine postayı başka bir yere gönderir.</value>
+  </data>
   <data name="A copy of every log entry, as RFC 5424, to a syslog collector - rsyslog, syslog-ng, a SIEM - beside the log files rather than instead of them. On Linux with no collector named, a server running under systemd writes to the journal, where journalctl can read it." xml:space="preserve">
     <value>Her günlük girdisinin bir kopyası, RFC 5424 biçiminde, bir syslog toplayıcısına - rsyslog, syslog-ng, bir SIEM - günlük dosyalarının yerine değil, yanı sıra gönderilir. Linux'ta bir toplayıcı belirtilmediğinde, systemd altında çalışan sunucu journal'a yazar ve journalctl bunu okuyabilir.</value>
   </data>
@@ -443,11 +449,17 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
     <value>Bu sunucuda {0} adlı bir etki alanı var ve onu örnek oluşturmadı, bu yüzden burada hiçbir şey onu oluşturmuyor ya da kaldırmıyor. İstenmiyorsa o etki alanını kendiniz silin.</value>
   </data>
+  <data name="A domain or an account address is required." xml:space="preserve">
+    <value>Bir alan adı veya hesap adresi gerekir.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Giden sunucuları sürekli değişen bir alan adı genellikle HELO adından tanınır; hiçbir şeyi sahtelemeyen bir alan adı ise zarf gönderenden.</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Bir etki alanı, bir posta kutusu, TLS sunan bir dinleyici ve Pano'nun bunlardan çıkardığı sonuç. Dört dakika; istediğiniz zaman çıkabilirsiniz.</value>
+  </data>
+  <data name="A domain, or an account address" xml:space="preserve">
+    <value>Bir alan adı veya hesap adresi</value>
   </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Gelen posta için bir pay: sınırını bundan daha az aşan bir posta kutusu almaya devam eder; böylece bir hafta uzakta olan biri pazartesi büyük bir ek geldi diye posta kaybetmez. Sahibin kendi kayıtları ve kopyaları sınırın kendisinde durur. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
@@ -1374,6 +1386,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
     <value>Yeni karmalar için Argon2id geçiş sayısı (0 = yerleşik 2; 1 ile 20 arası)</value>
   </data>
+  <data name="Arriving" xml:space="preserve">
+    <value>Gelen</value>
+  </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
   </data>
@@ -1628,6 +1643,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>İki eşik de 0; bu yüzden hiçbir puan bir şeyi işaretleyemez veya reddedemez - sunucu bunları kullanmadan önce "0'dan büyük" ile sınar. Ayrıca çalışan toplam, 0 olan yüksek eşiğe ulaşır ulaşmaz sınamayı bırakır; bu yüzden her aşamada tam olarak bir denetim çalışır ve sonucu atılır.</value>
+  </data>
+  <data name="Both ways" xml:space="preserve">
+    <value>Her iki yön</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Geri dönüş sayıları</value>
@@ -1889,6 +1907,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>Verilecek bir rol seçin.</value>
+  </data>
+  <data name="Choose a rule in the list." xml:space="preserve">
+    <value>Listeden bir kural seçin.</value>
   </data>
   <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
     <value>Listeden bir atama seçin veya hesap adresini yazın.</value>
@@ -3050,6 +3071,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>Mailer-daemon gönderen adresi için etki alanı (boş = ana bilgisayar adı, yoksa iletinin yerel etki alanı, o da yoksa makine adı)</value>
   </data>
+  <data name="Domain or account" xml:space="preserve">
+    <value>Alan adı veya hesap</value>
+  </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Alan adı veya kalıp</value>
   </data>
@@ -3316,6 +3340,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>İleti, kaydın gerektirdiği kimlik doğrulama sonuçlarını - SPF, DKIM, DMARC, herhangi bir birleşim - taşıdığında gri listelemeyi atlayan zarf alan adları ve HELO sonekleri. Tam eşleşen bir alan adı ya da .mail.example.com gibi başında nokta olan ve o adı ve altındaki her adı kapsayan bir sonek. SPF, RCPT TO anında bilinir, bu yüzden yalnızca SPF isteyen bir kayıt orada karar verir; DKIM ve DMARC yalnızca ileti alındıktan sonra var olur, bu yüzden ikisinden birini isteyen bir kayıt alıcıyı şimdilik geçirir ve sonuç geçer değilse ileti DATA sonrasında gri listelenir - ve yalnızca DKIM doğrulaması veya DMARC açıkken, aksi halde kayıt hiçbir zaman karşılanamaz. SPF başarılıysa atla seçeneğinden farklı olarak bu, dünyadaki her SPF geçişinin bir özelliği değil, adı geçen bir alan adına sizin verdiğiniz bir ayrıcalıktır.</value>
+  </data>
+  <data name="Envelope report" xml:space="preserve">
+    <value>Zarf raporu</value>
   </data>
   <data name="Envelope sender's domain" xml:space="preserve">
     <value>Zarf gönderenin alan adı</value>
@@ -4203,6 +4230,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL'si (sağlayıcının yayımlanan imzalama anahtarları; boş = yalnızca anahtar dosyası)</value>
+  </data>
+  <data name="Journaling and dual delivery" xml:space="preserve">
+    <value>Günlükleme ve çift teslim</value>
   </data>
   <data name="Keep" xml:space="preserve">
     <value>Tut</value>
@@ -5214,6 +5244,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="No incoming relays. Add one only for a gateway in front of this server whose address you trust." xml:space="preserve">
     <value>Gelen aktarma yok. Yalnızca bu sunucunun önünde yer alan ve adresine güvendiğiniz bir ağ geçidini ekleyin.</value>
+  </data>
+  <data name="No journaling rules. Nothing is copied anywhere, and the check costs one comparison for each message the server accepts." xml:space="preserve">
+    <value>Günlükleme kuralı yok. Hiçbir şey hiçbir yere kopyalanmaz ve denetim, sunucunun kabul ettiği her ileti için bir karşılaştırma tutar.</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Hiçbir kapsamdaki hiçbir anahtar, anahtar oluşturamaz ya da iptal edemez - bunun için yönetici parolası ya da bu sayfa gerekir. Belirli etki alanlarıyla sınırlanan bir anahtara teslim kuyruğu uç noktaları da doğrudan reddedilir, çünkü kuyruk sunucu genelindedir ve etki alanına göre süzülemez.</value>
@@ -6333,6 +6366,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Re_move action" xml:space="preserve">
     <value>Eylemi kaldı_r</value>
   </data>
+  <data name="Re_move the rule" xml:space="preserve">
+    <value>Kuralı kaldı_r</value>
+  </data>
   <data name="Re_move the sample domain" xml:space="preserve">
     <value>Örnek etki alanını kaldır (_M)</value>
   </data>
@@ -6582,6 +6618,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>{0} iletisi kuyruktan kaldırılsın mı?</value>
+  </data>
+  <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
+    <value>{0} için günlükleme kuralı kaldırılsın mı? Daha önce gönderdikleri, gönderildikleri yerde kalır.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>{0} alıcısı bu listeden kaldırılsın mı?</value>
@@ -7076,6 +7115,9 @@ Devam edilsin mi?</value>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL sunucuları, iletinin içindeki bağlantılara karşı denetlenir.</value>
   </data>
+  <data name="S_witch the rule over" xml:space="preserve">
+    <value>Kuralı de_ğiştir</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>İzinleri _kaydet</value>
   </data>
@@ -7504,6 +7546,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Hassas içerik bulundu (card_number, iban, account_number)</value>
+  </data>
+  <data name="Sent" xml:space="preserve">
+    <value>Giden</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Ayrıca bu sunucu bu tür raporları başka etki alanlarına GÖNDERİYOR: TlsRptFromAddress {0} olarak ayarlı, bu yüzden kendi raporları dışarı gidiyor.</value>
@@ -8361,6 +8406,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adres, ardından @ gelen bir ad olmalıdır</value>
   </data>
+  <data name="The address the copy goes to is required." xml:space="preserve">
+    <value>Kopyanın gideceği adres gerekir.</value>
+  </data>
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Her protokolün dinlediği adresler ve portlar ve her birinde kullanılan bağlantı güvenliği.</value>
   </data>
@@ -8725,6 +8773,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>İleti silinir ve kimseye söylenmez. Silme, uygulama günlüğüne kaydedilir.</value>
   </data>
+  <data name="The message itself" xml:space="preserve">
+    <value>İletinin kendisi</value>
+  </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Ölçüm bağlama adresi düz bir IPv4 adresi değil (burada ana bilgisayar adları ve IPv6 kabul edilmez); bu yüzden ölçüm dinleyicisi hiç başlamaz.</value>
   </data>
@@ -8956,6 +9007,9 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   </data>
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Sunucunun Ana bilgisayar adı (E-posta teslimi) BOŞ; bu yüzden HELO/EHLO'da Windows bilgisayar adını duyuruyor - genel bir DNS adı değil - ve hiçbir "a:" mekanizması dürüstçe sunulamaz. Öneri yalnızca etki alanının MX ana bilgisayarlarını yetkilendirir. Önce ana bilgisayar adını ayarlayın; bu sayfadaki birkaç kayıt ona ihtiyaç duyar.</value>
+  </data>
+  <data name="The server's answer could not be read." xml:space="preserve">
+    <value>Sunucunun yanıtı okunamadı.</value>
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Sunucunun yanıtı okunamadı: {0}</value>
@@ -9678,6 +9732,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Bu sunucunun dışında nelerin var olması gerekir</value>
   </data>
+  <data name="What is sent" xml:space="preserve">
+    <value>Ne gönderilir</value>
+  </data>
   <data name="What it is for" xml:space="preserve">
     <value>Ne için olduğu</value>
   </data>
@@ -9735,11 +9792,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Uç noktaya ulaşılamadığında</value>
   </data>
+  <data name="Where it goes" xml:space="preserve">
+    <value>Nereye gider</value>
+  </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Bu etki alanından GELEN postanın nereden çıktığı. Bu, bir etki alanına adreslenen postanın nereye gönderileceğine karar veren bir rotadan farklı bir sorudur - her birinin kendi teslim sağlayıcısı olan birden çok bağımsız etki alanını barındıran bir sunucu içindir.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Herhangi bir şey reddedilmeden çok önce yöneticiye nerede söylendiği. 1024 MB kabaca elli en büyük boyutlu ileti daha demektir.</value>
+  </data>
+  <data name="Where the copy goes" xml:space="preserve">
+    <value>Kopyanın gideceği yer</value>
   </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read." xml:space="preserve">
     <value>Verilen sertifikanın nereye yazılacağı belirlenemedi, çünkü ne yukarıdaki çıkış klasörü ne de hMailServer.INI içindeki [Directories] DataFolder okunabildi.</value>
@@ -9825,6 +9888,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
     <value>DMARC toplu raporunun bu sunucunun raporladığı etki alanlarına hangi yazımla gittiği. 1, bugün konuşlandırılmış her rapor tüketicisinin ayrıştırdığı şeydir; 2, tüketicilerin yetiştiği gün için DMARCbis'tir. Başka bir değer hata olarak bildirilir ve 1 olarak ele alınır, çünkü bir yazım hatası hatta neyin gideceğine karar vermemelidir. Hizmet yeniden başlatıldıktan sonra uygulanır.</value>
   </data>
+  <data name="Which way" xml:space="preserve">
+    <value>Hangi yön</value>
+  </data>
   <data name="White list" xml:space="preserve">
     <value>Beyaz liste</value>
   </data>
@@ -9852,8 +9918,14 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kimin bağlanabileceği, kimin kimlik doğrulaması yapabileceği ve biri denemeye devam ettiğinde ne olacağı.</value>
   </data>
+  <data name="Whose mail" xml:space="preserve">
+    <value>Kimin postası</value>
+  </data>
   <data name="Why" xml:space="preserve">
     <value>Neden</value>
+  </data>
+  <data name="Why (optional)" xml:space="preserve">
+    <value>Neden (isteğe bağlı)</value>
   </data>
   <data name="Why it is listed" xml:space="preserve">
     <value>Neden listede</value>
@@ -9977,6 +10049,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Add signature to outgoing messages" xml:space="preserve">
     <value>Giden iletilere _imza ekle</value>
+  </data>
+  <data name="_Add the rule" xml:space="preserve">
+    <value>Kuralı _ekle</value>
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>_Adres (değiştirmek posta kutusunu yeniden adlandırır; bu etki alanında kalmalıdır)</value>

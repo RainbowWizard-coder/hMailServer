@@ -1893,6 +1893,12 @@ namespace HM
          case RouteBlockedAttachmentUpdate:
          case RouteBlockedAttachmentDelete:
             return HandleBlockedAttachments_(route.kind, route.record_id, GetRequestBody_(request));
+
+         case RouteJournalRuleList:
+         case RouteJournalRuleCreate:
+         case RouteJournalRuleUpdate:
+         case RouteJournalRuleDelete:
+            return HandleJournalRules_(route.kind, route.record_id, GetRequestBody_(request));
          case RouteSenderListList:
          case RouteSenderListCreate:
          case RouteSenderListUpdate:
@@ -4401,6 +4407,7 @@ namespace HM
             { "/api/v1/blocked-senders", RouteBlockedSenderList, RouteBlockedSenderCreate, RouteBlockedSenderUpdate, RouteBlockedSenderDelete },
             { "/api/v1/incoming-relays", RouteIncomingRelayList, RouteIncomingRelayCreate, RouteIncomingRelayUpdate, RouteIncomingRelayDelete },
             { "/api/v1/blocked-attachments", RouteBlockedAttachmentList, RouteBlockedAttachmentCreate, RouteBlockedAttachmentUpdate, RouteBlockedAttachmentDelete },
+            { "/api/v1/journal-rules", RouteJournalRuleList, RouteJournalRuleCreate, RouteJournalRuleUpdate, RouteJournalRuleDelete },
             { "/api/v1/greylisting-white-addresses", RouteGreyListingWhiteAddressList, RouteGreyListingWhiteAddressCreate, RouteGreyListingWhiteAddressUpdate, RouteGreyListingWhiteAddressDelete },
             { "/api/v1/greylisting-bypass", RouteGreylistBypassList, RouteGreylistBypassCreate, RouteGreylistBypassUpdate, RouteGreylistBypassDelete },
             { "/api/v1/sender-list", RouteSenderListList, RouteSenderListCreate, RouteSenderListUpdate, RouteSenderListDelete },
@@ -5607,6 +5614,11 @@ namespace HM
       case RouteBlockedAttachmentCreate:
       case RouteBlockedAttachmentUpdate:
       case RouteBlockedAttachmentDelete:
+      // A journaling rule written, changed or taken away decides whether the
+      // next accepted message is copied elsewhere. All three are writes.
+      case RouteJournalRuleCreate:
+      case RouteJournalRuleUpdate:
+      case RouteJournalRuleDelete:
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
@@ -5994,6 +6006,9 @@ namespace HM
       case RouteBlockedSenderList:
       case RouteIncomingRelayList:
       case RouteBlockedAttachmentList:
+      // The journaling rules: who is copied, to where. Server-wide
+      // configuration, and refused to a confined credential below.
+      case RouteJournalRuleList:
       case RouteGreyListingWhiteAddressList:
       case RouteGreylistBypassList:
       // The domain white and black list: anti-spam configuration like the
@@ -6379,6 +6394,11 @@ namespace HM
       case RouteBlockedAttachmentCreate:
       case RouteBlockedAttachmentUpdate:
       case RouteBlockedAttachmentDelete:
+      // A journaling rule: a standing instruction that somebody's mail is
+      // copied to an address they cannot see, which is manage_server's alone.
+      case RouteJournalRuleCreate:
+      case RouteJournalRuleUpdate:
+      case RouteJournalRuleDelete:
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
       case RouteGreyListingWhiteAddressDelete:
@@ -6963,6 +6983,13 @@ namespace HM
       case RouteBlockedAttachmentCreate:
       case RouteBlockedAttachmentUpdate:
       case RouteBlockedAttachmentDelete:
+      // The journaling rules. A rule names a domain, but reading the list would
+      // show a confined credential every other domain's, and writing one would
+      // let it point a copy of somebody else's mail wherever it liked.
+      case RouteJournalRuleList:
+      case RouteJournalRuleCreate:
+      case RouteJournalRuleUpdate:
+      case RouteJournalRuleDelete:
       case RouteGreyListingWhiteAddressList:
       case RouteGreyListingWhiteAddressCreate:
       case RouteGreyListingWhiteAddressUpdate:
@@ -15090,6 +15117,7 @@ namespace HM
       openApiJson += OpenApiAntiSpamListsPaths_();
       openApiJson += OpenApiGreylistBypassPaths_();
       openApiJson += OpenApiBlockedAttachmentsPaths_();
+      openApiJson += OpenApiJournalRulePaths_();
       openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiSpamTrapPaths_();
       openApiJson += OpenApiDomainPolicyListPaths_();

@@ -106,6 +106,11 @@ PATH_SCOPE = {
     # back at /api/v1/spam-traps/{address}, and the record of hits under both.
     'spam-traps': ['Domain'],
     'hits': [],
+    # Journaling and dual delivery: the rules are server-wide rows reached over
+    # COM through three Utilities methods (GetJournalRules, SaveJournalRule,
+    # DeleteJournalRule), which are methods rather than properties and so have
+    # no interface of their own, as the bounce list's do not.
+    'journal-rules': [],
     'incoming-relays': ['IncomingRelay'],
     'blocked-attachments': ['BlockedAttachment'],
     'greylisting-white-addresses': ['GreyListingWhiteAddress'],

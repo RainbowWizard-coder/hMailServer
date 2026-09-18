@@ -521,6 +521,13 @@ namespace HM
          RouteBlockedAttachmentCreate,
          RouteBlockedAttachmentUpdate,
          RouteBlockedAttachmentDelete,
+         // The journaling and dual-delivery rules (RestApiJournalRules.cpp),
+         // the same four verbs; server-wide, and refused to a credential
+         // confined to named domains even though a rule names one.
+         RouteJournalRuleList,
+         RouteJournalRuleCreate,
+         RouteJournalRuleUpdate,
+         RouteJournalRuleDelete,
          // The greylisting white list, the sixth collection of
          // RestApiAntiSpamLists.cpp; server-wide.
          RouteGreyListingWhiteAddressList,
@@ -1609,6 +1616,10 @@ namespace HM
       // in the same shape: one entry point for the four routes.
       HttpResponse HandleBlockedAttachments_(RouteKind kind, __int64 id, const AnsiString &requestBody);
       static AnsiString OpenApiBlockedAttachmentsPaths_();
+      // The journaling and dual-delivery rules (RestApiJournalRules.cpp), in
+      // the same shape: one entry point for the four routes.
+      HttpResponse HandleJournalRules_(RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiJournalRulePaths_();
       // The sender list at all three of its scopes (RestApiSenderLists.cpp):
       // one entry point, the route saying which scope and which verb, and the
       // caller carrying the account for the /me routes.

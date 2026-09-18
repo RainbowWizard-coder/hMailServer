@@ -252,6 +252,10 @@ EXIT 0
     <ClCompile Include="..\Common\BO\SpamTrap.cpp" />
     <ClCompile Include="..\Common\BO\SpamTraps.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentSpamTrap.cpp" />
+    <ClCompile Include="..\Common\BO\JournalRule.cpp" />
+    <ClCompile Include="..\Common\BO\JournalRules.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentJournalRule.cpp" />
+    <ClCompile Include="..\Common\Util\Journaling.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SpamTrapMonitor.cpp" />
     <ClCompile Include="..\Common\BO\DomainPolicyEntry.cpp" />
     <ClCompile Include="..\Common\BO\DomainPolicyEntries.cpp" />
@@ -694,6 +698,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiPreferences.cpp" />
     <ClCompile Include="..\Common\Util\RestApiIdentities.cpp" />
     <ClCompile Include="..\Common\Util\RestApiBlockedAttachments.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiJournalRules.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAccountResources.cpp" />
     <ClCompile Include="..\Common\Util\RestApiGroups.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRoles.cpp" />
@@ -1113,6 +1118,10 @@ EXIT 0
     <ClInclude Include="..\Common\BO\SpamTrap.h" />
     <ClInclude Include="..\Common\BO\SpamTraps.h" />
     <ClInclude Include="..\Common\Persistence\PersistentSpamTrap.h" />
+    <ClInclude Include="..\Common\BO\JournalRule.h" />
+    <ClInclude Include="..\Common\BO\JournalRules.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentJournalRule.h" />
+    <ClInclude Include="..\Common\Util\Journaling.h" />
     <ClInclude Include="..\Common\AntiSpam\SpamTrapMonitor.h" />
     <ClInclude Include="..\Common\BO\DomainPolicyEntry.h" />
     <ClInclude Include="..\Common\BO\DomainPolicyEntries.h" />

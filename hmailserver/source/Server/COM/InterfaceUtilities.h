@@ -82,6 +82,13 @@ public:
    // Spam traps: what has addressed one, and the clearing of that record.
    STDMETHOD(GetSpamTrapHits)(/*[in]*/ BSTR Domain, /*[in]*/ long MaxRows, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(ClearSpamTrapHits)(/*[in]*/ BSTR Domain, /*[out, retval]*/ long *Removed);
+
+   // Journaling and dual delivery. See Common/Util/Journaling.h.
+   STDMETHOD(GetJournalRules)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(SaveJournalRule)(/*[in]*/ long Id, /*[in]*/ BSTR Scope, /*[in]*/ BSTR Target, /*[in]*/ BSTR JournalAddress,
+                              /*[in]*/ BSTR Direction, /*[in]*/ BSTR Mode, /*[in]*/ VARIANT_BOOL Enabled, /*[in]*/ BSTR Note,
+                              /*[out, retval]*/ long *SavedId);
+   STDMETHOD(DeleteJournalRule)(/*[in]*/ long Id, /*[out, retval]*/ VARIANT_BOOL *Deleted);
    STDMETHOD(RunReputationCheck)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetReputationReport)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetSetupChecklist)(/*[in]*/ VARIANT_BOOL LookUpDns, /*[out, retval]*/ BSTR *Json);

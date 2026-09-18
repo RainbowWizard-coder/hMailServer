@@ -32,6 +32,8 @@
 #include "../Common/Util/Compression.h"
 #include "../Common/Util/FileUtilities.h"
 #include "../Common/AntiSpam/SpamTrapMonitor.h"
+#include "../Common/Util/Journaling.h"
+#include "../Common/BO/JournalRule.h"
 #include "../Common/BO/Domain.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/AuditTrail.h"
@@ -2195,6 +2197,95 @@ STDMETHODIMP InterfaceUtilities::ClearSpamTrapHits(BSTR Domain, long *Removed)
          _T("the record of what has addressed a spam trap was deleted; the bans and the blocked senders it made stay"));
 
       *Removed = (long) removed;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetJournalRules(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // The rules are server-wide: a rule names a domain, but the list is every
+      // domain's, and one of them says where another's mail is copied to.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      bool readable = false;
+      const HM::AnsiString document = HM::Journaling::RulesDocument(readable);
+
+      if (!readable)
+         return COMError::GenerateError("The journaling rules could not be read; see the error log.");
+
+      HM::String json;
+      HM::Unicode::MultiByteToWide(document, json);
+
+      *Json = json.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::SaveJournalRule(long Id, BSTR Scope, BSTR Target, BSTR JournalAddress,
+                                                 BSTR Direction, BSTR Mode, VARIANT_BOOL Enabled, BSTR Note,
+                                                 long *SavedId)
+{
+   try
+   {
+      if (!SavedId)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      // Every word is checked by Journaling::SaveRule, which is the same
+      // function the REST route and the Control Panel page go through, so a
+      // refusal reads the same sentence whichever surface asked.
+      __int64 savedId = 0;
+      HM::String error;
+
+      if (!HM::Journaling::SaveRule(Id, HM::String(Scope), HM::String(Target), HM::String(JournalAddress),
+                                    HM::String(Direction), HM::String(Mode), Enabled == VARIANT_TRUE,
+                                    HM::String(Note), savedId, error))
+         return COMError::GenerateError(error);
+
+      *SavedId = (long) savedId;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::DeleteJournalRule(long Id, VARIANT_BOOL *Deleted)
+{
+   try
+   {
+      if (!Deleted)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      bool found = false;
+
+      if (!HM::Journaling::DeleteRule(Id, found))
+         return COMError::GenerateError("The journaling rule could not be deleted; see the error log.");
+
+      *Deleted = found ? VARIANT_TRUE : VARIANT_FALSE;
 
       return S_OK;
    }

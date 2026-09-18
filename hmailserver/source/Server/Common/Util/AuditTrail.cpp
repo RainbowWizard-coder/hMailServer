@@ -98,6 +98,7 @@ namespace HM
          { L"hm_senderlist",                  L"sender list entry" },
          { L"hm_spamtraps",                   L"spam trap" },
          { L"hm_domainpolicylist",            L"domain policy list entry" },
+         { L"hm_journalrules",                L"journal rule" },
          { L"hm_servermessages",              L"server message" },
          { L"hm_groups",                      L"group" },
          { L"hm_group_members",               L"group member" },

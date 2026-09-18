@@ -210,6 +210,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["externalsetup"] = () => new ExternalSetupView();
          pageFactories_["dnsrecords"] = () => new DnsRecordsView();
          pageFactories_["roles"] = () => new RolesView();
+         pageFactories_["journaling"] = () => new JournalingView();
          pageFactories_["about"] = () => new AboutView();
       }
 

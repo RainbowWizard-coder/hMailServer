@@ -20,6 +20,7 @@
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/ReputationWatch.h"
 #include "../Util/DisclaimerAdder.h"
+#include "../Util/Journaling.h"
 #include "../Util/InlineImageParts.h"
 #include "../Util/GeoIpDatabase.h"
 #include "../Util/CountryBlocking.h"
@@ -170,6 +171,9 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;
       disclaimerAdderTester.Test();
+
+      JournalingTester journalingTester;
+      journalingTester.Test();
 
       // Which messages this server cannot read. Six parts of the server act on
       // the answer - the footer, the signature, the blocked-attachment

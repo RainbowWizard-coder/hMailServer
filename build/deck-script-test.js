@@ -968,6 +968,14 @@ const spec = {
       },
       '/api/v1/domains/{domain}/spam-traps/hits': { get: { summary: 'What has addressed this domain\'s spam traps' } },
       '/api/v1/spam-traps/{address}': { delete: { summary: 'Stop trapping an address' } },
+      '/api/v1/journal-rules': {
+         get: { summary: 'List the journaling and dual-delivery rules', description: 'A copy of a domain\'s mail, or of one account\'s, sent to an address.' },
+         post: { summary: 'Add a journaling rule', requestBody: body({ scope: { type: 'string' }, target: { type: 'string' }, journal_address: { type: 'string' }, direction: { type: 'string' }, mode: { type: 'string' }, enabled: { type: 'boolean' }, note: { type: 'string' } }, ['target', 'journal_address']) }
+      },
+      '/api/v1/journal-rules/{id}': {
+         put: { summary: 'Change a journaling rule' },
+         delete: { summary: 'Remove a journaling rule' }
+      },
       '/api/v1/spam-traps/hits': {
          get: { summary: 'What has addressed any spam trap', description: 'Newest first, with what was done about each.' },
          delete: { summary: 'Clear the record of spam trap hits' }
@@ -1204,6 +1212,13 @@ const state = {
    domainSenders: { 'example.com': [{ id: 901, scope: 'domain', value: 'partner.example', blocked: false, reason: 'the partner', expires: false, expired: false }] },
    // The domain's spam traps, and what has walked into one.
    spamTraps: { 'example.com': [{ id: 701, address: 'never-used@example.com', local_part: 'never-used', created: '2026-09-15 08:00:00' }] },
+   // The journaling rules, server-wide: one domain rule that is on, one
+   // account rule that is off, so the listing, the switch and the delete all
+   // have something to work on.
+   journalRules: [
+      { id: 601, scope: 'domain', target: 'example.com', journal_address: 'archive@compliance.example', direction: 'both', mode: 'report', enabled: true, note: 'the auditors' },
+      { id: 602, scope: 'account', target: 'test@example.com', journal_address: 'copy@second-system.example', direction: 'outbound', mode: 'copy', enabled: false, note: '' }
+   ],
    trapHits: [{ id: 801, time: '2026-09-15 09:12:00', address: 'never-used@example.com', domain: 'example.com',
       ip_address: '203.0.113.9', sender: 'harvester@spammer.example', banned: true, blocked: true,
       note: 'banned for 1440 minutes; sender blocked for 30 days' }],
@@ -1692,6 +1707,31 @@ function answer(method, path, headers, raw) {
          traps.push(trap);
          return json(201, trap);
       }
+   }
+   if (/^\/api\/v1\/journal-rules$/.test(path)) {
+      if (method === 'GET') { return json(200, state.journalRules); }
+      if (method === 'POST') {
+         const target = String(parsed.target || '').trim().toLowerCase();
+         const address = String(parsed.journal_address || '').trim().toLowerCase();
+         if (!target) { return json(400, { error: 'A journal rule must name a domain or an account address.' }); }
+         if (!address) { return json(400, { error: 'A journal rule must name the address the copy goes to.' }); }
+         const rule = { id: nextId++, scope: parsed.scope || 'domain', target: target, journal_address: address,
+            direction: parsed.direction || 'both', mode: parsed.mode || 'report',
+            enabled: parsed.enabled === undefined ? true : !!parsed.enabled, note: String(parsed.note || '') };
+         state.journalRules.push(rule);
+         return json(201, rule);
+      }
+   }
+   if (/^\/api\/v1\/journal-rules\/\d+$/.test(path)) {
+      const id = Number(segment(path, 4));
+      const rule = state.journalRules.filter((r) => r.id === id)[0];
+      if (!rule) { return json(404, { error: 'journaling rule not found' }); }
+      if (method === 'PUT') {
+         if (parsed.enabled !== undefined) { rule.enabled = !!parsed.enabled; }
+         if (parsed.note !== undefined) { rule.note = String(parsed.note); }
+         return json(200, rule);
+      }
+      if (method === 'DELETE') { state.journalRules = state.journalRules.filter((r) => r.id !== id); return json(200, { deleted: true }); }
    }
    if (/^\/api\/v1\/spam-traps\/hits(\?.*)?$/.test(path)) {
       if (method === 'GET') { return json(200, { items: state.trapHits, hits_since_start: state.trapHits.length }); }
@@ -6037,6 +6077,77 @@ async function main() {
    check('and the view comes back empty',
       content().textContent.indexOf('Nothing has addressed a spam trap.') >= 0,
       content().textContent.slice(0, 200));
+
+   // ---- the Journaling view: the rules, switched off and on, added and removed
+
+   /* The sidebar is hand-written markup and a view's button is one line in it,
+      so the way it goes wrong is a line pasted twice: this row shipped its
+      Journaling button twice and every check passed, because nothing had ever
+      looked at the sidebar as a whole. Now something does, for every view. */
+   check('every view has exactly one button in the sidebar', (() => {
+      const seen = Object.create(null);
+      const twice = [];
+      $$('#nav button[data-view]').forEach((button) => {
+         const view = button.getAttribute('data-view');
+         if (seen[view]) { twice.push(view); } else { seen[view] = true; }
+      });
+      return twice.length === 0 ? true : twice.join(', ');
+   })() === true, $$('#nav button[data-view]').length + ' buttons');
+
+   click($('#nav button[data-view="journal"]'));
+   await flush();
+   check('the Journaling view lists every rule with whose mail, which way, what is sent and where it goes',
+      content().textContent.indexOf('example.com') >= 0 &&
+      content().textContent.indexOf('archive@compliance.example') >= 0 &&
+      content().textContent.indexOf('Envelope report') >= 0 &&
+      content().textContent.indexOf('copy@second-system.example') >= 0 &&
+      content().textContent.indexOf('The message itself') >= 0,
+      content().textContent.slice(0, 400));
+   check('a rule that is off says so, and its button offers to switch it on',
+      act('jrntoggle', { id: '602', value: '1' }) !== null && act('jrntoggle', { id: '601', value: '0' }) !== null);
+   before = requests.length;
+   click(act('jrntoggle', { id: '601', value: '0' }));
+   await flush();
+   check('switching a rule off sends enabled false and nothing else',
+      JSON.stringify(lastBody(before, 'PUT', '/api/v1/journal-rules/601')) === '{"enabled":false}',
+      JSON.stringify(lastBody(before, 'PUT', '/api/v1/journal-rules/601')));
+   setValue('newJournalTarget', '');
+   setValue('newJournalAddress', 'vault@example.test');
+   before = requests.length;
+   click(act('jrnadd'));
+   await flush();
+   check('a rule with nothing to cover is refused by the page and nothing is sent',
+      called(before, 'POST', /journal-rules/).length === 0 &&
+      document.getElementById('err_journal').textContent === 'A domain or an account address is required.');
+   setValue('newJournalTarget', 'example.com');
+   setValue('newJournalAddress', '');
+   before = requests.length;
+   click(act('jrnadd'));
+   await flush();
+   check('and so is a rule with nowhere to send the copy',
+      called(before, 'POST', /journal-rules/).length === 0 &&
+      document.getElementById('err_journal').textContent === 'The address the copy goes to is required.');
+   setValue('newJournalTarget', 'example.com');
+   setValue('newJournalAddress', 'vault@example.test');
+   setValue('newJournalNote', 'the retention project');
+   before = requests.length;
+   click(act('jrnadd'));
+   await flush();
+   check('a rule is added with every word the page chose',
+      JSON.stringify(lastBody(before, 'POST', '/api/v1/journal-rules')) ===
+         '{"scope":"domain","target":"example.com","journal_address":"vault@example.test","direction":"both","mode":"report","note":"the retention project"}',
+      JSON.stringify(lastBody(before, 'POST', '/api/v1/journal-rules')));
+   check('and the view is read again and shows it',
+      called(before, 'GET', '/api/v1/journal-rules').length === 1 &&
+      content().textContent.indexOf('vault@example.test') >= 0);
+   before = requests.length;
+   click(act('jrndel', { id: '602', value: 'test@example.com' }));
+   await flush();
+   check('removing a rule asks, naming it and saying what it does not undo, and deletes it by id',
+      confirmations[confirmations.length - 1].indexOf('test@example.com') >= 0 &&
+      confirmations[confirmations.length - 1].indexOf('already sent stays') >= 0 &&
+      called(before, 'DELETE', '/api/v1/journal-rules/602').length === 1 &&
+      content().textContent.indexOf('copy@second-system.example') < 0, paths(before));
 
    click($('#logoutBtn'));
    await flush();

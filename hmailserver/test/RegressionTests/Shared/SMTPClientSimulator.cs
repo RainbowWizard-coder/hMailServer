@@ -373,6 +373,58 @@ namespace RegressionTests.Shared
          _tcpConnection.Disconnect();
       }
 
+      // SendRaw to SEVERAL recipients, one RCPT TO each. The overload above takes
+      // one address and sends one RCPT TO, so a test that handed it a comma-joined
+      // list got a single RCPT TO for a string that is not an address - which
+      // ProtocolRCPT_ answers 550 to, and SendRaw turns into a
+      // DeliveryFailedException before the test has asserted anything. A message
+      // whose envelope names more recipients than its headers do is exactly what
+      // some tests exist to prove, so there has to be a way to send one.
+      public void SendRaw(string sFrom, List<string> recipients, string text)
+      {
+         if (!_tcpConnection.Connect(_port))
+            throw new DeliveryFailedException("Unable to connect.");
+
+         // Receive welcome message.
+         _tcpConnection.Receive();
+
+         _tcpConnection.Send("HELO 127.0.0.1\r\n");
+         _tcpConnection.Receive();
+
+         _tcpConnection.Send("MAIL FROM:<" + sFrom + ">\r\n");
+         _tcpConnection.Receive();
+
+         foreach (var recipient in recipients)
+         {
+            _tcpConnection.Send("RCPT TO:<" + recipient + ">\r\n");
+
+            var rcptResponse = _tcpConnection.Receive();
+            if (!rcptResponse.StartsWith("2"))
+               throw new DeliveryFailedException("Unexpected response from server: " + rcptResponse);
+         }
+
+         _tcpConnection.Send("DATA\r\n");
+         _tcpConnection.Receive();
+
+         _tcpConnection.Send(text);
+
+         // RFC 5321: the dot terminator must be on its own line, and a message
+         // that already ends with one must not gain a blank line it did not have.
+         if (!text.EndsWith("\r\n"))
+            _tcpConnection.Send("\r\n");
+
+         _tcpConnection.Send(".\r\n");
+
+         var accepted = _tcpConnection.Receive();
+         if (accepted.Substring(0, 3) != "250")
+            throw new DeliveryFailedException("Unexpected response from server: " + accepted);
+
+         _tcpConnection.Send("QUIT\r\n");
+         _tcpConnection.Receive();
+
+         _tcpConnection.Disconnect();
+      }
+
       public static void StaticSend(string sFrom, List<string> lstRecipients, string sSubject, string sBody)
       {
          var simulator = new SmtpClientSimulator();

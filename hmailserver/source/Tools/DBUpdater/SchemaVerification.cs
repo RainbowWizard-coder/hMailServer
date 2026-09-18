@@ -1222,6 +1222,11 @@ namespace DBUpdater
          // membership query on the list.
          new SchemaProbe(6074, "hm_distributionlists.distributionlistmembership",
                          "update hm_distributionlists set distributionlistmembership = distributionlistmembership where 1 = 0"),
+         // Upgrade6074to6075* - journaling and dual delivery: one row per rule,
+         // of which jrmode is the column that says whether the copy is the
+         // envelope report or the message itself.
+         new SchemaProbe(6075, "hm_journalrules.jrmode",
+                         "update hm_journalrules set jrmode = jrmode where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

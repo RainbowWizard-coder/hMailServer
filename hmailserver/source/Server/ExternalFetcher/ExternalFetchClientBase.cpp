@@ -24,6 +24,7 @@
 #include "../Common/BO/FetchAccountUID.h"
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Util/MessageUtilities.h"
+#include "../Common/Util/Journaling.h"
 #include "../Common/Threading/AsynchronousTask.h"
 #include "../Common/Threading/WorkQueue.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
@@ -346,6 +347,24 @@ namespace HM
 
             return false;
          }
+
+         // Journaling and dual delivery (Common/Util/Journaling.h). Mail a fetch
+         // account collects is a mailbox's mail like any other, and a compliance
+         // archive that held everything except what a domain happened to collect
+         // by POP3 or IMAP would be an archive with a hole in it that nothing said
+         // was there. Here, at the point the SMTP session journals from: after the
+         // row is saved, before the deliverer is told. A download has no
+         // authenticated sender, so the inbound half of a rule speaks for it, and
+         // there is no SMTP session, so the lines go to the application log.
+         //
+         // The buffer is released first because it may still hold the file open
+         // with bytes of the message not yet flushed to it, and the journal copy
+         // is made by reading that file. The same release for the same reason is
+         // three lines above, and neither caller touches the buffer again before
+         // it makes a new one for the next message.
+         transmission_buffer_.reset();
+
+         Journaling::Evaluate(current_message_, String(), 0, String());
 
          return true;
       }

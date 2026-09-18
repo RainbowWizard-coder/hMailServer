@@ -308,6 +308,8 @@ namespace HM
         _T("AppPassword::XMLStore writes it, under the account.") },
       { _T("hm_rules"),
         _T("Rule::XMLStore writes it, under the account; its criteria and actions with it.") },
+      { _T("hm_journalrules"),
+        _T("JournalRule::XMLStore writes it, under the DOMAIN (Domain::XMLStore), because the row belongs to a domain and an account rule is only one shape of it. It is carried by the address it names rather than by the account id, which the restore reissues.") },
       { _T("hm_rule_criterias"),
         _T("RuleCriteria::XMLStore writes it, under its rule.") },
       { _T("hm_rule_actions"),

@@ -523,4 +523,10 @@
 //      BanMultiRcptNullSenderHours) are created at start by
 //      EnsureSettingDefaults_, every one at the value that leaves the server as
 //      it was.
-#define REQUIRED_DB_VERSION            6074
+// 6075 adds hm_journalrules (Util/Journaling.h): one row per journaling or
+//      dual-delivery rule - whose mail (a domain, or one account in it), which
+//      way it is going, where the copy goes, and whether the copy is an
+//      envelope report with the original attached or the original itself.
+//      Nothing is journaled until a row exists, so an upgraded database
+//      behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6075

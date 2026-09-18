@@ -76,6 +76,7 @@
 #include "../Common/AntiSpam/DomainPolicyList.h"
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/Util/AutoBanFirewall.h"
+#include "../Common/Util/Journaling.h"
 #include "../Common/AntiSpam/AuthenticationResults.h"
 #include "../Common/AntiSpam/AuthenticationResultsWriter.h"
 
@@ -2672,6 +2673,19 @@ namespace HM
             // After the handle above is released, so the copy can be made.
             if (addressed_spam_trap_)
                SpamTrapMonitor::TeachSpamAssassin(PersistentMessage::GetFileName(current_message_));
+
+            // Journaling and dual delivery (Util/Journaling.h). Here, and not in
+            // the deliverer: the recipients are the ones the archive decision a
+            // few lines above was made from, the file is settled and the handle
+            // released, and this runs once for the message rather than once per
+            // delivery attempt - a compliance archive that gained a second copy
+            // because a remote host was busy would be worse than no archive.
+            // After the save, so that a message the database refused is not
+            // journaled; the sender is told 451 and will send it again. With no
+            // rule in the table this is one empty test.
+            Journaling::Evaluate(current_message_,
+               isAuthenticated_ && !username_.IsEmpty() ? DefaultDomain::ApplyDefaultDomain(username_) : String(),
+               GetSessionID(), GetIPAddressString());
 
             // Per-domain counters, before the message is released below. Counted
             // here, at acceptance, rather than at delivery: this answers "how much

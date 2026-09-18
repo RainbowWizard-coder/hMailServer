@@ -397,6 +397,7 @@
     <Compile Include="SMTP\OutboundXOAuth2.cs" />
     <Compile Include="SMTP\OutboundSize.cs" />
     <Compile Include="SMTP\RemoteDomainPolicyEnforcement.cs" />
+    <Compile Include="SMTP\Journaling.cs" />
     <Compile Include="SMTP\OverQuotaRecipientRefusal.cs" />
     <Compile Include="SMTP\PerDomainRelay.cs" />
     <Compile Include="SMTP\QuotaWarning.cs" />

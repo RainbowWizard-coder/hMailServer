@@ -413,6 +413,12 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>認証アプリが生成するコードで、このアカウントのパスワードと併せて必要になります。適用されるのは、実際にコードを入力できる場所、つまりコントロールパネルと API です。メール クライアントはコードを提示できないため、これを有効にした後は、代わりにアプリ パスワードを使用する必要があります。</value>
   </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
+    <value>ドメインのメール、または 1 つのアカウントのメールの写しを、あるアドレスへ送ります。メールを添付したエンベロープ報告として送るか、メールそのものとして送ります。</value>
+  </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself. Nothing is copied until a rule exists here, and a rule is not the archive: it sends mail elsewhere rather than keeping files on this machine." xml:space="preserve">
+    <value>ドメインのメール、または 1 つのアカウントのメールの写しを、あるアドレスへ送ります。メールを添付したエンベロープ報告として送るか、メールそのものとして送ります。ここにルールがないかぎり何も複写されません。ルールはアーカイブではなく、このコンピューターにファイルを残すのではなく、メールを別の場所へ送ります。</value>
+  </data>
   <data name="A copy of every log entry, as RFC 5424, to a syslog collector - rsyslog, syslog-ng, a SIEM - beside the log files rather than instead of them. On Linux with no collector named, a server running under systemd writes to the journal, where journalctl can read it." xml:space="preserve">
     <value>各ログ項目のコピーを RFC 5424 形式で syslog コレクター (rsyslog、syslog-ng、SIEM) に送ります。ログファイルの代わりではなく、それと並行して送ります。Linux でコレクターを指定しない場合、systemd 配下で動作するサーバーは journal に書き込み、journalctl で読めます。</value>
   </data>
@@ -443,11 +449,17 @@
   <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
     <value>このサーバーには {0} という名前のドメインがありますが、サンプルが作成したものではないため、ここでは作成も削除も行いません。不要であればご自身で削除してください。</value>
   </data>
+  <data name="A domain or an account address is required." xml:space="preserve">
+    <value>ドメインまたはアカウントのアドレスが必要です。</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>送信ホストが次々と変わるドメインはたいてい HELO 名で見分けられます。何も偽装しないドメインはエンベロープ送信者で見分けられます。</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>ドメイン、メールボックス、TLS を提供するリスナー、そしてそれをダッシュボードがどう評価するか。4 分ほどで、いつでも中断できます。</value>
+  </data>
+  <data name="A domain, or an account address" xml:space="preserve">
+    <value>ドメインまたはアカウントのアドレス</value>
   </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>受信メールのための猶予です。上限をこの割合未満で超えたメールボックスはまだ受信できるので、1 週間不在の人が月曜に大きな添付ファイルが届いたためにメールを失うことはありません。所有者自身の保存やコピーは上限で止まります。ドメインごとに設定できます。すぐに適用されます。</value>
@@ -1374,6 +1386,9 @@
   <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
     <value>新しいハッシュに使う Argon2id の反復回数 (0 = 組み込みの 2、指定できるのは 1 から 20)</value>
   </data>
+  <data name="Arriving" xml:space="preserve">
+    <value>受信</value>
+  </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
   </data>
@@ -1628,6 +1643,9 @@
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>どちらのしきい値も 0 なので、スコアによって何かをマークしたり拒否したりすることはできません。サーバーは使う前に「0 より大きいか」でテストするからです。また、累計が高いほうのしきい値 (これも 0) に達した時点でテストを打ち切るため、各フェーズでちょうど 1 つのチェックが実行され、その結果は破棄されます。</value>
+  </data>
+  <data name="Both ways" xml:space="preserve">
+    <value>両方向</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>バウンスの件数</value>
@@ -1889,6 +1907,9 @@
   </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>割り当てるロールを選んでください。</value>
+  </data>
+  <data name="Choose a rule in the list." xml:space="preserve">
+    <value>一覧からルールを選んでください。</value>
   </data>
   <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
     <value>一覧から割り当てを選ぶか、アカウントのアドレスを入力してください。</value>
@@ -3050,6 +3071,9 @@
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>mailer-daemon 送信者アドレスのドメイン (空 = ホスト名、なければメッセージのローカル ドメイン、なければコンピューター名)</value>
   </data>
+  <data name="Domain or account" xml:space="preserve">
+    <value>ドメインかアカウントか</value>
+  </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>ドメインまたはパターン</value>
   </data>
@@ -3316,6 +3340,9 @@
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>エントリが要求する認証結果 (SPF、DKIM、DMARC の任意の組み合わせ) をメッセージが持つときにグレイリスティングを通過させるエンベロープ ドメインと HELO 接尾辞。完全一致するドメイン、または .mail.example.com のように先頭にドットの付いた接尾辞 (その名前とその配下のすべての名前を含む)。SPF は RCPT TO の時点で分かるため、SPF のみを要求するエントリはそこで決定します。DKIM と DMARC はメッセージを受信して初めて存在するため、どちらかを要求するエントリはひとまず受信者を通し、結果が合格でなければ DATA の後にグレイリスティングされます。これは DKIM 検証または DMARC が有効な間だけで、そうでなければエントリは決して満たされません。SPF 成功時にバイパスするとは異なり、これは名前を挙げたドメインに与える特権であり、世界中のあらゆる SPF 合格が持つ性質ではありません。</value>
+  </data>
+  <data name="Envelope report" xml:space="preserve">
+    <value>エンベロープ報告</value>
   </data>
   <data name="Envelope sender's domain" xml:space="preserve">
     <value>エンベロープ送信者のドメイン</value>
@@ -4203,6 +4230,9 @@
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL (プロバイダーが公開している署名鍵。空 = 鍵ファイルのみ)</value>
+  </data>
+  <data name="Journaling and dual delivery" xml:space="preserve">
+    <value>ジャーナリングと二重配信</value>
   </data>
   <data name="Keep" xml:space="preserve">
     <value>維持</value>
@@ -5214,6 +5244,9 @@
   </data>
   <data name="No incoming relays. Add one only for a gateway in front of this server whose address you trust." xml:space="preserve">
     <value>受信リレーはありません。このサーバーの前段にあり、アドレスを信頼できるゲートウェイだけを追加してください。</value>
+  </data>
+  <data name="No journaling rules. Nothing is copied anywhere, and the check costs one comparison for each message the server accepts." xml:space="preserve">
+    <value>ジャーナリングルールはありません。どこにも複写されず、判定はサーバーが受け取るメールごとに 1 回の比較で済みます。</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>どのスコープのキーもキーの作成や失効はできません。それには管理者パスワードか、このページが必要です。特定のドメインに限定されたキーは、配信キューのエンドポイントも無条件に拒否されます。キューはサーバー全体のものであり、ドメインで絞り込めないためです。</value>
@@ -6333,6 +6366,9 @@
   <data name="Re_move action" xml:space="preserve">
     <value>アクションを削除(_M)</value>
   </data>
+  <data name="Re_move the rule" xml:space="preserve">
+    <value>ルールを削除(_M)</value>
+  </data>
   <data name="Re_move the sample domain" xml:space="preserve">
     <value>サンプルドメインを削除 (_M)</value>
   </data>
@@ -6582,6 +6618,9 @@
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>メッセージ {0} をキューから削除しますか?</value>
+  </data>
+  <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
+    <value>{0} のジャーナリングルールを削除しますか。すでに送信されたものは送信先に残ります。</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>受信者 {0} をこのリストから削除しますか?</value>
@@ -7076,6 +7115,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL サーバーはメッセージ内のリンクに対して照会されます。</value>
   </data>
+  <data name="S_witch the rule over" xml:space="preserve">
+    <value>ルールを切り替え(_W)</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>権限を保存(_V)</value>
   </data>
@@ -7504,6 +7546,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>機密性の高い内容を検出 (card_number, iban, account_number)</value>
+  </data>
+  <data name="Sent" xml:space="preserve">
+    <value>送信</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>これとは別に、このサーバーは他のドメインにそのようなレポートを送信しています。TlsRptFromAddress が {0} に設定されているため、自身のレポートが送信されます。</value>
@@ -8361,6 +8406,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>アドレスは名前の後に @ を付けたものでなければなりません</value>
   </data>
+  <data name="The address the copy goes to is required." xml:space="preserve">
+    <value>写しの送信先アドレスが必要です。</value>
+  </data>
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>各プロトコルが待ち受けるアドレスとポート、およびそれぞれで使う接続セキュリティ。</value>
   </data>
@@ -8725,6 +8773,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>メッセージは削除され、誰にも通知されません。削除はアプリケーション ログに記録されます。</value>
   </data>
+  <data name="The message itself" xml:space="preserve">
+    <value>メッセージそのもの</value>
+  </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>メトリクスのバインド アドレスが通常の IPv4 アドレスではないため (ここではホスト名と IPv6 は受け付けられません)、メトリクス リスナーはまったく起動しません。</value>
   </data>
@@ -8956,6 +9007,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>サーバーのホスト名 (メール配信) が空のため、HELO/EHLO で Windows コンピューター名 (公開 DNS 名ではありません) を名乗っており、"a:" メカニズムを正直に提示することができません。提案はドメインの MX ホストのみを許可します。まずホスト名を設定してください。このページのいくつかのレコードがそれを必要とします。</value>
+  </data>
+  <data name="The server's answer could not be read." xml:space="preserve">
+    <value>サーバーの応答を読み取れませんでした。</value>
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>サーバーの応答を読み取れませんでした: {0}</value>
@@ -9678,6 +9732,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>このサーバーの外に存在しなければならないもの</value>
   </data>
+  <data name="What is sent" xml:space="preserve">
+    <value>送るもの</value>
+  </data>
   <data name="What it is for" xml:space="preserve">
     <value>用途</value>
   </data>
@@ -9735,11 +9792,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>エンドポイントに到達できない場合</value>
   </data>
+  <data name="Where it goes" xml:space="preserve">
+    <value>送り先</value>
+  </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>このドメインからのメールがどこを通って出て行くか。これは、ドメイン宛てのメールをどこに送るかを決めるルートとは別の問題です。それぞれ独自の配信プロバイダーを持つ複数の独立したドメインをホストするサーバー向けです。</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>何かが拒否されるずっと前に、管理者に通知する時点。1024 MB は、最大サイズのメッセージおよそ 50 通分です。</value>
+  </data>
+  <data name="Where the copy goes" xml:space="preserve">
+    <value>写しの送り先</value>
   </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read." xml:space="preserve">
     <value>上の出力フォルダーも hMailServer.INI の [Directories] DataFolder も読み取れなかったため、発行された証明書の書き込み先を判断できませんでした。</value>
@@ -9825,6 +9888,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
     <value>DMARC 集約レポートを、このサーバーがレポートするドメインにどの書式で送るか。1 は今日展開されているすべてのレポート消費者が解析できるもの、2 は消費者が追いついた日のための DMARCbis です。それ以外の値はエラーとして報告され 1 として扱われます。入力ミスがネットワークに流れる内容を決めてはならないからです。サービスの再起動後に適用されます。</value>
   </data>
+  <data name="Which way" xml:space="preserve">
+    <value>方向</value>
+  </data>
   <data name="White list" xml:space="preserve">
     <value>ホワイト リスト</value>
   </data>
@@ -9852,8 +9918,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>誰が接続でき、誰が認証でき、誰かが試行し続けたときに何が起きるか。</value>
   </data>
+  <data name="Whose mail" xml:space="preserve">
+    <value>誰のメール</value>
+  </data>
   <data name="Why" xml:space="preserve">
     <value>理由</value>
+  </data>
+  <data name="Why (optional)" xml:space="preserve">
+    <value>理由 (任意)</value>
   </data>
   <data name="Why it is listed" xml:space="preserve">
     <value>リストに載っている理由</value>
@@ -9977,6 +10049,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Add signature to outgoing messages" xml:space="preserve">
     <value>送信メッセージに署名を追加する(_A)</value>
+  </data>
+  <data name="_Add the rule" xml:space="preserve">
+    <value>ルールを追加(_A)</value>
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>アドレス (変更するとメールボックスの名前が変わります。このドメイン内に留める必要があります)(_A)</value>

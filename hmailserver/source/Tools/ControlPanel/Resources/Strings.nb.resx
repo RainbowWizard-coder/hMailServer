@@ -413,6 +413,12 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>En kode fra en autentiseringsapp, som kreves i tillegg til passordet til denne kontoen. Den gjelder der en kode faktisk kan skrives inn - Control Panel og API-et. E-postklienter kan ikke oppgi en kode, så når dette er slått på, må de bruke et app-passord i stedet.</value>
   </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
+    <value>En kopi av et domenes post, eller av én kontos, sendt til en adresse – som en konvoluttrapport med meldingen vedlagt, eller som selve meldingen.</value>
+  </data>
+  <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself. Nothing is copied until a rule exists here, and a rule is not the archive: it sends mail elsewhere rather than keeping files on this machine." xml:space="preserve">
+    <value>En kopi av et domenes post, eller av én kontos, sendt til en adresse – som en konvoluttrapport med meldingen vedlagt, eller som selve meldingen. Ingenting kopieres før det finnes en regel her, og en regel er ikke arkivet: den sender post andre steder i stedet for å beholde filer på denne maskinen.</value>
+  </data>
   <data name="A copy of every log entry, as RFC 5424, to a syslog collector - rsyslog, syslog-ng, a SIEM - beside the log files rather than instead of them. On Linux with no collector named, a server running under systemd writes to the journal, where journalctl can read it." xml:space="preserve">
     <value>En kopi av hver loggpost, som RFC 5424, til en syslog-samler - rsyslog, syslog-ng, et SIEM - ved siden av loggfilene og ikke i stedet for dem. På Linux uten en oppgitt samler skriver en server under systemd til journalen, der journalctl kan lese den.</value>
   </data>
@@ -443,11 +449,17 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
     <value>Et domene med navnet {0} finnes på denne serveren, og prøven laget det ikke, så ingenting her lager eller fjerner det. Slett domenet selv hvis det ikke er ønsket.</value>
   </data>
+  <data name="A domain or an account address is required." xml:space="preserve">
+    <value>Et domene eller en kontoadresse kreves.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Et domene med skiftende utgående verter kjennes som regel igjen på HELO-navnet; et domene som ikke forfalsker noe, på konvoluttavsenderen.</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Et domene, en postboks, en lytter som tilbyr TLS, og hva Dashbord gjør ut av det. Fire minutter; du kan gå når du vil.</value>
+  </data>
+  <data name="A domain, or an account address" xml:space="preserve">
+    <value>Et domene eller en kontoadresse</value>
   </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>En margin for innkommende post: en postkasse som er over grensen med mindre enn dette, tar fortsatt imot, så en som er borte en uke ikke mister post fordi et stort vedlegg kom på mandag. Eierens egne lagringer og kopier stopper ved selve grensen. Hvert domene kan sette sin egen. Gjelder straks.</value>
@@ -1374,6 +1386,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
     <value>Argon2id-gjennomganger for nye hasher (0 = de innebygde 2; 1 til 20)</value>
   </data>
+  <data name="Arriving" xml:space="preserve">
+    <value>Innkommende</value>
+  </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
   </data>
@@ -1628,6 +1643,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Begge tersklene er 0, så ingen poengsum kan merke eller avvise noe - serveren tester dem med "større enn 0" før den bruker dem. Den slutter også å teste så snart den løpende summen når den høyeste terskelen, som er 0, så nøyaktig én kontroll kjører i hver fase, og resultatet forkastes.</value>
+  </data>
+  <data name="Both ways" xml:space="preserve">
+    <value>Begge veier</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Antall returmeldinger</value>
@@ -1889,6 +1907,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>Velg en rolle å tildele.</value>
+  </data>
+  <data name="Choose a rule in the list." xml:space="preserve">
+    <value>Velg en regel i listen.</value>
   </data>
   <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
     <value>Velg en tildeling i listen, eller skriv kontoadressen.</value>
@@ -3050,6 +3071,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>Domene for mailer-daemon-avsenderadressen (tom = vertsnavn, ellers meldingens lokale domene, ellers maskinnavnet)</value>
   </data>
+  <data name="Domain or account" xml:space="preserve">
+    <value>Domene eller konto</value>
+  </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Domene eller mønster</value>
   </data>
@@ -3316,6 +3340,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Konvoluttdomener og HELO-suffikser som slipper forbi grålisting når meldingen bærer autentiseringsresultatene oppføringen krever - SPF, DKIM, DMARC, i enhver kombinasjon. Et domene matchet nøyaktig, eller et suffiks med innledende punktum som .mail.example.com som dekker det navnet og alle navn under det. SPF er kjent ved RCPT TO, så en oppføring som bare krever SPF avgjøres der; DKIM og DMARC finnes først når meldingen er mottatt, så en oppføring som krever en av dem slipper mottakeren gjennom inntil videre, og meldingen grålistes etter DATA hvis resultatet ikke er bestått - og bare mens DKIM-verifisering eller DMARC er slått på, ellers kan oppføringen aldri oppfylles. I motsetning til Hopp over ved SPF-godkjenning er dette et privilegium du gir et navngitt domene, ikke en egenskap ved enhver SPF-godkjenning i verden.</value>
+  </data>
+  <data name="Envelope report" xml:space="preserve">
+    <value>Konvoluttrapport</value>
   </data>
   <data name="Envelope sender's domain" xml:space="preserve">
     <value>Konvoluttavsenderens domene</value>
@@ -4203,6 +4230,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (leverandørens publiserte signeringsnøkler; tom = bare nøkkelfilen)</value>
+  </data>
+  <data name="Journaling and dual delivery" xml:space="preserve">
+    <value>Journalføring og dobbel levering</value>
   </data>
   <data name="Keep" xml:space="preserve">
     <value>Behold</value>
@@ -5215,6 +5245,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="No incoming relays. Add one only for a gateway in front of this server whose address you trust." xml:space="preserve">
     <value>Ingen innkommende relayer. Legg bare til en gateway foran denne serveren som du stoler på adressen til.</value>
   </data>
+  <data name="No journaling rules. Nothing is copied anywhere, and the check costs one comparison for each message the server accepts." xml:space="preserve">
+    <value>Ingen journalføringsregler. Ingenting kopieres noe sted, og kontrollen koster én sammenligning for hver melding serveren tar imot.</value>
+  </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Ingen nøkkel av noe omfang kan opprette eller tilbakekalle nøkler - det krever administratorpassordet, eller denne siden. En nøkkel begrenset til bestemte domener avvises også fullstendig fra leveringskø-endepunktene, fordi køen er serveromfattende og ikke kan filtreres etter domene.</value>
   </data>
@@ -5393,7 +5426,7 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
     <value>Ikke ennå -</value>
   </data>
   <data name="Note" xml:space="preserve">
-    <value>Notat</value>
+    <value>Merknad</value>
   </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Merk: sertifikatverifisering er slått av, så den krypterte forbindelsen beviser ikke hvilken katalog den når. Serveren logger dette én gang per start.</value>
@@ -6333,6 +6366,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Re_move action" xml:space="preserve">
     <value>F_jern handling</value>
   </data>
+  <data name="Re_move the rule" xml:space="preserve">
+    <value>Fje_rn regelen</value>
+  </data>
   <data name="Re_move the sample domain" xml:space="preserve">
     <value>Fjern prøvedo_menet</value>
   </data>
@@ -6582,6 +6618,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Remove message {0} from the queue?" xml:space="preserve">
     <value>Fjerne melding {0} fra køen?</value>
+  </data>
+  <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
+    <value>Fjerne journalføringsregelen for {0}? Det den allerede har sendt, blir værende der det ble sendt.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Fjerne mottakeren {0} fra denne listen?</value>
@@ -7076,6 +7115,9 @@ Fortsette?</value>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL-servere sjekkes mot lenkene inne i meldingen.</value>
   </data>
+  <data name="S_witch the rule over" xml:space="preserve">
+    <value>_Slå regelen om</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>L_agre tillatelser</value>
   </data>
@@ -7504,6 +7546,9 @@ Fortsette?</value>
   </data>
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Sensitivt innhold funnet (card_number, iban, account_number)</value>
+  </data>
+  <data name="Sent" xml:space="preserve">
+    <value>Utgående</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Separat SENDER denne serveren slike rapporter til andre domener: TlsRptFromAddress er satt til {0}, så dens egne rapporter går ut.</value>
@@ -8361,6 +8406,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The address must be a name followed by @" xml:space="preserve">
     <value>Adressen må være et navn etterfulgt av @</value>
   </data>
+  <data name="The address the copy goes to is required." xml:space="preserve">
+    <value>Adressen kopien sendes til, kreves.</value>
+  </data>
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Adressene og portene hver protokoll lytter på, og tilkoblingssikkerheten som brukes på hver av dem.</value>
   </data>
@@ -8725,6 +8773,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>Meldingen slettes, og ingen får beskjed. Slettingen registreres i applikasjonsloggen.</value>
   </data>
+  <data name="The message itself" xml:space="preserve">
+    <value>Selve meldingen</value>
+  </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Bindingsadressen for metrikker er ikke en vanlig IPv4-adresse (vertsnavn og IPv6 godtas ikke her), så metrikklytteren starter ikke i det hele tatt.</value>
   </data>
@@ -8956,6 +9007,9 @@ Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker
   </data>
   <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Serverens vertsnavn (Levering av e-post) er TOMT, så den annonserer Windows-datamaskinnavnet sitt i HELO/EHLO - ikke et offentlig DNS-navn - og ingen "a:"-mekanisme kan ærlig tilbys. Forslaget autoriserer bare domenets MX-verter. Sett vertsnavnet først; flere oppføringer på denne siden trenger det.</value>
+  </data>
+  <data name="The server's answer could not be read." xml:space="preserve">
+    <value>Svaret fra tjeneren kunne ikke leses.</value>
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Serverens svar kunne ikke leses: {0}</value>
@@ -9678,6 +9732,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Hva som må finnes utenfor denne serveren</value>
   </data>
+  <data name="What is sent" xml:space="preserve">
+    <value>Hva som sendes</value>
+  </data>
   <data name="What it is for" xml:space="preserve">
     <value>Hva den er til</value>
   </data>
@@ -9735,11 +9792,17 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Når endepunktet ikke kan nås</value>
   </data>
+  <data name="Where it goes" xml:space="preserve">
+    <value>Hvor det sendes</value>
+  </data>
   <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
     <value>Hvor post FRA dette domenet går ut gjennom. Dette er et annet spørsmål enn en rute, som avgjør hvor post adressert TIL et domene sendes - det er for en server som hoster flere uavhengige domener der hvert har sin egen leveringsleverandør.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Hvor administratoren får beskjed, lenge før noe avvises. 1024 MB er omtrent femti meldinger til av maksimal størrelse.</value>
+  </data>
+  <data name="Where the copy goes" xml:space="preserve">
+    <value>Hvor kopien sendes</value>
   </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read." xml:space="preserve">
     <value>Hvor det utstedte sertifikatet ville blitt skrevet, kunne ikke avgjøres, fordi verken utdatamappen ovenfor eller [Directories] DataFolder i hMailServer.INI kunne leses.</value>
@@ -9825,6 +9888,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
     <value>Hvilken stavemåte av DMARC-aggregatrapporten som går ut til domenene denne serveren rapporterer om. 1 er det hver rapportforbruker som er utrullet i dag, kan parse; 2 er DMARCbis, for dagen forbrukerne har tatt igjen. Enhver annen verdi rapporteres som en feil og behandles som 1, fordi en skrivefeil ikke må avgjøre hva som går over linjen. Gjelder etter omstart av tjenesten.</value>
   </data>
+  <data name="Which way" xml:space="preserve">
+    <value>Hvilken vei</value>
+  </data>
   <data name="White list" xml:space="preserve">
     <value>Hviteliste</value>
   </data>
@@ -9852,8 +9918,14 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Hvem som kan koble til, hvem som kan autentisere, og hva som skjer når noen fortsetter å prøve.</value>
   </data>
+  <data name="Whose mail" xml:space="preserve">
+    <value>Hvem sin post</value>
+  </data>
   <data name="Why" xml:space="preserve">
     <value>Hvorfor</value>
+  </data>
+  <data name="Why (optional)" xml:space="preserve">
+    <value>Hvorfor (valgfritt)</value>
   </data>
   <data name="Why it is listed" xml:space="preserve">
     <value>Hvorfor den er listet</value>
@@ -9977,6 +10049,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Add signature to outgoing messages" xml:space="preserve">
     <value>_Legg til signatur i utgående meldinger</value>
+  </data>
+  <data name="_Add the rule" xml:space="preserve">
+    <value>Legg _til regelen</value>
   </data>
   <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
     <value>Adresse (_å endre den gir postboksen nytt navn; den må forbli i dette domenet)</value>

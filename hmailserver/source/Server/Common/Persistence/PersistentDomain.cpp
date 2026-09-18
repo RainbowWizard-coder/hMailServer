@@ -14,8 +14,10 @@
 #include "PersistentSenderListEntry.h"
 #include "../BO/SenderListEntry.h"
 #include "PersistentSpamTrap.h"
+#include "PersistentJournalRule.h"
 #include "PersistentRule.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
+#include "../Util/Journaling.h"
 #include "../Util/DomainReports.h"
 
 #include "../Util/Crypt.h"
@@ -471,6 +473,17 @@ namespace HM
                   iDomainID));
          }
 
+         // The domain's journaling rules, and the rules naming its accounts. The
+         // foreign key takes the rows, and this takes them a moment earlier so
+         // that the running cache is told; a rule that outlived the domain would
+         // copy the mail of whichever domain is given the id next.
+         if (!PersistentJournalRule::DeleteByDomain(iDomainID))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6995, "PersistentDomain::DeleteObject",
+               Formatter::Format("Domain {0} is being deleted but its journaling rules could not be, and will be left behind referring to a domain that no longer exists.",
+                  iDomainID));
+         }
+
          // The key files the domain's DKIM rotation generated go with it, as its
          // mail store does. Which files those are is read before the row goes,
          // because the rotation's row cascades from it and is what says which files
@@ -834,6 +847,12 @@ namespace HM
       // the read and every other message pays nothing.
       if (bRetVal)
          SpamTrapMonitor::SetNeedRefresh();
+
+      // And the same for the journaling rules, which hold the domain by id and
+      // show its name: a rename has to reach the evaluation before the next
+      // message, not a minute later.
+      if (bRetVal)
+         Journaling::SetNeedRefresh();
 
       // The same for the report mailboxes: DomainReports keeps the set of
       // addresses that take reports in and compares every delivered message

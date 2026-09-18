@@ -692,6 +692,103 @@ function Get-HmSpamTrapPath {
     '/api/v1/domains/' + [uri]::EscapeDataString($Domain) + '/spam-traps'
 }
 
+function Get-HmJournalRule {
+    <#
+    .SYNOPSIS
+        The journaling and dual-delivery rules: whose mail is copied, and where.
+    .DESCRIPTION
+        Each rule names a domain or one account, which way the mail is going
+        (inbound, outbound or both), where the copy goes, and whether the copy is
+        an envelope report with the original attached or the message itself. With
+        no rule nothing is copied anywhere.
+    .EXAMPLE
+        Get-HmJournalRule | Format-Table target, direction, mode, journal_address, enabled
+    #>
+    [CmdletBinding()]
+    param()
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path '/api/v1/journal-rules') -Key 'journal_rules'
+}
+
+function New-HmJournalRule {
+    <#
+    .SYNOPSIS
+        Writes a journaling or dual-delivery rule.
+    .DESCRIPTION
+        Scope is domain or account and Target the domain name or the account
+        address. Mode report sends the Exchange envelope report with the original
+        attached as message/rfc822; mode copy sends the message itself with one
+        header added. In force for the next accepted message.
+    .EXAMPLE
+        New-HmJournalRule -Target example.com -JournalAddress archive@compliance.example -Direction both
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $Target,
+        [Parameter(Mandatory = $true, Position = 1)] [string] $JournalAddress,
+        [ValidateSet('domain', 'account')] [string] $Scope = 'domain',
+        [ValidateSet('inbound', 'outbound', 'both')] [string] $Direction = 'both',
+        [ValidateSet('report', 'copy')] [string] $Mode = 'report',
+        [string] $Note
+    )
+    $body = @{ scope = $Scope; target = $Target; journal_address = $JournalAddress; direction = $Direction; mode = $Mode }
+    if ($PSBoundParameters.ContainsKey('Note')) { $body['note'] = $Note }
+    if ($PSCmdlet.ShouldProcess($Target, 'Add a journaling rule')) {
+        Invoke-HmApi -Method POST -Path '/api/v1/journal-rules' -Body $body
+    }
+}
+
+function Set-HmJournalRule {
+    <#
+    .SYNOPSIS
+        Changes a journaling rule; a field not given keeps its value.
+    .EXAMPLE
+        Set-HmJournalRule -Id 3 -Enabled $false
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [int] $Id,
+        [ValidateSet('domain', 'account')] [string] $Scope,
+        [string] $Target,
+        [string] $JournalAddress,
+        [ValidateSet('inbound', 'outbound', 'both')] [string] $Direction,
+        [ValidateSet('report', 'copy')] [string] $Mode,
+        [bool] $Enabled,
+        [string] $Note
+    )
+    process {
+        $body = @{}
+        if ($PSBoundParameters.ContainsKey('Scope')) { $body['scope'] = $Scope }
+        if ($PSBoundParameters.ContainsKey('Target')) { $body['target'] = $Target }
+        if ($PSBoundParameters.ContainsKey('JournalAddress')) { $body['journal_address'] = $JournalAddress }
+        if ($PSBoundParameters.ContainsKey('Direction')) { $body['direction'] = $Direction }
+        if ($PSBoundParameters.ContainsKey('Mode')) { $body['mode'] = $Mode }
+        if ($PSBoundParameters.ContainsKey('Enabled')) { $body['enabled'] = $Enabled }
+        if ($PSBoundParameters.ContainsKey('Note')) { $body['note'] = $Note }
+        if ($PSCmdlet.ShouldProcess([string] $Id, 'Change a journaling rule')) {
+            Invoke-HmApi -Method PUT -Path ('/api/v1/journal-rules/' + $Id) -Body $body
+        }
+    }
+}
+
+function Remove-HmJournalRule {
+    <#
+    .SYNOPSIS
+        Removes a journaling rule.
+    .DESCRIPTION
+        The rule stops copying at once. What it has already sent is wherever it
+        was sent: this server keeps no second copy and withdraws nothing.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [int] $Id
+    )
+    process {
+        if ($PSCmdlet.ShouldProcess([string] $Id, 'Remove journaling rule')) {
+            Invoke-HmApi -Method DELETE -Path ('/api/v1/journal-rules/' + $Id) | Out-Null
+        }
+    }
+}
+
 function Get-HmGroup {
     <#
     .SYNOPSIS
@@ -2698,6 +2795,7 @@ Export-ModuleMember -Function @(
     'Get-HmAccount', 'New-HmAccount', 'Set-HmAccount', 'Remove-HmAccount', 'Export-HmAccountArchive', 'Remove-HmAddressTraces',
     'Get-HmAlias', 'New-HmAlias', 'Remove-HmAlias',
     'Get-HmSpamTrap', 'Add-HmSpamTrap', 'Remove-HmSpamTrap', 'Get-HmSpamTrapHit', 'Clear-HmSpamTrapHit',
+    'Get-HmJournalRule', 'New-HmJournalRule', 'Set-HmJournalRule', 'Remove-HmJournalRule',
     'Get-HmGroup', 'New-HmGroup', 'Remove-HmGroup', 'Get-HmGroupMember', 'Add-HmGroupMember', 'Remove-HmGroupMember',
     'Get-HmSetting', 'Set-HmSetting', 'Test-HmBreachCheckEndpoint', 'Get-HmIniSetting', 'Set-HmIniSetting',
     'Get-HmQueue', 'Start-HmQueueDelivery', 'Remove-HmQueueMessage',

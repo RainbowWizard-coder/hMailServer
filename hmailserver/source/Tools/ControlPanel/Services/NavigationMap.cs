@@ -471,6 +471,14 @@ namespace hMailServer.ControlPanel.Services
                // chain, over Utilities.GetAuditTrail, with a setting's change put back
                // from its row. The server administrator's: the trail records every
                // domain's changes.
+               // Beside the audit trail, because both answer a compliance
+               // question: who changed what, and where a copy of the mail goes.
+               Page("journaling", N("Journaling and dual delivery"),
+                  N("A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself."),
+                  aliases: "Journaling|Journal|Dual delivery|Compliance archive|Copy every message|Send a copy elsewhere|Archive to another system|Migration copy|Envelope report|Blind copy to an archive",
+                  seeAlso: "audit|messagetrace|archive",
+                  needs: "administer_server"),
+
                Page("audit", N("Audit trail"),
                   N("Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had."),
                   aliases: "Audit|Who changed|History|Change log|Put back|Undo a setting|Revert a change|Compliance",

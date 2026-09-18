@@ -83,6 +83,7 @@ hmctl [--url URL] [--api-key KEY | --password PASSWORD | --password-file FILE]
 | `queue` | list, retry, delete | |
 | `spamtrap` | list, create, delete | A domain's spam traps: addresses of it that were never real. Made under the domain, taken back at the address itself. |
 | `traphits` | list, clear | What has addressed a spam trap - the trap, the connecting address, the sender and what was done - and the clearing of that record. |
+| `journalrule` | list, create, update, delete | Journaling and dual delivery ([Journaling.md](Journaling.md)): a copy of a domain's mail, or of one account's, sent to an address - as the Exchange envelope report with the original attached, or as the message itself. Server-wide; nothing is copied until a rule exists. |
 | `reputation` | status, check | This server's own outbound addresses against the DNS block lists ([ReputationWatch.md](ReputationWatch.md)). Exits 1 when an address is listed, and when a list could not be asked - an unanswered check is not a clean one - so a monitoring job reads the exit code rather than the table. A pair no check has covered yet also exits 1 while the watch is on; with the watch off it does not, because then nothing is being checked and the output says so. |
 | `webhook` | list, get, create, update, delete | The outbound webhook subscriptions: where this server's mail events go, signed with what, and confined to which domains and addresses. The secret is write-only and never read back ([Webhooks.md](Webhooks.md)). |
 | `webhooks` | deliveries, run, test | The delivery queue with `--webhook`, `--state` and `--limit`; one delivery pass now; and one event raised through the path a real one takes, to see whether it arrives. |
@@ -196,6 +197,17 @@ hmctl traphits clear                              # the record only: bans and bl
 hmctl sample-domain status                        # is it there, and what is in it
 hmctl sample-domain create                        # example.test, three mailboxes, a list, a rule, eight messages
 hmctl sample-domain remove                        # and away again, with a count of what went
+```
+
+Journaling and dual delivery:
+
+```sh
+hmctl journalrule list
+hmctl journalrule create --set target=example.com --set journal_address=archive@compliance.example
+hmctl journalrule create --set scope=account --set target=ann@example.com \
+    --set journal_address=copy@second-system.example --set direction=outbound --set mode=copy
+hmctl journalrule update 3 --set enabled=false    # stops copying; what was sent stays sent
+hmctl journalrule delete 3
 ```
 
 `status` prints the phase, then one block per key - current, next, retiring and
@@ -484,6 +496,12 @@ What it does not carry, and why:
 * **Certificates and the directories.** A certificate is files on the server's
   own disk, and the directories are that machine's paths; copying either between
   machines would describe a server that does not exist.
+* **The journaling rules.** A journal rule copies somebody's mail to an address
+  ([Journaling.md](Journaling.md)), and an address chosen for one server is
+  almost never the right one for another. A document exported here and applied
+  to a second server would quietly start sending that server's mail somewhere the
+  person applying it had not thought about. `hmctl journalrule` edits them, one
+  server at a time and on purpose.
 * **What lives under an account** - application passwords, fetch accounts,
   folder permissions - which are the account holder's rather than the
   configuration's.
