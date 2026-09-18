@@ -1533,12 +1533,46 @@ function answer(method, path, body) {
       const wanted = JSON.parse(body || '{}');
       // The fingerprint is the key's, never the client's - as the server does.
       const fingerprint = Buffer.from(String(wanted.public_key), 'base64').toString('utf8').split(':')[2] || '';
+      // A key the page could not put an address to is refused - as the server
+      // refuses a correspondent's key with no address in its user ids and none
+      // in the request.
+      if (!wanted.address) { return json(400, { error: 'address: the key carries no address in its user ids, so one has to be given' }); }
       const row = pgpRowOf(wanted.address, { fingerprint, key_id: fingerprint.slice(-16), public_key: wanted.public_key, source: wanted.source, revoked: !!wanted.revoked });
       if (wanted.secret_key) { row.secret_key = wanted.secret_key; }
       const at = list.findIndex((o) => o.fingerprint === fingerprint);
-      if (at >= 0) { list[at] = row; return json(200, row); }
+      if (at >= 0) {
+         // The trust columns and the address are the ring's, kept across a
+         // re-store - as the server keeps them.
+         ['id', 'address', 'verified', 'verified_at', 'changed_from', 'changed_at', 'accepted'].forEach((k) => { if (list[at][k] !== undefined) { row[k] = list[at][k]; } });
+         list[at] = row;
+         return json(200, row);
+      }
+      // A correspondent's key for an address that already holds a DIFFERENT
+      // one - a correspondent's or the account's OWN - is a change, recorded
+      // on the new row, as the server records it.
+      const previous = path.endsWith('/own') ? null : store.own.concat(store.correspondents).filter((o) => o.address === wanted.address && o.fingerprint !== fingerprint).pop();
+      if (previous) { row.changed_from = previous.fingerprint; row.changed_at = 1700000100; row.accepted = false; }
       list.push(row);
       return json(201, row);
+   }
+   if (/^\/api\/v1\/me\/openpgp\/keys\/\d+\/(verified|accepted)$/.test(path) && method === 'PUT') {
+      const store = pgpStoreOf(account);
+      const id = Number(path.split('/')[6]);
+      const what = path.split('/').pop();
+      const row = store.correspondents.concat(store.own).filter((o) => o.id === id)[0];
+      if (!row) { return json(404, { error: 'no such key' }); }
+      if (store.own.indexOf(row) >= 0) { return json(400, { error: 'a key of your own' }); }
+      const wanted = JSON.parse(body || '{}');
+      if (what === 'verified') {
+         row.verified = wanted.verified === true;
+         row.verified_at = row.verified ? 1700000300 : 0;
+         if (row.verified && row.changed_from) { row.accepted = true; }
+      }
+      else {
+         if (!row.changed_from) { return json(400, { error: 'this key did not replace another' }); }
+         row.accepted = wanted.accepted === true;
+      }
+      return json(200, row);
    }
    if (/^\/api\/v1\/me\/openpgp\/keys\/(own|correspondents)\/[0-9a-f]+$/.test(path) && method === 'DELETE') {
       const store = pgpStoreOf(account);
@@ -1686,12 +1720,28 @@ const pgpFingerprint = (address, variant) => {
    for (let i = 0; i < text.length; i += 1) { hash = (hash * 31 + text.charCodeAt(i)) >>> 0; }
    return hash.toString(16).padStart(8, '0').repeat(5);
 };
-const pgpPublicOf = (address) => Buffer.from('KEY:' + address + ':' + pgpFingerprint(address)).toString('base64');
+const pgpPublicOf = (address, variant) => Buffer.from('KEY:' + address + ':' + pgpFingerprint(address, variant)).toString('base64');
+// Every row has an id of its own, because the trust routes name a row by it.
+let pgpRowIds = 0;
 const pgpRowOf = (address, extra) => Object.assign({
-   id: 1, address, name: 'Key of ' + address, fingerprint: pgpFingerprint(address), key_id: pgpFingerprint(address).slice(-16),
+   id: ++pgpRowIds, address, name: 'Key of ' + address, fingerprint: pgpFingerprint(address), key_id: pgpFingerprint(address).slice(-16),
    algorithm: 'Ed25519', public_key: pgpPublicOf(address), created: 1700000000, expires: 0, revoked: false,
-   source: 'imported', prefer_encrypt: 'mutual', first_seen: 1700000000, last_seen: 1700000000
+   source: 'imported', prefer_encrypt: 'mutual', first_seen: 1700000000, last_seen: 1700000000,
+   verified: false, verified_at: 0
 }, extra || {});
+// A second key for the same address, filed as a change of the first: what the
+// server stores when a different key arrives for an address that has one.
+const pgpChangedRowOf = (address, extra) => pgpRowOf(address, Object.assign({
+   fingerprint: pgpFingerprint(address, 'second'), key_id: pgpFingerprint(address, 'second').slice(-16),
+   public_key: pgpPublicOf(address, 'second'), changed_from: pgpFingerprint(address), changed_at: 1700000100, accepted: false
+}, extra || {}));
+// A good signature by the key of an address, as the module reports one: valid
+// is the cryptography, key is the parsed primary the page finds the ring's row
+// by, and fingerprint is the signing packet's.
+const pgpGoodSignatureBy = (address, variant) => ({
+   valid: true, error: '', problem: '', keyId: pgpFingerprint(address, variant).slice(-16), fingerprint: pgpFingerprint(address, variant),
+   key: pgpKeyObject(address, pgpFingerprint(address, variant), false), signerUserId: '', created: 1700000000
+});
 const pgpOwnRowOf = (address, passphrase) => pgpRowOf(address, {
    source: 'generated', secret_key: 'SEC:' + address + ':' + pgpFingerprint(address) + ':' + passphrase
 });
@@ -1750,6 +1800,7 @@ const pgpStub = {
       pgpComposed.push({
          sign: spec.sign ? spec.sign.address : '',
          encrypt: (spec.encrypt || []).map((k) => k.address).sort(),
+         fingerprints: (spec.encrypt || []).map((k) => k.fingerprint).sort(),
          text: spec.text || ''
       });
       return 'MIME-Version: 1.0\r\nContent-Type: multipart/encrypted; protocol="application/pgp-encrypted"; boundary="b"\r\n\r\nsealed\r\n';
@@ -6780,6 +6831,11 @@ async function main() {
    // ---- OpenPGP: the key ring, a sealed send, Autocrypt and a revocation
    await pgpChecks();
 
+   // ---- OpenPGP, trust made visible: a key that changed is a warning naming
+   // both fingerprints and is not encrypted to until accepted; a key verified
+   // in person shows the mark on every good signature; the rest is plain
+   await pgpTrustChecks();
+
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();
 
@@ -7381,6 +7437,298 @@ async function pgpChecks() {
       JSON.stringify(revoked.map((r) => String(r.body).slice(0, 90))));
    check('OpenPGP: and a revoked key is offered nothing to revoke twice',
       ownRows().length === 1 && buttonsOf(ownRows()[0]).length === 4, buttonsOf(ownRows()[0]).length + ' buttons');
+   location.hash = '#/f/1';
+   await flush();
+}
+
+// ---- OpenPGP, trust made visible (OpenPgpRing.h, schema 6081). Every
+// assertion is on a request, a fingerprint, an address, a hidden flag or the
+// data-pgp-trust attribute the page names a state with - never on a sentence,
+// because the page is in German by now.
+async function pgpTrustChecks() {
+   window.hmOpenPgp = pgpStub;
+   const groups = (fingerprint) => String(fingerprint).toUpperCase().replace(/(.{4})/g, '$1 ').trim();
+   const peerRows = () => Array.prototype.slice.call(document.getElementById('pgp-peer-rows').children);
+   const rowFor = (address) => peerRows().filter((tr) => tr.children[0].textContent.indexOf(address) === 0)[0];
+   const buttonsOf = (row) => Array.prototype.slice.call(row.children[3].children);
+   const trustOfRow = (address) => (rowFor(address) ? rowFor(address).getAttribute('data-pgp-trust') : 'no row');
+   const badges = () => Array.prototype.slice.call(document.getElementById('message-badges').children);
+   const trustShown = () => badges().map((b) => b.getAttribute('data-pgp-trust')).filter(Boolean).join(',');
+   const pgpText = () => document.getElementById('message-pgp-text').textContent;
+   const dismissAllToasts = () => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.tagName === 'BUTTON' && c.getAttribute('aria-label') === 'Dismiss') { out.push(c); } if (c.childNodes) { walk(c); } } })(document.getElementById('toasts')); out.forEach((b) => b.dispatchEvent(makeEvent('click'))); };
+   const oldB = pgpFingerprint('b@example.net');
+   const newB = pgpFingerprint('b@example.net', 'second');
+
+   // Three correspondents in the three states, and the account's own key.
+   pgpStores[account] = {
+      own: [pgpOwnRowOf(account, 'the-key-passphrase')],
+      correspondents: [pgpRowOf('p@example.net'), pgpRowOf('v@example.net', { verified: true, verified_at: 1700000200 }), pgpChangedRowOf('b@example.net')]
+   };
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   check('Trust: a correspondent\'s fingerprint is shown in groups of four',
+      !!rowFor('p@example.net') && rowFor('p@example.net').children[1].textContent === groups(pgpFingerprint('p@example.net')),
+      rowFor('p@example.net') ? rowFor('p@example.net').children[1].textContent : 'no row');
+   check('Trust: the three states are named on the rows - plain, verified, changed',
+      trustOfRow('p@example.net') === 'plain' && trustOfRow('v@example.net') === 'verified' && trustOfRow('b@example.net') === 'changed',
+      [trustOfRow('p@example.net'), trustOfRow('v@example.net'), trustOfRow('b@example.net')].join(','));
+   check('Trust: the verified row carries the mark in its fingerprint cell',
+      !!rowFor('v@example.net') && rowFor('v@example.net').children[1].children.length === 1 &&
+      rowFor('v@example.net').children[1].children[0].className.indexOf('pgp-verified') >= 0 &&
+      rowFor('v@example.net').children[1].children[0].textContent.indexOf('✓') === 0,
+      rowFor('v@example.net') ? rowFor('v@example.net').children[1].textContent : 'no row');
+   check('Trust: the changed row names both fingerprints, the old and the new',
+      !!rowFor('b@example.net') && rowFor('b@example.net').textContent.indexOf(groups(oldB)) >= 0 && rowFor('b@example.net').textContent.indexOf(groups(newB)) >= 0,
+      rowFor('b@example.net') ? rowFor('b@example.net').textContent : 'no row');
+   check('Trust: a changed row offers Accept beside the mark, a plain one the mark alone, an own row neither',
+      !!rowFor('b@example.net') && buttonsOf(rowFor('b@example.net')).length === 4 && buttonsOf(rowFor('p@example.net')).length === 3 &&
+      document.getElementById('pgp-own-rows').children[0].children.length === 4 && Array.prototype.slice.call(document.getElementById('pgp-own-rows').children[0].children[3].children).length === 5,
+      buttonsOf(rowFor('b@example.net')).length + ' on the changed row, ' + buttonsOf(rowFor('p@example.net')).length + ' on the plain one');
+
+   // ---- marking a key verified in person, and unmarking it
+   const beforeMark = requests.length;
+   buttonsOf(rowFor('p@example.net'))[1].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   const marked = since(beforeMark).filter((r) => r.method === 'PUT' && /\/openpgp\/keys\/\d+\/verified$/.test(r.path));
+   check('Trust: marking a key verified in person is one PUT of verified true, and the row shows the mark after',
+      marked.length === 1 && JSON.parse(marked[0].body || '{}').verified === true && trustOfRow('p@example.net') === 'verified',
+      JSON.stringify(marked.map((r) => r.path + ' ' + r.body)) + ' -> ' + trustOfRow('p@example.net'));
+   const beforeUnmark = requests.length;
+   buttonsOf(rowFor('p@example.net'))[1].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   const unmarked = since(beforeUnmark).filter((r) => r.method === 'PUT' && /\/openpgp\/keys\/\d+\/verified$/.test(r.path));
+   check('Trust: and unmarking it is the same PUT with false, after which the row is plain again',
+      unmarked.length === 1 && JSON.parse(unmarked[0].body || '{}').verified === false && trustOfRow('p@example.net') === 'plain',
+      JSON.stringify(unmarked.map((r) => r.body)) + ' -> ' + trustOfRow('p@example.net'));
+
+   // ---- the compose form: a recipient whose only key changed and was not
+   // accepted is not encrypted to; the send stops and names the address
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'b@example.net';
+   document.getElementById('compose-subject').value = 'To a changed key';
+   document.getElementById('compose-text').value = 'Must not be sealed to the new key.';
+   document.getElementById('compose-pgp-encrypt').checked = true;
+   document.getElementById('compose-pgp-encrypt').dispatchEvent(makeEvent('change'));
+   await flush();
+   check('Trust: the compose form names the recipient whose key changed and waits to be accepted',
+      document.getElementById('compose-pgp-note').hidden === false && document.getElementById('compose-pgp-note').textContent.indexOf('b@example.net') >= 0,
+      document.getElementById('compose-pgp-note').textContent);
+   const composedBefore = pgpComposed.length;
+   const beforeRefused = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('Trust: a send encrypted to that address is refused - nothing composed, nothing posted - and the reason names it',
+      pgpComposed.length === composedBefore && !called(beforeRefused, 'POST', '/api/v1/me/messages') &&
+      document.getElementById('compose-status').textContent.indexOf('b@example.net') >= 0,
+      document.getElementById('compose-status').textContent);
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   dismissAllToasts();
+
+   // ---- the reader, state three: a good signature by the key that changed
+   // is the warning, both fingerprints, and Accept - nothing green
+   pgpMessageResult = { layers: ['signed'], encrypted: null, inline: false, content: null, autocrypt: null, signed: pgpGoodSignatureBy('b@example.net', 'second') };
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   check('Trust: a good signature by a key that changed shows the warning, not a good badge',
+      trustShown() === 'changed' && badges().filter((b) => b.className.indexOf('good') >= 0).length === 0,
+      trustShown() + ' / ' + badges().map((b) => b.className).join(';'));
+   check('Trust: and the reader is told both fingerprints and offered Accept',
+      pgpText().indexOf(groups(oldB)) >= 0 && pgpText().indexOf(groups(newB)) >= 0 && document.getElementById('message-pgp-accept').hidden === false,
+      pgpText() + ' accept hidden=' + document.getElementById('message-pgp-accept').hidden);
+
+   // ---- accepting from the reader: one PUT of accepted true, then the same
+   // message re-read shows the plain verdict with the fingerprint (state two)
+   const beforeAccept = requests.length;
+   document.getElementById('message-pgp-accept').dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   await flush();
+   const accepted = since(beforeAccept).filter((r) => r.method === 'PUT' && /\/openpgp\/keys\/\d+\/accepted$/.test(r.path));
+   check('Trust: Accept is one PUT of accepted true on the changed key',
+      accepted.length === 1 && JSON.parse(accepted[0].body || '{}').accepted === true,
+      JSON.stringify(accepted.map((r) => r.path + ' ' + r.body)));
+   check('Trust: after which the signature is the plain verdict, with the signing key\'s fingerprint',
+      trustShown() === 'plain' && pgpText().indexOf(groups(newB)) >= 0 && document.getElementById('message-pgp-accept').hidden === true,
+      trustShown() + ' / ' + pgpText());
+
+   // ---- state one: the same key marked verified in person shows the mark
+   // beside the sender on the next good signature
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   check('Trust: the accepted key is listed plain, with the mark on offer', trustOfRow('b@example.net') === 'plain' && buttonsOf(rowFor('b@example.net')).length === 3,
+      trustOfRow('b@example.net') + ' ' + (rowFor('b@example.net') ? buttonsOf(rowFor('b@example.net')).length : 0));
+   buttonsOf(rowFor('b@example.net'))[1].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   check('Trust: a good signature by a key verified in person shows the green mark beside the sender',
+      trustShown() === 'verified' && badges().filter((b) => b.getAttribute('data-pgp-trust') === 'verified' && b.className.indexOf('good') >= 0 && b.textContent.indexOf('✓') === 0).length === 1,
+      trustShown() + ' / ' + badges().map((b) => b.className + ':' + b.textContent).join(';'));
+
+   // ---- the mark is never inherited: a THIRD key for the address is a change
+   // again, unverified, and the reader says so
+   pgpStores[account].correspondents.push(pgpRowOf('b@example.net', {
+      fingerprint: pgpFingerprint('b@example.net', 'third'), key_id: pgpFingerprint('b@example.net', 'third').slice(-16),
+      public_key: pgpPublicOf('b@example.net', 'third'), changed_from: newB, changed_at: 1700000400, accepted: false
+   }));
+   pgpMessageResult = { layers: ['signed'], encrypted: null, inline: false, content: null, autocrypt: null, signed: pgpGoodSignatureBy('b@example.net', 'third') };
+   location.hash = '#/f/1';
+   await flush();
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   check('Trust: a new key for a verified correspondent is not verified because the old one was - the warning, again',
+      trustShown() === 'changed' && pgpText().indexOf(groups(newB)) >= 0 && pgpText().indexOf(groups(pgpFingerprint('b@example.net', 'third'))) >= 0,
+      trustShown() + ' / ' + pgpText());
+   pgpMessageResult = { layers: [], encrypted: null, signed: null, content: null, autocrypt: null, inline: false };
+   location.hash = '#/f/1';
+   await flush();
+
+   // ---- the review's findings, each held to what it asked for.
+   // (1) A correspondent's key is never filed under the account's own address
+   // in silence. An Autocrypt key whose user id carries no address is filed
+   // under the address the header names, never the account's; and a key
+   // arriving for the account's OWN address - a spoofed From: me - is a change
+   // of the own key, and no message is sealed to it.
+   const ownFp = pgpFingerprint(account);
+   pgpStores[account] = { own: [pgpOwnRowOf(account, 'the-key-passphrase')], correspondents: [pgpRowOf('a@example.net')] };
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   pgpMessageResult = {
+      layers: [], encrypted: null, signed: null, inline: false, content: null,
+      autocrypt: { address: 'b@example.net', preferEncrypt: true, keydata: 'KEY::' + pgpFingerprint('nobody', 'stranger') }
+   };
+   const beforeStranger = requests.length;
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   const strangerPuts = since(beforeStranger).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/openpgp/keys/correspondents');
+   check('Trust: an Autocrypt key with no address in its user id is filed under the address the header names, never the account\'s',
+      strangerPuts.length === 1 && JSON.parse(strangerPuts[0].body || '{}').address === 'b@example.net',
+      JSON.stringify(strangerPuts.map((r) => r.body)));
+   location.hash = '#/f/1';
+   await flush();
+   // A spoofed message from the account's own address, carrying another key
+   // for it: offered Keep (the page holds the own key), and once kept it is a
+   // change OF THE OWN KEY, so a send is sealed to the own key and not to it.
+   WITH_AUTOCRYPT.from = account;
+   pgpMessageResult = {
+      layers: [], encrypted: null, signed: null, inline: false, content: null,
+      autocrypt: { address: account, preferEncrypt: true, keydata: 'KEY:' + account + ':' + pgpFingerprint(account, 'spoof') }
+   };
+   const beforeSpoof = requests.length;
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   check('Trust: a key arriving for the account\'s own address is not kept without asking',
+      !called(beforeSpoof, 'PUT', '/api/v1/me/openpgp/keys/correspondents') && document.getElementById('message-pgp-keep').hidden === false,
+      'keep hidden=' + document.getElementById('message-pgp-keep').hidden);
+   document.getElementById('message-pgp-keep').dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   await flush();
+   const spoofRow = pgpStores[account].correspondents.filter((o) => o.fingerprint === pgpFingerprint(account, 'spoof'))[0];
+   check('Trust: and once kept it is a change of the OWN key, said with both fingerprints and Accept',
+      !!spoofRow && spoofRow.changed_from === ownFp && pgpText().indexOf(groups(ownFp)) >= 0 && pgpText().indexOf(groups(pgpFingerprint(account, 'spoof'))) >= 0 &&
+      document.getElementById('message-pgp-accept').hidden === false,
+      (spoofRow ? spoofRow.changed_from : 'no row') + ' / ' + pgpText());
+   WITH_AUTOCRYPT.from = 'b@example.net';
+   location.hash = '#/f/1';
+   await flush();
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'a@example.net';
+   document.getElementById('compose-subject').value = 'Sealed to my own key';
+   document.getElementById('compose-text').value = 'Not to the spoof.';
+   document.getElementById('compose-pgp-encrypt').checked = true;
+   document.getElementById('compose-pgp-encrypt').dispatchEvent(makeEvent('change'));
+   await flush();
+   const composedBeforeSpoof = pgpComposed.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('Trust: a send is sealed to the account\'s own key and never to the key that arrived for its address',
+      pgpComposed.length === composedBeforeSpoof + 1 && pgpComposed[composedBeforeSpoof].fingerprints.indexOf(ownFp) >= 0 &&
+      pgpComposed[composedBeforeSpoof].fingerprints.indexOf(pgpFingerprint(account, 'spoof')) < 0,
+      JSON.stringify(pgpComposed[composedBeforeSpoof]));
+   dismissAllToasts();
+
+   // (4) The auto-learn path says the change sentence too: the page held
+   // nothing for the address, the ring did (a row stored elsewhere), and the
+   // key it learned came back as a change.
+   pgpStores[account] = { own: [pgpOwnRowOf(account, 'the-key-passphrase')], correspondents: [] };
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   pgpStores[account].correspondents.push(pgpRowOf('b@example.net'));
+   pgpMessageResult = {
+      layers: [], encrypted: null, signed: null, inline: false, content: null,
+      autocrypt: { address: 'b@example.net', preferEncrypt: true, keydata: 'KEY:b@example.net:' + newB }
+   };
+   const beforeStale = requests.length;
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   check('Trust: a key learned at once that the ring filed as a change is said with both fingerprints and Accept',
+      called(beforeStale, 'PUT', '/api/v1/me/openpgp/keys/correspondents') && pgpText().indexOf(groups(oldB)) >= 0 && pgpText().indexOf(groups(newB)) >= 0 &&
+      document.getElementById('message-pgp-accept').hidden === false,
+      pgpText() + ' accept hidden=' + document.getElementById('message-pgp-accept').hidden);
+   pgpMessageResult = { layers: [], encrypted: null, signed: null, content: null, autocrypt: null, inline: false };
+   location.hash = '#/f/1';
+   await flush();
+
+   // (5) A settled key and a pending one for the same address: the compose
+   // form says a newer key is waiting and the send goes to the older one.
+   pgpStores[account] = { own: [pgpOwnRowOf(account, 'the-key-passphrase')], correspondents: [pgpRowOf('b@example.net'), pgpChangedRowOf('b@example.net')] };
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'b@example.net';
+   document.getElementById('compose-subject').value = 'To the older key';
+   document.getElementById('compose-text').value = 'The newer one waits.';
+   document.getElementById('compose-pgp-encrypt').checked = true;
+   document.getElementById('compose-pgp-encrypt').dispatchEvent(makeEvent('change'));
+   await flush();
+   check('Trust: with a newer key waiting beside a usable one, the compose form says so and names the address',
+      document.getElementById('compose-pgp-note').hidden === false && document.getElementById('compose-pgp-note').textContent.indexOf('b@example.net') >= 0,
+      document.getElementById('compose-pgp-note').textContent);
+   const composedBeforeOlder = pgpComposed.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('Trust: and the send goes, sealed to the older key and not to the one waiting',
+      pgpComposed.length === composedBeforeOlder + 1 && pgpComposed[composedBeforeOlder].fingerprints.indexOf(oldB) >= 0 &&
+      pgpComposed[composedBeforeOlder].fingerprints.indexOf(newB) < 0,
+      JSON.stringify(pgpComposed[composedBeforeOlder]));
+   dismissAllToasts();
    location.hash = '#/f/1';
    await flush();
 }

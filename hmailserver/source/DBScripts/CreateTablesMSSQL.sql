@@ -2321,7 +2321,12 @@ create table hm_pgpring
 	pgrsource nvarchar(16) not null,
 	pgrprefer int not null,
 	pgrfirstseen bigint not null,
-	pgrlastseen bigint not null
+	pgrlastseen bigint not null,
+	pgrverified int not null default 0,
+	pgrverifiedat bigint not null default 0,
+	pgrchangedfrom nvarchar(64) not null default '',
+	pgrchangedat bigint not null default 0,
+	pgraccepted int not null default 0
 )
 
 ALTER TABLE hm_pgpring ADD CONSTRAINT hm_pgpring_pk PRIMARY KEY NONCLUSTERED (pgrid)
@@ -2579,4 +2584,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6080)
+insert into hm_dbversion values (6081)

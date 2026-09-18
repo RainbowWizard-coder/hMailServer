@@ -280,6 +280,11 @@ namespace HM
       { _T("hm_pgpring"), _T("pgrprefer"),           AccountStores::RoleNumber },
       { _T("hm_pgpring"), _T("pgrfirstseen"),        AccountStores::RoleNumber },
       { _T("hm_pgpring"), _T("pgrlastseen"),         AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrverified"),         AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrverifiedat"),       AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgrchangedfrom"),      AccountStores::RoleText },
+      { _T("hm_pgpring"), _T("pgrchangedat"),        AccountStores::RoleNumber },
+      { _T("hm_pgpring"), _T("pgraccepted"),         AccountStores::RoleNumber },
 
       { _T("hm_maskedaddresses"), _T("maid"),        AccountStores::RoleIdentity },
       { _T("hm_maskedaddresses"), _T("maaccountid"), AccountStores::RoleAccount },

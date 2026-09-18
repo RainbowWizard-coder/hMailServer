@@ -1266,6 +1266,17 @@ namespace DBUpdater
          // never sees, and the public keys of its correspondents.
          new SchemaProbe(6080, "hm_pgpring.pgrsecret",
                          "update hm_pgpring set pgrsecret = pgrsecret where 1 = 0"),
+         // Upgrade6080to6081* - trust made visible: five columns an ALTER adds to
+         // the ring - the in-person verification and when it was made, the
+         // fingerprint a key replaced and when, and whether the person accepted
+         // the change. Every one is an ALTER on an existing table, which is the
+         // kind of statement that can fail while the step still stamps the
+         // version; the first and the last are probed, and the five are one
+         // script, so a step that reached the last reached them all.
+         new SchemaProbe(6081, "hm_pgpring.pgrverified",
+                         "update hm_pgpring set pgrverified = pgrverified where 1 = 0"),
+         new SchemaProbe(6081, "hm_pgpring.pgraccepted",
+                         "update hm_pgpring set pgraccepted = pgraccepted where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 65 |
-| REST routes (path and method) | 477, 210 of them writes |
+| REST routes (path and method) | 479, 212 of them writes |
 | Deck views | 37 |
 
 ## Missing over REST, by interface
@@ -823,7 +823,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/archive/{id}/hold` | - | - | - |
 | `POST /api/v1/audit/{id}/revert` | ? | `manage_settings` | yes |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
-| `POST /api/v1/backup/restore` | ? | `account`, `archive`, `domain`, `domains`, `file`, `folder`, `from`, `keys`, `passphrase`, `reason`, `restore_domains`, `restore_messages`, `restore_settings` | yes |
+| `POST /api/v1/backup/restore` | ? | `accepted`, `account`, `archive`, `domain`, `domains`, `file`, `folder`, `from`, `keys`, `passphrase`, `reason`, `restore_domains`, `restore_messages`, `restore_settings` | yes |
 | `POST /api/v1/blocked-attachments` | BlockedAttachment | `description`, `domain`, `file`, `keys`, `message`, `name`, `pattern`, `read`, `wildcard` | yes |
 | `PUT /api/v1/blocked-attachments/{id}` | BlockedAttachment | `body`, `description`, `domain`, `field`, `file`, `keys`, `message`, `name`, `pattern`, `read`, `value`, `wildcard` | - |
 | `POST /api/v1/blocked-senders` | BlockedSender | `address`, `blocked`, `description`, `domain`, `keys`, `message`, `read`, `score`, `sender` | yes |
@@ -867,8 +867,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `domain`, `field`, `force`, `keys`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
 | `POST /api/v1/ipranges` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `keys`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `virus_protection` | yes |
 | `PUT /api/v1/ipranges/{id}` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `body`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `field`, `keys`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `value`, `virus_protection` | yes |
-| `POST /api/v1/journal-rules` | - | `account`, `address`, `direction`, `domain`, `enabled`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `scope`, `sender`, `target` | yes |
-| `PUT /api/v1/journal-rules/{id}` | - | `account`, `address`, `body`, `direction`, `domain`, `enabled`, `field`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `scope`, `sender`, `target`, `value` | yes |
+| `POST /api/v1/journal-rules` | - | `accepted`, `account`, `address`, `direction`, `domain`, `enabled`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `scope`, `sender`, `target` | yes |
+| `PUT /api/v1/journal-rules/{id}` | - | `accepted`, `account`, `address`, `body`, `direction`, `domain`, `enabled`, `field`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `scope`, `sender`, `target`, `value` | yes |
 | `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `create`, `domain`, `domain_members`, `field`, `members`, `membership`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |
 | `POST /api/v1/me/address-books` | ? | `account`, `name` | - |
 | `PUT /api/v1/me/address-books/{id}` | ? | `account`, `book`, `name` | - |
@@ -911,13 +911,15 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/messages/{id}/unsubscribe` | ? | - | - |
 | `PUT /api/v1/me/offline` | ? | `account`, `days`, `days_max`, `first`, `keys`, `last`, `offline_days`, `to` | - |
 | `PUT /api/v1/me/openpgp` | Settings | `account`, `address`, `answered`, `fingerprint`, `key`, `keys`, `signature` | - |
-| `PUT /api/v1/me/openpgp/keys/correspondents` | ? | `address`, `autocrypt`, `current`, `first_seen`, `from`, `header`, `key`, `last_seen`, `message`, `name`, `prefer_encrypt`, `public_key`, `revoked`, `secret`, `source`, `to` | - |
-| `PUT /api/v1/me/openpgp/keys/own` | ? | `address`, `fingerprint`, `key`, `name`, `new`, `passphrase`, `prefer_encrypt`, `public_key`, `revoked`, `secret`, `secret_key`, `source` | - |
+| `PUT /api/v1/me/openpgp/keys/correspondents` | ? | `accepted`, `account`, `address`, `autocrypt`, `changed_at`, `changed_from`, `current`, `first_seen`, `from`, `header`, `key`, `last_seen`, `message`, `name`, `password`, `prefer_encrypt`, `public_key`, `revoked`, `secret`, `source`, `to`, `until` | - |
+| `PUT /api/v1/me/openpgp/keys/own` | ? | `account`, `address`, `credential`, `fingerprint`, `key`, `name`, `new`, `passphrase`, `password`, `prefer_encrypt`, `program`, `public_key`, `revoked`, `secret`, `secret_key`, `source`, `to` | - |
+| `PUT /api/v1/me/openpgp/keys/{id}/accepted` | ? | `accepted`, `account`, `address`, `changed_at`, `changed_from`, `key`, `password`, `to`, `until` | - |
+| `PUT /api/v1/me/openpgp/keys/{id}/verified` | ? | `account`, `address`, `fingerprint`, `key`, `new`, `password`, `read`, `sender`, `signature`, `to`, `verified` | - |
 | `PUT /api/v1/me/openpgp/publish` | ? | `account`, `domain`, `key`, `publish`, `to` | - |
 | `POST /api/v1/me/password` | ? | `account`, `breach_check_unavailable`, `code`, `current`, `new`, `password`, `reason`, `to` | - |
 | `PUT /api/v1/me/preferences` | ? | `account`, `keys` | - |
-| `POST /api/v1/me/push/subscriptions` | ? | `account`, `address`, `addresses`, `device`, `domain`, `key`, `keys`, `labels`, `max_devices`, `message`, `name`, `quiet_from`, `quiet_offset`, `quiet_to`, `sender`, `senders`, `subject` | - |
-| `PUT /api/v1/me/push/subscriptions/{id}` | ? | `account`, `address`, `addresses`, `device`, `domain`, `key`, `keys`, `labels`, `max_devices`, `message`, `name`, `new`, `quiet_from`, `quiet_offset`, `quiet_to`, `sender`, `senders`, `subject`, `value` | - |
+| `POST /api/v1/me/push/subscriptions` | ? | `accepted`, `account`, `address`, `addresses`, `device`, `domain`, `key`, `keys`, `labels`, `max_devices`, `message`, `name`, `quiet_from`, `quiet_offset`, `quiet_to`, `sender`, `senders`, `subject` | - |
+| `PUT /api/v1/me/push/subscriptions/{id}` | ? | `accepted`, `account`, `address`, `addresses`, `device`, `domain`, `key`, `keys`, `labels`, `max_devices`, `message`, `name`, `new`, `quiet_from`, `quiet_offset`, `quiet_to`, `sender`, `senders`, `subject`, `value` | - |
 | `POST /api/v1/me/push/test` | ? | `device`, `sender` | - |
 | `PUT /api/v1/me/quarantine-digest` | ? | `account`, `digest`, `domain`, `enabled` | - |
 | `POST /api/v1/me/quarantine/{id}/release` | - | - | - |
@@ -937,20 +939,20 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/tasks` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/tasks/{id}` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/vacation` | ? | `enabled`, `expires`, `expires_date`, `message`, `subject` | - |
-| `POST /api/v1/passkeys` | ? | `answered`, `code`, `credential`, `data`, `device`, `key`, `name`, `password`, `to`, `type` | yes |
+| `POST /api/v1/passkeys` | ? | `answered`, `code`, `credential`, `data`, `device`, `key`, `name`, `password`, `to`, `type`, `verified` | yes |
 | `POST /api/v1/passkeys/challenge` | ? | `rp_id` | - |
 | `POST /api/v1/passkeys/options` | ? | - | yes |
 | `POST /api/v1/password-reset` | ? | `address`, `directory`, `mailbox`, `recovery_reset_link_minutes` | - |
-| `POST /api/v1/password-reset/complete` | ? | `account`, `address`, `from`, `mailbox`, `new`, `password`, `token` | - |
+| `POST /api/v1/password-reset/complete` | ? | `accepted`, `account`, `address`, `from`, `mailbox`, `new`, `password`, `token` | - |
 | `PUT /api/v1/portal/branding` | ? | `data`, `domain`, `name` | - |
 | `PUT /api/v1/portal/files` | ? | `days`, `domain`, `link_above_kb`, `max_mb`, `quota_mb`, `to` | - |
 | `POST /api/v1/ports` | TCPIPPort | `address`, `certificate_id`, `client_certificate_ca_file`, `client_certificate_policy`, `connection_security`, `port`, `protocol` | yes |
 | `PUT /api/v1/ports/{id}` | TCPIPPort | `address`, `certificate_id`, `client_certificate_ca_file`, `client_certificate_policy`, `connection_security`, `port`, `protocol` | yes |
 | `POST /api/v1/quarantine/{id}/release` | - | - | - |
 | `POST /api/v1/queue/{id}/retry` | - | - | yes |
-| `POST /api/v1/remote-domains` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `pattern`, `require_inbound_tls`, `wildcard` | yes |
+| `POST /api/v1/remote-domains` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `pattern`, `require_inbound_tls`, `verified`, `wildcard` | yes |
 | `POST /api/v1/remote-domains/verification-cache/clear` | ? | `callout_cache_minutes` | yes |
-| `PUT /api/v1/remote-domains/{id}` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `pattern`, `require_inbound_tls`, `wildcard` | yes |
+| `PUT /api/v1/remote-domains/{id}` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `pattern`, `require_inbound_tls`, `verified`, `wildcard` | yes |
 | `POST /api/v1/reputation/check` | Settings, Utilities | `as_of` | yes |
 | `POST /api/v1/review/{id}/release` | ? | - | - |
 | `PUT /api/v1/role-assignments/{address}` | ? | `account`, `credential`, `domain`, `domains`, `from`, `manage_roles`, `name`, `role`, `to` | yes |
@@ -958,9 +960,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/roles/{name}` | ? | `administer_domain`, `administer_server`, `code`, `create`, `database`, `description`, `from`, `lower`, `manage_roles`, `name`, `permissions`, `role`, `to`, `token`, `write` | - |
 | `POST /api/v1/routes` | Route, RouteAddress | `addresses`, `all_addresses`, `connection_security`, `description`, `domain`, `domain_name`, `keys`, `message`, `minutes_between_try`, `number_of_tries`, `relayer_auth_password`, `relayer_auth_username`, `relayer_requires_authentication`, `target_smtp_host`, `target_smtp_port`, `to`, `treat_recipient_as_local_domain`, `treat_security_as_local_domain`, `treat_sender_as_local_domain`, `write` | yes |
 | `PUT /api/v1/routes/{id}` | Route, RouteAddress | `addresses`, `all_addresses`, `connection_security`, `description`, `domain`, `domain_name`, `keys`, `message`, `minutes_between_try`, `number_of_tries`, `relayer_auth_password`, `relayer_auth_username`, `relayer_requires_authentication`, `target_smtp_host`, `target_smtp_port`, `to`, `treat_recipient_as_local_domain`, `treat_security_as_local_domain`, `treat_sender_as_local_domain`, `write` | yes |
-| `POST /api/v1/rules` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `account_number`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `attachment_type`, `bind_to_address`, `body`, `card_number`, `cc`, `criteria`, `delivery_attempts`, `dlp_account_number_pattern`, `domain`, `external_recipient`, `field`, `first`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `office_xml`, `pattern`, `policy_rejected`, `recipient_list`, `require_tls`, `route_id`, `script`, `script_function`, `send_using_route`, `sender`, `sensitive_content`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `warn_sender`, `wildcard` | yes |
+| `POST /api/v1/rules` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `accepted`, `account_number`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `attachment_type`, `bind_to_address`, `body`, `card_number`, `cc`, `criteria`, `delivery_attempts`, `dlp_account_number_pattern`, `domain`, `external_recipient`, `field`, `first`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `office_xml`, `pattern`, `policy_rejected`, `recipient_list`, `require_tls`, `route_id`, `script`, `script_function`, `send_using_route`, `sender`, `sensitive_content`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `warn_sender`, `wildcard` | yes |
 | `POST /api/v1/rules/match` | Rule, RuleCriteria, RuleAction | `domain`, `greater_than`, `keys`, `less_than`, `match`, `match_type`, `match_value`, `not_contains`, `not_equals`, `read`, `test_value`, `text`, `type`, `value`, `wildcard` | - |
-| `PUT /api/v1/rules/{id}` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `account_number`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `attachment_type`, `bind_to_address`, `body`, `card_number`, `cc`, `criteria`, `delivery_attempts`, `dlp_account_number_pattern`, `domain`, `external_recipient`, `field`, `first`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `office_xml`, `pattern`, `policy_rejected`, `recipient_list`, `require_tls`, `route_id`, `script`, `script_function`, `send_using_route`, `sender`, `sensitive_content`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `warn_sender`, `wildcard` | yes |
+| `PUT /api/v1/rules/{id}` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `accepted`, `account_number`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `attachment_type`, `bind_to_address`, `body`, `card_number`, `cc`, `criteria`, `delivery_attempts`, `dlp_account_number_pattern`, `domain`, `external_recipient`, `field`, `first`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `office_xml`, `pattern`, `policy_rejected`, `recipient_list`, `require_tls`, `route_id`, `script`, `script_function`, `send_using_route`, `sender`, `sensitive_content`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `warn_sender`, `wildcard` | yes |
 | `POST /api/v1/scheduled/run` | - | - | - |
 | `POST /api/v1/sender-list` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | yes |
 | `PUT /api/v1/sender-list` | SenderListEntry, SenderListEntries | `account`, `digest`, `domain`, `enabled` | yes |

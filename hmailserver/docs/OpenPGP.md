@@ -336,7 +336,7 @@ OpenPGP in the page
 -------------------
 
 `PortalOpenPgp.js` is served as `/portal-openpgp.js` and is fetched by the
-webmail **only when something needs it** \u2014 a message that carries OpenPGP, the
+webmail **only when something needs it** — a message that carries OpenPGP, the
 Security page, a send that is to be sealed, or an account that has a key and so
 wants an Autocrypt header on what it sends. It is the largest script the page
 has, and most sessions never meet an OpenPGP message.
@@ -348,7 +348,7 @@ here:
 
 - **AES-CFB**, which is what an OpenPGP message body is encrypted with, is not
   in Web Crypto, and each block's input is the previous block's ciphertext, so
-  it cannot be batched into one `AES-CTR` call \u2014 it would be one asynchronous
+  it cannot be batched into one `AES-CTR` call — it would be one asynchronous
   call per sixteen bytes. So the block cipher is in the file, in about a hundred
   lines. It is a table-free byte-at-a-time implementation and is therefore **not
   constant time**; said plainly, because the alternative is to say nothing. It
@@ -371,8 +371,8 @@ The key page
 
 Under **Settings \u2192 Security**, beside the S/MIME store.
 
-**Making a key.** A name, an address, a kind \u2014 Curve25519 (the default:
-Ed25519 to sign, X25519 to encrypt to) or RSA 3072 or 4096 \u2014 an expiry, and a
+**Making a key.** A name, an address, a kind — Curve25519 (the default:
+Ed25519 to sign, X25519 to encrypt to) or RSA 3072 or 4096 — an expiry, and a
 passphrase typed twice. Everything happens in the browser. What is stored is the
 public key and the secret key **as OpenPGP writes one**: iterated-and-salted
 string-to-key, AES-256 in CFB, the SHA-1 checksum of string-to-key usage 254,
@@ -387,7 +387,7 @@ when it saves it.
 **Importing.** An armoured secret key with its own passphrase is opened and
 stored again under the passphrase the page unlocks with; public keys in the same
 file, or in a file of their own, are kept as correspondents'. A file holding a
-keyring \u2014 several keys one after another \u2014 is read as several keys. A
+keyring — several keys one after another — is read as several keys. A
 revocation certificate is recognised as one and applied to the key it revokes.
 
 **What a row shows.** The address, the fingerprint in four-character groups (the
@@ -405,7 +405,7 @@ says why.
 **Unlocking.** The passphrase opens the secret keys for the session and is never
 sent anywhere. A send that is to be signed stops and asks for it, and sends
 nothing until it has it. Signing out forgets the keys, the parsed public keys,
-the passphrase boxes and everything else \u2014 a key left in a page after a
+the passphrase boxes and everything else — a key left in a page after a
 sign-out is a key offered to whoever signs in next in that tab.
 
 Autocrypt
@@ -414,8 +414,8 @@ Autocrypt
 [Autocrypt](https://autocrypt.org) Level 1, both ways.
 
 **Outgoing.** A message sent from an address that has a key carries an
-`Autocrypt:` header with the minimal form of that key \u2014 the primary key, one
-user id with its self-signature, and the living subkeys with their bindings \u2014
+`Autocrypt:` header with the minimal form of that key — the primary key, one
+user id with its self-signature, and the living subkeys with their bindings —
 and `prefer-encrypt=mutual`. Sealed or in the clear: the header is how a
 correspondent's client learns the key without anybody being asked to fetch
 anything, and the ordinary case is the message that is not encrypted at all.
@@ -433,7 +433,8 @@ where it came from, and the reader is told it happened. If the account already
 has a **different** key for that address, the new one is **not** kept silently:
 it waits behind a button, with both fingerprints in front of the reader, because
 a key that changes without anybody being asked is what a man in the middle
-needs. (Roadmap2's "Trust made visible" is the row that builds the rest of that.)
+needs. Kept is not accepted: the server files it as a change of that address's
+key, and what happens next is the section below.
 
 Finding a correspondent's key
 -----------------------------
@@ -464,6 +465,86 @@ address on this machine and nothing else in the clear.
 the page shows the fingerprint, and the person decides. A key nobody looked at is
 not a key anybody has reason to trust.
 
+Trust made visible
+------------------
+
+The one thing a man in the middle needs is silence: a key that changes without
+anybody being told. So the ring remembers, and the page says.
+
+**First seen is remembered.** A correspondent's key is filed with the moment it
+was first seen (`first_seen`), and the same key seen again - by a later lookup,
+a later message, a later import - keeps that moment, whatever brought it back.
+It keeps its **address** the same way: a key that comes back with another
+address in the request stays filed where it was, because a row that moved would
+carry its mark and its history to an address they were never about. A person
+who wants a key under another address removes it and imports it again.
+
+**A change is a warning, never a silent switch.** A DIFFERENT key arriving for
+an address the ring already holds a key for - a lookup that answered another
+fingerprint, a key kept from a message's Autocrypt header, an import over the
+one held - is stored as a **change**: the new row carries `changed_from` (the
+fingerprint it replaced), `changed_at` (when it arrived) and `accepted`
+(false). Until the person accepts it, the page does **not** encrypt to it - a
+send to that address stops and says why - and a signature it made, however good
+the arithmetic, is shown with the warning and nothing green:
+
+> This correspondent's key changed on 18 September 2026. It was 34B2 AC7E ...;
+> it is now C29B 6CCE ...
+
+The same sentence stands on the keys page, on the row, with **Accept the new
+key** beside it, and in the reader, with the same button. Accepting is
+`PUT /api/v1/me/openpgp/keys/{id}/accepted` with `{"accepted": true}`; the
+change stays on record afterwards, so the row can still say what it replaced.
+The key it replaced is untouched - still there, still usable, still whatever
+the person said it was - and can be removed by hand.
+
+Which key a new arrival is a change *of*: the address's newest **settled** key,
+one that replaced nothing or whose replacement was accepted; a pending key
+counts only when no settled one is left, so that removing the old key does not
+make the next arrival look like the first. **The account's own key counts**,
+above all: a correspondent's key arriving for an address the account holds its
+own key for is a change of the own key. The page seals every message to the
+sender's own key so that the copy in Sent can be read, and a stranger's key
+filed under that address in silence - a spoofed `From: me` with an Autocrypt
+header, or a key whose user id carries no address at all - would have every
+message the person sends sealed to the stranger. So the page never fills the
+account's own address in for a correspondent's key, the server refuses a
+correspondent's key it cannot file under an address, and a key that does
+arrive for the account's address waits behind Accept like any other change.
+
+When a settled key and a pending one coexist for an address, a message is
+sealed to the settled one and the compose form says that a newer key is waiting.
+
+**Fingerprints shown, verifiable in person.** Every key's fingerprint is on its
+row in groups of four hexadecimal characters, the way it is read aloud, the
+person's own included; a good signature's is in the reader below the verdict. A
+correspondent's key can be marked **verified in person** - `PUT
+/api/v1/me/openpgp/keys/{id}/verified` with `{"verified": true}`, and `false`
+to unmark - which is the account's own word that the fingerprint was read back
+to the key's owner, by voice or face to face. The mark is stored per key in the
+ring (`verified`, `verified_at`); it is refused to a request authenticated with
+an app password, because an app password is a credential for a program that
+reads and sends mail and a program has no way of knowing such a thing; it is
+404 for a row that is not this account's and 400 for a key of the account's
+own, which is nobody's correspondent. Marking a key that replaced another
+accepts the change in the same act: a fingerprint read back to its owner is the
+stronger of the two.
+
+**A green mark from then on.** A message whose signature is good AND by a
+verified key shows the mark beside the sender in the reader (a green badge with
+a tick, "Signed by ... , verified in person"); a good signature by an unverified
+key shows the plain verdict and the fingerprint; a good signature by a key that
+changed and was not accepted shows the warning. The keys page shows the same
+three states on the rows. **The mark is never inherited**: a different key
+arriving for a verified correspondent's address is a new row with no mark, so a
+new key is not verified because the old one was.
+
+The server acts on none of this. It records what the account said and what the
+ring noticed, and answers it in every key's JSON: `verified` and `verified_at`
+on every row, and `changed_from`, `changed_at` and `accepted` on a row that
+replaced another (absent means "replaced nothing"). The page decides what to
+encrypt to and what to call good, as it always has.
+
 What the page implements, and what it does not
 ----------------------------------------------
 
@@ -471,10 +552,10 @@ RFC 4880 version 4, as GnuPG 2.4 emits it by default.
 
 | | |
 |---|---|
-| **Keys** | Version 4 public and secret keys. RSA 2048/3072/4096; Curve25519 \u2014 Ed25519 signatures (the legacy EdDSA algorithm 22 with the Ed25519Legacy curve, which is what GnuPG writes) and X25519 key agreement as ECDH algorithm 18 with the cv25519 curve, the RFC 6637 KDF and the AES key wrap. |
+| **Keys** | Version 4 public and secret keys. RSA 2048/3072/4096; Curve25519 — Ed25519 signatures (the legacy EdDSA algorithm 22 with the Ed25519Legacy curve, which is what GnuPG writes) and X25519 key agreement as ECDH algorithm 18 with the cv25519 curve, the RFC 6637 KDF and the AES key wrap. |
 | **Packets** | Public key (6), public subkey (14), secret key (5), secret subkey (7), signature (2, version 4), one-pass signature (4), user id (13), user attribute (17, kept and passed over), literal data (11), compressed data (8: ZIP and ZLIB read through `DecompressionStream`, nothing written compressed), symmetrically encrypted and integrity protected data (18, version 1, AES-CFB with the SHA-1 modification detection code), symmetrically encrypted data (9, read only, with the resynchronisation that packet alone uses), public-key encrypted session key (1), symmetric-key encrypted session key (3). Partial body lengths, which GnuPG writes whenever it does not know a packet's length in advance. |
 | **Signatures** | Made and checked, with the subpackets a key needs: creation, key expiry, key flags, preferred algorithms, features, issuer key id and issuer fingerprint, primary user id, signer user id, revocation reason. **Every self-signature on a key is verified** when the key is read; one that does not verify is not believed. |
-| **Messages** | PGP/MIME (RFC 3156): `multipart/signed` with `application/pgp-signature` and `multipart/encrypted` with `application/pgp-encrypted` \u2014 sign, encrypt, sign and encrypt, verify, decrypt. Inline PGP is **read** only: a `BEGIN PGP MESSAGE` or a cleartext-signed block in a text part is opened, and nothing is ever written inline. |
+| **Messages** | PGP/MIME (RFC 3156): `multipart/signed` with `application/pgp-signature` and `multipart/encrypted` with `application/pgp-encrypted` — sign, encrypt, sign and encrypt, verify, decrypt. Inline PGP is **read** only: a `BEGIN PGP MESSAGE` or a cleartext-signed block in a text part is opened, and nothing is ever written inline. |
 | **Armour** | Radix-64 with its CRC-24, checked; a block whose checksum does not match is refused rather than half-read. |
 
 Not implemented, and refused **by name** where it is met rather than silently
@@ -483,7 +564,7 @@ mis-read:
 - **Version 5 and version 6 keys and signatures** (RFC 9580 / the librepgp
   draft), and **AEAD** (OCB and EAX). GnuPG 2.4 writes neither by default. Note
   that the directory half of this document reads a version 6 key perfectly well
-  \u2014 it only has to compute a fingerprint. The page has to do arithmetic with
+  — it only has to compute a fingerprint. The page has to do arithmetic with
   one, and does not.
 - **DSA and ElGamal keys**, and the **NIST and Brainpool curves**.
 - **3DES, CAST5, IDEA, Blowfish, Twofish, Camellia**, and **BZip2**.
@@ -515,15 +596,16 @@ to this server is the usual way to meet this.
 The key ring
 ------------
 
-`hm_pgpring` (schema 6080), one row per key, per account:
+`hm_pgpring` (schema 6080; the trust columns are 6081), one row per key, per
+account:
 
 | Kind | What is in it |
 |---|---|
 | **own** | A key the account made or imported. The public half as base64 of its bytes; the secret half as the **armoured OpenPGP secret key, encrypted under the page's passphrase**. At most 20 an account. |
 | **correspondent** | Somebody else's public key, with where it came from (`imported`, `autocrypt`, `wkd`, `keyserver`), when it was first seen and when it was last seen. At most 500 an account. |
 
-Every field of a row \u2014 the fingerprint, the key id, the algorithm, the creation
-time, the expiry, and the address when the request named none \u2014 is read out of
+Every field of a row — the fingerprint, the key id, the algorithm, the creation
+time, the expiry, and the address when the request named none — is read out of
 the **key** by `OpenPgpKey::Parse`, the same reader the directory publishes
 through, and never taken from the request. A row cannot be filed under a
 fingerprint that is not its own.
@@ -533,6 +615,14 @@ stored (`OpenPgpKey::ReadSecretKey`), and the secret half of a row must be the
 same key as the public half beside it. The encryption itself happens where this
 server cannot see it, which is exactly why this is the one place that can insist
 on it.
+
+Five columns are the ring's own and never the request's: `pgrverified` and
+`pgrverifiedat` (the account's "verified in person" mark and when it was set),
+`pgrchangedfrom` and `pgrchangedat` (the fingerprint a correspondent's key
+replaced for its address, and when it arrived) and `pgraccepted` (whether the
+person accepted that change). A row that comes back keeps them as they were; a
+new row has none; a correspondent's key filed under an address that already
+holds a different key gets its change written by `OpenPgpRing::Save` itself.
 
 The ring is a per-account store, so it is in the **backup** and a restore brings
 it back. Losing it would be the worst loss in that file: every message ever
@@ -552,12 +642,22 @@ The routes
 | `DELETE /api/v1/me/openpgp/keys/own/{fingerprint}` | Remove one |
 | `PUT /api/v1/me/openpgp/keys/correspondents` | Add or replace a correspondent's public key |
 | `DELETE /api/v1/me/openpgp/keys/correspondents/{fingerprint}` | Forget one |
+| `PUT /api/v1/me/openpgp/keys/{id}/verified` | Mark a correspondent's key verified in person, or unmark it (`verified`: true or false) |
+| `PUT /api/v1/me/openpgp/keys/{id}/accepted` | Accept that a correspondent's key replaced the one held before it, or withdraw that (`accepted`: true or false) |
 | `GET /api/v1/me/openpgp/lookup?address=` | Fetch a correspondent's key; nothing is stored |
 | `GET /portal-openpgp.js` | The module, unauthenticated as the page's other scripts are |
 
 All of them are the **account's own** credentials and nothing else; the
-administrative roles do not reach them. `POST /api/v1/me/messages` gains
-`autocrypt`, the header value the page built.
+administrative roles do not reach them. Every **write** to the ring - the four
+that store or remove a key, and the two trust routes - is refused to a request
+authenticated with an app password, which is a program's credential: the ring
+holds the account's secret key and decides what its mail is sealed to, and with
+an app password one could forget a settled key and a pending one and store the
+key again with no change on it, forget a verified key and store it again with no
+mark, or remove the only copy of the secret key. Reading the ring is not
+refused, since a program that reads mail may need the keys. (The S/MIME store's
+four writes have the same gap and are outside this row.) `POST
+/api/v1/me/messages` gains `autocrypt`, the header value the page built.
 
 The page's own settings, all under `/api/v1/settings/openpgp`:
 
@@ -573,11 +673,11 @@ How it is proved
 ----------------
 
 `build/check-portal-openpgp.js` runs the module in Node against artefacts GnuPG
-2.4 made \u2014 keys on Curve25519 and RSA, detached signatures, a cleartext
+2.4 made — keys on Curve25519 and RSA, detached signatures, a cleartext
 signature, messages encrypted with and without a signature, with ZIP, with ZLIB
 and with no compression, under AES-128 and AES-256, to one recipient and to two,
 a message encrypted to a passphrase, a revoked key, an expired key and two whole
-PGP/MIME messages \u2014 and, where it finds `gpg`, hands what the module makes back
+PGP/MIME messages — and, where it finds `gpg`, hands what the module makes back
 to GnuPG: a key it generated, imported both as a public key and as a secret one;
 a detached signature; a message encrypted and signed to GnuPG's own key; and a
 revocation certificate. Both directions, against an implementation that is not
@@ -589,10 +689,25 @@ needs no GnuPG at all; `build/make-openpgp-fixtures.sh` remakes them where GnuPG
 in the README beside them**; their addresses are in the `.test` top-level domain,
 which can never be delivered to.
 
-`API/RestApiOpenPgpKeys` proves the server's half \u2014 the store, the refusals, the
+`API/RestApiOpenPgpKeys` proves the server's half — the store, the refusals, the
 lookup against a keyserver the fixture serves itself, and the Autocrypt header on
-a message \u2014 and `Infrastructure/BackupAccountStores` proves the ring comes back
-from an archive with its secret key byte for byte.
+a message — and `Infrastructure/BackupAccountStores` proves the ring comes back
+from an archive with its secret key byte for byte. Three tests of the same
+fixture prove the trust half: the first key seen is remembered and a different
+one for the address is filed as a change and stays unaccepted until accepted;
+the mark needs the account's own session (an app password is refused and
+changes nothing, another account finds no such key, an own key has nothing to
+verify); and the mark is not inherited by the key that replaced a verified one,
+while verifying that key accepts the change. Three more, from the row's review:
+a key for the account's own address is a change of the own key, and a key with
+no address is refused; a key comes back to the address it was filed under; and
+a pending key counts when no settled one is left. The four ring writes on an app
+password are refused in the mark's test. The page's half - the three states on
+the rows and in the reader, the warning naming both fingerprints, the send that
+stops, Accept and the mark from the list and from the reader, a key never filed
+under the account's own address in silence, the auto-learned change said with
+both fingerprints, and the newer-key-waiting hint - is twenty-three checks in
+`build/portal-script-test.js`.
 
 Who may
 -------
@@ -604,7 +719,8 @@ Who may
 | Changing the four server settings | `manage_settings`, and not a credential confined to domains |
 | Waiving the address rule for one upload | The server administrator |
 | An account's own keys and its own publish switch | The account's own credential (self-service; the roles do not reach it) |
-| The webmail's key ring, and the lookup | The account's own credential; the roles do not reach it |
+| Reading the webmail's key ring, and the lookup | The account's own credential; the roles do not reach it |
+| Storing or removing a key in the ring, marking one verified in person, or accepting a change of key | The account's own session - never an app password, which is a program's |
 | The webmail's five OpenPGP settings | `manage_settings`, and not a credential confined to domains |
 
 The auditor role reads all of it and changes none of it. See [Roles.md](Roles.md).

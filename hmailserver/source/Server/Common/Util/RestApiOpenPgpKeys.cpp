@@ -40,6 +40,26 @@
 // network. Nothing is stored by the lookup: it answers the key and the page
 // decides whether to keep it, because a key nobody looked at is not a key
 // anybody trusts.
+//
+// TRUST MADE VISIBLE (schema 6081). The ring remembers a correspondent's key
+// from the first time it is seen, and a DIFFERENT key arriving for the same
+// address - a lookup that answered another fingerprint, a key attached to a
+// message, an import over one already held - is stored as a CHANGE: the row
+// says which key it replaced and when, and it is not encrypted to, nor are its
+// signatures shown as good, until the person accepts the change. The two
+// routes below are the two things only the account holder can say about a
+// key: PUT .../keys/{id}/verified, that the fingerprint was read back to its
+// owner by voice or in person, after which every good signature by it shows
+// the mark; and PUT .../keys/{id}/accepted, that the key which replaced the
+// one before it is really theirs. Both are refused to a request that came in
+// on an app password, which is a credential for a program that reads and
+// sends mail and has no way of knowing either thing - AND SO ARE THE FOUR
+// WRITES TO THE RING ITSELF, or the two refusals would be decorative: with an
+// app password one could remove the settled row and the pending one and store
+// the key again with no change on it, remove a verified row and store the
+// same key with no mark, store a second own key that every self-copy is then
+// sealed to, or remove the only copy of the secret key. Reading the ring
+// stays open to it, since a program that reads mail may need the keys.
 #include "StdAfx.h"
 #include <mutex>
 #include <set>
@@ -53,6 +73,7 @@
 #include "OpenPgpKey.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/Logger.h"
 #include "../BO/Account.h"
 #include "../Util/Parsing/StringParser.h"
 
@@ -317,6 +338,10 @@ namespace HM
       if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
          return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
 
+      HttpResponse refusal;
+      if (RefuseAppPasswordCaller_(caller, own ? "storing an OpenPGP key of your own" : "storing a correspondent's OpenPGP key", refusal))
+         return refusal;
+
       JsonValue document;
       std::string parseError;
       if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) || !document.IsObject())
@@ -376,6 +401,10 @@ namespace HM
 
       if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
          return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+
+      HttpResponse refusal;
+      if (RefuseAppPasswordCaller_(caller, own ? "removing an OpenPGP key of your own" : "forgetting a correspondent's OpenPGP key", refusal))
+         return refusal;
 
       AnsiString lowered = fingerprint;
       lowered.MakeLower();
@@ -458,6 +487,73 @@ namespace HM
       return BuildResponse_(200, json);
    }
 
+   // PUT /api/v1/me/openpgp/keys/{id}/verified   {"verified": true | false}
+   // PUT /api/v1/me/openpgp/keys/{id}/accepted   {"accepted": true | false}
+   //
+   // The row is found among THIS account's rows or not at all, so another
+   // account's number is a 404 and never a key. A key of the account's own is
+   // refused on both: it is nobody's correspondent, and it replaced nothing.
+   // A key that replaced nothing has no change to accept. Marking a key
+   // verified accepts the change it carries, in the ring, because a
+   // fingerprint read back to its owner is the stronger of the two acts.
+   HttpResponse
+   RestApiServer::HandleMeOpenPgpKeyTrust_(const Caller &caller, bool verifiedRoute, __int64 id, const AnsiString &requestBody)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+
+      HttpResponse refusal;
+      if (RefuseAppPasswordCaller_(caller, verifiedRoute ? "marking an OpenPGP key verified" : "accepting a changed OpenPGP key", refusal))
+         return refusal;
+
+      JsonValue document;
+      std::string parseError;
+      if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) || !document.IsObject())
+         return BuildResponse_(400, "{\"error\":\"a JSON object is expected\"}");
+
+      const JsonValue *value = document.Get(verifiedRoute ? "verified" : "accepted");
+      if (!value || !value->IsBool())
+         return BuildResponse_(400, verifiedRoute ? "{\"error\":\"verified: true or false\"}" : "{\"error\":\"accepted: true or false\"}");
+      const bool wanted = value->AsBool();
+
+      OpenPgpRing::Row row;
+      if (!OpenPgpRing::FindById(account->GetID(), id, row))
+         return BuildResponse_(404, "{\"error\":\"no such key\"}");
+      if (row.kind == OpenPgpRing::KindOwn)
+      {
+         return BuildResponse_(400, verifiedRoute
+            ? "{\"error\":\"a key of your own is not a correspondent's; there is nothing to verify\"}"
+            : "{\"error\":\"a key of your own replaced nothing; there is no change to accept\"}");
+      }
+      if (!verifiedRoute && row.changed_from.IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"this key did not replace another; there is no change to accept\"}");
+
+      const bool written = verifiedRoute
+         ? OpenPgpRing::SetVerified(account->GetID(), id, wanted)
+         : OpenPgpRing::SetAccepted(account->GetID(), id, wanted);
+      if (!written)
+         return BuildResponse_(500, "{\"error\":\"the key could not be updated\"}");
+
+      // The moment a person decided to trust a key is worth a line where it
+      // can be found again: the reader will show this key green, or encrypt
+      // to it, from now on, and "why" is a question that gets asked later.
+      LOG_APPLICATION("REST API: " + account->GetAddress() + (verifiedRoute
+         ? (wanted ? String(_T(" marked the OpenPGP key ")) : String(_T(" unmarked the OpenPGP key ")))
+         : (wanted ? String(_T(" accepted the changed OpenPGP key ")) : String(_T(" withdrew acceptance of the changed OpenPGP key "))))
+         + WideOf(row.fingerprint) + _T(" of ") + row.address
+         + (verifiedRoute ? (wanted ? String(_T(" as verified in person")) : String()) : (wanted ? String(_T(", which replaced ")) + WideOf(row.changed_from) : String()))
+         + _T(" from ") + String(caller.peer.ToString()) + _T("."));
+
+      if (!OpenPgpRing::FindById(account->GetID(), id, row))
+         return BuildResponse_(500, "{\"error\":\"the key could not be read back\"}");
+
+      return BuildResponse_(200, OpenPgpRing::RowJson(row));
+   }
+
    // The page's OpenPGP module, joined from its pieces - and compressed - on
    // first use. It goes out unchanged on every request, so both are done once.
    HttpResponse
@@ -535,11 +631,13 @@ namespace HM
    RestApiServer::OpenApiOpenPgpKeysPaths_()
    {
       return
-         "\"/api/v1/me/openpgp/keys\":{\"get\":{\"summary\":\"The signed-in account's OpenPGP keys\",\"description\":\"own (the account's own keys, each with secret_key - the armoured OpenPGP secret key as the browser encrypted it, which this server stores and cannot open) and correspondents (public keys, with source: imported, autocrypt, wkd or keyserver, and first_seen and last_seen). Each row carries fingerprint, key_id, algorithm, created, expires, revoked and prefer_encrypt, every one of them read out of the key itself rather than taken from whoever stored it. limits says how many of each an account may hold; lookup says whether the administrator allows a Web Key Directory or a keyserver lookup. 403 with code openpgp_unavailable when OpenPGP is switched off in the webmail.\",\"responses\":{\"200\":{\"description\":\"own, correspondents, limits, lookup\"},\"403\":{\"description\":\"OpenPGP is switched off in the webmail\"}}}},"
-         "\"/api/v1/me/openpgp/keys/own\":{\"put\":{\"summary\":\"Add or replace one of the signed-in account's own OpenPGP keys\",\"description\":\"Body: public_key (base64 of the transferable public key), secret_key (the armoured OpenPGP PRIVATE KEY BLOCK, encrypted in the browser under a passphrase this server never sees), address, name, source (generated or imported), prefer_encrypt (mutual or nopreference) and revoked. The secret key is REFUSED unless every secret packet in it is passphrase-encrypted and its primary key is the same key as public_key - a private key in the clear is not stored, and the two halves of a row are always one key. Filed under the fingerprint the key itself gives; 201 when it is new, 200 when it replaced one of the same fingerprint.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"public_key\",\"secret_key\"],\"properties\":{\"public_key\":{\"type\":\"string\"},\"secret_key\":{\"type\":\"string\"},\"address\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"source\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The key as stored\"},\"201\":{\"description\":\"The key as stored\"},\"400\":{\"description\":\"Not a key, a secret key in the clear, the two halves not one key, or the account already holds twenty\"}}}},"
-         "\"/api/v1/me/openpgp/keys/own/{fingerprint}\":{\"delete\":{\"summary\":\"Remove one of the signed-in account's own OpenPGP keys\",\"description\":\"The fingerprint as the listing prints it, lower-case hex. Removing a key here removes the only copy of it this server has: a key whose secret half is not written down elsewhere is gone, and the mail encrypted to it cannot be read again.\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"No such key\"}}}},"
-         "\"/api/v1/me/openpgp/keys/correspondents\":{\"put\":{\"summary\":\"Add or replace a correspondent's OpenPGP public key\",\"description\":\"Body: public_key (base64 of the transferable public key), address, name, source (imported, autocrypt, wkd or keyserver), prefer_encrypt and revoked. A secret key is refused here outright. first_seen is kept from the row that was there; last_seen is set to now, which is how a key learned from an Autocrypt header on every message stays current without the row being rewritten by hand.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"public_key\"],\"properties\":{\"public_key\":{\"type\":\"string\"},\"address\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"source\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The key as stored\"},\"201\":{\"description\":\"The key as stored\"},\"400\":{\"description\":\"Not a public key, or the account already holds five hundred\"}}}},"
-         "\"/api/v1/me/openpgp/keys/correspondents/{fingerprint}\":{\"delete\":{\"summary\":\"Forget a correspondent's OpenPGP public key\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"No such key\"}}}},"
+         "\"/api/v1/me/openpgp/keys\":{\"get\":{\"summary\":\"The signed-in account's OpenPGP keys\",\"description\":\"own (the account's own keys, each with secret_key - the armoured OpenPGP secret key as the browser encrypted it, which this server stores and cannot open) and correspondents (public keys, with source: imported, autocrypt, wkd or keyserver, and first_seen and last_seen). Each row carries fingerprint, key_id, algorithm, created, expires, revoked and prefer_encrypt, every one of them read out of the key itself rather than taken from whoever stored it. Each row also carries verified and verified_at - the account's own mark that the fingerprint was read back to the key's owner - and, on a correspondent's key that arrived for an address which already held a DIFFERENT key, changed_from (the fingerprint it replaced), changed_at and accepted; a key that replaced none carries none of the three. A key with changed_from and accepted false is one the page does not encrypt to and whose signatures it shows with a warning naming both fingerprints, until the person accepts the change. limits says how many of each an account may hold; lookup says whether the administrator allows a Web Key Directory or a keyserver lookup. 403 with code openpgp_unavailable when OpenPGP is switched off in the webmail.\",\"responses\":{\"200\":{\"description\":\"own, correspondents, limits, lookup\"},\"403\":{\"description\":\"OpenPGP is switched off in the webmail\"}}}},"
+         "\"/api/v1/me/openpgp/keys/{id}/verified\":{\"put\":{\"summary\":\"Mark one of the signed-in account's correspondents' OpenPGP keys verified in person, or unmark it\",\"description\":\"Body: verified, true or false. The account's own word that the key's fingerprint was read back to its owner - by voice, or in person - after which every good signature by the key shows the verified mark beside the sender. Marking a key that replaced another accepts the change as well. The mark is never inherited: a different key arriving for the same address is a new row with no mark. Refused (403) to a request authenticated with an app password; 404 for a row that is not this account's; 400 for a key of the account's own, which is nobody's correspondent.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"verified\"],\"properties\":{\"verified\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The key as stored, with verified and verified_at\"},\"400\":{\"description\":\"verified missing or not a boolean, or a key of the account's own\"},\"403\":{\"description\":\"The request came in on an app password, or OpenPGP is switched off in the webmail\"},\"404\":{\"description\":\"No such key of this account\"}}}},"
+         "\"/api/v1/me/openpgp/keys/{id}/accepted\":{\"put\":{\"summary\":\"Accept that a correspondent's OpenPGP key replaced the one held before it, or withdraw that\",\"description\":\"Body: accepted, true or false. A correspondent's key that arrived for an address which already held a different key is stored as a change - changed_from names the key it replaced, changed_at says when - and is not encrypted to, nor are its signatures shown as good, until the person accepts it here, having compared the two fingerprints with the key's owner. Refused (403) to a request authenticated with an app password; 404 for a row that is not this account's; 400 for a key that replaced none, which has no change to accept.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"accepted\"],\"properties\":{\"accepted\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The key as stored, with changed_from, changed_at and accepted\"},\"400\":{\"description\":\"accepted missing or not a boolean, or a key that replaced none\"},\"403\":{\"description\":\"The request came in on an app password, or OpenPGP is switched off in the webmail\"},\"404\":{\"description\":\"No such key of this account\"}}}},"
+         "\"/api/v1/me/openpgp/keys/own\":{\"put\":{\"summary\":\"Add or replace one of the signed-in account's own OpenPGP keys\",\"description\":\"Body: public_key (base64 of the transferable public key), secret_key (the armoured OpenPGP PRIVATE KEY BLOCK, encrypted in the browser under a passphrase this server never sees), address, name, source (generated or imported), prefer_encrypt (mutual or nopreference) and revoked. The secret key is REFUSED unless every secret packet in it is passphrase-encrypted and its primary key is the same key as public_key - a private key in the clear is not stored, and the two halves of a row are always one key. Filed under the fingerprint the key itself gives; 201 when it is new, 200 when it replaced one of the same fingerprint, in which case the row keeps the address it was filed under. Refused (403) to a request authenticated with an app password, which is a program's credential: the ring holds the account's secret key and decides what its mail is sealed to.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"public_key\",\"secret_key\"],\"properties\":{\"public_key\":{\"type\":\"string\"},\"secret_key\":{\"type\":\"string\"},\"address\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"source\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The key as stored\"},\"201\":{\"description\":\"The key as stored\"},\"400\":{\"description\":\"Not a key, a secret key in the clear, the two halves not one key, or the account already holds twenty\"},\"403\":{\"description\":\"The request came in on an app password, or OpenPGP is switched off in the webmail\"}}}},"
+         "\"/api/v1/me/openpgp/keys/own/{fingerprint}\":{\"delete\":{\"summary\":\"Remove one of the signed-in account's own OpenPGP keys\",\"description\":\"The fingerprint as the listing prints it, lower-case hex. Removing a key here removes the only copy of it this server has: a key whose secret half is not written down elsewhere is gone, and the mail encrypted to it cannot be read again. Refused (403) to a request authenticated with an app password.\",\"responses\":{\"200\":{\"description\":\"removed\"},\"403\":{\"description\":\"The request came in on an app password, or OpenPGP is switched off in the webmail\"},\"404\":{\"description\":\"No such key\"}}}},"
+         "\"/api/v1/me/openpgp/keys/correspondents\":{\"put\":{\"summary\":\"Add or replace a correspondent's OpenPGP public key\",\"description\":\"Body: public_key (base64 of the transferable public key), address, name, source (imported, autocrypt, wkd or keyserver), prefer_encrypt and revoked. A secret key is refused here outright, and so is a key that carries no address in its user ids when the request names none. first_seen and the address are kept from the row that was there; last_seen is set to now, which is how a key learned from an Autocrypt header on every message stays current without the row being rewritten by hand. A key for an address that already holds a DIFFERENT key - a correspondent's, or one of the account's own - is stored as a change: changed_from, changed_at and accepted false, until the person accepts it. Refused (403) to a request authenticated with an app password.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"public_key\"],\"properties\":{\"public_key\":{\"type\":\"string\"},\"address\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"source\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The key as stored\"},\"201\":{\"description\":\"The key as stored\"},\"400\":{\"description\":\"Not a public key, no address for it, or the account already holds five hundred\"},\"403\":{\"description\":\"The request came in on an app password, or OpenPGP is switched off in the webmail\"}}}},"
+         "\"/api/v1/me/openpgp/keys/correspondents/{fingerprint}\":{\"delete\":{\"summary\":\"Forget a correspondent's OpenPGP public key\",\"description\":\"Refused (403) to a request authenticated with an app password: forgetting the settled key and the pending one and storing the key again is how a change would be made to look like a first sighting.\",\"responses\":{\"200\":{\"description\":\"removed\"},\"403\":{\"description\":\"The request came in on an app password, or OpenPGP is switched off in the webmail\"},\"404\":{\"description\":\"No such key\"}}}},"
          "\"/api/v1/me/openpgp/lookup\":{\"get\":{\"summary\":\"Look a correspondent's OpenPGP key up\",\"description\":\"Query: address. This server fetches it, because a browser cannot make a cross-origin request to somebody else's domain and read the answer: the Web Key Directory of that domain first - openpgpkey.<domain> with the advanced path, then the domain itself with the direct one - and then, only where the administrator turned it on, the keyserver's HKP /vks/v1/by-email/. Every fetch is HTTPS, to a host that resolves only to public addresses, capped and deadlined. NOTHING IS STORED: the answer carries the key and where it came from, and the page decides whether to keep it with PUT .../keys/correspondents. found is false with a sentence in error when nothing was found, which is the ordinary case for an address whose owner publishes no key.\",\"responses\":{\"200\":{\"description\":\"found, address, source, url, key - or found false with error\"},\"400\":{\"description\":\"address missing or not an address\"},\"403\":{\"description\":\"OpenPGP or the lookup is switched off on this server\"}}}},";
    }
 }

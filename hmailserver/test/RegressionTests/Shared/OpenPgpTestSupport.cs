@@ -180,6 +180,38 @@ namespace RegressionTests.Shared
          "SQrVBZKl4woqqSL3mK3tie3OFliobdOY2FyvU7w=";
 
       /// <summary>Alice's secret key, encrypted under RingPassphrase by GnuPG.</summary>
+      /// <summary>
+      ///    Bob's public key with its one user id rewritten to "Stranger" - a name
+      ///    and no address - so that its self-signature still names the key as its
+      ///    issuer (which is all the server's reader asks of one) while no address
+      ///    can be read out of it. The key for the case where a correspondent's key
+      ///    arrives with nowhere to file it. Its fingerprint is bob's.
+      /// </summary>
+      public const string NoAddressKeyBase64 =
+         "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";
+
       public const string RingOwnSecretArmoured =
          "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" +
          "\n" +

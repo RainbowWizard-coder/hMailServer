@@ -2631,6 +2631,12 @@ namespace HM
          case RouteMeOpenPgpLookup:
             return HandleMeOpenPgpLookup_(caller, route.query);
 
+         case RouteMeOpenPgpKeyVerified:
+            return HandleMeOpenPgpKeyTrust_(caller, true, route.message_id, GetRequestBody_(request));
+
+         case RouteMeOpenPgpKeyAccepted:
+            return HandleMeOpenPgpKeyTrust_(caller, false, route.message_id, GetRequestBody_(request));
+
          case RouteMeStorage:
             return HandleMeStorage_(caller);
 
@@ -3265,6 +3271,13 @@ namespace HM
             route.kind = RouteMeOpenPgpKeyPeerPut;
          else if (rest == "lookup" && method == "GET")
             route.kind = RouteMeOpenPgpLookup;
+         // The account's word on one key, named by its row id - keys/<id>/verified
+         // and keys/<id>/accepted - one boolean each. Both words are nine
+         // characters with their slash, and the id between is digits alone.
+         else if (method == "PUT" && rest.StartsWith("keys/") && rest.GetLength() > 14 &&
+                  (rest.EndsWith("/verified") || rest.EndsWith("/accepted")) &&
+                  ParseQueueId(rest.Mid(5, rest.GetLength() - 14), route.message_id))
+            route.kind = rest.EndsWith("/verified") ? RouteMeOpenPgpKeyVerified : RouteMeOpenPgpKeyAccepted;
          else if (rest.StartsWith("keys/own/") && method == "DELETE" && rest.Mid(9).Find("/") < 0 && rest.GetLength() > 9)
          {
             route.identifier = rest.Mid(9);
@@ -6160,6 +6173,10 @@ namespace HM
       case RouteMeOpenPgpKeyOwnDelete:
       case RouteMeOpenPgpKeyPeerPut:
       case RouteMeOpenPgpKeyPeerDelete:
+      // A key marked verified is the key every good signature shows green
+      // from then on, and a change accepted is the key the page encrypts to.
+      case RouteMeOpenPgpKeyVerified:
+      case RouteMeOpenPgpKeyAccepted:
       case RouteSettingsOpenPgpPut:
       case RouteAccountOpenPgpPut:
       case RouteAccountOpenPgpDelete:
@@ -10211,6 +10228,8 @@ namespace HM
       case RouteMeOpenPgpKeyPeerPut:
       case RouteMeOpenPgpKeyPeerDelete:
       case RouteMeOpenPgpLookup:
+      case RouteMeOpenPgpKeyVerified:
+      case RouteMeOpenPgpKeyAccepted:
       case RouteMeFolderEmpty:
       case RouteMeMessageSource:
       case RouteMeMessageHtml:

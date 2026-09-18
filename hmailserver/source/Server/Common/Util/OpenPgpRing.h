@@ -22,6 +22,20 @@
 //   was last seen. Nothing secret, and nothing this server acts on: the page
 //   decides what to encrypt to.
 //
+//   A correspondent's row also carries what this server can say about TRUST,
+//   which is not much and is therefore said exactly (schema 6081). It
+//   remembers whether the account marked the key "verified in person" and
+//   when (SetVerified); and, when it was filed under an address that already
+//   held a DIFFERENT key, which key that was and when this one arrived
+//   (changed_from, changed_at) and whether the person has accepted the change
+//   (accepted). Save records a change; nothing here acts on one. The page
+//   does: a key that replaced another and was not accepted is not encrypted
+//   to, and a signature it made is shown with the warning that names both
+//   fingerprints, because the one thing a man in the middle needs is for a
+//   key to change in silence. Marking a key verified accepts the change it
+//   carries, since a fingerprint read back to its owner is the stronger of
+//   the two acts.
+//
 // This server never signs, verifies, encrypts or decrypts an OpenPGP message.
 // It parses a key far enough to be sure of what it is (OpenPgpKey::Parse, the
 // same reader the Web Key Directory publishes through) and to fill the columns
@@ -75,7 +89,8 @@ namespace HM
 
       struct Row
       {
-         Row() : id(0), kind(0), created(0), expires(0), revoked(false), prefer(0), first_seen(0), last_seen(0) {}
+         Row() : id(0), kind(0), created(0), expires(0), revoked(false), prefer(0), first_seen(0), last_seen(0),
+                 verified(false), verified_at(0), changed_at(0), accepted(false) {}
 
          __int64 id;
          int kind;
@@ -93,21 +108,47 @@ namespace HM
          int prefer;                // Autocrypt prefer-encrypt: 0 nopreference, 1 mutual
          __int64 first_seen;
          __int64 last_seen;
+         bool verified;             // marked "verified in person" by the account; never on a KindOwn row
+         __int64 verified_at;       // when; 0 unless verified
+         AnsiString changed_from;   // the fingerprint this key replaced for its address; empty when it replaced none
+         __int64 changed_at;        // when it arrived; 0 unless changed_from is set
+         bool accepted;             // whether the person accepted that change
       };
 
       static bool List(__int64 accountId, int kind, std::vector<Row> &rows);
       static bool Find(__int64 accountId, int kind, const AnsiString &fingerprint, Row &row);
+      // By the row's id, and only among the rows of that account: a row id is
+      // what the trust routes name, and one account's number must not reach
+      // another's key.
+      static bool FindById(__int64 accountId, __int64 id, Row &row);
       static int Count(__int64 accountId, int kind);
 
       // Adds the row, or replaces the one with the same fingerprint. replaced
-      // says which happened, so the route can answer 201 or 200. first_seen is
-      // kept from the row that was there; last_seen is set to now.
+      // says which happened, so the route can answer 201 or 200. first_seen,
+      // the address and the trust columns are kept from the row that was
+      // there - a key comes back to where it was filed, whatever address the
+      // request named - and last_seen is set to now. A correspondent's row
+      // filed under an address that already holds a DIFFERENT key, the
+      // account's own included, is recorded as a change of that address's key
+      // - changed_from names the key it replaced, changed_at when, accepted
+      // false - and a key seen again is not, whatever brought it back.
       static bool Save(__int64 accountId, Row &row, bool &replaced);
       static bool Remove(__int64 accountId, int kind, const AnsiString &fingerprint);
 
+      // The account's own "verified in person" mark on one of its
+      // correspondents' keys. Verifying a key that replaced another accepts
+      // the change as well; unmarking leaves the acceptance as it was.
+      static bool SetVerified(__int64 accountId, __int64 id, bool verified);
+      // Whether the person accepted that this key replaced the one before it
+      // for the same address.
+      static bool SetAccepted(__int64 accountId, __int64 id, bool accepted);
+
       // The row as the page reads it. A KindOwn row carries its secret key,
       // because the page is the only thing that can open it; a correspondent's
-      // never does, because there is none.
+      // never does, because there is none. Every row carries verified and
+      // verified_at; a row that replaced another carries changed_from,
+      // changed_at and accepted, and one that replaced none carries none of
+      // the three.
       static AnsiString RowJson(const Row &row);
 
       // Fills fingerprint, key_id, algorithm, created, expires, address and

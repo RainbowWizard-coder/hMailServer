@@ -33,7 +33,8 @@ namespace HM
    {
       const char *RingColumns = "pgrid, pgraccountid, pgrkind, pgraddress, pgrname, pgrfingerprint, pgrkeyid, "
                                 "pgralgorithm, pgrpublic, pgrsecret, pgrcreated, pgrexpires, pgrrevoked, "
-                                "pgrsource, pgrprefer, pgrfirstseen, pgrlastseen";
+                                "pgrsource, pgrprefer, pgrfirstseen, pgrlastseen, "
+                                "pgrverified, pgrverifiedat, pgrchangedfrom, pgrchangedat, pgraccepted";
 
       __int64 Now()
       {
@@ -96,6 +97,62 @@ namespace HM
          row.prefer = (int) recordset->GetLongValue("pgrprefer");
          row.first_seen = recordset->GetInt64Value("pgrfirstseen");
          row.last_seen = recordset->GetInt64Value("pgrlastseen");
+         row.verified = recordset->GetLongValue("pgrverified") != 0;
+         row.verified_at = recordset->GetInt64Value("pgrverifiedat");
+         row.changed_from = AnsiString(recordset->GetStringValue("pgrchangedfrom"));
+         row.changed_at = recordset->GetInt64Value("pgrchangedat");
+         row.accepted = recordset->GetLongValue("pgraccepted") != 0;
+      }
+
+      // The key an address was holding, when a correspondent's row is about to
+      // be filed under an address that already has one with another
+      // fingerprint: a row of that address whose fingerprint is not this one,
+      // preferring a SETTLED key - one that replaced nothing, or whose
+      // replacement the person accepted - and, among those, the newest. A
+      // pending key counts only when no settled one is left, so that removing
+      // the old key does not make the next arrival look like the first: a
+      // change is a change against whatever was held.
+      //
+      // BOTH KINDS of row count, and the account's OWN key above all. A
+      // correspondent's key filed under an address the account holds its own
+      // key for is a change of THAT key: the page encrypts every message to
+      // the sender's own key so that the copy in Sent can be read, and a
+      // stranger's key filed under the account's address in silence would have
+      // every message the person sends sealed to the stranger as well.
+      bool PreviousKeyFor(__int64 accountId, const String &address, const AnsiString &fingerprint, AnsiString &previous)
+      {
+         SQLCommand command(String(_T("select ")) + String(RingColumns) +
+                            _T(" from hm_pgpring where pgraccountid = @ACCOUNTID and pgraddress = @ADDRESS order by pgrfirstseen desc, pgrid desc"));
+         command.AddParameter("@ACCOUNTID", accountId);
+         command.AddParameter("@ADDRESS", address);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!recordset)
+            return false;
+
+         AnsiString pending;
+         while (!recordset->IsEOF())
+         {
+            OpenPgpRing::Row row;
+            ReadRow(recordset, row);
+            recordset->MoveNext();
+            if (row.fingerprint == fingerprint)
+               continue;
+
+            if (row.changed_from.IsEmpty() || row.accepted)
+            {
+               previous = row.fingerprint;
+               return true;
+            }
+            if (pending.IsEmpty())
+               pending = row.fingerprint;
+         }
+
+         if (pending.IsEmpty())
+            return false;
+
+         previous = pending;
+         return true;
       }
 
       String LocalPartOf(const String &address)
@@ -275,6 +332,49 @@ namespace HM
       Row existing;
       replaced = Find(accountId, row.kind, row.fingerprint, existing);
 
+      // The trust columns are the ring's to keep and never the request's: a
+      // row that comes back keeps its mark and its change as they were, and a
+      // new row has none. So is the ADDRESS, like first_seen: a key that comes
+      // back with another address in the request stays filed where it was,
+      // because a row that moved would carry its mark and its history to an
+      // address they were never about, and would leave the first address
+      // with nothing. A person who wants a key under another address removes
+      // it and imports it again, and the ring records that as what it is.
+      // Then, for a correspondent's key filed under an address for the first
+      // time, the ring asks whether that address already holds a different
+      // key - a correspondent's, or the account's own - and if it does this
+      // one is a CHANGE of it: not to be encrypted to, and its signatures not
+      // shown as good, until the person says so. The same key seen again is
+      // not a change, whatever brought it back.
+      if (replaced)
+      {
+         row.address = existing.address;
+         row.verified = existing.verified;
+         row.verified_at = existing.verified_at;
+         row.changed_from = existing.changed_from;
+         row.changed_at = existing.changed_at;
+         row.accepted = existing.accepted;
+      }
+      else
+      {
+         row.verified = false;
+         row.verified_at = 0;
+         row.changed_from.Empty();
+         row.changed_at = 0;
+         row.accepted = false;
+      }
+
+      if (row.kind == KindCorrespondent && !replaced)
+      {
+         AnsiString previous;
+         if (PreviousKeyFor(accountId, row.address, row.fingerprint, previous))
+         {
+            row.changed_from = previous;
+            row.changed_at = Now();
+            row.accepted = false;
+         }
+      }
+
       SQLStatement statement;
       statement.SetTable("hm_pgpring");
       if (replaced)
@@ -309,6 +409,11 @@ namespace HM
       statement.AddColumn("pgrsource", row.source);
       statement.AddColumn("pgrprefer", (long) row.prefer);
       statement.AddColumnInt64("pgrlastseen", row.last_seen);
+      statement.AddColumn("pgrverified", (long) (row.verified ? 1 : 0));
+      statement.AddColumnInt64("pgrverifiedat", row.verified_at);
+      statement.AddColumn("pgrchangedfrom", String(row.changed_from));
+      statement.AddColumnInt64("pgrchangedat", row.changed_at);
+      statement.AddColumn("pgraccepted", (long) (row.accepted ? 1 : 0));
 
       __int64 id = existing.id;
       const bool written = replaced
@@ -341,6 +446,59 @@ namespace HM
       return Application::Instance()->GetDBManager()->Execute(command);
    }
 
+   bool
+   OpenPgpRing::FindById(__int64 accountId, __int64 id, Row &row)
+   {
+      if (id <= 0)
+         return false;
+
+      SQLCommand command(String(_T("select ")) + String(RingColumns) + _T(" from hm_pgpring where pgrid = @ID and pgraccountid = @ACCOUNTID"));
+      command.AddParameter("@ID", id);
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadRow(recordset, row);
+      return true;
+   }
+
+   bool
+   OpenPgpRing::SetVerified(__int64 accountId, __int64 id, bool verified)
+   {
+      Row row;
+      if (!FindById(accountId, id, row))
+         return false;
+
+      // The account id is in the WHERE as well as in the lookup above: the
+      // row was found under this account a moment ago, and the write says so
+      // again rather than trusting the number alone.
+      SQLCommand command(verified
+         ? "update hm_pgpring set pgrverified = 1, pgrverifiedat = @AT, pgraccepted = @ACCEPTED where pgrid = @ID and pgraccountid = @ACCOUNTID"
+         : "update hm_pgpring set pgrverified = 0, pgrverifiedat = 0 where pgrid = @ID and pgraccountid = @ACCOUNTID");
+      if (verified)
+      {
+         command.AddParameter("@AT", Now());
+         // A fingerprint read back to its owner settles the question a
+         // change asks; a row that replaced nothing keeps what it had.
+         command.AddParameter("@ACCEPTED", (int) (row.changed_from.IsEmpty() ? (row.accepted ? 1 : 0) : 1));
+      }
+      command.AddParameter("@ID", id);
+      command.AddParameter("@ACCOUNTID", accountId);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
+   OpenPgpRing::SetAccepted(__int64 accountId, __int64 id, bool accepted)
+   {
+      SQLCommand command("update hm_pgpring set pgraccepted = @ACCEPTED where pgrid = @ID and pgraccountid = @ACCOUNTID");
+      command.AddParameter("@ACCEPTED", (int) (accepted ? 1 : 0));
+      command.AddParameter("@ID", id);
+      command.AddParameter("@ACCOUNTID", accountId);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
    AnsiString
    OpenPgpRing::RowJson(const Row &row)
    {
@@ -362,6 +520,20 @@ namespace HM
                   row.prefer == 1 ? "mutual" : "nopreference",
                   row.first_seen,
                   row.last_seen);
+
+      // What the account itself has said about the key, and what the ring
+      // noticed about it: the mark on every row, the change only on a row
+      // that replaced another, so that "absent" means "replaced nothing".
+      AnsiString trust;
+      trust.Format(",\"verified\":%hs,\"verified_at\":%I64d", row.verified ? "true" : "false", row.verified_at);
+      json += trust;
+      if (!row.changed_from.IsEmpty())
+      {
+         AnsiString change;
+         change.Format(",\"changed_from\":\"%hs\",\"changed_at\":%I64d,\"accepted\":%hs",
+                       Escape(row.changed_from).c_str(), row.changed_at, row.accepted ? "true" : "false");
+         json += change;
+      }
 
       // The secret key goes back to the page that stored it and nowhere else.
       // It is encrypted under a passphrase this server has never had, so what

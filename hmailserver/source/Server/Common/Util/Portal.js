@@ -5087,12 +5087,30 @@
     el('message-pgp').hidden = true;
     el('message-pgp-unlock').hidden = true;
     el('message-pgp-keep').hidden = true;
+    el('message-pgp-accept').hidden = true;
     el('message-pgp-text').textContent = '';
   };
   var pgpGroups = function (fingerprint) { return String(fingerprint || '').toUpperCase().replace(/(.{4})/g, '$1 ').trim(); };
   var pgpWhen = function (seconds) { return seconds ? new Date(seconds * 1000).toLocaleDateString() : t('Never'); };
   var pgpOwnFor = function (address) { return pgpState.own.filter(function (o) { return o.address === address && !o.revoked; })[0] || null; };
-  var pgpPeersFor = function (address) { return pgpState.peers.filter(function (p) { return p.address === address && !p.revoked; }); };
+  // TRUST, as far as this page can see it. A correspondent's key that arrived
+  // for an address already holding a DIFFERENT key is stored by the server as
+  // a change (changed_from names the key it replaced) and is PENDING until the
+  // person accepts it: not encrypted to, and its signatures not shown as good,
+  // because the one thing a man in the middle needs is for a key to change in
+  // silence. A key the person marked verified - its fingerprint read back to
+  // its owner - shows the mark on every good signature from then on. pgpRowsFor
+  // is every row an address has, in every state; pgpPeersFor is the ones a
+  // message may be encrypted to.
+  var pgpPending = function (row) { return !!(row && row.changed_from && !row.accepted); };
+  var pgpRowsFor = function (address) { return pgpState.peers.filter(function (p) { return p.address === address; }); };
+  var pgpPeersFor = function (address) { return pgpState.peers.filter(function (p) { return p.address === address && !p.revoked && !pgpPending(p); }); };
+  var pgpPendingFor = function (address) { return pgpRowsFor(address).filter(function (p) { return !p.revoked && pgpPending(p); }); };
+  // The ring's row for a key, by its PRIMARY fingerprint - the one the ring
+  // files it under and the one a person reads back to its owner.
+  var pgpRowOf = function (fingerprint) { return pgpState.peers.concat(pgpState.own).filter(function (r) { return r.fingerprint === fingerprint; })[0] || null; };
+  var pgpChangeSentence = function (row) { return tf('This correspondent\'s key changed on {0}. It was {1}; it is now {2}.', pgpWhen(row.changed_at), pgpGroups(row.changed_from), pgpGroups(row.fingerprint)); };
+  var pgpTrustCall = function (row, what, value) { return call('PUT', '/api/v1/me/openpgp/keys/' + row.id + '/' + what, what === 'verified' ? { verified: value } : { accepted: value }); };
   var pgpAllUnlocked = function () { return pgpState.own.length > 0 && pgpState.own.every(function (o) { return !!pgpState.unlocked[o.fingerprint]; }); };
   var pgpSave = function (text, name) {
     var link = document.createElement('a');
@@ -5199,7 +5217,18 @@
     list.forEach(function (row) {
       var tr = document.createElement('tr');
       tr.appendChild(node('td', row.address + (row.name ? ' - ' + row.name : '')));
-      tr.appendChild(node('td', pgpGroups(row.fingerprint)));
+      var fingerprint = node('td', pgpGroups(row.fingerprint));
+      if (!own) {
+        // The three states a correspondent's key can be in - it replaced
+        // another and waits to be accepted, it was verified in person, or
+        // neither - named on the row as well as shown, so that a check can
+        // read them whatever language the page is in.
+        var trust = pgpPending(row) ? 'changed' : (row.verified ? 'verified' : 'plain');
+        tr.setAttribute('data-pgp-trust', trust);
+        if (trust === 'changed') { fingerprint.appendChild(node('div', pgpChangeSentence(row), 'badge warn')); }
+        else if (trust === 'verified') { fingerprint.appendChild(node('div', '✓ ' + t('Verified in person'), 'badge good pgp-verified')); }
+      }
+      tr.appendChild(fingerprint);
       tr.appendChild(node('td', own ? (row.revoked ? t('Revoked') : pgpWhen(row.expires)) : (row.revoked ? t('Revoked') : row.source)));
       var td = document.createElement('td');
       var add = function (label, run) {
@@ -5214,6 +5243,22 @@
           return navigator.clipboard.writeText(pgpModule.exportPublic(key)).then(function () { say('pgp-status', t('The public key is on the clipboard.'), true); });
         }).catch(function (e) { say('pgp-status', String(e && e.message || e), false); });
       });
+      if (!own && !row.revoked) {
+        if (pgpPending(row)) {
+          add(t('Accept the new key'), function () {
+            pgpTrustCall(row, 'accepted', true).then(function (result) {
+              if (result.status === 200) { loadPgpKeys(); return; }
+              say('pgp-status', describe(result, t('Could not accept the key')), false);
+            });
+          });
+        }
+        add(row.verified ? t('Remove the verified mark') : t('Mark verified in person'), function () {
+          pgpTrustCall(row, 'verified', !row.verified).then(function (result) {
+            if (result.status === 200) { loadPgpKeys(); return; }
+            say('pgp-status', describe(result, t('Could not mark the key')), false);
+          });
+        });
+      }
       if (own) {
         add(t('Save the secret key'), function () {
           pgpSave(row.secret_key, row.address + '-secret.asc');
@@ -5291,10 +5336,17 @@
     });
   };
   // Storing one key. own carries its secret half; a correspondent's does not.
-  var pgpStore = function (key, secretArmored, source) {
+  // The address is the key's own, or the one the caller names (an Autocrypt
+  // header says whose key it carries; a lookup was for an address). A key of
+  // the account's own falls back to the account; a correspondent's NEVER
+  // does - a stranger's key with no address in its user id, filed under the
+  // account's own address, would have every message the person sends sealed
+  // to the stranger - so it goes to the server with none, and the server
+  // refuses a correspondent's key it cannot file under an address.
+  var pgpStore = function (key, secretArmored, source, address) {
     var body = {
       public_key: pgpModule.b64encode(pgpModule.publicBytes(key)),
-      address: key.address || me,
+      address: address || key.address || (secretArmored ? me : ''),
       name: key.name || '',
       source: source,
       revoked: !!key.revoked
@@ -5349,6 +5401,7 @@
         return ask.then(function (passphrase) {
           var chain = Promise.resolve();
           var done = [];
+          var changes = [];
           secret.forEach(function (key) {
             chain = chain.then(function () {
               return pgpModule.exportSecret(key, passphrase).then(function (armoured) {
@@ -5364,16 +5417,25 @@
             chain = chain.then(function () {
               return pgpStore(key, '', 'imported').then(function (result) {
                 if (result.status === 200 || result.status === 201) { done.push(key.address); }
+                // A public key the server would not file - one with no address
+                // in its user id, which this page never fills in with the
+                // account's own - is said rather than silently left out.
+                else if (result.status === 400) { changes.push(describe(result, t('Could not store the key'))); }
+                // Imported over a different key already held for the address:
+                // the server recorded the change, and the person is told here
+                // rather than finding out when a send refuses.
+                if (result.data && pgpPending(result.data)) { changes.push(pgpChangeSentence(result.data)); }
               });
             });
           });
-          return chain.then(function () { return done; });
+          return chain.then(function () { return { done: done, changes: changes }; });
         });
       });
-    }).then(function (done) {
+    }).then(function (imported) {
       el('pgp-import-file').value = '';
       el('pgp-import-passphrase').value = '';
-      if (done) { say('pgp-status', tf('Imported {0}.', done.join(', ')), true); }
+      if (Array.isArray(imported)) { imported = { done: imported, changes: [] }; }
+      if (imported) { say('pgp-status', tf('Imported {0}.', imported.done.join(', ')) + (imported.changes.length ? ' ' + imported.changes.join(' ') : ''), true); }
       return loadPgpKeys();
     }).catch(function (e) { say('pgp-status', tf('Could not import: {0}', String(e && e.message || e)), false); });
   });
@@ -5437,7 +5499,9 @@
       call('PUT', '/api/v1/me/openpgp/keys/correspondents', { public_key: d.key.public_key, address: address, name: d.key.name || '', source: d.source.indexOf('wkd') === 0 ? 'wkd' : 'keyserver' }).then(function (stored) {
         if (stored.status !== 200 && stored.status !== 201) { say('pgp-status', describe(stored, t('Could not store the key')), false); return; }
         el('pgp-lookup-address').value = '';
-        say('pgp-status', tf('The key of {0} was kept.', address), true);
+        // A lookup that answered a key other than the one held is a change,
+        // which the server recorded and the list below shows with Accept.
+        say('pgp-status', tf('The key of {0} was kept.', address) + (stored.data && pgpPending(stored.data) ? ' ' + pgpChangeSentence(stored.data) : ''), true);
         loadPgpKeys();
       });
     });
@@ -5451,12 +5515,25 @@
     if (/^autocrypt:/im.test(headers)) { return true; }
     return /-----BEGIN PGP (MESSAGE|SIGNED MESSAGE|PUBLIC KEY BLOCK)-----/.test(String(m.text || ''));
   };
-  var pgpBadge = function (text, cls) { el('message-badges').appendChild(node('span', text, 'badge ' + cls)); };
+  // trust, when given, names the state the badge shows - changed, verified or
+  // plain - on the element, for the same reason the key rows carry it.
+  var pgpBadge = function (text, cls, trust) {
+    var badge = node('span', text, 'badge pgp ' + cls);
+    if (trust) { badge.setAttribute('data-pgp-trust', trust); }
+    el('message-badges').appendChild(badge);
+  };
   var pgpRun = 0;
   var pgpInspect = function (m) {
     el('message-pgp').hidden = true;
     el('message-pgp-unlock').hidden = true;
     el('message-pgp-keep').hidden = true;
+    el('message-pgp-accept').hidden = true;
+    pgpAcceptOffer = null;
+    // Read again for the same message - after an unlock, after a key was
+    // kept or accepted - the badges this put there last time come off first,
+    // or a signature would be reported twice with two verdicts.
+    var badges = el('message-badges');
+    Array.prototype.slice.call(badges.children).forEach(function (badge) { if (/(^| )pgp( |$)/.test(String(badge.className))) { badges.removeChild(badge); } });
     if (!pgpNeeded(m)) { return; }
     if (window.isSecureContext === false) {
       el('message-pgp-text').textContent = t('OpenPGP is unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.');
@@ -5486,21 +5563,40 @@
   // the one thing a man in the middle needs to go unnoticed - so it waits
   // behind a button and says what it would do.
   var pgpAutocryptKeep = null;
-  var pgpLearn = function (m, autocrypt) {
+  // The pending key the reader is being offered to accept, when the message
+  // was signed by one or carries one.
+  var pgpAcceptOffer = null;
+  var pgpLearn = function (m, autocrypt, reported) {
     pgpAutocryptKeep = null;
     if (!autocrypt || autocrypt.address !== smimeAddress(m.from)) { return ''; }
     return pgpModule.readKey(autocrypt.keydata).then(function (key) {
-      var held = pgpPeersFor(autocrypt.address).concat(pgpState.own.filter(function (o) { return o.address === autocrypt.address; }));
-      if (held.some(function (row) { return row.fingerprint === key.fingerprint; })) { return ''; }
+      var held = pgpRowsFor(autocrypt.address).concat(pgpState.own.filter(function (o) { return o.address === autocrypt.address; }));
+      var same = held.filter(function (row) { return row.fingerprint === key.fingerprint; })[0];
+      if (same) {
+        // Held already. A key kept but not yet accepted is said again here,
+        // unless the signature on this message already said it.
+        if (pgpPending(same) && same.fingerprint !== reported) { pgpAcceptOffer = same; el('message-pgp-accept').hidden = false; return pgpChangeSentence(same); }
+        return '';
+      }
       if (held.length) {
         pgpAutocryptKeep = { key: key, address: autocrypt.address };
         el('message-pgp-keep').hidden = false;
         return tf('This message carries a DIFFERENT OpenPGP key for {0}, fingerprint {1}. A key that changes without being asked about is what a man in the middle needs; check it with its owner before keeping it.', autocrypt.address, pgpGroups(key.fingerprint));
       }
-      return pgpStore(key, '', 'autocrypt').then(function (result) {
+      return pgpStore(key, '', 'autocrypt', autocrypt.address).then(function (result) {
         if (result.status !== 200 && result.status !== 201) { return ''; }
         loadPgpKeys();
-        return tf('The OpenPGP key of {0} was learned from this message.', autocrypt.address);
+        var learned = tf('The OpenPGP key of {0} was learned from this message.', autocrypt.address);
+        // Held nothing for the address as far as this page knew, but the ring
+        // knew better - a key stored in another tab, or the account's own -
+        // and filed it as a change: said here, with Accept, as every other
+        // path says it.
+        if (result.data && pgpPending(result.data)) {
+          pgpAcceptOffer = result.data;
+          el('message-pgp-accept').hidden = false;
+          return learned + ' ' + pgpChangeSentence(result.data);
+        }
+        return learned;
       });
     }, function () { return ''; });
   };
@@ -5509,10 +5605,24 @@
     var keep = pgpAutocryptKeep;
     pgpAutocryptKeep = null;
     el('message-pgp-keep').hidden = true;
-    pgpStore(keep.key, '', 'autocrypt').then(function (result) {
+    pgpStore(keep.key, '', 'autocrypt', keep.address).then(function (result) {
       say('mail-status', (result.status === 200 || result.status === 201) ? tf('The key of {0} was kept.', keep.address) : describe(result, t('Could not store the key')), result.status === 200 || result.status === 201);
-      loadPgpKeys();
+      return loadPgpKeys();
+    }).then(function () {
+      // Kept is not accepted: the server filed it as a change of the address's
+      // key, and reading the message again shows both fingerprints and Accept.
+      if (current) { pgpInspect(current); }
     });
+  });
+  el('message-pgp-accept').addEventListener('click', function () {
+    if (!pgpAcceptOffer) { return; }
+    var row = pgpAcceptOffer;
+    pgpAcceptOffer = null;
+    el('message-pgp-accept').hidden = true;
+    pgpTrustCall(row, 'accepted', true).then(function (result) {
+      say('mail-status', result.status === 200 ? tf('The key of {0} was accepted.', row.address) : describe(result, t('Could not accept the key')), result.status === 200);
+      return loadPgpKeys();
+    }).then(function () { if (current) { pgpInspect(current); } });
   });
   el('message-pgp-unlock').addEventListener('click', function () {
     pgpUnlock().then(function () { if (current) { pgpInspect(current); } }, function () {});
@@ -5540,11 +5650,25 @@
       var who = (s.key && s.key.address) || s.signerUserId || (s.keyId ? s.keyId.toUpperCase() : '');
       var from = smimeAddress(m.from);
       var carries = ((s.key && s.key.addresses) || []).indexOf(from) >= 0 || who === from;
+      // The ring's row for the signing key, by its primary fingerprint;
+      // s.fingerprint is the packet's, which may be a subkey's. Three states
+      // for a signature that is good and the sender's: by a key that changed
+      // and waits to be accepted, the warning that names both fingerprints
+      // and nothing green; by a key verified in person, the mark; by any other
+      // key, the plain verdict, with the fingerprint below it either way.
+      var signer = s.key && s.key.fingerprint ? pgpRowOf(s.key.fingerprint) : null;
       if (!s.valid) { pgpBadge(tf('OpenPGP signature not verified: {0}', s.error), s.error && s.error.indexOf('no key here is') === 0 ? 'warn' : 'bad'); }
       else if (!carries) { pgpBadge(tf('Signed by {0}, not the sender', who), 'warn'); }
+      else if (pgpPending(signer)) {
+        pgpBadge(tf('Signed by {0}, but the key changed', who), 'warn', 'changed');
+        lines.push(pgpChangeSentence(signer));
+        pgpAcceptOffer = signer;
+        el('message-pgp-accept').hidden = false;
+      }
       else if (s.problem) { pgpBadge(tf('Signed by {0}, but {1}', who, s.problem), 'warn'); }
-      else { pgpBadge(tf('Signed by {0}', who), 'good'); }
-      if (s.valid && s.fingerprint) { lines.push(tf('The signing key is {0}.', pgpGroups(s.fingerprint))); }
+      else if (signer && signer.verified) { pgpBadge('✓ ' + tf('Signed by {0}, verified in person', who), 'good pgp-verified', 'verified'); }
+      else { pgpBadge(tf('Signed by {0}', who), 'good', 'plain'); }
+      if (s.valid && ((s.key && s.key.fingerprint) || s.fingerprint)) { lines.push(tf('The signing key is {0}.', pgpGroups((s.key && s.key.fingerprint) || s.fingerprint))); }
     }
     if (result.content && ((result.encrypted && result.encrypted.ok) || result.inline)) {
       var c = result.content;
@@ -5565,7 +5689,7 @@
     }
     el('message-pgp-text').textContent = lines.join(' ');
     el('message-pgp').hidden = !lines.length;
-    Promise.resolve(pgpLearn(m, result.autocrypt)).then(function (learned) {
+    Promise.resolve(pgpLearn(m, result.autocrypt, pgpAcceptOffer ? pgpAcceptOffer.fingerprint : '')).then(function (learned) {
       if (!learned || !current || current.id !== m.id) { return; }
       el('message-pgp-text').textContent = (el('message-pgp-text').textContent + ' ' + learned).trim();
       el('message-pgp').hidden = false;
@@ -5578,11 +5702,22 @@
     el('compose-pgp-sign-label').hidden = !own;
     el('compose-pgp-encrypt-label').hidden = !own && !pgpState.peers.length;
     var missing = [];
+    var pending = [];
+    var newer = [];
     smimeAddresses(el('compose-to').value + ',' + el('compose-cc').value + ',' + el('compose-bcc').value).forEach(function (a) {
-      if (!pgpPeersFor(a).length && !pgpOwnFor(a) && missing.indexOf(a) < 0) { missing.push(a); }
+      var usable = pgpPeersFor(a).length || pgpOwnFor(a);
+      // A newer key waiting beside a usable one: the message goes to the
+      // older key, and the person is told so rather than left to assume the
+      // newest key is the one in use.
+      if (pgpPendingFor(a).length && usable) { if (newer.indexOf(a) < 0) { newer.push(a); } return; }
+      if (usable) { return; }
+      var list = pgpPendingFor(a).length ? pending : missing;
+      if (list.indexOf(a) < 0) { list.push(a); }
     });
     var hints = [];
     if (el('compose-pgp-encrypt').checked && missing.length) { hints.push(tf('Encrypt: no OpenPGP key for {0}.', missing.join(', '))); }
+    if (el('compose-pgp-encrypt').checked && pending.length) { hints.push(tf('Encrypt: the key of {0} changed and has not been accepted; accept it under Security first.', pending.join(', '))); }
+    if (el('compose-pgp-encrypt').checked && newer.length) { hints.push(tf('A newer key for {0} is waiting to be accepted; this is encrypted to the older one.', newer.join(', '))); }
     if (el('compose-pgp-sign').checked && !own) { hints.push(t('Sign: no OpenPGP key of yours for this From address.')); }
     el('compose-pgp-note').textContent = hints.join(' ');
     el('compose-pgp-note').hidden = !hints.length;
@@ -5603,13 +5738,24 @@
       var chain = Promise.resolve();
       if (body.pgp_encrypt) {
         var missing = [];
+        var pending = [];
         smimeAddresses(body.to + ',' + body.cc + ',' + body.bcc).concat(own ? [from] : []).forEach(function (a) {
+          // pgpPeersFor leaves a pending key out, so a key that changed and
+          // was not accepted is never encrypted to - the send stops and says
+          // why, rather than sealing the message to whoever sent the new key.
           var rows = pgpPeersFor(a).concat(pgpState.own.filter(function (o) { return o.address === a && !o.revoked; }));
-          if (!rows.length) { if (missing.indexOf(a) < 0 && a !== from) { missing.push(a); } return; }
+          if (!rows.length) {
+            if (a !== from) {
+              var list = pgpPendingFor(a).length ? pending : missing;
+              if (list.indexOf(a) < 0) { list.push(a); }
+            }
+            return;
+          }
           rows.forEach(function (row) {
             chain = chain.then(function () { return pgpParse(row); }).then(function (key) { if (key && recipients.indexOf(key) < 0) { recipients.push(key); } });
           });
         });
+        if (pending.length) { return Promise.reject(new Error(tf('Encrypt: the key of {0} changed and has not been accepted; accept it under Security first.', pending.join(', ')))); }
         if (missing.length) { return Promise.reject(new Error(tf('Encrypt: no OpenPGP key for {0}.', missing.join(', ')))); }
       }
       return chain.then(function () { return body.pgp_sign ? pgpUnlock() : null; }).then(function () {

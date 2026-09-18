@@ -410,6 +410,11 @@ namespace HM
          RouteMeOpenPgpKeyPeerPut,
          RouteMeOpenPgpKeyPeerDelete,
          RouteMeOpenPgpLookup,
+         // The account's own word on one of its correspondents' keys
+         // (RestApiOpenPgpKeys.cpp): marked verified in person, and a change
+         // of key accepted. Self-service, and refused on an app password.
+         RouteMeOpenPgpKeyVerified,
+         RouteMeOpenPgpKeyAccepted,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
          RouteMeSubscriptions,
@@ -1340,6 +1345,10 @@ namespace HM
       static HttpResponse HandleMeOpenPgpKeyPut_(const Caller &caller, bool own, const AnsiString &requestBody);
       static HttpResponse HandleMeOpenPgpKeyDelete_(const Caller &caller, bool own, const AnsiString &fingerprint);
       static HttpResponse HandleMeOpenPgpLookup_(const Caller &caller, const AnsiString &query);
+      // PUT .../keys/{id}/verified and .../keys/{id}/accepted, one boolean
+      // each: the two things only the account holder can say about a
+      // correspondent's key. verifiedRoute picks which.
+      static HttpResponse HandleMeOpenPgpKeyTrust_(const Caller &caller, bool verifiedRoute, __int64 id, const AnsiString &requestBody);
       static HttpResponse HandlePortalOpenPgpScript_();
       static AnsiString OpenApiOpenPgpKeysPaths_();
       // The Autocrypt header value a send may carry, checked before it goes

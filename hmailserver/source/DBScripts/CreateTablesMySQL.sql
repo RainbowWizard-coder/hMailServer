@@ -2182,7 +2182,12 @@ create table hm_pgpring
 	pgrsource varchar(16) not null,
 	pgrprefer int not null,
 	pgrfirstseen bigint not null,
-	pgrlastseen bigint not null
+	pgrlastseen bigint not null,
+	pgrverified int not null default 0,
+	pgrverifiedat bigint not null default 0,
+	pgrchangedfrom varchar(64) not null default '',
+	pgrchangedat bigint not null default 0,
+	pgraccepted int not null default 0
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_pgpring_account ON hm_pgpring (pgraccountid);
@@ -2432,4 +2437,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6080);
+insert into hm_dbversion values (6081);

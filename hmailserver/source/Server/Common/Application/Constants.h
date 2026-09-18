@@ -612,4 +612,13 @@
 //      with a ceiling of eight megabytes per account. Nothing is there until
 //      somebody makes or imports a key, so an upgraded database signs and
 //      encrypts exactly as it did: not at all, until asked.
-#define REQUIRED_DB_VERSION            6080
+// 6081 adds five columns to hm_pgpring (Util/OpenPgpRing.h), so that a change of
+//      a correspondent's key is a warning and never a silent switch: pgrverified
+//      and pgrverifiedat, the account's own "verified in person" mark on a key
+//      and when it was set; pgrchangedfrom and pgrchangedat, the fingerprint a
+//      key REPLACED for the same address and when it arrived, kept so that the
+//      reader can be told "it was this; it is now this"; and pgraccepted,
+//      whether the person accepted that change. Every row an upgrade finds is
+//      unverified, replaced nothing and needs no accepting, so an upgraded ring
+//      encrypts to exactly the keys it did and shows no mark it did not earn.
+#define REQUIRED_DB_VERSION            6081
