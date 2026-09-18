@@ -286,7 +286,7 @@
   var quarantineOn = true;
 
   // ---- The app shell ------------------------------------------------------
-  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section', 'confidential-section'];
+  var panels = ['mail-section', 'quarantine-section', 'folders-section', 'settings-section', 'filter-section', 'contacts-section', 'directory-section', 'away-section', 'storage-section', 'security-section', 'password-section', 'scheduled-section', 'senders-section', 'calendar-section', 'tasks-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'recover-section', 'confidential-section'];
   var SETTINGS_PANELS = ['settings-section', 'away-section', 'filter-section', 'folders-section', 'storage-section', 'senders-section', 'subscriptions-section', 'accounts-section', 'masked-section', 'security-section', 'password-section'];
   var showPanel = function (id, title) {
     panels.forEach(function (p) { var e = el(p); if (e) { e.hidden = p !== id; } });
@@ -1979,9 +1979,10 @@
     }
     if (head === 'held') { showPanel('quarantine-section', 'Held as suspected spam'); markNav('/held'); loadQuarantine(); return; }
     if (head === 'folders') { showPanel('folders-section', 'Manage folders'); markNav('/folders'); renderFolderAdmin(); return; }
-    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); loadOffline(); return; }
+    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); loadOffline(); loadDirectoryCard(); return; }
     if (head === 'filters') { showPanel('filter-section', 'Filters'); markNav('/filters'); renderColourRules(); return; }
     if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadContacts(); return; }
+    if (head === 'directory') { showPanel('directory-section', t('Directory')); markNav('/directory'); loadDirectory(); return; }
     if (head === 'calendar') { showPanel('calendar-section', t('Calendar')); markNav('/calendar'); openCalendar(r.params); return; }
     if (head === 'tasks') { showPanel('tasks-section', t('Tasks')); markNav('/tasks'); loadTasks(); return; }
     if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
@@ -2017,6 +2018,14 @@
     cancelUndo();
     me = '';
     identities = [];
+    // The directory is the account's own domain's, so none of it survives a
+    // switch to the other account.
+    directoryEntries = null;
+    directoryOwn = null;
+    directoryEnabled = false;
+    directoryEditable = false;
+    directoryPhotoPending = undefined;
+    if (el('nav-directory')) { el('nav-directory').hidden = true; }
     signature = { enabled: false, text: '' };
     prefs = {};
     document.title = baseTitle;
@@ -2175,6 +2184,9 @@
         loadBranding();
         loadFilesPolicy();
         loadSmime();
+        // The directory's switch and this person's own entry, once per sign-in:
+        // the side nav offers the page only where the server answers one.
+        loadDirectoryCard();
         return loadFolders().then(function () {
           if (pending) { var wanted = pending; pending = ''; replaceWith(wanted); }
           else { route(); }
@@ -2945,7 +2957,11 @@
         var li = document.createElement('li'); li.setAttribute('role', 'option');
         var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = c.name || c.address;
         var ad = document.createElement('span'); ad.className = 'ad';
-        ad.textContent = c.kind === 'group' ? tf('{0} member(s)', (c.recipients || []).length) : (c.name ? c.address : '');
+        // A directory hit says where it came from, so that a name the reader
+        // has never written to is not mistaken for one of their own contacts.
+        ad.textContent = c.kind === 'group' ? tf('{0} member(s)', (c.recipients || []).length)
+          : c.directory ? (c.name ? c.address + ' - ' : '') + (c.list ? t('Distribution list') : t('Directory'))
+          : (c.name ? c.address : '');
         li.appendChild(nm); li.appendChild(ad);
         li.addEventListener('mousedown', function (e) { e.preventDefault(); take(c); });
         list.appendChild(li);
@@ -2958,9 +2974,23 @@
       if (timer) { clearTimeout(timer); }
       if (!q) { close(); return; }
       timer = setTimeout(function () {
-        call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(q) + (persons ? '&kind=person' : '')).then(function (result) {
+        // The reader's own contacts first, then the organisation's directory -
+        // the people already known before the people merely findable, which is
+        // the order Outlook and Gmail offer them in. An address that is both is
+        // offered once, as the contact, because that is the one carrying the
+        // name the reader chose. The member field of a group asks for people
+        // the reader keeps, so it does not ask the directory at all.
+        var mine = call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(q) + (persons ? '&kind=person' : ''));
+        var theirs = persons ? Promise.resolve([]) : directorySuggest(q);
+        Promise.all([mine, theirs]).then(function (both) {
+          var result = both[0];
           if (result.status !== 200 || !result.data || token().tail !== q) { return; }
-          show(result.data.contacts || []);
+          var contacts = result.data.contacts || [];
+          var known = {};
+          contacts.forEach(function (c) { if (c.address) { known[String(c.address).toLowerCase()] = true; } });
+          var extra = (both[1] || []).filter(function (e) { return e.address && !known[String(e.address).toLowerCase()]; })
+            .map(function (e) { return { name: e.name, address: e.address, kind: 'person', directory: true, title: e.title, department: e.department, list: e.kind === 'list' }; });
+          show(contacts.concat(extra).slice(0, 8));
         });
       }, 120);
     });
@@ -2974,6 +3004,238 @@
     input.addEventListener('blur', function () { setTimeout(close, 150); });
   };
   complete('compose-to'); complete('compose-cc'); complete('compose-bcc');
+
+  // ---- The organisation's directory ------------------------------------------
+  // Outlook's Global Address List and Google's directory: every active account
+  // and every enabled distribution list of the reader's OWN domain, with the
+  // title, department, telephone numbers and photo the administrator or the
+  // person set. The page never names a domain - the server answers the domain
+  // of the account that signed in and no other - and a person who has opted out
+  // is not in what it answers, so there is nothing here to filter out.
+  var directoryEntries = null;
+  var directoryEnabled = false;
+  var directoryEditable = false;
+  var directoryOwn = null;
+  var directoryPhotoPending = undefined;   // undefined: unchanged. null: remove. string: new base64.
+
+  var directoryName = function (entry) { return entry.name || entry.address; };
+
+  var directoryDetail = function (entry) {
+    var parts = [];
+    if (entry.title) { parts.push(entry.title); }
+    if (entry.department) { parts.push(entry.department); }
+    return parts.join(' - ');
+  };
+
+  var directoryAvatar = function (entry) {
+    if (entry.has_photo && entry.photo_url) {
+      var img = document.createElement('img');
+      img.className = 'av';
+      img.setAttribute('alt', '');
+      img.width = 44; img.height = 44;
+      imageFrom(img, entry.photo_url);
+      return img;
+    }
+    var box = document.createElement('span');
+    box.className = 'av';
+    box.setAttribute('aria-hidden', 'true');
+    box.textContent = (directoryName(entry).trim().charAt(0) || '?').toUpperCase();
+    return box;
+  };
+
+  var renderDirectory = function (entries) {
+    var list = el('directory-list');
+    clear(list);
+    el('directory-off').hidden = directoryEnabled;
+    el('directory-empty').hidden = !directoryEnabled || entries.length > 0;
+    el('directory-count').textContent = entries.length ? tf('{0} listed', entries.length) : '';
+
+    entries.forEach(function (entry) {
+      var card = document.createElement('div');
+      card.className = 'dircard';
+      card.appendChild(directoryAvatar(entry));
+
+      var who = document.createElement('div');
+      who.className = 'who';
+      var name = document.createElement('b');
+      name.textContent = directoryName(entry);
+      who.appendChild(name);
+
+      var address = document.createElement('span');
+      address.textContent = entry.address;
+      who.appendChild(address);
+
+      var detail = directoryDetail(entry);
+      if (detail) { var d = document.createElement('span'); d.textContent = detail; who.appendChild(d); }
+      if (entry.kind === 'list') { var k = document.createElement('span'); k.textContent = t('Distribution list'); who.appendChild(k); }
+      if (entry.phone) { var p = document.createElement('span'); p.textContent = entry.phone; who.appendChild(p); }
+      if (entry.mobile) { var m = document.createElement('span'); m.textContent = entry.mobile; who.appendChild(m); }
+      if (entry.office) { var o = document.createElement('span'); o.textContent = entry.office; who.appendChild(o); }
+
+      var acts = document.createElement('div');
+      acts.className = 'acts';
+
+      var write = document.createElement('button');
+      write.type = 'button';
+      write.className = 'btn quiet sm';
+      write.textContent = t('Write');
+      write.addEventListener('click', function () {
+        go('/compose?to=' + encodeURIComponent(entry.name ? entry.name + ' <' + entry.address + '>' : entry.address));
+      });
+      acts.appendChild(write);
+
+      // A list has no person behind it, so there is nothing to keep as a contact.
+      if (entry.kind !== 'list') {
+        var keep = document.createElement('button');
+        keep.type = 'button';
+        keep.className = 'btn quiet sm';
+        keep.textContent = t('Add to contacts');
+        keep.addEventListener('click', function () {
+          say('directory-status', '', true);
+          call('POST', '/api/v1/me/contacts', { name: entry.name || '', address: entry.address }).then(function (result) {
+            if (result.status === 201) { contactsCache = null; say('directory-status', tf('{0} is in your contacts.', directoryName(entry)), true); return; }
+            if (result.status === 409) { say('directory-status', t('That address is already one of your contacts.'), false); return; }
+            say('directory-status', describe(result, t('Could not add the contact')), false);
+          });
+        });
+        acts.appendChild(keep);
+      }
+
+      who.appendChild(acts);
+      card.appendChild(who);
+      list.appendChild(card);
+    });
+  };
+
+  var directoryFilter = function () {
+    if (!directoryEntries) { return; }
+    var q = (el('directory-search').value || '').trim().toLowerCase();
+    if (!q) { renderDirectory(directoryEntries); return; }
+    renderDirectory(directoryEntries.filter(function (entry) {
+      return [entry.name, entry.address, entry.title, entry.department].some(function (field) {
+        return String(field || '').toLowerCase().indexOf(q) >= 0;
+      });
+    }));
+  };
+
+  var loadDirectory = function () {
+    return call('GET', '/api/v1/me/directory?limit=1000').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('directory-status', describe(result, t('Could not read the directory')), false); return []; }
+      directoryEnabled = !!result.data.enabled;
+      directoryEditable = !!result.data.editable;
+      directoryEntries = result.data.entries || [];
+      directoryFilter();
+      return directoryEntries;
+    });
+  };
+
+  // The completion asks the server rather than this cache, so that a page left
+  // open overnight offers the person who joined this morning.
+  var directorySuggest = function (q) {
+    if (!directoryEnabled) { return Promise.resolve([]); }
+    return call('GET', '/api/v1/me/directory?limit=8&q=' + encodeURIComponent(q)).then(function (result) {
+      if (result.status !== 200 || !result.data) { return []; }
+      directoryEnabled = !!result.data.enabled;
+      return result.data.entries || [];
+    });
+  };
+
+  // The card under Settings: the person's own entry, and the opt-out, which is
+  // theirs whether or not the server lets them set the rest.
+  var directoryFields = ['title', 'department', 'phone', 'mobile', 'office'];
+
+  var showDirectoryEntry = function () {
+    var entry = directoryOwn || {};
+    directoryFields.forEach(function (field) { el('directory-' + field).value = entry[field] || ''; });
+    el('directory-optout').checked = !!entry.opt_out;
+    el('directory-form').hidden = !directoryEditable;
+    el('directory-locked').hidden = directoryEditable;
+    var photo = el('directory-photo');
+    var remove = el('directory-photo-remove');
+    var has = directoryPhotoPending !== undefined ? directoryPhotoPending !== null : !!entry.has_photo;
+    if (directoryPhotoPending) {
+      photo.src = 'data:' + (entry.photo_type || 'image/jpeg') + ';base64,' + directoryPhotoPending;
+    } else if (has) {
+      imageFrom(photo, '/api/v1/me/directory/me/photo?v=' + encodeURIComponent(entry.updated || ''));
+    }
+    photo.hidden = !has;
+    remove.hidden = !has;
+  };
+
+  var loadDirectoryCard = function () {
+    return call('GET', '/api/v1/me/directory/me').then(function (result) {
+      if (result.status !== 200 || !result.data) { el('directory-card').hidden = true; return; }
+      directoryEnabled = !!result.data.enabled;
+      directoryEditable = !!result.data.editable;
+      directoryOwn = result.data.entry || {};
+      directoryPhotoPending = undefined;
+      el('directory-card').hidden = !directoryEnabled;
+      el('nav-directory').hidden = !directoryEnabled;
+      showDirectoryEntry();
+    });
+  };
+
+  var saveDirectoryEntry = function (body, statusId, done) {
+    say(statusId, '', true);
+    return call('PUT', '/api/v1/me/directory/me', body).then(function (result) {
+      if (result.status === 200 && result.data) {
+        directoryOwn = result.data.entry || {};
+        directoryEditable = !!result.data.editable;
+        directoryPhotoPending = undefined;
+        directoryEntries = null;
+        showDirectoryEntry();
+        say(statusId, done, true);
+        return true;
+      }
+      say(statusId, describe(result, t('Could not save your directory entry')), false);
+      // The server is the truth about what was stored; a refused save must not
+      // leave the form showing what it refused.
+      loadDirectoryCard();
+      return false;
+    });
+  };
+
+  el('directory-search').addEventListener('input', directoryFilter);
+
+  el('directory-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var body = {};
+    directoryFields.forEach(function (field) { body[field] = el('directory-' + field).value; });
+    if (directoryPhotoPending !== undefined) { body.photo = directoryPhotoPending; }
+    saveDirectoryEntry(body, 'directory-entry-status', t('Saved.'));
+  });
+
+  el('directory-optout').addEventListener('change', function () {
+    saveDirectoryEntry({ opt_out: el('directory-optout').checked }, 'directory-optout-status',
+      el('directory-optout').checked ? t('You are out of the directory.') : t('You are in the directory.'));
+  });
+
+  el('directory-photo-remove').addEventListener('click', function () {
+    directoryPhotoPending = null;
+    showDirectoryEntry();
+    say('directory-entry-status', t('The photo goes when you save.'), true);
+  });
+
+  el('directory-photo-file').addEventListener('change', function () {
+    var file = (el('directory-photo-file').files || [])[0];
+    el('directory-photo-file').value = '';
+    if (!file) { return; }
+    if (!/^image\/(png|jpeg|gif)$/i.test(file.type || '')) { say('directory-entry-status', t('A directory photo is a JPEG, a PNG or a GIF.'), false); return; }
+    if (file.size > 100 * 1024) { say('directory-entry-status', t('A directory photo is at most 100 KB.'), false); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var url = String(reader.result || '');
+      var at = url.indexOf(';base64,');
+      if (at < 0) { say('directory-entry-status', t('A directory photo is a JPEG, a PNG or a GIF.'), false); return; }
+      directoryPhotoPending = url.slice(at + 8);
+      directoryOwn = directoryOwn || {};
+      directoryOwn.photo_type = url.slice(5, at);
+      showDirectoryEntry();
+      say('directory-entry-status', t('The photo goes up when you save.'), true);
+    };
+    reader.onerror = function () { say('directory-entry-status', t('That file could not be read.'), false); };
+    reader.readAsDataURL(file);
+  });
   // ---- @mentions in the text -------------------------------------------------
   // An @ followed by letters, at the caret, asks the address book as the To
   // field does; the person chosen is written as @Name where the @ was and

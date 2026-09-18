@@ -395,6 +395,9 @@
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>За адресою {1} діє DMARC-запис із p={0} — суворіший за початкову точку p=none. Це правильно, якщо ви вже знаєте, що ваша пошта проходить вирівнювання; якщо ж ви ще налаштовуєте SPF і DKIM, пошта, яка не проходить перевірку, просто зараз {2}. Опубліковано: {3}</value>
   </data>
+  <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
+    <value>JPEG, PNG або GIF, не більше 100 KB. Що буде збережено, вирішують самі байти, а не ім’я файлу, і фотографія зберігається разом з обліковим записом.</value>
+  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>За адресою {0} існує TXT-запис, але файл закритого ключа не вдалося прочитати з цього комп’ютера, тому звідси неможливо перевірити, чи містить він ПРАВИЛЬНИЙ ключ. Виконайте перевірку безпосередньо на сервері або скористайтеся вкладкою DKIM домену.</value>
   </data>
@@ -433,6 +436,9 @@
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>Звіт про доставку</value>
+  </data>
+  <data name="A directory photo is at most 100 KB." xml:space="preserve">
+    <value>Фотографія в каталозі — не більше 100 KB.</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Домен - серверу потрібен домен, перш ніж він зможе приймати пошту</value>
@@ -511,6 +517,9 @@
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>Новий ключ створено й підготовлено. Опублікуйте його запис.</value>
+  </data>
+  <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
+    <value>Вибрано нову фотографію; її буде збережено разом з обліковим записом.</value>
   </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Введено новий пароль облікового запису служби ТА встановлено прапорець «видалити збережений пароль». Зніміть одне з них — вгадувати, що саме малося на увазі, ця сторінка не має права.</value>
@@ -1078,6 +1087,9 @@
   </data>
   <data name="Administrator roles" xml:space="preserve">
     <value>Ролі адміністраторів</value>
+  </data>
+  <data name="Administrator's _note" xml:space="preserve">
+    <value>Примітка адміністратора (_F)</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>Додатково</value>
@@ -1719,6 +1731,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Пакет _сертифікатів ЦС (PEM), до якого мають вибудовувати ланцюжок клієнтські сертифікати</value>
   </data>
+  <data name="C_hoose a photo..." xml:space="preserve">
+    <value>Вибрати фотографію... (_G)</value>
+  </data>
   <data name="Cache" xml:space="preserve">
     <value>Кеш</value>
   </data>
@@ -1904,6 +1919,9 @@
   </data>
   <data name="Checks, in the order the server runs them" xml:space="preserve">
     <value>Перевірки в тому порядку, у якому їх виконує сервер</value>
+  </data>
+  <data name="Choose a photo" xml:space="preserve">
+    <value>Вибрати фотографію</value>
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Виберіть готовий набір…</value>
@@ -2402,6 +2420,9 @@
 
 {1}</value>
   </data>
+  <data name="Could not read the photo: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати фотографію: {0}</value>
+  </data>
   <data name="Could not read the queue: {0}" xml:space="preserve">
     <value>Не вдалося прочитати чергу: {0}</value>
   </data>
@@ -2677,6 +2698,9 @@
   </data>
   <data name="DNSQueryTimeout (10)" xml:space="preserve">
     <value>DNSQueryTimeout (10)</value>
+  </data>
+  <data name="D_epartment" xml:space="preserve">
+    <value>Відділ (_B)</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>_Час щоденного резервного копіювання (24-годинний формат HH:MM, порожньо = вимкнено)</value>
@@ -2979,11 +3003,11 @@
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
     <value>Налаштування зведення збережено. Які домени надсилають зведення і о котрій годині, задається на вкладці «Зведення карантину» кожного домену.</value>
   </data>
-  <data name="Directory" xml:space="preserve">
-    <value>Каталог</value>
-  </data>
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Автентифікація через каталог (LDAP)</value>
+  </data>
+  <data name="Directory entry" xml:space="preserve">
+    <value>Запис у каталозі</value>
   </data>
   <data name="Directory server" xml:space="preserve">
     <value>Сервер каталогу</value>
@@ -3463,6 +3487,9 @@
   </data>
   <data name="Every value fails closed. A section whose Scope is anything but the literal &quot;full&quot; is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one." xml:space="preserve">
     <value>Кожне значення в разі сумніву відмовляє. Розділ, чий Scope є чимось іншим, ніж буквально «full», доступний лише для читання; ключ, чий термін дії відсутній або нечитабельний, вважається таким, що сплив; а розділ без придатного дайджесту ігнорується повністю. Саме це робить сховище безпечним для ручного редагування: друкарська помилка може лише звузити ключ, але ніколи не розширити.</value>
+  </data>
+  <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
+    <value>Усі, хто має скриньку в цьому домені, бачать це поряд з іменем, на сторінці «Каталог» у вебпошті, у полі «Кому» та в адресній книзі лише для читання, яку синхронізує телефон. Ніщо звідси не виходить за межі домену.</value>
   </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Усе, про що повідомляє ErrorManager</value>
@@ -4124,6 +4151,9 @@
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ігнорується сервером - збережений дайджест не є придатним значенням SHA-256, тому цей розділ нічого не автентифікує. Відкличте його і створіть заміну.</value>
   </data>
+  <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
+    <value>Зображення (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>У зоні, підписаній DNSSEC, опублікуйте запис TLSA (зазвичай usage 3, selector 1, matching type 1 - '3 1 1' із SHA-256 відкритого ключа вашого сертифіката) на _25._tcp.&lt;mx-host&gt; для кожного вузла MX. Перевірте командою: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer не може публікувати записи DNS чи підписувати вашу зону, і в цій панелі немає пошуку TLSA, щоб їх перевірити.</value>
   </data>
@@ -4374,6 +4404,9 @@
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Залиште вузол порожнім — і домен не матиме власної думки: застосовується загальносерверний ретранслятор SMTP, точнісінько як до появи цього параметра. Маршрут усе одно переважає обох, бо маршрут — це твердження про призначення.</value>
+  </data>
+  <data name="Leave this account _out of the directory" xml:space="preserve">
+    <value>Не включати цей обліковий запис до каталогу (_I)</value>
   </data>
   <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
     <value>Залишайте це вимкненим, якщо ви не збираєте власних інсталяторів і не підписуєте їх. Випуски цього проєкту поки що не підписані Authenticode, тому ввімкнення відхиляє геть усі наявні випуски: завантаження зупиняється з повідомленням «інсталятор не має підпису Authenticode», і жодне оновлення ніколи не вдасться застосувати. Підпис Sigstore, який має кожен випуск, перевіряється в будь-якому разі й не є необов'язковим.</value>
@@ -5605,6 +5638,9 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Вимкнено. Жодне повідомлення не відкладається за першої спроби.</value>
   </data>
+  <data name="Offi_ce" xml:space="preserve">
+    <value>Кабінет (_E)</value>
+  </data>
   <data name="On" xml:space="preserve">
     <value>Увімкнено</value>
   </data>
@@ -5845,6 +5881,9 @@
   <data name="Out of office" xml:space="preserve">
     <value>Не на місці</value>
   </data>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
+    <value>Поза списком, поза полем «Кому» в усіх і поза колекцією CardDAV. Це не приховує жодної скриньки: пошта надходить, і той, хто знає адресу, може написати. Людина може виставити це сама у вебпошті, хоч би що казало налаштування DirectoryUserEditable.</value>
+  </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Вихідний TLS</value>
   </data>
@@ -6056,6 +6095,9 @@
   </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Етап: {0}</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Фотографія</value>
   </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Укажіть серверу вузол SpamAssassin і виберіть, як об’єднувати його оцінку.</value>
@@ -6621,6 +6663,9 @@
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Пам’ятати стільки попередніх паролів (0 = без історії)</value>
+  </data>
+  <data name="Remo_ve the photo" xml:space="preserve">
+    <value>Видалити фотографію (_H)</value>
   </data>
   <data name="Remote domain" xml:space="preserve">
     <value>Віддалений домен</value>
@@ -8352,6 +8397,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="That event happened before the message was queued - a refusal during the SMTP conversation - so there is no message to follow." xml:space="preserve">
     <value>Ця подія сталася до того, як повідомлення потрапило в чергу - відмова під час діалогу SMTP, - тому повідомлення, за яким можна простежити, немає.</value>
   </data>
+  <data name="That file is not a JPEG, a PNG or a GIF." xml:space="preserve">
+    <value>Цей файл не є JPEG, PNG або GIF.</value>
+  </data>
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Це сірий список. Звільніть тут адресу відправника або вимкніть сірий список повністю.</value>
   </data>
@@ -8869,6 +8917,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The person's data" xml:space="preserve">
     <value>Дані особи</value>
   </data>
+  <data name="The photo is removed when the account is saved." xml:space="preserve">
+    <value>Фотографію буде видалено під час збереження облікового запису.</value>
+  </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Політика віддається через HTTPS. З цього комп'ютера це також доводить, що mta-sts.{0} розв'язується, сертифікат проходить перевірку для цього імені, а слухач відповідає - погляд з інтернету все ж може відрізнятися, якщо брандмауер поводиться з цим комп'ютером особливо. Відданий вміст: {1}</value>
   </data>
@@ -9201,6 +9252,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
     <value>Ця Панель керування під'єднана до віддаленого сервера, і файл ключа розташований на диску того комп'ютера - з цього комп'ютера його прочитати неможливо, тому нічого про нього не перевірено. Це «невідомо», а не «OK»: перевірте його на самому сервері або з його сторінки «Зовнішнє налаштування».</value>
+  </data>
+  <data name="This account has a photo." xml:space="preserve">
+    <value>Цей обліковий запис має фотографію.</value>
+  </data>
+  <data name="This account has no photo." xml:space="preserve">
+    <value>Цей обліковий запис не має фотографії.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Ця дія не має додаткових параметрів.</value>
@@ -9981,6 +10038,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Windows _user name" xml:space="preserve">
     <value>_Ім'я користувача Windows</value>
   </data>
+  <data name="Windows directory" xml:space="preserve">
+    <value>Каталог Windows</value>
+  </data>
   <data name="Windows display language" xml:space="preserve">
     <value>Мова інтерфейсу Windows</value>
   </data>
@@ -10058,6 +10118,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Ваші домени перебувають у цьому списку. Відкривши домен, ви отримаєте його облікові записи, псевдоніми та списки розсилки.</value>
+  </data>
+  <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
+    <value>Лише ваша: примітки немає ні в списку каталогу, ні у вебпошті, ні в картках, які синхронізує телефон.</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-архіви (*.zip)|*.zip</value>
@@ -10287,6 +10350,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Install update" xml:space="preserve">
     <value>_Установити оновлення</value>
   </data>
+  <data name="_Job title" xml:space="preserve">
+    <value>Посада (_A)</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Зберігати оригінальне повідомлення</value>
   </data>
@@ -10334,6 +10400,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Minutes between retries" xml:space="preserve">
     <value>_Хвилин між повторними спробами</value>
+  </data>
+  <data name="_Mobile" xml:space="preserve">
+    <value>Мобільний (_D)</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Модератор (порожньо = без модерації)</value>
@@ -10538,6 +10607,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Хто може надсилати до цього списку</value>
+  </data>
+  <data name="_Work telephone" xml:space="preserve">
+    <value>Робочий телефон (_C)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>цифра</value>

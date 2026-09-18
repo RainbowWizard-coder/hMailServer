@@ -29,6 +29,8 @@ if exists (select * from sysobjects where id = object_id('hm_accountreview') and
 if exists (select * from sysobjects where id = object_id('hm_heldmessages') and objectproperty(id, 'isusertable') = 1) drop table hm_heldmessages
 if exists (select * from sysobjects where id = object_id('hm_confidential') and objectproperty(id, 'isusertable') = 1) drop table hm_confidential
 if exists (select * from sysobjects where id = object_id('hm_passkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_passkeys
+
+if exists (select * from sysobjects where id = object_id('hm_directory') and objectproperty(id, 'isusertable') = 1) drop table hm_directory
 if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
 if exists (select * from sysobjects where id = object_id('hm_senderaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_senderaddresses
@@ -823,6 +825,26 @@ ALTER TABLE hm_passkeys ADD CONSTRAINT hm_passkeys_pk PRIMARY KEY NONCLUSTERED (
 CREATE CLUSTERED INDEX idx_hm_passkeys_account ON hm_passkeys (pkaccountid)
 
 CREATE UNIQUE INDEX idx_hm_passkeys_credential ON hm_passkeys (pkcredential)
+
+create table hm_directory
+(
+	dirid int identity(1,1) not null,
+	diraccountid int not null,
+	dirtitle nvarchar(100) not null default '',
+	dirdepartment nvarchar(100) not null default '',
+	dirphone nvarchar(60) not null default '',
+	dirmobile nvarchar(60) not null default '',
+	diroffice nvarchar(100) not null default '',
+	dirphototype nvarchar(40) not null default '',
+	dirphoto ntext not null default '',
+	diroptout tinyint not null default 0,
+	dirnote nvarchar(255) not null default '',
+	dirupdated datetime not null
+)
+
+ALTER TABLE hm_directory ADD CONSTRAINT hm_directory_pk PRIMARY KEY NONCLUSTERED (dirid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_directory_account ON hm_directory (diraccountid)
 
 create table hm_recoverable
 (
@@ -1937,6 +1959,8 @@ ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY 
 
 ALTER TABLE hm_passkeys ADD CONSTRAINT fk_hm_passkeys_account FOREIGN KEY (pkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_directory ADD CONSTRAINT fk_hm_directory_account FOREIGN KEY (diraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_dmarcreports ADD CONSTRAINT fk_hm_dmarcreports_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
@@ -2488,4 +2512,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6077)
+insert into hm_dbversion values (6078)

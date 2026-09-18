@@ -1014,6 +1014,12 @@ const spec = {
          put: { summary: 'Change an IP range', description: RANGE_PUT, requestBody: body({}) },
          delete: { summary: 'Delete an IP range' }
       },
+      '/api/v1/accounts/{address}/directory': {
+         get: { summary: "An account's directory entry, administered" },
+         put: { summary: "Set an account's directory entry",
+            description: 'Any subset of title, department, phone, mobile, office, photo, opt_out and note; a member sent null is cleared.' }
+      },
+      '/api/v1/accounts/{address}/directory/photo': { get: { summary: "An account's directory photo" } },
       '/api/v1/accounts/{address}/move': {
          get: { summary: 'Whether this mailbox can be moved now, and what it has been through' },
          post: { summary: 'Rename a mailbox, or move it to another domain on this server',
@@ -1205,6 +1211,8 @@ const state = {
    },
    // The newest journal row per address, written by a move.
    moves: {},
+   // The accounts' entries in the organisation's directory, by address.
+   directory: {},
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
    domains: [
@@ -1924,6 +1932,29 @@ function answer(method, path, headers, raw) {
    // Renaming a mailbox, and moving one to another domain: the GET says whether
    // it would be refused now and what this mailbox has been through, the POST
    // does it. The state carries the refusal so a test can ask for one.
+   // The account's entry in the organisation's directory (DirectoryStore.h).
+   // State, because the whole of the card is that a PUT changes it and the
+   // next GET says so.
+   if (/^\/api\/v1\/accounts\/[^/]+\/directory$/.test(path)) {
+      const address = segment(path, 4);
+      const domain = Object.keys(state.accounts).filter((d) => state.accounts[d].some((a) => a.address === address))[0];
+      if (!domain) { return json(404, { error: 'no such account' }); }
+      const entry = state.directory[address] || (state.directory[address] =
+         { title: '', department: '', phone: '', mobile: '', office: '', note: '', opt_out: false, has_photo: false, photo_type: '', updated: '' });
+      if (method === 'GET') { return json(200, { address: address, entry: Object.assign({}, entry) }); }
+      if (method === 'PUT') {
+         Object.keys(parsed || {}).forEach((k) => {
+            if (k === 'photo') {
+               entry.has_photo = parsed.photo !== null && parsed.photo !== '';
+               entry.photo_type = entry.has_photo ? 'image/png' : '';
+               return;
+            }
+            entry[k] = parsed[k];
+         });
+         entry.updated = '2026-09-18 12:00:00';
+         return json(200, { address: address, entry: Object.assign({}, entry) });
+      }
+   }
    if (/^\/api\/v1\/accounts\/[^/]+\/move$/.test(path)) {
       const address = segment(path, 4);
       const domain = Object.keys(state.accounts).filter((d) => state.accounts[d].some((a) => a.address === address))[0];
@@ -3315,7 +3346,7 @@ async function main() {
    await flush();
    check('Edit reads the account whole', called(before, 'GET', '/api/v1/accounts/anna%40example.com').length === 1 && content().querySelector('h2').textContent.indexOf('anna@example.com') >= 0, paths(before));
    const accountHeadings = content().querySelectorAll('h2').map((h) => h.textContent.trim());
-   check('the editor is grouped as the desktop dialog is', ['General', 'Forwarding', 'Auto-reply', 'Spam', 'Signature', 'Sieve', 'Directory'].every((g) => accountHeadings.indexOf(g) >= 0) && accountHeadings.indexOf('Other') < 0,
+   check('the editor is grouped as the desktop dialog is', ['General', 'Forwarding', 'Auto-reply', 'Spam', 'Signature', 'Sieve', 'Windows directory', 'Directory entry'].every((g) => accountHeadings.indexOf(g) >= 0) && accountHeadings.indexOf('Other') < 0,
       JSON.stringify(accountHeadings));
    const drawnAccount = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('acct_') === 0).map((id) => id.slice(5)).sort();
    check('every key of the update has a control, and nothing else', JSON.stringify(drawnAccount) === JSON.stringify(Object.keys(ACCOUNT_PROPS).sort()), JSON.stringify(drawnAccount));
@@ -3369,6 +3400,48 @@ async function main() {
    click(act('accounts', { domain: 'example.com' }));
    await flush();
    check('the way back re-reads the accounts of the domain', called(before, 'GET', '/api/v1/domains/example.com/accounts').length === 1 && rows().length === 2 && act('accountedit', { address: 'carla@example.com' }) !== null);
+
+
+   // ---- the account's directory entry: its own route, its own card
+   before = requests.length;
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   check('the editor reads the account\'s directory entry on its own route', called(before, 'GET', '/api/v1/accounts/anna%40example.com/directory').length === 1, paths(before));
+   check('the directory card is drawn with a control for each field and the opt-out',
+      content().querySelectorAll('h2').map((h) => h.textContent.trim()).indexOf('Directory entry') >= 0 &&
+      ['title', 'department', 'phone', 'mobile', 'office', 'note'].every((k) => !!document.getElementById('dir_' + k)) && !!document.getElementById('dirOptOut'),
+      JSON.stringify(content().querySelectorAll('h2').map((h) => h.textContent.trim())));
+   before = requests.length;
+   click(act('accountdirsave'));
+   await flush();
+   check('saving the entry with nothing changed sends nothing', called(before, 'PUT', /directory/).length === 0 && toastText() === 'Nothing changed', toastText());
+   setValue('dir_title', 'Head of Engines');
+   setValue('dir_phone', '+44 20 7946 0000');
+   setValue('dir_note', 'Asked to be listed as Ada.');
+   before = requests.length;
+   click(act('accountdirsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/directory');
+   check('saving sends only the fields that changed, the note among them',
+      JSON.stringify(put) === '{"title":"Head of Engines","phone":"+44 20 7946 0000","note":"Asked to be listed as Ada."}', JSON.stringify(put));
+   check('then reads the entry again and redraws from what the server holds',
+      called(before, 'GET', '/api/v1/accounts/anna%40example.com/directory').length === 1 &&
+      document.getElementById('dir_title').value === 'Head of Engines' && toastText() === 'Directory entry saved', toastText());
+   setChecked('dirOptOut', true);
+   before = requests.length;
+   click(act('accountdirsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/directory');
+   check('the administrator can take the account out of the directory, and that alone is sent', JSON.stringify(put) === '{"opt_out":true}', JSON.stringify(put));
+   setChecked('dirOptOut', false);
+   before = requests.length;
+   click(act('accountdirsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/directory');
+   check('and put it back', JSON.stringify(put) === '{"opt_out":false}', JSON.stringify(put));
+   // Back to the listing, which is where the block below begins.
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
 
    // ---- the recovery card: what an administrator may know about an account's
    // way back in, and the two things they may do about it. Two acts and not

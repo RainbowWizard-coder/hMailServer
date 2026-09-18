@@ -153,6 +153,28 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual(card, fetched.Body, "The stored vCard did not come back byte for byte.");
       }
 
+      // ----------------------------------------------------------- hm_directory
+
+      [Test]
+      [Description("hm_directory: the account's directory entry survives a backup and a restore that deleted the "
+                   + "domain - the title and the telephone number somebody typed, and the opt-out, which is a person "
+                   + "having asked to be left out of the list")]
+      public void TheDirectoryEntryComesBack()
+      {
+         Response set = Rest("PUT", "/api/v1/me/directory/me", User(),
+            "{\"title\":\"Countess of Lovelace\",\"department\":\"Analytical Engines\",\"phone\":\"+44 20 7946 0000\",\"opt_out\":true}");
+         Assert.AreEqual(200, set.Status, "Body: " + set.Body);
+
+         BackupDeleteAndRestore();
+
+         Response read = Rest("GET", "/api/v1/me/directory/me", User());
+         Assert.AreEqual(200, read.Status, "Body: " + read.Body);
+         StringAssert.Contains("\"title\":\"Countess of Lovelace\"", read.Body);
+         StringAssert.Contains("\"department\":\"Analytical Engines\"", read.Body);
+         StringAssert.Contains("\"phone\":\"+44 20 7946 0000\"", read.Body);
+         StringAssert.Contains("\"opt_out\":true", read.Body);
+      }
+
       // ---------------------------------------------------- hm_maskedaddresses
 
       [Test]

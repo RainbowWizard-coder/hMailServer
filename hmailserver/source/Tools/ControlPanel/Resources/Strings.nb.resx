@@ -395,6 +395,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>En DMARC-oppføring med p={0} er aktiv på {1} - strengere enn utgangspunktet p=none. Det er riktig hvis du allerede vet at e-posten din består samsvarskravet; holder du fortsatt på å sette opp SPF og DKIM, blir e-post som feiler {2} akkurat nå. Publisert: {3}</value>
   </data>
+  <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
+    <value>En JPEG, en PNG eller en GIF, opptil 100 KB. Det som beholdes, bedømmes ut fra selve bytene og ikke filnavnet, og bildet lagres sammen med kontoen.</value>
+  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Det finnes en TXT-oppføring på {0}, men filen med den private nøkkelen kunne ikke leses fra denne maskinen, så om den bærer RIKTIG nøkkel kan ikke verifiseres herfra. Kjør kontrollen på selve serveren, eller bruk domenets DKIM-fane.</value>
   </data>
@@ -433,6 +436,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>En leveringsrapport</value>
+  </data>
+  <data name="A directory photo is at most 100 KB." xml:space="preserve">
+    <value>Et katalogbilde er høyst 100 KB.</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Et domene - serveren trenger ett før den kan motta post</value>
@@ -511,6 +517,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>En ny nøkkel er generert og gjort klar. Publiser oppføringen dens.</value>
+  </data>
+  <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
+    <value>Et nytt bilde er valgt; det lagres sammen med kontoen.</value>
   </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Det er skrevet inn et nytt passord for tjenestekontoen OG «fjern det lagrede passordet» er krysset av. Fjern avkrysningen på én av dem - å gjette hva som var ment er ikke denne sidens avgjørelse.</value>
@@ -1078,6 +1087,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Administrator roles" xml:space="preserve">
     <value>Administratorroller</value>
+  </data>
+  <data name="Administrator's _note" xml:space="preserve">
+    <value>A_dministratorens notat</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>Avansert</value>
@@ -1719,6 +1731,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-sertifikatbunt (PEM) som klientsertifikater må kjede til</value>
   </data>
+  <data name="C_hoose a photo..." xml:space="preserve">
+    <value>_Velg et bilde...</value>
+  </data>
   <data name="Cache" xml:space="preserve">
     <value>Hurtigbuffer</value>
   </data>
@@ -1904,6 +1919,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Checks, in the order the server runs them" xml:space="preserve">
     <value>Kontroller, i rekkefølgen serveren kjører dem</value>
+  </data>
+  <data name="Choose a photo" xml:space="preserve">
+    <value>Velg et bilde</value>
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Velg en forhåndsinnstilling…</value>
@@ -2402,6 +2420,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
 
 {1}</value>
   </data>
+  <data name="Could not read the photo: {0}" xml:space="preserve">
+    <value>Bildet kunne ikke leses: {0}</value>
+  </data>
   <data name="Could not read the queue: {0}" xml:space="preserve">
     <value>Kunne ikke lese køen: {0}</value>
   </data>
@@ -2677,6 +2698,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="DNSQueryTimeout (10)" xml:space="preserve">
     <value>DNSQueryTimeout (10)</value>
+  </data>
+  <data name="D_epartment" xml:space="preserve">
+    <value>_Avdeling</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>Daglig t_idspunkt for sikkerhetskopiering (24-timers TT:MM, tom = av)</value>
@@ -2979,11 +3003,11 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
     <value>Innstillingene for sammendrag er lagret. Hvilke domener som sender et sammendrag, og når, angis på hvert domenes fane Karantenesammendrag.</value>
   </data>
-  <data name="Directory" xml:space="preserve">
-    <value>Katalog</value>
-  </data>
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Katalogautentisering (LDAP)</value>
+  </data>
+  <data name="Directory entry" xml:space="preserve">
+    <value>Oppføring i katalogen</value>
   </data>
   <data name="Directory server" xml:space="preserve">
     <value>Katalogserver</value>
@@ -3463,6 +3487,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Every value fails closed. A section whose Scope is anything but the literal &quot;full&quot; is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one." xml:space="preserve">
     <value>Hver verdi feiler lukket. En seksjon der Scope er noe annet enn det bokstavelige "full", er skrivebeskyttet, en nøkkel der utløpet mangler eller er uleselig, regnes som utløpt, og en seksjon uten brukbar digest ignoreres helt. Det er det som gjør lageret trygt å redigere for hånd: en skrivefeil kan bare noen gang innsnevre en nøkkel, aldri utvide en.</value>
+  </data>
+  <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
+    <value>Alle med postkasse i dette domenet ser disse ved siden av navnet, på Katalog-siden i nettposten, i Til-feltet sitt og i den skrivebeskyttede adresseboken en telefon synkroniserer. Ingenting herfra krysser et domene.</value>
   </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Alt ErrorManager rapporterer</value>
@@ -4124,6 +4151,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ignorert av serveren - den lagrede digesten er ikke en brukbar SHA-256-verdi, så denne seksjonen autentiserer ingenting. Tilbakekall den og opprett en erstatning.</value>
   </data>
+  <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
+    <value>Bilder (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>I en DNSSEC-signert sone, publiser en TLSA-oppføring (vanligvis usage 3, selector 1, matching type 1 - '3 1 1' med SHA-256 av sertifikatets offentlige nøkkel) på _25._tcp.&lt;mx-host&gt; for hver MX-vert. Verifiser med: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer kan ikke publisere DNS-oppføringer eller signere sonen din, og dette panelet har ikke noe TLSA-oppslag å sjekke dem med.</value>
   </data>
@@ -4374,6 +4404,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>La verten stå tom, og domenet har ingen mening: den serveromfattende SMTP-videresenderen gjelder, akkurat som før denne innstillingen fantes. En rute vinner fortsatt over begge, fordi en rute er en uttalelse om målet.</value>
+  </data>
+  <data name="Leave this account _out of the directory" xml:space="preserve">
+    <value>_Hold denne kontoen utenfor katalogen</value>
   </data>
   <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
     <value>La dette stå av med mindre du bygger dine egne installasjonsprogrammer og signerer dem. Dette prosjektets utgivelser er ennå ikke Authenticode-signert, så å slå det på avviser hver eneste utgivelse som finnes: nedlastingen stopper med "installasjonsprogrammet bærer ingen Authenticode-signatur", og ingen oppdatering kan noen gang tas i bruk. Sigstore-signaturen, som hver utgivelse faktisk bærer, kontrolleres uansett og er ikke valgfri.</value>
@@ -5605,6 +5638,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Av. Ingen melding utsettes ved første forsøk.</value>
   </data>
+  <data name="Offi_ce" xml:space="preserve">
+    <value>_Kontor</value>
+  </data>
   <data name="On" xml:space="preserve">
     <value>På</value>
   </data>
@@ -5845,6 +5881,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Out of office" xml:space="preserve">
     <value>Fravær</value>
   </data>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
+    <value>Ute av listen, ute av Til-feltet til alle andre og ute av CardDAV-samlingen. Det skjuler ingen postkasse: post kommer fram, og alle som kjenner adressen, kan skrive. Personen kan sette det selv i nettposten uansett hva serverens DirectoryUserEditable sier.</value>
+  </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Utgående TLS</value>
   </data>
@@ -6056,6 +6095,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Fase: {0}</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Bilde</value>
   </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Pek serveren mot en SpamAssassin-vert, og velg hvordan poengsummen dens slås sammen.</value>
@@ -6621,6 +6663,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Husk så mange tidligere passord (0 = ingen historikk)</value>
+  </data>
+  <data name="Remo_ve the photo" xml:space="preserve">
+    <value>_Fjern bildet</value>
   </data>
   <data name="Remote domain" xml:space="preserve">
     <value>Eksternt domene</value>
@@ -8352,6 +8397,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="That event happened before the message was queued - a refusal during the SMTP conversation - so there is no message to follow." xml:space="preserve">
     <value>Den hendelsen skjedde før meldingen ble lagt i kø - en avvisning under SMTP-samtalen - så det er ingen melding å følge.</value>
   </data>
+  <data name="That file is not a JPEG, a PNG or a GIF." xml:space="preserve">
+    <value>Filen er verken en JPEG, en PNG eller en GIF.</value>
+  </data>
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Det er grålisting. Unnta avsenderadressen her, eller slå grålisting helt av.</value>
   </data>
@@ -8869,6 +8917,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The person's data" xml:space="preserve">
     <value>Personens data</value>
   </data>
+  <data name="The photo is removed when the account is saved." xml:space="preserve">
+    <value>Bildet fjernes når kontoen lagres.</value>
+  </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Policyen serveres over HTTPS. Fra denne maskinen beviser det også at mta-sts.{0} kan slås opp, at sertifikatet validerer for det navnet, og at lytteren svarer - internettets syn kan fortsatt avvike hvis en brannmur behandler denne maskinen spesielt. Servert innhold: {1}</value>
   </data>
@@ -9201,6 +9252,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
     <value>Dette Control Panel er koblet til en ekstern server, og nøkkelfilen ligger på den maskinens disk - den kan ikke leses fra denne maskinen, så ingenting ved den er verifisert. Dette er "ukjent", ikke "OK": sjekk den på selve serveren, eller fra dens side Eksternt oppsett.</value>
+  </data>
+  <data name="This account has a photo." xml:space="preserve">
+    <value>Denne kontoen har et bilde.</value>
+  </data>
+  <data name="This account has no photo." xml:space="preserve">
+    <value>Denne kontoen har ikke noe bilde.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Denne handlingen har ingen ekstra parametere.</value>
@@ -9981,6 +10038,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Windows _user name" xml:space="preserve">
     <value>_Windows-brukernavn</value>
   </data>
+  <data name="Windows directory" xml:space="preserve">
+    <value>Windows-katalog</value>
+  </data>
   <data name="Windows display language" xml:space="preserve">
     <value>Windows-visningsspråk</value>
   </data>
@@ -10058,6 +10118,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domenene dine ligger i denne listen. Åpner du ett, får du kontoene, aliasene og distribusjonslistene til det.</value>
+  </data>
+  <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
+    <value>Bare din: notatet står ikke i kataloglisten, ikke i nettposten og ikke i kortene en telefon synkroniserer.</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-arkiver (*.zip)|*.zip</value>
@@ -10287,6 +10350,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="_Install update" xml:space="preserve">
     <value>_Installer oppdatering</value>
   </data>
+  <data name="_Job title" xml:space="preserve">
+    <value>_Stillingstittel</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Behold opprinnelig melding</value>
   </data>
@@ -10334,6 +10400,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Minutes between retries" xml:space="preserve">
     <value>_Minutter mellom nye forsøk</value>
+  </data>
+  <data name="_Mobile" xml:space="preserve">
+    <value>_Mobil</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Moderator (tom = ingen moderering)</value>
@@ -10538,6 +10607,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Hvem kan sende til denne listen</value>
+  </data>
+  <data name="_Work telephone" xml:space="preserve">
+    <value>A_rbeidstelefon</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>et siffer</value>

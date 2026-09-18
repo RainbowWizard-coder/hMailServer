@@ -44,6 +44,7 @@
 #include "CalDavServer.h"
 #include "ContactStore.h"
 #include "ContactGroups.h"
+#include "DirectoryStore.h"
 #include "../Application/Application.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/SQLCommand.h"
@@ -79,6 +80,11 @@ namespace HM
       const char *AllowContact = "Allow: OPTIONS, GET, HEAD, PUT, DELETE, PROPFIND, PROPPATCH, REPORT\r\n";
       const char *AllowCollection = "Allow: OPTIONS, PROPFIND, PROPPATCH, REPORT\r\n";
 
+      // The directory is read-only, and says so in the one header a client
+      // reads to find out: no PUT, no DELETE, no PROPPATCH.
+      const char *AllowDirectoryCard = "Allow: OPTIONS, GET, HEAD, PROPFIND, REPORT\r\n";
+      const char *AllowDirectoryCollection = "Allow: OPTIONS, PROPFIND, REPORT\r\n";
+
       //------------------------------------------------------------------------
       // The resources
       //------------------------------------------------------------------------
@@ -93,8 +99,18 @@ namespace HM
          KindHome,                // /dav/addressbooks/<address>/
          KindAddressBook,         // /dav/addressbooks/<address>/contacts/
          KindContact,             // .../contacts/<id>.vcf, and the contact exists
-         KindContactSlot          // .../contacts/<name>, nothing there yet: PUT may create
+         KindContactSlot,         // .../contacts/<name>, nothing there yet: PUT may create
+         KindDirectory,           // /dav/addressbooks/<address>/directory/ - the organisation's, read-only
+         KindDirectoryCard,       // .../directory/account-<id>.vcf or list-<id>.vcf
+         KindDirectorySlot        // .../directory/<name>, nothing there: a PUT is refused, not 404
       };
+
+      // The three kinds that are the organisation's directory rather than the
+      // account's own address book (DirectoryStore.h).
+      bool IsDirectoryKind(ResourceKind kind)
+      {
+         return kind == KindDirectory || kind == KindDirectoryCard || kind == KindDirectorySlot;
+      }
 
       struct Resource
       {
@@ -104,18 +120,55 @@ namespace HM
          AnsiString href;        // the canonical href, percent-encoded
          ContactRecord contact;  // KindContact only
          AnsiString slotName;    // KindContactSlot only: the name, decoded
+         int directoryIndex = -1;   // KindDirectoryCard only: its place in the loaded directory
       };
 
       // A member of the address book as the responses see it: the row, the
       // card the server serves for it and that card's ETag.
+      //
+      // A directory member carries its entry as well, and its card is built
+      // without the PHOTO until something asks for the card's body (CardOf).
+      // The photo is up to 137 KB of base64 per person and the collection is
+      // polled for its ctag by every phone that subscribes to it; building
+      // every card with every photo to answer "has anything changed" was the
+      // whole domain's photographs per poll. The ETag is computed so that it
+      // does not need the photo either - see FillDirectoryMember.
       struct Member
       {
          ContactRecord record;
-         AnsiString card;
+         mutable AnsiString card;
          AnsiString etag;
          AnsiString href;
          AnsiString uid;
+
+         DirectoryEntry entry;             // the directory's members only
+         mutable bool photoPending = false;
       };
+
+      // The card of a member, with its photo if it has one that has not been
+      // read yet. The lazy read is the only thing mutable here: a Context
+      // belongs to one request on one thread.
+      const AnsiString &CardOf(const Member &member)
+      {
+         if (!member.photoPending)
+            return member.card;
+
+         member.photoPending = false;
+
+         DirectoryRecord whole;
+         if (DirectoryStore::Get(member.entry.id, whole) && whole.stored && !whole.photo.IsEmpty())
+         {
+            // The opt-out is the listing's - it is what let this entry be
+            // listed at all - and the rest of the row is read again with the
+            // photo, which is the only thing that was missing.
+            DirectoryEntry complete = member.entry;
+            complete.record = whole;
+            complete.record.optOut = member.entry.record.optOut;
+            member.card = DirectoryStore::GenerateCard(member.uid, complete);
+         }
+
+         return member.card;
+      }
 
       // Everything one request needs to know, computed once.
       struct Context
@@ -130,15 +183,32 @@ namespace HM
          AnsiString principalHref;
          AnsiString homeHref;
          AnsiString bookHref;
+         AnsiString directoryHref;
+         __int64 domainId = 0;
 
-         // The address book's members, loaded on first need.
+         // The address book's members, loaded on first need, and the
+         // directory's beside them. Two vectors and not one, because a PROPFIND
+         // on the home asks both collections for their ctag in one request and
+         // a shared vector would answer one of them the other's.
          bool listed;
          bool listFailed;
          std::vector<Member> members;
+
+         bool directoryListed = false;
+         bool directoryFailed = false;
+         std::vector<Member> directoryMembers;
       };
 
       // A name-based UUID of a seed, marked as version 8 (RFC 9562 section 5.8)
       // because its bits come from SHA-256: the same seed gives the same UID.
+      // The domain part of an address, for the sentence the directory's
+      // description is.
+      String DomainPartOf(const String &address)
+      {
+         const int at = address.Find(_T("@"));
+         return at < 0 ? String() : address.Mid(at + 1);
+      }
+
       AnsiString StableUidFromSeed_(const AnsiString &seed);
 
       // The UID of a contact the webmail made, which has no card and so no UID
@@ -200,6 +270,46 @@ namespace HM
          member.href = ContactHref(context, record);
       }
 
+      // The resource name a directory entry is served under. It is derived from
+      // the row id and not from the address, so that a person whose address
+      // changes keeps their place in a phone's sync rather than appearing to be
+      // deleted and created; the UID inside the card is derived from the
+      // address, which is what a client matches a card by.
+      AnsiString DirectoryHref(const Context &context, const DirectoryEntry &entry)
+      {
+         return context.directoryHref + (entry.list ? "list-" : "account-") + Int64Text(entry.id) + ".vcf";
+      }
+
+      void FillDirectoryMember(const Context &context, const DirectoryEntry &entry, Member &member)
+      {
+         // The directory has no rows of hm_contacts behind it. What a Member
+         // needs of one is an id, a name and an address, and those are the
+         // entry's; nothing writes it back.
+         member.record = ContactRecord();
+         member.record.id = entry.id;
+         member.record.name = entry.name;
+         member.record.address = entry.address;
+
+         member.entry = entry;
+         member.uid = DirectoryStore::StableUid(Utf8(entry.address), entry.list);
+         member.card = DirectoryStore::GenerateCard(member.uid, entry);
+         member.href = DirectoryHref(context, entry);
+
+         // The photo is not in the card yet, and the ETag must not depend on
+         // it: the same member is answered from a listing that has not read
+         // any photo and from a GET that has read this one, and a client that
+         // saw two ETags for one unchanged card would fetch it for ever. So
+         // the tag is taken over the card WITHOUT the photo, plus the two
+         // things the listing knows about it - whether there is one, and when
+         // the row was last written. Change the photo and dirupdated moves,
+         // so the tag moves with it.
+         AnsiString tagged = member.card;
+         tagged += "PHOTO-STATE:" + (entry.hasPhoto ? Utf8(entry.record.photoType) : AnsiString("")) + ":" + Utf8(entry.record.updated) + "\r\n";
+         member.etag = EtagOf(tagged);
+
+         member.photoPending = !entry.list && entry.hasPhoto;
+      }
+
       bool EnsureListed(Context &context)
       {
          if (context.listed)
@@ -228,16 +338,59 @@ namespace HM
          return true;
       }
 
+      // The organisation's directory of the account's own domain, as cards -
+      // two queries, and not one photograph read until a client asks for a
+      // card's body. With DirectoryEnabled off the collection is empty rather
+      // than absent, so a client that has subscribed to it syncs to nothing
+      // instead of failing every poll.
+      bool EnsureDirectoryListed(Context &context)
+      {
+         if (context.directoryListed)
+            return !context.directoryFailed;
+
+         context.directoryListed = true;
+
+         if (!DirectoryStore::Enabled())
+            return true;
+
+         std::vector<DirectoryEntry> entries;
+         if (!DirectoryStore::List(context.domainId, entries))
+         {
+            context.directoryFailed = true;
+            return false;
+         }
+
+         for (size_t i = 0; i < entries.size(); i++)
+         {
+            Member member;
+            FillDirectoryMember(context, entries[i], member);
+            context.directoryMembers.push_back(member);
+         }
+
+         return true;
+      }
+
+      bool EnsureMembers(Context &context, bool directory)
+      {
+         return directory ? EnsureDirectoryListed(context) : EnsureListed(context);
+      }
+
+      std::vector<Member> &MembersOf(Context &context, bool directory)
+      {
+         return directory ? context.directoryMembers : context.members;
+      }
+
       // The state of the whole collection, from which getctag and the
       // sync-token are made: every member's id and ETag, in id order.
-      bool CollectionTag(Context &context, AnsiString &tag)
+      bool CollectionTag(Context &context, bool directory, AnsiString &tag)
       {
-         if (!EnsureListed(context))
+         if (!EnsureMembers(context, directory))
             return false;
 
+         const std::vector<Member> &members = MembersOf(context, directory);
          std::vector<AnsiString> lines;
-         for (size_t i = 0; i < context.members.size(); i++)
-            lines.push_back(Int64Text(context.members[i].record.id) + ":" + context.members[i].etag);
+         for (size_t i = 0; i < members.size(); i++)
+            lines.push_back(Int64Text(members[i].record.id) + ":" + members[i].etag);
          std::sort(lines.begin(), lines.end());
 
          AnsiString all;
@@ -264,7 +417,14 @@ namespace HM
       // another account's part of it, is simply not found. Another account's
       // principal is 404 rather than 403 so that the tree of one account says
       // nothing about the existence of another.
-      bool Resolve(Context &context, const AnsiString &target, Resource &resource)
+      //
+      // readsCards is false for the methods that cannot succeed inside the
+      // directory whatever the name means - PUT, DELETE, PROPPATCH, OPTIONS,
+      // MKCOL - and then a name under the collection is resolved without
+      // listing it: a card and a slot are answered exactly alike by all of
+      // them, so listing the domain to tell them apart is work done for an
+      // answer that does not depend on it.
+      bool Resolve(Context &context, const AnsiString &target, Resource &resource, bool readsCards)
       {
          std::vector<AnsiString> segments = PathSegments(target);
 
@@ -317,6 +477,59 @@ namespace HM
                resource.href = context.homeHref;
                return true;
             }
+            if (segments[3] == "directory")
+            {
+               if (segments.size() == 4)
+               {
+                  resource.kind = KindDirectory;
+                  resource.href = context.directoryHref;
+                  return true;
+               }
+
+               if (segments.size() != 5 || trailingSlash || segments[4].IsEmpty())
+                  return false;
+
+               // A method that cannot succeed here is answered the same for a
+               // card and for a name the directory does not serve, so it is
+               // not worth a listing to tell them apart.
+               if (!readsCards)
+               {
+                  resource.kind = KindDirectorySlot;
+                  resource.href = context.directoryHref + PercentEncodeSegment(segments[4]);
+                  resource.slotName = segments[4];
+                  return true;
+               }
+
+               // Nothing here is a slot for a reader: the directory is the
+               // server's to write and a name it does not serve is simply not
+               // there.
+               if (!EnsureDirectoryListed(context))
+                  return false;
+
+               const AnsiString wanted = context.directoryHref + PercentEncodeSegment(segments[4]);
+               const std::vector<Member> &members = context.directoryMembers;
+               for (size_t i = 0; i < members.size(); i++)
+               {
+                  if (members[i].href != wanted)
+                     continue;
+
+                  resource.kind = KindDirectoryCard;
+                  resource.contact = members[i].record;
+                  resource.href = members[i].href;
+                  resource.directoryIndex = (int) i;
+                  return true;
+               }
+
+               // A name the directory does not serve. It is a slot rather
+               // than nothing, so that a client that tries to write into the
+               // collection is told it is read-only instead of being told the
+               // resource does not exist - which would invite it to try again.
+               resource.kind = KindDirectorySlot;
+               resource.href = context.directoryHref + PercentEncodeSegment(segments[4]);
+               resource.slotName = segments[4];
+               return true;
+            }
+
             if (segments[3] != "contacts")
                return false;
             if (segments.size() == 4)
@@ -389,6 +602,11 @@ namespace HM
 
       HttpResponse MethodNotAllowed(const Resource &resource)
       {
+         if (resource.kind == KindDirectoryCard || resource.kind == KindDirectorySlot)
+            return Text(405, "method not allowed", AllowDirectoryCard);
+         if (resource.kind == KindDirectory)
+            return Text(405, "method not allowed", AllowDirectoryCollection);
+
          bool contact = resource.kind == KindContact || resource.kind == KindContactSlot;
          return Text(405, "method not allowed", contact ? AllowContact : AllowCollection);
       }
@@ -494,8 +712,10 @@ namespace HM
                          const PropertyName &property, AnsiString &innerXml)
       {
          ResourceKind kind = resource.kind;
-         bool isContact = kind == KindContact;
+         bool isContact = kind == KindContact || kind == KindDirectoryCard;
          bool isCollection = !isContact && kind != KindContactSlot;
+         const bool directory = IsDirectoryKind(kind);
+         const bool anyBook = kind == KindAddressBook || kind == KindDirectory;
 
          if (property.ns == NsDav)
          {
@@ -506,7 +726,7 @@ namespace HM
                   innerXml += "<D:collection/>";
                if (kind == KindPrincipal)
                   innerXml += "<D:principal/>";
-               if (kind == KindAddressBook)
+               if (anyBook)
                   innerXml += "<C:addressbook/>";
                return true;
             }
@@ -522,7 +742,9 @@ namespace HM
                case KindCalendarsCollection: innerXml = "Calendars"; break;
                case KindHome: innerXml = XmlEscape("Address books of " + context.addressUtf8); break;
                case KindAddressBook: innerXml = "Contacts"; break;
+               case KindDirectory: innerXml = "Directory"; break;
                case KindContact:
+               case KindDirectoryCard:
                   innerXml = XmlEscape(resource.contact.name.IsEmpty() ? Utf8(resource.contact.address) : Utf8(resource.contact.name));
                   break;
                default: return false;
@@ -548,21 +770,28 @@ namespace HM
                return true;
             }
 
-            if (property.name == "owner" && (kind == KindHome || kind == KindAddressBook || isContact))
+            if (property.name == "owner" && (kind == KindHome || anyBook || isContact))
             {
                innerXml = Href(context.principalHref);
                return true;
             }
 
-            if (property.name == "current-user-privilege-set" && (kind == KindPrincipal || kind == KindHome || kind == KindAddressBook || isContact))
+            if (property.name == "current-user-privilege-set" && (kind == KindPrincipal || kind == KindHome || anyBook || isContact))
             {
-               innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:write/></D:privilege>"
-                          "<D:privilege><D:write-content/></D:privilege><D:privilege><D:bind/></D:privilege>"
-                          "<D:privilege><D:unbind/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
+               // The directory is the organisation's, kept by the
+               // administrator and by each person's own settings, so a phone is
+               // told plainly that it may read it and nothing else - rather
+               // than being allowed to try a PUT and told 403 at the end of it.
+               if (directory)
+                  innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
+               else
+                  innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:write/></D:privilege>"
+                             "<D:privilege><D:write-content/></D:privilege><D:privilege><D:bind/></D:privilege>"
+                             "<D:privilege><D:unbind/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
                return true;
             }
 
-            if (property.name == "supported-report-set" && kind == KindAddressBook)
+            if (property.name == "supported-report-set" && anyBook)
             {
                innerXml = "<D:supported-report><D:report><C:addressbook-multiget/></D:report></D:supported-report>"
                           "<D:supported-report><D:report><C:addressbook-query/></D:report></D:supported-report>"
@@ -570,10 +799,10 @@ namespace HM
                return true;
             }
 
-            if (property.name == "sync-token" && kind == KindAddressBook)
+            if (property.name == "sync-token" && anyBook)
             {
                AnsiString tag;
-               if (!CollectionTag(context, tag))
+               if (!CollectionTag(context, kind == KindDirectory, tag))
                   return false;
                innerXml = XmlEscape(SyncTokenFor(tag));
                return true;
@@ -593,7 +822,9 @@ namespace HM
 
             if (property.name == "getcontentlength" && isContact && member)
             {
-               innerXml = IntText(member->card.GetLength());
+               // CardOf and not member->card: the length answered must be the
+               // length of what a GET would serve, photo and all.
+               innerXml = IntText(CardOf(*member).GetLength());
                return true;
             }
 
@@ -608,7 +839,7 @@ namespace HM
                return true;
             }
 
-            if (kind == KindAddressBook)
+            if (anyBook)
             {
                if (property.name == "supported-address-data")
                {
@@ -621,7 +852,9 @@ namespace HM
                }
                if (property.name == "addressbook-description")
                {
-                  innerXml = XmlEscape("The contacts of " + context.addressUtf8);
+                  innerXml = directory
+                     ? XmlEscape("The people and lists of " + Utf8(DomainPartOf(context.addressWide)) + ", read-only")
+                     : XmlEscape("The contacts of " + context.addressUtf8);
                   return true;
                }
                if (property.name == "max-resource-size")
@@ -640,7 +873,10 @@ namespace HM
 
             if (property.name == "address-data" && isContact && member)
             {
-               innerXml = XmlEscape(ReduceCard(member->card, request.addressDataProperties));
+               // A client that asks for the cards themselves is asking for the
+               // photographs in them; this is the one place a directory card's
+               // photo is read, and only for the cards actually asked for.
+               innerXml = XmlEscape(ReduceCard(CardOf(*member), request.addressDataProperties));
                return true;
             }
 
@@ -667,10 +903,10 @@ namespace HM
 
          if (property.ns == NsCalendarServer)
          {
-            if (property.name == "getctag" && kind == KindAddressBook)
+            if (property.name == "getctag" && (kind == KindAddressBook || kind == KindDirectory))
             {
                AnsiString tag;
-               if (!CollectionTag(context, tag))
+               if (!CollectionTag(context, kind == KindDirectory, tag))
                   return false;
                innerXml = XmlEscape(tag);
                return true;
@@ -705,6 +941,7 @@ namespace HM
             names.push_back(PropertyName(NsDav, "owner"));
             names.push_back(PropertyName(NsDav, "current-user-privilege-set"));
             break;
+         case KindDirectory:
          case KindAddressBook:
             names.push_back(PropertyName(NsDav, "owner"));
             names.push_back(PropertyName(NsDav, "current-user-privilege-set"));
@@ -716,6 +953,7 @@ namespace HM
             names.push_back(PropertyName(NsCardDav, "supported-collation-set"));
             names.push_back(PropertyName(NsCalendarServer, "getctag"));
             break;
+         case KindDirectoryCard:
          case KindContact:
             names.push_back(PropertyName(NsDav, "getetag"));
             names.push_back(PropertyName(NsDav, "getcontenttype"));
@@ -778,10 +1016,10 @@ namespace HM
          return xml;
       }
 
-      AnsiString ResponseForMember(Context &context, const Member &member, const PropertyRequest &request)
+      AnsiString ResponseForMember(Context &context, const Member &member, const PropertyRequest &request, bool directory = false)
       {
          Resource resource;
-         resource.kind = KindContact;
+         resource.kind = directory ? KindDirectoryCard : KindContact;
          resource.contact = member.record;
          resource.href = member.href;
          return ResponseFor(context, resource, &member, request);
@@ -839,13 +1077,18 @@ namespace HM
 
       HttpResponse HandleOptions(const Resource &resource)
       {
+         if (resource.kind == KindDirectoryCard || resource.kind == KindDirectorySlot)
+            return Respond(200, "text/plain", "", AllowDirectoryCard);
+         if (resource.kind == KindDirectory)
+            return Respond(200, "text/plain", "", AllowDirectoryCollection);
+
          bool contact = resource.kind == KindContact || resource.kind == KindContactSlot;
          return Respond(200, "text/plain", "", contact ? AllowContact : AllowCollection);
       }
 
       HttpResponse HandlePropfind(Context &context, const Resource &resource)
       {
-         if (resource.kind == KindContactSlot)
+         if (resource.kind == KindContactSlot || resource.kind == KindDirectorySlot)
             return NotFound();
 
          PropertyRequest request;
@@ -934,6 +1177,14 @@ namespace HM
                book.kind = KindAddressBook;
                book.href = context.bookHref;
                xml += ResponseFor(context, book, nullptr, request);
+
+               // The organisation's directory beside the account's own book,
+               // so a client that walks the home finds it without being told
+               // its address.
+               Resource directory;
+               directory.kind = KindDirectory;
+               directory.href = context.directoryHref;
+               xml += ResponseFor(context, directory, nullptr, request);
                break;
             }
             case KindAddressBook:
@@ -942,6 +1193,14 @@ namespace HM
                   return Text(500, "the contacts could not be read");
                for (size_t i = 0; i < context.members.size(); i++)
                   xml += ResponseForMember(context, context.members[i], request);
+               break;
+            }
+            case KindDirectory:
+            {
+               if (!EnsureDirectoryListed(context))
+                  return Text(500, "the directory could not be read");
+               for (size_t i = 0; i < context.directoryMembers.size(); i++)
+                  xml += ResponseForMember(context, context.directoryMembers[i], request, true);
                break;
             }
             default:
@@ -962,6 +1221,14 @@ namespace HM
       {
          if (resource.kind == KindContactSlot)
             return NotFound();
+
+         // The directory is not this account's to name or to annotate. The
+         // same 403 with the same reason as a PUT and a DELETE into it: the
+         // three ways of writing to a read-only collection are refused alike,
+         // and the doc and the row say so.
+         if (IsDirectoryKind(resource.kind))
+            return Text(403, "the directory is the organisation's and is served here read-only; its properties are the "
+                             "server's and cannot be set or removed by a client");
 
          XmlElement root;
          AnsiString problem;
@@ -1001,18 +1268,28 @@ namespace HM
          if (resource.kind == KindRoot)
          {
             AnsiString text = "hMailServer CardDAV and CalDAV. Your principal is " + context.principalHref +
-               ", your address book is " + context.bookHref + " and your calendar is " + CalDavServer::HomeHref(context.addressUtf8) + "calendar/.";
+               ", your address book is " + context.bookHref + ", your organisation's directory is " + context.directoryHref +
+               " and your calendar is " + CalDavServer::HomeHref(context.addressUtf8) + "calendar/.";
             return Respond(200, "text/plain; charset=utf-8", head ? AnsiString("") : text + "\r\n");
          }
 
-         if (resource.kind == KindContactSlot)
+         if (resource.kind == KindContactSlot || resource.kind == KindDirectorySlot)
             return NotFound();
 
-         if (resource.kind != KindContact)
+         if (resource.kind != KindContact && resource.kind != KindDirectoryCard)
             return MethodNotAllowed(resource);
 
          Member member;
-         FillMember(context, resource.contact, member);
+         if (resource.kind == KindDirectoryCard)
+         {
+            if (!EnsureDirectoryListed(context))
+               return Text(500, "the directory could not be read");
+            if (resource.directoryIndex < 0 || (size_t) resource.directoryIndex >= context.directoryMembers.size())
+               return NotFound();
+            member = context.directoryMembers[resource.directoryIndex];
+         }
+         else
+            FillMember(context, resource.contact, member);
 
          AnsiString headers = "ETag: " + member.etag + "\r\n";
 
@@ -1030,7 +1307,10 @@ namespace HM
             }
          }
 
-         return Respond(200, "text/vcard; charset=utf-8", head ? AnsiString("") : member.card, headers);
+         // CardOf: a directory card's photo is read here, for this one card
+         // and no other.
+         const AnsiString &card = CardOf(member);
+         return Respond(200, "text/vcard; charset=utf-8", head ? AnsiString("") : card, headers);
       }
 
       bool IsVCardContentType(const AnsiString &contentType)
@@ -1044,6 +1324,10 @@ namespace HM
 
       HttpResponse HandlePut(Context &context, const Resource &resource)
       {
+         if (IsDirectoryKind(resource.kind))
+            return Text(403, "the directory is the organisation's and is served here read-only; a person changes their own "
+                             "entry in the webmail's Settings, and an administrator changes any of them");
+
          if (resource.kind != KindContact && resource.kind != KindContactSlot)
             return MethodNotAllowed(resource);
 
@@ -1247,6 +1531,10 @@ namespace HM
 
       HttpResponse HandleDelete(Context &context, const Resource &resource)
       {
+         if (IsDirectoryKind(resource.kind))
+            return Text(403, "the directory is the organisation's and is served here read-only; a person leaves it with the "
+                             "opt-out on the webmail's Settings page");
+
          if (resource.kind == KindContactSlot)
             return NotFound();
          if (resource.kind != KindContact)
@@ -1271,7 +1559,7 @@ namespace HM
       // The reports
       //------------------------------------------------------------------------
 
-      HttpResponse HandleMultiget(Context &context, const XmlElement &report)
+      HttpResponse HandleMultiget(Context &context, const XmlElement &report, bool directory)
       {
          PropertyRequest request;
          if (const XmlElement *prop = report.Child(NsDav, "prop"))
@@ -1283,8 +1571,10 @@ namespace HM
             request.names.push_back(PropertyName(NsCardDav, "address-data"));
          }
 
-         if (!EnsureListed(context))
-            return Text(500, "the contacts could not be read");
+         if (!EnsureMembers(context, directory))
+            return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
+
+         const std::vector<Member> &members = MembersOf(context, directory);
 
          AnsiString xml = MultistatusOpen();
          size_t hrefs = 0;
@@ -1320,14 +1610,14 @@ namespace HM
             if (!answered.insert(wanted).second)
                continue;
             const Member *found = nullptr;
-            for (size_t j = 0; !found && j < context.members.size(); j++)
+            for (size_t j = 0; !found && j < members.size(); j++)
             {
-               if (PercentDecode(context.members[j].href) == wanted)
-                  found = &context.members[j];
+               if (PercentDecode(members[j].href) == wanted)
+                  found = &members[j];
             }
 
             if (found)
-               xml += ResponseForMember(context, *found, request);
+               xml += ResponseForMember(context, *found, request, directory);
             else
                xml += " <D:response>\r\n  " + Href(href) + "\r\n  <D:status>HTTP/1.1 404 Not Found</D:status>\r\n </D:response>\r\n";
          }
@@ -1509,7 +1799,7 @@ namespace HM
          return filter.allOf ? allMatched : anyMatched;
       }
 
-      HttpResponse HandleQuery(Context &context, const XmlElement &report)
+      HttpResponse HandleQuery(Context &context, const XmlElement &report, bool directory)
       {
          PropertyRequest request;
          if (const XmlElement *prop = report.Child(NsDav, "prop"))
@@ -1536,18 +1826,20 @@ namespace HM
             }
          }
 
-         if (!EnsureListed(context))
-            return Text(500, "the contacts could not be read");
+         if (!EnsureMembers(context, directory))
+            return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
+
+         const std::vector<Member> &members = MembersOf(context, directory);
 
          AnsiString xml = MultistatusOpen();
          int answered = 0;
-         for (size_t i = 0; i < context.members.size(); i++)
+         for (size_t i = 0; i < members.size(); i++)
          {
             if (limit >= 0 && answered >= limit)
                break;
-            if (!FilterMatches(filter, context.members[i]))
+            if (!FilterMatches(filter, members[i]))
                continue;
-            xml += ResponseForMember(context, context.members[i], request);
+            xml += ResponseForMember(context, members[i], request, directory);
             answered++;
          }
 
@@ -1555,7 +1847,7 @@ namespace HM
          return Xml(207, xml);
       }
 
-      HttpResponse HandleSyncCollection(Context &context, const XmlElement &report)
+      HttpResponse HandleSyncCollection(Context &context, const XmlElement &report, bool directory)
       {
          PropertyRequest request;
          if (const XmlElement *prop = report.Child(NsDav, "prop"))
@@ -1571,17 +1863,19 @@ namespace HM
             presented = Trimmed(token->text);
 
          AnsiString tag;
-         if (!CollectionTag(context, tag))
-            return Text(500, "the contacts could not be read");
+         if (!CollectionTag(context, directory, tag))
+            return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
          AnsiString current = SyncTokenFor(tag);
+
+         const std::vector<Member> &members = MembersOf(context, directory);
 
          AnsiString xml = MultistatusOpen();
 
          if (presented.IsEmpty())
          {
             // The initial sync: everything.
-            for (size_t i = 0; i < context.members.size(); i++)
-               xml += ResponseForMember(context, context.members[i], request);
+            for (size_t i = 0; i < members.size(); i++)
+               xml += ResponseForMember(context, members[i], request, directory);
          }
          else if (presented != current)
          {
@@ -1600,7 +1894,7 @@ namespace HM
 
       HttpResponse HandleReport(Context &context, const Resource &resource)
       {
-         if (resource.kind == KindContactSlot)
+         if (resource.kind == KindContactSlot || resource.kind == KindDirectorySlot)
             return NotFound();
 
          XmlElement root;
@@ -1616,17 +1910,21 @@ namespace HM
             return DavError(403, "<D:supported-report/>", "The reports here are addressbook-multiget, addressbook-query and sync-collection.");
 
          // multiget is allowed at the address book and at a contact; the
-         // other two are questions about the collection.
-         bool onBook = resource.kind == KindAddressBook;
-         bool onContact = resource.kind == KindContact;
+         // other two are questions about the collection. The directory answers
+         // all three the same way, since a phone that subscribes to it polls it
+         // exactly as it polls the account's own book.
+         const bool directory = IsDirectoryKind(resource.kind);
+         bool onBook = resource.kind == KindAddressBook || resource.kind == KindDirectory;
+         bool onContact = resource.kind == KindContact || resource.kind == KindDirectoryCard;
          if (!onBook && !(multiget && onContact))
-            return DavError(403, "<D:supported-report/>", "This report applies to the address book, " + context.bookHref + ".");
+            return DavError(403, "<D:supported-report/>", "This report applies to the address book, " + context.bookHref +
+               ", or to the directory, " + context.directoryHref + ".");
 
          if (multiget)
-            return HandleMultiget(context, root);
+            return HandleMultiget(context, root, directory);
          if (query)
-            return HandleQuery(context, root);
-         return HandleSyncCollection(context, root);
+            return HandleQuery(context, root, directory);
+         return HandleSyncCollection(context, root, directory);
       }
    }
 
@@ -1693,9 +1991,16 @@ namespace HM
       context.principalHref = AnsiString(ContextPath) + "principals/" + segment + "/";
       context.homeHref = AnsiString(ContextPath) + "addressbooks/" + segment + "/";
       context.bookHref = context.homeHref + "contacts/";
+      context.directoryHref = context.homeHref + "directory/";
+      context.domainId = context.account->GetDomainID();
+
+      // Only the four methods that answer with a card's content, or with a
+      // property of one, need the directory listed to tell a card from a name
+      // it does not serve; the rest are refused the same way either way.
+      const bool readsCards = method == "GET" || method == "HEAD" || method == "PROPFIND" || method == "REPORT";
 
       Resource resource;
-      if (!Resolve(context, request.target, resource))
+      if (!Resolve(context, request.target, resource, readsCards))
          return NotFound();
 
       HttpResponse response;
@@ -1718,7 +2023,7 @@ namespace HM
          else if (method == "DELETE")
             response = HandleDelete(context, resource);
          else if (method == "MKCOL" || method == "MKCALENDAR")
-            response = Text(403, "this server keeps one address book per account, Contacts, and one calendar, Calendar; no collection can be made");
+            response = Text(403, "this server keeps one address book per account, Contacts, the organisation's Directory beside it, and one calendar, Calendar; no collection can be made");
          else
             response = MethodNotAllowed(resource);
       }

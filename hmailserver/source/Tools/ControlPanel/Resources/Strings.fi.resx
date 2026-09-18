@@ -395,6 +395,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>Osoitteessa {1} on julkaistuna DMARC-tietue, jossa p={0} – tiukempi kuin p=none-lähtökohta. Se on oikein, jos tiedät jo postisi läpäisevän kohdistuksen; jos SPF ja DKIM ovat vielä työn alla, epäonnistuvaa postia {2} juuri nyt. Julkaistu: {3}</value>
   </data>
+  <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
+    <value>JPEG, PNG tai GIF, enintään 100 KB. Se, mitä säilytetään, ratkaistaan tavuista itsestään eikä tiedoston nimestä, ja kuva tallennetaan tilin mukana.</value>
+  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Osoitteessa {0} on TXT-tietue, mutta yksityisen avaimen tiedostoa ei voitu lukea tältä koneelta, joten täältä ei voi varmistaa, sisältääkö se OIKEAN avaimen. Suorita tarkistus itse palvelimella tai käytä verkkotunnuksen DKIM-välilehteä.</value>
   </data>
@@ -433,6 +436,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>Toimitusraportti</value>
+  </data>
+  <data name="A directory photo is at most 100 KB." xml:space="preserve">
+    <value>Hakemistokuva saa olla enintään 100 KB.</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Verkkotunnus - palvelin tarvitsee sellaisen ennen kuin se voi vastaanottaa postia</value>
@@ -511,6 +517,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>Uusi avain on luotu ja valmisteltu. Julkaise sen tietue.</value>
+  </data>
+  <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
+    <value>Uusi kuva on valittu; se tallennetaan tilin mukana.</value>
   </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Uusi palvelutilin salasana on kirjoitettu JA "poista tallennettu salasana" on rastitettu. Poista rasti toisesta – tämän sivun ei kuulu arvata kumpi oli tarkoitus.</value>
@@ -1078,6 +1087,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Administrator roles" xml:space="preserve">
     <value>Ylläpitäjäroolit</value>
+  </data>
+  <data name="Administrator's _note" xml:space="preserve">
+    <value>Y_lläpitäjän muistiinpano</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>Lisäasetukset</value>
@@ -1719,6 +1731,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-varmennepaketti (PEM), johon asiakasvarmenteiden on ketjuuduttava</value>
   </data>
+  <data name="C_hoose a photo..." xml:space="preserve">
+    <value>_Valitse kuva...</value>
+  </data>
   <data name="Cache" xml:space="preserve">
     <value>Välimuisti</value>
   </data>
@@ -1904,6 +1919,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Checks, in the order the server runs them" xml:space="preserve">
     <value>Tarkistukset siinä järjestyksessä, jossa palvelin ajaa ne</value>
+  </data>
+  <data name="Choose a photo" xml:space="preserve">
+    <value>Valitse kuva</value>
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Valitse esiasetus…</value>
@@ -2402,6 +2420,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
 
 {1}</value>
   </data>
+  <data name="Could not read the photo: {0}" xml:space="preserve">
+    <value>Kuvaa ei voitu lukea: {0}</value>
+  </data>
   <data name="Could not read the queue: {0}" xml:space="preserve">
     <value>Jonoa ei voitu lukea: {0}</value>
   </data>
@@ -2677,6 +2698,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="DNSQueryTimeout (10)" xml:space="preserve">
     <value>DNSQueryTimeout (10)</value>
+  </data>
+  <data name="D_epartment" xml:space="preserve">
+    <value>_Osasto</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>Päivittäinen varmuuskopio_inti kellonaikaan (24 tunnin TT:MM, tyhjä = pois)</value>
@@ -2979,11 +3003,11 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
     <value>Koosteen asetukset tallennettu. Mitkä verkkotunnukset lähettävät koosteen ja mihin aikaan, määritetään kunkin verkkotunnuksen Karanteenikooste-välilehdellä.</value>
   </data>
-  <data name="Directory" xml:space="preserve">
-    <value>Hakemisto</value>
-  </data>
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Hakemistotodennus (LDAP)</value>
+  </data>
+  <data name="Directory entry" xml:space="preserve">
+    <value>Hakemistotiedot</value>
   </data>
   <data name="Directory server" xml:space="preserve">
     <value>Hakemistopalvelin</value>
@@ -3463,6 +3487,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every value fails closed. A section whose Scope is anything but the literal &quot;full&quot; is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one." xml:space="preserve">
     <value>Jokainen arvo epäonnistuu turvalliseen suuntaan. Osio, jonka Scope on mitä tahansa muuta kuin kirjaimellisesti "full", on vain luku -tilassa, avain, jonka vanheneminen puuttuu tai on lukukelvoton, lasketaan vanhentuneeksi, ja osio ilman käyttökelpoista tiivistettä ohitetaan kokonaan. Se tekee varastosta turvallisen käsin muokattavaksi: kirjoitusvirhe voi vain kaventaa avainta, ei koskaan laajentaa sitä.</value>
+  </data>
+  <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
+    <value>Kaikki, joilla on postilaatikko tässä verkkotunnuksessa, näkevät nämä nimen vieressä, webmailin Hakemisto-sivulla, Vastaanottaja-kentässään ja vain luettavassa osoitekirjassa, jonka puhelin synkronoi. Mikään tästä ei ylitä verkkotunnuksen rajaa.</value>
   </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Kaikki, mistä ErrorManager raportoi</value>
@@ -4124,6 +4151,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Palvelin ohittaa - tallennettu tiiviste ei ole käyttökelpoinen SHA-256-arvo, joten tämä osio ei todenna mitään. Kumoa se ja luo korvaava.</value>
   </data>
+  <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
+    <value>Kuvat (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Julkaise DNSSEC-allekirjoitetussa vyöhykkeessä TLSA-tietue (yleensä usage 3, selector 1, matching type 1 - '3 1 1' varmenteesi julkisen avaimen SHA-256-tiivisteellä) osoitteessa _25._tcp.&lt;mx-host&gt; jokaiselle MX-koneelle. Tarkista komennolla: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer ei voi julkaista DNS-tietueita eikä allekirjoittaa vyöhykettäsi, eikä tässä paneelissa ole TLSA-hakua, jolla ne voisi tarkistaa.</value>
   </data>
@@ -4374,6 +4404,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Jätä kone tyhjäksi, niin verkkotunnuksella ei ole mielipidettä: palvelimenlaajuinen SMTP-välittäjä pätee täsmälleen kuten ennen tämän asetuksen olemassaoloa. Reitti voittaa silti molemmat, koska reitti on lausuma kohteesta.</value>
+  </data>
+  <data name="Leave this account _out of the directory" xml:space="preserve">
+    <value>_Jätä tämä tili pois hakemistosta</value>
   </data>
   <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
     <value>Jätä tämä pois päältä, ellet rakenna omia asennusohjelmiasi ja allekirjoita niitä. Tämän projektin julkaisuja ei ole vielä Authenticode-allekirjoitettu, joten sen kytkeminen päälle hylkää jokaisen olemassa olevan julkaisun: lataus pysähtyy viestiin "the installer carries no Authenticode signature", eikä yhtäkään päivitystä voi koskaan asentaa. Sigstore-allekirjoitus, joka jokaisessa julkaisussa on, tarkistetaan joka tapauksessa eikä se ole valinnainen.</value>
@@ -5605,6 +5638,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Pois. Yhtään viestiä ei lykätä ensimmäisellä yrityksellä.</value>
   </data>
+  <data name="Offi_ce" xml:space="preserve">
+    <value>To_imipiste</value>
+  </data>
   <data name="On" xml:space="preserve">
     <value>Päällä</value>
   </data>
@@ -5845,6 +5881,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Out of office" xml:space="preserve">
     <value>Poissa toimistolta</value>
   </data>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
+    <value>Pois luettelosta, pois muiden Vastaanottaja-kentästä ja pois CardDAV-kokoelmasta. Se ei piilota mitään postilaatikkoa: posti tulee perille ja osoitteen tunteva voi kirjoittaa. Henkilö voi asettaa tämän itse webmailissa riippumatta palvelimen DirectoryUserEditable-asetuksesta.</value>
+  </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Lähtevä TLS</value>
   </data>
@@ -6056,6 +6095,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Vaihe: {0}</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Kuva</value>
   </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Osoita palvelin SpamAssassin-koneeseen ja valitse, miten sen pistemäärä yhdistetään.</value>
@@ -6621,6 +6663,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Muista näin monta aiempaa salasanaa (0 = ei historiaa)</value>
+  </data>
+  <data name="Remo_ve the photo" xml:space="preserve">
+    <value>_Poista kuva</value>
   </data>
   <data name="Remote domain" xml:space="preserve">
     <value>Etäverkkotunnus</value>
@@ -8352,6 +8397,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="That event happened before the message was queued - a refusal during the SMTP conversation - so there is no message to follow." xml:space="preserve">
     <value>Tuo tapahtuma sattui ennen kuin viesti laitettiin jonoon - hylkäys SMTP-keskustelun aikana - joten seurattavaa viestiä ei ole.</value>
   </data>
+  <data name="That file is not a JPEG, a PNG or a GIF." xml:space="preserve">
+    <value>Tiedosto ei ole JPEG, PNG eikä GIF.</value>
+  </data>
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Se on harmaalistaus. Vapauta lähettävä osoite täällä tai poista harmaalistaus kokonaan käytöstä.</value>
   </data>
@@ -8869,6 +8917,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The person's data" xml:space="preserve">
     <value>Henkilön tiedot</value>
   </data>
+  <data name="The photo is removed when the account is saved." xml:space="preserve">
+    <value>Kuva poistetaan, kun tili tallennetaan.</value>
+  </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Käytäntö tarjotaan HTTPS:n yli. Tältä koneelta se todistaa myös, että mta-sts.{0} selviää, varmenne kelpaa tälle nimelle ja kuuntelija vastaa - internetin näkymä voi silti poiketa, jos palomuuri kohtelee tätä konetta erityisesti. Tarjottu sisältö: {1}</value>
   </data>
@@ -9201,6 +9252,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
     <value>Tämä Control Panel on yhteydessä etäpalvelimeen, ja avaintiedosto on sen koneen levyllä - sitä ei voi lukea tältä koneelta, joten siitä ei ole varmistettu mitään. Tämä on "ei tiedossa", ei "OK": tarkista se itse palvelimella tai sen Ulkoinen määritys -sivulta.</value>
+  </data>
+  <data name="This account has a photo." xml:space="preserve">
+    <value>Tällä tilillä on kuva.</value>
+  </data>
+  <data name="This account has no photo." xml:space="preserve">
+    <value>Tällä tilillä ei ole kuvaa.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tällä toiminnolla ei ole lisäparametreja.</value>
@@ -9981,6 +10038,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows-_käyttäjänimi</value>
   </data>
+  <data name="Windows directory" xml:space="preserve">
+    <value>Windows-hakemisto</value>
+  </data>
   <data name="Windows display language" xml:space="preserve">
     <value>Windowsin näyttökieli</value>
   </data>
@@ -10058,6 +10118,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Verkkotunnuksesi ovat tässä luettelossa. Avaamalla yhden saat sen tilit, aliakset ja jakelulistat.</value>
+  </data>
+  <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
+    <value>Vain sinun: muistiinpano ei ole hakemistoluettelossa, ei webmailissa eikä korteissa, jotka puhelin synkronoi.</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-arkistot (*.zip)|*.zip</value>
@@ -10287,6 +10350,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Install update" xml:space="preserve">
     <value>_Asenna päivitys</value>
   </data>
+  <data name="_Job title" xml:space="preserve">
+    <value>T_ehtävänimike</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Säilytä alkuperäinen viesti</value>
   </data>
@@ -10334,6 +10400,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Minutes between retries" xml:space="preserve">
     <value>_Minuutteja uudelleenyritysten välillä</value>
+  </data>
+  <data name="_Mobile" xml:space="preserve">
+    <value>_Matkapuhelin</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Moderaattori (tyhjä = ei moderointia)</value>
@@ -10538,6 +10607,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Kuka saa lähettää tälle listalle</value>
+  </data>
+  <data name="_Work telephone" xml:space="preserve">
+    <value>T_yöpuhelin</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>numero</value>

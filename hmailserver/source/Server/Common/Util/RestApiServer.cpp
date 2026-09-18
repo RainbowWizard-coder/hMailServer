@@ -77,6 +77,7 @@
 #include "PasswordValidator.h"
 #include "PasskeyStore.h"
 #include "OidcSignIn.h"
+#include "DirectoryStore.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
 #include "ContactGroups.h"
@@ -2648,6 +2649,18 @@ namespace HM
          case RoutePasskeyDelete:
             return HandlePasskeys_(caller, route.kind, route.record_id, request);
 
+         case RouteMeDirectory:
+         case RouteMeDirectoryOwn:
+         case RouteMeDirectoryOwnPut:
+         case RouteMeDirectoryOwnPhoto:
+         case RouteMeDirectoryPhoto:
+            return HandleMeDirectory_(caller, route.kind, route.record_id, route.query, GetRequestBody_(request));
+
+         case RouteAccountDirectoryGet:
+         case RouteAccountDirectoryPut:
+         case RouteAccountDirectoryPhoto:
+            return HandleAccountDirectory_(caller, String(route.identifier), route.kind, GetRequestBody_(request));
+
          case RouteMeConfidential:
          case RouteMeConfidentialRevoke:
             return HandleMeConfidential_(caller, route.kind, route.record_id);
@@ -3388,6 +3401,54 @@ namespace HM
             route.kind = RouteMeRecoverableRestore;
          else if (!restore && method == "DELETE")
             route.kind = RouteMeRecoverableDelete;
+
+         return;
+      }
+
+      // The organisation's directory: the reader's own domain, the reader's
+      // own entry, and one entry's photo.
+      if (path == "/api/v1/me/directory")
+      {
+         if (method == "GET")
+            route.kind = RouteMeDirectory;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/directory/"))
+      {
+         AnsiString rest = path.Mid(AnsiString("/api/v1/me/directory/").GetLength());
+
+         // "me" before the id, since an id is a number and "me" is not one.
+         // The reader's own photo is under "me" as well, and not under their
+         // own account id, because an account that has opted out is not in the
+         // listing the id form is answered from - and a person must be able to
+         // see the photo they have just chosen whether or not they are listed.
+         if (rest == "me")
+         {
+            if (method == "GET")
+               route.kind = RouteMeDirectoryOwn;
+            else if (method == "PUT")
+               route.kind = RouteMeDirectoryOwnPut;
+
+            return;
+         }
+
+         if (rest == "me/photo")
+         {
+            if (method == "GET")
+               route.kind = RouteMeDirectoryOwnPhoto;
+
+            return;
+         }
+
+         const AnsiString photoSuffix = "/photo";
+         if (method == "GET" && rest.EndsWith(photoSuffix))
+         {
+            AnsiString idText = rest.Mid(0, rest.GetLength() - photoSuffix.GetLength());
+            if (ParseQueueId(idText, route.record_id))
+               route.kind = RouteMeDirectoryPhoto;
+         }
 
          return;
       }
@@ -5765,6 +5826,8 @@ namespace HM
       case RoutePasskeyOptions:
       case RoutePasskeyCreate:
       case RoutePasskeyDelete:
+      case RouteMeDirectoryOwnPut:
+      case RouteAccountDirectoryPut:
       case RouteMeConfidentialRevoke:
       case RouteMeOfflinePut:
       case RouteMeFileCreate:
@@ -6373,6 +6436,11 @@ namespace HM
       case RouteAccountList:
       case RouteAccountExportArchive:
       case RouteAccountGet:
+      // An account's directory entry read: the title, department and telephone
+      // numbers its own domain already sees in the directory, plus the
+      // administrator's note. A read of the account, with the account's reads.
+      case RouteAccountDirectoryGet:
+      case RouteAccountDirectoryPhoto:
       case RouteAccountRuleList:
       case RouteDomainRuleList:
       case RouteAliasList:
@@ -6508,6 +6576,7 @@ namespace HM
       case RouteAccountCreate:
       case RouteAccountDelete:
       case RouteAccountUpdate:
+      case RouteAccountDirectoryPut:
       case RouteAccountRuleCreate:
       case RouteAccountRuleUpdate:
       case RouteAccountRuleDelete:
@@ -6914,6 +6983,13 @@ namespace HM
       case RouteSpamTrapDelete:
       case RouteAccountUpdate:
       case RouteAccountGet:
+      // The entry is named by an address in the path and nothing else, exactly
+      // as the account routes are: without this a credential issued for one
+      // domain could read and rewrite the directory of another by editing one
+      // path segment.
+      case RouteAccountDirectoryGet:
+      case RouteAccountDirectoryPut:
+      case RouteAccountDirectoryPhoto:
       case RouteAccountRuleList:
       case RouteAccountRuleCreate:
       case RouteAccountRuleUpdate:
@@ -9954,6 +10030,14 @@ namespace HM
       case RouteMeRecoverable:
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
+      // The directory is the reader's own domain and their own entry: a
+      // mailbox credential reaches them, and the domain is read from the
+      // account rather than from the request.
+      case RouteMeDirectory:
+      case RouteMeDirectoryOwn:
+      case RouteMeDirectoryOwnPut:
+      case RouteMeDirectoryOwnPhoto:
+      case RouteMeDirectoryPhoto:
       case RouteMeConfidential:
       case RouteMeConfidentialRevoke:
       case RouteMeOffline:
@@ -15428,6 +15512,7 @@ namespace HM
       openApiJson += OpenApiRecoveryPaths_();
       openApiJson += OpenApiPasskeyPaths_();
       openApiJson += OpenApiOidcPaths_();
+      openApiJson += OpenApiDirectoryPaths_();
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiOfflinePaths_();

@@ -760,6 +760,57 @@ let recoverable = { days: 14, items: [
    { id: 41, folder_id: 1, folder: 'INBOX', subject: 'Quarterly figures', from: 'Finance <finance@example.com>', size: 20480, seen: true, deleted: 1789600000 },
    { id: 40, folder_id: 7, folder: 'Projects.Garden', subject: 'Seed order', from: 'shop@example.com', size: 4096, seen: false, deleted: 1789500000 }
 ] };
+// The organisation's directory (DirectoryStore.h): the reader's own domain,
+// answered with the same shape the real route answers - a person's entry with a
+// title and a photo, a person with nothing set, and a distribution list. The
+// reader's own entry is state, since the whole of the Settings card is that a
+// PUT changes it and the next GET says so.
+let directorySwitchedOn = true;
+let directoryUserEditable = true;
+let directoryOwn = { title: '', department: '', phone: '', mobile: '', office: '', opt_out: false, has_photo: false, photo_type: '', updated: '' };
+function directoryPeople() {
+   return [
+      { id: 11, kind: 'person', name: 'Ada Lovelace', address: 'ada@example.com', title: 'Head of Engines', department: 'Engineering',
+        phone: '+44 20 7946 0000', mobile: '', office: 'Marylebone, 2nd floor', has_photo: true, photo_url: '/api/v1/me/directory/11/photo' },
+      { id: 12, kind: 'person', name: '', address: 'quiet@example.com', title: '', department: '', phone: '', mobile: '', office: '', has_photo: false },
+      { id: 13, kind: 'list', name: '', address: 'sales@example.com', title: '', department: '', phone: '', mobile: '', office: '', has_photo: false }
+   ];
+}
+function answerDirectory(method, path, body) {
+   if (!path.startsWith('/api/v1/me/directory')) { return null; }
+   const wanted = JSON.parse(body || '{}');
+   if (path === '/api/v1/me/directory/me') {
+      if (method === 'GET') { return json(200, { enabled: directorySwitchedOn, editable: directoryUserEditable, entry: Object.assign({}, directoryOwn) }); }
+      if (method === 'PUT') {
+         // The one rule the page is held to: with the fields locked, only the
+         // opt-out goes through, and it goes through anyway.
+         const fields = Object.keys(wanted).filter((k) => k !== 'opt_out');
+         if (!directoryUserEditable && fields.length) { return json(403, { error: 'the administrator of this server sets the directory entries' }); }
+         Object.keys(wanted).forEach((k) => {
+            if (k === 'photo') {
+               directoryOwn.has_photo = wanted.photo !== null && wanted.photo !== '';
+               directoryOwn.photo_type = directoryOwn.has_photo ? 'image/png' : '';
+               return;
+            }
+            directoryOwn[k] = wanted[k];
+         });
+         directoryOwn.updated = '2026-09-18 12:00:00';
+         return json(200, { enabled: directorySwitchedOn, editable: directoryUserEditable, entry: Object.assign({}, directoryOwn) });
+      }
+      return json(405, { error: 'method not allowed' });
+   }
+   if (path === '/api/v1/me/directory/me/photo') { return { status: directoryOwn.has_photo ? 200 : 404, headers: { 'Content-Type': 'image/png' }, body: 'PNG' }; }
+   if (/^\/api\/v1\/me\/directory\/\d+\/photo$/.test(path)) { return { status: 200, headers: { 'Content-Type': 'image/png' }, body: 'PNG' }; }
+   if (method === 'GET') {
+      if (!directorySwitchedOn) { return json(200, { enabled: false, editable: directoryUserEditable, domain: 'example.com', entries: [], count: 0 }); }
+      const at = path.indexOf('?');
+      const query = at < 0 ? '' : path.slice(at + 1);
+      const q = decodeURIComponent((/(^|&)q=([^&]*)/.exec(query) || ['', '', ''])[2] || '').toLowerCase();
+      const entries = directoryPeople().filter((e) => !q || [e.name, e.address, e.title, e.department].some((f) => String(f || '').toLowerCase().indexOf(q) >= 0));
+      return json(200, { enabled: true, editable: directoryUserEditable, domain: 'example.com', entries, count: entries.length });
+   }
+   return json(405, { error: 'method not allowed' });
+}
 function answerRecoverable(method, path) {
    if (!path.startsWith('/api/v1/me/recoverable')) { return null; }
    if (path === '/api/v1/me/recoverable' && method === 'GET') { return json(200, { days: recoverable.days, items: recoverable.items.slice() }); }
@@ -1155,6 +1206,7 @@ function answer(method, path, body) {
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
    { const recover = answerRecovery(method, path, body); if (recover) { return recover; } }
    { const keys = answerPasskeys(method, path, body); if (keys) { return keys; } }
+   { const listed = answerDirectory(method, path, body); if (listed) { return listed; } }
    { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
    { const groups = answerContactGroups(method, path, body); if (groups) { return groups; } }
    { const window = answerOffline(method, path, body); if (window) { return window; } }
@@ -6310,6 +6362,190 @@ async function main() {
          document.getElementById('signin-status').textContent);
       credentialsRefuse = false;
       dismissAllToasts();
+   }
+
+
+   // ---- The organisation's directory: the page, the Settings card, the completion
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+      const cards = () => walkAll(document.getElementById('directory-list'), (n) => n.className === 'dircard');
+      const cardFor = (text) => cards().filter((c) => c.textContent.indexOf(text) >= 0)[0];
+      const buttonIn = (card, english) => walkAll(card, (n) => n.tagName === 'BUTTON' && n.textContent === words(english))[0];
+
+      const beforeList = requests.length;
+      location.hash = '#/directory';
+      await flush();
+      check('D1: the Directory page asks the server for the reader\'s own domain and draws a card each',
+         called(beforeList, 'GET', /^\/api\/v1\/me\/directory\?/) && document.getElementById('directory-section').hidden === false && cards().length === 3,
+         cards().map((c) => c.textContent).join(' | '));
+      check('D1: the page never names a domain in the request it makes',
+         since(beforeList).filter((r) => r.path.indexOf('/api/v1/me/directory') === 0).every((r) => r.path.indexOf('domain=') < 0),
+         JSON.stringify(since(beforeList).map((r) => r.path)));
+      check('D2: a person with no name of their own is drawn under their address', !!cardFor('quiet@example.com'), cards().map((c) => c.textContent).join(' | '));
+      check('D2: the title, the department and where they sit are on the card',
+         cardFor('Ada Lovelace').textContent.indexOf('Head of Engines - Engineering') >= 0 && cardFor('Ada Lovelace').textContent.indexOf('Marylebone, 2nd floor') >= 0,
+         cardFor('Ada Lovelace').textContent);
+      check('D2: a distribution list says it is one, and is offered no "add to contacts", there being no person behind it',
+         cardFor('sales@example.com').textContent.indexOf(words('Distribution list')) >= 0 && !buttonIn(cardFor('sales@example.com'), 'Add to contacts'),
+         cardFor('sales@example.com').textContent);
+      check('D2: a photo is fetched from the entry\'s own route rather than carried in the listing',
+         walkAll(cardFor('Ada Lovelace'), (n) => n.tagName === 'IMG' && n.src === '/api/v1/me/directory/11/photo').length === 1,
+         walkAll(cardFor('Ada Lovelace'), (n) => n.tagName === 'IMG').map((n) => n.src).join(','));
+
+      document.getElementById('directory-search').value = 'engines';
+      document.getElementById('directory-search').dispatchEvent(makeEvent('input'));
+      await flush();
+      check('D3: the search box narrows the list against what is already in hand', cards().length === 1 && !!cardFor('Ada Lovelace'), cards().map((c) => c.textContent).join(' | '));
+      document.getElementById('directory-search').value = '';
+      document.getElementById('directory-search').dispatchEvent(makeEvent('input'));
+      await flush();
+      check('D3: and clearing it puts them all back', cards().length === 3);
+
+      const beforeKeep = requests.length;
+      buttonIn(cardFor('Ada Lovelace'), 'Add to contacts').dispatchEvent(makeEvent('click'));
+      await flush();
+      const kept = since(beforeKeep).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts').map((r) => JSON.parse(r.body))[0];
+      check('D4: Add to contacts writes the directory name and address into the address book',
+         !!kept && kept.name === 'Ada Lovelace' && kept.address === 'ada@example.com', JSON.stringify(kept));
+
+      // The Settings card: the person's own entry, and the opt-out.
+      location.hash = '#/settings';
+      await flush();
+      check('D5: the Settings card is shown and the side nav offers the page', document.getElementById('directory-card').hidden === false && document.getElementById('nav-directory').hidden === false);
+
+      const beforeSave = requests.length;
+      document.getElementById('directory-title').value = 'Countess of Lovelace';
+      document.getElementById('directory-phone').value = '+44 20 7946 0001';
+      document.getElementById('directory-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const saved = since(beforeSave).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/directory/me').map((r) => JSON.parse(r.body))[0];
+      check('D5: saving sends the five fields the person may set and no photo when none was chosen',
+         !!saved && saved.title === 'Countess of Lovelace' && saved.phone === '+44 20 7946 0001' && !('photo' in saved) && !('opt_out' in saved) && !('note' in saved),
+         JSON.stringify(saved));
+      check('D5: and the form shows what the server stored', document.getElementById('directory-title').value === 'Countess of Lovelace' &&
+         String(document.getElementById('directory-entry-status').className).indexOf('ok') >= 0);
+
+      // The person's own photo, drawn from its route on this server. This and
+      // the cards above set an <img src> of this origin, which is why the
+      // page's Content-Security-Policy has to name img-src 'self': with data:
+      // and blob: alone the browser refuses both and nothing appears, and a
+      // stub DOM has no policy to refuse them with. check-portal-script.py
+      // holds the script and the policy together; these two checks say what
+      // the script does.
+      directoryOwn.has_photo = true;
+      directoryOwn.photo_type = 'image/png';
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/settings';
+      await flush();
+      check('D5: the person\'s own photo is drawn from its route on this server',
+         document.getElementById('directory-photo').hidden === false &&
+         String(document.getElementById('directory-photo').src).indexOf('/api/v1/me/directory/me/photo') === 0,
+         String(document.getElementById('directory-photo').src));
+
+      const beforeOptOut = requests.length;
+      document.getElementById('directory-optout').checked = true;
+      document.getElementById('directory-optout').dispatchEvent(makeEvent('change'));
+      await flush();
+      const out = since(beforeOptOut).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/directory/me').map((r) => JSON.parse(r.body))[0];
+      check('D6: the opt-out is sent on its own, so that it is not refused with the fields',
+         !!out && out.opt_out === true && Object.keys(out).length === 1, JSON.stringify(out));
+      check('D6: and the page says the person is out of the directory',
+         document.getElementById('directory-optout-status').textContent === words('You are out of the directory.'), document.getElementById('directory-optout-status').textContent);
+
+      // The server that keeps the fields for itself: the form goes, the reason
+      // is said, and the opt-out still works.
+      directoryUserEditable = false;
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/settings';
+      await flush();
+      check('D7: with the fields locked the form is hidden and the reason is shown',
+         document.getElementById('directory-form').hidden === true && document.getElementById('directory-locked').hidden === false);
+      const beforeLockedOptOut = requests.length;
+      document.getElementById('directory-optout').checked = false;
+      document.getElementById('directory-optout').dispatchEvent(makeEvent('change'));
+      await flush();
+      const back = since(beforeLockedOptOut).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/directory/me').map((r) => JSON.parse(r.body))[0];
+      check('D7: and the opt-out still goes through, alone', !!back && back.opt_out === false && Object.keys(back).length === 1 &&
+         document.getElementById('directory-optout-status').textContent === words('You are in the directory.'), JSON.stringify(back));
+      directoryUserEditable = true;
+
+      // The completion: the reader's own contacts first, then the directory,
+      // labelled, and an address that is both offered once.
+      location.hash = '#/f/1';
+      await flush();
+      document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+      await flush();
+      const to = document.getElementById('compose-to');
+      const options = () => walkAll(to.parentNode, (n) => n.tagName === 'LI');
+      to.value = 'a';
+      to.dispatchEvent(makeEvent('input'));
+      fireTimers();
+      await flush();
+      const asked = requests.filter((r) => r.path.indexOf('/api/v1/me/directory?') === 0 && r.path.indexOf('q=a') > 0);
+      check('D8: the To field asks the directory as well as the address book', asked.length >= 1, JSON.stringify(requests.slice(-6).map((r) => r.path)));
+      check('D8: the reader\'s own contacts come first and the directory hits follow, labelled',
+         options().length > 1 && options()[0].textContent.indexOf('Alice Example') >= 0 &&
+         options().some((o) => o.textContent.indexOf('ada@example.com') >= 0 && o.textContent.indexOf(words('Directory')) >= 0),
+         options().map((o) => o.textContent).join(' | '));
+      check('D8: a distribution list in the completion says so rather than being offered as a person',
+         options().some((o) => o.textContent.indexOf('sales@example.com') >= 0 && o.textContent.indexOf(words('Distribution list')) >= 0),
+         options().map((o) => o.textContent).join(' | '));
+
+      // An address that is both a contact and a directory entry: once, as the
+      // contact, since that is the row carrying the name the reader chose.
+      to.value = 'alice';
+      to.dispatchEvent(makeEvent('input'));
+      fireTimers();
+      await flush();
+      check('D9: an address in both is offered once', options().filter((o) => o.textContent.indexOf('alice@example.net') >= 0).length === 1,
+         options().map((o) => o.textContent).join(' | '));
+
+      // The member field of a group asks for people the reader keeps, so it
+      // must not reach into the directory at all.
+      const beforeMember = requests.length;
+      location.hash = '#/contacts';
+      await flush();
+      const memberField = document.getElementById('group-member-7');
+      if (memberField) {
+         memberField.value = 'ad';
+         memberField.dispatchEvent(makeEvent('input'));
+         fireTimers();
+         await flush();
+         check('D10: the group member field asks the address book and not the directory',
+            since(beforeMember).filter((r) => r.path.indexOf('/api/v1/me/directory?') === 0).length === 0,
+            JSON.stringify(since(beforeMember).map((r) => r.path)));
+      }
+
+      // The switch off: the page says so and offers nothing, and the side nav
+      // does not offer a page that would be empty.
+      directorySwitchedOn = false;
+      location.hash = '#/settings';
+      await flush();
+      check('D11: with the directory off the Settings card and the nav entry are hidden',
+         document.getElementById('directory-card').hidden === true && document.getElementById('nav-directory').hidden === true);
+      location.hash = '#/directory';
+      await flush();
+      check('D11: and the page says the directory is off rather than saying it is empty',
+         document.getElementById('directory-off').hidden === false && document.getElementById('directory-empty').hidden === true && cards().length === 0,
+         document.getElementById('directory-off').textContent);
+      const beforeOffSuggest = requests.length;
+      location.hash = '#/f/1';
+      await flush();
+      document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+      await flush();
+      to.value = 'ada';
+      to.dispatchEvent(makeEvent('input'));
+      fireTimers();
+      await flush();
+      check('D11: and the completion stops asking a directory that answered that it is off',
+         since(beforeOffSuggest).filter((r) => r.path.indexOf('/api/v1/me/directory?') === 0).length === 0,
+         JSON.stringify(since(beforeOffSuggest).map((r) => r.path)));
+      directorySwitchedOn = true;
+      location.hash = '#/settings';
+      await flush();
    }
 
    // ---- Web Push: the devices, and the service worker's own handler

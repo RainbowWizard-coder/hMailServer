@@ -12,10 +12,24 @@
 //    /dav/                                     the context path: PROPFIND here
 //                                              answers current-user-principal
 //    /dav/principals/<address>/                the principal: addressbook-home-set
-//    /dav/addressbooks/<address>/              the home: one child collection
+//    /dav/addressbooks/<address>/              the home: two child collections
 //    /dav/addressbooks/<address>/contacts/     the address book: getctag,
 //                                              sync-token, the reports
 //    /dav/addressbooks/<address>/contacts/<id>.vcf   one contact
+//    /dav/addressbooks/<address>/directory/    the organisation's directory
+//                                              (DirectoryStore.h): every active,
+//                                              not-opted-out account and every
+//                                              enabled list of the ACCOUNT'S OWN
+//                                              domain, as cards this server
+//                                              generates. Read-only - PUT,
+//                                              DELETE and PROPPATCH are refused
+//                                              and current-user-privilege-set
+//                                              says so before a client tries -
+//                                              and it answers the same three
+//                                              reports, so a phone subscribes
+//                                              to it as it does to the book.
+//    /dav/addressbooks/<address>/directory/account-<id>.vcf   one person
+//    /dav/addressbooks/<address>/directory/list-<id>.vcf      one list
 //
 // Every request under /dav/ is HTTP Basic as the account - the address and the
 // password, or an app password - through AccountLogon, the same check as an

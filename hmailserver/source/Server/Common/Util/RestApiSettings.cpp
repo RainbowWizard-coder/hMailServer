@@ -880,6 +880,14 @@ namespace
            return String();
         } },
 
+      // The organisation's directory (Util/DirectoryStore.h).
+      { "directory_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether every active account and enabled distribution list of a domain is answered to the people of that domain - in the webmail's Directory page, in the To, Cc and Bcc completion beside the reader's own contacts, and as a read-only Directory address book over CardDAV. On by default, as Outlook's Global Address List and Google's directory are. It never crosses a domain: a reader is answered their own domain and no other, whatever else the server hosts. Turn it off on a server whose one domain holds people who are not one organisation, where a listing of every address would be an address list for whoever signs in.",
+        ROW_FLAG(Config()->GetDirectoryEnabled()), ROW_SET(Config()->SetDirectoryEnabled(v.flag)), ROW_NO_CHECK },
+      { "directory_user_editable", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a person may set their own directory title, department, telephone numbers and photo from the webmail's Settings page. On by default. With it off those are the administrator's alone, set in the Control Panel's Directory tab, the Control Deck's account view or PUT /api/v1/accounts/{address}/directory - and the person can still take themselves out of the directory, because the opt-out is theirs and this switch never reaches it.",
+        ROW_FLAG(Config()->GetDirectoryUserEditable()), ROW_SET(Config()->SetDirectoryUserEditable(v.flag)), ROW_NO_CHECK },
+
       // Offline in the webmail (Util/RestApiOffline.cpp).
       { "reader_offline_days_max", KindInteger, ReadWrite, EffectNow, nullptr,
         "The most days of mail a reader may keep in their browser for reading and searching without a connection: the bodies and attachments of the messages received within that many days, in the browser's own storage, chosen by the reader under this ceiling on the webmail's Settings page and kept nowhere until they choose. 30 by default; 0 offers none, and the webmail then keeps only the inbox listing and the last opened messages as it always has. At most 365. What is kept lives in the browser it was kept in and is removed at sign-out.",

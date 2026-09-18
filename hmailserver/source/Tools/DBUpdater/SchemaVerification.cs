@@ -1245,6 +1245,11 @@ namespace DBUpdater
          // is caught by.
          new SchemaProbe(6077, "hm_passkeys.pksigncount",
                          "update hm_passkeys set pksigncount = pksigncount where 1 = 0"),
+         // Upgrade6077to6078* - the organisation's directory: one row per account
+         // with a directory entry, of which the opt-out is the column the step
+         // exists for.
+         new SchemaProbe(6078, "hm_directory.diroptout",
+                         "update hm_directory set diroptout = diroptout where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

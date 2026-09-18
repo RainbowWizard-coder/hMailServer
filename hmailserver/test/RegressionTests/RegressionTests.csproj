@@ -700,6 +700,8 @@
     <Compile Include="Sieve\ManageSieveAutoBan.cs" />
     <Compile Include="API\ClientDiscovery.cs" />
     <Compile Include="API\CardDav.cs" />
+    <Compile Include="API\DirectoryCom.cs" />
+    <Compile Include="API\RestApiDirectory.cs" />
     <Compile Include="API\RestApiContactGroups.cs" />
     <Compile Include="API\CalDav.cs" />
     <Compile Include="API\RestApiCalendar.cs" />

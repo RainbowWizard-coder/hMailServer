@@ -395,6 +395,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>Ein DMARC-Eintrag mit p={0} ist unter {1} live - strenger als der Ausgangspunkt p=none. Das ist richtig, wenn Sie bereits wissen, dass Ihre Mail die Ausrichtung besteht; wenn Sie SPF und DKIM noch einrichten, wird Mail, die scheitert, gerade jetzt {2}. Veröffentlicht: {3}</value>
   </data>
+  <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
+    <value>Ein JPEG, ein PNG oder ein GIF, höchstens 100 KB. Was gespeichert wird, entscheiden die Bytes selbst und nicht der Dateiname; das Foto wird mit dem Konto gespeichert.</value>
+  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>Unter {0} existiert ein TXT-Eintrag, aber die private Schlüsseldatei konnte auf diesem Rechner nicht gelesen werden, daher kann von hier aus nicht geprüft werden, ob er den RICHTIGEN Schlüssel trägt. Führen Sie die Prüfung auf dem Server selbst aus, oder verwenden Sie die DKIM-Registerkarte der Domäne.</value>
   </data>
@@ -433,6 +436,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>Ein Zustellungsbericht</value>
+  </data>
+  <data name="A directory photo is at most 100 KB." xml:space="preserve">
+    <value>Ein Verzeichnisfoto darf höchstens 100 KB groß sein.</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Eine Domain - der Server braucht eine, bevor er Mail empfangen kann</value>
@@ -511,6 +517,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>Ein neuer Schlüssel wurde erzeugt und bereitgestellt. Veröffentlichen Sie seinen Eintrag.</value>
+  </data>
+  <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
+    <value>Ein neues Foto ist gewählt; es wird mit dem Konto gespeichert.</value>
   </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Es wurde ein neues Dienstkontopasswort eingegeben UND „das gespeicherte Passwort entfernen" ist angekreuzt. Entfernen Sie eins der Häkchen - zu raten, was gemeint war, ist nicht Sache dieser Seite.</value>
@@ -1078,6 +1087,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   </data>
   <data name="Administrator roles" xml:space="preserve">
     <value>Administratorrollen</value>
+  </data>
+  <data name="Administrator's _note" xml:space="preserve">
+    <value>_Notiz der Administration</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>Erweitert</value>
@@ -1719,6 +1731,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-Zertifikatbündel (PEM), auf das Client-Zertifikate zurückführen müssen</value>
   </data>
+  <data name="C_hoose a photo..." xml:space="preserve">
+    <value>_Foto auswählen...</value>
+  </data>
   <data name="Cache" xml:space="preserve">
     <value>Cache</value>
   </data>
@@ -1904,6 +1919,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   </data>
   <data name="Checks, in the order the server runs them" xml:space="preserve">
     <value>Prüfungen, in der Reihenfolge, in der der Server sie ausführt</value>
+  </data>
+  <data name="Choose a photo" xml:space="preserve">
+    <value>Foto auswählen</value>
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Voreinstellung wählen…</value>
@@ -2402,6 +2420,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
 
 {1}</value>
   </data>
+  <data name="Could not read the photo: {0}" xml:space="preserve">
+    <value>Das Foto konnte nicht gelesen werden: {0}</value>
+  </data>
   <data name="Could not read the queue: {0}" xml:space="preserve">
     <value>Die Warteschlange konnte nicht gelesen werden: {0}</value>
   </data>
@@ -2677,6 +2698,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   </data>
   <data name="DNSQueryTimeout (10)" xml:space="preserve">
     <value>DNSQueryTimeout (10)</value>
+  </data>
+  <data name="D_epartment" xml:space="preserve">
+    <value>_Abteilung</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>Tägliche Sicherungsze_it (24-Stunden HH:MM, leer = aus)</value>
@@ -2979,11 +3003,11 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
     <value>Übersichtseinstellungen gespeichert. Welche Domänen eine Übersicht senden und zu welcher Stunde, wird auf der Registerkarte Quarantäne-Übersicht jeder Domäne festgelegt.</value>
   </data>
-  <data name="Directory" xml:space="preserve">
-    <value>Verzeichnis</value>
-  </data>
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Verzeichnisauthentifizierung (LDAP)</value>
+  </data>
+  <data name="Directory entry" xml:space="preserve">
+    <value>Verzeichniseintrag</value>
   </data>
   <data name="Directory server" xml:space="preserve">
     <value>Verzeichnisserver</value>
@@ -3463,6 +3487,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Every value fails closed. A section whose Scope is anything but the literal &quot;full&quot; is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one." xml:space="preserve">
     <value>Jeder Wert fällt im Zweifel auf die sichere Seite. Ein Abschnitt, dessen Scope etwas anderes ist als das wörtliche „full", ist schreibgeschützt, ein Schlüssel, dessen Ablauf fehlt oder unlesbar ist, gilt als abgelaufen, und ein Abschnitt ohne brauchbaren Digest wird ganz ignoriert. Das macht den Speicher sicher für Handbearbeitung: ein Tippfehler kann einen Schlüssel immer nur einengen, nie erweitern.</value>
+  </data>
+  <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
+    <value>Alle mit einem Postfach in dieser Domäne sehen dies neben dem Namen, auf der Verzeichnisseite des Webmails, in ihrem An-Feld und im schreibgeschützten Adressbuch, das ein Telefon abgleicht. Nichts davon verlässt die Domäne.</value>
   </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Alles, was ErrorManager meldet</value>
@@ -4124,6 +4151,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Vom Server ignoriert - der gespeicherte Digest ist kein brauchbarer SHA-256-Wert, dieser Abschnitt authentifiziert also nichts. Widerrufen Sie ihn und legen Sie einen Ersatz an.</value>
   </data>
+  <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
+    <value>Bilder (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Veröffentlichen Sie in einer DNSSEC-signierten Zone einen TLSA-Eintrag (üblicherweise Usage 3, Selector 1, Matching Type 1 - „3 1 1" mit dem SHA-256 des öffentlichen Schlüssels Ihres Zertifikats) unter _25._tcp.&lt;mx-host&gt; für jeden MX-Host. Prüfen mit: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer kann keine DNS-Einträge veröffentlichen oder Ihre Zone signieren, und dieses Panel hat keine TLSA-Abfrage, um sie zu prüfen.</value>
   </data>
@@ -4374,6 +4404,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Lassen Sie den Host leer, und die Domäne hat keine Meinung: es gilt der serverweite SMTP-Relayer, genau wie vor dem Bestehen dieser Einstellung. Eine Route gewinnt weiterhin über beide, denn eine Route ist eine Aussage über das Ziel.</value>
+  </data>
+  <data name="Leave this account _out of the directory" xml:space="preserve">
+    <value>_Dieses Konto nicht im Verzeichnis führen</value>
   </data>
   <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
     <value>Lassen Sie dies aus, sofern Sie nicht Ihre eigenen Installer bauen und signieren. Die Versionen dieses Projekts sind noch nicht Authenticode-signiert, das Einschalten lehnt also jede Version ab, die es gibt: der Download bricht mit „the installer carries no Authenticode signature" ab, und es kann nie ein Update eingespielt werden. Die Sigstore-Signatur, die jede Version tatsächlich trägt, wird so oder so geprüft und ist nicht optional.</value>
@@ -5605,6 +5638,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Aus. Keine Nachricht wird beim ersten Versuch zurückgestellt.</value>
   </data>
+  <data name="Offi_ce" xml:space="preserve">
+    <value>_Büro</value>
+  </data>
   <data name="On" xml:space="preserve">
     <value>Ein</value>
   </data>
@@ -5845,6 +5881,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Out of office" xml:space="preserve">
     <value>Abwesenheit</value>
   </data>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
+    <value>Aus der Liste, aus dem An-Feld aller anderen und aus der CardDAV-Sammlung. Es verbirgt kein Postfach: Post kommt weiterhin an, und wer die Adresse kennt, kann weiter schreiben. Die Person kann dies im Webmail selbst setzen, was die Servereinstellung DirectoryUserEditable auch sagt.</value>
+  </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Ausgehendes TLS</value>
   </data>
@@ -6056,6 +6095,9 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Phase: {0}</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Foto</value>
   </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>Den Server auf einen SpamAssassin-Host richten und wählen, wie dessen Bewertung eingerechnet wird.</value>
@@ -6621,6 +6663,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>So viele vorherige Passwörter merken (0 = keine Historie)</value>
+  </data>
+  <data name="Remo_ve the photo" xml:space="preserve">
+    <value>F_oto entfernen</value>
   </data>
   <data name="Remote domain" xml:space="preserve">
     <value>Externe Domäne</value>
@@ -8352,6 +8397,9 @@ Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder
   <data name="That event happened before the message was queued - a refusal during the SMTP conversation - so there is no message to follow." xml:space="preserve">
     <value>Dieses Ereignis geschah, bevor die Nachricht in die Warteschlange kam - eine Ablehnung während des SMTP-Dialogs - es gibt also keine Nachricht, der man folgen könnte.</value>
   </data>
+  <data name="That file is not a JPEG, a PNG or a GIF." xml:space="preserve">
+    <value>Diese Datei ist weder ein JPEG noch ein PNG oder ein GIF.</value>
+  </data>
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Das ist Greylisting. Nehmen Sie die sendende Adresse hier aus, oder schalten Sie Greylisting ganz ab.</value>
   </data>
@@ -8869,6 +8917,9 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The person's data" xml:space="preserve">
     <value>Die Daten der Person</value>
   </data>
+  <data name="The photo is removed when the account is saved." xml:space="preserve">
+    <value>Das Foto wird beim Speichern des Kontos entfernt.</value>
+  </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>Die Richtlinie wird über HTTPS ausgeliefert. Von diesem Rechner aus beweist das auch, dass mta-sts.{0} aufgelöst wird, dass das Zertifikat für diesen Namen gültig ist und dass der Listener antwortet - die Sicht aus dem Internet kann trotzdem abweichen, wenn eine Firewall diesen Rechner besonders behandelt. Ausgelieferter Inhalt: {1}</value>
   </data>
@@ -9201,6 +9252,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
     <value>Dieses Control Panel ist mit einem entfernten Server verbunden, und die Schlüsseldatei liegt auf der Festplatte jenes Rechners - sie kann von diesem Rechner aus nicht gelesen werden, daher ist nichts an ihr geprüft. Das ist „unbekannt", nicht „OK": prüfen Sie sie auf dem Server selbst oder von seiner Seite Externe Einrichtung aus.</value>
+  </data>
+  <data name="This account has a photo." xml:space="preserve">
+    <value>Dieses Konto hat ein Foto.</value>
+  </data>
+  <data name="This account has no photo." xml:space="preserve">
+    <value>Dieses Konto hat kein Foto.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Diese Aktion hat keine zusätzlichen Parameter.</value>
@@ -9981,6 +10038,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows-_Benutzername</value>
   </data>
+  <data name="Windows directory" xml:space="preserve">
+    <value>Windows-Verzeichnis</value>
+  </data>
   <data name="Windows display language" xml:space="preserve">
     <value>Windows-Anzeigesprache</value>
   </data>
@@ -10058,6 +10118,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Ihre Domänen stehen in dieser Liste. Wenn Sie eine öffnen, bekommen Sie ihre Konten, Aliase und Verteilerlisten.</value>
+  </data>
+  <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
+    <value>Nur Ihre: Die Notiz steht nicht in der Verzeichnisliste, nicht im Webmail und nicht in den Karten, die ein Telefon abgleicht.</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-Archive (*.zip)|*.zip</value>
@@ -10287,6 +10350,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="_Install update" xml:space="preserve">
     <value>Update _installieren</value>
   </data>
+  <data name="_Job title" xml:space="preserve">
+    <value>_Position</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Ursprüngliche Nachricht _behalten</value>
   </data>
@@ -10334,6 +10400,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="_Minutes between retries" xml:space="preserve">
     <value>_Minuten zwischen den Wiederholungen</value>
+  </data>
+  <data name="_Mobile" xml:space="preserve">
+    <value>_Mobil</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>_Moderator (leer = keine Moderation)</value>
@@ -10538,6 +10607,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Wer an diese Liste senden darf</value>
+  </data>
+  <data name="_Work telephone" xml:space="preserve">
+    <value>_Telefon geschäftlich</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>eine Ziffer</value>

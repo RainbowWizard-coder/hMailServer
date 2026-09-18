@@ -395,6 +395,9 @@
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>{1} 上有一条 p={0} 的 DMARC 记录处于生效状态 - 比 p=none 这个起点更严格。如果您已经确认自己的邮件能够通过对齐检查，这样做是对的；如果您还在配置 SPF 和 DKIM，那么此刻未通过的邮件正在被{2}。发布时间：{3}</value>
   </data>
+  <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
+    <value>JPEG、PNG 或 GIF，不超过 100 KB。是否保留由字节本身判断，而不是文件名，照片随帐户一起保存。</value>
+  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>{0} 上存在一条 TXT 记录，但无法从本机读取私钥文件，因此无法在此确认它携带的是否为正确的密钥。请在服务器本机上运行该检查，或者使用该域的 DKIM 选项卡。</value>
   </data>
@@ -433,6 +436,9 @@
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>投递报告</value>
+  </data>
+  <data name="A directory photo is at most 100 KB." xml:space="preserve">
+    <value>通讯录照片最大 100 KB。</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>一个域 - 服务器需要先有一个域才能接收邮件</value>
@@ -511,6 +517,9 @@
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>已生成并准备好新密钥。请发布它的记录。</value>
+  </data>
+  <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
+    <value>已选择新照片，将随帐户一起保存。</value>
   </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>既输入了新的服务账户密码，又勾选了“删除已存储的密码”。请取消其中之一 - 猜测您的本意不是本页应当作出的决定。</value>
@@ -1078,6 +1087,9 @@
   </data>
   <data name="Administrator roles" xml:space="preserve">
     <value>管理员角色</value>
+  </data>
+  <data name="Administrator's _note" xml:space="preserve">
+    <value>管理员备注 (_F)</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>高级</value>
@@ -1719,6 +1731,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>客户端证书必须链接到的 CA 证书包(_A)（PEM）</value>
   </data>
+  <data name="C_hoose a photo..." xml:space="preserve">
+    <value>选择照片... (_G)</value>
+  </data>
   <data name="Cache" xml:space="preserve">
     <value>缓存</value>
   </data>
@@ -1904,6 +1919,9 @@
   </data>
   <data name="Checks, in the order the server runs them" xml:space="preserve">
     <value>检查项，按服务器运行它们的顺序</value>
+  </data>
+  <data name="Choose a photo" xml:space="preserve">
+    <value>选择照片</value>
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>选择预设…</value>
@@ -2402,6 +2420,9 @@
 
 {1}</value>
   </data>
+  <data name="Could not read the photo: {0}" xml:space="preserve">
+    <value>无法读取照片：{0}</value>
+  </data>
   <data name="Could not read the queue: {0}" xml:space="preserve">
     <value>无法读取队列：{0}</value>
   </data>
@@ -2677,6 +2698,9 @@
   </data>
   <data name="DNSQueryTimeout (10)" xml:space="preserve">
     <value>DNSQueryTimeout (10)</value>
+  </data>
+  <data name="D_epartment" xml:space="preserve">
+    <value>部门 (_B)</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>每日备份时间(_I)（24 小时制 HH:MM，留空 = 关闭）</value>
@@ -2979,11 +3003,11 @@
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
     <value>摘要设置已保存。哪些域名发送摘要以及在几点发送，在每个域名的 隔离摘要 选项卡中设置。</value>
   </data>
-  <data name="Directory" xml:space="preserve">
-    <value>目录</value>
-  </data>
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>目录身份验证（LDAP）</value>
+  </data>
+  <data name="Directory entry" xml:space="preserve">
+    <value>通讯录资料</value>
   </data>
   <data name="Directory server" xml:space="preserve">
     <value>目录服务器</value>
@@ -3463,6 +3487,9 @@
   </data>
   <data name="Every value fails closed. A section whose Scope is anything but the literal &quot;full&quot; is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one." xml:space="preserve">
     <value>每个值都是失败即关闭。Scope 不是字面值 "full" 的节为只读，缺少或无法读取到期时间的密钥算作已过期，没有可用摘要的节会被完全忽略。正因如此，手工编辑该存储才是安全的：一个拼写错误只会缩小密钥的权限，永远不会扩大。</value>
+  </data>
+  <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
+    <value>在此域拥有邮箱的每个人都会在姓名旁、网页邮件的通讯录页面、收件人栏以及手机同步的只读通讯录中看到这些内容。这里的内容不会跨域。</value>
   </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>ErrorManager 报告的所有内容</value>
@@ -4124,6 +4151,9 @@
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>被服务器忽略 - 存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
   </data>
+  <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
+    <value>图像 (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>在经 DNSSEC 签名的区域中，为每个 MX 主机在 _25._tcp.&lt;mx-host&gt; 发布一条 TLSA 记录（通常是用法 3、选择器 1、匹配类型 1 - 即 '3 1 1'，配合您证书公钥的 SHA-256）。用以下命令验证：nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;。hMailServer 无法发布 DNS 记录或签署您的区域，此面板也没有 TLSA 查询功能来检查它们。</value>
   </data>
@@ -4374,6 +4404,9 @@
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>主机留空则该域不表态：应用服务器范围的 SMTP 中继服务器，与此设置出现之前完全一样。路由仍然优先于两者，因为路由是关于目标的声明。</value>
+  </data>
+  <data name="Leave this account _out of the directory" xml:space="preserve">
+    <value>不要把此帐户列入通讯录 (_I)</value>
   </data>
   <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
     <value>除非您自己构建安装程序并为其签名，否则请让此项保持关闭。本项目的发行版尚未经过 Authenticode 签名，因此打开它会拒绝现有的每一个发行版：下载会以“the installer carries no Authenticode signature”停止，而且再也无法安装任何更新。而每个发行版确实都带有的 Sigstore 签名，无论如何都会被检查，并且不是可选的。</value>
@@ -5605,6 +5638,9 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>关闭。首次尝试时不会推迟任何邮件。</value>
   </data>
+  <data name="Offi_ce" xml:space="preserve">
+    <value>办公地点 (_E)</value>
+  </data>
   <data name="On" xml:space="preserve">
     <value>打开</value>
   </data>
@@ -5845,6 +5881,9 @@
   <data name="Out of office" xml:space="preserve">
     <value>外出</value>
   </data>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
+    <value>不在列表中，不在所有人的收件人栏中，也不在 CardDAV 集合中。这不会隐藏任何邮箱：邮件照常送达，知道地址的人仍可写信。无论服务器的 DirectoryUserEditable 设置如何，本人都可以在网页邮件中自行设置。</value>
+  </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>发送 TLS</value>
   </data>
@@ -6056,6 +6095,9 @@
   </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>阶段：{0}</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>照片</value>
   </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>把服务器指向 SpamAssassin 主机，并选择如何合并其分数。</value>
@@ -6621,6 +6663,9 @@
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>记住这么多个历史密码（0 = 不保留历史）</value>
+  </data>
+  <data name="Remo_ve the photo" xml:space="preserve">
+    <value>移除照片 (_H)</value>
   </data>
   <data name="Remote domain" xml:space="preserve">
     <value>远程域</value>
@@ -8352,6 +8397,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="That event happened before the message was queued - a refusal during the SMTP conversation - so there is no message to follow." xml:space="preserve">
     <value>该事件发生在邮件进入队列之前 - 是 SMTP 会话期间的拒绝 - 因此没有可跟踪的邮件。</value>
   </data>
+  <data name="That file is not a JPEG, a PNG or a GIF." xml:space="preserve">
+    <value>该文件不是 JPEG、PNG 或 GIF。</value>
+  </data>
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>那是灰名单。请在此豁免发送地址，或完全关闭灰名单。</value>
   </data>
@@ -8869,6 +8917,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The person's data" xml:space="preserve">
     <value>此人的数据</value>
   </data>
+  <data name="The photo is removed when the account is saved." xml:space="preserve">
+    <value>保存帐户时会移除这张照片。</value>
+  </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>策略正通过 HTTPS 提供。从本机来看，这还证明了 mta-sts.{0} 可以解析、证书对该名称有效、监听器有应答 - 但如果防火墙对本机区别对待，互联网上看到的情况仍可能不同。提供的内容: {1}</value>
   </data>
@@ -9201,6 +9252,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
     <value>此控制面板连接的是远程服务器，密钥文件在那台机器的磁盘上 - 无法从本机读取，因此未对它做任何验证。这是“未知”，不是“正常”: 请在服务器本身上检查，或从其“外部设置”页检查。</value>
+  </data>
+  <data name="This account has a photo." xml:space="preserve">
+    <value>此帐户有照片。</value>
+  </data>
+  <data name="This account has no photo." xml:space="preserve">
+    <value>此帐户没有照片。</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>此操作没有额外参数。</value>
@@ -9981,6 +10038,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows 用户名(_U)</value>
   </data>
+  <data name="Windows directory" xml:space="preserve">
+    <value>Windows 目录</value>
+  </data>
   <data name="Windows display language" xml:space="preserve">
     <value>Windows 显示语言</value>
   </data>
@@ -10058,6 +10118,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>您的域都在这个列表里。打开其中一个，就能看到它的账户、别名和分发列表。</value>
+  </data>
+  <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
+    <value>只属于你：备注不会出现在通讯录列表、网页邮件或手机同步的名片中。</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip 归档 (*.zip)|*.zip</value>
@@ -10287,6 +10350,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Install update" xml:space="preserve">
     <value>安装更新(_I)</value>
   </data>
+  <data name="_Job title" xml:space="preserve">
+    <value>职务 (_A)</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>保留原始邮件(_K)</value>
   </data>
@@ -10334,6 +10400,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Minutes between retries" xml:space="preserve">
     <value>重试之间的分钟数(_M)</value>
+  </data>
+  <data name="_Mobile" xml:space="preserve">
+    <value>手机 (_D)</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>审核人(_M)（留空 = 不审核）</value>
@@ -10538,6 +10607,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>谁可以向此列表发信(_W)</value>
+  </data>
+  <data name="_Work telephone" xml:space="preserve">
+    <value>工作电话 (_C)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>一个数字</value>

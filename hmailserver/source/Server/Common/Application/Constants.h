@@ -194,6 +194,12 @@
 #define PROPERTY_ACCOUNT_RECOVERY_ENABLED       _T("AccountRecoveryEnabled")
 #define PROPERTY_RECOVERY_RESET_LINK_MINUTES    _T("RecoveryResetLinkMinutes")
 #define PROPERTY_RECOVERY_VERIFY_LINK_HOURS     _T("RecoveryVerifyLinkHours")
+// The organisation's directory (Util/DirectoryStore.h): whether the accounts and
+// distribution lists of a domain are answered to the people of that domain, and
+// whether a person may set their own title, telephone numbers, photo and opt-out
+// rather than only the administrator.
+#define PROPERTY_DIRECTORY_ENABLED              _T("DirectoryEnabled")
+#define PROPERTY_DIRECTORY_USER_EDITABLE        _T("DirectoryUserEditable")
 // Offline in the webmail (Util/RestApiOffline.cpp): the most days of bodies
 // and attachments a reader may keep in their browser; 0 offers none.
 #define PROPERTY_READER_OFFLINE_DAYS_MAX        _T("ReaderOfflineDaysMax")
@@ -555,4 +561,10 @@
 //      envelope report with the original attached or the original itself.
 //      Nothing is journaled until a row exists, so an upgraded database
 //      behaves exactly as it did.
-#define REQUIRED_DB_VERSION            6077
+// 6078 adds hm_directory (Util/DirectoryStore.h): one row per account that has a
+//      directory entry - a title, a department, three telephone numbers, a photo
+//      as base64 with its media type, the administrator's note, and the opt-out
+//      the person themselves sets. Every column is empty or off, and an account
+//      with no row is listed from hm_accounts alone, so an upgraded database
+//      lists exactly the names and addresses it already held.
+#define REQUIRED_DB_VERSION            6078

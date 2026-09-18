@@ -1416,6 +1416,28 @@ interface IInterfaceAccount : IDispatch
    [propget, id(70), helpstring("How many of the account's ten one-time recovery codes have not been used. 0 when it has never made a set.")] HRESULT RecoveryCodesUnused([out, retval] long *pVal);
    [id(71), helpstring("Removes the account's recovery address, and with it every confirmation and password-reset link in flight for it. The recovery codes are not touched - ClearRecoveryCodes() is the act for those. Recorded in the audit trail. Takes effect at once; there is no Save() for it.")] HRESULT ClearRecoveryAddress();
    [id(72), helpstring("Removes every one-time recovery code the account holds. The remedy for a code card somebody else has seen: a code stands in for the account's second factor, so a leaked set is a standing way past it. The recovery address is not touched - ClearRecoveryAddress() is the act for that. The account holder makes a fresh set from the webmail. Recorded in the audit trail. Takes effect at once; there is no Save() for it.")] HRESULT ClearRecoveryCodes();
+
+   // The account's entry in the organisation's directory (DirectoryStore.h). A
+   // row of hm_directory rather than a column of hm_accounts, but saved by this
+   // object's Save() like every other property here, so an administrator sets a
+   // title and a telephone number in the same breath as a name.
+   [propget, id(73), helpstring("The account's job title in the organisation's directory. At most 100 characters, one line. Saved by Save().")] HRESULT DirectoryTitle([out, retval] BSTR *pVal);
+   [propput, id(73), helpstring("The account's job title in the organisation's directory. At most 100 characters, one line. Saved by Save().")] HRESULT DirectoryTitle([in] BSTR newVal);
+   [propget, id(74), helpstring("The account's department in the organisation's directory. At most 100 characters, one line. Saved by Save().")] HRESULT DirectoryDepartment([out, retval] BSTR *pVal);
+   [propput, id(74), helpstring("The account's department in the organisation's directory. At most 100 characters, one line. Saved by Save().")] HRESULT DirectoryDepartment([in] BSTR newVal);
+   [propget, id(75), helpstring("The account's work telephone number in the organisation's directory. At most 60 characters, one line. Saved by Save().")] HRESULT DirectoryPhone([out, retval] BSTR *pVal);
+   [propput, id(75), helpstring("The account's work telephone number in the organisation's directory. At most 60 characters, one line. Saved by Save().")] HRESULT DirectoryPhone([in] BSTR newVal);
+   [propget, id(76), helpstring("The account's mobile telephone number in the organisation's directory. At most 60 characters, one line. Saved by Save().")] HRESULT DirectoryMobile([out, retval] BSTR *pVal);
+   [propput, id(76), helpstring("The account's mobile telephone number in the organisation's directory. At most 60 characters, one line. Saved by Save().")] HRESULT DirectoryMobile([in] BSTR newVal);
+   [propget, id(77), helpstring("Where the account sits - a building, a floor, a room - in the organisation's directory. At most 100 characters, one line. Saved by Save().")] HRESULT DirectoryOffice([out, retval] BSTR *pVal);
+   [propput, id(77), helpstring("Where the account sits - a building, a floor, a room - in the organisation's directory. At most 100 characters, one line. Saved by Save().")] HRESULT DirectoryOffice([in] BSTR newVal);
+   [propget, id(78), helpstring("True when this account is left out of the organisation's directory: out of the listing, out of the webmail's completion, out of the directory page and out of the read-only CardDAV collection. The person sets this themselves in the webmail whatever DirectoryUserEditable says; an administrator can set it here. It hides nobody's mailbox - mail still arrives and the address still works.")] HRESULT DirectoryOptOut([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(78), helpstring("Leave this account out of the organisation's directory. Saved by Save().")] HRESULT DirectoryOptOut([in] VARIANT_BOOL newVal);
+   [propget, id(79), helpstring("The administrator's note about this account's directory entry. At most 255 characters, one line. Never answered to a reader: it is not in the directory listing, the webmail or the CardDAV cards. Saved by Save().")] HRESULT DirectoryNote([out, retval] BSTR *pVal);
+   [propput, id(79), helpstring("The administrator's note about this account's directory entry. Saved by Save().")] HRESULT DirectoryNote([in] BSTR newVal);
+   [propget, id(80), helpstring("The account's directory photo as base64, or an empty string when it has none. Saved by Save().")] HRESULT DirectoryPhoto([out, retval] BSTR *pVal);
+   [propput, id(80), helpstring("The account's directory photo as base64 - a JPEG, a PNG or a GIF of at most 100 KB decoded, judged by the bytes themselves - or an empty string to remove it. Saved by Save().")] HRESULT DirectoryPhoto([in] BSTR newVal);
+   [propget, id(81), helpstring("The media type of the directory photo this account holds - image/jpeg, image/png or image/gif - or an empty string when it has none. Read-only: it is read from the bytes, never from what a caller said they were.")] HRESULT DirectoryPhotoType([out, retval] BSTR *pVal);
 };
 
 

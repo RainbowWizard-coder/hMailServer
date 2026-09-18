@@ -26,6 +26,8 @@
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/OpenPgpKeyStore.h"
+#include "../Common/Util/DirectoryStore.h"
+#include "../Common/Util/Encoding/Base64.h"
 #include "../Common/Util/MessageExport.h"
 #include "../Common/Util/Crypt.h"
 #include <set>
@@ -523,10 +525,35 @@ STDMETHODIMP InterfaceAccount::Save()
       {
          // Add to parent collection
          AddToParentCollection();
-   
+
+         // The directory entry is a row of its own (DirectoryStore.h) and is
+         // written after the account, because a new account has no id until
+         // the line above has run and the row is keyed on that id.
+         if (directory_dirty_ && object_->GetID() > 0)
+         {
+            directory_.accountId = object_->GetID();
+            if (!HM::DirectoryStore::Save(directory_))
+               return COMError::GenerateError("The account was saved but its directory entry could not be.");
+
+            // The entry itself is not audited - a title and a telephone number
+            // are the person's own as often as an administrator's - but the
+            // opt-out is a decision of theirs that somebody else can reverse,
+            // so a change of it is recorded, exactly as the REST route records
+            // it. RecordEvent writes nothing when there is no actor.
+            if (directory_.optOut != directory_opt_out_read_)
+            {
+               HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("directory-opt-out-changed"),
+                  directory_.optOut ? _T("the account was taken out of the organisation's directory")
+                                    : _T("the account's opt-out from the organisation's directory was cleared; it is listed again"));
+               directory_opt_out_read_ = directory_.optOut;
+            }
+
+            directory_dirty_ = false;
+         }
+
          return S_OK;
       }
-   
+
       return COMError::GenerateError("Failed to save object. " +  sErrorMessage);
    }
    catch (...)
@@ -2525,6 +2552,231 @@ STDMETHODIMP InterfaceAccount::ExportArchive(BSTR File, long *ExportedCount)
 
       *ExportedCount = summary.messages;
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// ---------------------------------------------------------------------------
+// The organisation's directory (DirectoryStore.h)
+// ---------------------------------------------------------------------------
+//
+// The entry is a row of hm_directory and not a column of hm_accounts, so it is
+// read at the first get or put and written by Save() rather than by
+// PersistentAccount. An account that has never had an entry has no row, and
+// the getters answer empty for it; the first put makes one at the next Save().
+
+bool InterfaceAccount::EnsureDirectory_()
+{
+   if (directory_loaded_)
+      return true;
+
+   directory_loaded_ = true;
+   directory_ = HM::DirectoryRecord();
+
+   if (object_ && object_->GetID() > 0)
+      HM::DirectoryStore::Get(object_->GetID(), directory_);
+
+   directory_.accountId = object_ ? object_->GetID() : 0;
+   directory_opt_out_read_ = directory_.optOut;
+   return true;
+}
+
+HRESULT InterfaceAccount::SetDirectoryField_(HM::String &field, BSTR newVal, int maximum, const char *name)
+{
+   HM::String value = newVal;
+   value.TrimLeft();
+   value.TrimRight();
+
+   if (value.GetLength() > maximum)
+   {
+      HM::String message;
+      message.Format(_T("%hs is at most %d characters."), name, maximum);
+      return COMError::GenerateError(message);
+   }
+
+   if (value.Find(_T("\r")) >= 0 || value.Find(_T("\n")) >= 0)
+   {
+      HM::String message;
+      message.Format(_T("%hs is one line."), name);
+      return COMError::GenerateError(message);
+   }
+
+   field = value;
+   directory_dirty_ = true;
+   return S_OK;
+}
+
+#define DIRECTORY_TEXT_PROPERTY(Name, Field, Maximum)                                  \
+STDMETHODIMP InterfaceAccount::get_Directory##Name(BSTR *pVal)                         \
+{                                                                                      \
+   try                                                                                 \
+   {                                                                                   \
+      if (!object_)                                                                    \
+         return GetAccessDenied();                                                     \
+                                                                                       \
+      EnsureDirectory_();                                                              \
+      *pVal = directory_.Field.AllocSysString();                                       \
+      return S_OK;                                                                     \
+   }                                                                                   \
+   catch (...)                                                                         \
+   {                                                                                   \
+      return COMError::GenerateGenericMessage();                                       \
+   }                                                                                   \
+}                                                                                      \
+                                                                                       \
+STDMETHODIMP InterfaceAccount::put_Directory##Name(BSTR newVal)                        \
+{                                                                                      \
+   try                                                                                 \
+   {                                                                                   \
+      if (!object_)                                                                    \
+         return GetAccessDenied();                                                     \
+                                                                                       \
+      EnsureDirectory_();                                                              \
+      return SetDirectoryField_(directory_.Field, newVal, Maximum, #Name);             \
+   }                                                                                   \
+   catch (...)                                                                         \
+   {                                                                                   \
+      return COMError::GenerateGenericMessage();                                       \
+   }                                                                                   \
+}
+
+DIRECTORY_TEXT_PROPERTY(Title, title, HM::DirectoryStore::MaximumTitleLength)
+DIRECTORY_TEXT_PROPERTY(Department, department, HM::DirectoryStore::MaximumDepartmentLength)
+DIRECTORY_TEXT_PROPERTY(Phone, phone, HM::DirectoryStore::MaximumPhoneLength)
+DIRECTORY_TEXT_PROPERTY(Mobile, mobile, HM::DirectoryStore::MaximumPhoneLength)
+DIRECTORY_TEXT_PROPERTY(Office, office, HM::DirectoryStore::MaximumOfficeLength)
+DIRECTORY_TEXT_PROPERTY(Note, note, HM::DirectoryStore::MaximumNoteLength)
+
+#undef DIRECTORY_TEXT_PROPERTY
+
+STDMETHODIMP InterfaceAccount::get_DirectoryOptOut(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      EnsureDirectory_();
+      *pVal = directory_.optOut ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_DirectoryOptOut(VARIANT_BOOL newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      EnsureDirectory_();
+      directory_.optOut = newVal == VARIANT_TRUE;
+      directory_dirty_ = true;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_DirectoryPhoto(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      EnsureDirectory_();
+      *pVal = directory_.photo.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_DirectoryPhoto(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      EnsureDirectory_();
+
+      HM::String value = newVal;
+      value.TrimLeft();
+      value.TrimRight();
+
+      if (value.IsEmpty())
+      {
+         directory_.photo = HM::String();
+         directory_.photoType = HM::String();
+         directory_dirty_ = true;
+         return S_OK;
+      }
+
+      HM::AnsiString encoded;
+      HM::Unicode::WideToMultiByte(value, encoded);
+
+      HM::AnsiString clean;
+      for (int i = 0; i < encoded.GetLength(); i++)
+      {
+         const char c = encoded.GetAt(i);
+         if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+            clean += c;
+      }
+
+      // Refused on the length of the base64 before anything is decoded, so a
+      // caller cannot make the server spend a megabyte to be told no.
+      if (clean.GetLength() > (HM::DirectoryStore::MaximumPhotoBytes / 3 + 1) * 4 + 16)
+      {
+         HM::String message;
+         message.Format(_T("The photo is larger than the %d bytes a directory photo may be."), HM::DirectoryStore::MaximumPhotoBytes);
+         return COMError::GenerateError(message);
+      }
+
+      HM::AnsiString bytes = HM::Base64::Decode(clean.c_str(), (int) clean.GetLength());
+      HM::AnsiString contentType;
+      HM::String problem;
+      if (!HM::DirectoryStore::ReadPhoto(bytes, contentType, problem))
+         return COMError::GenerateError(problem);
+
+      HM::String cleanWide;
+      HM::String typeWide;
+      HM::Unicode::MultiByteToWide(clean, cleanWide);
+      HM::Unicode::MultiByteToWide(contentType, typeWide);
+
+      directory_.photo = cleanWide;
+      directory_.photoType = typeWide;
+      directory_dirty_ = true;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_DirectoryPhotoType(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      EnsureDirectory_();
+      *pVal = directory_.photoType.AllocSysString();
       return S_OK;
    }
    catch (...)

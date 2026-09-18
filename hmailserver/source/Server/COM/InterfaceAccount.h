@@ -8,6 +8,7 @@
 #include "../hMailServer/hMailServer.h"
 
 #include "../Common/BO/Account.h"
+#include "../Common/Util/DirectoryStore.h"
 #include "COMCollection.h"
 
 namespace HM 
@@ -124,6 +125,27 @@ public:
    STDMETHOD(put_RoleDomains)(/*[in]*/ BSTR newVal);
    STDMETHOD(get_RolePermissions)(/*[out, retval]*/ BSTR *pVal);
 
+   // The account's entry in the organisation's directory (DirectoryStore.h).
+   // The row is read at the first get or put and written by Save(), so the
+   // whole entry is one round trip however many properties a caller sets.
+   STDMETHOD(get_DirectoryTitle)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryTitle)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryDepartment)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryDepartment)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryPhone)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryPhone)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryMobile)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryMobile)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryOffice)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryOffice)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryOptOut)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_DirectoryOptOut)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_DirectoryNote)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryNote)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryPhoto)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_DirectoryPhoto)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_DirectoryPhotoType)(/*[out, retval]*/ BSTR *pVal);
+
    STDMETHOD(get_OpenPGPPublish)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_OpenPGPPublish)(/*[in]*/ VARIANT_BOOL newVal);
    STDMETHOD(get_OpenPGPKeys)(/*[out, retval]*/ BSTR *pVal);
@@ -202,6 +224,18 @@ public:
 
 
 private:
+
+   // The directory entry, read once per object and written by Save().
+   bool EnsureDirectory_();
+   HRESULT SetDirectoryField_(HM::String &field, BSTR newVal, int maximum, const char *name);
+
+   bool directory_loaded_ = false;
+   bool directory_dirty_ = false;
+   // What the stored opt-out was when the row was read, so that Save() can
+   // tell a change of it from a save that left it alone: reversing somebody's
+   // opt-out is the one thing in the entry that goes on the audit trail.
+   bool directory_opt_out_read_ = false;
+   HM::DirectoryRecord directory_;
 
    std::shared_ptr<HM::COMAuthentication> authentication_;
 

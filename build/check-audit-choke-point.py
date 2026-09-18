@@ -143,6 +143,7 @@ ALLOWED = {
       "Common/Util/RestApiAccountReview.cpp",       # a held message released or discarded, an account's review choices, the compromise lock cleared
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
       "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
+      "Common/Util/RestApiDirectory.cpp",           # somebody's directory opt-out set or cleared by another hand
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -226,6 +227,12 @@ REQUIRED = [
    ("Common/Util/RestApiAccountRecovery.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("recovery-codes-generated"),',
     "a new set of recovery codes made over REST is no longer recorded - the codes stand in for the account's second factor, and making a set ends the one before it"),
+   ("Common/Util/RestApiDirectory.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("directory-opt-out-changed"),',
+    "an administrator setting or clearing somebody's directory opt-out over REST is no longer recorded - hm_directory is not an audited table (the person writes their own title and telephone number from the webmail), so the statement chokepoint does not record it, and putting a person who asked to be left out back into their domain's listing would leave nothing but an application-log line"),
+   ("COM/InterfaceAccount.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("account"), object_->GetAddress(), _T("directory-opt-out-changed"),',
+    "the same change made through Account.Save() over COM - which is what the Control Panel's Directory entry tab does - is no longer recorded, for the same reason"),
    ("Common/Util/SignInStore.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("device"), record.device, _T("revoked"), detail);',
     "a device revoked is no longer recorded - hm_signins is not an audited table (a sign-in would be recorded on every authentication) and the sessions and connections a revoke ends leave no row at all, so the strongest thing anybody can do about a client they do not recognise would be the one thing the trail did not hold"),
@@ -385,6 +392,12 @@ NOT_AUDITED = {
    "hm_calendarobjects": "the events in an account's own calendars.",
    "hm_calendarshares": "who else an account shares a calendar with, written by the account itself over the portal and CalDAV.",
    "hm_contacts": "an account's own address book, written by it over CardDAV and the portal.",
+   "hm_directory": "one account's entry in the organisation's directory - its title, telephone numbers and photo - written by the "
+                   "person themselves from the webmail as often as by an administrator, and holding nothing that decides what the "
+                   "server does with mail; an administrator's change to one is in the application log with the credential that made "
+                   "it. The one field of it that is not that is the opt-out, which is a decision of the person's that somebody else "
+                   "can reverse: a change of diroptout by any hand but the person's own is recorded through AuditTrail::RecordEvent "
+                   "as directory-opt-out-changed, by PUT /api/v1/accounts/{address}/directory and by Account.Save() over COM.",
    "hm_recoverable": "copies of the messages an account deleted, written as the delete happens and ended by the retention sweep or the account itself; traffic.",
    "hm_accountrecovery": "the recovery address an account set for itself, written by the account over /api/v1/me/recovery and cleared by the account or by an administrator. "
                          "Not listed, because the row is also written with no actor at all - the unauthenticated page a confirmation link opens marks it confirmed - and a listed table would record that as a change nobody made. "

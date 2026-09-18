@@ -41,6 +41,15 @@ namespace HM
       // book; ContactStore owns the SQL.
       { _T("hm_contacts"), 0 },
 
+      // The account's entry in the organisation's directory (schema 6078): its
+      // title, department, telephone numbers, photo, the administrator's note
+      // and, above all, the opt-out. The opt-out is a person having said "leave
+      // me out of the list", and a restore that dropped it would put every
+      // person who had opted out back into the directory of their domain
+      // without telling them; the rest is what somebody typed once and would
+      // otherwise have to type again.
+      { _T("hm_directory"), 0 },
+
       // The webmail's remembered choices (schema 6033). The server attaches no
       // meaning to a key, which is exactly why it must be carried verbatim.
       { _T("hm_accountprefs"), 0 },
@@ -162,6 +171,19 @@ namespace HM
       { _T("hm_contacts"), _T("contacturi"),         AccountStores::RoleText },
       { _T("hm_contacts"), _T("contactuid"),         AccountStores::RoleText },
       { _T("hm_contacts"), _T("contactvcard"),       AccountStores::RoleText },
+
+      { _T("hm_directory"), _T("dirid"),            AccountStores::RoleIdentity },
+      { _T("hm_directory"), _T("diraccountid"),     AccountStores::RoleAccount },
+      { _T("hm_directory"), _T("dirtitle"),         AccountStores::RoleText },
+      { _T("hm_directory"), _T("dirdepartment"),    AccountStores::RoleText },
+      { _T("hm_directory"), _T("dirphone"),         AccountStores::RoleText },
+      { _T("hm_directory"), _T("dirmobile"),        AccountStores::RoleText },
+      { _T("hm_directory"), _T("diroffice"),        AccountStores::RoleText },
+      { _T("hm_directory"), _T("dirphototype"),     AccountStores::RoleText },
+      { _T("hm_directory"), _T("dirphoto"),         AccountStores::RoleText },
+      { _T("hm_directory"), _T("diroptout"),        AccountStores::RoleNumber },
+      { _T("hm_directory"), _T("dirnote"),          AccountStores::RoleText },
+      { _T("hm_directory"), _T("dirupdated"),       AccountStores::RoleTimestamp },
 
       { _T("hm_accountprefs"), _T("prefid"),         AccountStores::RoleIdentity },
       { _T("hm_accountprefs"), _T("prefaccountid"),  AccountStores::RoleAccount },

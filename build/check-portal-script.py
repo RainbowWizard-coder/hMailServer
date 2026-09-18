@@ -145,6 +145,18 @@ def main():
         problems.append("the page names a remote resource (%s), which its policy forbids" % remote)
     if "script-src 'self'" not in headers:
         problems.append("the headers do not name script-src 'self'")
+    # The one coupling between the script and the policy that nothing else can
+    # see: imageFrom sets an image's src to a URL of this server for the
+    # account the cookie stands for, so a policy whose img-src does not allow
+    # 'self' forbids every photo the page shows - and a stub DOM has no policy
+    # to refuse it, so no check that executes the script can catch it.
+    script = read(SCRIPT)
+    loader = re.search(r"var imageFrom = function \(img, url\) \{(.*?)\n  \};", script, re.S)
+    if loader and "img.src = url" in loader.group(1):
+        img = re.search(r"img-src ([^;\r\n]*)", headers)
+        if not img or "'self'" not in img.group(1).split():
+            problems.append("Portal.js sets an image source to a URL of this server (imageFrom), "
+                            "but the headers' img-src does not allow 'self': those images cannot load")
     if "frame-ancestors 'none'" not in headers:
         problems.append("the headers do not name frame-ancestors 'none'")
     for directive in re.findall(r"(?:default|img|connect|frame|style|script)-src ([^;\r\n]*)", headers):

@@ -395,6 +395,9 @@
   <data name="A DMARC record with p={0} is live at {1} - stricter than the p=none starting point. That is right if you already know your mail passes alignment; if you are still setting SPF and DKIM up, mail that fails is being {2} right now. Published: {3}" xml:space="preserve">
     <value>p={0} の DMARC レコードが {1} に公開されています。出発点である p=none より厳しい設定です。自分のメールがアライメントを通過することを既に把握しているのであれば適切ですが、SPF と DKIM をまだ設定している最中であれば、失敗したメールは現時点で {2} されています。公開されている値: {3}</value>
   </data>
+  <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
+    <value>JPEG、PNG または GIF、100 KB まで。保存するかどうかはファイル名ではなくバイト列そのもので判断し、写真はアカウントと一緒に保存されます。</value>
+  </data>
   <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
     <value>{0} に TXT レコードは存在しますが、秘密鍵ファイルをこのコンピューターから読み取れなかったため、正しい鍵が入っているかどうかをここでは検証できません。チェックをサーバー自身の上で実行するか、ドメインの DKIM タブを使用してください。</value>
   </data>
@@ -433,6 +436,9 @@
   </data>
   <data name="A delivery report" xml:space="preserve">
     <value>配信レポート</value>
+  </data>
+  <data name="A directory photo is at most 100 KB." xml:space="preserve">
+    <value>ディレクトリの写真は 100 KB までです。</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>ドメイン - サーバーがメールを受信するにはまずドメインが必要です</value>
@@ -511,6 +517,9 @@
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
     <value>新しい鍵を生成して準備しました。そのレコードを公開してください。</value>
+  </data>
+  <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
+    <value>新しい写真が選ばれました。アカウントと一緒に保存されます。</value>
   </data>
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>サービス アカウントの新しいパスワードが入力されており、同時に「保存されているパスワードを削除する」もオンになっています。どちらか一方を解除してください。どちらの意図だったかを推測するのは、このページが決めることではありません。</value>
@@ -1078,6 +1087,9 @@
   </data>
   <data name="Administrator roles" xml:space="preserve">
     <value>管理者ロール</value>
+  </data>
+  <data name="Administrator's _note" xml:space="preserve">
+    <value>管理者のメモ (_F)</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>詳細設定</value>
@@ -1719,6 +1731,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>クライアント証明書のチェーン先となる CA 証明書バンドル (PEM)(_A)</value>
   </data>
+  <data name="C_hoose a photo..." xml:space="preserve">
+    <value>写真を選ぶ... (_G)</value>
+  </data>
   <data name="Cache" xml:space="preserve">
     <value>キャッシュ</value>
   </data>
@@ -1904,6 +1919,9 @@
   </data>
   <data name="Checks, in the order the server runs them" xml:space="preserve">
     <value>チェック (サーバーが実行する順)</value>
+  </data>
+  <data name="Choose a photo" xml:space="preserve">
+    <value>写真を選ぶ</value>
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>プリセットを選択…</value>
@@ -2402,6 +2420,9 @@
 
 {1}</value>
   </data>
+  <data name="Could not read the photo: {0}" xml:space="preserve">
+    <value>写真を読み取れませんでした: {0}</value>
+  </data>
   <data name="Could not read the queue: {0}" xml:space="preserve">
     <value>キューを読み取れませんでした: {0}</value>
   </data>
@@ -2677,6 +2698,9 @@
   </data>
   <data name="DNSQueryTimeout (10)" xml:space="preserve">
     <value>DNSQueryTimeout (10)</value>
+  </data>
+  <data name="D_epartment" xml:space="preserve">
+    <value>部署 (_B)</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>毎日のバックアップ時刻 (24 時間制 HH:MM、空 = 無効)(_I)</value>
@@ -2979,11 +3003,11 @@
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
     <value>ダイジェスト設定を保存しました。どのドメインが何時にダイジェストを送るかは、各ドメインの 検疫ダイジェスト タブで設定します。</value>
   </data>
-  <data name="Directory" xml:space="preserve">
-    <value>ディレクトリ</value>
-  </data>
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>ディレクトリ認証 (LDAP)</value>
+  </data>
+  <data name="Directory entry" xml:space="preserve">
+    <value>ディレクトリの情報</value>
   </data>
   <data name="Directory server" xml:space="preserve">
     <value>ディレクトリ サーバー</value>
@@ -3463,6 +3487,9 @@
   </data>
   <data name="Every value fails closed. A section whose Scope is anything but the literal &quot;full&quot; is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one." xml:space="preserve">
     <value>すべての値はフェイル クローズです。Scope がリテラルの "full" 以外のセクションは読み取り専用となり、有効期限がないか読み取れないキーは期限切れとして扱われ、使用可能なダイジェストのないセクションは完全に無視されます。これが、このストアを手で編集しても安全である理由です。打ち間違いは常にキーの権限を狭めるだけで、広げることは決してありません。</value>
+  </data>
+  <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
+    <value>このドメインにメールボックスを持つ全員が、これらを名前の横、ウェブメールのディレクトリ ページ、宛先欄、携帯電話が同期する読み取り専用の連絡先で見ます。ここのものはドメインを越えません。</value>
   </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>ErrorManager が報告するすべて</value>
@@ -4124,6 +4151,9 @@
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>サーバーに無視されます。保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
   </data>
+  <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
+    <value>画像 (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>DNSSEC で署名されたゾーンで、各 MX ホストについて _25._tcp.&lt;mx-host&gt; に TLSA レコード (通常は usage 3、selector 1、matching type 1 - 証明書の公開鍵の SHA-256 を使った '3 1 1') を公開してください。確認するには: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;。hMailServer は DNS レコードを公開することもゾーンに署名することもできず、このパネルにはそれらを確認する TLSA 参照機能もありません。</value>
   </data>
@@ -4374,6 +4404,9 @@
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>ホストを空のままにすると、ドメインは何も指定しません: この設定が存在する前とまったく同じように、サーバー全体の SMTP リレーが適用されます。ルートは依然としてどちらにも優先します。ルートは宛先についての宣言だからです。</value>
+  </data>
+  <data name="Leave this account _out of the directory" xml:space="preserve">
+    <value>このアカウントをディレクトリに載せない (_I)</value>
   </data>
   <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
     <value>自分でインストーラーをビルドして署名しているのでない限り、これはオフのままにしてください。このプロジェクトのリリースはまだ Authenticode 署名されていないため、オンにすると存在するすべてのリリースが拒否されます。ダウンロードは「インストーラーに Authenticode 署名がありません」で止まり、更新を適用することは二度とできなくなります。すべてのリリースが実際に備えている Sigstore 署名は、どちらの場合でも検証され、省略はできません。</value>
@@ -5605,6 +5638,9 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>オフ。初回の試行で延期されるメッセージはありません。</value>
   </data>
+  <data name="Offi_ce" xml:space="preserve">
+    <value>オフィス (_E)</value>
+  </data>
   <data name="On" xml:space="preserve">
     <value>オン</value>
   </data>
@@ -5845,6 +5881,9 @@
   <data name="Out of office" xml:space="preserve">
     <value>不在通知</value>
   </data>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
+    <value>一覧からも、全員の宛先欄からも、CardDAV のコレクションからも外れます。メールボックスは隠れません。メールは届き、アドレスを知っている人は書けます。サーバーの DirectoryUserEditable 設定にかかわらず、本人がウェブメールで自分で設定できます。</value>
+  </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>送信時の TLS</value>
   </data>
@@ -6056,6 +6095,9 @@
   </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>段階: {0}</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>写真</value>
   </data>
   <data name="Point the server at a SpamAssassin host and choose how its score is merged." xml:space="preserve">
     <value>サーバーが使う SpamAssassin ホストを指定し、そのスコアをどのようにマージするか選択します。</value>
@@ -6621,6 +6663,9 @@
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>記憶する過去のパスワードの数 (0 = 履歴なし)</value>
+  </data>
+  <data name="Remo_ve the photo" xml:space="preserve">
+    <value>写真を削除 (_H)</value>
   </data>
   <data name="Remote domain" xml:space="preserve">
     <value>リモート ドメイン</value>
@@ -8352,6 +8397,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="That event happened before the message was queued - a refusal during the SMTP conversation - so there is no message to follow." xml:space="preserve">
     <value>そのイベントはメッセージがキューに入る前 (SMTP 会話中の拒否) に起きたため、追跡できるメッセージがありません。</value>
   </data>
+  <data name="That file is not a JPEG, a PNG or a GIF." xml:space="preserve">
+    <value>そのファイルは JPEG、PNG、GIF のいずれでもありません。</value>
+  </data>
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>それはグレイリスティングです。ここで送信アドレスを除外するか、グレイリスティングを完全にオフにしてください。</value>
   </data>
@@ -8869,6 +8917,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The person's data" xml:space="preserve">
     <value>本人のデータ</value>
   </data>
+  <data name="The photo is removed when the account is saved." xml:space="preserve">
+    <value>アカウントを保存すると写真が削除されます。</value>
+  </data>
   <data name="The policy is being served over HTTPS. From this machine that also proves mta-sts.{0} resolves, the certificate validates for that name, and the listener answers - the internet's view can still differ if a firewall treats this machine specially. Served content: {1}" xml:space="preserve">
     <value>ポリシーは HTTPS で提供されています。このコンピューターからは、mta-sts.{0} が解決でき、証明書がその名前に対して検証され、リスナーが応答することも証明されます。ファイアウォールがこのコンピューターを特別扱いしている場合、インターネットからの見え方は異なることがあります。提供された内容: {1}</value>
   </data>
@@ -9201,6 +9252,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
     <value>このコントロールパネルはリモート サーバーに接続しており、鍵ファイルはそのマシンのディスク上にあります。このコンピューターからは読み取れないため、それについて何も検証されていません。これは "OK" ではなく "不明" です。サーバー自体で、またはその外部セットアップ ページから確認してください。</value>
+  </data>
+  <data name="This account has a photo." xml:space="preserve">
+    <value>このアカウントには写真があります。</value>
+  </data>
+  <data name="This account has no photo." xml:space="preserve">
+    <value>このアカウントには写真がありません。</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>このアクションに追加のパラメーターはありません。</value>
@@ -9981,6 +10038,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows ユーザー名(_U)</value>
   </data>
+  <data name="Windows directory" xml:space="preserve">
+    <value>Windows ディレクトリ</value>
+  </data>
   <data name="Windows display language" xml:space="preserve">
     <value>Windows の表示言語</value>
   </data>
@@ -10058,6 +10118,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>ドメインはこの一覧にあります。開くと、そのアカウント、エイリアス、配布リストが表示されます。</value>
+  </data>
+  <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
+    <value>あなただけのものです。メモはディレクトリの一覧にも、ウェブメールにも、携帯電話が同期するカードにも載りません。</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip アーカイブ (*.zip)|*.zip</value>
@@ -10287,6 +10350,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Install update" xml:space="preserve">
     <value>更新をインストール(_I)</value>
   </data>
+  <data name="_Job title" xml:space="preserve">
+    <value>役職 (_A)</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>元のメッセージを残す(_K)</value>
   </data>
@@ -10334,6 +10400,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Minutes between retries" xml:space="preserve">
     <value>再試行の間隔 (分)(_M)</value>
+  </data>
+  <data name="_Mobile" xml:space="preserve">
+    <value>携帯電話 (_D)</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>モデレーター (空 = モデレーションなし)(_M)</value>
@@ -10538,6 +10607,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>このリストに送信できる相手(_W)</value>
+  </data>
+  <data name="_Work telephone" xml:space="preserve">
+    <value>勤務先電話番号 (_C)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>数字</value>

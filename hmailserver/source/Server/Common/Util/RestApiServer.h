@@ -74,6 +74,8 @@ namespace HM
 {
    struct ContactRecord;
    struct ContactGroup;
+   struct DirectoryEntry;
+   struct DirectoryRecord;
    class HttpCompressedCache;
 
    // The cache RestApiServer.cpp holds the compressed forms of its per-request
@@ -315,6 +317,14 @@ namespace HM
          RouteMeContactGroupMemberAdd,
          RouteMeContactGroupMemberRemove,
 
+         // The organisation's directory (RestApiDirectory.cpp): the reader's own
+         // domain listed, their own entry, and one entry's photo.
+         RouteMeDirectory,
+         RouteMeDirectoryOwn,
+         RouteMeDirectoryOwnPut,
+         RouteMeDirectoryOwnPhoto,
+         RouteMeDirectoryPhoto,
+
          // The account's calendars, events, tasks and the invitations its
          // mail carries (RestApiCalendar.cpp).
          RouteMeCalendars,
@@ -403,6 +413,11 @@ namespace HM
          RoutePasskeyOptions,
          RoutePasskeyCreate,
          RoutePasskeyDelete,
+         // One account's directory entry, administered under its address
+         // (RestApiDirectory.cpp).
+         RouteAccountDirectoryGet,
+         RouteAccountDirectoryPut,
+         RouteAccountDirectoryPhoto,
          RouteMeConfidential,
          RouteMeConfidentialRevoke,
          RouteMeOffline,
@@ -1334,6 +1349,17 @@ namespace HM
       static HttpResponse HandleSignInMethods_();
       static bool AuthenticateOidcTicket_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
       static AnsiString OpenApiOidcPaths_();
+
+      // The organisation's directory (RestApiDirectory.cpp): the reader's own
+      // domain, the reader's own entry, one entry's photo, and the
+      // administrator's view of one account's entry.
+      static HttpResponse HandleMeDirectory_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &query, const AnsiString &requestBody);
+      static HttpResponse HandleAccountDirectory_(const Caller &caller, const String &address, RouteKind kind, const AnsiString &requestBody);
+      static AnsiString DirectoryEntryJson_(const DirectoryEntry &entry);
+      static AnsiString DirectoryRecordJson_(const DirectoryRecord &record, bool withNote);
+      static bool ReadDirectoryBody_(const AnsiString &requestBody, bool allowNote, bool allowOptOut, bool allowFields,
+                                     DirectoryRecord &record, String &problem);
+      static AnsiString OpenApiDirectoryPaths_();
       // Messages that expire, the sender's side, and the reading page a
       // recipient's notice links to (RestApiConfidential.cpp). The page is not
       // static: the grant cookie it sets is Secure over TLS.

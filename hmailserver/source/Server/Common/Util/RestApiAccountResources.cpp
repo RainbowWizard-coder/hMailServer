@@ -1555,6 +1555,27 @@ namespace HM
          return route.kind != RouteUnknown;
       }
 
+      // /directory: the account's entry in the organisation's directory. The
+      // handlers are in RestApiDirectory.cpp; the parsing is here because this
+      // is where the address has been split off.
+      if (tail == "/directory")
+      {
+         if (method == "GET")
+            route.kind = RouteAccountDirectoryGet;
+         else if (method == "PUT")
+            route.kind = RouteAccountDirectoryPut;
+
+         return route.kind != RouteUnknown;
+      }
+
+      if (tail == "/directory/photo")
+      {
+         if (method == "GET")
+            route.kind = RouteAccountDirectoryPhoto;
+
+         return route.kind != RouteUnknown;
+      }
+
       // /openpgp and /openpgp/<fingerprint>: the account's OpenPGP public keys,
       // administered under its address. The handlers are in RestApiOpenPgp.cpp;
       // the parsing is here because this is where the address has been split off.

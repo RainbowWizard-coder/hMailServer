@@ -228,6 +228,13 @@ namespace HM
       int GetRecoverDeletedDays() const;
       void SetRecoverDeletedDays(int days);
 
+      // Whether the accounts and lists of a domain are answered to the people of
+      // that domain, and whether a person sets their own entry (DirectoryStore.h).
+      bool GetDirectoryEnabled() const;
+      void SetDirectoryEnabled(bool enabled);
+      bool GetDirectoryUserEditable() const;
+      void SetDirectoryUserEditable(bool editable);
+
       // The recovery address and the one-time recovery codes (AccountRecovery.h):
       // whether they are offered, and how long each of the two links lives.
       bool GetAccountRecoveryEnabled() const;

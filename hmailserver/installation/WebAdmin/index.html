@@ -1063,6 +1063,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="accountmove")moveAccount();
   else if(d.act==="recoveryclear")clearRecovery();
   else if(d.act==="recoverycodesclear")clearRecoveryCodes();
+  else if(d.act==="accountdirsave")saveAccountDirectory();
   else if(d.act==="aliases")showAliases(d.domain);
   else if(d.act==="aliasnew")createAlias(d.domain);
   else if(d.act==="aliasdel")deleteAlias(d.name,d.domain);
@@ -2147,7 +2148,7 @@ const ACCOUNT_GROUPS=[
   {title:K("Spam"),keys:["antispam_enabled","spam_mark_threshold","spam_delete_threshold"]},
   {title:K("Signature"),keys:["signature_enabled","signature_plain_text","signature_html"]},
   {title:K("Sieve"),keys:["sieve_script"]},
-  {title:K("Directory"),keys:["ad_enabled","ad_domain","ad_username"]},
+  {title:K("Windows directory"),keys:["ad_enabled","ad_domain","ad_username"]},
   {title:K("OpenPGP"),keys:["openpgp_publish"]}
 ];
 const ACCOUNT_HINTS={
@@ -2192,6 +2193,10 @@ async function openAccount(address,domain){
   // been through. Its own route, and its own try: a role that may read an
   // account but not this is answered 403, and that must not empty the editor.
   try{editing.move=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/move");}catch(e){editing.move=null;}
+  // The account's directory entry, on its own route and with its own try: a
+  // role that may read an account but not this is answered 403, and the editor
+  // must still open.
+  try{editing.directory=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/directory");}catch(e){editing.directory=null;}
   renderAccountEditor();
 }
 function renderAccountEditor(){
@@ -2205,6 +2210,7 @@ function renderAccountEditor(){
       <div class="card flat"><p class="note">${escHtml(operation("/api/v1/accounts/{address}","put").description||"")}</p></div></div>
     ${cards}
     ${may("manage_accounts")?recoveryCardHtml():""}
+    ${directoryCardHtml()}
     ${may("manage_accounts")?moveCardHtml():""}
     <div class="sect"><div class="row">
       <button class="btn" data-act="accountsave">${t("Save account")}</button>
@@ -2263,6 +2269,83 @@ async function clearRecovery(){
     editing.values=await api("/api/v1/accounts/"+encodeURIComponent(address));
     renderAccountEditor();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_recovery",refusalText(e));}
+}
+/* The account's entry in the organisation's directory (DirectoryStore.h), over
+   GET and PUT /api/v1/accounts/{address}/directory. Its own card rather than a
+   group of the account's form, because it is its own route and its own table -
+   and because it is the one part of an account a person can also set for
+   themselves, from the webmail, so "who last wrote this" is a real question and
+   the two surfaces must not silently overwrite one another in one Save.
+   The note is the administrator's and is answered here and nowhere else. */
+const DIRECTORY_FIELDS=[
+  {key:"title",label:K("Job title"),max:100},
+  {key:"department",label:K("Department"),max:100},
+  {key:"phone",label:K("Work telephone"),max:60},
+  {key:"mobile",label:K("Mobile"),max:60},
+  {key:"office",label:K("Office"),max:100},
+  {key:"note",label:K("Administrator's note"),max:255}
+];
+function directoryCardHtml(){
+  const e=(editing.directory&&editing.directory.entry)||null;
+  if(!e)return "";
+  const rows=DIRECTORY_FIELDS.map(f=>`<div style="flex:1;min-width:200px"><label for="dir_${f.key}">${escHtml(t(f.label))}</label>`
+    +`<input id="dir_${f.key}" maxlength="${f.max}" value="${escHtml(e[f.key]||"")}"></div>`).join("");
+  const photo=e.has_photo?`<img src="/api/v1/accounts/${encodeURIComponent(editing.address)}/directory/photo" alt="" width="48" height="48" style="border-radius:50%;object-fit:cover">`:"";
+  return `<div class="sect"><h2>${t("Directory entry")}</h2>
+    <div class="card" data-enter="accountdirsave">
+      <p class="note">${t("What everyone at this domain sees beside the name in the webmail's Directory page, in their To field and in the read-only address book a phone syncs. The note is yours alone and is never answered to a reader.")}</p>
+      <div class="row" style="gap:12px;flex-wrap:wrap">${rows}</div>
+      <div class="row" style="gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px">
+        ${photo}
+        <input id="dirPhoto" type="file" accept="image/png,image/jpeg,image/gif" aria-label="${t("Photo")}">
+        ${e.has_photo?`<label class="row" style="gap:6px;align-items:center"><input id="dirPhotoRemove" type="checkbox"> ${t("Remove the photo")}</label>`:""}
+      </div>
+      <p class="note">${t("A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes, not by the file's name.")}</p>
+      <label class="row" style="gap:6px;align-items:center"><input id="dirOptOut" type="checkbox"${e.opt_out?" checked":""}> ${t("Leave this account out of the directory")}</label>
+      <p class="note">${t("Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write.")}</p>
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="accountdirsave">${t("Save directory entry")}</button></div>
+      <div class="err" id="err_accountdir"></div>
+    </div></div>`;
+}
+function directoryPhotoFile(){
+  const box=$("#dirPhoto");
+  const file=box&&box.files&&box.files[0];
+  if(!file)return Promise.resolve(undefined);
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const url=String(reader.result||""),at=url.indexOf(";base64,");
+      if(at<0){reject(new Error(t("A directory photo is a JPEG, a PNG or a GIF.")));return;}
+      resolve(url.slice(at+8));
+    };
+    reader.onerror=()=>reject(new Error(t("That file could not be read.")));
+    reader.readAsDataURL(file);
+  });
+}
+async function saveAccountDirectory(){
+  setErr("err_accountdir","");
+  const current=(editing.directory&&editing.directory.entry)||{},body={};
+  DIRECTORY_FIELDS.forEach(f=>{
+    const box=$("#dir_"+f.key);
+    if(!box)return;
+    if((box.value||"")!==(current[f.key]||""))body[f.key]=box.value||"";
+  });
+  const optOut=$("#dirOptOut")?$("#dirOptOut").checked:!!current.opt_out;
+  if(optOut!==!!current.opt_out)body.opt_out=optOut;
+  const remove=$("#dirPhotoRemove")?$("#dirPhotoRemove").checked:false;
+  let chosen;
+  try{chosen=await directoryPhotoFile();}catch(e){setErr("err_accountdir",e.message);return;}
+  if(remove)body.photo=null;
+  else if(chosen!==undefined)body.photo=chosen;
+  if(!Object.keys(body).length){toast(t("Nothing changed"));return;}
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/directory",{method:"PUT",body:JSON.stringify(body)});
+    // Read back rather than trusted from the answer, as the account's own save
+    // does, so what is drawn is what the server holds.
+    editing.directory=await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/directory");
+    toast(t("Directory entry saved"));
+    renderAccountEditor();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountdir",refusalText(e));}
 }
 /* Renaming a mailbox, and moving it to another domain on this server, are one
    operation and one route: POST /api/v1/accounts/{address}/move. It is here

@@ -116,6 +116,39 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox adDomain_ = NewInput();
       private readonly TextBox adUser_ = NewInput();
 
+      // The organisation's directory (DirectoryStore.h). A row of hm_directory,
+      // reached over Account.Directory*, and saved by Account.Save() with the
+      // rest - so an administrator sets a title and a telephone number in the
+      // same breath as a name. The note is the administrator's own and is
+      // never answered to a reader; the opt-out is the person's, and is here
+      // because somebody has to be able to set it for a person who asks.
+      // The columns' widths (DirectoryStore.h), on the boxes themselves: the
+      // COM setter refuses a value longer than its column by name, and a
+      // dialog that lets somebody paste a 101-character job title and then
+      // reports "Could not save the account" is a dialog that told them
+      // nothing. A box that cannot hold the 102nd character needs no message.
+      private readonly TextBox dirTitle_ = NewInput(100);
+      private readonly TextBox dirDepartment_ = NewInput(100);
+      private readonly TextBox dirPhone_ = NewInput(60);
+      private readonly TextBox dirMobile_ = NewInput(60);
+      private readonly TextBox dirOffice_ = NewInput(100);
+      private readonly TextBox dirNote_ = NewInput(255);
+      private readonly CheckBox dirOptOut_ = new() { Content = L("Leave this account _out of the directory") };
+      private readonly TextBlock dirPhotoState_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
+
+      // The photo as the column keeps it - base64 - or null while nothing has
+      // been chosen and nothing removed, which is what tells Save to leave the
+      // stored photo alone.
+      private string dirPhotoPending_;
+      private bool dirPhotoChanged_;
+      private bool dirPhotoStored_;
+
+      // Whether this server has a directory entry at all: true when the load
+      // read the properties, false on a server older than schema 6078. Save
+      // writes the nine values only then, and so needs no catch of its own to
+      // tolerate their absence.
+      private bool directorySupported_;
+
       // External (fetch) accounts, account rules, IMAP folders — embedded editors
       private CollectionEditorView fetchEditor_;
       private AppPasswordsPanel appPasswords_;
@@ -151,7 +184,8 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Recovery"), Content = BuildRecovery() });
          tabs.Items.Add(new TabItem { Header = L("Rules"), Content = BuildRules() });
          tabs.Items.Add(new TabItem { Header = L("Folders"), Content = BuildFolders() });
-         tabs.Items.Add(new TabItem { Header = L("Directory"), Content = BuildDirectory() });
+         tabs.Items.Add(new TabItem { Header = L("Windows directory"), Content = BuildDirectory() });
+         tabs.Items.Add(new TabItem { Header = L("Directory entry"), Content = BuildDirectoryEntry() });
          DialogFields.FillTabs(tabs);
 
          var body = new StackPanel();
@@ -388,6 +422,127 @@ namespace hMailServer.ControlPanel.Views
          RefreshDirectoryEffect_();
 
          return DialogFields.Scroll(panel);
+      }
+
+      /// <summary>
+      ///    The account's entry in the organisation's directory: what everyone else
+      ///    at the domain sees beside the name, in the webmail's Directory page, in
+      ///    their To field and in the read-only address book a phone syncs.
+      /// </summary>
+      private ScrollViewer BuildDirectoryEntry()
+      {
+         var panel = DialogFields.TabPanel();
+
+         panel.Children.Add(DialogFields.Note(L("Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain.")));
+
+         panel.Children.Add(Label(L("_Job title"), dirTitle_));
+         panel.Children.Add(Label(L("D_epartment"), dirDepartment_));
+         panel.Children.Add(Label(L("_Work telephone"), dirPhone_));
+         panel.Children.Add(Label(L("_Mobile"), dirMobile_));
+         panel.Children.Add(Label(L("Offi_ce"), dirOffice_));
+
+         panel.Children.Add(DialogFields.Separator());
+         panel.Children.Add(DialogFields.Caption(L("Photo")));
+         panel.Children.Add(dirPhotoState_);
+         dirPhotoState_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
+
+         var photoButtons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
+         var choose = new Wpf.Ui.Controls.Button { Content = L("C_hoose a photo..."), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         choose.Click += (s, e) => ChooseDirectoryPhoto();
+         var remove = new Wpf.Ui.Controls.Button { Content = L("Remo_ve the photo") };
+         remove.Click += (s, e) => RemoveDirectoryPhoto();
+         photoButtons.Children.Add(choose);
+         photoButtons.Children.Add(remove);
+         panel.Children.Add(photoButtons);
+         panel.Children.Add(DialogFields.Note(L("A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account.")));
+
+         panel.Children.Add(DialogFields.Separator());
+         panel.Children.Add(Label(L("Administrator's _note"), dirNote_));
+         panel.Children.Add(DialogFields.Note(L("Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs.")));
+
+         panel.Children.Add(DialogFields.Separator());
+         panel.Children.Add(DialogFields.Check(dirOptOut_));
+         panel.Children.Add(DialogFields.Note(L("Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says.")));
+
+         RefreshDirectoryPhotoState_();
+         return DialogFields.Scroll(panel);
+      }
+
+      private void RefreshDirectoryPhotoState_()
+      {
+         bool has = dirPhotoChanged_ ? dirPhotoPending_ != null : dirPhotoStored_;
+         dirPhotoState_.Text = has
+            ? (dirPhotoChanged_ ? L("A new photo has been chosen; it is saved with the account.") : L("This account has a photo."))
+            : (dirPhotoChanged_ ? L("The photo is removed when the account is saved.") : L("This account has no photo."));
+      }
+
+      private void ChooseDirectoryPhoto()
+      {
+         var picker = new Microsoft.Win32.OpenFileDialog
+         {
+            Title = L("Choose a photo"),
+            Filter = L("Images (*.jpg;*.jpeg;*.png;*.gif)") + "|*.jpg;*.jpeg;*.png;*.gif"
+         };
+
+         if (picker.ShowDialog(this) is not true)
+            return;
+
+         try
+         {
+            byte[] bytes = System.IO.File.ReadAllBytes(picker.FileName);
+
+            // Refused here as well as by the server, so the person is told at
+            // the moment they choose rather than at the end of a save.
+            if (bytes.Length > 100 * 1024)
+            {
+               notice_.Show(StatusLevel.Warning, L("A directory photo is at most 100 KB."));
+               return;
+            }
+
+            // What the server keeps is decided by the bytes and never by the
+            // file's name, so the same question is asked here - a file renamed
+            // to .png is refused at the moment it is chosen rather than at the
+            // end of a save.
+            if (!IsImage(bytes))
+            {
+               notice_.Show(StatusLevel.Warning, L("That file is not a JPEG, a PNG or a GIF."));
+               return;
+            }
+
+            dirPhotoPending_ = Convert.ToBase64String(bytes);
+            dirPhotoChanged_ = true;
+            notice_.Hide();
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            notice_.Show(StatusLevel.Critical, F("Could not read the photo: {0}", ex.Message));
+            return;
+         }
+
+         RefreshDirectoryPhotoState_();
+      }
+
+      /// <summary>
+      ///    Whether these bytes begin as a JPEG, a PNG or a GIF do - the same
+      ///    three the server keeps (DirectoryStore::ReadPhoto), read the same
+      ///    way: from the bytes, never from the name.
+      /// </summary>
+      private static bool IsImage(byte[] bytes)
+      {
+         if (bytes.Length > 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+            return true;
+         if (bytes.Length > 8 && bytes[0] == 0x89 && bytes[1] == 'P' && bytes[2] == 'N' && bytes[3] == 'G' &&
+             bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A)
+            return true;
+         return bytes.Length > 6 && bytes[0] == 'G' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == '8' &&
+                (bytes[4] == '7' || bytes[4] == '9') && bytes[5] == 'a';
+      }
+
+      private void RemoveDirectoryPhoto()
+      {
+         dirPhotoPending_ = null;
+         dirPhotoChanged_ = true;
+         RefreshDirectoryPhotoState_();
       }
 
       /// <summary>
@@ -801,6 +956,34 @@ namespace hMailServer.ControlPanel.Views
             // write the file only when it actually changed - see the note there.
             loadedSieveScript_ = sieveScript_.Text;
 
+            // The directory entry, on a server that has it (schema 6078).
+            try
+            {
+               dirTitle_.Text = (string)a.DirectoryTitle ?? "";
+               dirDepartment_.Text = (string)a.DirectoryDepartment ?? "";
+               dirPhone_.Text = (string)a.DirectoryPhone ?? "";
+               dirMobile_.Text = (string)a.DirectoryMobile ?? "";
+               dirOffice_.Text = (string)a.DirectoryOffice ?? "";
+               dirNote_.Text = (string)a.DirectoryNote ?? "";
+               dirOptOut_.IsChecked = (bool)a.DirectoryOptOut;
+               dirPhotoStored_ = !string.IsNullOrEmpty((string)a.DirectoryPhotoType);
+
+               // The one probe of whether this server has the entry at all.
+               // Save asks this flag rather than swallowing whatever the nine
+               // setters raise: an older server is silence, a refused value is
+               // a message.
+               directorySupported_ = true;
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               dirPhotoStored_ = false;
+               directorySupported_ = false;
+            }
+
+            dirPhotoPending_ = null;
+            dirPhotoChanged_ = false;
+            RefreshDirectoryPhotoState_();
+
             isAd_.IsChecked = (bool)a.IsAD;
             adDomain_.Text = (string)a.ADDomain ?? "";
             adUser_.Text = (string)a.ADUsername ?? "";
@@ -928,6 +1111,36 @@ namespace hMailServer.ControlPanel.Views
             if (int.TryParse(spamDelete_.Text.Trim(), out int deleteValue)) a.SpamDeleteThreshold = deleteValue;
             a.PersonFirstName = firstName_.Text.Trim();
             a.PersonLastName = lastName_.Text.Trim();
+            // The directory entry, written with the account: the properties are
+            // Account.Directory* and Save() puts the row behind them.
+            //
+            // Not inside a try of its own. One catch around all nine threw the
+            // whole tab away - the opt-out included - the moment any single
+            // value was refused, and then saved the account and closed as
+            // though everything had been written: a 101-character job title
+            // silently lost the department, both telephone numbers, the
+            // office, the note, the opt-out and the photo. A refusal here now
+            // reaches the outer catch, which says what the server said and
+            // leaves the dialog open with nothing saved. The only thing
+            // tolerated is a server that has no directory entry at all, and
+            // that is known from the load rather than guessed from an
+            // exception.
+            if (directorySupported_)
+            {
+               a.DirectoryTitle = dirTitle_.Text.Trim();
+               a.DirectoryDepartment = dirDepartment_.Text.Trim();
+               a.DirectoryPhone = dirPhone_.Text.Trim();
+               a.DirectoryMobile = dirMobile_.Text.Trim();
+               a.DirectoryOffice = dirOffice_.Text.Trim();
+               a.DirectoryNote = dirNote_.Text.Trim();
+               a.DirectoryOptOut = dirOptOut_.IsChecked is true;
+
+               // Only when the photo was chosen or removed here: an untouched
+               // dialog must not rewrite a photo somebody set in the webmail.
+               if (dirPhotoChanged_)
+                  a.DirectoryPhoto = dirPhotoPending_ ?? "";
+            }
+
             if (password_.Password.Length > 0)
                a.Password = password_.Password;
 
@@ -1003,6 +1216,12 @@ namespace hMailServer.ControlPanel.Views
       // ---- UI helpers ----
 
       private static TextBox NewInput() => new Wpf.Ui.Controls.TextBox();
+
+      /// <summary>
+      /// A box that cannot be typed or pasted past the width of the column
+      /// behind it.
+      /// </summary>
+      private static TextBox NewInput(int maximumLength) => new Wpf.Ui.Controls.TextBox { MaxLength = maximumLength };
 
       private static TextBox NewMemo() => new()
       {

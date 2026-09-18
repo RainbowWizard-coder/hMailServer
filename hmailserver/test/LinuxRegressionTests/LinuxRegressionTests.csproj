@@ -118,6 +118,7 @@
     <Compile Include="..\RegressionTests\API\RestApiSpamTraps.cs" Link="API\RestApiSpamTraps.cs" />
     <Compile Include="..\RegressionTests\API\RestApiGreylistBypass.cs" Link="API\RestApiGreylistBypass.cs" />
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiDirectory.cs" Link="API\RestApiDirectory.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOffline.cs" Link="API\RestApiOffline.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSessionFollow.cs" Link="API\RestApiSessionFollow.cs" />

@@ -267,6 +267,16 @@ namespace HM
       // keeps a copy of everything a person deletes for as long as it says.
       property_set_->EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
 
+      // The organisation's directory: on, as Outlook's and Google's are, and
+      // bounded to the reader's own domain. A server whose one domain holds
+      // people who are not one organisation turns it off (DirectoryStore.h).
+      property_set_->EnsureLong(PROPERTY_DIRECTORY_ENABLED, 1);
+
+      // And a person may set their own title, telephone numbers and photo. Off
+      // leaves those to the administrator; the opt-out stays the person's
+      // either way.
+      property_set_->EnsureLong(PROPERTY_DIRECTORY_USER_EDITABLE, 1);
+
       // The recovery address and the recovery codes: offered, but inert until a
       // person sets an address and proves it, and until the server has a public
       // address for the links to point at.
@@ -594,6 +604,30 @@ namespace HM
    Configuration::SetReaderMaskedAddressesMax(int count)
    {
       GetSettings()->SetLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, count);
+   }
+
+   bool
+   Configuration::GetDirectoryEnabled() const
+   {
+      return GetSettings()->GetLong(PROPERTY_DIRECTORY_ENABLED) != 0;
+   }
+
+   void
+   Configuration::SetDirectoryEnabled(bool enabled)
+   {
+      GetSettings()->SetLong(PROPERTY_DIRECTORY_ENABLED, enabled ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetDirectoryUserEditable() const
+   {
+      return GetSettings()->GetLong(PROPERTY_DIRECTORY_USER_EDITABLE) != 0;
+   }
+
+   void
+   Configuration::SetDirectoryUserEditable(bool editable)
+   {
+      GetSettings()->SetLong(PROPERTY_DIRECTORY_USER_EDITABLE, editable ? 1 : 0);
    }
 
    int
