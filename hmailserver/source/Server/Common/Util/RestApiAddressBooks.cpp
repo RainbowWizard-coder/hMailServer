@@ -286,7 +286,7 @@ namespace HM
          "\"/api/v1/accounts/{address}/address-books\":{"
          "\"get\":{\"summary\":\"An account's address books and who they are shared with (administrator)\",\"description\":\"id, name, is_default, created, contacts (how many) and shares - target, kind and write - for each book the account owns. This read makes nothing: an account that has never asked for its books answers the one default book at id 0, which is what its contacts carry until it does. The contacts themselves are not here: an administrator who needs them has the account export and the support session, both of which say what they are.\",\"responses\":{\"200\":{\"description\":\"books\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/accounts/{address}/address-books/{id}/shares/{target}\":{"
-         "\"delete\":{\"summary\":\"Remove a share of an account's address book (administrator)\",\"description\":\"What an operator does when somebody has shared a team's address book with an account that should not have it. Recorded in the audit trail as address-book-share-removed, with the book and the target.\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"No such account, book or share\"}}}},";
+         "\"delete\":{\"summary\":\"Remove a share of an account's address book (administrator)\",\"description\":\"What an operator does when somebody has shared a team's address book with an account that should not have it. Recorded in the audit trail as address-book-share-removed, with the book and the target.\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"No such account, book or share\"}}}}";
    }
 
    namespace

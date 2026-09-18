@@ -135,6 +135,14 @@ jobs:
       - name: Every SQL placeholder has its own value, added in the order it is written
         run: python3 build/check-sql-parameters.py
 
+      # /api/v1/openapi.json is fifty blocks of text joined in a list, and the
+      # comma between two blocks is one block's to carry. A block written last
+      # on its own branch carried none, and the fold that put another block
+      # before it made a document that was not JSON - twice at once on 18
+      # September 2026, found by six fixtures a bench twenty minutes in.
+      - name: Every OpenAPI block is joined with exactly one comma between it and the next
+        run: python3 build/check-openapi-blocks.py
+
       # A table that holds one account's data and is in neither the backup nor
       # the list of what is carried elsewhere is data a RESTORE destroys: every
       # one of them cascades from hm_accounts and a restore deletes every domain
