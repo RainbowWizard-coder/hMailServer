@@ -434,8 +434,14 @@
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>このサーバーでホストしているドメイン</value>
   </data>
+  <data name="A domain is required." xml:space="preserve">
+    <value>ドメインが必要です。</value>
+  </data>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに「ディレクトリ認証」ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
+  </data>
+  <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
+    <value>送信ホストが次々と変わるドメインはたいてい HELO 名で見分けられます。何も偽装しないドメインはエンベロープ送信者で見分けられます。</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>ドメイン、メールボックス、TLS を提供するリスナー、そしてそれをダッシュボードがどう評価するか。4 分ほどで、いつでも中断できます。</value>
@@ -683,6 +689,9 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats 互換のログ</value>
   </data>
+  <data name="A_ction" xml:space="preserve">
+    <value>操作(_C)</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>アドレス(_D)</value>
   </data>
@@ -857,6 +866,12 @@
   <data name="Add a domain or a mailbox" xml:space="preserve">
     <value>ドメインまたはメールボックスを追加します</value>
   </data>
+  <data name="Add a domain to the list" xml:space="preserve">
+    <value>ドメインをリストに追加</value>
+  </data>
+  <data name="Add a domain to the white and black list" xml:space="preserve">
+    <value>ドメインをホワイトリストとブラックリストに追加</value>
+  </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>リスナーを追加します。STARTTLS なら 587、暗黙の TLS なら 465 です。</value>
   </data>
@@ -967,6 +982,9 @@
   </data>
   <data name="Add {0}" xml:space="preserve">
     <value>{0} を追加</value>
+  </data>
+  <data name="Added" xml:space="preserve">
+    <value>追加日時</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>{0} に追加されました。</value>
@@ -1124,6 +1142,9 @@
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>このサーバーの時計が署名者の時計とずれていることを許容します。これがないと、時計が数分進んでいるだけで、他人の正当なメールが DKIM の失敗になります。</value>
   </data>
+  <data name="Also ban the connecting address for a while" xml:space="preserve">
+    <value>接続元アドレスもしばらく遮断する</value>
+  </data>
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>BAN したアドレスを OS のファイアウォールでもブロックする</value>
   </data>
@@ -1220,6 +1241,9 @@
   </data>
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>匿名でのディレクトリ読み取りが受け入れられました。 </value>
+  </data>
+  <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
+    <value>SPF の temperror を受け入れず 451 で応答する</value>
   </data>
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>可能な場合は Windows の DNS リゾルバー キャッシュから応答する</value>
@@ -1533,6 +1557,9 @@
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>ブロック期間 (分)</value>
   </data>
+  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
+    <value>遮断時間 (時間、1～8760)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 用のベアラー トークン (空 = なし)</value>
   </data>
@@ -1562,6 +1589,9 @@
   </data>
   <data name="Bind to address" xml:space="preserve">
     <value>バインド先アドレス</value>
+  </data>
+  <data name="Black: refused at MAIL FROM" xml:space="preserve">
+    <value>ブラック: MAIL FROM で拒否</value>
   </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>接続してきた IP アドレスに対して照会されるブロック リスト。</value>
@@ -3011,11 +3041,20 @@
   <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>ドメイン キャッシュの最大サイズ (KB、サービスの再起動でリセット)</value>
   </data>
+  <data name="Domain contains" xml:space="preserve">
+    <value>ドメインに含まれる文字</value>
+  </data>
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>mailer-daemon 送信者アドレスのドメイン (空 = ホスト名、なければメッセージのローカル ドメイン、なければコンピューター名)</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>ドメインまたはパターン</value>
+  </data>
+  <data name="Domain or suffix" xml:space="preserve">
+    <value>ドメインまたはサフィックス</value>
+  </data>
+  <data name="Domain white and black list" xml:space="preserve">
+    <value>ドメインのホワイトリストとブラックリスト</value>
   </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>DNS レコードを表示するドメイン</value>
@@ -3125,8 +3164,14 @@
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} を編集中 - 保存した変更は 2 秒以内に反映されます。サービスの再起動は不要です。</value>
   </data>
+  <data name="Either" xml:space="preserve">
+    <value>どちらでも</value>
+  </data>
   <data name="Either of them" xml:space="preserve">
     <value>どちらか</value>
+  </data>
+  <data name="Either the envelope sender's domain or the HELO name" xml:space="preserve">
+    <value>エンベロープ送信者のドメインまたは HELO 名</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>インデックスを空にし、インデクサーに再構築を依頼します。メールには触れません (インデックスは派生データです) が、再構築が追いつくまでは、IMAP SEARCH の検索結果が本来より少なくなります。インデックスのエントリ数がサーバーのメッセージ数より多い場合、つまりすでに存在しないメールのエントリがある場合に行う価値があります。</value>
@@ -3268,6 +3313,9 @@
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>エントリが要求する認証結果 (SPF、DKIM、DMARC の任意の組み合わせ) をメッセージが持つときにグレイリスティングを通過させるエンベロープ ドメインと HELO 接尾辞。完全一致するドメイン、または .mail.example.com のように先頭にドットの付いた接尾辞 (その名前とその配下のすべての名前を含む)。SPF は RCPT TO の時点で分かるため、SPF のみを要求するエントリはそこで決定します。DKIM と DMARC はメッセージを受信して初めて存在するため、どちらかを要求するエントリはひとまず受信者を通し、結果が合格でなければ DATA の後にグレイリスティングされます。これは DKIM 検証または DMARC が有効な間だけで、そうでなければエントリは決して満たされません。SPF 成功時にバイパスするとは異なり、これは名前を挙げたドメインに与える特権であり、世界中のあらゆる SPF 合格が持つ性質ではありません。</value>
+  </data>
+  <data name="Envelope sender's domain" xml:space="preserve">
+    <value>エンベロープ送信者のドメイン</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>エンベロープ送信者を無条件に拒否するか、スコアを付けます。1 つのアドレス、またはサブドメインを含むドメイン全体を指定できます。</value>
@@ -3730,6 +3778,9 @@
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>HELO ホスト チェック</value>
+  </data>
+  <data name="HELO name" xml:space="preserve">
+    <value>HELO 名</value>
   </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 が OAuth2AllowedAlgorithms に含まれていますが OAuth2HmacSecret が空のため、HS256 トークンは決して検証できません。共有シークレットを設定するか、リストから HS256 を削除してください。</value>
@@ -4456,6 +4507,9 @@
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>マークと削除のしきい値を下げるか、より多くのチェックをオンにしてください。</value>
   </data>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; は配信レポートの返送経路であり、レポートの宛先はちょうど 1 つ、すなわち対象メッセージを送った送信元アドレスです。空の送信者がその後に 2 つ目の宛先を指定するなら、それはバックスキャッター、偽造レポート、または探査です。オフの場合、サーバーは従来どおり受け入れます。オンの場合、2 つ目以降の RCPT TO には 550 を返し、そのトランザクションの DATA も拒否します。宛先が 1 つの空の送信者には一切触れません。スパムテストを実行する IP 範囲からの未認証セッションのみが対象で、アンチスパムのホワイトリストにある送信者には決して適用されません。ドメインのホワイトリストとブラックリストは、アンチスパムの下にある独立したページです。</value>
+  </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (レガシ)</value>
   </data>
@@ -4580,6 +4634,9 @@
     <value>いずれかの条件に一致 (OR)</value>
   </data>
   <data name="Matched against" xml:space="preserve">
+    <value>照合対象</value>
+  </data>
+  <data name="Matched on" xml:space="preserve">
     <value>照合対象</value>
   </data>
   <data name="Matches" xml:space="preserve">
@@ -5314,6 +5371,9 @@
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>テストしていません: この構成では、保護されていない LDAP でシンプル バインドによりパスワードを送信することになり、AllowUnprotectedPassword がオフです。そのためサーバーはこの構成下のすべてのログオンを拒否し、このテストも同じ理由で何も送信しません。LDAPS か StartTLS、または Negotiate バインド方式を選ぶか、保護されていないパスワードを明示的に許可してください。</value>
   </data>
+  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>すべてのテストを省略する IP 範囲であるアンチスパムのホワイトリストではなく、配信時に受信者ごとに判定する許可・ブロックリストでもありません。example.com はそのドメインだけに一致し、.example.com はそのドメインとその配下すべてに一致します。</value>
+  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} まで無効</value>
   </data>
@@ -5386,6 +5446,9 @@
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
     <value>次はメールボックスです。アカウントとは、誰かがサインインしてメールを受け取るアドレスです。</value>
   </data>
+  <data name="Null sender with several recipients" xml:space="preserve">
+    <value>複数の宛先を持つ空の送信者</value>
+  </data>
   <data name="Number of delivery retries" xml:space="preserve">
     <value>配信再試行の回数</value>
   </data>
@@ -5448,6 +5511,9 @@
   </data>
   <data name="Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything." xml:space="preserve">
     <value>既定ではオフです。見えなくなったアカウントは、退職した人であるより、フィルターが変わった結果であることのほうがはるかに多く、この 2 つの誤りのコストは同じではありません。メッセージが削除されることもアカウントが削除されることも決してなく、再び有効にすればすべて元に戻ります。</value>
+  </data>
+  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
+    <value>既定ではオフです。現在これをスクリプトで拒否している運用者は、これをオンにすればそのスクリプトを削除できます。</value>
   </data>
   <data name="Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below." xml:space="preserve">
     <value>既定ではオフです。オンにすると、サーバーはスパムと見なしたメールを保存し始めるため、下の保持ウィンドウに注意してください。</value>
@@ -6195,6 +6261,9 @@
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
     <value>RFC 7208 4.6.4。「void lookup」とは、送信者の SPF ポリシーの項 (a:、mx:、exists:) のうち、その DNS クエリがまったく何も返さないものを指します。DNS を照会する項を 10 個までとする別の制限は、ポリシーがこのサーバーに参照させられる回数を制限しますが、ポリシーが無駄にできる量までは制限しません。存在しないホストを指す 10 個の項は、決して一致し得ないレコードのために、それぞれ完全な名前解決を消費します。RFC が定めている値は 2 です。この制限は、ありふれたケースも捕らえます。何年も前に廃止したホストをいまだに列挙しているポリシーは、その所有者にとってはむしろ知らせてほしいものでしょう。値を上げるのは安全です。0 にすると制限を無効にします。まさにこの形でポリシーが誤っている相手のメールを、それでも受け取りたい場合の設定です。サービスの再起動後に有効になります。</value>
   </data>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
+    <value>完了できなかった検査に対する RFC 7208 自身の答えです。DNS が復旧してから再試行させます。トランザクションは 451 4.4.3 で保留され、上の temperror スコアは無視されます。保留されたメッセージは決して受け入れられないためです。オフの場合、temperror は受け入れられ、スコア付けされます。ドメインのホワイトリストにある送信者は決して保留されません。</value>
+  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC 公開鍵ファイル (PEM。RS*/ES* トークン用)</value>
   </data>
@@ -6382,6 +6451,9 @@
   <data name="Refuse a new password found in published data breaches" xml:space="preserve">
     <value>公開されたデータ漏えいに含まれる新しいパスワードを拒否する</value>
   </data>
+  <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
+    <value>複数の宛先を指定する空の送信者を拒否する</value>
+  </data>
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>拒否する場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。配信して記録だけするのは、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
   </data>
@@ -6484,6 +6556,9 @@
   <data name="Remove _expired" xml:space="preserve">
     <value>期限切れを削除(_E)</value>
   </data>
+  <data name="Remove from the domain list" xml:space="preserve">
+    <value>ドメインリストから削除</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>抑止リストから削除</value>
   </data>
@@ -6504,6 +6579,11 @@
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>保存時に、保存済みのサービス アカウント パスワードを削除する(_W)</value>
+  </data>
+  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+    <value>{0} をリストから削除しますか?
+
+ブラックのドメインは直ちに再び受け入れられます。ホワイトのドメインは次のセッションからグレイリストとスパムスコアの対象に戻ります。</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0} を {1} から削除しますか?
@@ -6906,8 +6986,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="SPF failure score" xml:space="preserve">
     <value>SPF 失敗時のスコア</value>
   </data>
+  <data name="SPF permerror score (0 = not scored)" xml:space="preserve">
+    <value>SPF permerror のスコア (0 = スコア付けしない)</value>
+  </data>
+  <data name="SPF softfail score (0 = not scored)" xml:space="preserve">
+    <value>SPF softfail のスコア (0 = スコア付けしない)</value>
+  </data>
   <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
     <value>SPF はこのドメインのメールを送信してよいサーバーを受信側に伝えます。なければメールは拒否されたり迷惑メールに振り分けられたりしやすくなります。</value>
+  </data>
+  <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
+    <value>SPF temperror のスコア (0 = スコア付けしない)</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — 次の名前としてメールを送信できるマシン: </value>
@@ -7290,6 +7379,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Select an app password first." xml:space="preserve">
     <value>先にアプリ パスワードを選択してください。</value>
   </data>
+  <data name="Select an entry first." xml:space="preserve">
+    <value>先に項目を選択してください。</value>
+  </data>
   <data name="Select an event first." xml:space="preserve">
     <value>先にイベントを選択してください。</value>
   </data>
@@ -7355,6 +7447,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>スパム対策を完全にバイパスする送信者または IP 範囲。</value>
+  </data>
+  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>このサーバーが判断を下した送信ドメイン。ホワイトはグレイリストとスコアによる拒否を省略し、ブラックは MAIL FROM で拒否されます。IP アドレスではなく、ドメインまたは HELO サフィックスで判定します。</value>
+  </data>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>その週の IP アドレスではなく、ドメインで判断する送信組織。ホワイト: グレイリストされず、スパムスコアで拒否されることもありませんが、各テストは引き続き実行され、記録されます。ブラック: グレイリスト、スコア付け、いかなる照会よりも前に MAIL FROM で拒否されます。エンベロープ送信者のドメイン、HELO 名、またはそのどちらかで照合します。受信方向の未認証セッションのみが対象です。</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>一斉送信に失敗しました: {0}</value>
@@ -8194,6 +8292,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>{0} の DNS ルックアップ自体が失敗しました: {1} これはレコードについて何も示していません。このコンピューターが DNS サーバーから応答を得られなかったのです。ネットワークを確認して再試行してください。</value>
   </data>
+  <data name="The HELO name" xml:space="preserve">
+    <value>HELO 名</value>
+  </data>
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO ホスト</value>
   </data>
@@ -8338,6 +8439,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
     <value>チェーンは無傷です。{0} 行を確認しました。</value>
   </data>
+  <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
+    <value>検査が完了しませんでした。DNS がタイムアウトしたか SERVFAIL を返したか、照会の上限に達したもので、レコード自体は正しい可能性があります。これを fail のようにスコア付けすると、リゾルバーが一時的に不調になるたびにメールを失います。下のスイッチがもう 1 つの答えです。</value>
+  </data>
+  <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
+    <value>検査は完了しましたが、ドメインが公開しているレコードは使用できません。レコードが 2 つある、無効なメカニズム、リダイレクトのループ、照会が多すぎる、などです。再試行しても直らないため決して保留されません。厳格なサイトは fail として扱い、寛容なサイトは無視します。</value>
+  </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>TLS 1.0 または 1.1 が有効なのに、暗号スイート リストが AEAD-ONLY プリセットになっています。これらのバージョンには AEAD スイートが 1 つもないため、アドバタイズはされてもハンドシェイクを完了できません。クライアントからは、ポリシーではなく壊れたサーバーに見えます。</value>
   </data>
@@ -8417,6 +8524,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>エンジンの判定はスコアとして届きます。SPF、DKIM、DMARC と並び、既存のしきい値が結果を決めるようにするためで、最初のものと整合させなければならない第 2 の並行したスパム概念にはなりません。これがエンジンの最も強い判定の重みです。</value>
+  </data>
+  <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
+    <value>この項目はそのドメインからの次のセッションに適用されます。スパムテストを実行する IP 範囲からの未認証の受信セッションで参照され、認証を回避するために使われることはありません。</value>
+  </data>
+  <data name="The envelope sender's domain" xml:space="preserve">
+    <value>エンベロープ送信者のドメイン</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>エンベロープ送信者のドメイン (MAIL FROM)</value>
@@ -8554,6 +8667,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The lines this page refers to are written at debug level; the slow ones are also written at application level, so with application logging alone you still see the important ones. Reproduce the problem once, then read the log. Remember to turn debug logging off afterwards on a busy server." xml:space="preserve">
     <value>このページが参照する行はデバッグ レベルで書き込まれます。遅い行はアプリケーション レベルでも書き込まれるため、アプリケーション ログだけでも重要な行は確認できます。問題を 1 回再現してから、ログを読んでください。忙しいサーバーでは、後でデバッグ ログを忘れずにオフにしてください。</value>
+  </data>
+  <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
+    <value>リストは空です。空のリストは何も変えません。すべてのドメインは従来どおりグレイリストとスコア付けの対象です。</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>リスナーは設定済みです。残っているのはサーバーの外側の作業です。各メール ドメインの autoconfig.&lt;domain&gt; と autodiscover.&lt;domain&gt; レコードを公開し、クライアント マシンからテストしてください。</value>
@@ -8730,6 +8846,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>実行に失敗しました:</value>
+  </data>
+  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
+    <value>ログオン失敗の連続で作成されるものと同じ期限付き IP 範囲で、同じ掃除処理で解除され、同じ照合処理でファイアウォールに反映されます。AutoBanNeverBan にあるアドレスや受信リレーには決して適用されません。既定ではオフで、宛先が 2 つある誤送信のレポート 1 通で本物のメールサーバーを遮断しないためです。上の拒否がオフの間は何もしません。</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>ログ ファイルが受け取るのと同じ行、カテゴリ、マスクに、ログを記録したスレッドでスパンがアクティブなときはいつでもトレース ID とスパン ID が付加されます。エクスポーターは自身の失敗行を決してエクスポートしません。そうしないと、停止したコレクターが自分自身を養うことになります。</value>
@@ -9685,8 +9804,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="White list" xml:space="preserve">
     <value>ホワイト リスト</value>
   </data>
+  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
+    <value>ホワイトでも各テストは実行され、マークしきい値でのマーク付けも行われます。ブラックはテストが 1 つも実行される前に拒否します。</value>
+  </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>送信者またはその IP 範囲をホワイト リストに登録して、メッセージがスパム対策をバイパスするようにします。</value>
+  </data>
+  <data name="White: not greylisted, not refused on score" xml:space="preserve">
+    <value>ホワイト: グレイリストせず、スコアで拒否しない</value>
+  </data>
+  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>ホワイト: グレイリストせず、スパムスコアで拒否しない</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>実行者</value>
@@ -9934,6 +10062,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
     <value>ドメイン名 (変更するとドメインの名前が変わり、すべてのアカウント、エイリアス、リストも一緒に移動します)(_D)</value>
   </data>
+  <data name="_Domain or suffix" xml:space="preserve">
+    <value>ドメインまたはサフィックス(_D)</value>
+  </data>
   <data name="_Download update" xml:space="preserve">
     <value>更新をダウンロード(_D)</value>
   </data>
@@ -10050,6 +10181,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Match type" xml:space="preserve">
     <value>一致の種類(_M)</value>
+  </data>
+  <data name="_Matched on" xml:space="preserve">
+    <value>照合対象(_M)</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>読み取る最大エントリ数(_M)</value>
@@ -10455,6 +10589,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="every recipient" xml:space="preserve">
     <value>すべての受信者</value>
+  </data>
+  <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
+    <value>example.com はそのドメインだけ、.example.com はそのドメインとその配下すべてです。</value>
   </data>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - 空はすべてのドメインを意味します</value>
@@ -10975,6 +11112,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>送信者のドメインまたは HELO ホストがグレイリスティングのバイパス リストの {0} 件のエントリのいずれかに一致し、メッセージがそのエントリの要求する SPF、DKIM、または DMARC の合格を持っている</value>
   </data>
+  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
+    <value>送信者のドメインまたは HELO 名がドメインのホワイトリストとブラックリストでホワイトになっている</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>サーバーがデータベースに到達できません。データベース接続と hMailServer のエラー ログを確認してから、「再読み込み」を押してください。({0})</value>
   </data>
@@ -11233,6 +11373,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} はオンですがスコアが 0 のため、メッセージごとに参照のコストがかかるだけで、結果を変えることは決してありません。スコアを設定するか、オフにしてください。</value>
   </data>
+  <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
+    <value>{0} をリストに追加しました。そのドメインからの次のセッションに適用されます。</value>
+  </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} は {1} の抑止リストにあります。</value>
   </data>
@@ -11286,6 +11429,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
     <value>{1} 件の変更のうち {0} 件は実行できず、先頭に列挙されています。それぞれにサーバーからの理由が付いています。残りは適用されました。</value>
+  </data>
+  <data name="{0} of {1} entries match the search." xml:space="preserve">
+    <value>{1} 件中 {0} 件が検索に一致しました。</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>ポート {1} の {0} では暗号化が利用できません。メール クライアントはこのポートで認証するため、そこで使われるパスワードはすべて、クライアントとこのサーバーの間にあるあらゆるものから読み取れます。</value>
@@ -11541,6 +11687,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1}ウイルス対策が無効になっているため、{2}収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。{3}</value>
+  </data>
+  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
+    <value>~all: ドメインはクライアントがおそらく承認されていないと述べつつ、それでもメッセージを受け入れるよう求めています。多くの大量送信元がその陰に隠れています。削除しきい値以上のスコアは fail と同様に SMTP の会話中にメッセージを拒否します。softfail はグレイリスト免除の pass には決してなりません。</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ 移動    Enter 開く    Esc 閉じる</value>

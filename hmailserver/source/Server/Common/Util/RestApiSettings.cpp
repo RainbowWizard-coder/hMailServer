@@ -422,6 +422,10 @@ namespace
    const char *GreyListingAbuseLockRefusal =
       "GreyListingAbuseLockMinutes is between 1 and 10080 (a week): how long the 550 of GreyListingAbuseThreshold lasts.";
 
+   // InterfaceAntiSpam::put_BanMultiRcptNullSenderHours's sentence, verbatim.
+   const char *NullSenderBanHoursRefusal =
+      "BanMultiRcptNullSenderHours is between 1 and 8760 (a year): how long the address of a refused multi-recipient null sender is banned.";
+
    // PasswordBreachCheck::UnreachableAction, as the Control Panel lists it.
    const Word BreachCheckUnreachableWords[] =
    {
@@ -1169,6 +1173,36 @@ namespace
       { "use_spf_score", KindInteger, ReadWrite, EffectNow, nullptr,
         "The score an SPF failure adds.",
         ROW_NUMBER(AntiSpam().GetUseSPFScore()), ROW_SET(AntiSpam().SetUseSPFScore((int) v.number)), ROW_NO_CHECK },
+      // SPF's other results, scored on their own (discussion #286). 0 leaves the
+      // result unscored, as every result but Fail always was; Neutral and None
+      // are never scored, and SoftFail is never a Pass for the greylisting bypass.
+      { "use_spf_softfail_score", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The score an SPF softfail adds: the domain's policy names the client as probably unauthorised (~all) and asks that the message be accepted anyway. 0, the default, adds nothing; a score at or above spam_delete_threshold refuses the message during the SMTP conversation as a fail does.",
+        ROW_NUMBER(AntiSpam().GetUseSPFSoftFailScore()), ROW_SET(AntiSpam().SetUseSPFSoftFailScore((int) v.number)), ROW_NO_CHECK },
+      { "use_spf_temperror_score", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The score an SPF temperror adds: the check did not finish, because DNS timed out, answered SERVFAIL or the lookup limit was reached, and the record may be fine. 0, the default, adds nothing. Ignored for a message spf_temperror_defer answers 451 to, because that message is never accepted.",
+        ROW_NUMBER(AntiSpam().GetUseSPFTempErrorScore()), ROW_SET(AntiSpam().SetUseSPFTempErrorScore((int) v.number)), ROW_NO_CHECK },
+      { "use_spf_permerror_score", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The score an SPF permerror adds: the check finished and the domain's published record is unusable - two records, a bad mechanism, a redirect loop, too many lookups. 0, the default, adds nothing; a retry will not fix a permerror, so it is never deferred.",
+        ROW_NUMBER(AntiSpam().GetUseSPFPermErrorScore()), ROW_SET(AntiSpam().SetUseSPFPermErrorScore((int) v.number)), ROW_NO_CHECK },
+      { "spf_temperror_defer", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether an SPF temperror answers 451 4.4.3 for the transaction, RFC 7208 section 8.6's own answer to a check that did not finish, so that a resolver blip defers the message instead of accepting or refusing it on a guess. Off by default: a temperror is accepted and scored by use_spf_temperror_score. A sender the domain policy list marks white is never deferred.",
+        ROW_FLAG(AntiSpam().GetSPFTempErrorDefer()), ROW_SET(AntiSpam().SetSPFTempErrorDefer(v.flag)), ROW_NO_CHECK },
+      // MAIL FROM:<> with more than one RCPT TO (discussion #283): not a bounce,
+      // because a delivery status notification has one recipient.
+      { "reject_multi_rcpt_null_sender", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether MAIL FROM:<> naming more than one recipient is refused: the second and every later RCPT TO answers 550 5.7.1 and the transaction's DATA is refused too, because a delivery status notification has exactly one recipient and a null sender with several is backscatter, a forged report or a probe. A single-recipient null sender is untouched. Off by default; unauthenticated sessions of an IP range that runs the spam tests only, and never a sender the anti-spam white list covers.",
+        ROW_FLAG(AntiSpam().GetRejectMultiRcptNullSender()), ROW_SET(AntiSpam().SetRejectMultiRcptNullSender(v.flag)), ROW_NO_CHECK },
+      { "ban_multi_rcpt_null_sender", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether the connecting address of a refused multi-recipient null sender is also banned, for ban_multi_rcpt_null_sender_hours, through the expiring IP range a run of failed logons creates - lifted by the same sweep and mirrored into the firewall by the same reconciliation, and never for an address on AutoBanNeverBan or an incoming relay. Off by default, so a single mis-sent report with two recipients does not ban a real mail server; does nothing while reject_multi_rcpt_null_sender is off.",
+        ROW_FLAG(AntiSpam().GetBanMultiRcptNullSender()), ROW_SET(AntiSpam().SetBanMultiRcptNullSender(v.flag)), ROW_NO_CHECK },
+      { "ban_multi_rcpt_null_sender_hours", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long that ban lasts, in hours, 1 to 8760. 24 by default.",
+        ROW_NUMBER(AntiSpam().GetBanMultiRcptNullSenderHours()), ROW_SET(AntiSpam().SetBanMultiRcptNullSenderHours((int) v.number)),
+        [] (const Value &v) -> String
+        {
+           return (v.number < 1 || v.number > 8760) ? String(NullSenderBanHoursRefusal) : String();
+        } },
       { "check_host_in_helo", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether the HELO/EHLO name must resolve to the connecting address.",
         ROW_FLAG(AntiSpam().GetCheckHostInHelo()), ROW_SET(AntiSpam().SetCheckHostInHelo(v.flag)), ROW_NO_CHECK },

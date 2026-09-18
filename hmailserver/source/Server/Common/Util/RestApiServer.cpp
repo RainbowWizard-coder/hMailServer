@@ -1911,6 +1911,11 @@ namespace HM
          case RouteSpamTrapHits:
          case RouteSpamTrapHitsClear:
             return HandleSpamTraps_(route, caller, GetRequestBody_(request));
+         case RouteDomainPolicyList:
+         case RouteDomainPolicyCreate:
+         case RouteDomainPolicyUpdate:
+         case RouteDomainPolicyDelete:
+            return HandleDomainPolicyList_(route.kind, route.record_id, GetRequestBody_(request));
          case RouteGroupList:
          case RouteGroupCreate:
          case RouteGroupGet:
@@ -4393,6 +4398,7 @@ namespace HM
             { "/api/v1/greylisting-white-addresses", RouteGreyListingWhiteAddressList, RouteGreyListingWhiteAddressCreate, RouteGreyListingWhiteAddressUpdate, RouteGreyListingWhiteAddressDelete },
             { "/api/v1/greylisting-bypass", RouteGreylistBypassList, RouteGreylistBypassCreate, RouteGreylistBypassUpdate, RouteGreylistBypassDelete },
             { "/api/v1/sender-list", RouteSenderListList, RouteSenderListCreate, RouteSenderListUpdate, RouteSenderListDelete },
+            { "/api/v1/domain-policy-list", RouteDomainPolicyList, RouteDomainPolicyCreate, RouteDomainPolicyUpdate, RouteDomainPolicyDelete },
          };
 
          for (const SmallCollection &collection : collections)
@@ -5588,6 +5594,11 @@ namespace HM
       case RouteSpamTrapDomainCreate:
       case RouteSpamTrapDelete:
       case RouteSpamTrapHitsClear:
+      // A row of the domain policy list changes what the next MAIL FROM from
+      // that domain is answered.
+      case RouteDomainPolicyCreate:
+      case RouteDomainPolicyUpdate:
+      case RouteDomainPolicyDelete:
       case RouteMeQuarantineDigestPut:
       case RouteGroupCreate:
       case RouteGroupUpdate:
@@ -5943,6 +5954,9 @@ namespace HM
       case RouteBlockedAttachmentList:
       case RouteGreyListingWhiteAddressList:
       case RouteGreylistBypassList:
+      // The domain white and black list: anti-spam configuration like the
+      // lists above, server-wide, and refused to a confined credential below.
+      case RouteDomainPolicyList:
       case RoutePortalFilesPolicy:
       case RouteDomainAliasList:
       case RouteRuleMatch:
@@ -6326,6 +6340,11 @@ namespace HM
       case RouteGreylistBypassCreate:
       case RouteGreylistBypassUpdate:
       case RouteGreylistBypassDelete:
+      // The domain white and black list: a row refuses a domain's mail at MAIL
+      // FROM or lets it past greylisting and the score, for every recipient.
+      case RouteDomainPolicyCreate:
+      case RouteDomainPolicyUpdate:
+      case RouteDomainPolicyDelete:
       // A remote domain policy, and the verification cache whose clearing
       // changes what the next RCPT TO decides.
       case RouteRemoteDomainCreate:
@@ -6899,6 +6918,12 @@ namespace HM
       case RouteSenderListCreate:
       case RouteSenderListUpdate:
       case RouteSenderListDelete:
+      // The domain white and black list decides for the connection, before
+      // there is a recipient, so no hosted domain can scope it.
+      case RouteDomainPolicyList:
+      case RouteDomainPolicyCreate:
+      case RouteDomainPolicyUpdate:
+      case RouteDomainPolicyDelete:
       // The record of every domain's spam trap hits, and its clearing: one
       // list across every domain, so a credential confined to some of them is
       // refused it and reads its own domains' hits instead.
@@ -15005,6 +15030,7 @@ namespace HM
       openApiJson += OpenApiBlockedAttachmentsPaths_();
       openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiSpamTrapPaths_();
+      openApiJson += OpenApiDomainPolicyListPaths_();
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiCalendarPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();

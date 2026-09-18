@@ -1213,6 +1213,11 @@ namespace DBUpdater
                          "update hm_greylisting_triplets set glrecipienthash = glrecipienthash where 1 = 0"),
          new SchemaProbe(6072, "hm_greylisting_bypass.glbnote",
                          "update hm_greylisting_bypass set glbnote = glbnote where 1 = 0"),
+         // Upgrade6072to6073* - the domain white and black list keyed by envelope
+         // domain or HELO suffix (discussion #285): one table, and this is its
+         // last column.
+         new SchemaProbe(6073, "hm_domainpolicylist.dplcreated",
+                         "update hm_domainpolicylist set dplcreated = dplcreated where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

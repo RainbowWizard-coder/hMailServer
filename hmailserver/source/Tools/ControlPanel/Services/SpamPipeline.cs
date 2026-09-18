@@ -196,6 +196,15 @@ namespace hMailServer.ControlPanel.Services
       /// not have.
       /// </summary>
       public int SenderListEntries { get; set; }
+
+      /// <summary>
+      /// Rows on the domain white and black list, white and black together. Not a
+      /// check either: a black row refuses at MAIL FROM before any check runs, and
+      /// a white row is what lets a sender past greylisting and past the score's
+      /// refusal while every check still runs - so it is counted with the lists
+      /// and named among the greylisting bypasses.
+      /// </summary>
+      public int DomainPolicyListEntries { get; set; }
    }
 
    /// <summary>
@@ -245,7 +254,7 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static IReadOnlyList<string> LinkedPages { get; } = new[]
       {
-         "antispam", "blockedsenders", "dnsbl", "quarantine", "surbl", "spamwhitelist", "greylistwhitelist", "greylistbypass", "senderlist"
+         "antispam", "blockedsenders", "dnsbl", "quarantine", "surbl", "spamwhitelist", "greylistwhitelist", "greylistbypass", "senderlist", "domainpolicylist"
       };
 
       /// <summary>
@@ -416,6 +425,8 @@ namespace hMailServer.ControlPanel.Services
             bypasses.Add(F("the address is one of the {0} on the greylisting white list", config.GreylistWhiteListEntries));
          if (config.GreylistBypassEntries > 0)
             bypasses.Add(F("the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires", config.GreylistBypassEntries));
+         if (config.DomainPolicyListEntries > 0)
+            bypasses.Add(L("the sender's domain or HELO name is white on the domain white and black list"));
 
          string text = L("On. A sender/recipient/address triplet that has not been seen before is answered 451 \"Please try again later.\" at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score.");
 

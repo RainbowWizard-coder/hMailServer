@@ -111,6 +111,11 @@ PATH_SCOPE = {
     'greylisting-white-addresses': ['GreyListingWhiteAddress'],
     # The per-domain greylisting bypass list, in the white list's shape.
     'greylisting-bypass': ['GreyListingBypassEntry'],
+    # The domain white and black list: rows reached over COM through three
+    # members of AntiSpam (DomainPolicyList, AddDomainPolicyListEntry,
+    # RemoveDomainPolicyListEntry), which are not properties of a row
+    # interface and have no resource of their own.
+    'domain-policy-list': ['AntiSpam'],
     'fetch-accounts': ['FetchAccount'],
     'settings': ['Settings'],
     # POST /api/v1/settings/breach-check/test: Settings.TestBreachCheckEndpoint.

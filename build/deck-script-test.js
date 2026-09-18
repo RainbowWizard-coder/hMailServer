@@ -600,7 +600,12 @@ const COLLECTION_SPECS = {
    // match is an enumeration and whose three requirements are flags.
    '/api/v1/greylisting-bypass': { props: { pattern: { type: 'string' }, match: { type: 'string', enum: ['envelope', 'helo', 'both'] }, require_spf: { type: 'boolean' }, require_dkim: { type: 'boolean' }, require_dmarc: { type: 'boolean' }, note: { type: 'string' } }, required: ['pattern'], noun: 'greylisting bypass entry',
       get: 'AntiSpam.GreyListingBypassEntries over COM: the envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires. Each entry: id, pattern, match (envelope, helo or both), require_spf, require_dkim, require_dmarc, note. Server-wide; refused for domain-restricted keys.',
-      post: 'Body: pattern (required; a domain such as example.com, or a suffix such as .mail.example.com), match (envelope, helo or both; default envelope), require_spf, require_dkim, require_dmarc (default false each; at least one must be true) and note. Server-wide; refused for domain-restricted and read-only keys.' }
+      post: 'Body: pattern (required; a domain such as example.com, or a suffix such as .mail.example.com), match (envelope, helo or both; default envelope), require_spf, require_dkim, require_dmarc (default false each; at least one must be true) and note. Server-wide; refused for domain-restricted and read-only keys.' },
+   // The domain white and black list (RestApiDomainPolicyList.cpp): the two
+   // words are enums in the document, which the form draws as selects.
+   '/api/v1/domain-policy-list': { props: { pattern: { type: 'string' }, match_on: { type: 'string', 'enum': ['envelope', 'helo', 'both'] }, action: { type: 'string', 'enum': ['white', 'black'] }, note: { type: 'string' } }, required: ['pattern'], noun: 'domain policy list entry',
+      get: 'The sending organisations this server has decided about by domain rather than by address (AntiSpam.DomainPolicyList over COM). Each entry: id, pattern, match_on, action, note and created. Server-wide; refused for domain-restricted keys.',
+      post: 'Body: pattern (required; a domain, or .domain for the domain and everything beneath it), match_on (envelope, helo or both; both by default), action (white or black; white by default) and note. The pair of pattern and match_on is unique. In force for the next session. Server-wide; refused for domain-restricted and read-only keys.' }
 };
 const COLLECTION_PUT = 'Body: any subset of the fields POST takes; a field left out keeps its value. Nothing changes when the body is refused. Server-wide; refused for domain-restricted and read-only keys.';
 function collectionPaths() {
@@ -1291,7 +1296,8 @@ const state = {
       '/api/v1/greylisting-white-addresses': [{ id: 16, ip_address: '10.0.0.*', description: 'The office' }],
       '/api/v1/incoming-relays': [{ id: 17, name: 'Front relay', lower_ip: '192.0.2.1', upper_ip: '192.0.2.1' }],
       '/api/v1/sender-list': [{ id: 18, scope: 'server', value: 'partner.example', blocked: false, reason: 'Their invoices kept scoring', expires: false, expires_time: '', expired: false, created: '2026-09-15 08:00:00' }],
-      '/api/v1/greylisting-bypass': [{ id: 19, pattern: '.mail.partner.example', match: 'helo', require_spf: true, require_dkim: true, require_dmarc: false, note: 'Their gateway retries on a timer' }]
+      '/api/v1/greylisting-bypass': [{ id: 19, pattern: '.mail.partner.example', match: 'helo', require_spf: true, require_dkim: true, require_dmarc: false, note: 'Their gateway retries on a timer' }],
+      '/api/v1/domain-policy-list': [{ id: 19, pattern: '.sloppy-partner.example', match_on: 'helo', action: 'white', note: 'Their SPF has been broken since 2019', created: '2026-09-18 08:00:00' }]
    },
    groups: [{ id: 3, name: 'Support' }, { id: 4, name: 'Everyone' }],
    groupMembers: { 3: [{ id: 30, group_id: 3, account_id: 1, account: 'anna@example.com' }], 4: [] },
@@ -3981,15 +3987,17 @@ async function main() {
    await goTo('lists');
    check('the Lists view reads the nine collections', Object.keys(COLLECTION_SPECS).every((p) => called(before, 'GET', p).length === 1) && $('#viewTitle').textContent === 'Lists', paths(before));
    const tables = content().querySelectorAll('table');
-   check('one table per collection, each with its entry\'s own columns and a row per entry', tables.length === 9 && tables.every((t) => t.querySelectorAll('tbody tr').length === 1) &&
+   check('one table per collection, each with its entry\'s own columns and a row per entry', tables.length === 10 && tables.every((t) => t.querySelectorAll('tbody tr').length === 1) &&
       tables[0].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Active,DNS host,Expected result,Reject message,Score,' &&
       tables[7].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Name,Lower IP,Upper IP,' &&
-      tables[8].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Match,Require SPF,Require DKIM,Require DMARC,Note,', tables.length + ' tables');
+      tables[8].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Match,Require SPF,Require DKIM,Require DMARC,Note,' &&
+      tables[9].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Match on,Action,Note,', tables.length + ' tables');
    check('a flag is yes or no, and the values are the entries\' own', tables[0].querySelector('.badge.good') !== null && tables[1].querySelector('.badge.warn') !== null &&
       tables[0].textContent.indexOf('zen.spamhaus.org') >= 0 && tables[4].textContent.indexOf('*.exe') >= 0 && tables[5].textContent.indexOf('partner.example') >= 0 &&
-      tables[6].textContent.indexOf('10.0.0.*') >= 0 && tables[7].textContent.indexOf('Front relay') >= 0 && tables[8].textContent.indexOf('.mail.partner.example') >= 0);
+      tables[6].textContent.indexOf('10.0.0.*') >= 0 && tables[7].textContent.indexOf('Front relay') >= 0 && tables[8].textContent.indexOf('.mail.partner.example') >= 0 &&
+      tables[9].textContent.indexOf('.sloppy-partner.example') >= 0);
    check('each section carries its route\'s own sentence and an Add', content().textContent.indexOf('AntiVirus.BlockedAttachments over COM') >= 0 &&
-      COLLECTION_SPECS && ['dnsbl', 'surbl', 'whitelist', 'blocked', 'attachments', 'senderlist', 'greylist', 'relays', 'greybypass'].every((id) => act('collnew', { coll: id }) !== null));
+      COLLECTION_SPECS && ['dnsbl', 'surbl', 'whitelist', 'blocked', 'attachments', 'senderlist', 'greylist', 'relays', 'greybypass', 'domainpolicy'].every((id) => act('collnew', { coll: id }) !== null));
    click(act('collnew', { coll: 'dnsbl' }));
    await flush();
    const drawnColl = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('coll_') === 0).map((id) => id.slice(5)).sort();

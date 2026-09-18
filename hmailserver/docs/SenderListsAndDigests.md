@@ -130,6 +130,7 @@ recipient's preferences are reachable.
 |---|---|---|---|
 | **Blocked senders** (Anti-spam) | During the SMTP conversation | Every recipient at once | Adds a score, 100 by default, which refuses the message. Nobody's own list overrules it. |
 | **White list** (Anti-spam) | During the SMTP conversation | Every recipient at once | Skips every spam test for a sender and an IP range. |
+| **Domain white and black list** (Anti-spam; [SmtpPolicy.md](SmtpPolicy.md)) | At `MAIL FROM`, before greylisting and the score | Every recipient at once, keyed by the sender's domain or HELO suffix rather than by address | Black refuses the session outright; white skips greylisting and the score's refusals while every test still runs. |
 | **Allow and block list** (this) | At delivery | Each recipient separately | Allows or blocks for the recipients it applies to, below their own lists and their domain's. |
 
 ### Neither address is proof

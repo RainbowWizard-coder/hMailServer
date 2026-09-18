@@ -344,6 +344,22 @@ namespace HM
    }
 
    void
+   AutoBanFirewall::BannedForNullSender(const IPAddress &address, int minutes)
+   {
+      // The same shape again, with this reason, for the fail2ban filter and for a
+      // person reading the log.
+      LOG_APPLICATION(_T("Auto-ban: ") + String(address.ToString()) + _T(" is banned for ") + StringParser::IntToString(minutes) +
+         _T(" minutes after a null sender named more than one recipient"));
+
+      AlertManager::Instance()->NoteAutoBan();
+
+      // Placed inside RCPT TO, as a trap's ban is, and for the same reason not
+      // done on this thread: the refusal is answered at once and the firewall
+      // catches up a fraction of a second later, or within the minute in any case.
+      SynchroniseLater_(_T("null sender"));
+   }
+
+   void
    AutoBanFirewall::SynchroniseLater_(const String &why)
    {
       std::shared_ptr<WorkQueue> queue = Application::Instance()->GetAsyncWorkQueue();

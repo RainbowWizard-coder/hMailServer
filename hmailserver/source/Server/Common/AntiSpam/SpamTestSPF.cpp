@@ -109,9 +109,25 @@ namespace HM
                                        AnsiString(pTestData->GetHeloHost()));
       }
 
-      // Only a fail is scored and only a pass is recorded as one, which is what this
-      // test has always done: a softfail is the sending domain asking that the message
-      // be accepted anyway, and neither error is a statement about the message.
+      AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
+
+      // A fail is scored by UseSPFScore, as it always was, and only a pass is
+      // recorded as one - SoftFail is never a Pass, so BypassGreyListingOnSPFSuccess
+      // stays Pass-only.
+      //
+      // Since discussion #286 the three results between them have a score each of
+      // their own, 0 by default, and 0 is "not scored" exactly as before: a
+      // softfail is the domain saying the client is probably not authorised and
+      // asking that the message be accepted anyway, which many spray sources hide
+      // behind; a temperror is a check that did not finish and may be a resolver
+      // blip; a permerror is a record the domain itself broke. They do not mean
+      // the same thing, so they do not share Fail's score. Neutral ("no
+      // assertion") and None ("no policy") stay unscored.
+      //
+      // A temperror with SPFTempErrorDefer on is not scored at all: it answers
+      // Defer, and the connection turns that into a 451 for the transaction, the
+      // RFC's own answer (section 8.6) to a check that could not be completed.
+      // There is then no accepted message for a score to mark.
       if (result == SPF::Result::Fail)
       {
          // Blocked by SPF.s
@@ -119,11 +135,11 @@ namespace HM
             sMessage.Format(_T("Blocked by SPF. (%s)"), sExplanation.c_str());
          else
             sMessage = "Blocked by SPF.";
-         iScore = Configuration::Instance()->GetAntiSpamConfiguration().GetUseSPFScore();
+         iScore = config.GetUseSPFScore();
 
          std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Fail, iScore, sMessage));
          setSpamTestResults.insert(pResult);
-      }      
+      }
       else if (result == SPF::Result::Pass)
       {
          std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Pass, 0, ""));
@@ -137,6 +153,40 @@ namespace HM
          pResult->AddIdentityDomain(SPF::GetCheckedDomain(pTestData->GetEnvelopeFrom(), pTestData->GetHeloHost()));
 
          setSpamTestResults.insert(pResult);
+      }
+      else if (result == SPF::Result::TempError && config.GetSPFTempErrorDefer())
+      {
+         std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Defer, 0,
+            _T("SPF check could not be completed (temporary DNS error). Please try again later.")));
+         setSpamTestResults.insert(pResult);
+      }
+      else if (result == SPF::Result::SoftFail || result == SPF::Result::TempError || result == SPF::Result::PermError)
+      {
+         if (result == SPF::Result::SoftFail)
+         {
+            iScore = config.GetUseSPFSoftFailScore();
+            sMessage = sExplanation.IsEmpty() ? String(_T("Blocked by SPF (softfail)."))
+                                              : String(_T("Blocked by SPF (softfail). (")) + sExplanation + _T(")");
+         }
+         else if (result == SPF::Result::TempError)
+         {
+            iScore = config.GetUseSPFTempErrorScore();
+            sMessage = _T("Blocked by SPF (temperror: the check could not be completed).");
+         }
+         else
+         {
+            iScore = config.GetUseSPFPermErrorScore();
+            sMessage = _T("Blocked by SPF (permerror: the sender domain's SPF record is unusable).");
+         }
+
+         // The score is the switch. At 0 nothing is recorded, so from the outside
+         // the result looks exactly as it did before these three had a score: the
+         // Authentication-Results header above is still the whole record of it.
+         if (iScore > 0)
+         {
+            std::shared_ptr<SpamTestResult> pResult = std::shared_ptr<SpamTestResult>(new SpamTestResult(GetName(), SpamTestResult::Fail, iScore, sMessage));
+            setSpamTestResults.insert(pResult);
+         }
       }
 
 

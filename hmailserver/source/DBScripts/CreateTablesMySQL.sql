@@ -26,6 +26,8 @@ drop table if exists hm_spamtraps;
 
 drop table if exists hm_spamtraphits;
 
+drop table if exists hm_domainpolicylist;
+
 drop table if exists hm_dmarcreportrecords;
 
 drop table if exists hm_dmarcreports;
@@ -2221,4 +2223,18 @@ ALTER TABLE hm_mailboxmoves ENGINE=InnoDB;
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6072);
+create table hm_domainpolicylist
+(
+	dplid int auto_increment not null, primary key(`dplid`), unique(`dplid`),
+	dplpattern varchar(255) not null,
+	dplmatchon int not null,
+	dplaction int not null,
+	dplnote varchar(255) not null,
+	dplcreated datetime not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon);
+
+ALTER TABLE hm_domainpolicylist ENGINE=InnoDB;
+
+insert into hm_dbversion values (6073);

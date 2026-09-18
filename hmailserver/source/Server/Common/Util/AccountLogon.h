@@ -71,6 +71,15 @@ namespace HM
       // arrive here. See SpamTrapMonitor::OnHit.
       bool BanForSpamTrap(const IPAddress &ipaddress, const String &trapAddress, int minutes);
 
+      // A null sender named more than one recipient (discussion #283): the same
+      // expiring range again, under a name that says why, for the hours
+      // BanMultiRcptNullSenderHours gives. Whether the address MAY be banned is
+      // decided by the caller as it is for a trap: SMTPConnection reaches this
+      // only for an unauthenticated session of a range that runs the spam
+      // tests, never for the anti-spam white list, an incoming relay or an
+      // address on AutoBanNeverBan.
+      bool BanForNullSenderAbuse(const IPAddress &ipaddress, int hours);
+
    private:
 
       // True if the range was saved, which is the only case in which the address

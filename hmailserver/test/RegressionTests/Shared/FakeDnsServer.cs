@@ -68,6 +68,13 @@ namespace RegressionTests.Shared
       private readonly HashSet<string> nonExistent_ =
          new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+      // Names whose every query is answered SERVFAIL: a resolver that could not
+      // answer, which is what an SPF temperror is made of. Distinct from NXDOMAIN
+      // (the name is not there) and NODATA (the name is there and holds nothing of
+      // the type): both of those are answers, and this is the absence of one.
+      private readonly HashSet<string> serverFailing_ =
+         new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
       // Records given in wire form, which is how DNSSEC's own types arrive: DNSKEY, DS,
       // TLSA and the TXT or MX records of a signed zone. Keyed like the text answers by
       // the type and name a query asks for; a record's owner may differ from that name
@@ -194,6 +201,20 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    Makes a name answer SERVFAIL (RCODE 2) for every query type: the resolver
+      ///    could not complete the lookup. An SPF check that meets it answers temperror,
+      ///    RFC 7208 section 2.6.6, which is the one result no record can produce. Any
+      ///    answer added for the same name wins, as with WithNxDomain.
+      /// </summary>
+      public FakeDnsServer WithServFail(string name)
+      {
+         lock (answers_)
+            serverFailing_.Add(name.TrimEnd('.').ToLowerInvariant());
+
+         return this;
+      }
+
+      /// <summary>
       ///    Makes name an alias of target. A query for name answers the CNAME and then
       ///    the target's records of the asked-for type, under the target's name.
       /// </summary>
@@ -233,6 +254,7 @@ namespace RegressionTests.Shared
          {
             answers_.Clear();
             nonExistent_.Clear();
+            serverFailing_.Clear();
             cnames_.Clear();
             raw_.Clear();
             rrsigs_.Clear();
@@ -570,6 +592,7 @@ namespace RegressionTests.Shared
          List<RawRecord> signatures;
          List<RawRecord> denial;
          bool nonExistent;
+         bool serverFailing;
          bool dnssec = HasDoBit_(query);
 
          lock (answers_)
@@ -584,6 +607,7 @@ namespace RegressionTests.Shared
             denials_.TryGetValue(Key_(type, name), out List<RawRecord> foundDenial);
             denial = !dnssec || foundDenial == null ? new List<RawRecord>() : new List<RawRecord>(foundDenial);
             nonExistent = nonExistent_.Contains(name.TrimEnd('.').ToLowerInvariant());
+            serverFailing = serverFailing_.Contains(name.TrimEnd('.').ToLowerInvariant());
          }
 
          if (cnameTarget != null || values.Count > 0 || rawAnswers.Count > 0)
@@ -617,6 +641,16 @@ namespace RegressionTests.Shared
                WriteRawAnswer_(m, record, cnameTarget ?? name);
 
             return m.ToArray();
+         }
+
+         // A name declared failing: RCODE 2 and nothing else, which is what a resolver
+         // that could not answer sends. Checked after the answer table for the same
+         // reason NXDOMAIN is.
+         if (serverFailing)
+         {
+            var servfail = new List<byte>();
+            WriteHeaderAndQuestion_(servfail, query, 0, 0, 2);
+            return servfail.ToArray();
          }
 
          // A name declared non-existent: RCODE 3, with the same SOA in AUTHORITY so

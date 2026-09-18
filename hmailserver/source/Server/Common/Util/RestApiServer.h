@@ -552,6 +552,14 @@ namespace HM
          RouteSpamTrapDomainHits,
          RouteSpamTrapHits,
          RouteSpamTrapHitsClear,
+
+         // The domain white and black list (RestApiDomainPolicyList.cpp): one
+         // server-wide list keyed by envelope domain or HELO name, in the
+         // shape of the anti-spam lists above.
+         RouteDomainPolicyList,
+         RouteDomainPolicyCreate,
+         RouteDomainPolicyUpdate,
+         RouteDomainPolicyDelete,
          // An account's resources under its address (RestApiAccountResources.cpp):
          // its app passwords, its folders and their ACLs, its messages. Each
          // scoped to the address's domain in Authorize_ as the account routes are.
@@ -1586,6 +1594,11 @@ namespace HM
       HttpResponse HandleSpamTraps_(const Route &route, const Caller &caller, const AnsiString &requestBody);
       static AnsiString OpenApiSpamTrapPaths_();
       static AnsiString TrapJson_(__int64 id, const String &address, const String &localPart, const String &created);
+
+      // The domain white and black list as a resource
+      // (RestApiDomainPolicyList.cpp): one entry point for its four routes.
+      HttpResponse HandleDomainPolicyList_(RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiDomainPolicyListPaths_();
       // Whether the quarantine digest reaches the signed-in account, read and
       // written by its owner (RestApiSenderLists.cpp).
       HttpResponse HandleMeQuarantineDigest_(const Caller &caller, const AnsiString &method, const AnsiString &requestBody);

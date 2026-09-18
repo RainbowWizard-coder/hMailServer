@@ -1812,6 +1812,87 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.AntiSpam, "use_spf_score", value); }
       }
 
+      // SMTP policy the score cannot express (discussions #283, #285, #286): the
+      // seven settings are rows of the anti-spam group, and the domain white and
+      // black list is /api/v1/domain-policy-list, which COM's three members on
+      // AntiSpam answer for on Windows.
+      public int UseSPFSoftFailScore
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "use_spf_softfail_score"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "use_spf_softfail_score", value); }
+      }
+
+      public int UseSPFTempErrorScore
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "use_spf_temperror_score"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "use_spf_temperror_score", value); }
+      }
+
+      public int UseSPFPermErrorScore
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "use_spf_permerror_score"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "use_spf_permerror_score", value); }
+      }
+
+      public bool SPFTempErrorDefer
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "spf_temperror_defer"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "spf_temperror_defer", value); }
+      }
+
+      public bool RejectMultiRcptNullSender
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "reject_multi_rcpt_null_sender"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "reject_multi_rcpt_null_sender", value); }
+      }
+
+      public bool BanMultiRcptNullSender
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "ban_multi_rcpt_null_sender"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "ban_multi_rcpt_null_sender", value); }
+      }
+
+      public int BanMultiRcptNullSenderHours
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "ban_multi_rcpt_null_sender_hours"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "ban_multi_rcpt_null_sender_hours", value); }
+      }
+
+      private const string DomainPolicyPath = "/api/v1/domain-policy-list";
+
+      /// <summary>The list as COM's AntiSpam.DomainPolicyList gives it: a document with items.</summary>
+      public string DomainPolicyList
+      {
+         get
+         {
+            if (!ServerApi.HasRoute(DomainPolicyPath, "get"))
+               throw NotOnThisServer.Skipped("this server has no domain policy list (" + DomainPolicyPath + ")");
+            var answer = ServerApi.Get(DomainPolicyPath).Expect(200, "GET " + DomainPolicyPath);
+            return "{\"items\":" + answer.Body + "}";
+         }
+      }
+
+      public int AddDomainPolicyListEntry(string pattern, string matchOn, string action, string note)
+      {
+         if (!ServerApi.HasRoute(DomainPolicyPath, "post"))
+            throw NotOnThisServer.Skipped("this server has no domain policy list (" + DomainPolicyPath + ")");
+         var answer = ServerApi.Post(DomainPolicyPath, "{\"pattern\":" + ServerApi.Quote(pattern) + ",\"match_on\":" + ServerApi.Quote(matchOn) +
+                                                       ",\"action\":" + ServerApi.Quote(action) + ",\"note\":" + ServerApi.Quote(note ?? "") + "}");
+         if (answer.Status == 400)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         answer.Expect(201, "POST " + DomainPolicyPath);
+         return answer.Json.Value.GetProperty("id").GetInt32();
+      }
+
+      public bool RemoveDomainPolicyListEntry(int id)
+      {
+         var answer = ServerApi.Delete(DomainPolicyPath + "/" + id);
+         if (answer.Status == 404)
+            return false;
+         answer.Expect(200, "DELETE " + DomainPolicyPath + "/" + id);
+         return true;
+      }
+
       public bool CheckHostInHelo
       {
          get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "check_host_in_helo"); }

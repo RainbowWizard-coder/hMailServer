@@ -86,6 +86,38 @@ namespace HM
       int GetUseSPFScore();
       void SetUseSPFScore(int bNewVal);
 
+      // SPF's other results, scored on their own (discussion #286). Fail keeps
+      // UseSPFScore; SoftFail, TempError and PermError each have a score of
+      // their own, 0 by default, and 0 is "not scored" as it always was.
+      // Neutral and None are never scored.
+      int GetUseSPFSoftFailScore();
+      void SetUseSPFSoftFailScore(int newVal);
+
+      int GetUseSPFTempErrorScore();
+      void SetUseSPFTempErrorScore(int newVal);
+
+      int GetUseSPFPermErrorScore();
+      void SetUseSPFPermErrorScore(int newVal);
+
+      // Whether a TempError answers 451 for the transaction rather than being
+      // accepted and scored: RFC 7208 section 8.6's own answer to a check that
+      // did not finish. Off by default.
+      bool GetSPFTempErrorDefer();
+      void SetSPFTempErrorDefer(bool newVal);
+
+      // MAIL FROM:<> with more than one RCPT TO (discussion #283): refused with
+      // a 550, and optionally the connecting address is banned for a while,
+      // through the same auto-ban a run of failed logons earns. Both off by
+      // default; a single-recipient null sender is never touched.
+      bool GetRejectMultiRcptNullSender();
+      void SetRejectMultiRcptNullSender(bool newVal);
+
+      bool GetBanMultiRcptNullSender();
+      void SetBanMultiRcptNullSender(bool newVal);
+
+      int GetBanMultiRcptNullSenderHours();
+      void SetBanMultiRcptNullSenderHours(int newVal);
+
 
       int GetSpamMarkThreshold();
       void SetSpamMarkThreshold(int bNewVal);

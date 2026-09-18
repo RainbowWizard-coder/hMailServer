@@ -63,6 +63,10 @@ namespace HM
       // filter matches on it.
       static void BannedForSpamTrap(const IPAddress &address, int minutes, const String &trapAddress);
 
+      // And for an address banned because its null sender named more than one
+      // recipient (discussion #283). Its own line, for the same two readers.
+      static void BannedForNullSender(const IPAddress &address, int minutes);
+
       // Make the firewall match the auto-ban ranges. Any thread, any time; the
       // reason is for the log.
       static void Synchronise(const String &why);

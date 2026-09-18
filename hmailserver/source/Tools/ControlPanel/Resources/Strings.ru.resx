@@ -434,8 +434,14 @@
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Домен, размещённый на этом сервере</value>
   </data>
+  <data name="A domain is required." xml:space="preserve">
+    <value>Требуется домен.</value>
+  </data>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Имя домена здесь требует, чтобы сам компьютер СЕРВЕРА был присоединён к этому домену, поскольку Windows проверяет его через LogonUser. С компьютера, не присоединённого к домену, любая попытка завершается так, будто пароль неверен, — в том числе когда имя домена просто написано с ошибкой, — поэтому настроенный таким образом почтовый ящик на неприсоединённом сервере никогда не сможет войти и никогда не скажет почему. Если сервер не присоединён к домену, используйте вместо этого аутентификацию через каталог LDAP на странице «Аутентификация через каталог»: она выполняет привязку к каталогу по сети и присоединения к домену не требует.</value>
+  </data>
+  <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
+    <value>Домен с постоянно меняющимися исходящими узлами обычно узнают по имени HELO; домен, который ничего не подделывает, - по отправителю конверта.</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Домен, почтовый ящик, прослушиватель с TLS и то, что из этого делает Сводка. Четыре минуты; выйти можно в любой момент.</value>
@@ -683,6 +689,9 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Журнал, совместимый с AWStats</value>
   </data>
+  <data name="A_ction" xml:space="preserve">
+    <value>Де_йствие</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Адрес</value>
   </data>
@@ -857,6 +866,12 @@ Control Panel может читать файлы сообщений только
   <data name="Add a domain or a mailbox" xml:space="preserve">
     <value>Добавить домен или почтовый ящик</value>
   </data>
+  <data name="Add a domain to the list" xml:space="preserve">
+    <value>Добавить домен в список</value>
+  </data>
+  <data name="Add a domain to the white and black list" xml:space="preserve">
+    <value>Добавить домен в белый и чёрный список</value>
+  </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Добавьте прослушиватель — 587 со STARTTLS или 465 для неявного TLS.</value>
   </data>
@@ -967,6 +982,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Add {0}" xml:space="preserve">
     <value>Добавить {0}</value>
+  </data>
+  <data name="Added" xml:space="preserve">
+    <value>Добавлено</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Добавлено {0}.</value>
@@ -1124,6 +1142,9 @@ Control Panel может читать файлы сообщений только
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Допускает расхождение часов этого сервера с часами подписавшей стороны. Без него часы, спешащие на несколько минут, превращают чужую действительную почту в отказы DKIM.</value>
   </data>
+  <data name="Also ban the connecting address for a while" xml:space="preserve">
+    <value>Также на время заблокировать подключающийся адрес</value>
+  </data>
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Также блокировать забаненный адрес в межсетевом экране операционной системы</value>
   </data>
@@ -1220,6 +1241,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Анонимное чтение каталога принято. </value>
+  </data>
+  <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
+    <value>Отвечать 451 на temperror SPF вместо приёма</value>
   </data>
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Отвечать из кэша DNS-резолвера Windows, когда это возможно</value>
@@ -1533,6 +1557,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Длительность блокировки (минуты)</value>
   </data>
+  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
+    <value>Блокировать на (часов, от 1 до 8760)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Токен-носитель для /metrics (пусто — без токена)</value>
   </data>
@@ -1562,6 +1589,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Bind to address" xml:space="preserve">
     <value>Привязать к адресу</value>
+  </data>
+  <data name="Black: refused at MAIL FROM" xml:space="preserve">
+    <value>Чёрный: отказ на MAIL FROM</value>
   </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>Чёрные списки, по которым проверяется адрес подключающегося узла.</value>
@@ -3011,11 +3041,20 @@ Control Panel может читать файлы сообщений только
   <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальный размер кэша доменов (КБ, сбрасывается при перезапуске службы)</value>
   </data>
+  <data name="Domain contains" xml:space="preserve">
+    <value>Домен содержит</value>
+  </data>
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>Домен для адреса отправителя mailer-daemon (пусто — имя узла, иначе локальный домен сообщения, иначе имя компьютера)</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Домен или шаблон</value>
+  </data>
+  <data name="Domain or suffix" xml:space="preserve">
+    <value>Домен или суффикс</value>
+  </data>
+  <data name="Domain white and black list" xml:space="preserve">
+    <value>Белый и чёрный список доменов</value>
   </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Домен, записи DNS которого показаны</value>
@@ -3125,8 +3164,14 @@ Control Panel может читать файлы сообщений только
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд; перезапуск службы не нужен.</value>
   </data>
+  <data name="Either" xml:space="preserve">
+    <value>Любой</value>
+  </data>
   <data name="Either of them" xml:space="preserve">
     <value>Любой из них</value>
+  </data>
+  <data name="Either the envelope sender's domain or the HELO name" xml:space="preserve">
+    <value>Домен отправителя конверта или имя HELO</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Очищает индекс и просит индексатор перестроить его. Почта не затрагивается — индекс является производными данными, — но пока перестроение не нагонит, IMAP SEARCH находит меньше, чем должен. Это стоит сделать, когда записей в индексе больше, чем сообщений на сервере: значит, есть записи для писем, которых уже нет.</value>
@@ -3268,6 +3313,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Домены конверта и суффиксы HELO, пропускаемые мимо серых списков, когда сообщение несёт результаты аутентификации, которых требует запись - SPF, DKIM, DMARC, в любом сочетании. Домен, сравниваемый точно, или суффикс с точкой в начале, как .mail.example.com, покрывающий это имя и все имена под ним. SPF известен на RCPT TO, поэтому запись, требующая только SPF, решает там; DKIM и DMARC существуют лишь после получения сообщения, поэтому запись, требующая любого из них, пока пропускает получателя, а сообщение попадает в серый список после DATA, если результат не является успешным - и только пока включена проверка DKIM или DMARC, иначе запись никогда не может быть выполнена. В отличие от параметра Пропускать при успешной проверке SPF это привилегия, которую вы даёте названному домену, а не свойство каждой успешной проверки SPF в мире.</value>
+  </data>
+  <data name="Envelope sender's domain" xml:space="preserve">
+    <value>Домен отправителя конверта</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Отправители конверта, которым отказывают сразу или которым начисляется оценка, — один адрес либо целый домен вместе с его поддоменами.</value>
@@ -3730,6 +3778,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>Проверка узла HELO</value>
+  </data>
+  <data name="HELO name" xml:space="preserve">
+    <value>Имя HELO</value>
   </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 есть в OAuth2AllowedAlgorithms, но OAuth2HmacSecret пуст, поэтому токены HS256 никогда не смогут пройти проверку. Задайте общий секрет либо уберите HS256 из списка.</value>
@@ -4456,6 +4507,9 @@ Control Panel может читать файлы сообщений только
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Снизьте пороги пометки и удаления или включите больше проверок.</value>
   </data>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; - это обратный путь отчёта о доставке, а у отчёта ровно один получатель: адрес, отправивший письмо, о котором идёт речь. Пустой отправитель, который затем называет второго получателя, - это backscatter, поддельный отчёт или зондирование. Выключено: сервер принимает его, как и всегда. Включено: на второй и каждый следующий RCPT TO даётся 550, а DATA транзакции тоже отклоняется; пустой отправитель с одним получателем не затрагивается никогда. Только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и никогда - отправитель из белого антиспам-списка. Белый и чёрный список доменов - отдельная страница в разделе «Антиспам».</value>
+  </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (устаревший)</value>
   </data>
@@ -4581,6 +4635,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Matched against" xml:space="preserve">
     <value>Сравнивается с</value>
+  </data>
+  <data name="Matched on" xml:space="preserve">
+    <value>Сопоставлять с</value>
   </data>
   <data name="Matches" xml:space="preserve">
     <value>Совпадает</value>
@@ -5314,6 +5371,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Не проверено: при такой конфигурации пароль отправлялся бы по незащищённому LDAP простой привязкой, а AllowUnprotectedPassword выключен, поэтому сервер отклоняет любой вход в такой конфигурации, и эта проверка по той же причине отказывается что-либо передавать. Выберите LDAPS или StartTLS, либо метод привязки Negotiate, либо явно разрешите незащищённый пароль.</value>
   </data>
+  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>Это не белый антиспам-список, который является диапазоном IP, пропускающим все проверки, и не список разрешённых и заблокированных, который решает для каждого получателя при доставке. example.com соответствует только этому домену; .example.com - домену и всему, что под ним.</value>
+  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Действителен не ранее {0}</value>
   </data>
@@ -5386,6 +5446,9 @@ Control Panel может читать файлы сообщений только
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
     <value>Теперь почтовый ящик. Учётная запись — это адрес, под которым кто-то входит и на который получает почту.</value>
   </data>
+  <data name="Null sender with several recipients" xml:space="preserve">
+    <value>Пустой отправитель с несколькими получателями</value>
+  </data>
   <data name="Number of delivery retries" xml:space="preserve">
     <value>Количество повторных попыток доставки</value>
   </data>
@@ -5448,6 +5511,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything." xml:space="preserve">
     <value>По умолчанию выключено. Учётная запись, переставшая быть видимой, гораздо чаще означает изменившийся фильтр, чем ушедшего человека, а цена у этих двух ошибок разная. Ни одно сообщение не удаляется и ни одна учётная запись не убирается — повторное включение возвращает всё на место.</value>
+  </data>
+  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
+    <value>По умолчанию выключено. Те, кто сегодня отклоняет это скриптом, могут удалить скрипт, когда это включено.</value>
   </data>
   <data name="Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below." xml:space="preserve">
     <value>По умолчанию выключено. Включение означает, что сервер начнёт хранить почту, которую считает спамом, поэтому следите за окном срока хранения ниже.</value>
@@ -6195,6 +6261,9 @@ Control Panel может читать файлы сообщений только
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
     <value>RFC 7208, 4.6.4. «Пустой поиск» — это элемент политики SPF отправителя (a:, mx: или exists:), DNS-запрос по которому не возвращает вообще ничего. Отдельное ограничение в десять элементов, требующих запросов к DNS, ограничивает то, о поиске чего политика может попросить этот сервер; оно не ограничивает того, что политика может потратить впустую, а десять элементов, называющих несуществующие узлы, стоят по полному разрешению каждый ради записи, которая никогда не совпадёт. Два — это значение из RFC. Оно ловит и обычный случай: политику, в которой до сих пор перечислены узлы, выведенные из эксплуатации годы назад, о чём её владельцу лучше бы узнать. Увеличивать значение безопасно; 0 отключает ограничение — это настройка для корреспондента, чья политика ошибочна именно таким образом и чью почту вы всё же предпочитаете принимать. Вступает в силу после перезапуска службы.</value>
   </data>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
+    <value>Собственный ответ RFC 7208 на проверку, которую не удалось завершить: повторить, когда заработает DNS. Транзакция откладывается с 451 4.4.3, а балл temperror выше игнорируется, потому что отложенное письмо никогда не принимается. Выключено: temperror принимается и оценивается. Отправитель из белого списка доменов никогда не откладывается.</value>
+  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Файл открытого ключа RSA/EC (PEM, для токенов RS*/ES*)</value>
   </data>
@@ -6382,6 +6451,9 @@ Control Panel может читать файлы сообщений только
   <data name="Refuse a new password found in published data breaches" xml:space="preserve">
     <value>Отклонять новый пароль, найденный в опубликованных утечках данных</value>
   </data>
+  <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
+    <value>Отклонять пустого отправителя, называющего более одного получателя</value>
+  </data>
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Отклонить отвечает на отправку при RCPT с указанием причины, а всё остальное - псевдоним, пересылку, запланированную отправку - возвращает отправителю в уведомлении о состоянии доставки. Почта, уже стоящая в очереди на адрес, встретит список при следующей попытке доставки. Доставить и только записать - безопасный способ увидеть, что сделает список, прежде чем он это сделает.</value>
   </data>
@@ -6484,6 +6556,9 @@ Control Panel может читать файлы сообщений только
   <data name="Remove _expired" xml:space="preserve">
     <value>Удалить _просроченные</value>
   </data>
+  <data name="Remove from the domain list" xml:space="preserve">
+    <value>Удалить из списка доменов</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Убрать из списка подавления</value>
   </data>
@@ -6504,6 +6579,11 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>При сохранении удалить сохранённый пароль учётной _записи службы</value>
+  </data>
+  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+    <value>Удалить {0} из списка?
+
+Чёрный домен сразу снова принимается; белый домен со следующего сеанса снова попадает под greylisting и антиспам-балл.</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Удалить {0} из {1}?
@@ -6906,8 +6986,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SPF failure score" xml:space="preserve">
     <value>Оценка за непрохождение SPF</value>
   </data>
+  <data name="SPF permerror score (0 = not scored)" xml:space="preserve">
+    <value>Балл SPF permerror (0 = не оценивается)</value>
+  </data>
+  <data name="SPF softfail score (0 = not scored)" xml:space="preserve">
+    <value>Балл SPF softfail (0 = не оценивается)</value>
+  </data>
   <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
     <value>SPF сообщает получателям, какие серверы могут отправлять почту этого домена; без него почту чаще отклоняют или помещают в спам.</value>
+  </data>
+  <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
+    <value>Балл SPF temperror (0 = не оценивается)</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — какие машины могут отправлять почту от имени</value>
@@ -7290,6 +7379,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Select an app password first." xml:space="preserve">
     <value>Сначала выберите пароль приложения.</value>
   </data>
+  <data name="Select an entry first." xml:space="preserve">
+    <value>Сначала выберите запись.</value>
+  </data>
   <data name="Select an event first." xml:space="preserve">
     <value>Сначала выберите событие.</value>
   </data>
@@ -7355,6 +7447,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Отправители или диапазоны IP, полностью обходящие защиту от спама.</value>
+  </data>
+  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>Домены отправителей, о которых этот сервер принял решение: белый пропускает greylisting и отказы по баллу, чёрный отклоняется на MAIL FROM - по домену или суффиксу HELO, а не по IP-адресу.</value>
+  </data>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>Отправляющие организации, оцениваемые по домену, а не по IP-адресу этой недели. Белый: без greylisting и никогда не отклоняется по антиспам-баллу, при этом каждая проверка по-прежнему выполняется и пишет в журнал. Чёрный: отказ на MAIL FROM до greylisting, оценки и любых запросов. Сопоставляется с доменом отправителя конверта, именем HELO или любым из них; только входящие неаутентифицированные сеансы.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Рассылку выполнить не удалось: {0}</value>
@@ -8194,6 +8292,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>Сам поиск в DNS для {0} завершился неудачей: {1} Это ничего не говорит о записи — данный компьютер не смог получить ответ от своего DNS-сервера. Проверьте сеть и повторите попытку.</value>
   </data>
+  <data name="The HELO name" xml:space="preserve">
+    <value>Имя HELO</value>
+  </data>
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>Хост HELO/EHLO</value>
   </data>
@@ -8338,6 +8439,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
     <value>Цепочка цела. Проверено строк: {0}.</value>
   </data>
+  <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
+    <value>Проверка не завершилась - DNS не ответил вовремя или ответил SERVFAIL, либо достигнут предел запросов, - а запись может быть в порядке. Оценивать это как fail значит терять почту при каждом сбое резолвера; переключатель ниже - другой ответ.</value>
+  </data>
+  <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
+    <value>Проверка завершилась, а опубликованная доменом запись непригодна: две записи, неверный механизм, зацикленный redirect, слишком много запросов. Повтор этого не исправит, поэтому она никогда не откладывается; строгие серверы считают это fail, снисходительные игнорируют.</value>
+  </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Список шифров - это предустановка AEAD-ONLY, при этом включён TLS 1.0 или 1.1. У этих версий нет ни одного набора AEAD, поэтому они объявляются, а затем не могут завершить рукопожатие - для клиента это выглядит как сломанный сервер, а не как политика.</value>
   </data>
@@ -8417,6 +8524,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Вердикт движка приходит в виде оценки, чтобы он лёг рядом с SPF, DKIM и DMARC, а что делать - решали ваши существующие пороги; а не как второе, параллельное понятие спама, которое пришлось бы сводить с первым. Вот сколько стоит его самый сильный вердикт.</value>
+  </data>
+  <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
+    <value>Запись действует для следующего сеанса из этого домена. К ней обращаются для неаутентифицированных входящих сеансов из диапазона IP, для которого выполняются антиспам-проверки, и никогда - чтобы обойти аутентификацию.</value>
+  </data>
+  <data name="The envelope sender's domain" xml:space="preserve">
+    <value>Домен отправителя конверта</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>Домен отправителя конверта (MAIL FROM)</value>
@@ -8554,6 +8667,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The lines this page refers to are written at debug level; the slow ones are also written at application level, so with application logging alone you still see the important ones. Reproduce the problem once, then read the log. Remember to turn debug logging off afterwards on a busy server." xml:space="preserve">
     <value>Строки, о которых говорит эта страница, пишутся на уровне отладки; медленные пишутся ещё и на уровне приложения, поэтому даже с одним только журналом приложения важные вы увидите. Воспроизведите проблему один раз, затем прочитайте журнал. Не забудьте потом выключить отладочный журнал на нагруженном сервере.</value>
+  </data>
+  <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
+    <value>Список пуст, а пустой список ничего не меняет: каждый домен проходит greylisting и оценку, как и раньше.</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Прослушиватель настроен. Осталось то, что вне сервера: опубликуйте записи autoconfig.&lt;domain&gt; и autodiscover.&lt;domain&gt; для каждого почтового домена, затем проверьте с клиентской машины.</value>
@@ -8730,6 +8846,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Прогон не удался:</value>
+  </data>
+  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
+    <value>Тот же истекающий диапазон IP, который создаёт серия неудачных входов, снимаемый той же уборкой и отражаемый в брандмауэре той же сверкой; никогда для адреса из AutoBanNeverBan или входящего ретранслятора. По умолчанию выключено, чтобы один ошибочно отправленный отчёт с двумя получателями не заблокировал настоящий почтовый сервер. Ничего не делает, пока отказ выше выключен.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Те же строки, категории и маска, что получают файлы журналов, с прикреплёнными идентификаторами трассы и спана всякий раз, когда на записавшем потоке активен спан. Экспортёр никогда не экспортирует строки о собственных сбоях, иначе мёртвый коллектор кормил бы сам себя.</value>
@@ -9685,8 +9804,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="White list" xml:space="preserve">
     <value>Белый список</value>
   </data>
+  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
+    <value>Белый по-прежнему выполняет каждую проверку и по-прежнему помечает на пороге пометки; чёрный отклоняет до того, как выполнится хоть одна проверка.</value>
+  </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>Внесите отправителя или его диапазон IP в белый список, чтобы сообщение обходило защиту от спама.</value>
+  </data>
+  <data name="White: not greylisted, not refused on score" xml:space="preserve">
+    <value>Белый: без greylisting, без отказа по баллу</value>
+  </data>
+  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>Белый: без greylisting, без отказа по антиспам-баллу</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Кто</value>
@@ -9934,6 +10062,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
     <value>_Имя домена (его изменение переименовывает домен и переносит вместе с ним каждую учётную запись, каждый псевдоним и каждый список)</value>
   </data>
+  <data name="_Domain or suffix" xml:space="preserve">
+    <value>_Домен или суффикс</value>
+  </data>
   <data name="_Download update" xml:space="preserve">
     <value>_Загрузить обновление</value>
   </data>
@@ -10050,6 +10181,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Match type" xml:space="preserve">
     <value>_Тип сопоставления</value>
+  </data>
+  <data name="_Matched on" xml:space="preserve">
+    <value>_Сопоставлять с</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>_Максимум читаемых записей</value>
@@ -10455,6 +10589,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="every recipient" xml:space="preserve">
     <value>все получатели</value>
+  </data>
+  <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
+    <value>example.com - только этот домен; .example.com - домен и всё, что под ним.</value>
   </data>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net — пусто означает все домены</value>
@@ -10975,6 +11112,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>домен или хост HELO отправителя является одной из {0} записей списка исключений серых списков, и сообщение несёт успешную проверку SPF, DKIM или DMARC, которой требует эта запись</value>
   </data>
+  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
+    <value>домен отправителя или имя HELO помечены белым в белом и чёрном списке доменов</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>сервер не может обратиться к своей базе данных. Проверьте подключение к базе данных и журнал ошибок hMailServer, затем нажмите «Перезагрузить». ({0})</value>
   </data>
@@ -11233,6 +11373,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0}: включено, но оценка равна 0, поэтому на каждое сообщение тратится один запрос, а на исход это повлиять не может. Задайте ему оценку или выключите его.</value>
   </data>
+  <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
+    <value>{0} в списке. Действует со следующего сеанса из этого домена.</value>
+  </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} в списке подавления домена {1}.</value>
   </data>
@@ -11286,6 +11429,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
     <value>{0} из {1} изменений выполнить не удалось; они перечислены первыми, с указанием причины сервера для каждого. Остальные были применены.</value>
+  </data>
+  <data name="{0} of {1} entries match the search." xml:space="preserve">
+    <value>{0} из {1} записей соответствуют поиску.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} на порту {1} не имеет доступного шифрования. Почтовые клиенты проходят аутентификацию на этом порту, поэтому каждый использованный на нём пароль может прочитать всё, что находится между клиентом и этим сервером.</value>
@@ -11541,6 +11687,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} антивирус выключен, поэтому почта, собираемая {2}, доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.{3}</value>
+  </data>
+  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
+    <value>~all: домен говорит, что клиент, вероятно, не авторизован, и просит всё же принять письмо. За этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail; softfail никогда не считается pass для исключения из greylisting.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ перемещение    Enter открыть    Esc закрыть</value>

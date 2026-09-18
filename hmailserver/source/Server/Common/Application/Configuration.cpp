@@ -140,6 +140,21 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_GL_ABUSE_LOCK_MINUTES, 60);
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
 
+      // SMTP policy the score cannot express (discussions #283, #285, #286).
+      // Every one at the value that leaves the server as it was: SPF's SoftFail,
+      // TempError and PermError add nothing to the score, a TempError is
+      // accepted rather than deferred, and a null sender naming several
+      // recipients is neither refused nor banned. A ban, once switched on, lasts
+      // a day, which is the operator's own suggestion; it is never applied while
+      // the refusal is off.
+      property_set_->EnsureLong(PROPERTY_USE_SPF_SOFTFAIL_SCORE, 0);
+      property_set_->EnsureLong(PROPERTY_USE_SPF_TEMPERROR_SCORE, 0);
+      property_set_->EnsureLong(PROPERTY_USE_SPF_PERMERROR_SCORE, 0);
+      property_set_->EnsureLong(PROPERTY_SPF_TEMPERROR_DEFER, 0);
+      property_set_->EnsureLong(PROPERTY_REJECT_MULTI_RCPT_NULL_SENDER, 0);
+      property_set_->EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER, 0);
+      property_set_->EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS, 24);
+
       // The reputation watch: on, the four lists that answer an ordinary resolver
       // for nothing, and no address of its own. Schema 6049 seeds the same three
       // rows; these are here for the same reason the syslog sink's are, because a

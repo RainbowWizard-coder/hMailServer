@@ -333,6 +333,20 @@
 #define PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS   _T("SpamTrapHitRetentionDays")
 #define PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN   _T("SpamTrapTeachSpamAssassin")
 
+// SMTP policy the score cannot express (discussions #283, #285, #286), in
+// hm_settings with rows created by EnsureSettingDefaults_. Every default is the
+// server as it was: SPF's SoftFail, TempError and PermError add nothing, a
+// TempError is accepted and scored rather than deferred, and a null sender with
+// several recipients is accepted. The names are the operator's own, shortened
+// only where hm_settings.settingname (nvarchar(30)) demands it.
+#define PROPERTY_USE_SPF_SOFTFAIL_SCORE         _T("UseSPFSoftFailScore")
+#define PROPERTY_USE_SPF_TEMPERROR_SCORE        _T("UseSPFTempErrorScore")
+#define PROPERTY_USE_SPF_PERMERROR_SCORE        _T("UseSPFPermErrorScore")
+#define PROPERTY_SPF_TEMPERROR_DEFER            _T("SPFTempErrorDefer")
+#define PROPERTY_REJECT_MULTI_RCPT_NULL_SENDER  _T("RejectMultiRcptNullSender")
+#define PROPERTY_BAN_MULTI_RCPT_NULL_SENDER     _T("BanMultiRcptNullSender")
+#define PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS _T("BanMultiRcptNullSenderHours")
+
 // Bounces read, and a suppression list (SMTP/BounceTracker.h). In hm_settings, by
 // the rule of 15 September 2026, with rows created at start by EnsureLong when a
 // database has none. Every default is the server as it was: processing off, so
@@ -494,4 +508,14 @@
 //      must carry. Seeds GreyListingSlideOnEarlyRetry (0), GreyListingAbuseThreshold
 //      (0) and GreyListingAbuseLockMinutes (60); with the first two 0 and the list
 //      empty, greylisting is what it was.
-#define REQUIRED_DB_VERSION            6072
+// 6073 adds hm_domainpolicylist (AntiSpam/DomainPolicyList.h): the domain white
+//      and black list of discussion #285, keyed by envelope domain or HELO suffix
+//      rather than by address - pattern, what it matches on, white or black, and
+//      a note. The table starts empty, and an empty list changes nothing. The
+//      seven hm_settings rows of the same row (UseSPFSoftFailScore,
+//      UseSPFTempErrorScore, UseSPFPermErrorScore, SPFTempErrorDefer,
+//      RejectMultiRcptNullSender, BanMultiRcptNullSender,
+//      BanMultiRcptNullSenderHours) are created at start by
+//      EnsureSettingDefaults_, every one at the value that leaves the server as
+//      it was.
+#define REQUIRED_DB_VERSION            6073

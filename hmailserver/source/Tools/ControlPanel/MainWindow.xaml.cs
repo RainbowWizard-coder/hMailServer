@@ -175,6 +175,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["senderlist"] = () => CollectionSpecs.SenderList();
          pageFactories_["greylistwhitelist"] = () => CollectionSpecs.GreyListWhiteList();
          pageFactories_["greylistbypass"] = () => CollectionSpecs.GreyListBypass();
+         pageFactories_["domainpolicylist"] = () => new DomainPolicyListView();
          pageFactories_["virusoverview"] = () => new VirusOverviewView();
          pageFactories_["antivirus"] = () => new ServerSettingsView(ServerSettingsView.Section.AntiVirus);
          pageFactories_["blockedattachments"] = () => CollectionSpecs.BlockedAttachments();

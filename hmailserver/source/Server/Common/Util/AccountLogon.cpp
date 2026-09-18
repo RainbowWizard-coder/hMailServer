@@ -269,6 +269,29 @@ namespace HM
    }
 
    bool
+   AccountLogon::BanForNullSenderAbuse(const IPAddress &ipaddress, int hours)
+   {
+      if (hours < 1)
+         return false;
+
+      // Bounded by the setter's own ceiling of a year; a range's expiry is a
+      // DateTimeSpan of minutes, and a year of them fits.
+      const int minutes = (hours > 8760 ? 8760 : hours) * 60;
+
+      // The same "Auto-ban: " prefix, for the same two readers: the firewall
+      // reconciliation, which mirrors every range so named, and the expiry sweep,
+      // which lifts them. The address is in the name so that two hosts banned
+      // for the same reason do not fight over one name: a logon ban is named for
+      // its user and a trap ban for its trap, and this has neither.
+      if (!CreateIPRange(ipaddress, _T("multi-recipient null sender ") + String(ipaddress.ToString()), minutes))
+         return false;
+
+      AutoBanFirewall::BannedForNullSender(ipaddress, minutes);
+
+      return true;
+   }
+
+   bool
    AccountLogon::CreateIPRange(const IPAddress &ipaddress, const String &username, int minutes)
    {
       // Why do we need a lock here? IP ranges requires unique names.

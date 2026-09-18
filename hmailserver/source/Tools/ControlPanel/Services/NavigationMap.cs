@@ -273,6 +273,7 @@ namespace hMailServer.ControlPanel.Services
             ["Settings > Anti-spam > White list"] = "spamwhitelist",
             ["Settings > Anti-spam > Greylisting white list"] = "greylistwhitelist",
             ["Settings > Anti-spam > Greylisting bypass list"] = "greylistbypass",
+            ["Settings > Anti-spam > Domain white and black list"] = "domainpolicylist",
             ["Settings > Anti-virus"] = "antivirus",
             ["Settings > Anti-virus > Blocked attachments"] = "blockedattachments",
 
@@ -683,6 +684,15 @@ namespace hMailServer.ControlPanel.Services
                   N("Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires."),
                   aliases: "Greylisting bypass|Skip greylisting for a domain|Bypass greylisting on DKIM|Bypass greylisting on DMARC|Partner domain greylisting|Greylist exemption by domain",
                   seeAlso: "greylistwhitelist|antispam|spamoverview"),
+
+               // Keyed by domain where the two lists above are keyed by address,
+               // for the correspondent whose outbound hosts change every week:
+               // white skips greylisting and the score's refusals while the tests
+               // still run, black is a 550 at MAIL FROM before anything runs.
+               Page("domainpolicylist", N("Domain white and black list"),
+                  N("Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address."),
+                  aliases: "Domain white list|Domain black list|Domain whitelist|Domain blacklist|Always accept a domain|Never accept a domain|HELO suffix|Refuse a domain|Trust a domain whose SPF is broken|Rotating IP addresses",
+                  seeAlso: "antispam|spamwhitelist|blockedsenders"),
 
                // The same argument as the spam overview above, and the anti-virus
                // case is sharper: the settings page can show that a scanner is

@@ -4442,7 +4442,15 @@ const COLLECTIONS=[
   /* Last, after the relays, so the eight tables before it keep their places. */
   {id:"greybypass",path:"/api/v1/greylisting-bypass",title:K("Greylisting bypass list"),columns:["pattern","match","require_spf","require_dkim","require_dmarc","note"],
     add:K("Add a greylisting bypass entry"),fresh:K("New greylisting bypass entry"),edit:K("Edit greylisting bypass entry {0}"),save:K("Save greylisting bypass entry"),ask:K("Delete the greylisting bypass entry {0}?"),saved:K("Greylisting bypass entry saved"),deleted:K("Greylisting bypass entry deleted"),
-    defaults:{match:"envelope",require_spf:true,require_dkim:false,require_dmarc:false},hints:{pattern:K("A domain such as example.com, matched exactly; or a suffix such as .mail.example.com, which covers that name and every name under it."),match:K("Whether the pattern is matched against the envelope sender's domain, the HELO host, or either."),require_spf:K("The message must pass SPF. Known at RCPT TO, so an entry requiring SPF alone decides there."),require_dkim:K("The message must carry a DKIM signature that verifies. Known only after DATA, so the message is received first; needs DKIM verification switched on."),require_dmarc:K("The message must pass DMARC. Known only after DATA; needs DMARC switched on."),note:K("Why the entry is there.")}}
+    defaults:{match:"envelope",require_spf:true,require_dkim:false,require_dmarc:false},hints:{pattern:K("A domain such as example.com, matched exactly; or a suffix such as .mail.example.com, which covers that name and every name under it."),match:K("Whether the pattern is matched against the envelope sender's domain, the HELO host, or either."),require_spf:K("The message must pass SPF. Known at RCPT TO, so an entry requiring SPF alone decides there."),require_dkim:K("The message must carry a DKIM signature that verifies. Known only after DATA, so the message is received first; needs DKIM verification switched on."),require_dmarc:K("The message must pass DMARC. Known only after DATA; needs DMARC switched on."),note:K("Why the entry is there.")}},
+  // Keyed by domain where the lists above are keyed by address (discussion
+  // #285): white skips greylisting and the score's refusals while the tests
+  // still run, black is a 550 at MAIL FROM before anything runs. The two
+  // choices are enums in the OpenAPI document, so the form draws them as
+  // selects on its own.
+  {id:"domainpolicy",path:"/api/v1/domain-policy-list",title:K("Domain white and black list"),columns:["pattern","match_on","action","note"],
+    add:K("Add a domain"),fresh:K("New domain list entry"),edit:K("Edit domain list entry {0}"),save:K("Save domain list entry"),ask:K("Delete the domain list entry {0}?"),saved:K("Domain list entry saved"),deleted:K("Domain list entry deleted"),
+    defaults:{match_on:"both",action:"white"},hints:{pattern:K("example.com for that domain alone, or .example.com for the domain and everything beneath it."),match_on:K("What the pattern is compared with: the envelope sender's domain, the HELO name, or either."),action:K("White skips greylisting and the score's refusals while every test still runs and logs; black is refused at MAIL FROM before any test runs."),note:K("Why the entry is there.")}}
 ];
 function collectionById(id){return COLLECTIONS.filter(c=>c.id===id)[0];}
 function collectionProps(c){

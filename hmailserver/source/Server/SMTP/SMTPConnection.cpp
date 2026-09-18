@@ -73,6 +73,9 @@
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/SpamProtection.h"
 #include "../Common/AntiSpam/SpamTrapMonitor.h"
+#include "../Common/AntiSpam/DomainPolicyList.h"
+#include "../Common/AntiSpam/AntiSpamConfiguration.h"
+#include "../Common/Util/AutoBanFirewall.h"
 #include "../Common/AntiSpam/AuthenticationResults.h"
 #include "../Common/AntiSpam/AuthenticationResultsWriter.h"
 
@@ -133,6 +136,10 @@ namespace HM
       isAuthenticated_(false),
       banned_for_spam_trap_(false),
       addressed_spam_trap_(false),
+      domain_policy_(DomainPolicyList::VerdictNone),
+      multi_recipient_null_sender_(false),
+      banned_for_null_sender_(false),
+      spam_protection_deferred_(false),
       authentication_failure_count_(0),
       esmtp_session_(false),
       smtputf8_requested_(false),
@@ -975,8 +982,21 @@ namespace HM
          iterParam++;
       }
 
+      // A new transaction. The results of one this session started and was
+      // refused at MAIL FROM - there was no message to reset them with - would
+      // otherwise be summed with this sender's, and an SPF deferral for the last
+      // sender would answer 451 for this one.
+      spam_test_results_.clear();
+
       // Initialize spam protection now when we know the sender address.
       InitializeSpamProtectionType_(sFromAddress);
+
+      // The domain white and black list, now that the envelope sender and the
+      // HELO name are both known: black is refused here, before greylisting,
+      // before scoring and before a single lookup is paid for; white is
+      // remembered for the transaction. See CheckDomainPolicy_.
+      if (CheckDomainPolicy_(sFromAddress))
+         return;
 
       // Apply domain name aliases to this domain name.
       std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
@@ -1609,13 +1629,26 @@ namespace HM
 
             if (!DoSpamProtection_(SPPreTransmission, current_message_->GetFromAddress(), helo_host_, GetRemoteEndpointAddress()))
             {
-               AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
+               // A 451 for an SPF temperror is a temporary refusal and is not
+               // written to AWStats, as a greylisting 451 is not; only the 550
+               // for the score is.
+               if (!spam_protection_deferred_)
+                  AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
                return;
             }
          }
       }
 
-      if (GetDoSpamProtection_())
+      // MAIL FROM:<> naming a second recipient (discussion #283), at the layer
+      // greylisting works at: after the recipient has been found deliverable and
+      // the relay and authentication decisions made, before DATA. See
+      // CheckMultiRecipientNullSender_.
+      if (CheckMultiRecipientNullSender_(sRecipientAddress))
+         return;
+
+      // A session the domain policy list marked white is not greylisted: that
+      // is the first of the two things white buys. The tests above still ran.
+      if (GetDoSpamProtection_() && !DomainPolicyWhite_())
       {
          std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
          const String sToAddress = pDA->ApplyAliasesOnAddress(sRecipientAddress);
@@ -1828,6 +1861,150 @@ namespace HM
    }
 
    bool
+   SMTPConnection::DomainPolicyWhite_() const
+   {
+      return domain_policy_ == DomainPolicyList::VerdictWhite;
+   }
+
+   bool
+   SMTPConnection::CheckDomainPolicy_(const String &sFromAddress)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The domain white and black list of discussion #285, at MAIL FROM. A black
+   // domain is answered 550 here - before greylisting, before the score, before
+   // any lookup - and true is returned so the caller stops; a white domain is
+   // remembered in domain_policy_, and PerformGreyListing and the score's
+   // refusal in DoSpamProtection_ read it. Inbound and unauthenticated only:
+   // the list never overrides authentication, and it is not consulted for a
+   // session whose IP range does not run the spam tests or whose sender the
+   // anti-spam white list covers, which is what InitializeSpamProtectionType_
+   // has just decided (type_ is SPNone for both). An empty list is one flag
+   // test and costs nothing.
+   //---------------------------------------------------------------------------()
+   {
+      domain_policy_ = DomainPolicyList::VerdictNone;
+
+      if (isAuthenticated_ || type_ == SPNone)
+         return false;
+
+      DomainPolicyList::Decision decision = DomainPolicyList::Decide(sFromAddress, helo_host_);
+
+      if (decision.verdict == DomainPolicyList::VerdictNone)
+         return false;
+
+      const String keyWord = decision.key == DomainPolicyEntry::MatchHelo ? String(_T("HELO name ")) : String(_T("sender domain "));
+
+      if (decision.verdict == DomainPolicyList::VerdictWhite)
+      {
+         domain_policy_ = DomainPolicyList::VerdictWhite;
+
+         LOG_SMTP(GetSessionID(), GetIPAddressString(), "Domain policy list: " + keyWord + decision.matchedName +
+            " is white (" + decision.pattern + "); greylisting and the score's refusals are skipped for this transaction, the tests still run.");
+
+         return false;
+      }
+
+      // 5.7.1 = delivery not authorized, message refused (RFC 3463). The reply
+      // names the domain and not the row, so a sender learns that they are
+      // refused and not how the list is written.
+      SendResponse_(550, _T("5.7.1"), _T("Mail from ") + decision.matchedName + _T(" is refused by this server's policy."));
+
+      String logLine;
+      logLine.Format(_T("hMailServer SpamProtection rejected MAIL FROM: the domain policy list marks %s%s black (%s) (Sender: %s, IP: %s)"),
+         keyWord.c_str(), decision.matchedName.c_str(), decision.pattern.c_str(), sFromAddress.c_str(), String(GetIPAddressString()).c_str());
+      LOG_APPLICATION(logLine);
+
+      AWStats::LogDeliveryFailure(GetIPAddressString(), sFromAddress, _T(""), 550, 0);
+
+      return true;
+   }
+
+   bool
+   SMTPConnection::CheckMultiRecipientNullSender_(const String &recipientAddress)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // MAIL FROM:<> is the reverse-path of a delivery status notification, and a
+   // notification has exactly one recipient: the address that sent the message
+   // it reports on. A null sender that goes on to name a second recipient is
+   // therefore not sending one - it is backscatter, a forged report or a probe -
+   // and with RejectMultiRcptNullSender on that second RCPT TO, and every one
+   // after it, is answered 550, the transaction is marked so that its DATA is
+   // refused as well, and with BanMultiRcptNullSender on the connecting address
+   // is banned for BanMultiRcptNullSenderHours through the auto-ban a run of
+   // failed logons earns. A single-recipient null sender is never touched, and
+   // neither is anything but an unauthenticated session of an IP range that
+   // runs the spam tests (GetDoSpamProtection_, the greylisting layer). Not a
+   // score: a protocol lie is not "maybe spam".
+   //---------------------------------------------------------------------------()
+   {
+      if (!current_message_ || !current_message_->GetFromAddress().IsEmpty())
+         return false;
+
+      AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
+
+      if (!config.GetRejectMultiRcptNullSender())
+         return false;
+
+      if (!GetDoSpamProtection_())
+         return false;
+
+      // Distinct addresses, not the recipient count: RCPT TO for an address
+      // already named is legal and is answered as it always was, because one
+      // address named twice is one recipient. The second DIFFERENT address is
+      // what this refuses - and from then on the transaction is marked, so
+      // everything after it is refused whether it is new or a repeat.
+      if (!multi_recipient_null_sender_)
+      {
+         String named(recipientAddress);
+         null_sender_recipients_.insert(named.ToLower());
+
+         if (null_sender_recipients_.size() < 2)
+            return false;
+      }
+
+      multi_recipient_null_sender_ = true;
+
+      String banNote = _T("not banned");
+
+      if (config.GetBanMultiRcptNullSender() && !banned_for_null_sender_)
+      {
+         std::shared_ptr<IncomingRelays> incomingRelays = Configuration::Instance()->GetSMTPConfiguration()->GetIncomingRelays();
+         const bool incomingRelay = incomingRelays && incomingRelays->IsIncomingRelay(GetRemoteEndpointAddress());
+
+         if (incomingRelay)
+            banNote = _T("not banned: it is an incoming relay");
+         else if (AutoBanFirewall::IsNeverBanned(GetRemoteEndpointAddress()))
+            banNote = _T("not banned: AutoBanNeverBan lists it");
+         else
+         {
+            AccountLogon logon;
+            const int hours = config.GetBanMultiRcptNullSenderHours();
+
+            if (logon.BanForNullSenderAbuse(GetRemoteEndpointAddress(), hours))
+            {
+               banned_for_null_sender_ = true;
+               banNote = _T("banned for ") + StringParser::IntToString(hours) + _T(" hours");
+            }
+            else
+               banNote = _T("not banned: the ban could not be saved");
+         }
+      }
+      else if (banned_for_null_sender_)
+         banNote = _T("banned earlier in this session");
+
+      String logLine;
+      logLine.Format(_T("hMailServer SpamProtection rejected RCPT: a null sender named a second recipient (Recipient: %s, IP: %s, %s)"),
+         recipientAddress.c_str(), String(GetIPAddressString()).c_str(), banNote.c_str());
+      LOG_APPLICATION(logLine);
+
+      AWStats::LogDeliveryFailure(GetIPAddressString(), _T(""), recipientAddress, 550, current_message_->GetID());
+
+      SendResponse_(550, _T("5.7.1"), _T("A null sender may name one recipient; a delivery report has exactly one."));
+
+      return true;
+   }
+
+   bool
    SMTPConnection::DoSpamProtection_(SpamProtectionType spType, const String &sFromAddress, const String &hostName, const IPAddress & lIPAddress)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -1835,6 +2012,8 @@ namespace HM
    // continue delivery, false otherwise.   
    //---------------------------------------------------------------------------()
    {
+      spam_protection_deferred_ = false;
+
       if (!GetDoSpamProtection_())
          return true;
 
@@ -1864,9 +2043,48 @@ namespace HM
 
       }
 
+      // A test that could not finish and asked for the transaction to be
+      // deferred: SPF's temperror with SPFTempErrorDefer on. Answered before the
+      // score is read, because a deferred message is never accepted and there
+      // is nothing for a score to mark; 451 with 4.4.3 is what RFC 7208 section
+      // 8.6 names for it. A session the domain policy list marked white is not
+      // deferred - the operator has already decided they want that mail.
+      if (!DomainPolicyWhite_())
+      {
+         for (std::shared_ptr<SpamTestResult> result : spam_test_results_)
+         {
+            if (!result || result->GetResult() != SpamTestResult::Defer)
+               continue;
+
+            spam_protection_deferred_ = true;
+
+            SendResponse_(451, _T("4.4.3"), result->GetMessage());
+
+            String deferLog;
+            deferLog.Format(_T("hMailServer SpamProtection deferred the transaction (Sender: %s, IP: %s, Reason: %s)"),
+               sFromAddress.c_str(), String(GetIPAddressString()).c_str(), result->GetMessage().c_str());
+            LOG_APPLICATION(deferLog);
+
+            return false;
+         }
+      }
+
       int iTotalSpamScore = SpamProtection::CalculateTotalSpamScore(spam_test_results_);
       int iSpamDeleteThreshold = Configuration::Instance()->GetAntiSpamConfiguration().GetSpamDeleteThreshold();
       int iSpamMarkThreshold = Configuration::Instance()->GetAntiSpamConfiguration().GetSpamMarkThreshold();
+
+      // The second thing white buys: the score is not the accept gate. The tests
+      // ran, their headers are written and the mark threshold still marks below,
+      // but a white domain's message is neither refused nor quarantined for it.
+      if (iSpamDeleteThreshold > 0 && iTotalSpamScore >= iSpamDeleteThreshold && DomainPolicyWhite_())
+      {
+         String whiteLog;
+         whiteLog.Format(_T("hMailServer SpamProtection: the domain policy list marks this sender white, so a score of %d (delete threshold %d) does not refuse it (Sender: %s, IP: %s)"),
+            iTotalSpamScore, iSpamDeleteThreshold, sFromAddress.c_str(), String(GetIPAddressString()).c_str());
+         LOG_APPLICATION(whiteLog);
+
+         return true;
+      }
 
       if (iSpamDeleteThreshold > 0 && iTotalSpamScore >= iSpamDeleteThreshold)
       {
@@ -3048,6 +3266,14 @@ namespace HM
       // counted once, not the transaction.
       addressed_spam_trap_ = false;
 
+      // The domain policy verdict and the null-sender mark are the transaction's:
+      // the next MAIL FROM may name another domain, or one recipient. Whether the
+      // address has been banned is the session's, as banned_for_spam_trap_ is.
+      domain_policy_ = DomainPolicyList::VerdictNone;
+      multi_recipient_null_sender_ = false;
+      null_sender_recipients_.clear();
+      spam_protection_deferred_ = false;
+
       message_submission_ = false;
 
       sender_domain_.reset();
@@ -3775,6 +4001,18 @@ namespace HM
          return;
       }
 
+      // A null sender that named more than one recipient (discussion #283). The
+      // second and later recipients were refused as they were named; the message
+      // is refused here too, before a byte of it is read, because the first
+      // recipient must not be handed a "bounce" by a client that has just shown
+      // it is not sending one.
+      if (multi_recipient_null_sender_)
+      {
+         SendResponse_(550, _T("5.7.1"), _T("A null sender may name one recipient; this transaction named more, and a delivery report has exactly one."));
+         LogAwstatsMessageRejected_();
+         return;
+      }
+
       // Let's add an event call on DATA so we can act on reception during SMTP conversation..
       if (Configuration::Instance()->GetUseScriptServer())
       {
@@ -3926,6 +4164,17 @@ namespace HM
       {
          // BDAT issued without a sender and at least one recipient.
          SendResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));
+         StartBdatDiscard_((size_t)chunkSize);
+         return;
+      }
+
+      // The same refusal ProtocolDATA_ makes for a null sender that named more
+      // than one recipient; the chunk is read and dropped, as every refused
+      // BDAT's is.
+      if (multi_recipient_null_sender_)
+      {
+         SendResponse_(550, _T("5.7.1"), _T("A null sender may name one recipient; this transaction named more, and a delivery report has exactly one."));
+         LogAwstatsMessageRejected_();
          StartBdatDiscard_((size_t)chunkSize);
          return;
       }

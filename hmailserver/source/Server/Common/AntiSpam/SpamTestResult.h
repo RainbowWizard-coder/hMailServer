@@ -16,7 +16,15 @@ namespace HM
       {
          Neutral = 0,
          Fail = 1,
-         Pass = 2
+         Pass = 2,
+
+         // The test could not finish and the transaction should be answered
+         // 451 rather than accepted on a guess: SPF's TempError with
+         // SPFTempErrorDefer on. Carries no score - a deferred message is never
+         // accepted, so there is nothing to mark - and is not a Fail, so the
+         // score-threshold refusal and the X-hMailServer-Reason header never
+         // read it as one. SMTPConnection::DoSpamProtection_ answers it.
+         Defer = 3
       };
 
       SpamTestResult(const String &testName, Result result, int iSpamScore, const String &sMessage);

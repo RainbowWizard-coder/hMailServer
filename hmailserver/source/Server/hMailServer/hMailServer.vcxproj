@@ -253,6 +253,10 @@ EXIT 0
     <ClCompile Include="..\Common\BO\SpamTraps.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentSpamTrap.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SpamTrapMonitor.cpp" />
+    <ClCompile Include="..\Common\BO\DomainPolicyEntry.cpp" />
+    <ClCompile Include="..\Common\BO\DomainPolicyEntries.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentDomainPolicyEntry.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\DomainPolicyList.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SURBL.cpp" />
     <ClCompile Include="..\Common\AntiSpam\WhiteListCache.cpp" />
     <ClCompile Include="..\Common\AntiVirus\AntiVirusConfiguration.cpp" />
@@ -634,6 +638,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiAntiSpamLists.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSenderLists.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSpamTraps.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiDomainPolicyList.cpp" />
     <ClCompile Include="..\Common\Util\RestApiQuarantineDigest.cpp" />
     <ClCompile Include="..\Common\Util\RestApiFetchAccounts.cpp" />
     <ClCompile Include="..\Common\Util\RemoteDomainThrottle.cpp" />
@@ -1105,6 +1110,10 @@ EXIT 0
     <ClInclude Include="..\Common\BO\SpamTraps.h" />
     <ClInclude Include="..\Common\Persistence\PersistentSpamTrap.h" />
     <ClInclude Include="..\Common\AntiSpam\SpamTrapMonitor.h" />
+    <ClInclude Include="..\Common\BO\DomainPolicyEntry.h" />
+    <ClInclude Include="..\Common\BO\DomainPolicyEntries.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentDomainPolicyEntry.h" />
+    <ClInclude Include="..\Common\AntiSpam\DomainPolicyList.h" />
     <ClInclude Include="..\Common\AntiSpam\SURBL.h" />
     <ClInclude Include="..\Common\AntiSpam\WhiteListCache.h" />
     <ClInclude Include="..\Common\AntiVirus\AntiVirusConfiguration.h" />

@@ -17,6 +17,8 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraps') and obj
 
 if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and objectproperty(id, 'isusertable') = 1) drop table hm_spamtraphits
 
+if exists (select * from sysobjects where id = object_id('hm_domainpolicylist') and objectproperty(id, 'isusertable') = 1) drop table hm_domainpolicylist
+
 if exists (select * from sysobjects where id = object_id('hm_dmarcreportrecords') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreportrecords
 if exists (select * from sysobjects where id = object_id('hm_dmarcreports') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreports
 if exists (select * from sysobjects where id = object_id('hm_tlsreports') and objectproperty(id, 'isusertable') = 1) drop table hm_tlsreports
@@ -2371,4 +2373,18 @@ ALTER TABLE hm_spamtraps ADD CONSTRAINT fk_hm_spamtraps_domain FOREIGN KEY (stdo
 
 ALTER TABLE hm_spamtraphits ADD CONSTRAINT fk_hm_spamtraphits_domain FOREIGN KEY (sthdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6072)
+create table hm_domainpolicylist
+(
+	dplid int identity(1,1) not null,
+	dplpattern nvarchar(255) not null,
+	dplmatchon int not null,
+	dplaction int not null,
+	dplnote nvarchar(255) not null,
+	dplcreated datetime not null
+)
+
+ALTER TABLE hm_domainpolicylist ADD CONSTRAINT hm_domainpolicylist_pk PRIMARY KEY NONCLUSTERED (dplid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon)
+
+insert into hm_dbversion values (6073)

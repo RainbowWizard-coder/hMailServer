@@ -1448,6 +1448,36 @@ namespace hMailServer.ControlPanel.Views
          var auth = Card(L("Sender authentication"));
          auth.Settings.Add(new ComBool { Path = "AntiSpam.UseSPF", Label = L("Check SPF") });
          auth.Settings.Add(new ComText { Path = "AntiSpam.UseSPFScore", Label = L("SPF failure score"), Numeric = true });
+         // SPF's other results, scored on their own (discussion #286). Fail keeps
+         // the score above; these three are 0 by default, and 0 is "not scored"
+         // as every result but Fail always was. Neutral and None are never scored.
+         auth.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.UseSPFSoftFailScore",
+            Label = L("SPF softfail score (0 = not scored)"),
+            Numeric = true,
+            Blurb = L("~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass.")
+         });
+         auth.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.UseSPFTempErrorScore",
+            Label = L("SPF temperror score (0 = not scored)"),
+            Numeric = true,
+            Blurb = L("The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer.")
+         });
+         auth.Settings.Add(new ComBool
+         {
+            Path = "AntiSpam.SPFTempErrorDefer",
+            Label = L("Answer 451 to an SPF temperror instead of accepting it"),
+            Blurb = L("RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred.")
+         });
+         auth.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.UseSPFPermErrorScore",
+            Label = L("SPF permerror score (0 = not scored)"),
+            Numeric = true,
+            Blurb = L("The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it.")
+         });
          auth.Settings.Add(new IniNumber
          {
             Path = "SpfVoidLookupLimit",
@@ -1504,6 +1534,26 @@ namespace hMailServer.ControlPanel.Views
          host.Settings.Add(new ComBool { Path = "AntiSpam.UseMXChecks", Label = L("Check sender MX records") });
          host.Settings.Add(new ComText { Path = "AntiSpam.UseMXChecksScore", Label = L("MX check score"), Numeric = true });
          Tab(L("Host checks")).Cards.Add(host);
+
+         // Not a score, like the tarpit above: a null sender that names a second
+         // recipient is a protocol lie, not "maybe spam", and it is answered with
+         // a refusal and optionally a ban rather than points.
+         var nullSender = Card(L("Null sender with several recipients"),
+            L("MAIL FROM:<> is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam."));
+         nullSender.Settings.Add(new ComBool
+         {
+            Path = "AntiSpam.RejectMultiRcptNullSender",
+            Label = L("Refuse a null sender that names more than one recipient"),
+            Blurb = L("Off by default. Operators who drop this in a script today can delete the script when this is on.")
+         });
+         nullSender.Settings.Add(new ComBool
+         {
+            Path = "AntiSpam.BanMultiRcptNullSender",
+            Label = L("Also ban the connecting address for a while"),
+            Blurb = L("The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off.")
+         });
+         nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8760)"), Numeric = true });
+         Tab(L("Host checks")).Cards.Add(nullSender);
 
          var grey = Card(L("Greylisting"), L("Temporarily rejects mail from unknown senders; legitimate servers retry and pass."));
          grey.Settings.Add(new ComBool { Path = "AntiSpam.GreyListingEnabled", Label = L("Enable greylisting") });

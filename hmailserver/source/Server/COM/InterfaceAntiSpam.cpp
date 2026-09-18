@@ -11,6 +11,8 @@
 #include "../Common/AntiSpam/SpamAssassin/SpamAssassinTestConnect.h"
 
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
+#include "../Common/AntiSpam/DomainPolicyList.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/AntiSpam/DKIM/DKIM.h"
 
@@ -1520,11 +1522,22 @@ STDMETHODIMP InterfaceAntiSpam::get_GreyListingBypassEntries(IInterfaceGreyListi
    {
       if (!config_)
          return GetAccessDenied();
+// ---------------------------------------------------------------------------
+// SMTP policy the score cannot express (discussions #283, #285, #286). The
+// seven scalars are hm_settings rows through AntiSpamConfiguration, as the
+// SPF score above is; the list is Common/AntiSpam/DomainPolicyList.h.
+// ---------------------------------------------------------------------------
 
       CComObject<InterfaceGreyListingBypassEntries>* pEntries = new CComObject<InterfaceGreyListingBypassEntries>();
       pEntries->SetAuthentication(authentication_);
       pEntries->Attach(HM::Configuration::Instance()->GetAntiSpamConfiguration().GetGreyListingBypassEntries());
       pEntries->AddRef();
+STDMETHODIMP InterfaceAntiSpam::get_UseSPFSoftFailScore(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
 
       *pVal = pEntries;
 
@@ -1638,6 +1651,338 @@ STDMETHODIMP InterfaceAntiSpam::put_GreyListingAbuseLockMinutes(long newVal)
          return COMError::GenerateError("GreyListingAbuseLockMinutes is between 1 and 10080 (a week): how long the 550 of GreyListingAbuseThreshold lasts.");
 
       config_->GetAntiSpamConfiguration().SetGreyListingAbuseLockMinutes((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+      *pVal = config_->GetAntiSpamConfiguration().GetUseSPFSoftFailScore();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_UseSPFSoftFailScore(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetUseSPFSoftFailScore((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_UseSPFTempErrorScore(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetUseSPFTempErrorScore();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_UseSPFTempErrorScore(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetUseSPFTempErrorScore((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_UseSPFPermErrorScore(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetUseSPFPermErrorScore();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_UseSPFPermErrorScore(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetUseSPFPermErrorScore((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_SPFTempErrorDefer(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetSPFTempErrorDefer() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_SPFTempErrorDefer(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetSPFTempErrorDefer(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_RejectMultiRcptNullSender(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetRejectMultiRcptNullSender() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_RejectMultiRcptNullSender(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetRejectMultiRcptNullSender(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_BanMultiRcptNullSender(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetBanMultiRcptNullSender() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_BanMultiRcptNullSender(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetBanMultiRcptNullSender(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_BanMultiRcptNullSenderHours(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetBanMultiRcptNullSenderHours();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_BanMultiRcptNullSenderHours(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      if (newVal < 1 || newVal > 8760)
+         return COMError::GenerateError("BanMultiRcptNullSenderHours is between 1 and 8760 (a year): how long the address of a refused multi-recipient null sender is banned.");
+
+      config_->GetAntiSpamConfiguration().SetBanMultiRcptNullSenderHours((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_DomainPolicyList(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      bool readable = false;
+      HM::AnsiString document = HM::DomainPolicyList::Document(readable);
+
+      if (!readable)
+         return COMError::GenerateError("The domain policy list could not be read; see the error log.");
+
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(document, wide);
+
+      *pVal = wide.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::AddDomainPolicyListEntry(BSTR Pattern, BSTR MatchOn, BSTR Action, BSTR Note, long *ID)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      // The audit trail records the row the persister writes; the whole list is
+      // server-wide, so the whole list is the server administrator's, as every
+      // other setter of this object is.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      __int64 id = 0;
+      HM::String refusal;
+
+      if (!HM::DomainPolicyList::Add(Pattern, MatchOn, Action, Note, id, refusal))
+         return COMError::GenerateError(refusal);
+
+      *ID = (long) id;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::RemoveDomainPolicyListEntry(long ID, VARIANT_BOOL *Removed)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      bool found = false;
+
+      if (!HM::DomainPolicyList::Remove(ID, found))
+         return COMError::GenerateError("The domain policy list entry could not be removed; see the error log.");
+
+      *Removed = found ? VARIANT_TRUE : VARIANT_FALSE;
+
       return S_OK;
    }
    catch (...)

@@ -434,8 +434,14 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>Bu sunucuda barındırılan bir etki alanı</value>
   </data>
+  <data name="A domain is required." xml:space="preserve">
+    <value>Bir alan adı gerekli.</value>
+  </data>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Buraya bir etki alanı adı yazılması, SUNUCUNUN kendi bilgisayarının o etki alanına katılmış olmasını gerektirir; çünkü Windows bunu LogonUser ile doğrular. Katılmamış bir bilgisayarda her deneme, parola yanlışmış gibi başarısız olur - etki alanı adı yalnızca yanlış yazıldığında bile - dolayısıyla katılmamış bir sunucuda bu biçimde yapılandırılan bir posta kutusu hiçbir zaman oturum açamaz ve nedenini de hiçbir zaman söylemez. Sunucu bir etki alanına katılmamışsa, bunun yerine Dizin kimlik doğrulaması sayfasındaki LDAP dizin kimlik doğrulamasını kullanın: bu yöntem dizine ağ üzerinden bind ile bağlanır ve etki alanına katılım gerektirmez.</value>
+  </data>
+  <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
+    <value>Giden sunucuları sürekli değişen bir alan adı genellikle HELO adından tanınır; hiçbir şeyi sahtelemeyen bir alan adı ise zarf gönderenden.</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Bir etki alanı, bir posta kutusu, TLS sunan bir dinleyici ve Pano'nun bunlardan çıkardığı sonuç. Dört dakika; istediğiniz zaman çıkabilirsiniz.</value>
@@ -683,6 +689,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats uyumlu günlük</value>
   </data>
+  <data name="A_ction" xml:space="preserve">
+    <value>E_ylem</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adres</value>
   </data>
@@ -857,6 +866,12 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add a domain or a mailbox" xml:space="preserve">
     <value>Bir etki alanı veya posta kutusu ekleyin</value>
   </data>
+  <data name="Add a domain to the list" xml:space="preserve">
+    <value>Listeye bir alan adı ekle</value>
+  </data>
+  <data name="Add a domain to the white and black list" xml:space="preserve">
+    <value>Beyaz ve kara listeye bir alan adı ekle</value>
+  </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Bir dinleyici ekleyin - STARTTLS ile 587 veya örtük TLS için 465.</value>
   </data>
@@ -967,6 +982,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Add {0}" xml:space="preserve">
     <value>{0} ekle</value>
+  </data>
+  <data name="Added" xml:space="preserve">
+    <value>Eklendi</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>{0} tarihinde eklendi.</value>
@@ -1124,6 +1142,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Bu sunucunun saatinin imzalayanınkinden farklı olmasına pay bırakır. Bu olmadan, birkaç dakika ileri giden bir saat başkalarının geçerli postalarını DKIM hatasına dönüştürür.</value>
   </data>
+  <data name="Also ban the connecting address for a while" xml:space="preserve">
+    <value>Bağlanan adresi de bir süreliğine yasakla</value>
+  </data>
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Yasaklanan adresi işletim sisteminin güvenlik duvarında da engelle</value>
   </data>
@@ -1220,6 +1241,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>Anonim dizin okuma kabul edildi. </value>
+  </data>
+  <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
+    <value>Bir SPF temperror’a kabul etmek yerine 451 ile yanıt ver</value>
   </data>
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Mümkün olduğunda Windows DNS çözümleyici önbelleğinden yanıtla</value>
@@ -1533,6 +1557,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Yasak süresi (dakika)</value>
   </data>
+  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
+    <value>Yasak süresi (saat, 1 ile 8760 arası)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics için taşıyıcı belirteç (boş = yok)</value>
   </data>
@@ -1562,6 +1589,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Bind to address" xml:space="preserve">
     <value>Adrese bağla</value>
+  </data>
+  <data name="Black: refused at MAIL FROM" xml:space="preserve">
+    <value>Kara: MAIL FROM’da reddedilir</value>
   </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>Bağlanan IP adresine karşı denetlenen engelleme listeleri.</value>
@@ -3011,11 +3041,20 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Etki alanı önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
   </data>
+  <data name="Domain contains" xml:space="preserve">
+    <value>Alan adı şunu içerir</value>
+  </data>
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>Mailer-daemon gönderen adresi için etki alanı (boş = ana bilgisayar adı, yoksa iletinin yerel etki alanı, o da yoksa makine adı)</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Alan adı veya kalıp</value>
+  </data>
+  <data name="Domain or suffix" xml:space="preserve">
+    <value>Alan adı veya sonek</value>
+  </data>
+  <data name="Domain white and black list" xml:space="preserve">
+    <value>Alan adı beyaz ve kara listesi</value>
   </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>DNS kayıtları gösterilen etki alanı</value>
@@ -3125,8 +3164,14 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} düzenleniyor - kaydedilen değişiklikler iki saniye içinde geçerli olur; hizmetin yeniden başlatılması gerekmez.</value>
   </data>
+  <data name="Either" xml:space="preserve">
+    <value>Her ikisi</value>
+  </data>
   <data name="Either of them" xml:space="preserve">
     <value>İkisinden biri</value>
+  </data>
+  <data name="Either the envelope sender's domain or the HELO name" xml:space="preserve">
+    <value>Zarf gönderenin alan adı veya HELO adı</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>İndeksi boşaltır ve indeksleyiciden yeniden oluşturmasını ister. Postaya dokunulmaz - indeks türetilmiş veridir - ama yeniden oluşturma yetişene kadar IMAP SEARCH bulması gerekenden azını bulur. İndekste sunucudaki ileti sayısından fazla girdi olduğunda yapmaya değer; bu, artık var olmayan postalara ait girdiler demektir.</value>
@@ -3268,6 +3313,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>İleti, kaydın gerektirdiği kimlik doğrulama sonuçlarını - SPF, DKIM, DMARC, herhangi bir birleşim - taşıdığında gri listelemeyi atlayan zarf alan adları ve HELO sonekleri. Tam eşleşen bir alan adı ya da .mail.example.com gibi başında nokta olan ve o adı ve altındaki her adı kapsayan bir sonek. SPF, RCPT TO anında bilinir, bu yüzden yalnızca SPF isteyen bir kayıt orada karar verir; DKIM ve DMARC yalnızca ileti alındıktan sonra var olur, bu yüzden ikisinden birini isteyen bir kayıt alıcıyı şimdilik geçirir ve sonuç geçer değilse ileti DATA sonrasında gri listelenir - ve yalnızca DKIM doğrulaması veya DMARC açıkken, aksi halde kayıt hiçbir zaman karşılanamaz. SPF başarılıysa atla seçeneğinden farklı olarak bu, dünyadaki her SPF geçişinin bir özelliği değil, adı geçen bir alan adına sizin verdiğiniz bir ayrıcalıktır.</value>
+  </data>
+  <data name="Envelope sender's domain" xml:space="preserve">
+    <value>Zarf gönderenin alan adı</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Doğrudan reddedilen ya da puanlanan zarf gönderenleri - tek bir adres ya da alt etki alanlarıyla birlikte bütün bir etki alanı.</value>
@@ -3730,6 +3778,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>HELO ana bilgisayar denetimi</value>
+  </data>
+  <data name="HELO name" xml:space="preserve">
+    <value>HELO adı</value>
   </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256, OAuth2AllowedAlgorithms içinde ama OAuth2HmacSecret boş; bu yüzden HS256 belirteçleri hiçbir zaman doğrulanamaz. Paylaşılan gizli anahtarı ayarlayın ya da HS256'yı listeden çıkarın.</value>
@@ -4456,6 +4507,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>İşaretleme ve silme eşiklerini düşürün ya da denetimlerin daha fazlasını açın.</value>
   </data>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; bir teslim raporunun dönüş yoludur ve bir raporun tam olarak bir alıcısı vardır: ilgili iletiyi gönderen adres. Ardından ikinci bir alıcı belirten boş gönderen, backscatter, sahte bir rapor ya da bir yoklamadır. Kapalıyken sunucu bunu her zamanki gibi kabul eder. Açıkken ikinci ve sonraki her RCPT TO 550 ile yanıtlanır ve işlemin DATA’sı da reddedilir; tek alıcılı boş gönderene asla dokunulmaz. Yalnızca spam testlerini çalıştıran bir IP aralığından gelen kimliği doğrulanmamış oturumlar için geçerlidir ve anti-spam beyaz listesindeki bir gönderene asla uygulanmaz. Alan adı beyaz ve kara listesi Anti-spam altında kendi sayfasındadır.</value>
+  </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (eski)</value>
   </data>
@@ -4581,6 +4635,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Matched against" xml:space="preserve">
     <value>Karşılaştırılan</value>
+  </data>
+  <data name="Matched on" xml:space="preserve">
+    <value>Eşleştirme</value>
   </data>
   <data name="Matches" xml:space="preserve">
     <value>Eşleşiyor</value>
@@ -5314,6 +5371,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Sınanmadı: bu yapılandırma bir parolayı basit bind ile korumasız LDAP üzerinden gönderirdi ve AllowUnprotectedPassword kapalı - bu yüzden sunucu bu yapılandırmadaki her oturum açmayı reddeder ve bu sınama da aynı nedenle hiçbir şey iletmeyi reddeder. LDAPS ya da StartTLS'yi, ya da Negotiate bind yöntemini seçin, ya da korumasız parolaya açıkça izin verin.</value>
   </data>
+  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>Her testi atlayan bir IP aralığı olan anti-spam beyaz listesi değildir; teslimatta alıcı başına karar veren izin ve engelleme listesi de değildir. example.com yalnızca o alan adıyla eşleşir; .example.com alan adıyla ve altındaki her şeyle eşleşir.</value>
+  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} tarihine kadar geçerli değil</value>
   </data>
@@ -5386,6 +5446,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
     <value>Şimdi bir posta kutusu. Hesap, birinin oturum açtığı ve posta aldığı adrestir.</value>
   </data>
+  <data name="Null sender with several recipients" xml:space="preserve">
+    <value>Birden çok alıcılı boş gönderen</value>
+  </data>
   <data name="Number of delivery retries" xml:space="preserve">
     <value>Teslim yeniden deneme sayısı</value>
   </data>
@@ -5448,6 +5511,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything." xml:space="preserve">
     <value>Varsayılan olarak kapalıdır. Görünmez olan bir hesap, ayrılan bir kişiden çok daha sık, değişen bir filtredir ve iki hatanın bedeli aynı değildir. Hiçbir ileti hiçbir zaman silinmez ve hiçbir hesap kaldırılmaz - birini yeniden etkinleştirmek her şeyi geri getirir.</value>
+  </data>
+  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
+    <value>Varsayılan olarak kapalı. Bunu bugün bir betikle reddedenler, bu açıldığında betiği silebilir.</value>
   </data>
   <data name="Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below." xml:space="preserve">
     <value>Varsayılan olarak kapalıdır. Açmak, sunucunun spam saydığı postayı saklamaya başlaması demektir; bu yüzden aşağıdaki saklama penceresine dikkat edin.</value>
@@ -6195,6 +6261,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
     <value>RFC 7208 4.6.4. "Boş arama", bir gönderenin SPF ilkesindeki, DNS sorgusu hiçbir şeyle dönmeyen bir terimdir - bir a:, mx: ya da exists:. DNS sorgulayan on terimlik ayrı sınır, bir ilkenin bu sunucudan aramasını isteyebileceklerini sınırlar; bir ilkenin neyi boşa harcayabileceğini sınırlamaz ve var olmayan ana bilgisayarları adlandıran on terim, hiçbir zaman eşleşemeyecek bir kayıt için her biri tam bir çözümlemeye mal olur. RFC'nin söylediği ikidir. Sıradan durumu da yakalar: yıllar önce hizmetten kaldırılmış ana bilgisayarları hâlâ listeleyen ve sahibinin haberdar edilmeyi yeğleyeceği bir ilke. Yükseltmek güvenlidir; 0 sınırı kapatır ki bu, ilkesi tam bu biçimde yanlış olan ve postasını almayı yeğlediğiniz bir muhabir için ayardır. Hizmet yeniden başlatıldıktan sonra uygulanır.</value>
   </data>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
+    <value>RFC 7208’in tamamlanamayan bir denetime kendi yanıtı: DNS çalışınca yeniden dene. İşlem 451 4.4.3 ile ertelenir ve yukarıdaki temperror puanı yok sayılır, çünkü ertelenen bir ileti asla kabul edilmez. Kapalıyken temperror kabul edilir ve puanlanır. Alan adı beyaz listesindeki bir gönderen asla ertelenmez.</value>
+  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC ortak anahtar dosyası (PEM, RS*/ES* belirteçleri için)</value>
   </data>
@@ -6382,6 +6451,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Refuse a new password found in published data breaches" xml:space="preserve">
     <value>Yayımlanmış veri sızıntılarında bulunan yeni bir parolayı reddet</value>
   </data>
+  <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
+    <value>Birden fazla alıcı belirten boş göndereni reddet</value>
+  </data>
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Reddet, bir gönderimi RCPT aşamasında gerekçesiyle yanıtlar ve geri kalan her şeyi - bir takma adı, bir iletmeyi, zamanlanmış bir gönderimi - bir teslim durumu bildiriminde gönderene iade eder. Bir adres için zaten kuyrukta olan posta, bir sonraki teslim denemesinde listeyle karşılaşır. Teslim et ve yalnızca kaydet, listenin ne yapacağını o yapmadan önce görmenin güvenli yoludur.</value>
   </data>
@@ -6484,6 +6556,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Remove _expired" xml:space="preserve">
     <value>Süresi _dolanları kaldır</value>
   </data>
+  <data name="Remove from the domain list" xml:space="preserve">
+    <value>Alan adı listesinden kaldır</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Engelleme listesinden kaldır</value>
   </data>
@@ -6504,6 +6579,11 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Kaydederken saklanan hiz_met hesabı parolasını kaldır</value>
+  </data>
+  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+    <value>{0} listeden kaldırılsın mı?
+
+Kara bir alan adı hemen yeniden kabul edilir; beyaz bir alan adı bir sonraki oturumdan itibaren yeniden greylisting ve spam puanına tabi olur.</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0}, {1} grubundan kaldırılsın mı?
@@ -6906,8 +6986,17 @@ Devam edilsin mi?</value>
   <data name="SPF failure score" xml:space="preserve">
     <value>SPF başarısızlık puanı</value>
   </data>
+  <data name="SPF permerror score (0 = not scored)" xml:space="preserve">
+    <value>SPF permerror puanı (0 = puanlanmaz)</value>
+  </data>
+  <data name="SPF softfail score (0 = not scored)" xml:space="preserve">
+    <value>SPF softfail puanı (0 = puanlanmaz)</value>
+  </data>
   <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
     <value>SPF, alıcılara bu alan adının postasını hangi sunucuların gönderebileceğini söyler; onsuz posta daha sık reddedilir veya istenmeyen olarak ayrılır.</value>
+  </data>
+  <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
+    <value>SPF temperror puanı (0 = puanlanmaz)</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — hangi makinelerin şu ad altında posta gönderebileceği:</value>
@@ -7290,6 +7379,9 @@ Devam edilsin mi?</value>
   <data name="Select an app password first." xml:space="preserve">
     <value>Önce bir uygulama parolası seçin.</value>
   </data>
+  <data name="Select an entry first." xml:space="preserve">
+    <value>Önce bir girdi seçin.</value>
+  </data>
   <data name="Select an event first." xml:space="preserve">
     <value>Önce bir olay seçin.</value>
   </data>
@@ -7355,6 +7447,12 @@ Devam edilsin mi?</value>
   </data>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Spam korumasını tamamen atlayan gönderenler veya IP aralıkları.</value>
+  </data>
+  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>Bu sunucunun karar verdiği gönderen alan adları: beyaz, greylisting’i ve puana bağlı reddi atlar; kara, MAIL FROM’da reddedilir - IP adresine göre değil, alan adına veya HELO sonekine göre.</value>
+  </data>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>Haftanın IP adresine göre değil, alan adına göre değerlendirilen gönderen kuruluşlar. Beyaz: greylisting yok ve spam puanı nedeniyle asla ret yok; her test yine de çalışır ve günlüğe yazar. Kara: greylisting, puanlama veya herhangi bir sorgudan önce MAIL FROM’da reddedilir. Zarf gönderenin alan adı, HELO adı veya her ikisiyle eşleştirilir; yalnızca gelen, kimliği doğrulanmamış oturumlar.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Toplu gönderim başarısız oldu: {0}</value>
@@ -8194,6 +8292,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>{0} için DNS aramasının kendisi başarısız oldu: {1} Bu, kayıt hakkında hiçbir şey söylemez - bu makine DNS sunucusundan yanıt alamadı. Ağı denetleyip yeniden deneyin.</value>
   </data>
+  <data name="The HELO name" xml:space="preserve">
+    <value>HELO adı</value>
+  </data>
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO ana bilgisayarı</value>
   </data>
@@ -8338,6 +8439,12 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
     <value>Zincir sağlam. {0} satır denetlendi.</value>
   </data>
+  <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
+    <value>Denetim tamamlanmadı - DNS zaman aşımına uğradı ya da SERVFAIL yanıtı verdi ya da sorgu sınırına ulaşıldı - ve kayıt sorunsuz olabilir. Bunu fail gibi puanlamak her çözümleyici tökezlemesinde posta düşürür; aşağıdaki anahtar diğer yanıttır.</value>
+  </data>
+  <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
+    <value>Denetim tamamlandı ve alan adının yayımladığı kayıt kullanılamaz durumda: iki kayıt, hatalı bir mekanizma, bir yönlendirme döngüsü, çok fazla sorgu. Yeniden denemek düzeltmez, bu yüzden asla ertelenmez; katı siteler bunu fail sayar, hoşgörülü siteler yok sayar.</value>
+  </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>TLS 1.0 veya 1.1 etkinken şifre listesi AEAD-ONLY ön ayarı. Bu sürümlerin hiç AEAD paketi yoktur; bu yüzden duyurulurlar ve sonra el sıkışmayı tamamlayamazlar - bu da istemciye bir ilke değil, bozuk bir sunucu gibi görünür.</value>
   </data>
@@ -8417,6 +8524,12 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>Motorun kararı bir puan olarak gelir; böylece SPF, DKIM ve DMARC'ın yanına oturur ve ne olacağına mevcut eşikleriniz karar verir - ilkiyle bağdaştırılması gereken ikinci, paralel bir spam kavramı yerine. En güçlü kararının değeri budur.</value>
+  </data>
+  <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
+    <value>Girdi, o alan adından gelen bir sonraki oturum için geçerlidir. Spam testlerini çalıştıran bir IP aralığından gelen kimliği doğrulanmamış gelen oturumlarda danışılır ve kimlik doğrulamayı atlamak için asla kullanılmaz.</value>
+  </data>
+  <data name="The envelope sender's domain" xml:space="preserve">
+    <value>Zarf gönderenin alan adı</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>Zarf gönderenin alan adı (MAIL FROM)</value>
@@ -8554,6 +8667,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The lines this page refers to are written at debug level; the slow ones are also written at application level, so with application logging alone you still see the important ones. Reproduce the problem once, then read the log. Remember to turn debug logging off afterwards on a busy server." xml:space="preserve">
     <value>Bu sayfanın sözünü ettiği satırlar hata ayıklama düzeyinde yazılır; yavaş olanlar uygulama düzeyinde de yazılır; bu yüzden yalnızca uygulama günlüğüyle bile önemli olanları görürsünüz. Sorunu bir kez yeniden üretin, sonra günlüğü okuyun. Yoğun bir sunucuda hata ayıklama günlüğünü sonradan kapatmayı unutmayın.</value>
+  </data>
+  <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
+    <value>Liste boş ve boş bir liste hiçbir şeyi değiştirmez: her alan adı eskisi gibi greylisting’e ve puanlamaya tabidir.</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Dinleyici yapılandırıldı. Geriye sunucunun dışındaki iş kalıyor: her posta etki alanı için autoconfig.&lt;domain&gt; ve autodiscover.&lt;domain&gt; kayıtlarını yayımlayın, sonra bir istemci makinesinden sınayın.</value>
@@ -8730,6 +8846,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Çalıştırma başarısız oldu:</value>
+  </data>
+  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
+    <value>Bir dizi başarısız oturum açmanın oluşturduğu, aynı süpürmeyle kaldırılan ve aynı uzlaştırmayla güvenlik duvarına yansıtılan, süresi dolan aynı IP aralığı; AutoBanNeverBan’daki bir adres veya gelen bir aktarıcı için asla. Varsayılan olarak kapalı; böylece iki alıcıya yanlışlıkla gönderilmiş tek bir rapor gerçek bir posta sunucusunu yasaklamaz. Yukarıdaki ret kapalıyken hiçbir şey yapmaz.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Günlük dosyalarının aldığı satırlar, kategoriler ve maskeyle aynı; günlüğe yazan iş parçacığında bir aralık etkinken izleme ve aralık kimliği eklenir. Dışa aktarıcı kendi başarısızlık satırlarını hiçbir zaman dışa aktarmaz; aksi hâlde ölü bir toplayıcı kendi kendini beslerdi.</value>
@@ -9685,8 +9804,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="White list" xml:space="preserve">
     <value>Beyaz liste</value>
   </data>
+  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
+    <value>Beyaz yine de her testi çalıştırır ve işaretleme eşiğinde yine işaretler; kara, tek bir test bile çalışmadan reddeder.</value>
+  </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>İletinin spam korumasını atlaması için göndereni veya IP aralığını beyaz listeye alın.</value>
+  </data>
+  <data name="White: not greylisted, not refused on score" xml:space="preserve">
+    <value>Beyaz: greylisting yok, puana göre ret yok</value>
+  </data>
+  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>Beyaz: greylisting yok, spam puanına göre ret yok</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Kim</value>
@@ -9934,6 +10062,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
     <value>Etki _alanı adı (değiştirmek etki alanını yeniden adlandırır ve her hesabı, diğer adı ve listeyi onunla taşır)</value>
   </data>
+  <data name="_Domain or suffix" xml:space="preserve">
+    <value>_Alan adı veya sonek</value>
+  </data>
   <data name="_Download update" xml:space="preserve">
     <value>Güncelleştirmeyi _indir</value>
   </data>
@@ -10050,6 +10181,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Match type" xml:space="preserve">
     <value>_Eşleştirme türü</value>
+  </data>
+  <data name="_Matched on" xml:space="preserve">
+    <value>_Eşleştirme</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>Okunacak _en fazla girdi</value>
@@ -10455,6 +10589,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="every recipient" xml:space="preserve">
     <value>her alıcı</value>
+  </data>
+  <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
+    <value>example.com yalnızca o alan adıdır; .example.com alan adı ve altındaki her şeydir.</value>
   </data>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - boş, her etki alanı demektir</value>
@@ -10975,6 +11112,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>gönderenin alan adı veya HELO ana bilgisayarı gri listeleme atlama listesindeki {0} kayıttan biri ve ileti o kaydın gerektirdiği SPF, DKIM veya DMARC geçişini taşıyor</value>
   </data>
+  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
+    <value>gönderenin alan adı veya HELO adı alan adı beyaz ve kara listesinde beyaz</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>sunucu veritabanına ulaşamıyor. Veritabanı bağlantısını ve hMailServer hata günlüğünü denetleyin, sonra Yeniden yükle'ye basın. ({0})</value>
   </data>
@@ -11233,6 +11373,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} açık ama 0 puan veriyor; bu yüzden her iletide bir aramaya mal oluyor ve sonucu hiçbir zaman değiştiremiyor. Bir puan verin ya da kapatın.</value>
   </data>
+  <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
+    <value>{0} listede. O alan adından gelen bir sonraki oturum için geçerli.</value>
+  </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0}, {1} engelleme listesinde.</value>
   </data>
@@ -11286,6 +11429,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
     <value>{1} değişiklikten {0} tanesi yapılamadı ve her birinde sunucunun nedeniyle birlikte önce listeleniyor. Geri kalanlar uygulandı.</value>
+  </data>
+  <data name="{0} of {1} entries match the search." xml:space="preserve">
+    <value>{0} / {1} girdi aramayla eşleşiyor.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{1} portundaki {0} için şifreleme yok. Posta istemcileri bu portta kimlik doğrular; bu yüzden üzerinde kullanılan her parola, istemciyle bu sunucu arasındaki herhangi bir şey tarafından okunabilir.</value>
@@ -11541,6 +11687,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} virüsten koruma kapalı; bu yüzden {2} topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.{3}</value>
+  </data>
+  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
+    <value>~all: alan adı, istemcinin büyük olasılıkla yetkili olmadığını söyler ve iletinin yine de kabul edilmesini ister. Pek çok toplu gönderim kaynağı bunun arkasına saklanır. Silme eşiğine eşit veya üstünde bir puan, iletiyi SMTP görüşmesi sırasında bir fail gibi reddeder; softfail, greylisting muafiyeti için asla pass sayılmaz.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ taşı    Enter aç    Esc kapat</value>

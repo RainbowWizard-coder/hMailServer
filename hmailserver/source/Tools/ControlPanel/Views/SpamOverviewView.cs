@@ -186,6 +186,14 @@ namespace hMailServer.ControlPanel.Views
                config.SenderListEntries = senderList;
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: an older server has no allow and block list, and the row then reads 0 entries. */ }
+
+            // The same, for the domain white and black list, which is a JSON
+            // document on AntiSpam rather than a collection.
+            try
+            {
+               config.DomainPolicyListEntries = CountDomainPolicyRows((string)antiSpam.DomainPolicyList);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: an older server has no domain white and black list, and the row then reads 0 entries. */ }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -213,6 +221,30 @@ namespace hMailServer.ControlPanel.Views
             firstError_ ??= ServerSession.DescribeComError(ex);
             return default;
          }
+      }
+
+      /// <summary>How many rows the domain white and black list's document carries; 0 for a document with none or one that cannot be read.</summary>
+      private static int CountDomainPolicyRows(string json)
+      {
+         if (string.IsNullOrWhiteSpace(json))
+            return 0;
+
+         try
+         {
+            using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
+
+            System.Text.Json.JsonElement items;
+            if (document.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object &&
+                document.RootElement.TryGetProperty("items", out items) &&
+                items.ValueKind == System.Text.Json.JsonValueKind.Array)
+               return items.GetArrayLength();
+         }
+         catch (System.Text.Json.JsonException)
+         {
+            // A document that cannot be read is a list of nothing here; the page of its own says why.
+         }
+
+         return 0;
       }
 
       /// <summary>
@@ -450,6 +482,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(ListRow(L("Greylisting white list"), null, config.GreylistWhiteListEntries, "greylistwhitelist"));
          content.Children.Add(ListRow(L("Greylisting bypass list"), null, config.GreylistBypassEntries, "greylistbypass"));
          content.Children.Add(ListRow(L("Allow and block list"), null, config.SenderListEntries, "senderlist"));
+         content.Children.Add(ListRow(L("Domain white and black list"), null, config.DomainPolicyListEntries, "domainpolicylist"));
 
          return card;
       }

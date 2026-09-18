@@ -434,8 +434,14 @@
   <data name="A domain hosted on this server" xml:space="preserve">
     <value>本服务器上托管的一个域</value>
   </data>
+  <data name="A domain is required." xml:space="preserve">
+    <value>需要一个域。</value>
+  </data>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>在此处填写域名，要求服务器本机加入该域，因为 Windows 是用 LogonUser 来验证的。在未加入域的计算机上，每一次尝试都会像密码错误一样失败 - 包括仅仅是域名拼写有误的情况 - 因此在未加入域的服务器上这样配置的邮箱永远无法登录，也永远不会说明原因。如果服务器未加入域，请改用“目录身份验证”页上的 LDAP 目录身份验证：它通过网络绑定到目录，不需要加入域。</value>
+  </data>
+  <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
+    <value>出站主机不断变化的域通常通过 HELO 名称识别；不伪造任何内容的域通过信封发件人识别。</value>
   </data>
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>一个域、一个邮箱、一个提供 TLS 的监听器，以及仪表板对这一切的判断。四分钟；随时可以退出。</value>
@@ -683,6 +689,9 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats 兼容日志</value>
   </data>
+  <data name="A_ction" xml:space="preserve">
+    <value>操作(_C)</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>地址(_D)</value>
   </data>
@@ -857,6 +866,12 @@
   <data name="Add a domain or a mailbox" xml:space="preserve">
     <value>添加域或邮箱</value>
   </data>
+  <data name="Add a domain to the list" xml:space="preserve">
+    <value>将域添加到列表</value>
+  </data>
+  <data name="Add a domain to the white and black list" xml:space="preserve">
+    <value>将域添加到白名单和黑名单</value>
+  </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>添加一个监听器 - 使用 STARTTLS 的 587，或者使用隐式 TLS 的 465。</value>
   </data>
@@ -967,6 +982,9 @@
   </data>
   <data name="Add {0}" xml:space="preserve">
     <value>添加 {0}</value>
+  </data>
+  <data name="Added" xml:space="preserve">
+    <value>添加时间</value>
   </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>添加于 {0}。</value>
@@ -1124,6 +1142,9 @@
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>容许本服务器的时钟与签名方的时钟存在偏差。没有它，快了几分钟的时钟会把别人的有效邮件变成 DKIM 失败。</value>
   </data>
+  <data name="Also ban the connecting address for a while" xml:space="preserve">
+    <value>同时封禁连接地址一段时间</value>
+  </data>
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>同时在操作系统的防火墙中阻止被封禁的地址</value>
   </data>
@@ -1220,6 +1241,9 @@
   </data>
   <data name="Anonymous directory read accepted. " xml:space="preserve">
     <value>已接受匿名目录读取。 </value>
+  </data>
+  <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
+    <value>对 SPF temperror 回应 451 而不是接受</value>
   </data>
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>尽可能从 Windows DNS 解析器缓存中作答</value>
@@ -1533,6 +1557,9 @@
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>封禁时长（分钟）</value>
   </data>
+  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
+    <value>封禁时长（小时，1 到 8760）</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 的持有者令牌（留空 = 无）</value>
   </data>
@@ -1562,6 +1589,9 @@
   </data>
   <data name="Bind to address" xml:space="preserve">
     <value>绑定到地址</value>
+  </data>
+  <data name="Black: refused at MAIL FROM" xml:space="preserve">
+    <value>黑：在 MAIL FROM 时拒绝</value>
   </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>针对正在连接的 IP 地址检查的拦截列表。</value>
@@ -3011,11 +3041,20 @@
   <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>域缓存最大大小（KB，重启服务后重置）</value>
   </data>
+  <data name="Domain contains" xml:space="preserve">
+    <value>域包含</value>
+  </data>
   <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
     <value>mailer-daemon 发件人地址使用的域（留空 = 主机名，否则为邮件的本地域，再否则为机器名）</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>域或模式</value>
+  </data>
+  <data name="Domain or suffix" xml:space="preserve">
+    <value>域或后缀</value>
+  </data>
+  <data name="Domain white and black list" xml:space="preserve">
+    <value>域白名单和黑名单</value>
   </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>显示其 DNS 记录的域</value>
@@ -3125,8 +3164,14 @@
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>正在编辑 {0} - 保存的更改会在两秒钟内生效；无需重启服务。</value>
   </data>
+  <data name="Either" xml:space="preserve">
+    <value>任一</value>
+  </data>
   <data name="Either of them" xml:space="preserve">
     <value>两者之一</value>
+  </data>
+  <data name="Either the envelope sender's domain or the HELO name" xml:space="preserve">
+    <value>信封发件人的域或 HELO 名称</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>清空索引并要求索引器重建。不会触及任何邮件 - 索引是派生数据 - 但在重建赶上进度之前，IMAP SEARCH 找到的结果会比应有的少。当索引中的条目比服务器上的邮件还多时值得这样做，因为那意味着存在指向已不存在邮件的条目。</value>
@@ -3268,6 +3313,9 @@
   </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>当邮件带有条目要求的认证结果（SPF、DKIM、DMARC 的任意组合）时放行灰名单的信封域名和 HELO 后缀。精确匹配的域名，或以点开头的后缀如 .mail.example.com（覆盖该名称及其下的所有名称）。SPF 在 RCPT TO 时即可得知，因此仅要求 SPF 的条目在该处决定；DKIM 和 DMARC 只有在邮件收到后才存在，因此要求其中之一的条目暂时放行收件人，若结果不是通过，邮件在 DATA 之后进入灰名单，并且仅在 DKIM 验证或 DMARC 开启时如此，否则该条目永远无法满足。与 SPF 通过时绕过不同，这是您授予指定域名的特权，而不是世界上每一次 SPF 通过都具有的属性。</value>
+  </data>
+  <data name="Envelope sender's domain" xml:space="preserve">
+    <value>信封发件人的域</value>
   </data>
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>被直接拒绝或计分的信封发件人 - 一个地址，或者整个域及其子域。</value>
@@ -3730,6 +3778,9 @@
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>HELO 主机检查</value>
+  </data>
+  <data name="HELO name" xml:space="preserve">
+    <value>HELO 名称</value>
   </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 在 OAuth2AllowedAlgorithms 中，但 OAuth2HmacSecret 为空，因此 HS256 令牌永远无法通过验证。请设置共享机密，或者从列表中移除 HS256。</value>
@@ -4456,6 +4507,9 @@
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>降低标记和删除阈值，或者打开更多的检查。</value>
   </data>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; 是投递报告的回传路径，而报告只有一个收件人：发送该报告所涉邮件的地址。空发件人随后又指定第二个收件人，就是反向散射、伪造的报告或探测。关闭时，服务器像以往一样接受它。开启时，第二个及之后的每个 RCPT TO 都回应 550，该事务的 DATA 也被拒绝；只有一个收件人的空发件人从不受影响。仅适用于运行反垃圾邮件测试的 IP 范围内的未认证会话，绝不适用于反垃圾邮件白名单中的发件人。域白名单和黑名单在“反垃圾邮件”下有自己的页面。</value>
+  </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5（旧式）</value>
   </data>
@@ -4581,6 +4635,9 @@
   </data>
   <data name="Matched against" xml:space="preserve">
     <value>匹配对象</value>
+  </data>
+  <data name="Matched on" xml:space="preserve">
+    <value>匹配依据</value>
   </data>
   <data name="Matches" xml:space="preserve">
     <value>匹配</value>
@@ -5314,6 +5371,9 @@
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>未测试：此配置会通过未受保护的 LDAP 以简单绑定发送密码，而 AllowUnprotectedPassword 已关闭 - 因此服务器会拒绝在此配置下的每次登录，而此测试出于同样的原因拒绝传输任何内容。请选择 LDAPS 或 StartTLS，或者 Negotiate 绑定方法，或者明确允许未受保护的密码。</value>
   </data>
+  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>它不是反垃圾邮件白名单（那是跳过所有测试的 IP 范围），也不是允许和阻止列表（那在投递时按收件人决定）。example.com 只匹配该域；.example.com 匹配该域及其下的一切。</value>
+  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>在 {0} 之前无效</value>
   </data>
@@ -5386,6 +5446,9 @@
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
     <value>接下来是邮箱。账户就是某个人登录并接收邮件的地址。</value>
   </data>
+  <data name="Null sender with several recipients" xml:space="preserve">
+    <value>带多个收件人的空发件人</value>
+  </data>
   <data name="Number of delivery retries" xml:space="preserve">
     <value>投递重试次数</value>
   </data>
@@ -5448,6 +5511,9 @@
   </data>
   <data name="Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything." xml:space="preserve">
     <value>默认关闭。不再可见的账户，更常见的原因是过滤器变了，而不是有人离职了，而这两种错误的代价并不相同。永远不会删除任何邮件，也不会移除任何账户 - 重新启用一个账户即可恢复一切。</value>
+  </data>
+  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
+    <value>默认关闭。目前用脚本拒绝这种邮件的管理员，在开启后可以删除该脚本。</value>
   </data>
   <data name="Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below." xml:space="preserve">
     <value>默认关闭。打开它意味着服务器开始存储它认为是垃圾邮件的邮件，因此请留意下面的保留窗口。</value>
@@ -6195,6 +6261,9 @@
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
     <value>RFC 7208 第 4.6.4 节。“空查询”指的是发件人 SPF 策略中的某一项 - a:、mx: 或 exists: - 其 DNS 查询完全没有返回任何结果。另一条“最多十个发起 DNS 查询的项”的限制约束的是一份策略可以要求本服务器查询多少次；它并不约束一份策略能浪费多少，而十个指向并不存在的主机的项，每一个都要为一条永远不可能匹配的记录付出一次完整的解析。RFC 给出的数值是二。它同时也能发现一种寻常情形：一份策略仍然列着多年前就已下线的主机，而它的所有者多半也希望有人告诉他这件事。调高这个值是安全的；0 表示关闭该限制，这正是为那种策略恰好错在此处、而您又宁愿收下其邮件的通信方准备的设置。在重启服务后生效。</value>
   </data>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
+    <value>RFC 7208 对无法完成的检查给出的答案：等 DNS 恢复后再试。事务以 451 4.4.3 延迟，上面的 temperror 分数被忽略，因为延迟的邮件永远不会被接受。关闭时，temperror 会被接受并计分。域白名单中的发件人从不被延迟。</value>
+  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC 公钥文件（PEM，用于 RS*/ES* 令牌）</value>
   </data>
@@ -6382,6 +6451,9 @@
   <data name="Refuse a new password found in published data breaches" xml:space="preserve">
     <value>拒绝在公开数据泄露中发现的新密码</value>
   </data>
+  <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
+    <value>拒绝指定多个收件人的空发件人</value>
+  </data>
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>“拒绝”会在 RCPT 阶段向提交的邮件说明原因并拒绝，其他情况（别名、转发、定时发送）则以投递状态通知退回给发件人。已在队列中发往该地址的邮件会在下一次投递尝试时与列表比对。“照常投递，仅作记录”是在列表真正生效前查看其效果的安全方式。</value>
   </data>
@@ -6484,6 +6556,9 @@
   <data name="Remove _expired" xml:space="preserve">
     <value>移除已过期项(_E)</value>
   </data>
+  <data name="Remove from the domain list" xml:space="preserve">
+    <value>从域列表中移除</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>从抑制列表移除</value>
   </data>
@@ -6504,6 +6579,11 @@
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>保存时移除已存储的服务账户密码(_W)</value>
+  </data>
+  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+    <value>从列表中移除 {0}？
+
+黑名单域会立即重新被接受；白名单域从下一个会话起重新受灰名单和垃圾邮件分数约束。</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>是否将 {0} 从 {1} 中移除？
@@ -6906,8 +6986,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="SPF failure score" xml:space="preserve">
     <value>SPF 失败分数</value>
   </data>
+  <data name="SPF permerror score (0 = not scored)" xml:space="preserve">
+    <value>SPF permerror 分数（0 = 不计分）</value>
+  </data>
+  <data name="SPF softfail score (0 = not scored)" xml:space="preserve">
+    <value>SPF softfail 分数（0 = 不计分）</value>
+  </data>
   <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
     <value>SPF 告诉收件方哪些服务器可以发送此域的邮件；没有它，邮件更容易被拒收或归入垃圾邮件。</value>
+  </data>
+  <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
+    <value>SPF temperror 分数（0 = 不计分）</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
     <value>SPF — 哪些机器可以代表以下域发信： </value>
@@ -7290,6 +7379,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Select an app password first." xml:space="preserve">
     <value>请先选择一个应用密码。</value>
   </data>
+  <data name="Select an entry first." xml:space="preserve">
+    <value>请先选择一个条目。</value>
+  </data>
   <data name="Select an event first." xml:space="preserve">
     <value>请先选择一个事件。</value>
   </data>
@@ -7355,6 +7447,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>完全绕过垃圾邮件防护的发件人或 IP 范围。</value>
+  </data>
+  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>本服务器已做出决定的发件域：白名单跳过灰名单和按分数的拒绝，黑名单在 MAIL FROM 时拒绝——按域或 HELO 后缀，而不是按 IP 地址。</value>
+  </data>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>按域而非当周 IP 地址来判断的发件组织。白：不灰名单，也绝不因垃圾邮件分数被拒绝，但每项测试仍会运行并记录。黑：在灰名单、计分或任何查询之前，于 MAIL FROM 时拒绝。按信封发件人的域、HELO 名称或两者之一匹配；仅限入站未认证会话。</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>群发失败: {0}</value>
@@ -8194,6 +8292,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>对 {0} 的 DNS 查询本身失败了: {1} 这并不说明记录有任何问题 - 本机无法从其 DNS 服务器获得应答。请检查网络后重试。</value>
   </data>
+  <data name="The HELO name" xml:space="preserve">
+    <value>HELO 名称</value>
+  </data>
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO 主机</value>
   </data>
@@ -8338,6 +8439,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
     <value>链完好无损。已检查 {0} 行。</value>
   </data>
+  <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
+    <value>检查未完成——DNS 超时或回应 SERVFAIL，或达到了查询上限——而记录本身可能没有问题。把它当作 fail 计分会在解析器每次抖动时丢失邮件；下面的开关是另一种答案。</value>
+  </data>
+  <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
+    <value>检查已完成，但该域发布的记录无法使用：两条记录、无效的机制、重定向循环、查询过多。重试也无济于事，因此从不延迟；严格的站点将其视为 fail，宽松的站点则忽略它。</value>
+  </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>在启用了 TLS 1.0 或 1.1 的同时，密码套件列表使用的是 AEAD-ONLY 预设。这些版本没有任何 AEAD 套件，因此它们会被通告，然后却无法完成握手 - 在客户端看来这像是一台损坏的服务器，而不是一项策略。</value>
   </data>
@@ -8417,6 +8524,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The engine's verdict arrives as a score so that it lands alongside SPF, DKIM and DMARC and your existing thresholds decide what happens - rather than a second, parallel notion of spam that has to be reconciled with the first. This is what its strongest verdict is worth." xml:space="preserve">
     <value>引擎的裁定以分数形式到达，这样它就与 SPF、DKIM 和 DMARC 并列，由您现有的阈值决定结果 - 而不是引入第二种平行的垃圾邮件概念，再去与第一种协调。这就是其最强裁定的分量。</value>
+  </data>
+  <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
+    <value>该条目适用于来自该域的下一个会话。它用于运行反垃圾邮件测试的 IP 范围内的未认证入站会话，绝不用于绕过认证。</value>
+  </data>
+  <data name="The envelope sender's domain" xml:space="preserve">
+    <value>信封发件人的域</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>信封发件人的域名（MAIL FROM）</value>
@@ -8554,6 +8667,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The lines this page refers to are written at debug level; the slow ones are also written at application level, so with application logging alone you still see the important ones. Reproduce the problem once, then read the log. Remember to turn debug logging off afterwards on a busy server." xml:space="preserve">
     <value>本页所指的行以调试级别写入；其中慢的那些也会以应用程序级别写入，因此仅靠应用程序日志您仍能看到重要的行。重现一次问题，然后阅读日志。在繁忙的服务器上，记得事后关闭调试日志。</value>
+  </data>
+  <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
+    <value>列表为空，空列表不会改变任何事情：每个域都像以前一样被灰名单和计分。</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>监听器已配置。剩下的是服务器之外的事: 为每个邮件域发布 autoconfig.&lt;domain&gt; 和 autodiscover.&lt;domain&gt; 记录，然后从一台客户端计算机进行测试。</value>
@@ -8730,6 +8846,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>运行失败:</value>
+  </data>
+  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
+    <value>与连续登录失败创建的相同的到期 IP 范围，由同一清理解除，由同一同步映射到防火墙；绝不适用于 AutoBanNeverBan 中的地址或入站中继。默认关闭，这样一封误发给两个收件人的报告不会封禁真正的邮件服务器。上面的拒绝关闭时不起任何作用。</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>与日志文件所得的行、类别和掩码相同，只要记录日志的线程上有活动的跨度，就会附加跟踪 id 和跨度 id。导出器永远不会导出自己的失败行，否则一个失效的收集器会自我喂养。</value>
@@ -9685,8 +9804,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="White list" xml:space="preserve">
     <value>白名单</value>
   </data>
+  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
+    <value>白名单仍会运行每项测试，并仍在标记阈值处标记；黑名单在任何测试运行之前就拒绝。</value>
+  </data>
   <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
     <value>把发件人或其 IP 范围加入白名单，使邮件绕过垃圾邮件防护。</value>
+  </data>
+  <data name="White: not greylisted, not refused on score" xml:space="preserve">
+    <value>白：不灰名单，不按分数拒绝</value>
+  </data>
+  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>白：不灰名单，不按垃圾邮件分数拒绝</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>操作者</value>
@@ -9934,6 +10062,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
     <value>域名(_D)（更改它会重命名该域，并把每个账户、别名和列表一起迁移过去）</value>
   </data>
+  <data name="_Domain or suffix" xml:space="preserve">
+    <value>域或后缀(_D)</value>
+  </data>
   <data name="_Download update" xml:space="preserve">
     <value>下载更新(_D)</value>
   </data>
@@ -10050,6 +10181,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Match type" xml:space="preserve">
     <value>匹配类型(_M)</value>
+  </data>
+  <data name="_Matched on" xml:space="preserve">
+    <value>匹配依据(_M)</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>要读取的最大条目数(_M)</value>
@@ -10455,6 +10589,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="every recipient" xml:space="preserve">
     <value>每个收件人</value>
+  </data>
+  <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
+    <value>example.com 只是该域；.example.com 是该域及其下的一切。</value>
   </data>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - 留空表示每个域</value>
@@ -10975,6 +11112,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>发件人的域名或 HELO 主机是灰名单绕过列表中 {0} 个条目之一，且邮件带有该条目要求的 SPF、DKIM 或 DMARC 通过结果</value>
   </data>
+  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
+    <value>发件人的域或 HELO 名称在域白名单和黑名单中为白名单</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后按“重新加载”。({0})</value>
   </data>
@@ -11233,6 +11373,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} 已开启，但分数为 0，因此它对每封邮件都要付出一次查找，却永远无法改变结果。请给它一个分数，或者把它关掉。</value>
   </data>
+  <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
+    <value>{0} 已在列表中。适用于来自该域的下一个会话。</value>
+  </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} 在 {1} 的抑制列表中。</value>
   </data>
@@ -11286,6 +11429,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
     <value>{1} 项更改中有 {0} 项无法执行，它们列在最前面，每一项都附有服务器给出的原因。其余的都已应用。</value>
+  </data>
+  <data name="{0} of {1} entries match the search." xml:space="preserve">
+    <value>{1} 个条目中有 {0} 个与搜索匹配。</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} 在端口 {1} 上没有可用的加密。邮件客户端会在此端口上进行身份验证，因此在它上面使用的每一个密码，对客户端与本服务器之间的任何东西来说都是可读的。</value>
@@ -11541,6 +11687,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1}关闭了反病毒，因此{2}以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。{3}</value>
+  </data>
+  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
+    <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件。许多群发来源就藏在它后面。达到或超过删除阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件；softfail 永远不会被视为灰名单豁免的 pass。</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ 移动    Enter 打开    Esc 关闭</value>

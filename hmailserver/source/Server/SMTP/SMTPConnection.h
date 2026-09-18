@@ -125,6 +125,25 @@ namespace HM
       // happens in here, before that reply, and once per trap per session.
       bool CheckSpamTrap_(const String &recipientAddress);
 
+      // The domain white and black list (AntiSpam/DomainPolicyList.h), consulted
+      // at MAIL FROM once the envelope sender and the HELO name are both known.
+      // True when the session is black and has been refused with a 550, so the
+      // caller returns at once; white is remembered in domain_policy_ for the
+      // rest of the transaction. Unauthenticated sessions of a range that runs
+      // the spam tests only.
+      bool CheckDomainPolicy_(const String &sFromAddress);
+
+      // MAIL FROM:<> naming more than one recipient (discussion #283). True when
+      // this RCPT TO would be the second recipient of a null sender and
+      // RejectMultiRcptNullSender is on: it has then been refused with a 550,
+      // the transaction is marked so that its DATA is refused too, and the
+      // connecting address has been banned where BanMultiRcptNullSender asks.
+      bool CheckMultiRecipientNullSender_(const String &recipientAddress);
+
+      // Whether a session marked white by the domain policy list may skip the
+      // refusal the spam score would otherwise make. The tests have still run.
+      bool DomainPolicyWhite_() const;
+
       bool CheckLineEndings_() const;
 
       void LogClientCommand_(const String &sClientData);
@@ -433,7 +452,36 @@ namespace HM
       // from somebody demonstrably working from a harvested list. Cleared with
       // the rest of the transaction by ResetCurrentMessage_.
       bool addressed_spam_trap_;
-      
+
+      // What the domain policy list said about this transaction at MAIL FROM:
+      // DomainPolicyList::VerdictNone, VerdictWhite or (never stored, since a
+      // black session is refused on the spot) VerdictBlack. Cleared with the
+      // transaction by ResetCurrentMessage_, because the next MAIL FROM may
+      // name another domain.
+      int domain_policy_;
+
+      // A null sender named a second recipient in THIS transaction and
+      // RejectMultiRcptNullSender is on: the DATA that follows is refused as the
+      // recipient was. Cleared with the transaction.
+      bool multi_recipient_null_sender_;
+
+      // The DISTINCT addresses a null sender has named in this transaction,
+      // lower-cased. The count of recipients on the message will not do: a
+      // client may repeat one RCPT TO, which RFC 5321 allows and which the
+      // recipient list quietly deduplicates, and a repeated single recipient is
+      // still the one recipient a delivery status notification has - the thing
+      // this rule exists not to touch. Cleared with the transaction.
+      std::set<String> null_sender_recipients_;
+
+      // Whether this session's address has already been banned for it, so a
+      // client that keeps naming recipients earns one ban and not one per RCPT.
+      bool banned_for_null_sender_;
+
+      // Set by DoSpamProtection_ when it answered 451 for an SPF temperror
+      // rather than 550 for the score, so the caller at RCPT TO does not write
+      // the permanent failure's AWStats line for a temporary one.
+      bool spam_protection_deferred_;
+
       std::shared_ptr<const Domain> sender_domain_;
       std::shared_ptr<const Account> sender_account_;
 

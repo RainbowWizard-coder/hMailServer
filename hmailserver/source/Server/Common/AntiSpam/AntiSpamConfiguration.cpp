@@ -12,6 +12,7 @@
 #include "../BO/WhiteListAddresses.h"
 #include "../BO/BlockedSenders.h"
 #include "../BO/SenderListEntries.h"
+#include "../BO/DomainPolicyEntries.h"
 #include "../Persistence/PersistentGreyList.h"
 
 #ifdef _DEBUG
@@ -269,6 +270,15 @@ namespace HM
       if (!senderList->XMLStore(pBackupNode, iOptions))
          return false;
 
+      // THE DOMAIN WHITE AND BLACK LIST (hm_domainpolicylist): the server's, as
+      // the lists above are.
+      std::shared_ptr<DomainPolicyEntries> domainPolicyList =
+         std::shared_ptr<DomainPolicyEntries>(new DomainPolicyEntries);
+      if (!domainPolicyList->Refresh())
+         return false;
+      if (!domainPolicyList->XMLStore(pBackupNode, iOptions))
+         return false;
+
       // DNS BLACK LISTS
       if (!dnsBlackLists_->XMLStore(pBackupNode, iOptions))
          return false;
@@ -307,6 +317,16 @@ namespace HM
       if (!senderList->Refresh())
          return false;
       if (!senderList->XMLLoad(pBackupNode, iRestoreOptions))
+         return false;
+
+      // THE DOMAIN WHITE AND BLACK LIST. Replaces the list, as every collection
+      // in this section replaces its own; an archive from before the list
+      // existed has no node for it and leaves it empty.
+      std::shared_ptr<DomainPolicyEntries> domainPolicyList =
+         std::shared_ptr<DomainPolicyEntries>(new DomainPolicyEntries);
+      if (!domainPolicyList->Refresh())
+         return false;
+      if (!domainPolicyList->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       // DNS BLACK LISTS
@@ -405,9 +425,93 @@ namespace HM
    }
 
    int
-   AntiSpamConfiguration::GetUseSPFScore() 
+   AntiSpamConfiguration::GetUseSPFScore()
    {
       return GetSettings_()->GetLong(PROPERTY_USESPFSCORE);
+   }
+
+   int
+   AntiSpamConfiguration::GetUseSPFSoftFailScore()
+   {
+      return GetSettings_()->GetLong(PROPERTY_USE_SPF_SOFTFAIL_SCORE);
+   }
+
+   void
+   AntiSpamConfiguration::SetUseSPFSoftFailScore(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_USE_SPF_SOFTFAIL_SCORE, newVal);
+   }
+
+   int
+   AntiSpamConfiguration::GetUseSPFTempErrorScore()
+   {
+      return GetSettings_()->GetLong(PROPERTY_USE_SPF_TEMPERROR_SCORE);
+   }
+
+   void
+   AntiSpamConfiguration::SetUseSPFTempErrorScore(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_USE_SPF_TEMPERROR_SCORE, newVal);
+   }
+
+   int
+   AntiSpamConfiguration::GetUseSPFPermErrorScore()
+   {
+      return GetSettings_()->GetLong(PROPERTY_USE_SPF_PERMERROR_SCORE);
+   }
+
+   void
+   AntiSpamConfiguration::SetUseSPFPermErrorScore(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_USE_SPF_PERMERROR_SCORE, newVal);
+   }
+
+   bool
+   AntiSpamConfiguration::GetSPFTempErrorDefer()
+   {
+      return GetSettings_()->GetBool(PROPERTY_SPF_TEMPERROR_DEFER);
+   }
+
+   void
+   AntiSpamConfiguration::SetSPFTempErrorDefer(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_SPF_TEMPERROR_DEFER, newVal);
+   }
+
+   bool
+   AntiSpamConfiguration::GetRejectMultiRcptNullSender()
+   {
+      return GetSettings_()->GetBool(PROPERTY_REJECT_MULTI_RCPT_NULL_SENDER);
+   }
+
+   void
+   AntiSpamConfiguration::SetRejectMultiRcptNullSender(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_REJECT_MULTI_RCPT_NULL_SENDER, newVal);
+   }
+
+   bool
+   AntiSpamConfiguration::GetBanMultiRcptNullSender()
+   {
+      return GetSettings_()->GetBool(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER);
+   }
+
+   void
+   AntiSpamConfiguration::SetBanMultiRcptNullSender(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER, newVal);
+   }
+
+   int
+   AntiSpamConfiguration::GetBanMultiRcptNullSenderHours()
+   {
+      return GetSettings_()->GetLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS);
+   }
+
+   void
+   AntiSpamConfiguration::SetBanMultiRcptNullSenderHours(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS, newVal);
    }
 
    void

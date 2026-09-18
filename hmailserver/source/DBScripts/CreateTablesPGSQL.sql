@@ -35,6 +35,8 @@ select hm_drop_table('hm_spamtraps');
 
 select hm_drop_table('hm_spamtraphits');
 
+select hm_drop_table('hm_domainpolicylist');
+
 select hm_drop_table('hm_calendarobjects');
 
 select hm_drop_table('hm_calendars');
@@ -2102,4 +2104,16 @@ CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
 ALTER TABLE hm_mailboxmoves ADD CONSTRAINT fk_hm_mailboxmoves_account FOREIGN KEY (mmaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6072);
+create table hm_domainpolicylist
+(
+	dplid serial not null primary key,
+	dplpattern varchar(255) not null,
+	dplmatchon int not null,
+	dplaction int not null,
+	dplnote varchar(255) not null,
+	dplcreated timestamp not null
+);
+
+CREATE UNIQUE INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon);
+
+insert into hm_dbversion values (6073);

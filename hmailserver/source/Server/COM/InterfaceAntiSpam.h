@@ -178,6 +178,25 @@ public:
    STDMETHOD(get_GreyListingAbuseLockMinutes)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_GreyListingAbuseLockMinutes)(/*[in]*/ long newVal);
 
+   // SMTP policy the score cannot express (discussions #283, #285, #286).
+   STDMETHOD(get_UseSPFSoftFailScore)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_UseSPFSoftFailScore)(/*[in]*/ long newVal);
+   STDMETHOD(get_UseSPFTempErrorScore)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_UseSPFTempErrorScore)(/*[in]*/ long newVal);
+   STDMETHOD(get_UseSPFPermErrorScore)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_UseSPFPermErrorScore)(/*[in]*/ long newVal);
+   STDMETHOD(get_SPFTempErrorDefer)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_SPFTempErrorDefer)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_RejectMultiRcptNullSender)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_RejectMultiRcptNullSender)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_BanMultiRcptNullSender)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_BanMultiRcptNullSender)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_BanMultiRcptNullSenderHours)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_BanMultiRcptNullSenderHours)(/*[in]*/ long newVal);
+   STDMETHOD(get_DomainPolicyList)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(AddDomainPolicyListEntry)(/*[in]*/ BSTR Pattern, /*[in]*/ BSTR MatchOn, /*[in]*/ BSTR Action, /*[in]*/ BSTR Note, /*[out, retval]*/ long *ID);
+   STDMETHOD(RemoveDomainPolicyListEntry)(/*[in]*/ long ID, /*[out, retval]*/ VARIANT_BOOL *Removed);
+
 private:
 
    HM::Configuration* config_;
